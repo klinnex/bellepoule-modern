@@ -52,7 +52,7 @@ const PHASES_BY_NUMBER: Record<number, Phase> = Object.fromEntries(
 export const phaseFromNumber = (n: number | undefined): Phase | undefined =>
   PHASES_BY_NUMBER[n ?? 0];
 
-interface SessionState {
+export interface SessionState {
   currentPhase: number;
   pools: Pool[];
   poolHistory: Pool[][];

@@ -17,17 +17,7 @@ import EmptyState from './common/EmptyState';
 import { PoolViewSkeleton } from './Skeleton';
 import { useOperation } from './common/OperationProgress';
 import { PhaseEmptyIcon } from './competition/phaseIcons';
-import {
-  Competition,
-  Fencer,
-  FencerStatus,
-  MatchStatus,
-  Weapon,
-  Referee,
-  Gender,
-  Pool,
-} from '../../shared/types';
-import { logger, LogCategory } from '@shared/services/logger';
+import { Competition, Fencer, FencerStatus, Weapon, Gender, Pool } from '../../shared/types';
 import FencerList from './FencerList';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import PoolRankingView from './PoolRankingView';
@@ -41,12 +31,12 @@ import {
 } from '../../shared/utils/splitCompetition';
 import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
-import { inferPoolsLaunched, poolsHaveScores } from './poolLaunchState';
+import { poolsHaveScores } from './poolLaunchState';
 import { persistPools } from './poolPersistence';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../hooks/useTranslation';
-import { useCompetitionSession, Phase, phaseFromNumber } from '../hooks/useCompetitionSession';
+import { Phase } from '../hooks/useCompetitionSession';
 import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
 import { buildStripQrs, useExport } from '../hooks/useExport';
@@ -62,23 +52,21 @@ import { buildMatchAuditOptions } from './competition/matchAuditOptions';
 import { CV_STYLES } from './competition/competitionViewStyles';
 import { useCompetitionNavigation } from '../hooks/useCompetitionNavigation';
 import { useCompetitionMenu } from '../hooks/useCompetitionMenu';
+import { useCompetitionBootstrap } from '../hooks/useCompetitionBootstrap';
+import { useCompetitionRestore } from '../hooks/useCompetitionRestore';
 import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
 import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
 import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../hooks/useMatchDbSync';
-import { filterPoolWinners } from '../../shared/utils/poolCalculations';
 import { seedFencersFromRanking } from '../../shared/utils/poolRounds';
 import {
-  applyTableauAdvancement,
   getActiveFormula,
-  getTableauAdvancement,
   isRapieresMode,
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
 import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
 import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
 import {
-  rapieresTableauQualifiers,
   rapieresPoolNumbers,
   rapieresSemifinalists,
   mergeFinalRanking,
@@ -109,6 +97,11 @@ import CompetitionSecondaryModals from './competition/CompetitionSecondaryModals
 import RefereesPhase from './competition/RefereesPhase';
 import TableauPhase from './competition/TableauPhase';
 import CompetitionPoolCard from './competition/CompetitionPoolCard';
+import PoolRoundSelector from './competition/PoolRoundSelector';
+import {
+  computeEffectiveTableauRanking,
+  computeMatchProgress,
+} from './competition/competitionDerived';
 import PoolsToolbar from './competition/PoolsToolbar';
 import SinglePoolNav from './competition/SinglePoolNav';
 
@@ -413,166 +406,55 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
   const [poolsLaunched, setPoolsLaunched] = useState(false);
 
-  const poolPrepParams = useMemo(
-    () => ({
-      poolCount: pools.length,
-      minFencersPerPool,
-      maxFencersPerPool,
-    }),
-    [pools.length, minFencersPerPool, maxFencersPerPool]
-  );
-
-  // Session state persistence
-  const { isLoaded, restoredState } = useCompetitionSession({
+  const { isLoaded, restoredState } = useCompetitionRestore({
     competitionId: competition.id,
     currentPhase,
+    setCurrentPhase,
     currentPoolRound,
+    setCurrentPoolRound,
     pools,
+    setPools,
     poolHistory,
+    setPoolHistory,
     appelHistory,
+    setAppelHistory,
     overallRanking,
+    setOverallRanking,
     tableauMatches,
+    setTableauMatches,
     finalResults,
+    setFinalResults,
     consolationBrackets,
+    setConsolationBrackets,
     skipPoolPhase,
+    setSkipPoolPhase,
+    setRankingValidated,
     remoteArenaCount,
+    setRemoteArenaCount,
     remoteStripStart,
-    rapieres: isRapieres ? rapieresState : undefined,
-    poolPrepParams,
+    setRemoteStripStart,
+    isRapieres,
+    rapieresState,
+    setRapieresState,
+    minFencersPerPool,
+    maxFencersPerPool,
+    setMinFencersPerPool,
+    setMaxFencersPerPool,
     poolsLaunched,
+    setPoolsLaunched,
   });
 
-  // Synchroniser le nombre d'arènes avec le nombre de poules
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (pools.length > 0) {
-      // Si les poules ont rétréci depuis le dernier run : clamp pour éviter des arènes fantômes.
-      const maxStrip = remoteStripStart + pools.length - 1;
-      if (!restoredState?.remoteArenaCount || remoteArenaCount > maxStrip) {
-        setRemoteArenaCount(maxStrip);
-      }
-    }
-  }, [isLoaded, pools.length, remoteArenaCount, remoteStripStart]);
-
-  // Restaurer l'état au chargement
-  useEffect(() => {
-    if (restoredState && isLoaded) {
-      const restoredPhase = phaseFromNumber(restoredState.currentPhase);
-      if (restoredPhase) setCurrentPhase(restoredPhase);
-      if (
-        ['tableau', 'results', 'remote', 'ranking'].includes(restoredPhase ?? '') ||
-        (restoredState.tableauMatches && restoredState.tableauMatches.length > 0)
-      ) {
-        setRankingValidated(true);
-      }
-      if (restoredState.currentPoolRound) setCurrentPoolRound(restoredState.currentPoolRound);
-      if (restoredState.pools) setPools(restoredState.pools);
-      if (restoredState.poolHistory) setPoolHistory(restoredState.poolHistory || []);
-      if (restoredState.appelHistory) setAppelHistory(restoredState.appelHistory);
-      if (restoredState.overallRanking) setOverallRanking(restoredState.overallRanking);
-      if (restoredState.tableauMatches) setTableauMatches(restoredState.tableauMatches);
-      if (restoredState.finalResults) setFinalResults(restoredState.finalResults);
-      if (restoredState.consolationBrackets?.length)
-        setConsolationBrackets(restoredState.consolationBrackets);
-      if (restoredState.poolPrepParams) {
-        setMinFencersPerPool(restoredState.poolPrepParams.minFencersPerPool);
-        setMaxFencersPerPool(restoredState.poolPrepParams.maxFencersPerPool);
-      }
-      if (restoredState.skipPoolPhase) setSkipPoolPhase(restoredState.skipPoolPhase);
-      setPoolsLaunched(
-        restoredState.poolsLaunched ??
-          inferPoolsLaunched(restoredPhase, restoredState.pools, restoredState.poolHistory)
-      );
-      if (restoredState.remoteArenaCount != null)
-        setRemoteArenaCount(restoredState.remoteArenaCount);
-      setRemoteStripStart(restoredState.remoteStripStart ?? 1);
-      if (restoredState.rapieres) setRapieresState(restoredState.rapieres);
-    }
-  }, [restoredState, isLoaded]);
-
-  // Fallback DB : si session state n'a pas de poules, essayer de les charger depuis la DB.
-  // Guard: ne pas déclencher si restoredState a déjà des poules (elles seront appliquées par
-  // l'effet [restoredState, isLoaded] dans le même cycle de rendu, évitant la race condition
-  // où l'IPC SQLite répond avant le prochain rendu React et écrase la session state).
-  useEffect(() => {
-    if (!isLoaded || pools.length > 0) return;
-    if (restoredState?.pools && restoredState.pools.length > 0) return;
-    let cancelled = false;
-    window.electronAPI.db
-      .getPhasesByCompetition(competition.id)
-      .then(phases => {
-        if (cancelled) return [];
-        const poolPhase = phases.find((p: { type: string }) => p.type === 'pool');
-        return poolPhase ? window.electronAPI.db.getPoolsByPhase(poolPhase.id) : [];
-      })
-      .then(dbPools => {
-        if (!cancelled && dbPools.length > 0) setPools(dbPools);
-      })
-      .catch((e: unknown) =>
-        logger.warn(
-          LogCategory.DATABASE,
-          'DB pool fallback failed',
-          e instanceof Error ? e : undefined
-        )
-      );
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, pools.length, competition.id, restoredState]);
-
-  // Rétablir isRemoteActive si une session est déjà en cours (ex: rechargement après phase poules)
-  useEffect(() => {
-    window.electronAPI.remote
-      .getSession(competition.id)
-      .then((result: any) => {
-        if (result?.success && result?.session) setIsRemoteActive(true);
-      })
-      .catch(() => {});
-  }, [competition.id]);
-
-  // Charger les tireurs au montage
-  useEffect(() => {
-    loadFencers();
-  }, [loadFencers]);
-
-  // Charger les arbitres si la fonction est activée
-  useEffect(() => {
-    if (!competition.settings?.refereeFeatureEnabled) return;
-    window.electronAPI.db
-      .getRefereesByCompetition(competition.id)
-      .then((rows: Referee[]) => setReferees(rows))
-      .catch(() => {});
-  }, [competition.id, competition.settings?.refereeFeatureEnabled]);
-
-  // Synchroniser les photos/données tireurs dans les matches de poule à chaque mise à jour
-  useEffect(() => {
-    if (fencers.length > 0) {
-      syncFencersToPool(fencers);
-    }
-  }, [fencers]);
-
-  // Restaurer l'état actif de la saisie distante si le serveur tourne déjà (ex : retour sur l'onglet)
-  useEffect(() => {
-    if (!window.electronAPI?.remote) return;
-    window.electronAPI.remote.getServerInfo(competition.id).then((res: any) => {
-      if (res?.success && res.serverInfo) {
-        setIsRemoteActive(true);
-        setRemoteServerUrl(res.serverInfo.url);
-      }
-    });
-  }, [competition.id]);
-
-  // Mettre à jour l'URL du serveur distant quand il devient actif
-  useEffect(() => {
-    if (!isRemoteActive || !window.electronAPI?.remote) return;
-    // Petit délai pour laisser le serveur démarrer si besoin
-    const timer = setTimeout(() => {
-      window.electronAPI.remote.getServerInfo(competition.id).then((res: any) => {
-        if (res?.success && res.serverInfo) setRemoteServerUrl(res.serverInfo.url);
-      });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [isRemoteActive, competition.id]);
+  useCompetitionBootstrap({
+    competitionId: competition.id,
+    refereeFeatureEnabled: !!competition.settings?.refereeFeatureEnabled,
+    fencers,
+    loadFencers,
+    syncFencersToPool,
+    setReferees,
+    isRemoteActive,
+    setIsRemoteActive,
+    setRemoteServerUrl,
+  });
 
   // Scores, cartons et pistes distants (#1599)
   const { fireWebhookNotif } = useRemoteScoreSync({
@@ -876,58 +758,35 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   }, [modals.showActionsMenu, setShowActionsMenu]);
 
   // Classement effectif pour le tableau (filtré par vainqueurs de poule et/ou groupe actif)
-  const effectiveTableauRanking = useMemo(() => {
-    let ranking = overallRanking;
-    if (isRapieres && pools.length > 0) {
-      // Rapières : toutes les équipes, ou les 4 demi-finalistes (#1441)
-      ranking = rapieresTableauQualifiers(pools, ranking, rapieres.tableauMode);
-    } else if (poolWinnersOnly && pools.length > 0) {
-      ranking = filterPoolWinners(pools, ranking);
-    } else if (customFormula) {
-      // Qualifiés pour le tableau selon la formule (pourcentage, nombre, taille de tableau)
-      ranking = applyTableauAdvancement(ranking, getTableauAdvancement(customFormula));
-    }
-    if (postPoolSplitCriteria === 'gender' && activeSplitGroup) {
-      ranking = ranking
-        .filter(r => (r.fencer.gender as string) === activeSplitGroup)
-        .map((r, i) => ({ ...r, rank: i + 1 }));
-    } else if (postPoolSplitCriteria === 'gender' && splitOffCompetitionIds) {
-      // Groupes extraits dans une compétition séparée : exclus du tableau de cette compétition
-      ranking = ranking
-        .filter(r => !splitOffCompetitionIds[r.fencer.gender as string])
-        .map((r, i) => ({ ...r, rank: i + 1 }));
-    }
-    return ranking;
-  }, [
-    overallRanking,
-    pools,
-    isRapieres,
-    rapieres.tableauMode,
-    poolWinnersOnly,
-    customFormula,
-    postPoolSplitCriteria,
-    activeSplitGroup,
-    splitOffCompetitionIds,
-  ]);
+  const effectiveTableauRanking = useMemo(
+    () =>
+      computeEffectiveTableauRanking(overallRanking, pools, {
+        isRapieres,
+        rapieresTableauMode: rapieres.tableauMode,
+        poolWinnersOnly,
+        customFormula,
+        postPoolSplitCriteria,
+        activeSplitGroup,
+        splitOffCompetitionIds,
+      }),
+    [
+      overallRanking,
+      pools,
+      isRapieres,
+      rapieres.tableauMode,
+      poolWinnersOnly,
+      customFormula,
+      postPoolSplitCriteria,
+      activeSplitGroup,
+      splitOffCompetitionIds,
+    ]
+  );
 
   // Calcul progression matchs
-  const matchProgress = useMemo(() => {
-    if (pools.length === 0 && tableauMatches.length === 0) return null;
-    if (pools.length > 0) {
-      const total = pools.reduce((s, p) => s + p.matches.length, 0);
-      const done = pools.reduce(
-        (s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
-        0
-      );
-      return { done, total, label: 'poules' };
-    }
-    if (tableauMatches.length > 0) {
-      const total = tableauMatches.filter(m => m.fencerA && m.fencerB).length;
-      const done = tableauMatches.filter(m => m.winner !== null).length;
-      return { done, total, label: 'tableau' };
-    }
-    return null;
-  }, [pools, tableauMatches]);
+  const matchProgress = useMemo(
+    () => computeMatchProgress(pools, tableauMatches),
+    [pools, tableauMatches]
+  );
 
   // Matchs + arbitres assignés pour l'onglet Historique
   const matchAuditOptions = useMemo(
@@ -955,28 +814,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Sélecteur de tour (#1051) : visible dès qu'un tour est terminé
   const poolRoundSelector =
     poolRounds > 1 && poolHistory.length > 0 ? (
-      <div style={CV_STYLES.roundSelector}>
-        <label htmlFor="pool-round-select" style={{ fontWeight: 600 }}>
-          {t('pools.round_select_label')}
-        </label>
-        <select
-          id="pool-round-select"
-          className="form-input"
-          style={{ width: 'auto', fontWeight: 600 }}
-          value={viewedPoolRound ?? currentPoolRound}
-          onChange={e => {
-            const r = Number(e.target.value);
-            setViewedPoolRound(r === currentPoolRound ? null : r);
-          }}
-        >
-          {Array.from({ length: currentPoolRound }, (_, i) => i + 1).map(r => (
-            <option key={r} value={r}>
-              {t('pools.round_option', { n: r })}
-              {r === currentPoolRound ? ` (${t('pools.round_current')})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
+      <PoolRoundSelector
+        currentPoolRound={currentPoolRound}
+        viewedPoolRound={viewedPoolRound}
+        onViewRound={setViewedPoolRound}
+      />
     ) : null;
 
   const handlePoolStripChange = usePoolStripChange(competition.id, pools, setPools);
