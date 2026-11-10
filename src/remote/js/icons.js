@@ -139,19 +139,22 @@
 
   const MEDAL_COLORS = ['var(--tw-amber-400)', 'var(--tw-slate-300)', 'var(--tw-orange-600)'];
 
-  /** Rang 1-3 : médaille colorée (or, argent, bronze) ; au-delà : « Ne » (1er → « 1er ») */
+  /** Rang 1-3 : médaille colorée (or, argent, bronze) nommée « Ne » ; au-delà : texte « Ne » */
   function rank(r, suffix) {
     const n = Number(r);
+    const label = esc(n + (suffix == null ? 'e' : suffix));
     if (n >= 1 && n <= 3) {
       return (
-        '<span class="bp-medal" style="color:' +
+        '<span class="bp-medal" role="img" aria-label="' +
+        label +
+        '" style="color:' +
         MEDAL_COLORS[n - 1] +
         '">' +
         svg('medal') +
         '</span>'
       );
     }
-    return esc(n + (suffix == null ? 'e' : suffix));
+    return label;
   }
 
   const api = { svg, hydrate, rank, names: Object.keys(PATHS) };
@@ -159,6 +162,7 @@
   if (root) {
     root.BPIcons = api;
     root.bpIcon = svg;
+    root.bpRank = rank;
     if (root.document) {
       if (root.document.readyState === 'loading') {
         root.document.addEventListener('DOMContentLoaded', () => hydrate());

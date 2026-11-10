@@ -57,6 +57,7 @@ describe('icons.js', () => {
 
   it('rank : médaille pour 1-3, texte au-delà', () => {
     expect(rank(1)).toContain('<svg');
+    expect(rank(2)).toContain('aria-label="2e"');
     expect(rank(3)).toContain('--tw-orange-600');
     expect(rank(4)).toBe('4e');
     expect(rank(7, '')).toBe('7');
@@ -71,7 +72,7 @@ describe('pages distantes', () => {
   const pages = fs.readdirSync(remoteDir).filter(f => f.endsWith('.html'));
   it.each(pages)('%s charge /js/icons.js dès qu’elle utilise une icône', page => {
     const text = fs.readFileSync(path.join(remoteDir, page), 'utf8');
-    if (/data-icon=|bpIcon\(|BPIcons\./.test(text)) {
+    if (/data-icon=|bpIcon\(|bpRank\(|BPIcons\./.test(text)) {
       expect(text).toContain('src="/js/icons.js"');
     }
   });

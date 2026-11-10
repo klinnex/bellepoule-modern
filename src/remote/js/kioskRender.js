@@ -7,6 +7,8 @@
 (function (root) {
   'use strict';
 
+  const bpIcon = name => (root && typeof root.bpIcon === 'function' ? root.bpIcon(name) : '');
+
   const signed = n => (n >= 0 ? '+' : '') + (n || 0);
 
   /** Poule terminée : indicateur serveur (forfaits/abandons, #1144) sinon tous les matchs joués */
@@ -19,7 +21,9 @@
 
   function noDataHtml(tk, escHtml) {
     return (
-      '<div class="no-data"><div class="no-data-icon">🤺</div><h3>' +
+      '<div class="no-data"><div class="no-data-icon">' +
+      bpIcon('users') +
+      '</div><h3>' +
       escHtml(tk('kiosk.no_pools')) +
       '</h3><p>' +
       escHtml(tk('kiosk.no_pools_hint')) +
