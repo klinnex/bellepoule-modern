@@ -4,7 +4,9 @@
  * Licensed under GPL-3.0
  */
 
+import type { Fencer } from '../../../shared/types';
 import { LASER_FORFEIT_WINNER_SCORE } from '../../../shared/utils/poolCalculations';
+import type { SpecialStatusFencer } from '../common/SpecialStatusPanel';
 
 export interface SpecialStatusOutcomeInput {
   /** Côté AFFICHÉ du tireur désigné */
@@ -47,3 +49,12 @@ export function specialStatusOutcome(i: SpecialStatusOutcomeInput): SpecialStatu
     loser,
   };
 }
+
+export const specialStatusFencers = (
+  left?: Fencer | null,
+  right?: Fencer | null
+): [SpecialStatusFencer | null, SpecialStatusFencer | null] => {
+  const toItem = (f?: Fencer | null) =>
+    f ? { id: f.id, name: `${f.lastName} ${f.firstName ?? ''}`.trim() } : null;
+  return [toItem(left), toItem(right)];
+};
