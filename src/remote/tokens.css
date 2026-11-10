@@ -43,6 +43,8 @@
   --shadow-lg: 0 12px 40px rgba(26, 25, 22, 0.14), 0 4px 12px rgba(26, 25, 22, 0.08);
 
   /* Palette des pages plein écran sombres (connexion, pointage, lobby, inscription) */
+  /* Icône « épées » (lucide) en image de fond : coup important du kiosque (#1532) */
+  --bp-img-swords: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 19 6-6'/%3E%3Cpath d='M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5'/%3E%3Cpath d='m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586'/%3E%3Cpath d='m16 16 4 4'/%3E%3Cpath d='m19 21 2-2'/%3E%3Cpath d='m5 14 4 4'/%3E%3Cpath d='m5 21-2-2'/%3E%3Cpath d='M7.5 16.5 4 20'/%3E%3C/svg%3E");
   --color-white: #ffffff;
   --color-black: #000000;
   --slate-900: #0f172a;

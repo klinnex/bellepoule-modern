@@ -103,7 +103,7 @@ describe('kioskBracketRender.js', () => {
     expect(html).toContain('<div class="bm-arena">Piste 2</div>');
     expect(html).toContain('bracket-round-label active-round');
     expect(html).toContain('<path d="M110,25');
-    expect(html).toContain('🏆 Dupont Jean');
+    expect(html).toContain('Dupont Jean');
     expect(html).toContain('TBD'); // finale sans second tireur
   });
 
@@ -158,6 +158,6 @@ describe('kioskBracketRender.js', () => {
       fs.readFileSync(path.join(__dirname, 'kioskApp.js'), 'utf8'); // page + script extrait (#1600)
     expect(html).toContain('<script src="/js/kioskBracketRender.js"></script>');
     expect(html).toContain('KioskBracketRender.buildCompactBracket(');
-    expect(html).not.toContain('bracket-trophy-banner">🏆');
+    expect(html).not.toContain('class="bracket-trophy-banner">');
   });
 });

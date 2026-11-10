@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="kiosk.page_title">Kiosk - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
-    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
+    <script src="/common.js"></script><script src="/js/icons.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/i18n.js"></script>
     <script src="/js/kioskBracketUtils.js"></script>
     <script src="/js/kioskConfig.js"></script>
@@ -760,8 +760,7 @@
         animation: score-pop-flash 0.65s ease-out forwards;
       }
 
-      /* Option C — Épéiste slash (fun 🤺) */
-      /* Déclenché quand le score augmente d'un coup important (≥3 pts) */
+      /* Option C — Épéiste slash (fun), déclenché quand le score augmente d'un coup important (≥3 pts) */
       @keyframes epee-slash {
         0% {
           left: -1.8em;
@@ -783,12 +782,13 @@
       }
 
       .score-slash::after {
-        content: '🤺';
+        content: '';
         position: absolute;
         top: 50%;
         transform: translateY(-55%) rotate(-15deg);
-        font-size: 0.85rem;
-        pointer-events: none;
+        width: 1.1rem;
+        height: 1.1rem;
+        background: var(--bp-img-swords) center / contain no-repeat;
         animation: epee-slash 0.55s ease-in forwards;
       }
 
@@ -1350,7 +1350,7 @@
       <div id="progress-bar"></div>
     </div>
 
-    <!-- Fin estimée de la phase (#1077, désactivable : ⚙ ou config kiosk) -->
+    <!-- Fin estimée de la phase (#1077, désactivable : bouton Configuration ou config kiosk) -->
     <div id="kiosk-eta" hidden>
       <span id="kiosk-eta-label" data-i18n="dashboard.eta">Fin estimée</span>
       <strong id="kiosk-eta-time">--:--</strong>
@@ -1359,7 +1359,7 @@
 
     <!-- Overlay note d'organisation -->
     <div id="org-note-overlay" role="status" aria-live="polite">
-      <div id="org-note-label" data-i18n="kiosk.pause">⏸ Pause</div>
+      <div id="org-note-label"><span data-icon="pause"></span> <span data-i18n="kiosk.pause">Pause</span></div>
       <div id="org-note-time"></div>
       <div id="org-note-countdown"></div>
       <div id="org-note-message"></div>
@@ -1381,7 +1381,7 @@
             border-radius: 3px;
           "
         />
-        <span class="menu-title">🏆 BellePoule</span>
+        <span class="menu-title"><span data-icon="trophy"></span> BellePoule</span>
         <span class="menu-competition" id="menu-competition-name">—</span>
       </div>
       <div class="menu-nav">
@@ -1419,7 +1419,7 @@
             title="Configurer les vues"
             data-i18n-title="kiosk.configure_views"
           >
-            ⚙
+            <span data-icon="settings"></span>
           </button>
           <div id="settings-panel" class="settings-panel hidden">
             <div class="settings-title" data-i18n="kiosk.settings_title">Vues affichées</div>
@@ -1529,7 +1529,7 @@
       </div>
       <div class="pools-grid" id="pools-container">
         <div class="no-data">
-          <div class="no-data-icon">🤺</div>
+          <div class="no-data-icon"><span data-icon="users"></span></div>
           <h3 data-i18n="kiosk.no_pools">Aucune poule disponible</h3>
           <p data-i18n="kiosk.no_pools_hint">Démarrez la compétition pour voir les poules</p>
         </div>
@@ -1578,7 +1578,7 @@
     <div id="view-final" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title" data-i18n="kiosk.final_ranking_title">🏆 Classement Final</div>
+          <div class="view-title"><span data-icon="trophy"></span> <span data-i18n="kiosk.final_ranking_title">Classement Final</span></div>
           <div class="view-subtitle" data-i18n="kiosk.final_subtitle">
             Résultats définitifs de la compétition
           </div>
@@ -1588,8 +1588,8 @@
       <div
         id="final-ranking-body"
        class="inl-2b40b2">
-        <div class="final-ranking-not-done" data-i18n="kiosk.not_finished">
-          ⏳ Compétition non terminée
+        <div class="final-ranking-not-done">
+          <span data-icon="hourglass"></span> <span data-i18n="kiosk.not_finished">Compétition non terminée</span>
         </div>
       </div>
     </div>
@@ -1605,7 +1605,7 @@
       </div>
       <div class="suivants-list" id="suivants-container">
         <div class="no-data">
-          <div class="no-data-icon">📋</div>
+          <div class="no-data-icon"><span data-icon="list"></span></div>
           <h3 data-i18n="kiosk.no_next">Aucun match à venir</h3>
           <p data-i18n="kiosk.no_next_hint">Les matchs suivants apparaîtront ici</p>
         </div>
@@ -1624,7 +1624,7 @@
       <div class="bracket-outer" id="bracket-outer">
         <div class="bracket-inner" id="bracket-inner">
           <div class="no-data">
-            <div class="no-data-icon">🏆</div>
+            <div class="no-data-icon"><span data-icon="trophy"></span></div>
             <h3 data-i18n="kiosk.no_bracket">Tableau non disponible</h3>
             <p data-i18n="kiosk.no_bracket_hint">
               Le tableau apparaîtra lors de la phase d'élimination directe
@@ -1660,7 +1660,7 @@
       </div>
       <div class="arenas-grid" id="arenas-container">
         <div class="no-data">
-          <div class="no-data-icon">⏱️</div>
+          <div class="no-data-icon"><span data-icon="timer"></span></div>
           <h3 data-i18n="kiosk.no_live">Aucun match en cours</h3>
           <p data-i18n="kiosk.no_live_hint">Les matchs apparaîtront ici en temps réel</p>
         </div>
