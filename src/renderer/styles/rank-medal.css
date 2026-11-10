@@ -1,4 +1,4 @@
-/* Médailles de classement (RankMedal, #1532) : couleurs de métaux */
+/* Médailles de classement (RankMedal) et cartons (CardIcon), #1532 */
 .rank-medal-1 {
   color: #d4a017;
 }
@@ -8,8 +8,30 @@
 .rank-medal-3 {
   color: #b0702f;
 }
+.card-icon {
+  fill: currentColor;
+  vertical-align: -0.125em;
+}
+.card-icon-white {
+  color: #fff;
+  stroke: #6b7280;
+}
+.card-icon-yellow {
+  color: #facc15;
+  stroke: #a16207;
+}
+.card-icon-red {
+  color: #dc2626;
+  stroke: #991b1b;
+}
+.card-icon-black {
+  color: #111827;
+  stroke: #111827;
+}
 @media (forced-colors: active) {
-  .rank-medal {
+  .rank-medal,
+  .card-icon {
     color: CanvasText;
+    stroke: CanvasText;
   }
 }

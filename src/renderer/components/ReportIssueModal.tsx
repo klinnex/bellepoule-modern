@@ -93,7 +93,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
 
     // Construire l'URL GitHub
     const labels = issueType === 'bug' ? 'bug' : 'enhancement';
-    const issueTitle = issueType === 'bug' ? `🐛 ${title}` : `✨ ${title}`;
+    const issueTitle = issueType === 'bug' ? `[Bug] ${title}` : `[Suggestion] ${title}`;
 
     const params = new URLSearchParams({
       title: issueTitle,

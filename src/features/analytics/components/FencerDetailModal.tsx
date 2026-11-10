@@ -8,6 +8,7 @@ import { Competition, FencerCompetitionStats } from '../../../shared/types';
 import { FencerMatchRecord } from '../../../shared/types/preload';
 import { useTranslation } from '../../../renderer/contexts/TranslationContext';
 import { exportFencerDetailPDF } from '../../../shared/utils/fencerDetailPdfExport';
+import { CardIcon } from '../../../renderer/components/common/CardIcon';
 import { TouchZoneHeatmap } from '../../../renderer/components/analytics/TouchZoneHeatmap';
 
 interface Props {
@@ -69,12 +70,6 @@ function matchOutcome(rec: FencerMatchRecord): {
   return { myScore: mine?.value ?? null, oppScore: opp?.value ?? null, isVictory, outcomeLabel };
 }
 
-const CARD_EMOJI: Record<string, string> = {
-  white: '⬜',
-  yellow: '🟡',
-  red: '🔴',
-  black: '⬛',
-};
 const CARD_COLOR: Record<string, string> = {
   white: 'text-gray-400',
   yellow: 'text-yellow-600',
@@ -319,7 +314,6 @@ export const FencerDetailModal: React.FC<Props> = ({ fencer, competition, onClos
                           );
                         } else {
                           const ct = ev.data.cardType.toLowerCase();
-                          const emoji = CARD_EMOJI[ct] ?? '❓';
                           const colorClass = CARD_COLOR[ct] ?? 'text-gray-600';
                           const reason =
                             labels[ev.data.reason.toUpperCase()] ??
@@ -330,7 +324,7 @@ export const FencerDetailModal: React.FC<Props> = ({ fencer, competition, onClos
                                 {time}
                               </span>
                               <span className={colorClass}>
-                                {emoji} {reason}
+                                <CardIcon type={ct} /> {reason}
                                 {ev.data.resultingExclusion && (
                                   <span className="text-red-700 font-bold">
                                     {t('fencerDetail.exclusion')}

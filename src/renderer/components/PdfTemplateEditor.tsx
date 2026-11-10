@@ -12,8 +12,8 @@ const LOGO_KEY = 'bellepoule-logo';
 
 const COLOR_PRESETS: { label: string; colors: PdfColorScheme }[] = [
   { label: 'Classique', colors: { navy: '#1a2e4a', gold: '#c9a227', green: '#166534' } },
-  { label: '⚡ Sabre Laser', colors: { navy: '#1e0a5c', gold: '#6d28d9', green: '#2563eb' } },
-  { label: '🇫🇷 FFE Officielle', colors: { navy: '#990000', gold: '#e30613', green: '#003189' } },
+  { label: 'Sabre Laser', colors: { navy: '#1e0a5c', gold: '#6d28d9', green: '#2563eb' } },
+  { label: 'FFE Officielle', colors: { navy: '#990000', gold: '#e30613', green: '#003189' } },
 ];
 
 interface Props {

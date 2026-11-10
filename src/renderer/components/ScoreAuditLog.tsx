@@ -130,7 +130,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   // Écoute des alertes de conflit IP
   useEffect(() => {
     const unsub = window.electronAPI.onScoreIpConflict((conflict: ScoreIpConflict) => {
-      const msg = `⚠️ Conflit IP — Poule ${conflict.poolNumber ?? '?'} Match ${conflict.matchNumber ?? '?'} : ${conflict.attemptReferee} (${conflict.attemptIp}) tente de modifier un score saisi par ${conflict.originalReferee ?? 'inconnu'} (${conflict.originalIp})`;
+      const msg = `Conflit IP — Poule ${conflict.poolNumber ?? '?'} Match ${conflict.matchNumber ?? '?'} : ${conflict.attemptReferee} (${conflict.attemptIp}) tente de modifier un score saisi par ${conflict.originalReferee ?? 'inconnu'} (${conflict.originalIp})`;
       showToast(msg, 'error');
       load();
     });

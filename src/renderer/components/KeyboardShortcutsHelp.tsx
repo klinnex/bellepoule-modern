@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/TranslationContext';
 import { SLASH_COMMANDS, SHOW_SHORTCUTS_EVENT } from '../services/slashCommands';
-import { Keyboard } from 'lucide-react';
+import { Command, Compass, Globe, Keyboard, Swords, Zap } from 'lucide-react';
 import { Icon } from './common/Icon';
 
 interface Shortcut {
@@ -91,12 +91,12 @@ export const KeyboardShortcutsHelp: React.FC = () => {
   if (!isOpen) return null;
 
   const categories = [
-    { id: 'all', label: t('shortcuts.category_all'), icon: '⌨️' },
-    { id: 'global', label: t('shortcuts.category_global'), icon: '🌍' },
-    { id: 'navigation', label: t('shortcuts.category_navigation'), icon: '🧭' },
-    { id: 'actions', label: t('shortcuts.category_actions'), icon: '⚡' },
-    { id: 'competition', label: t('shortcuts.category_competition'), icon: '🤺' },
-    { id: 'commands', label: t('shortcuts.category_commands'), icon: '⌘' },
+    { id: 'all', label: t('shortcuts.category_all'), icon: Keyboard },
+    { id: 'global', label: t('shortcuts.category_global'), icon: Globe },
+    { id: 'navigation', label: t('shortcuts.category_navigation'), icon: Compass },
+    { id: 'actions', label: t('shortcuts.category_actions'), icon: Zap },
+    { id: 'competition', label: t('shortcuts.category_competition'), icon: Swords },
+    { id: 'commands', label: t('shortcuts.category_commands'), icon: Command },
   ];
 
   const filteredShortcuts =
@@ -197,7 +197,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 color: activeCategory === cat.id ? 'white' : 'var(--color-text)',
               }}
             >
-              {cat.icon} {cat.label}
+              <Icon icon={cat.icon} /> {cat.label}
             </button>
           ))}
         </div>

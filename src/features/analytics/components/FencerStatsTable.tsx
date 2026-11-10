@@ -7,6 +7,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { FencerMatchRecord } from '../../../shared/types/preload';
 import { useTranslation } from '../../../renderer/contexts/TranslationContext';
+import { CardIcon } from '../../../renderer/components/common/CardIcon';
 import { FencerDetailModal } from './FencerDetailModal';
 import { exportCompetitionDetailPDF } from '../../../shared/utils/fencerDetailPdfExport';
 
@@ -164,7 +165,10 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
     }
   };
 
-  const Th: React.FC<{ k: keyof FencerCompetitionStats; label: string }> = ({ k, label }) => (
+  const Th: React.FC<{ k: keyof FencerCompetitionStats; label: React.ReactNode }> = ({
+    k,
+    label,
+  }) => (
     <th
       className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
       onClick={() => handleSort(k)}
@@ -231,9 +235,15 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                     <Th k="totalTouchPoints" label={t('stats.total_points')} />
                   </>
                 )}
-                <Th k="whiteCards" label="⬜" />
-                <Th k="yellowCards" label="🟡" />
-                <Th k="redCards" label="🔴" />
+                <Th
+                  k="whiteCards"
+                  label={<CardIcon type="white" label={t('stats.white_cards')} />}
+                />
+                <Th
+                  k="yellowCards"
+                  label={<CardIcon type="yellow" label={t('stats.yellow_cards')} />}
+                />
+                <Th k="redCards" label={<CardIcon type="red" label={t('stats.red_cards')} />} />
                 <Th k="arenaExits" label={t('stats.arena_exits')} />
                 <Th k="matchesPlayed" label={t('stats.matches_played')} />
                 <Th k="averageDurationSeconds" label={t('stats.avg_duration')} />
