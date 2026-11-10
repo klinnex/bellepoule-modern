@@ -8,7 +8,8 @@ import fs from 'fs';
 import path from 'path';
 
 const req = createRequire(import.meta.url);
-const { setBannerLines, arenaIdFromPath, applyArenaTheme } = req('./arenaDisplayUtils.js');
+const { setBannerLines, arenaIdFromPath, applyArenaTheme, applyScreenTheme } =
+  req('./arenaDisplayUtils.js');
 
 const store = () => {
   const m: Record<string, string> = {};
@@ -65,5 +66,25 @@ describe('arenaDisplayUtils.js', () => {
     expect(tag).toBeGreaterThan(-1);
     expect(tag).toBeLessThan(html.indexOf('class ArenaDisplay'));
     expect(html).not.toContain('function setBannerLines');
+  });
+
+  it('applyScreenTheme : variables sur :root puis retrait (#1600)', () => {
+    document.documentElement.setAttribute('data-screen-theme', 'x');
+    applyScreenTheme(document, { '--a': '1', '--b': '2' });
+    const st = document.getElementById('screen-theme-style')!;
+    expect(st.textContent).toBe(':root {\n  --a: 1;\n  --b: 2;\n}');
+    applyScreenTheme(document, { '--a': '3' });
+    expect(document.querySelectorAll('#screen-theme-style').length).toBe(1);
+    applyScreenTheme(document, null);
+    expect(document.getElementById('screen-theme-style')).toBeNull();
+    expect(document.documentElement.hasAttribute('data-screen-theme')).toBe(false);
+  });
+
+  it('public, pool et referee partagent applyScreenTheme (plus de copie inline)', () => {
+    for (const page of ['public', 'pool', 'referee']) {
+      const html = fs.readFileSync(path.join(__dirname, '..', page + '.html'), 'utf8');
+      expect(html, page).toContain('<script src="/js/arenaDisplayUtils.js"></script>');
+      expect(html, page).not.toContain('function applyScreenTheme');
+    }
   });
 });

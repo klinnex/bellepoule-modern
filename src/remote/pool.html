@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="pool.page_title">Saisie Poule – BellePoule</title>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/arenaDisplayUtils.js"></script>
     <script src="/js/ui.js" data-bp-init></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -579,17 +579,7 @@
     </div>
 
     <script>
-      function applyScreenTheme(variables) {
-        if (!variables) {
-          const old = document.getElementById('screen-theme-style');
-          if (old) old.remove();
-          return;
-        }
-        let styleEl = document.getElementById('screen-theme-style');
-        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
-        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
-        styleEl.textContent = `:root {\n${vars}\n}`;
-      }
+      const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 
       window.initRemoteI18n().catch(() => {});
 

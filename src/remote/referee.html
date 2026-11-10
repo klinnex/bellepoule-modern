@@ -14,7 +14,7 @@
     <script src="/js/refereeTts.js"></script>
     <script src="/js/refereeControls.js"></script>
     <script src="/js/refereeUpdate.js"></script>
-    <script src="/js/refereeScoring.js"></script>
+    <script src="/js/arenaDisplayUtils.js"></script><script src="/js/refereeScoring.js"></script>
     <script src="/js/refereeCards.js"></script><script src="/js/refereeFeedback.js" data-bp-init></script>
     <script src="/js/refereeTimer.js"></script>
     <script src="/js/refereeLists.js"></script>
@@ -1689,18 +1689,7 @@
     <div class="notification" id="notification"></div>
 
     <script>
-      function applyScreenTheme(variables) {
-        if (!variables) {
-          document.documentElement.removeAttribute('data-screen-theme');
-          const old = document.getElementById('screen-theme-style');
-          if (old) old.remove();
-          return;
-        }
-        let styleEl = document.getElementById('screen-theme-style');
-        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
-        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
-        styleEl.textContent = `:root {\n${vars}\n}`;
-      }
+      const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
       // escHtml : helper partagé (/common.js)
     </script>
     <script>
