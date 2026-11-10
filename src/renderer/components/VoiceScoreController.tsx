@@ -6,6 +6,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { CircleCheck, Mic } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface VoiceCommand {
   command: string;
@@ -205,7 +207,7 @@ export const VoiceScoreController: React.FC<{
             animation: isListening ? 'pulse 1.5s infinite' : 'none',
           }}
         >
-          🎤
+          <Icon icon={Mic} />
         </div>
         <div>
           <h3 className="is-175b6f">{t('voice.title')}</h3>
@@ -275,7 +277,7 @@ export const VoiceScoreController: React.FC<{
             color: '#065f46',
           }}
         >
-          ✅ {lastCommand}
+          <Icon icon={CircleCheck} /> {lastCommand}
         </div>
       )}
 

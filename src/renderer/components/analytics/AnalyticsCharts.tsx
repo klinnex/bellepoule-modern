@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { TouchZoneHeatmap } from './TouchZoneHeatmap';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ChartColumn, Download } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 type TFn = ReturnType<typeof useTranslation>['t'];
 
@@ -378,7 +380,9 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
   if (stats.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
-        <div className="text-4xl mb-3">📊</div>
+        <div className="text-4xl mb-3">
+          <Icon icon={ChartColumn} />
+        </div>
         <div>{t('analyticsCharts.empty')}</div>
       </div>
     );
@@ -402,7 +406,13 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
           disabled={exporting}
           className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
         >
-          {exporting ? t('analyticsCharts.exporting') : '⬇ CSV'}
+          {exporting ? (
+            t('analyticsCharts.exporting')
+          ) : (
+            <>
+              <Icon icon={Download} /> CSV
+            </>
+          )}
         </button>
       </div>
 

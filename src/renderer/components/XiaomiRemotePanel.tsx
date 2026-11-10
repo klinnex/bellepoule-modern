@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Lightbulb, Lock, Monitor, Pencil, Tv } from 'lucide-react';
+import { ArrowLeftRight, Lightbulb, Lock, Monitor, Pencil, Tv } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
@@ -561,7 +561,11 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   (a, b) =>
                     (
                       <>
-                        {a} <span className="is-4cd15e">↔</span> {b}
+                        {a}{' '}
+                        <span className="is-4cd15e">
+                          <Icon icon={ArrowLeftRight} />
+                        </span>{' '}
+                        {b}
                       </>
                     ) as any
                 )}

@@ -22,6 +22,8 @@ import {
 } from '../../shared/utils/suddenDeath';
 import TiebreakerAnimation from './TiebreakerAnimation';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
+import { Mic } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface TouchOptimizedRefereeProps {
   match: Match;
@@ -725,7 +727,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                 voiceEnabled ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'
               }`}
             >
-              🎤 {voiceEnabled ? 'Actif' : 'Inactif'}
+              <Icon icon={Mic} /> {voiceEnabled ? 'Actif' : 'Inactif'}
             </button>
             {isListening && (
               <div className="flex items-center space-x-2">

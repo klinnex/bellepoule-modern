@@ -9,6 +9,8 @@ import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
+import { Gavel, Square, SquareCheck } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 type RefereeInfo = { id: string; firstName: string; lastName: string };
 
@@ -119,7 +121,8 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                     aria-pressed={selected}
                     style={{ ...REF_BTN, textAlign: 'left' }}
                   >
-                    {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
+                    <Icon icon={selected ? SquareCheck : Square} /> {selected && `${order + 1}.`}{' '}
+                    <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
                     {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
                   </Button>
                 );
@@ -139,7 +142,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                   }
                   style={{ ...REF_BTN, textAlign: 'left' }}
                 >
-                  🧑‍⚖️ {ref.lastName} {ref.firstName}
+                  <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
                   {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
                 </Button>
               ))}

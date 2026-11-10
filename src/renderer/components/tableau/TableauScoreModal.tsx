@@ -13,6 +13,8 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
 import { Button } from '../common/Button';
+import { Ban, ClipboardList, Coins, Pause } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -242,7 +244,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               <div className="tableau-tie-actions">
                 {canDrawLots && (
                   <Button type="button" variant="warning" onClick={() => setShowCoinFlip(true)}>
-                    🪙 {t('tableauScore.coin_flip')}
+                    <Icon icon={Coins} /> {t('tableauScore.coin_flip')}
                   </Button>
                 )}
               </div>
@@ -264,18 +266,18 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                 className="is-d1e548"
                 onClick={() => setPendingStatus('forfait')}
               >
-                📋 {t('tableauScore.forfait')}
+                <Icon icon={ClipboardList} /> {t('tableauScore.forfait')}
               </Button>
               <Button
                 variant="danger"
                 className="is-d1e548"
                 onClick={() => setPendingStatus('exclusion')}
               >
-                🚫 {t('tableauScore.exclusion')}
+                <Icon icon={Ban} /> {t('tableauScore.exclusion')}
               </Button>
               {onMatchCancel && (
                 <Button className="is-d1e548" onClick={onMatchCancel}>
-                  ⏸ {t('tableau.cancel_match')}
+                  <Icon icon={Pause} /> {t('tableau.cancel_match')}
                 </Button>
               )}
             </div>

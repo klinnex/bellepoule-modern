@@ -10,6 +10,8 @@ import { ConnectedClient, KioskScreenConfig } from '../../../shared/types/preloa
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToast } from '../Toast';
 import { Button } from '../common/Button';
+import { Battery, Plug } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface ConnectedScreensPanelProps {
   competitionId: string;
@@ -92,7 +94,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {client.battery.charging ? '🔌' : '🔋'}{' '}
+                      {client.battery.charging ? <Icon icon={Plug} /> : <Icon icon={Battery} />}{' '}
                       {Math.round(client.battery.level * 100)}%
                     </span>
                   )}
