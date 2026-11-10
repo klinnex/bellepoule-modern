@@ -99,3 +99,17 @@
   opacity: 0.75;
   white-space: nowrap;
 }
+
+/* « Ne plus afficher » d'une aide ponctuelle (CoachMark) */
+.coach-dismiss {
+  display: block;
+  margin-top: 0.375rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.7rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

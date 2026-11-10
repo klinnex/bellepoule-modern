@@ -2391,7 +2391,8 @@
     "tableau": "{{a}}/{{b}} tabellone",
     "generate_hint": "Clicca qui dopo aver confermato la presenza di tutti i tuoi schermidori",
     "next_step_hint": "Passaggio successivo una volta terminati i gironi",
-    "regenerate": "Riprepara i gironi"
+    "regenerate": "Riprepara i gironi",
+    "coach_dismiss": "Non mostrare più"
   },
   "offline": {
     "never": "Mai",
