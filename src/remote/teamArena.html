@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="team.arena_page_title">Arène équipe — BellePoule</title>
-    <script src="/i18n.js"></script>
+    <script src="/js/icons.js"></script><script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <link rel="stylesheet" href="/tokens.css" />
     <style>
@@ -93,7 +93,6 @@
 
     <script>
       (function () {
-        const CARD_BADGE = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
 
         function getArenaId() {
           const m = window.location.pathname.match(/equipe(\d+)/i);
@@ -165,9 +164,9 @@
           cardsEl.innerHTML = '';
           if (cardsA.length || cardsB.length) {
             const left = document.createElement('div');
-            left.textContent = cardsA.map(c => CARD_BADGE[c.type]).join(' ');
+            left.innerHTML = cardsA.map(c => bpCard(c.type)).join(' ');
             const right = document.createElement('div');
-            right.textContent = cardsB.map(c => CARD_BADGE[c.type]).join(' ');
+            right.innerHTML = cardsB.map(c => bpCard(c.type)).join(' ');
             cardsEl.appendChild(left);
             cardsEl.appendChild(right);
           }

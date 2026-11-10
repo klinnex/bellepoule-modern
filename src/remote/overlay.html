@@ -11,7 +11,7 @@
     Sources > + > Navigateur
     URL     : http://192.168.1.10:8066/arene1/overlay
     Largeur : 1280  Hauteur : 160
-    ✔ Actualiser le navigateur quand la scène devient active
+    Actualiser le navigateur quand la scène devient active
 
   PARAMÈTRES DE REQUÊTE (query params)
   ──────────────────────────────────────
@@ -155,13 +155,13 @@
         align-items: center;
         gap: 8px;
       }
-      /* Score côté CENTRE (défaut) : A → [nom][score▶] · B → [◀score][nom] */
+      /* Score côté CENTRE (défaut) : A → [nom][score>] · B → [<score][nom] */
       .fencer-panel.side-a .fencer-row { flex-direction: row; }
       .fencer-panel.side-b .fencer-row { flex-direction: row-reverse; }
       .fencer-panel.side-b .fencer-info { text-align: right; }
       .fencer-panel.side-b .cards-row  { flex-direction: row-reverse; justify-content: flex-start; }
 
-      /* Score côté EXTÉRIEUR (?scores=outer) : A → [◀score][nom] · B → [nom][score▶] */
+      /* Score côté EXTÉRIEUR (?scores=outer) : A → [<score][nom] · B → [nom][score>] */
       .scores-outer .fencer-panel.side-a .fencer-row { flex-direction: row-reverse; }
       .scores-outer .fencer-panel.side-a .fencer-info { text-align: right; }
       .scores-outer .fencer-panel.side-a .cards-row   { flex-direction: row-reverse; justify-content: flex-start; }
@@ -356,7 +356,7 @@
         <img class="center-logo" id="center-logo" alt="logo" />
         <div class="timer-display" id="timer">03:00</div>
         <div class="phase-label" id="phase-label">Piste 1</div>
-        <div class="sd-badge" id="sd-badge" data-i18n="overlay.sudden_death">⚡ Mort subite</div>
+        <div class="sd-badge" id="sd-badge" data-i18n="overlay.sudden_death">Mort subite</div>
       </div>
 
       <!-- Tireur B (droite / rouge) -->
