@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
-    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
+    <script src="/common.js"></script><script src="/js/icons.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
@@ -1428,12 +1428,12 @@
   <body>
     <div class="header">
       <h1>
-        <span>⚔️</span>
+        <span data-icon="swords"></span>
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
         <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore">🔇</button>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1448,20 +1448,20 @@
           "
           title="Batterie faible" data-i18n-title="referee.battery_low"
         >
-          🔋 <span id="battery-level">--</span>%
+          <span data-icon="battery-low"></span> <span id="battery-level">--</span>%
         </span>
         <button
           id="btn-dt-icon"
           class="dt-icon-btn"
           title="Appel DT (appui long = annuler)" data-i18n-title="referee.dt_call_title"
           aria-label="Appel DT" data-i18n-aria-label="referee.dt_call_label"
-        >📣</button>
+        ><span data-icon="megaphone"></span></button>
         <button
           id="btn-journal"
           data-click="openJournal"
           title="Journal du match" data-i18n-title="referee.journal_title"
           aria-label="Journal" data-i18n-aria-label="referee.journal_label"
-         class="inl-702af5">📋</button>
+         class="inl-702af5"><span data-icon="list"></span></button>
       </div>
     </div>
 
@@ -1630,8 +1630,8 @@
             <button aria-label="Minuteur vocal" data-i18n-aria-label="referee.voice_title"
               id="btn-tts-toggle"
               data-click="refereeApp.toggleTTS"
-              title="Minuteur vocal" data-i18n-title="referee.voice_title" data-i18n="referee.voice_off"
-             class="inl-46bbcf">🔇 Voix</button>
+              title="Minuteur vocal" data-i18n-title="referee.voice_title"
+             class="inl-46bbcf"><span data-icon="volume-off"></span> <span data-i18n="referee.voice_off">Voix</span></button>
           </div>
         </div>
 
@@ -1642,7 +1642,7 @@
             id="btn-start"
             data-click="refereeApp.handleStartPauseClick"
           >
-            <span data-i18n="referee.start">▶️ Démarrer</span>
+            <span data-icon="play"></span> <span data-i18n="referee.start">Démarrer</span>
           </button>
           <button
             class="control-btn btn-finish"
@@ -1650,7 +1650,7 @@
             data-click="refereeApp.showFinishModal"
             disabled
           >
-            <span data-i18n="referee.finish">🏁 Terminer</span>
+            <span data-icon="flag"></span> <span data-i18n="referee.finish">Terminer</span>
           </button>
         </div>
         <!-- Boutons secondaires : sortie d'arène + annuler -->
@@ -1660,7 +1660,7 @@
             id="btn-exit-a"
             data-click="refereeApp.arenaExit" data-args='["A"]'
           >
-            <span data-i18n="referee.exit_red">🚪 Sortie rouge</span>
+            <span data-icon="door"></span> <span data-i18n="referee.exit_red">Sortie rouge</span>
           </button>
           <button
             class="control-btn btn-undo"
@@ -1668,14 +1668,14 @@
             data-click="refereeApp.undoLastAction"
             disabled
           >
-            <span data-i18n="referee.undo">↩ Annuler</span>
+            <span data-icon="undo"></span> <span data-i18n="referee.undo">Annuler</span>
           </button>
           <button
             class="control-btn btn-arena-exit-green"
             id="btn-exit-b"
             data-click="refereeApp.arenaExit" data-args='["B"]'
           >
-            <span data-i18n="referee.exit_green">🚪 Sortie verte</span>
+            <span data-icon="door"></span> <span data-i18n="referee.exit_green">Sortie verte</span>
           </button>
         </div>
 
@@ -1750,7 +1750,7 @@
     <!-- Overlay confirmation tirage au sort -->
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
-        <div class="inl-800d9a">🪙</div>
+        <div class="inl-800d9a"><span data-icon="coins"></span></div>
         <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
@@ -1782,7 +1782,7 @@
 
     <!-- Overlay plein-écran : fin de poule / signature -->
     <div id="pool-complete-overlay" class="pool-complete-overlay" role="dialog" aria-modal="true" aria-labelledby="pool-complete-title">
-      <div class="pco-icon">✍️</div>
+      <div class="pco-icon"><span data-icon="sign"></span></div>
       <h1 id="pool-complete-title" class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
       <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
       <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">

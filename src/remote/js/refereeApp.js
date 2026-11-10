@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/refereeApp.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global BPRefereeControls, BPRefereeLists, BPRefereeScoring, BPRefereeTimer, BPRefereeTts, BPRefereeUpdate, PASSIVITY_CARDS, RefereeAppBase, applyScreenTheme, bpCssVar, escHtml, isStandardCard, lastIndexWhere */
+/* global BPRefereeControls, BPRefereeLists, BPRefereeScoring, BPRefereeTimer, BPRefereeTts, BPRefereeUpdate, PASSIVITY_CARDS, RefereeAppBase, applyScreenTheme, bpCssVar, bpIcon, escHtml, isStandardCard, lastIndexWhere */
 /* exported openJournal, reloadIfIdle */
 class RefereeApp extends RefereeAppBase {
   // Retirer des points (appui long)
@@ -362,7 +362,13 @@ class RefereeApp extends RefereeAppBase {
   toggleTTS() {
     this.ttsEnabled = !this.ttsEnabled;
     const btn = document.getElementById('btn-tts-toggle');
-    if (btn) btn.textContent = window.T(this.ttsEnabled ? 'referee.voice_on' : 'referee.voice_off');
+    if (btn) {
+      const on = this.ttsEnabled;
+      btn.innerHTML =
+        bpIcon(on ? 'volume-on' : 'volume-off') +
+        ' ' +
+        escHtml(window.T(on ? 'referee.voice_on' : 'referee.voice_off'));
+    }
     if (this.ttsEnabled) this.ttsSpeak(BPRefereeTts.enabledMessage(this.ttsLangCode()));
   }
 
@@ -905,7 +911,8 @@ class RefereeApp extends RefereeAppBase {
     if (st.lockAll) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
 
     startBtn.disabled = st.start.disabled;
-    startBtn.textContent = window.T(st.start.key, st.start.params);
+    startBtn.innerHTML =
+      bpIcon(st.start.icon) + ' ' + escHtml(window.T(st.start.key, st.start.params));
     startBtn.className = st.start.className;
     if (finishBtn) finishBtn.disabled = st.finishDisabled;
     if (st.updateScoreButtons) this.updateScoreButtons();

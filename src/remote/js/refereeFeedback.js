@@ -109,7 +109,9 @@
 
   function paintSoundButton(btn, on) {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    btn.textContent = on ? '\u{1F50A}' : '\u{1F507}';
+    const win = btn.ownerDocument.defaultView;
+    const icon = win && typeof win.bpIcon === 'function' ? win.bpIcon : () => '';
+    btn.innerHTML = icon(on ? 'volume-on' : 'volume-off');
   }
 
   function init(win) {

@@ -360,6 +360,9 @@ function localeEmojiFindings() {
   return out;
 }
 
+const REMOTE_EMOJI_RE =
+  /\p{Extended_Pictographic}|\\u\{1[Ff][0-9A-Fa-f]{3}\}|\\u[Dd]83[CcDd]|&#x1[Ff][0-9A-Fa-f]{3};|&#1[23]\d{4};/u;
+
 /** Emoji dans les pages distantes : html/js/css de src/remote, js/ et i18n/ (hors tests, #1532) */
 function remoteEmojiFindings() {
   const out = [];
@@ -375,7 +378,8 @@ function remoteEmojiFindings() {
     fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')
       .split('\n')
       .forEach((l, i) => {
-        if (/\p{Extended_Pictographic}/u.test(l)) lines.push(i + 1);
+        // emoji littéral, échappement JS (\u{1F…}, paire de substitution) ou entité HTML (&#x1F…;)
+        if (REMOTE_EMOJI_RE.test(l)) lines.push(i + 1);
       });
     if (lines.length) out.push({ file: `src/remote/${name}`, lines });
   }
