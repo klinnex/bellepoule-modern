@@ -2401,7 +2401,8 @@
     "tableau": "{{a}}/{{b}} quadre",
     "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
     "next_step_hint": "Pas següent un cop acabades les poules",
-    "regenerate": "Repreparar les poules"
+    "regenerate": "Repreparar les poules",
+    "coach_dismiss": "No ho tornis a mostrar"
   },
   "offline": {
     "never": "Mai",

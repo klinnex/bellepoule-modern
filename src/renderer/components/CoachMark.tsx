@@ -3,18 +3,54 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
+
+const STORAGE_PREFIX = 'bp_coach_';
+/** Durée d'affichage de l'aide ponctuelle à la première apparition (ms) */
+const INTRO_MS = 8000;
+
+function isDismissed(id: string): boolean {
+  try {
+    return localStorage.getItem(STORAGE_PREFIX + id) === '1';
+  } catch {
+    return false;
+  }
+}
 
 interface CoachMarkProps {
   id?: string;
+  /** Libellé « Ne plus afficher » : active l'aide ponctuelle (affichée une fois, mémorisée) */
+  dismissLabel?: string;
   message: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
   children: React.ReactNode;
 }
 
-const CoachMark: React.FC<CoachMarkProps> = ({ message, position = 'bottom', children }) => {
-  // Sous-titre affiché uniquement au survol / focus du bouton
-  const [visible, setVisible] = useState(false);
+const CoachMark: React.FC<CoachMarkProps> = ({
+  id,
+  dismissLabel,
+  message,
+  position = 'bottom',
+  children,
+}) => {
+  // Aide ponctuelle : affichée seule quelques secondes tant que « Ne plus afficher » n'a pas été choisi
+  const [intro, setIntro] = useState(() => !!id && !!dismissLabel && !isDismissed(id));
+  // Sous-titre affiché au survol / focus du bouton
+  const [hover, setHover] = useState(false);
+  const visible = hover || intro;
+  const dismiss = () => {
+    setIntro(false);
+    try {
+      if (id) localStorage.setItem(STORAGE_PREFIX + id, '1');
+    } catch {
+      /* stockage indisponible : l'aide reviendra */
+    }
+  };
+  useEffect(() => {
+    if (!intro) return;
+    const timer = setTimeout(() => setIntro(false), INTRO_MS);
+    return () => clearTimeout(timer);
+  }, [intro]);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
@@ -39,7 +75,7 @@ const CoachMark: React.FC<CoachMarkProps> = ({ message, position = 'bottom', chi
     fontSize: '0.8rem',
     whiteSpace: 'nowrap',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    pointerEvents: 'none',
+    pointerEvents: intro ? 'auto' : 'none',
     ...(position === 'bottom'
       ? { transform: 'translateX(-50%)' }
       : position === 'top'
@@ -78,16 +114,21 @@ const CoachMark: React.FC<CoachMarkProps> = ({ message, position = 'bottom', chi
     <div
       ref={wrapRef}
       style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocus={() => setVisible(true)}
-      onBlur={() => setVisible(false)}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
     >
       {children}
       {visible && (
         <div style={tooltipStyle}>
           <span style={arrowStyle} />
           {message}
+          {intro && (
+            <button type="button" className="coach-dismiss" onClick={dismiss}>
+              {dismissLabel}
+            </button>
+          )}
         </div>
       )}
     </div>

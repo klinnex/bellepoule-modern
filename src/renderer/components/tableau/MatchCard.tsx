@@ -1,3 +1,4 @@
+import { TipButton } from '../Tooltip';
 import React from 'react';
 import { TableauMatch } from './tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
@@ -176,14 +177,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* Consultation des signatures (match terminé) */}
       {hasBothFencers && isMatchComplete && onSignaturesClick && (
         <div className="match-badges">
-          <button
+          <TipButton
             className="match-badge-btn"
             onClick={handleSignaturesClick}
-            title={translateStatic('matchCard.signatures')}
+            tip={translateStatic('matchCard.signatures')}
             aria-label={translateStatic('matchCard.signatures')}
           >
             <Icon icon={PenLine} />
-          </button>
+          </TipButton>
         </div>
       )}
 

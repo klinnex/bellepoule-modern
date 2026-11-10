@@ -2401,7 +2401,8 @@
     "tableau": "{{a}}/{{b}} Tableau",
     "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
     "next_step_hint": "Nächster Schritt nach Abschluss der Pools",
-    "regenerate": "Pools neu vorbereiten"
+    "regenerate": "Pools neu vorbereiten",
+    "coach_dismiss": "Nicht mehr anzeigen"
   },
   "offline": {
     "never": "Nie",

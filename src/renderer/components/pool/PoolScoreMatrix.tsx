@@ -1,3 +1,4 @@
+import { TipButton } from '../Tooltip';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Pool, Fencer, Score, MatchStatus, FencerStatus } from '../../../shared/types';
 import {
@@ -619,19 +620,19 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                 </svg>
               )}
               {onFencerChangePool && (
-                <button
+                <TipButton
                   onClick={e => {
                     e.stopPropagation();
                     onFencerChangePool(rowFencer);
                   }}
-                  title={t('poolMatrix.change_pool')}
+                  tip={t('poolMatrix.change_pool')}
                   aria-label={t('poolMatrix.change_pool_aria', { name: rowFencer.lastName })}
                   className="is-2184a2"
                   onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
                 >
                   <Icon icon={ArrowLeftRight} />
-                </button>
+                </TipButton>
               )}
             </div>
 

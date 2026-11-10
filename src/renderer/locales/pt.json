@@ -2401,7 +2401,8 @@
     "tableau": "{{a}}/{{b}} quadro",
     "generate_hint": "Clique aqui quando todos os esgrimistas tiverem a presença registada",
     "next_step_hint": "Passo seguinte quando as poules terminarem",
-    "regenerate": "Repreparar poules"
+    "regenerate": "Repreparar poules",
+    "coach_dismiss": "Não mostrar novamente"
   },
   "offline": {
     "never": "Nunca",

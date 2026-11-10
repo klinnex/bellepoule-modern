@@ -2401,7 +2401,8 @@
     "tableau": "{{a}}/{{b}} 淘汰賽",
     "generate_hint": "所有選手報到後按此",
     "next_step_hint": "分組賽完成後的下一步",
-    "regenerate": "重新準備小組"
+    "regenerate": "重新準備小組",
+    "coach_dismiss": "不再顯示"
   },
   "offline": {
     "never": "從未",

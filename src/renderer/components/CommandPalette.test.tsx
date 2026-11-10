@@ -20,6 +20,7 @@ vi.mock('../contexts/TranslationContext', () => ({
 
 import CommandPalette from './CommandPalette';
 import { Competition } from '../../shared/types';
+import { registerPhases } from './competition/phaseRegistry';
 
 const comp = (id: string, title: string): Competition =>
   ({ id, title, weapon: 'E', category: 'SENIOR', fencers: [] }) as unknown as Competition;
@@ -38,6 +39,24 @@ const setup = (over: Partial<Record<string, any>> = {}) => {
 };
 
 describe('CommandPalette', () => {
+  it('propose la navigation vers les phases accessibles (#1536)', () => {
+    const select = vi.fn();
+    const off = registerPhases({
+      phases: [
+        { id: 'checkin', label: 'Appel', disabled: false },
+        { id: 'pools', label: 'Poules', disabled: false },
+      ],
+      currentId: 'checkin',
+      select,
+    });
+    const props = setup();
+    expect(screen.queryByText('Appel')).toBeNull();
+    fireEvent.click(screen.getByText('Poules'));
+    expect(props.onClose).toHaveBeenCalled();
+    expect(select).toHaveBeenCalledWith('pools');
+    off();
+  });
+
   it('affiche les compétitions et les actions statiques', () => {
     setup();
     expect(screen.getByText('Coupe Alpha')).toBeInTheDocument();

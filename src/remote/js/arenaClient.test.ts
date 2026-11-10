@@ -100,7 +100,8 @@ describe('arenaClient.js', () => {
   it('arena.html charge le module', () => {
     const html = fs.readFileSync(path.join(__dirname, '..', 'arena.html'), 'utf8');
     expect(html).toContain('<script src="/js/arenaClient.js"></script>');
-    expect(html).toContain('ArenaClient.dispatchServerCommand(');
+    const page = fs.readFileSync(path.join(__dirname, 'arenaDisplay.js'), 'utf8');
+    expect(page).toContain('ArenaClient.dispatchServerCommand(');
     expect(html).not.toContain("localStorage.getItem('bp_screen_id')");
   });
 });

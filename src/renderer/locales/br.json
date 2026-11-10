@@ -2401,7 +2401,8 @@
     "tableau": "{{a}}/{{b}} taolenn",
     "generate_hint": "Klikit amañ goude bezañ merket hoc'h holl glezeourien",
     "next_step_hint": "Pazenn da heul pa vo echu ar poulloù",
-    "regenerate": "Adprientiñ ar poulennoù"
+    "regenerate": "Adprientiñ ar poulennoù",
+    "coach_dismiss": "Arabat diskouez en-dro"
   },
   "offline": {
     "never": "Biken",

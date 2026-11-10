@@ -669,6 +669,7 @@ const AppContent: React.FC = () => {
               >
                 <Plus size={15} />
                 {t('menu.new_competition')}
+                <kbd className="btn-kbd">{'Ctrl N'}</kbd>
               </Button>
             )}
             <UpdateMenuButton />
