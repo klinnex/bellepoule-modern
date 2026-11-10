@@ -1187,7 +1187,7 @@ class RefereeApp extends RefereeAppBase {
     }
     container.innerHTML = `
       <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid var(--c-111111);border-radius:0.75rem;background:rgba(0,0,0,0.35);">
-        <div style="font-weight:700;margin-bottom:0.5rem;">${escHtml(window.T('referee.black_cards'))}</div>
+        <div style="font-weight:700;margin-bottom:0.5rem;">${bpIcon('card')} ${escHtml(window.T('referee.black_cards'))}</div>
         ${cards
           .map(
             c => `
@@ -1198,7 +1198,7 @@ class RefereeApp extends RefereeAppBase {
             </div>
             <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
               style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:var(--tw-gray-50);color:var(--c-111111);font-weight:700;font-size:0.9rem;cursor:pointer;">
-              ${escHtml(window.T('referee.cancel_card'))}
+              ${bpIcon('undo')} ${escHtml(window.T('referee.cancel_card'))}
             </button>
           </div>`
           )
@@ -1239,6 +1239,7 @@ class RefereeApp extends RefereeAppBase {
     container.innerHTML = BPRefereeLists.renderNextMatchesHtml(matches, {
       T: window.T,
       escHtml,
+      bpIcon,
       arenaNum: this.arenaNumber || document.getElementById('arena-number').textContent,
     });
   }

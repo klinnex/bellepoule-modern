@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="arena.title">Arène BellePoule</title>
-    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
+    <script src="/common.js"></script><script src="/js/icons.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
@@ -1412,7 +1412,7 @@
               <div class="intro-fencer-club" id="idle-club-b"></div>
             </div>
           </div>
-          <div class="idle-referee-banner hidden" id="idle-referee-banner"><span data-i18n="referee.referee_label">⚖️ Arbitre :</span> <span id="idle-referee-label"></span></div>
+          <div class="idle-referee-banner hidden" id="idle-referee-banner"><span data-icon="scale"></span> <span data-i18n="referee.referee_label">Arbitre :</span> <span id="idle-referee-label"></span></div>
         </div>
         <!-- Grand numéro (visible quand pas de nextMatch) -->
         <div class="arena-idle-number" id="arena-idle-number">1</div>
@@ -1488,10 +1488,10 @@
 
         <!-- Chronomètre -->
         <div class="timer-section">
-          <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">⚡ MORT SUBITE</div>
+          <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">MORT SUBITE</div>
           <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant" data-i18n-aria-label="arena.time_left">03:00</div>
           <div class="waiting-overtime-banner" id="waiting-overtime-banner" data-i18n="arena.waiting_overtime">⚖️ ÉGALITÉ – attente arbitre</div>
-          <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">⏱ 30s SUPPLEMENTAIRE</div>
+          <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">30s SUPPLEMENTAIRE</div>
           <div class="timer-label" data-i18n="arena.time_left">Temps restant</div>
         </div>
 
@@ -1523,7 +1523,7 @@
               <span class="next-fighter-name" id="next-name-b">-</span>
             </div>
           </div>
-          <div class="next-referee-name hidden" id="next-referee-name">⚖️ <span id="next-referee-label"></span></div>
+          <div class="next-referee-name hidden" id="next-referee-name"><span data-icon="scale"></span> <span id="next-referee-label"></span></div>
         </div>
       </div>
     </main>
