@@ -18,6 +18,7 @@ const PAGES = [
   'register',
   'teamReferee',
   'teamArena',
+  'pool',
 ];
 const RULES = [
   'button-name',

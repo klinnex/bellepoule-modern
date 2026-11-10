@@ -1636,8 +1636,8 @@
 
     <!-- Modal de confirmation -->
     <div class="modal-overlay" id="finish-modal">
-      <div class="modal-content">
-        <div class="modal-title" data-i18n="referee.modal_title">🏁 Fin de match</div>
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="finish-modal-title">
+        <div class="modal-title" id="finish-modal-title" data-i18n="referee.modal_title">🏁 Fin de match</div>
         <div class="modal-body">
           <p data-i18n="referee.modal_confirm_text">Confirmez-vous la fin de ce match ?</p>
           <div class="final-score" id="final-score-display">0 - 0</div>
@@ -1658,8 +1658,8 @@
 
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
-      <div class="modal-content" style="border:3px solid var(--c-111111)">
-        <div class="modal-title" style="background:var(--c-111111);color:var(--color-white)" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="black-card-title" style="border:3px solid var(--c-111111)">
+        <div class="modal-title" id="black-card-title" style="background:var(--c-111111);color:var(--color-white)" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
           <p id="black-card-cause" style="text-align:center;color:var(--color-danger)"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
@@ -4099,7 +4099,7 @@
     </script>
 
     <!-- Modal sélecteur de raison de carton -->
-    <div id="reason-selector-overlay" class="reason-selector-overlay">
+    <div id="reason-selector-overlay" class="reason-selector-overlay" role="dialog" aria-modal="true" aria-labelledby="reason-selector-title">
       <div class="reason-selector-header">
         <h2 id="reason-selector-title" data-i18n="referee.reason_title">Raison du carton</h2>
         <span id="reason-card-preview" class="reason-card-preview"></span>
@@ -4113,9 +4113,9 @@
     </div>
 
     <!-- Overlay plein-écran : fin de poule / signature -->
-    <div id="pool-complete-overlay" class="pool-complete-overlay">
+    <div id="pool-complete-overlay" class="pool-complete-overlay" role="dialog" aria-modal="true" aria-labelledby="pool-complete-title">
       <div class="pco-icon">✍️</div>
-      <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
+      <h1 id="pool-complete-title" class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
       <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
       <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">
         ✍️ SIGNATURE
@@ -4126,9 +4126,9 @@
     </div>
 
     <!-- Overlay signature des combattants après un match du tableau -->
-    <div id="match-sig-overlay" class="match-sig-overlay">
+    <div id="match-sig-overlay" class="match-sig-overlay" role="dialog" aria-modal="true" aria-labelledby="match-sig-title">
       <div class="match-sig-box">
-        <h2 data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
+        <h2 id="match-sig-title" data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
         <p class="match-sig-instructions" data-i18n="referee.sig_instructions">Chaque tireur signe pour valider le score du match</p>
         <div class="match-sig-score-recall">
           <span class="match-sig-score-label" data-i18n="referee.sig_final_score">Score final</span>
