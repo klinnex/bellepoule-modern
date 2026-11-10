@@ -18,7 +18,7 @@
   "lineExceptions": {
     "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
-    "src/renderer/components/CompetitionView.tsx": 2341,
+    "src/renderer/components/CompetitionView.tsx": 1636,
     "src/renderer/components/PoolView.tsx": 1820,
     "src/renderer/components/RemoteScoreManager.tsx": 1689,
     "src/renderer/components/TableauView.tsx": 1557,
