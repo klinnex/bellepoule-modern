@@ -14,7 +14,7 @@ import {
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import EmptyState from './common/EmptyState';
-import { PoolViewSkeleton, TableSkeleton } from './Skeleton';
+import { PoolViewSkeleton } from './Skeleton';
 import { useOperation } from './common/OperationProgress';
 import { PhaseEmptyIcon } from './competition/phaseIcons';
 import {
@@ -31,7 +31,6 @@ import {
 import { logger, LogCategory } from '@shared/services/logger';
 import FencerList from './FencerList';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
-import { poolMatchesWithReferee } from '../../shared/utils/refereeStats';
 import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -100,9 +99,8 @@ import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import { useRapieresViewProps } from '../../features/rapieres/useRapieresViewProps';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
-import { checkInStatusUpdate, specialStatusPatch } from '../../shared/utils/forfeit';
+import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
-import { RefereeManagerComponent } from './RefereeManager';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
 const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
@@ -115,9 +113,11 @@ import { MODAL_FLAGS } from './competition/modalFlags';
 import { Button } from './common/Button';
 import CompetitionExportModals from './competition/CompetitionExportModals';
 import CompetitionSecondaryModals from './competition/CompetitionSecondaryModals';
+import RefereesPhase from './competition/RefereesPhase';
+import TableauPhase from './competition/TableauPhase';
+import CompetitionPoolCard from './competition/CompetitionPoolCard';
 import PoolsToolbar from './competition/PoolsToolbar';
 import SinglePoolNav from './competition/SinglePoolNav';
-import { SplitGroupTabs } from './competition/SplitGroupTabs';
 
 const PoolView = React.lazy(() => import('./PoolView'));
 const TableauView = React.lazy(() => import('./TableauView'));
@@ -1150,90 +1150,40 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
   const handlePoolStripChange = usePoolStripChange(competition.id, pools, setPools);
 
+  const stripQrs = buildStripQrs(pools, poolsRemoteInfo);
   const renderPoolCard = (pool: (typeof pools)[number], poolIndex: number) => (
-    <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
-      <PoolView
-        pool={pool}
-        weapon={competition.weapon}
-        tieBreakByVictory={tieBreakByVictory}
-        competitionName={competition.title}
-        maxScore={poolMaxScore}
-        competitionId={competition.id}
-        maxRefereesPerPool={maxRefereesPerPool}
-        onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus, priority) => {
-          updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus, priority);
-          if (winner) {
-            const m = pool.matches[matchIndex];
-            const nameA = m?.fencerA ? `${m.fencerA.lastName}` : 'A';
-            const nameB = m?.fencerB ? `${m.fencerB.lastName}` : 'B';
-            fireWebhookNotif(
-              `Match terminé — ${competition.title}`,
-              `${nameA} ${scoreA} – ${scoreB} ${nameB} (Poule ${pool.number})`
-            );
-          }
-          if (isRemoteActive && competition?.id) {
-            const match = pool.matches[matchIndex];
-            if (match) {
-              window.electronAPI.remote
-                .finishPoolMatch(competition.id, match.id, scoreA, scoreB, winner, specialStatus)
-                .catch(() => {});
-            }
-          }
-        }}
-        onMatchReset={matchIndex => {
-          const match = pool.matches[matchIndex];
-          if (!match) return;
-          resetMatch(poolIndex, matchIndex);
-          if (competition?.id) {
-            window.electronAPI.remote.resetPoolMatch(competition.id, match.id).catch(() => {});
-          }
-        }}
-        onMatchCancel={matchIndex => {
-          const match = pool.matches[matchIndex];
-          if (!match) return;
-          cancelMatch(poolIndex, matchIndex);
-          if (competition?.id) {
-            window.electronAPI.remote.resetPoolMatch(competition.id, match.id).catch(() => {});
-          }
-        }}
-        onFencerStatusChange={(fencerId, status, blackCard) => {
-          if (status === 'abandon' || status === 'forfait' || status === 'exclusion') {
-            handleFencerForfeit(fencerId, status);
-            // Liste d'appel : statut aligné avec la saisie manuelle du score
-            updateFencer(fencerId, specialStatusPatch(status, blackCard));
-          }
-        }}
-        assignedFencerIds={assignedPoolFencerIds}
-        onFencerAdded={updatedPool => {
-          updatedPool.ranking = computePoolRanking(updatedPool);
-          setPools(prev => prev.map(p => (p.id === updatedPool.id ? updatedPool : p)));
-        }}
-        stripRange={{ start: remoteStripStart, end: remoteArenaCount }}
-        onStripChange={handlePoolStripChange}
-        arenas={arenaStates}
-        isRemoteActive={isRemoteActive}
-        remoteServerUrl={remoteServerUrl ?? undefined}
-        cardScale={presetScale(poolCardSize)}
-        stripQr={buildStripQrs(pools, poolsRemoteInfo)?.[pool.id]}
-        onMatchArenaChange={(matchId, oldArena, newArena, fencerA, fencerB) => {
-          if (!isRemoteActive || !competition?.id) return;
-          window.electronAPI.remote
-            .updateMatchArena(
-              competition.id,
-              matchId,
-              oldArena,
-              newArena,
-              fencerA ?? undefined,
-              fencerB ?? undefined
-            )
-            .catch(() => {});
-        }}
-        autoFillReferees={autoFillReferees}
-        onAutoFillReferees={handlePoolAutoFillReferees}
-        onRefereeAssigned={handlePoolRefereeAssigned}
-        waveMatchIds={currentWaveMatchIds}
-      />
-    </div>
+    <CompetitionPoolCard
+      key={pool.id}
+      pool={pool}
+      poolIndex={poolIndex}
+      weapon={competition.weapon}
+      competitionId={competition.id}
+      competitionTitle={competition.title}
+      tieBreakByVictory={tieBreakByVictory}
+      poolMaxScore={poolMaxScore}
+      maxRefereesPerPool={maxRefereesPerPool}
+      updateScore={updateScore}
+      resetMatch={resetMatch}
+      cancelMatch={cancelMatch}
+      handleFencerForfeit={handleFencerForfeit}
+      computePoolRanking={computePoolRanking}
+      setPools={setPools}
+      updateFencer={updateFencer}
+      fireWebhookNotif={fireWebhookNotif}
+      assignedPoolFencerIds={assignedPoolFencerIds}
+      remoteStripStart={remoteStripStart}
+      remoteArenaCount={remoteArenaCount}
+      onStripChange={handlePoolStripChange}
+      arenaStates={arenaStates}
+      isRemoteActive={isRemoteActive}
+      remoteServerUrl={remoteServerUrl}
+      poolCardSize={poolCardSize}
+      stripQrs={stripQrs}
+      autoFillReferees={autoFillReferees}
+      onAutoFillReferees={handlePoolAutoFillReferees}
+      onRefereeAssigned={handlePoolRefereeAssigned}
+      waveMatchIds={currentWaveMatchIds}
+    />
   );
 
   return (
@@ -1611,106 +1561,32 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         )}
 
         {currentPhase === 'tableau' && (
-          <Suspense fallback={<TableSkeleton label={t('competitionView.loading_tableau')} />}>
-            {/* Sélecteur de groupe pour compétition couplée */}
-            {postPoolSplitCriteria && activeSplitGroup && splitGroups.length > 1 && (
-              <SplitGroupTabs
-                groups={splitGroups}
-                active={activeSplitGroup}
-                onSelect={handleSwitchSplitGroup}
-              />
-            )}
-            {finalResults.length > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '0.625rem 1rem',
-                  marginBottom: '0.75rem',
-                  background: 'var(--color-notice-bg)',
-                  border: '1px solid var(--color-notice-border)',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                  color: 'var(--color-notice-text)',
-                }}
-              >
-                <span>{t('competitionView.readonly')}</span>
-                <button
-                  onClick={async () => {
-                    if (await confirm(t('competitionView.edit_confirm'))) {
-                      setFinalResults([]);
-                    }
-                  }}
-                  style={{
-                    marginLeft: 'auto',
-                    background: '#f59e0b',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.375rem 0.75rem',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: '600',
-                  }}
-                >
-                  {t('competitionView.edit_tableau')}
-                </button>
-              </div>
-            )}
-            <TableauView
-              ranking={effectiveTableauRanking}
-              matches={tableauMatches}
-              onMatchesChange={setTableauMatches}
-              consolationBrackets={consolationBrackets}
-              onConsolationBracketsChange={setConsolationBrackets}
-              maxScore={tableMaxScore === 0 ? 999 : tableMaxScore}
-              thirdPlaceMatch={thirdPlaceMatch}
-              playAllPositions={playAllPositions}
-              arenaCount={remoteArenaCount}
-              stripStart={remoteStripStart}
-              readOnly={finalResults.length > 0}
-              competitionId={competition.id}
-              maxRefereesPerMatch={maxRefereesPerMatch}
-              autoFillReferees={autoFillReferees}
-              tieBreakByVictory={tieBreakByVictory}
-              onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
-              onComplete={results => {
-                setFinalResults(results);
-                setTableauEditUnlocked(false);
-                setCurrentPhase('results');
-              }}
-              onMatchArenaChange={(matchId, oldArena, newArena, fencerAParam, fencerBParam) => {
-                if (isRemoteActive) {
-                  const match = tableauMatches.find(m => m.id === matchId);
-                  window.electronAPI.remote.updateMatchArena(
-                    competition.id,
-                    matchId,
-                    oldArena,
-                    newArena,
-                    fencerAParam ?? match?.fencerA ?? null,
-                    fencerBParam ?? match?.fencerB ?? null
-                  );
-                }
-              }}
-              onMatchRefereeChange={(matchId, refereeId) => {
-                // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID (ex. « 64-0 »)
-                Promise.resolve()
-                  .then(() =>
-                    window.electronAPI.db.updateMatch(matchId, {
-                      refereeId: refereeId ?? undefined,
-                    })
-                  )
-                  .catch((e: unknown) =>
-                    logger.warn(
-                      LogCategory.DATABASE,
-                      'updateMatch (arbitre tableau) failed',
-                      e instanceof Error ? e : undefined
-                    )
-                  );
-              }}
-            />
-          </Suspense>
+          <TableauPhase
+            competitionId={competition.id}
+            postPoolSplitCriteria={postPoolSplitCriteria}
+            activeSplitGroup={activeSplitGroup}
+            splitGroups={splitGroups}
+            onSwitchSplitGroup={handleSwitchSplitGroup}
+            ranking={effectiveTableauRanking}
+            tableauMatches={tableauMatches}
+            setTableauMatches={setTableauMatches}
+            consolationBrackets={consolationBrackets}
+            setConsolationBrackets={setConsolationBrackets}
+            finalResults={finalResults}
+            setFinalResults={setFinalResults}
+            setTableauEditUnlocked={setTableauEditUnlocked}
+            setCurrentPhase={setCurrentPhase}
+            tableMaxScore={tableMaxScore}
+            thirdPlaceMatch={thirdPlaceMatch}
+            playAllPositions={playAllPositions}
+            remoteArenaCount={remoteArenaCount}
+            remoteStripStart={remoteStripStart}
+            isRemoteActive={isRemoteActive}
+            maxRefereesPerMatch={maxRefereesPerMatch}
+            autoFillReferees={autoFillReferees}
+            tieBreakByVictory={tieBreakByVictory}
+            updateFencer={updateFencer}
+          />
         )}
 
         {currentPhase === 'results' && (
@@ -1781,41 +1657,18 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         )}
 
         {currentPhase === 'referees' && competition.settings?.refereeFeatureEnabled && (
-          <RefereeManagerComponent
+          <RefereesPhase
             competition={competition}
             referees={referees}
+            setReferees={setReferees}
             pools={pools}
-            matches={refereeAssignableMatches}
-            statsPoolMatches={[...poolHistory.flat(), ...pools].flatMap(poolMatchesWithReferee)}
-            statsTableauMatches={[
-              ...tableauMatches,
-              ...consolationBrackets.flatMap(b => b.matches),
-            ]}
-            onRefereesChange={setReferees}
-            onAssignmentsChange={assignments => {
-              applyPoolRefereeAssignments(assignments);
-              // Matchs de tableau / consolation : referees[0] = arbitre principal
-              const applyToTableau = (list: TableauMatch[]) =>
-                list.map(m => {
-                  const ref = assignments.get(m.id);
-                  if (!ref) return m;
-                  const principal = {
-                    id: ref.id,
-                    firstName: ref.firstName,
-                    lastName: ref.lastName,
-                  };
-                  const others = (m.referees ?? []).slice(1).filter(r => r.id !== ref.id);
-                  return { ...m, referee: principal, referees: [principal, ...others] };
-                });
-              if (tableauMatches.some(m => assignments.has(m.id))) {
-                setTableauMatches(prev => applyToTableau(prev));
-              }
-              if (consolationBrackets.some(b => b.matches.some(m => assignments.has(m.id)))) {
-                setConsolationBrackets(prev =>
-                  prev.map(b => ({ ...b, matches: applyToTableau(b.matches) }))
-                );
-              }
-            }}
+            poolHistory={poolHistory}
+            assignableMatches={refereeAssignableMatches}
+            tableauMatches={tableauMatches}
+            setTableauMatches={setTableauMatches}
+            consolationBrackets={consolationBrackets}
+            setConsolationBrackets={setConsolationBrackets}
+            applyPoolRefereeAssignments={applyPoolRefereeAssignments}
           />
         )}
       </div>
