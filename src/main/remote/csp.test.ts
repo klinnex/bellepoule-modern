@@ -65,13 +65,18 @@ describe('CSP pages distantes (#1149)', () => {
     const known = new Set(['history.back']);
     for (const page of pages) {
       const html = readFileSync(join(remoteDir, page), 'utf8');
+      // Code de la page = HTML + modules /js/* qu'elle charge (script de page extrait, #1600)
+      let code = html;
+      for (const mod of html.matchAll(/src="\/js\/([A-Za-z0-9]+\.js)"/g)) {
+        code += readFileSync(join(remoteDir, 'js', mod[1]), 'utf8');
+      }
       for (const m of html.matchAll(/data-(?:click|change|input)="([\w.]+)"/g)) {
         const name = m[1];
         if (known.has(name)) continue;
         const root = name.split('.')[0];
         const defined =
-          new RegExp(`function\\s+${root}\\b`).test(html) ||
-          new RegExp(`window\\.${root}\\s*=`).test(html);
+          new RegExp(`function\\s+${root}\\b`).test(code) ||
+          new RegExp(`window\\.${root}\\s*=`).test(code);
         expect(defined, `${page}: ${name}`).toBe(true);
       }
     }
