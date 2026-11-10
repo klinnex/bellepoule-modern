@@ -72,9 +72,10 @@
     const btn = box.firstChild;
     const win = doc.defaultView;
     const icon = win && typeof win.bpIcon === 'function' ? win.bpIcon : () => '';
+    const svg = icon('undo');
     btn.textContent = '';
-    btn.insertAdjacentHTML('beforeend', icon('undo'));
-    btn.appendChild(doc.createTextNode(' ' + T('referee.undo_touch')));
+    btn.insertAdjacentHTML('beforeend', svg);
+    btn.appendChild(doc.createTextNode((svg ? ' ' : '') + T('referee.undo_touch')));
     btn.onclick = () => {
       hideUndoToast(doc, t);
       onUndo();
