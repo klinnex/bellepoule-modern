@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Classement en Direct - BellePoule Modern</title>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script>
     <script src="/js/ui.js" data-bp-init></script>
     <script src="/i18n.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
@@ -464,6 +464,7 @@
       }
 
       .refresh-indicator.syncing .sync-icon {
+        display: inline-block;
         animation: spin 1s linear infinite;
       }
 
@@ -482,7 +483,7 @@
       <!-- Header -->
       <header class="dashboard-header">
         <div class="header-left">
-          <h1>🏆 Classement en Direct</h1>
+          <h1><span data-icon="trophy"></span> Classement en Direct</h1>
           <div class="competition-name" id="competition-name">Coupe Régionale - Sabre Laser</div>
         </div>
         <div class="header-right">
@@ -539,7 +540,7 @@
       <div id="tab-poules" class="tab-content active" role="tabpanel">
         <div class="pools-grid" id="pools-container">
           <div class="no-data">
-            <div class="no-data-icon" aria-hidden="true">🤺</div>
+            <div class="no-data-icon" aria-hidden="true"><span data-icon="users"></span></div>
             <h3 data-i18n="dashboard.no_pools">Aucune poule en cours</h3>
             <p data-i18n="dashboard.no_pools_hint">
               Les poules apparaîtront ici une fois la compétition démarrée
@@ -552,7 +553,7 @@
       <div id="tab-classement" class="tab-content" role="tabpanel">
         <div class="overall-ranking">
           <div class="overall-header">
-            <h2 data-i18n="dashboard.ranking_title">🏅 Classement Général Quest</h2>
+            <h2><span data-icon="award"></span> <span data-i18n="dashboard.ranking_title">Classement Général Quest</span></h2>
             <div class="quest-total" id="quest-total"></div>
           </div>
           <table class="overall-table">
@@ -580,7 +581,7 @@
       <div id="tab-direct" class="tab-content" role="tabpanel">
         <div class="live-matches" id="live-matches">
           <div class="no-data">
-            <div class="no-data-icon">⏱️</div>
+            <div class="no-data-icon"><span data-icon="timer"></span></div>
             <h3 data-i18n="dashboard.no_live">Aucun match en cours</h3>
             <p data-i18n="dashboard.no_live_hint">Les matchs en direct apparaîtront ici</p>
           </div>
@@ -591,7 +592,7 @@
 
     <!-- Refresh Indicator -->
     <div class="refresh-indicator" id="refresh-indicator">
-      <span class="sync-icon">🔄</span>
+      <span class="sync-icon" data-icon="refresh"></span>
       <span data-i18n="dashboard.autorefresh">Auto-refresh: 10s</span>
     </div>
 
@@ -742,7 +743,7 @@
             (r, i) => `
           <tr class="${i < 3 ? 'top-3' : ''}">
             <td class="rank rank-${i + 1}">
-              ${escHtml(i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1)}
+              ${i < 3 ? bpRank(i + 1) : i + 1}
             </td>
             <td>
               <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
@@ -764,7 +765,7 @@
         if (!data.pools || data.pools.length === 0) {
           container.innerHTML = `
             <div class="no-data">
-              <div class="no-data-icon">🤺</div>
+              <div class="no-data-icon">${bpIcon('users')}</div>
               <h3>Aucune poule en cours</h3>
               <p>Les poules apparaîtront ici une fois la compétition démarrée</p>
             </div>
@@ -827,7 +828,7 @@
         if (!data.matches || data.matches.length === 0) {
           container.innerHTML = `
             <div class="no-data">
-              <div class="no-data-icon">⏱️</div>
+              <div class="no-data-icon">${bpIcon('timer')}</div>
               <h3>Aucun match en cours</h3>
               <p>Les matchs en direct apparaîtront ici</p>
             </div>
