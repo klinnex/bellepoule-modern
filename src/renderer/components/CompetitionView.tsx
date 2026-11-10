@@ -29,12 +29,9 @@ import {
   Pool,
 } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
-import { getRoundName } from './tableau/tableauCalculations';
 import { poolMatchesWithReferee } from '../../shared/utils/refereeStats';
-import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -62,6 +59,10 @@ import { useRemoteCheckinSync } from '../hooks/useRemoteCheckinSync';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
 import type { TeamPhase } from './competition/teamPhases';
 import { useSplitGroups } from '../hooks/useSplitGroups';
+import { useCompetitionImport } from '../hooks/useCompetitionImport';
+import { usePoolsWindowSize } from '../hooks/usePoolsWindowSize';
+import { buildMatchAuditOptions } from './competition/matchAuditOptions';
+import { CV_STYLES } from './competition/competitionViewStyles';
 import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
 import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
 import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
@@ -129,37 +130,6 @@ const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
 
-/** Libellés + arbitres des matchs pour le journal (sélection par match / arbitre) */
-function buildMatchAuditOptions(
-  allPools: Pool[],
-  tableau: TableauMatch[],
-  competitionId: string
-): MatchAuditOption[] {
-  const name = (f: { lastName: string } | null | undefined) => f?.lastName ?? '?';
-  const refName = (r: { firstName: string; lastName: string }) =>
-    `${r.firstName} ${r.lastName}`.trim();
-  const poolOpts = allPools.flatMap(p =>
-    (p.matches ?? []).map(m => ({
-      id: m.id,
-      label: `Poule ${p.number} — M${m.number} : ${name(m.fencerA)} vs ${name(m.fencerB)}`,
-      referees: m.referee ? [refName(m.referee)] : [],
-    }))
-  );
-  const tableauOpts = tableau
-    .filter(m => !m.isBye && (m.fencerA || m.fencerB))
-    .sort((a, b) => b.round - a.round || a.position - b.position)
-    .flatMap(m => {
-      const opt = {
-        id: m.id,
-        label: `${getRoundName(m.round)} — ${name(m.fencerA)} vs ${name(m.fencerB)}`,
-        referees: (m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(refName),
-      };
-      // Événements de tablette stockés sous l'id DB composite (#1031)
-      return [opt, { ...opt, id: `${competitionId}-${m.id}` }];
-    });
-  return [...poolOpts, ...tableauOpts];
-}
-
 const AnalyticsDashboard = React.lazy(() =>
   import('./AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard }))
 );
@@ -187,58 +157,6 @@ interface CompetitionViewProps {
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
-
-const CV_STYLES = {
-  root: {
-    display: 'flex',
-    flex: 1,
-    flexDirection: 'column' as const,
-    overflow: 'hidden',
-  } satisfies React.CSSProperties,
-  thirdPlaceOverlay: {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  } satisfies React.CSSProperties,
-  thirdPlaceModal: {
-    backgroundColor: 'var(--color-raised)',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '500px',
-    width: '90%',
-  } satisfies React.CSSProperties,
-  thirdPlaceTitle: {
-    margin: '0 0 1rem 0',
-    color: 'var(--color-text)',
-  } satisfies React.CSSProperties,
-  thirdPlaceBtnRow: {
-    display: 'flex',
-    gap: '1rem',
-    justifyContent: 'flex-end' as const,
-    marginTop: '1.5rem',
-  } satisfies React.CSSProperties,
-  poolsExportRow: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  } satisfies React.CSSProperties,
-  questWrapper: { display: 'none' } satisfies React.CSSProperties,
-  phaseContent: { flex: 1, overflow: 'auto' as const } satisfies React.CSSProperties,
-  roundSelector: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: '0.75rem 0 1.25rem',
-  } satisfies React.CSSProperties,
-} satisfies Record<string, React.CSSProperties>;
 
 const CompetitionView: React.FC<CompetitionViewProps> = ({
   competition,
@@ -297,11 +215,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Modales / menus : un seul état (#1241)
   const modals = useModalFlags(MODAL_FLAGS);
   const { setShowConfetti, setShowActionsMenu } = modals;
-  const [importData, setImportData] = useState<{
-    format: string;
-    filepath: string;
-    content: string;
-  } | null>(null);
   const {
     isRemoteActive,
     setIsRemoteActive,
@@ -395,6 +308,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   } = useFencerManagement({ competition, onUpdate });
 
   const {
+    importData,
+    setImportData,
+    handleImportFencers,
+    handleOpenImportDialog,
+    handleImportRanking,
+  } = useCompetitionImport({ competition, onUpdate, bulkAddFencers });
+
+  const {
     pools,
     setPools,
     poolHistory,
@@ -471,35 +392,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   poolsRef.current = pools;
   const handleFencerForfeitRef = useRef(handleFencerForfeit);
   handleFencerForfeitRef.current = handleFencerForfeit;
-  const singlePoolIndexRef = useRef(singlePoolIndex);
-  singlePoolIndexRef.current = singlePoolIndex;
 
-  useEffect(() => {
-    if (poolsViewMode !== 'single' || currentPhase !== 'pools') return;
-    const pool = poolsRef.current[singlePoolIndexRef.current];
-    if (!pool) return;
-
-    const POOL_CELL = 52; // px — doit rester synchro avec .pool-cell (main.css)
-    const POOL_NAME_COL = 210; // px — .pool-cell-name (main.css)
-    const CHROME_WIDTH = 140; // marges, bordures de carte, cadre de fenêtre
-    const CHROME_HEIGHT = 380; // en-tête compétition, navigation, barre d'outils, prochain match
-
-    const visibleColumnsCount = getVisibleColumns('pool', pool.id).filter(
-      c => c !== 'quest' || isLaserSabre
-    ).length;
-    const fencerCount = pool.fencers.length;
-
-    const width = Math.min(
-      window.screen.availWidth,
-      POOL_NAME_COL + fencerCount * POOL_CELL + visibleColumnsCount * POOL_CELL + CHROME_WIDTH
-    );
-    const height = Math.min(
-      window.screen.availHeight,
-      (fencerCount + 1) * POOL_CELL + CHROME_HEIGHT
-    );
-
-    window.electronAPI?.setWindowSize(Math.round(width), Math.round(height));
-  }, [poolsViewMode, currentPhase, getVisibleColumns, isLaserSabre]);
+  usePoolsWindowSize({
+    poolsViewMode,
+    currentPhase,
+    pools,
+    singlePoolIndex,
+    getVisibleColumns,
+    isLaserSabre,
+  });
 
   const exports = useExport({
     competition,
@@ -855,89 +756,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
   // Ctrl+P / Cmd+P → imprimer les feuilles de poule (le tableau gère son propre raccourci)
   usePrintShortcut(currentPhase === 'pools' && pools.length > 0, handlePrintAllPoolsPDF);
-
-  const handleImportFencers = async (importedFencers: Partial<Fencer>[]) => {
-    await bulkAddFencers(importedFencers as any);
-    setImportData(null);
-  };
-
-  const handleOpenImportDialog = async (type: 'xml' | 'fff' | 'ranking' = 'fff') => {
-    const configs = {
-      xml: {
-        title: 'Importer un fichier XML BellePoule',
-        filters: [{ name: 'XML BellePoule', extensions: ['xml', 'cotcot'] }],
-      },
-      fff: {
-        title: 'Importer une liste FFE (.fff, .csv, .txt, .xlsx)',
-        filters: [
-          { name: 'Fichiers FFE / CSV / Excel', extensions: ['fff', 'csv', 'txt', 'xlsx'] },
-        ],
-      },
-      ranking: {
-        title: 'Importer un classement (FFF ou CSV : NOM, PRENOM, CLASSEMENT)',
-        filters: [{ name: 'Fichier classement', extensions: ['fff', 'csv', 'txt', 'xlsx'] }],
-      },
-    };
-    const cfg = configs[type];
-    const result = await window.electronAPI.dialog.openFile({
-      title: cfg.title,
-      filters: [...cfg.filters, { name: 'Tous les fichiers', extensions: ['*'] }],
-      properties: ['openFile'],
-    });
-
-    if (result && result.filePath) {
-      const filepath = result.filePath;
-      const content = result.content || '';
-      const extension = filepath.split('.').pop()?.toLowerCase();
-
-      // TXT simple → parseur libre ; CSV/Excel → parseur FFE (modèle d'import : en-tête + colonnes)
-      let format: string = type;
-      if (type === 'fff' && extension === 'txt') {
-        format = 'txt';
-      }
-
-      setImportData({ format, filepath, content });
-    }
-  };
-
-  const handleImportRanking = async (result: RankingImportResult) => {
-    if (!window.electronAPI?.db?.updateFencer) {
-      showToast('Erreur: API non disponible', 'error');
-      return;
-    }
-
-    try {
-      const updatePromises = result.details
-        .filter(d => d.matched && d.fencerId)
-        .map(d =>
-          window.electronAPI!.db!.updateFencer!(d.fencerId!, { ranking: d.ranking }).catch(err =>
-            logger.error(
-              LogCategory.UI,
-              `Failed to update ranking for fencer ${d.fencerId}`,
-              err as Error
-            )
-          )
-        );
-      await Promise.allSettled(updatePromises);
-
-      onUpdate({
-        ...competition,
-        fencers: (competition.fencers || []).map(f => {
-          const detail = result.details.find(d => d.fencerId === f.id);
-          return detail?.matched ? { ...f, ranking: detail.ranking, updatedAt: new Date() } : f;
-        }),
-      });
-
-      showToast(
-        t('plural.ranking_imported', { count: result.updated }),
-        result.errors.length > 0 ? 'warning' : 'success'
-      );
-      setImportData(null);
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to import ranking', error as Error);
-      showToast("Erreur lors de l'import du classement", 'error');
-    }
-  };
 
   const handleQuestConfigUpdate = useCallback(
     async (updates: Partial<QuestPhaseConfig>) => {
