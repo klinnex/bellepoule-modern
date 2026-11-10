@@ -14,7 +14,7 @@
   "remoteHardLocale": 3,
   "remoteHardColor": 0,
   "emojiLocale": 0,
-  "remoteEmoji": 1185,
+  "remoteEmoji": 986,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
