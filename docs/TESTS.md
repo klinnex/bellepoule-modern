@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 79 | 388 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 51 | 326 |
+| `src/remote/` | 52 | 328 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **330** | **2544** |
+| **Total** | **331** | **2546** |
 
-Unitaires : 320 fichiers, 2505 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5045,6 +5045,15 @@ Unitaires : 320 fichiers, 2505 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - suit le statut et la sélection de l arbitre
   - signale la déconnexion
   - public.html ne contient plus de script inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 2 tests</summary>
+
+- **refereeApp.js dans referee.html**
+  - referee.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
 
 </details>
 
