@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from '../Tooltip';
 import React, { useState, useCallback } from 'react';
 import {
   MoreHorizontal,
@@ -149,15 +150,17 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
           {/* Stats + actions */}
           <div className="comp-header-right">
             {/* Propriétés de la compétition — accès direct, à gauche des stats */}
-            <button
-              type="button"
-              className="comp-header-menu-btn"
-              onClick={() => setShowPropertiesModal(true)}
-              title={t('competitionHeader.properties')}
-              aria-label={t('competitionHeader.properties')}
-            >
-              <Settings size={18} />
-            </button>
+            <Tooltip content={t('competitionHeader.properties')}>
+              <button
+                type="button"
+                className="comp-header-menu-btn"
+                onClick={() => setShowPropertiesModal(true)}
+
+                aria-label={t('competitionHeader.properties')}
+              >
+                <Settings size={18} />
+              </button>
+            </Tooltip>
             {expanded && (
               <div className="comp-header-stats">
                 <div className="comp-stat">
@@ -184,14 +187,20 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             )}
 
             {/* Collapse toggle */}
-            <button
-              className="comp-header-collapse-btn"
-              onClick={toggleExpanded}
-              title={expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')}
-              aria-expanded={expanded}
+            <Tooltip
+              content={expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')}
             >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
+              <button
+                className="comp-header-collapse-btn"
+                onClick={toggleExpanded}
+                aria-label={
+                  expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')
+                }
+                aria-expanded={expanded}
+              >
+                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </Tooltip>
 
             {/* Menu actions */}
             <div className="comp-header-actions" ref={actionsMenuRef}>
@@ -200,13 +209,15 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                 message={t('competitionHeader.actions_hint')}
                 position="left"
               >
-                <button
-                  className="comp-header-menu-btn"
-                  onClick={() => setShowActionsMenu(v => !v)}
-                  title={t('competitionHeader.actions')}
-                >
-                  <MoreHorizontal size={18} />
-                </button>
+                <Tooltip content={t('competitionHeader.actions')}>
+                  <button
+                    className="comp-header-menu-btn"
+                    onClick={() => setShowActionsMenu(v => !v)}
+                    aria-label={t('competitionHeader.actions')}
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                </Tooltip>
               </CoachMark>
               {showActionsMenu && (
                 <div className="comp-header-dropdown">
