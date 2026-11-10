@@ -108,6 +108,19 @@ const TableRowSkeleton_: React.FC<{ columns?: number }> = ({ columns = 5 }) => {
   );
 };
 
+// Liste / tableau en chargement : lignes squelettes annoncées aux lecteurs d'écran (#1535)
+const TableSkeleton_: React.FC<{ rows?: number; columns?: number; label: string }> = ({
+  rows = 8,
+  columns = 5,
+  label,
+}) => (
+  <div role="status" aria-busy="true" aria-label={label} style={{ padding: '1rem' }}>
+    {Array.from({ length: rows }, (_, i) => (
+      <TableRowSkeleton key={i} columns={columns} />
+    ))}
+  </div>
+);
+
 // Stats Card Skeleton
 const StatsCardSkeleton_: React.FC = () => {
   return (
@@ -151,6 +164,7 @@ export const Skeleton = React.memo(Skeleton_);
 export const CompetitionCardSkeleton = React.memo(CompetitionCardSkeleton_);
 export const PoolViewSkeleton = React.memo(PoolViewSkeleton_);
 export const TableRowSkeleton = React.memo(TableRowSkeleton_);
+export const TableSkeleton = React.memo(TableSkeleton_);
 export const StatsCardSkeleton = React.memo(StatsCardSkeleton_);
 export const CompetitionViewSkeleton = React.memo(CompetitionViewSkeleton_);
 
@@ -159,6 +173,7 @@ export default {
   CompetitionCardSkeleton,
   PoolViewSkeleton,
   TableRowSkeleton,
+  TableSkeleton,
   StatsCardSkeleton,
   CompetitionViewSkeleton,
 };
