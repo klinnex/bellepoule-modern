@@ -35,6 +35,8 @@ import {
   MUTED,
 } from './questPhaseView.styles';
 import { Button } from './common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface QuestPhaseViewProps {
   fencers: Fencer[];
@@ -483,7 +485,11 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         <div style={CARD}>
           <div className="is-b69013">
             <p style={sectionTitle}>{t('questPhase.schedule_title', { n: schedule.length })}</p>
-            {!isValid && <span className="is-47a0db">⚠ {errors[0]}</span>}
+            {!isValid && (
+              <span className="is-47a0db">
+                <Icon icon={TriangleAlert} /> {errors[0]}
+              </span>
+            )}
           </div>
 
           <div className="is-ef56f1">

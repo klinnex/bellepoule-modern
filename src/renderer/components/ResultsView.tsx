@@ -19,6 +19,8 @@ import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
 import BookSectionsModal from './BookSectionsModal';
 import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
+import { Medal, Trophy, Upload } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface FinalResult {
   rank: number;
@@ -673,7 +675,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* En-tête avec le champion */}
       {champion && (
         <div style={RV_STYLES.champHeader}>
-          <div style={RV_STYLES.champTrophy}>🏆</div>
+          <div style={RV_STYLES.champTrophy}>
+            <Icon icon={Trophy} />
+          </div>
           <h1 style={RV_STYLES.champTitle}>{t('resultsView.champion')}</h1>
           <div style={RV_STYLES.champName}>
             {champion.fencer.firstName} {champion.fencer.lastName}
@@ -687,7 +691,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 2ème place */}
         {resultsToDisplay[1] && (
           <div style={RV_STYLES.podium2}>
-            <div style={RV_STYLES.podium2Medal}>🥈</div>
+            <div style={RV_STYLES.podium2Medal}>
+              <Icon icon={Medal} className="medal-silver" />
+            </div>
             <div style={RV_STYLES.podium2Name}>{resultsToDisplay[1].fencer.lastName}</div>
             <div style={RV_STYLES.podium2Place}>{t('resultsView.second')}</div>
           </div>
@@ -696,7 +702,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 1ère place */}
         {resultsToDisplay[0] && (
           <div style={RV_STYLES.podium1}>
-            <div style={RV_STYLES.podium1Medal}>🥇</div>
+            <div style={RV_STYLES.podium1Medal}>
+              <Icon icon={Medal} className="medal-gold" />
+            </div>
             <div style={RV_STYLES.podium1Name}>{resultsToDisplay[0].fencer.lastName}</div>
             <div style={RV_STYLES.podium1Place}>{t('resultsView.first')}</div>
           </div>
@@ -705,7 +713,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 3ème place */}
         {resultsToDisplay[2] && (
           <div style={RV_STYLES.podium3}>
-            <div style={RV_STYLES.podium3Medal}>🥉</div>
+            <div style={RV_STYLES.podium3Medal}>
+              <Icon icon={Medal} className="medal-bronze" />
+            </div>
             <div style={RV_STYLES.podium3Name}>{resultsToDisplay[2].fencer.lastName}</div>
             <div style={RV_STYLES.podium3Place}>{t('resultsView.third')}</div>
           </div>
@@ -802,7 +812,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 <span style={RV_STYLES.spinner} /> {t('results.exporting')}
               </>
             ) : (
-              '📤 Export ▾'
+              <>
+                <Icon icon={Upload} /> {t('menu.export')} ▾
+              </>
             )}
           </button>
           {isExportMenuOpen && !isExportingFull && (

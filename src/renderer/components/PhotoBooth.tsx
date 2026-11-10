@@ -8,6 +8,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import { Camera } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface PhotoBoothProps {
   onConfirm: (photoData: string) => void;
@@ -182,7 +184,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
               fontSize: '4rem',
             }}
           >
-            📷
+            <Icon icon={Camera} />
           </div>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <Button type="button" onClick={onClose}>

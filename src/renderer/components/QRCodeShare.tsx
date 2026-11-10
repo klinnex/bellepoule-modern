@@ -11,6 +11,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { logger, LogCategory } from '@shared/services/logger';
 import { Competition } from '../../shared/types';
 import { Button } from './common/Button';
+import { Lightbulb, Smartphone } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 type QRMode = 'results' | 'checkin';
 
@@ -112,7 +114,9 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
         aria-modal="true"
       >
         <div className="modal__header">
-          <h2 className="modal__title">📱 {cfg.title}</h2>
+          <h2 className="modal__title">
+            <Icon icon={Smartphone} /> {cfg.title}
+          </h2>
           <button className="modal__close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
@@ -177,7 +181,9 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
 
             <div className="qrcode__info">
               <div className="alert alert--info">
-                <strong>💡 </strong>
+                <strong>
+                  <Icon icon={Lightbulb} />{' '}
+                </strong>
                 {cfg.info}
               </div>
             </div>

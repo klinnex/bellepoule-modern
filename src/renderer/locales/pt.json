@@ -398,7 +398,9 @@
     "backup_import": "Importar (JSON)",
     "backup_exported": "Definições exportadas.",
     "backup_imported": "{{count}} definição(ões) importada(s).",
-    "backup_invalid": "Ficheiro inválido: é esperada uma exportação de definições do BellePoule."
+    "backup_invalid": "Ficheiro inválido: é esperada uma exportação de definições do BellePoule.",
+    "webhook_test": "Testar",
+    "webhook_testing": "A testar…"
   },
   "actions": {
     "undo": "Desfazer",
@@ -2132,7 +2134,9 @@
     "qr_alt": "Código QR Wi-Fi",
     "network": "Rede:",
     "open_short": "Aberta",
-    "download": "💾 Transferir"
+    "download": "💾 Transferir",
+    "generate": "Gerar código QR",
+    "generating": "A gerar…"
   },
   "touchReferee": {
     "strip": "Pista {{n}}",

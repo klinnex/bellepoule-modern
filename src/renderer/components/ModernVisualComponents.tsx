@@ -1,4 +1,6 @@
 import React from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface ThemeToggleProps {
   isDark: boolean;
@@ -34,7 +36,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           transition: 'opacity 0.3s',
         }}
       >
-        ☀️
+        <Icon icon={Sun} />
       </span>
 
       {/* Moon Icon */}
@@ -47,7 +49,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           transition: 'opacity 0.3s',
         }}
       >
-        🌙
+        <Icon icon={Moon} />
       </span>
 
       {/* Toggle Circle */}
@@ -65,7 +67,9 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: '0.75rem' }}>{isDark ? '🌑' : '☀️'}</span>
+        <span style={{ fontSize: '0.75rem' }}>
+          {isDark ? <Icon icon={Moon} /> : <Icon icon={Sun} />}
+        </span>
       </div>
     </button>
   );

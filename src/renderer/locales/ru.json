@@ -398,7 +398,9 @@
     "backup_import": "Импорт (JSON)",
     "backup_exported": "Настройки экспортированы.",
     "backup_imported": "Импортировано настроек: {{count}}.",
-    "backup_invalid": "Недопустимый файл: ожидается экспорт настроек BellePoule."
+    "backup_invalid": "Недопустимый файл: ожидается экспорт настроек BellePoule.",
+    "webhook_test": "Проверить",
+    "webhook_testing": "Проверка…"
   },
   "actions": {
     "undo": "Отменить",
@@ -2132,7 +2134,9 @@
     "qr_alt": "QR-код Wi-Fi",
     "network": "Сеть:",
     "open_short": "Открытая",
-    "download": "💾 Скачать"
+    "download": "💾 Скачать",
+    "generate": "Создать QR-код",
+    "generating": "Создание…"
   },
   "touchReferee": {
     "strip": "Дорожка {{n}}",

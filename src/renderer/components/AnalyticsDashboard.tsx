@@ -18,6 +18,8 @@ import {
 import { FencerStatsTable } from '../../features/analytics/components/FencerStatsTable';
 import { AnalyticsCharts } from './analytics/AnalyticsCharts';
 import { exportPostTournamentPDF } from '../../shared/utils/postTournamentReport';
+import { FileText, Hourglass, Square } from 'lucide-react';
+import { Icon } from './common/Icon';
 const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
@@ -387,7 +389,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
               title={t('analytics.export_title')}
             >
-              {exporting ? '⏳' : '📄'} {t('analytics.report_pdf')}
+              {exporting ? <Icon icon={Hourglass} /> : <Icon icon={FileText} />}{' '}
+              {t('analytics.report_pdf')}
             </button>
             {onClose && (
               <button
@@ -468,9 +471,15 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                   <th className="text-right px-3 py-2 font-semibold text-gray-500">
                     {t('analytics.avg_duration_short')}
                   </th>
-                  <th className="text-right px-3 py-2 font-semibold text-yellow-600">🟨</th>
-                  <th className="text-right px-3 py-2 font-semibold text-red-600">🟥</th>
-                  <th className="text-right px-3 py-2 font-semibold text-gray-800">⬛</th>
+                  <th className="text-right px-3 py-2 font-semibold text-yellow-600">
+                    <Icon icon={Square} className="icon-fill icon-yellow" />
+                  </th>
+                  <th className="text-right px-3 py-2 font-semibold text-red-600">
+                    <Icon icon={Square} className="icon-fill icon-red" />
+                  </th>
+                  <th className="text-right px-3 py-2 font-semibold text-gray-800">
+                    <Icon icon={Square} className="icon-fill icon-black" />
+                  </th>
                 </tr>
               </thead>
               <tbody>

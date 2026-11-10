@@ -398,7 +398,9 @@
     "backup_import": "Importar (JSON)",
     "backup_exported": "Configuració exportada.",
     "backup_imported": "{{count}} paràmetre(s) importat(s).",
-    "backup_invalid": "Fitxer no vàlid: s'espera una exportació de configuració de BellePoule."
+    "backup_invalid": "Fitxer no vàlid: s'espera una exportació de configuració de BellePoule.",
+    "webhook_test": "Provar",
+    "webhook_testing": "Provant…"
   },
   "actions": {
     "undo": "Desfés",
@@ -2132,7 +2134,9 @@
     "qr_alt": "Codi QR wifi",
     "network": "Xarxa:",
     "open_short": "Oberta",
-    "download": "💾 Baixa"
+    "download": "💾 Baixa",
+    "generate": "Genera el codi QR",
+    "generating": "Generant…"
   },
   "touchReferee": {
     "strip": "Pista {{n}}",

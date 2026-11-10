@@ -398,7 +398,9 @@
     "backup_import": "Importer (JSON)",
     "backup_exported": "Paramètres exportés.",
     "backup_imported": "{{count}} paramètre(s) importé(s).",
-    "backup_invalid": "Fichier invalide : export de paramètres BellePoule attendu."
+    "backup_invalid": "Fichier invalide : export de paramètres BellePoule attendu.",
+    "webhook_test": "Tester",
+    "webhook_testing": "Test…"
   },
   "actions": {
     "undo": "Annuler",
@@ -2132,7 +2134,9 @@
     "qr_alt": "QR Code WiFi",
     "network": "Réseau :",
     "open_short": "Ouvert",
-    "download": "💾 Télécharger"
+    "download": "💾 Télécharger",
+    "generate": "Générer le QR Code",
+    "generating": "Génération…"
   },
   "touchReferee": {
     "strip": "Piste {{n}}",

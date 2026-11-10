@@ -15,7 +15,7 @@
     <script src="/js/refereeControls.js"></script>
     <script src="/js/refereeUpdate.js"></script>
     <script src="/js/refereeScoring.js"></script>
-    <script src="/js/refereeCards.js"></script>
+    <script src="/js/refereeCards.js"></script><script src="/js/refereeFeedback.js" data-bp-init></script>
     <script src="/js/refereeTimer.js"></script>
     <script src="/js/refereeLists.js"></script>
     <script src="/js/refereeDemoMirror.js"></script><script src="/js/refereeLobby.js"></script>
@@ -1345,7 +1345,7 @@
       </h1>
       <div class="connection-status">
         <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore">🔇</button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1394,15 +1394,15 @@
         </div>
         <div class="fencers-container">
           <!-- Tireur A (Rouge) -->
-          <div class="fencer-box red-side" id="fencer-a-box">
+          <div class="fencer-box red-side" id="fencer-a-box" role="region" aria-label="Tireur rouge" data-i18n-aria-label="arena.fencer_red">
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
             <div class="cards-display" id="fencer-a-cards"></div>
             <div class="score-display red-score" id="score-a" role="status" aria-live="polite">0</div>
             <div class="score-buttons">
-              <button id="btn-plus-1-a" class="score-btn btn-plus-1">+1</button>
-              <button id="btn-plus-3-a" class="score-btn btn-plus-3">+3</button>
-              <button id="btn-plus-5-a" class="score-btn btn-plus-5">+5</button>
+              <button id="btn-plus-1-a" class="score-btn btn-plus-1" aria-label="Ajouter 1 point" data-i18n-aria-label="referee.score_plus_1">+1</button>
+              <button id="btn-plus-3-a" class="score-btn btn-plus-3" aria-label="Ajouter 3 points" data-i18n-aria-label="referee.score_plus_3">+3</button>
+              <button id="btn-plus-5-a" class="score-btn btn-plus-5" aria-label="Ajouter 5 points" data-i18n-aria-label="referee.score_plus_5">+5</button>
             </div>
             <div class="card-buttons">
               <button aria-label="Carton blanc" data-i18n-aria-label="referee.card_white"
@@ -1444,15 +1444,15 @@
           <div class="vs-divider">VS</div>
 
           <!-- Tireur B (Vert) -->
-          <div class="fencer-box green-side" id="fencer-b-box">
+          <div class="fencer-box green-side" id="fencer-b-box" role="region" aria-label="Tireur vert" data-i18n-aria-label="arena.fencer_green">
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
             <div class="cards-display" id="fencer-b-cards"></div>
             <div class="score-display green-score" id="score-b" role="status" aria-live="polite">0</div>
             <div class="score-buttons">
-              <button id="btn-plus-1-b" class="score-btn btn-plus-1">+1</button>
-              <button id="btn-plus-3-b" class="score-btn btn-plus-3">+3</button>
-              <button id="btn-plus-5-b" class="score-btn btn-plus-5">+5</button>
+              <button id="btn-plus-1-b" class="score-btn btn-plus-1" aria-label="Ajouter 1 point" data-i18n-aria-label="referee.score_plus_1">+1</button>
+              <button id="btn-plus-3-b" class="score-btn btn-plus-3" aria-label="Ajouter 3 points" data-i18n-aria-label="referee.score_plus_3">+3</button>
+              <button id="btn-plus-5-b" class="score-btn btn-plus-5" aria-label="Ajouter 5 points" data-i18n-aria-label="referee.score_plus_5">+5</button>
             </div>
             <div class="card-buttons">
               <button aria-label="Carton blanc" data-i18n-aria-label="referee.card_white"
@@ -2398,7 +2398,7 @@
             return;
           }
 
-          this.pushHistory('score');
+          this.pushHistory('score'); BPRefereeFeedback.afterScore(this, points);
           if (navigator.vibrate) navigator.vibrate(BPRefereeScoring.vibrationMs(points));
 
           const ef = this._effectiveFencer(fencer);
