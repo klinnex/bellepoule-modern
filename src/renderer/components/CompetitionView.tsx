@@ -14,6 +14,7 @@ import {
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import EmptyState from './common/EmptyState';
+import { PoolViewSkeleton, TableSkeleton } from './Skeleton';
 import { useOperation } from './common/OperationProgress';
 import { PHASE_ICONS, PhaseEmptyIcon, TEAM_PHASE_ICONS } from './competition/phaseIcons';
 import {
@@ -2522,7 +2523,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                       gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${Math.round(Math.max(480, 280 + (pools[0]?.fencers?.length ?? 6) * 38) * presetScale(poolCardSize))}px), 1fr))`,
                     }}
                   >
-                    <Suspense fallback={null}>
+                    <Suspense fallback={<PoolViewSkeleton />}>
                       {pools.map((pool, poolIndex) => renderPoolCard(pool, poolIndex))}
                     </Suspense>
                   </div>
@@ -2624,15 +2625,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         )}
 
         {currentPhase === 'tableau' && (
-          <Suspense
-            fallback={
-              <div
-                style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-light)' }}
-              >
-                {t('competitionView.loading_tableau')}
-              </div>
-            }
-          >
+          <Suspense fallback={<TableSkeleton label={t('competitionView.loading_tableau')} />}>
             {/* Sélecteur de groupe pour compétition couplée */}
             {postPoolSplitCriteria && activeSplitGroup && splitGroups.length > 1 && (
               <SplitGroupTabs
