@@ -84,6 +84,10 @@ describe('analyseur des interpolations HTML', () => {
     expect(analyze('el.textContent = "x" + f.name;')).toEqual([]);
   });
 
+  it('bpIcon(…) (icône SVG de /js/icons.js) est une interpolation sûre', () => {
+    expect(analyze("x = `<b>${bpIcon('trophy')} ${escHtml(n)}</b>`;")).toEqual([]);
+  });
+
   it('analyse les scripts inline des pages HTML', () => {
     const page = '<html><script>\nconst a = `<td>${x.name}</td>`;\n</script></html>';
     expect(analyzeRemoteSource('p.html', page)).toMatchObject([{ line: 2, expr: 'x.name' }]);

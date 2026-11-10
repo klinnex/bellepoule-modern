@@ -24,6 +24,8 @@
  *   - remoteHardColor : couleur hexadécimale (#rgb, #rrggbb, #rrggbbaa) en dur dans les pages
  *                  distantes (src/remote, hors tokens.css) → `var(--…)` de /tokens.css (#1538)
  *   - emojiLocale : emoji en tête d'une valeur de locale (src/renderer/locales/*.json) → icône lucide (#1532)
+ *   - remoteEmoji : emoji n'importe où dans les pages distantes (src/remote : html, js, css, i18n/)
+ *                  → icône SVG partagée /js/icons.js (bpIcon, data-icon), texte sans emoji (#1532)
  *   - inlineStyle : objets `style={{…}}` dans le JSX (renderer) → classes / tokens CSS (#1157)
  *   - fontSizePx : `fontSize` en px (nombre ou « 12px ») dans le TS/TSX du renderer → échelle
  *                  `var(--fs-*)` en rem (#1156)
@@ -358,6 +360,28 @@ function localeEmojiFindings() {
   return out;
 }
 
+/** Emoji dans les pages distantes : html/js/css de src/remote, js/ et i18n/ (hors tests, #1532) */
+function remoteEmojiFindings() {
+  const out = [];
+  const names = [];
+  for (const sub of ['', 'js', 'i18n']) {
+    const dir = path.join(REMOTE_DIR, sub);
+    for (const n of fs.readdirSync(dir).sort()) {
+      if (/\.(html|js|css)$/.test(n) && !/\.test\./.test(n)) names.push(sub ? `${sub}/${n}` : n);
+    }
+  }
+  for (const name of names) {
+    const lines = [];
+    fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        if (/\p{Extended_Pictographic}/u.test(l)) lines.push(i + 1);
+      });
+    if (lines.length) out.push({ file: `src/remote/${name}`, lines });
+  }
+  return out;
+}
+
 /** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
 function fileLengths() {
   const out = {};
@@ -393,6 +417,7 @@ function collect() {
     'remoteHardLocale',
     'remoteHardColor',
     'emojiLocale',
+    'remoteEmoji',
   ]) {
     totals[key] = 0;
     details[key] = [];
@@ -413,6 +438,8 @@ function collect() {
   totals.remoteHardColor = details.remoteHardColor.reduce((n, f) => n + f.lines.length, 0);
   details.emojiLocale = localeEmojiFindings();
   totals.emojiLocale = details.emojiLocale.reduce((n, f) => n + f.lines.length, 0);
+  details.remoteEmoji = remoteEmojiFindings();
+  totals.remoteEmoji = details.remoteEmoji.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 
