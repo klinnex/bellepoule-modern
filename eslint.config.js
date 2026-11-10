@@ -85,7 +85,15 @@ module.exports = [
       'no-undef': 'off',
       'prefer-const': 'warn',
       'no-useless-escape': 'warn',
+      // Budget de taille de fichier (#1599) : découper hooks / sous-composants au-delà de 800 lignes.
+      // Avertissement ; le plafond dur (cliquet) reste dans scripts/check-quality-ratchet.js.
+      'max-lines': ['warn', { max: 800 }],
     },
+  },
+  {
+    // Les fichiers de tests peuvent dépasser le budget (tables de cas)
+    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', 'e2e/**/*.ts'],
+    rules: { 'max-lines': 'off' },
   },
   {
     // JS distant servi aux navigateurs (CSP, sans bundler) : scripts classiques, globales navigateur (#1600)
