@@ -1,0 +1,15 @@
+/* Médailles de classement (RankMedal, #1532) : couleurs de métaux */
+.rank-medal-1 {
+  color: #d4a017;
+}
+.rank-medal-2 {
+  color: #8d99a6;
+}
+.rank-medal-3 {
+  color: #b0702f;
+}
+@media (forced-colors: active) {
+  .rank-medal {
+    color: CanvasText;
+  }
+}

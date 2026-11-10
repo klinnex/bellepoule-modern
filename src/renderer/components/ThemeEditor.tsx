@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
+import { RankMedal } from './common/RankMedal';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Valeurs par défaut (thème dark)
@@ -870,7 +871,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                     {/* Lignes de classement */}
                     {[
                       {
-                        rank: '🥇',
+                        rank: 1,
                         name: 'DUPONT A.',
                         club: 'Escrime Paris',
                         v: '5',
@@ -878,7 +879,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         gold: true,
                       },
                       {
-                        rank: '🥈',
+                        rank: 2,
                         name: 'MARTIN B.',
                         club: 'CE Orléans',
                         v: '4',
@@ -886,7 +887,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         gold: false,
                       },
                       {
-                        rank: '🥉',
+                        rank: 3,
                         name: 'LEROY C.',
                         club: 'EC Lyon',
                         v: '4',
@@ -894,7 +895,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         gold: false,
                       },
                       {
-                        rank: '4',
+                        rank: 4,
                         name: 'BERNARD D.',
                         club: 'Fleuret Club',
                         v: '3',
@@ -924,7 +925,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                             fontWeight: 700,
                           }}
                         >
-                          {row.rank}
+                          {row.rank <= 3 ? <RankMedal rank={row.rank} size={24} /> : row.rank}
                         </span>
                         <span className="is-fc5e01">
                           {row.name} <span className="is-cd4091">· {row.club}</span>

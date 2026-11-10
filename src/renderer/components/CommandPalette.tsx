@@ -6,6 +6,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../contexts/TranslationContext';
+import { ArrowRight, Plus, Settings, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
 import { getPhaseTargets, selectPhase } from './competition/phaseRegistry';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import {
@@ -20,7 +22,7 @@ interface Command {
   id: string;
   label: string;
   description?: string;
-  icon: string;
+  icon: React.ReactNode;
   action: () => void;
   keywords?: string[];
 }
@@ -55,7 +57,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'new-competition',
         label: t('menu.new_competition'),
-        icon: '➕',
+        icon: <Icon icon={Plus} />,
         action: () => {
           onClose();
           onNewCompetition();
@@ -65,7 +67,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'settings',
         label: t('settings.title'),
-        icon: '⚙️',
+        icon: <Icon icon={Settings} />,
         action: () => {
           onClose();
           onOpenSettings();
@@ -77,7 +79,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: `comp-${c.id}`,
       label: c.title,
       description: `${c.weapon} · ${categoryLabel(c.category, t)} · ${c.fencers.length} tireurs`,
-      icon: '🏆',
+      icon: <Icon icon={Trophy} />,
       action: () => {
         onClose();
         onSelectCompetition(c.id);
@@ -89,7 +91,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: `phase-${p.id}`,
       label: p.label,
       description: `Ctrl + ${p.position}`,
-      icon: '→',
+      icon: <Icon icon={ArrowRight} />,
       action: () => {
         onClose();
         selectPhase(p.id);
