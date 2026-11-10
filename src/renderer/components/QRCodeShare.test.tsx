@@ -27,8 +27,8 @@ describe('QRCodeShare', () => {
   it('affiche le titre du mode résultats et les onglets', () => {
     render(<QRCodeShare competition={competition} onClose={vi.fn()} />);
     expect(screen.getByText(/Partager les résultats/)).toBeInTheDocument();
-    expect(screen.getByText('🏆 Résultats')).toBeInTheDocument();
-    expect(screen.getByText('✅ Pointage')).toBeInTheDocument();
+    expect(screen.getByText('Résultats')).toBeInTheDocument();
+    expect(screen.getByText('Pointage')).toBeInTheDocument();
   });
 
   it('affiche un message si le serveur distant n’est pas démarré', async () => {
@@ -38,7 +38,7 @@ describe('QRCodeShare', () => {
 
   it('bascule vers l’onglet pointage', () => {
     render(<QRCodeShare competition={competition} onClose={vi.fn()} />);
-    fireEvent.click(screen.getByText('✅ Pointage'));
+    fireEvent.click(screen.getByText('Pointage'));
     expect(screen.getByText(/QR Code de pointage/)).toBeInTheDocument();
   });
 
