@@ -99,16 +99,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 6 | 138 |
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
-| `src/renderer/hooks/` | 27 | 131 |
+| `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 79 | 388 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 52 | 328 |
+| `src/remote/` | 53 | 329 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **331** | **2546** |
+| **Total** | **332** | **2548** |
 
-Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 322 fichiers, 2509 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3357,7 +3357,7 @@ Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 8 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 9 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -3370,6 +3370,7 @@ Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - applique des MAJ différentes par tireur en un seul état (#1051)
 - **deleteFencer**
   - supprime le tireur et notifie
+  - propose d’annuler : le tireur est ré-ajouté sans identifiant (#1535)
 - **deleteAllFencers**
   - vide la liste et notifie
 - **bus fencers:changed (#1298)**
@@ -4752,6 +4753,14 @@ Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tokens.css définit :focus-visible 2 px / décalage 2 px et forced-colors
   - chaque page distante charge tokens.css
   - styles.css ne supprime pas le focus sans repli visible
+
+</details>
+
+<details>
+<summary><code>src/remote/inlineStyles.test.ts</code> — 1 test</summary>
+
+- **styles inline des pages distantes (#1600)**
+  - ${page} : au plus ${max} attribut(s) style
 
 </details>
 
