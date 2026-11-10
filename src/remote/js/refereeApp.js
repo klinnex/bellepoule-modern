@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/refereeApp.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global BPRefereeControls, BPRefereeLists, BPRefereeScoring, BPRefereeTimer, BPRefereeTts, BPRefereeUpdate, PASSIVITY_CARDS, RefereeAppBase, applyScreenTheme, bpCssVar, escHtml, isStandardCard, lastIndexWhere */
+/* global BPRefereeControls, BPRefereeLists, BPRefereeScoring, BPRefereeTimer, BPRefereeTts, BPRefereeUpdate, PASSIVITY_CARDS, RefereeAppBase, applyScreenTheme, bpCssVar, bpIcon, escHtml, isStandardCard, lastIndexWhere */
 /* exported openJournal, reloadIfIdle */
 class RefereeApp extends RefereeAppBase {
   // Retirer des points (appui long)
@@ -362,7 +362,13 @@ class RefereeApp extends RefereeAppBase {
   toggleTTS() {
     this.ttsEnabled = !this.ttsEnabled;
     const btn = document.getElementById('btn-tts-toggle');
-    if (btn) btn.textContent = window.T(this.ttsEnabled ? 'referee.voice_on' : 'referee.voice_off');
+    if (btn) {
+      const on = this.ttsEnabled;
+      btn.innerHTML =
+        bpIcon(on ? 'volume-on' : 'volume-off') +
+        ' ' +
+        escHtml(window.T(on ? 'referee.voice_on' : 'referee.voice_off'));
+    }
     if (this.ttsEnabled) this.ttsSpeak(BPRefereeTts.enabledMessage(this.ttsLangCode()));
   }
 
@@ -905,7 +911,8 @@ class RefereeApp extends RefereeAppBase {
     if (st.lockAll) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
 
     startBtn.disabled = st.start.disabled;
-    startBtn.textContent = window.T(st.start.key, st.start.params);
+    startBtn.innerHTML =
+      bpIcon(st.start.icon) + ' ' + escHtml(window.T(st.start.key, st.start.params));
     startBtn.className = st.start.className;
     if (finishBtn) finishBtn.disabled = st.finishDisabled;
     if (st.updateScoreButtons) this.updateScoreButtons();
@@ -1180,7 +1187,7 @@ class RefereeApp extends RefereeAppBase {
     }
     container.innerHTML = `
       <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid var(--c-111111);border-radius:0.75rem;background:rgba(0,0,0,0.35);">
-        <div style="font-weight:700;margin-bottom:0.5rem;">${escHtml(window.T('referee.black_cards'))}</div>
+        <div style="font-weight:700;margin-bottom:0.5rem;">${bpIcon('card')} ${escHtml(window.T('referee.black_cards'))}</div>
         ${cards
           .map(
             c => `
@@ -1191,7 +1198,7 @@ class RefereeApp extends RefereeAppBase {
             </div>
             <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
               style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:var(--tw-gray-50);color:var(--c-111111);font-weight:700;font-size:0.9rem;cursor:pointer;">
-              ${escHtml(window.T('referee.cancel_card'))}
+              ${bpIcon('undo')} ${escHtml(window.T('referee.cancel_card'))}
             </button>
           </div>`
           )
@@ -1232,6 +1239,7 @@ class RefereeApp extends RefereeAppBase {
     container.innerHTML = BPRefereeLists.renderNextMatchesHtml(matches, {
       T: window.T,
       escHtml,
+      bpIcon,
       arenaNum: this.arenaNumber || document.getElementById('arena-number').textContent,
     });
   }

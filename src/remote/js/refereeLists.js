@@ -42,31 +42,33 @@
   /**
    * HTML de la liste des prochains matchs.
    * @param {object[]} matches
-   * @param {{T: Function, escHtml: Function, arenaNum: string}} ctx
+   * @param {{T: Function, escHtml: Function, arenaNum: string, bpIcon?: Function}} ctx
    */
   function renderNextMatchesHtml(matches, ctx) {
-    const { T, escHtml, arenaNum } = ctx;
+    const { T, escHtml, arenaNum, bpIcon = () => '' } = ctx;
     if (matches.length === 0) {
       return `
               <div class="next-matches-empty">${escHtml(T('referee.all_done'))}</div>
               <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;">
                 <a href="/arene${escHtml(arenaNum)}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:var(--tw-indigo-600);color:var(--color-white);border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
-                  ${escHtml(T('referee.signature_btn'))}
+                  ${bpIcon('sign')} ${escHtml(T('referee.signature_btn'))}
                 </a>
                 <a href="/arene${escHtml(arenaNum)}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:var(--tw-violet-900);color:var(--tw-violet-300);border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
-                  ${escHtml(T('referee.journal_btn'))}
+                  ${bpIcon('list')} ${escHtml(T('referee.journal_btn'))}
                 </a>
               </div>`;
     }
     const statusBadge = status => {
-      const [bg, key] =
+      const [bg, key, icon] =
         status === 'in_progress'
-          ? ['var(--tw-amber-500)', 'referee.status_in_progress']
-          : ['var(--blue-500)', 'referee.status_to_play'];
+          ? ['var(--tw-amber-500)', 'referee.status_in_progress', 'swords']
+          : ['var(--blue-500)', 'referee.status_to_play', 'clock'];
       return (
         '<span style="background:' +
         bg +
         ';color:var(--color-white);font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:0.75rem;margin-left:0.4rem;">' +
+        bpIcon(icon) +
+        ' ' +
         escHtml(T(key)) +
         '</span>'
       );

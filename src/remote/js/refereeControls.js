@@ -10,7 +10,7 @@
    * État du bouton Démarrer/Pause et du bouton Terminer.
    * @param {object} s {priorityAnimating, waitingOvertimeStart, waitingCoinFlip, scoreA, scoreB,
    *   matchStatus, hasMatch, timerRunning, overtimeLabel}
-   * @returns {{lockAll?: true, start?: {disabled, key, params?, className}, finishDisabled?: boolean,
+   * @returns {{lockAll?: true, start?: {disabled, key, icon, params?, className}, finishDisabled?: boolean,
    *   updateScoreButtons?: true, updateRestButton?: true}}
    */
   function controlButtonsState(s) {
@@ -23,6 +23,7 @@
         start: {
           disabled: false,
           key: 'referee.launch_overtime',
+          icon: 'timer',
           params: { label: s.overtimeLabel },
           className: 'control-btn btn-launch-overtime',
         },
@@ -37,6 +38,7 @@
         start: {
           disabled: false,
           key: 'referee.coin_btn',
+          icon: 'coins',
           className: 'control-btn btn-launch-overtime',
         },
         finishDisabled: false,
@@ -47,13 +49,33 @@
 
     let start;
     if (s.matchStatus === 'not_started') {
-      start = { disabled: !s.hasMatch, key: 'referee.start', className: 'control-btn btn-start' };
+      start = {
+        disabled: !s.hasMatch,
+        key: 'referee.start',
+        icon: 'play',
+        className: 'control-btn btn-start',
+      };
     } else if (s.matchStatus === 'in_progress') {
       start = s.timerRunning
-        ? { disabled: false, key: 'referee.pause', className: 'control-btn btn-pause' }
-        : { disabled: false, key: 'referee.resume', className: 'control-btn btn-resume' };
+        ? {
+            disabled: false,
+            key: 'referee.pause',
+            icon: 'pause',
+            className: 'control-btn btn-pause',
+          }
+        : {
+            disabled: false,
+            key: 'referee.resume',
+            icon: 'play',
+            className: 'control-btn btn-resume',
+          };
     } else {
-      start = { disabled: true, key: 'referee.start', className: 'control-btn btn-start' };
+      start = {
+        disabled: true,
+        key: 'referee.start',
+        icon: 'play',
+        className: 'control-btn btn-start',
+      };
     }
     return {
       start,
