@@ -231,21 +231,21 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
-  <script src="/i18n.js"></script>
+  <script src="/js/icons.js"></script><script src="/i18n.js"></script>
 </head>
 <body>
 
 <div id="toast"></div>
 
 <header>
-  <h1 data-i18n="register.title">⚔️ Inscription compétiteur</h1>
+  <h1><span data-icon="swords"></span> <span data-i18n="register.title">Inscription compétiteur</span></h1>
   <p id="subtitle" data-i18n="register.subtitle">Remplissez le formulaire puis prenez un selfie</p>
 </header>
 
 <main>
 <!-- Closed state -->
 <div id="closed-banner">
-  <div class="icon">🔒</div>
+  <div class="icon"><span data-icon="lock"></span></div>
   <h2 data-i18n="register.closed">Inscription fermée</h2>
   <p><span data-i18n="register.closed_pools">Les poules ont été générées.</span><br><span data-i18n="register.closed_contact">Contactez l'organisateur pour toute modification.</span></p>
 </div>
@@ -299,7 +299,7 @@
 
     <!-- Camera -->
     <div class="photo-section">
-      <h2 data-i18n="register.photo">📷 Photo (selfie)</h2>
+      <h2><span data-icon="camera"></span> <span data-i18n="register.photo">Photo (selfie)</span></h2>
       <div id="placeholder-area" style="text-align:center;padding:1.5rem 0;color:var(--text-muted);font-size:0.875rem;" data-i18n="register.no_photo">
         Aucune photo — optionnelle
       </div>
@@ -312,20 +312,20 @@
       <canvas id="canvas"></canvas>
 
       <div class="camera-btns" id="camera-btns-open" style="margin-top:0.75rem;">
-        <button type="button" class="btn btn-secondary" id="btn-open-camera" data-i18n="register.open_camera">📷 Ouvrir caméra</button>
+        <button type="button" class="btn btn-secondary" id="btn-open-camera"><span data-icon="camera"></span> <span data-i18n="register.open_camera">Ouvrir caméra</span></button>
       </div>
       <div class="camera-btns" id="camera-btns-live" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="btn-capture" data-i18n="register.take_selfie">📸 Prendre selfie</button>
+        <button type="button" class="btn btn-secondary" id="btn-capture"><span data-icon="camera"></span> <span data-i18n="register.take_selfie">Prendre selfie</span></button>
         <button type="button" class="btn btn-danger-outline" id="btn-cancel-camera" data-i18n="register.cancel">✕ Annuler</button>
       </div>
       <div class="camera-btns" id="camera-btns-preview" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="btn-retake" data-i18n="register.retake">🔄 Reprendre</button>
+        <button type="button" class="btn btn-secondary" id="btn-retake"><span data-icon="refresh"></span> <span data-i18n="register.retake">Reprendre</span></button>
         <button type="button" class="btn btn-danger-outline" id="btn-remove-photo" data-i18n="register.remove_photo">✕ Supprimer</button>
       </div>
     </div>
 
     <button type="submit" class="btn btn-primary btn-submit" id="btn-submit" data-i18n="register.submit">
-      ✅ S'inscrire
+      S'inscrire
     </button>
 
   </form>
@@ -514,7 +514,7 @@
       }
 
       // Success
-      showToast(`✅ ${payload.firstName} ${payload.lastName} inscrit(e) !`, 'success');
+      showToast(`${payload.firstName} ${payload.lastName} inscrit(e) !`, 'success');
       stopCamera();
       photoBase64 = null;
       document.getElementById('reg-form').reset();
