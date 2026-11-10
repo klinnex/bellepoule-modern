@@ -4,19 +4,10 @@
  */
 
 import { GregAutoPublish } from './remote/GregAutoPublishToggle';
-import { useStateGroup } from '../hooks/useStateGroup';
 import { usePrintShortcut } from '../hooks/usePrintShortcut';
-import {
-  CV_REMOTE_INIT,
-  CV_PLANNING_INIT,
-  CV_SPLIT_INIT,
-  CV_DATA_INIT,
-} from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import { useOperation } from './common/OperationProgress';
-import { Competition, Fencer, FencerStatus, Weapon, Gender, Pool } from '../../shared/types';
+import { Fencer, FencerStatus, Gender, Pool } from '../../shared/types';
 import FencerList from './FencerList';
-import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
 import CompetitionPropertiesModal from './CompetitionPropertiesModal';
@@ -29,21 +20,13 @@ import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
 import { poolsHaveScores } from './poolLaunchState';
 import { persistPools } from './poolPersistence';
-import { useToast } from './Toast';
-import { useConfirm } from './ConfirmDialog';
-import { useTranslation } from '../hooks/useTranslation';
-import { Phase } from '../hooks/useCompetitionSession';
-import { useFencerManagement } from '../hooks/useFencerManagement';
-import { usePoolManagement } from '../hooks/usePoolManagement';
-import { buildStripQrs, useExport } from '../hooks/useExport';
+import { buildStripQrs } from '../hooks/useExport';
 import { usePoolStripChange } from '../hooks/usePoolStripChange';
 import { useCompetitionPhases } from '../hooks/useCompetitionPhases';
 import { useRemoteCheckinSync } from '../hooks/useRemoteCheckinSync';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
 import type { TeamPhase } from './competition/teamPhases';
 import { useSplitGroups } from '../hooks/useSplitGroups';
-import { useCompetitionImport } from '../hooks/useCompetitionImport';
-import { usePoolsWindowSize } from '../hooks/usePoolsWindowSize';
 import { buildMatchAuditOptions } from './competition/matchAuditOptions';
 import { CV_STYLES } from './competition/competitionViewStyles';
 import { useCompetitionNavigation } from '../hooks/useCompetitionNavigation';
@@ -54,13 +37,6 @@ import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
 import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
 import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../hooks/useMatchDbSync';
-import { seedFencersFromRanking } from '../../shared/utils/poolRounds';
-import {
-  getActiveFormula,
-  isRapieresMode,
-  resolveCompetitionSettings,
-} from '../../shared/utils/customFormulaSettings';
-import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
 import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
 import {
   rapieresSemifinalists,
@@ -69,7 +45,6 @@ import {
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
 import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
-import { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
 import { useRapieresViewProps } from '../../features/rapieres/useRapieresViewProps';
@@ -78,10 +53,6 @@ import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
-import { useColumnVisibility } from '../hooks/useColumnVisibility';
-import { useModalFlags } from '../hooks/useModalFlags';
-import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
-import { MODAL_FLAGS } from './competition/modalFlags';
 import { Button } from './common/Button';
 import CompetitionExportModals from './competition/CompetitionExportModals';
 import CompetitionSecondaryModals from './competition/CompetitionSecondaryModals';
@@ -93,6 +64,8 @@ import {
   computeEffectiveTableauRanking,
   computeMatchProgress,
 } from './competition/competitionDerived';
+import type { CompetitionViewProps } from './competition/competitionViewTypes';
+import { useCompetitionCore } from '../hooks/competitionView/useCompetitionCore';
 import QuestSection from './competition/QuestSection';
 import PoolsPhase from './competition/PoolsPhase';
 import RankingPhase from './competition/RankingPhase';
@@ -106,280 +79,155 @@ const TeamManagerView = React.lazy(() =>
   import('./TeamManagerView').then(m => ({ default: m.TeamManagerView }))
 );
 
-interface CompetitionViewProps {
-  competition: Competition;
-  onUpdate: (competition: Competition) => void;
-  requestPhase?: string;
-  onPhaseApplied?: () => void;
-  onRemoteServerChange?: (url: string | null, arenaCount: number) => void;
-  onOpenCompetition?: (competitionId: string) => void;
-}
-
 // ─── Static style constants ───────────────────────────────────────────────────
 
-const CompetitionView: React.FC<CompetitionViewProps> = ({
-  competition,
-  onUpdate,
-  requestPhase,
-  onPhaseApplied,
-  onRemoteServerChange,
-  onOpenCompetition,
-}) => {
-  const { showToast, showActionableError } = useToast();
-  const { confirm } = useConfirm();
-  const { runOperation } = useOperation();
-  const { t, language } = useTranslation();
-
-  // Settings avec valeurs par défaut (formule personnalisée prioritaire, #1125)
-  const customFormula = getActiveFormula(competition.weapon, competition.settings);
-  const effectiveSettings = resolveCompetitionSettings(competition.weapon, competition.settings);
-  const poolRounds = effectiveSettings?.poolRounds ?? 1;
-  const poolRoundQualifiers = competition.settings?.poolRoundQualifiers;
-  const hasDirectElimination = effectiveSettings?.hasDirectElimination ?? true;
-  const thirdPlaceMatch = effectiveSettings?.thirdPlaceMatch ?? false;
-  const playAllPositions = competition.settings?.playAllPositions ?? false;
-  const poolMaxScore = effectiveSettings?.defaultPoolMaxScore ?? 21;
-  const tableMaxScore = effectiveSettings?.defaultTableMaxScore ?? 0;
-  const isLaserSabre = competition.weapon === Weapon.LASER;
-  const expertMode = competition.settings?.expertMode ?? true; // actif par défaut (#1501)
-  // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement
-  const maxRefereesPerPool = expertMode
-    ? Math.max(1, competition.settings?.maxRefereesPerPool ?? 1)
-    : 1;
-  const maxRefereesPerMatch = expertMode
-    ? Math.max(1, competition.settings?.maxRefereesPerMatch ?? 1)
-    : 1;
-  const poolWinnersOnly = effectiveSettings?.poolWinnersOnly ?? false;
-  // Tournoi des rapières (#1118) : équipes = tireurs, poules en vagues
-  const isRapieres = isRapieresMode(competition.weapon, competition.settings);
-  /** Égalité tranchée par un vainqueur désigné (#1442) */
-  const tieBreakByVictory = allowsVictoryTieBreak(competition.weapon, isRapieres);
-  const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
-  // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
-  const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
-
-  const auditLogEnabled = localStorage.getItem('bellepoule-audit-log-enabled') !== 'false';
-  const { getVisibleColumns } = useColumnVisibility();
-
-  // États locaux
-  const [currentPhase, setCurrentPhase] = useState<Phase>('checkin');
-
-  useEffect(() => {
-    if (requestPhase) {
-      setCurrentPhase(requestPhase as Phase);
-      onPhaseApplied?.();
-    }
-  }, [requestPhase]);
-
-  // Modales / menus : un seul état (#1241)
-  const modals = useModalFlags(MODAL_FLAGS);
-  const { setShowConfetti, setShowActionsMenu } = modals;
+const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewProps) => {
+  const competitionCore = useCompetitionCore({ ...props });
   const {
-    isRemoteActive,
-    setIsRemoteActive,
-    remoteServerUrl,
-    setRemoteServerUrl,
-    remoteArenaCount,
-    setRemoteArenaCount,
-    remoteStripStart,
-    setRemoteStripStart,
-  } = useStateGroup(CV_REMOTE_INIT);
-  useEffect(() => {
-    onRemoteServerChange?.(remoteServerUrl, remoteArenaCount);
-  }, [remoteServerUrl, remoteArenaCount]);
-  const {
-    arenaStates,
-    setArenaStates,
+    competition,
+    language,
+    t,
+    modals,
+    currentPhase,
+    pools,
     tableauMatches,
-    setTableauMatches,
-    consolationBrackets,
-    setConsolationBrackets,
-    finalResults,
-    setFinalResults,
-    appelFencers,
-    setAppelFencers,
-    appelVisibleColumns,
-    setAppelVisibleColumns,
-    setTableauEditUnlocked,
-    referees,
-    setReferees,
-  } = useStateGroup(CV_DATA_INIT);
-  // Refs pour connaître la présence d'un match dans le tableau/consolante de façon synchrone
-  // (mises à jour distantes : éviter le warning "Match non trouvé" côté poule pour les matchs DE)
-  const tableauMatchesRef = useRef<TableauMatch[]>([]);
-  const consolationBracketsRef = useRef<ConsolationBracket[]>([]);
-  tableauMatchesRef.current = tableauMatches;
-  consolationBracketsRef.current = consolationBrackets;
-  const handleAppelStateChange = useCallback((f: Fencer[], cols: string[]) => {
-    setAppelFencers(f);
-    setAppelVisibleColumns(cols);
-  }, []);
-
-  // Tournoi des rapières : état de session et fenêtre d'équipe (#1241)
-  const {
-    rapieresState,
-    setRapieresState,
-    rapieresTeamModal,
-    setRapieresTeamModal,
-    rapieres,
-    updateRapieres,
-    setRapieresTeam,
-  } = useRapieresSessionState();
-  // Préparation des poules et classement (#1241)
-  const {
-    minFencersPerPool,
-    setMinFencersPerPool,
-    maxFencersPerPool,
-    setMaxFencersPerPool,
-    rankingChanged,
-    setRankingChanged,
-    rankingValidated,
-    setRankingValidated,
-    skipPoolPhase,
-    setSkipPoolPhase,
-  } = useStateGroup(CV_PLANNING_INIT);
-
-  // Compétition couplée (#1241)
-  const {
-    activeSplitGroup,
-    setActiveSplitGroup,
-    pendingSplitOffGroup,
-    setPendingSplitOffGroup,
-    splitOffInProgress,
-    setSplitOffInProgress,
-    splitTableauStates,
-    setSplitTableauStates,
-  } = useStateGroup(CV_SPLIT_INIT);
-
-  // Hooks personnalisés
-  const {
     fencers,
-    loadFencers,
-    addFencer,
-    bulkAddFencers,
+    getCheckedInFencers,
+    setCurrentPhase,
+    isRemoteActive,
+    currentPoolRound,
+    viewedRoundAppel,
+    viewedPoolRound,
+    currentAppelFencers,
+    isRapieres,
+    setRapieresTeamModal,
+    remoteServerUrl,
     updateFencer,
-    updateFencers,
     deleteFencer,
     deleteAllFencers,
     checkInAll,
     uncheckAll,
-    getCheckedInFencers,
-  } = useFencerManagement({ competition, onUpdate });
-
-  const {
-    importData,
-    setImportData,
-    handleImportFencers,
     handleOpenImportDialog,
-    handleImportRanking,
-  } = useCompetitionImport({ competition, onUpdate, bulkAddFencers });
-
-  const {
-    pools,
-    setPools,
-    poolHistory,
-    setPoolHistory,
-    appelHistory,
-    setAppelHistory,
-    currentPoolRound,
-    setCurrentPoolRound,
-    overallRanking,
-    setOverallRanking,
-    generatePools: generatePoolsHook,
-    updateScore,
-    resetMatch,
-    cancelMatch,
-    updateMatchFromRemote,
-    nextPoolRound,
-    computePoolRanking,
-    computeOverallRanking,
-    areAllPoolsComplete,
+    loadFencers,
+    handleAppelStateChange,
     handleFencerForfeit,
     handleUndoAbandon,
-    handleBlackCardCancelled,
-    syncFencersToPool,
-  } = usePoolManagement({ isLaserSabre, poolMaxScore, showToast, competitionId: competition?.id });
-
-  // Affichage des poules : grille (toutes les poules) ou poule unique avec navigation
-  const {
+    getSeededCheckedInFencers,
+    poolMaxScore,
+    minFencersPerPool,
+    maxFencersPerPool,
+    expertMode,
+    remoteArenaCount,
+    remoteStripStart,
+    setPools,
+    setSkipPoolPhase,
+    setMinFencersPerPool,
+    setMaxFencersPerPool,
+    tieBreakByVictory,
+    isLaserSabre,
+    rapieres,
+    updateRapieres,
+    confirm,
+    setOverallRanking,
+    computeOverallRanking,
     poolCardSize,
     setPoolCardSize,
     poolsViewMode,
     setPoolsViewMode,
     singlePoolIndex,
     setSinglePoolIndex,
-  } = usePoolsViewSettings(pools.length);
-
-  // Tours de poules (#1051) : seed du tirage = classement du tour précédent
-  const previousRoundRanking = useMemo(
-    () =>
-      currentPoolRound > 1 && poolHistory.length > 0
-        ? computeOverallRanking(poolHistory[poolHistory.length - 1])
-        : null,
-    [currentPoolRound, poolHistory, computeOverallRanking]
-  );
-  const getSeededCheckedInFencers = useCallback(() => {
-    const checkedIn = getCheckedInFencers();
-    return previousRoundRanking
-      ? seedFencersFromRanking(checkedIn, previousRoundRanking)
-      : checkedIn;
-  }, [getCheckedInFencers, previousRoundRanking]);
-  // Tour consulté (null = tour courant)
-  const [viewedPoolRound, setViewedPoolRound] = useState<number | null>(null);
-  const [showRapieresTableauDialog, setShowRapieresTableauDialog] = useState(false);
-  // Appel du tour courant : éliminés des tours précédents retirés (#1051)
-  const currentAppelFencers = useMemo(
-    () =>
-      currentPoolRound > 1 ? fencers.filter(f => f.status !== FencerStatus.ELIMINATED) : fencers,
-    [fencers, currentPoolRound]
-  );
-  // Appel figé d'un tour terminé consulté
-  const viewedRoundAppel =
-    viewedPoolRound !== null && viewedPoolRound < currentPoolRound
-      ? (appelHistory[viewedPoolRound - 1] ?? null)
-      : null;
-  const viewedRoundPools =
-    viewedPoolRound !== null && viewedPoolRound < currentPoolRound
-      ? (poolHistory[viewedPoolRound - 1] ?? null)
-      : null;
-
-  // Ajuste la taille de la fenêtre à l'entrée en vue "poule unique" (colonnes choisies
-  // + nb de tireurs de la poule affichée) pour éviter les ascenseurs. Ne se redéclenche
-  // pas à chaque changement de poule : naviguer d'une poule à l'autre ne doit pas
-  // réinitialiser la taille de fenêtre choisie par l'utilisateur (cf. bug dimension reset).
-  const poolsRef = useRef(pools);
-  poolsRef.current = pools;
-  const handleFencerForfeitRef = useRef(handleFencerForfeit);
-  handleFencerForfeitRef.current = handleFencerForfeit;
-
-  usePoolsWindowSize({
-    poolsViewMode,
-    currentPhase,
-    pools,
-    singlePoolIndex,
-    getVisibleColumns,
-    isLaserSabre,
-  });
-
-  const exports = useExport({
-    competition,
-    showToast,
-    tableauMatches,
-    fencers,
-  });
-  const {
-    exportFencersList,
-    exportRanking,
-    exportResults,
+    viewedRoundPools,
+    overallRanking,
+    hasDirectElimination,
+    skipPoolPhase,
+    poolWinnersOnly,
+    postPoolSplitCriteria,
+    splitOffCompetitionIds,
+    setRankingChanged,
+    setRankingValidated,
+    activeSplitGroup,
+    setTableauMatches,
+    consolationBrackets,
+    setConsolationBrackets,
+    finalResults,
+    setFinalResults,
+    setTableauEditUnlocked,
+    tableMaxScore,
+    thirdPlaceMatch,
+    playAllPositions,
+    maxRefereesPerMatch,
+    poolHistory,
+    appelFencers,
+    appelHistory,
+    appelVisibleColumns,
+    exportResultsXML,
+    setRemoteArenaCount,
+    setRemoteStripStart,
+    setIsRemoteActive,
+    setArenaStates,
+    setRemoteServerUrl,
+    referees,
+    setReferees,
+    arenaStates,
+    exports,
+    rapieresTeamModal,
+    addFencer,
+    pendingSplitOffGroup,
+    setPendingSplitOffGroup,
+    onUpdate,
+    importData,
+    handleImportFencers,
+    handleImportRanking,
+    setImportData,
+    showRapieresTableauDialog,
+    setShowRapieresTableauDialog,
+    areAllPoolsComplete,
+    updateScore,
+    setCurrentPoolRound,
+    setPoolHistory,
+    setAppelHistory,
+    rapieresState,
+    setRapieresState,
+    syncFencersToPool,
+    tableauMatchesRef,
+    consolationBracketsRef,
+    poolsRef,
+    handleFencerForfeitRef,
+    updateMatchFromRemote,
+    handleBlackCardCancelled,
+    effectiveSettings,
+    generatePoolsHook,
+    bulkAddFencers,
+    setRapieresTeam,
     exportPoolsPDF,
     printPoolsPDF,
-    exportResultsXML,
-  } = exports;
+    updateFencers,
+    nextPoolRound,
+    poolRoundQualifiers,
+    customFormula,
+    setViewedPoolRound,
+    rankingChanged,
+    setActiveSplitGroup,
+    splitTableauStates,
+    setSplitTableauStates,
+    onOpenCompetition,
+    splitOffInProgress,
+    setSplitOffInProgress,
+    rankingValidated,
+    poolRounds,
+    auditLogEnabled,
+    setShowConfetti,
+    setShowActionsMenu,
+    maxRefereesPerPool,
+    resetMatch,
+    cancelMatch,
+    computePoolRanking,
+  } = { ...props, ...competitionCore };
 
   // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
   const [poolsLaunched, setPoolsLaunched] = useState(false);
 
-  const { isLoaded, restoredState } = useCompetitionRestore({
+  const { isLoaded } = useCompetitionRestore({
     competitionId: competition.id,
     currentPhase,
     setCurrentPhase,
