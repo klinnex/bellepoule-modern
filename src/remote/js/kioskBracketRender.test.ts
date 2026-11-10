@@ -153,7 +153,9 @@ describe('kioskBracketRender.js', () => {
   });
 
   it('kiosk.html charge le module et délègue', () => {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'kiosk.html'), 'utf8');
+    const html =
+      fs.readFileSync(path.join(__dirname, '..', 'kiosk.html'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'kioskApp.js'), 'utf8'); // page + script extrait (#1600)
     expect(html).toContain('<script src="/js/kioskBracketRender.js"></script>');
     expect(html).toContain('KioskBracketRender.buildCompactBracket(');
     expect(html).not.toContain('bracket-trophy-banner">🏆');

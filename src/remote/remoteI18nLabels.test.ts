@@ -21,7 +21,7 @@ describe('kiosk.html : noms de poule traduits (#1213)', () => {
 });
 
 describe('referee.html : raisons de carton avancé traduites (#1213)', () => {
-  const html = read('referee.html');
+  const html = read('referee.html') + read('js/refereeApp.js') + read('js/refereeAppBase.js'); // page + script extrait (#1600)
   const faults = read('js/refereeFaults.js'); // données extraites de referee.html (#1401)
   const keys = [...faults.matchAll(/\{ key: '(referee\.fault_[a-z]+_\d_\d{2})', fr: /g)].map(
     m => m[1]

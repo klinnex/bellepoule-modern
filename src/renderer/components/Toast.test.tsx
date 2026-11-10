@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { ToastProvider, useToast } from './Toast';
+import { translateStatic } from '../contexts/TranslationContext';
 
 // Composant de test déclenchant un toast
 const Trigger: React.FC<{ message: string; type?: any }> = ({ message, type }) => {
@@ -108,5 +109,29 @@ describe('Toast d’annulation (#1535)', () => {
     });
     expect(onUndo).toHaveBeenCalledOnce();
     expect(screen.queryByText('Supprimé')).toBeNull();
+  });
+});
+
+describe('Toast d’erreur actionnable (#1535)', () => {
+  it('affiche l’échec suivi de la cause et de l’étape suivante', () => {
+    const E: React.FC = () => {
+      const { showActionableError } = useToast();
+      return (
+        <button
+          onClick={() =>
+            showActionableError('messages.import_failed', new Error('ENOSPC: no space left'))
+          }
+        >
+          err-go
+        </button>
+      );
+    };
+    renderWithProvider(<E />);
+    act(() => {
+      fireEvent.click(screen.getByText('err-go'));
+    });
+    const text = screen.getByRole('alert').textContent ?? '';
+    expect(text).toContain('—');
+    expect(text).toContain(translateStatic('errors.hint_disk_full'));
   });
 });

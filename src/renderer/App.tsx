@@ -82,7 +82,7 @@ const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
 
 const AppContent: React.FC = () => {
   const { t, theme, changeTheme, changeLanguage } = useTranslation();
-  const { showToast } = useToast();
+  const { showToast, showActionableError } = useToast();
   const { runOperation } = useOperation();
   const { confirm } = useConfirm();
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -444,10 +444,10 @@ const AppContent: React.FC = () => {
         if (res?.success) showToast('Compétition exportée', 'success');
       } catch (error) {
         logger.error(LogCategory.UI, 'Failed to export competition', error as Error);
-        showToast("Échec de l'export de la compétition", 'error');
+        showActionableError('messages.export_competition_failed', error);
       }
     },
-    [showToast, runOperation]
+    [showToast, showActionableError, runOperation]
   );
 
   const handleTabClose = useCallback(

@@ -3,7 +3,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 // #1152 : le kiosque ne doit plus interroger le serveur périodiquement.
-const html = readFileSync(join(__dirname, 'kiosk.html'), 'utf8');
+// page + script extrait en /js/kioskApp.js (#1600)
+const html =
+  readFileSync(join(__dirname, 'kiosk.html'), 'utf8') +
+  readFileSync(join(__dirname, 'js', 'kioskApp.js'), 'utf8');
 
 describe('kiosk.html sans polling HTTP (#1152)', () => {
   it('aucun setInterval ne déclenche un fetch', () => {

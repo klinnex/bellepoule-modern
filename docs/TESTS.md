@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 49 | 660 |
+| `src/shared/utils/` | 50 | 663 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,30 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 78 | 385 |
+| `src/renderer/components/` | 79 | 388 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 50 | 324 |
+| `src/remote/` | 52 | 328 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **327** | **2536** |
+| **Total** | **331** | **2546** |
 
-Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 321 fichiers, 2507 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
 ### `src/shared/utils/`
+
+<details>
+<summary><code>src/shared/utils/actionableError.test.ts</code> — 3 tests</summary>
+
+- **classifyError**
+  - %s -\> %s _(each)_
+  - chaque cause a une clé i18n errors.hint\_\*
+- **actionableMessage**
+  - compose base et conseil
+
+</details>
 
 <details>
 <summary><code>src/shared/utils/blackCardRanking.test.ts</code> — 10 tests</summary>
@@ -3639,6 +3650,15 @@ Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/CoachMark.test.tsx</code> — 2 tests</summary>
+
+- **CoachMark**
+  - affiche l’aide à la première apparition puis la masque définitivement
+  - reste disponible au survol après fermeture, sans bouton de fermeture
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 10 tests</summary>
 
 - **CommandPalette**
@@ -3941,7 +3961,7 @@ Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 8 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 9 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -3954,6 +3974,8 @@ Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - fournit un showToast no-op sans planter
 - **Toast d’annulation (#1535)**
   - le bouton Annuler appelle le callback et ferme le toast
+- **Toast d’erreur actionnable (#1535)**
+  - affiche l’échec suivi de la cause et de l’étape suivante
 
 </details>
 
@@ -4847,6 +4869,15 @@ Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/js/kioskApp.test.ts</code> — 2 tests</summary>
+
+- **kioskApp.js dans kiosk.html**
+  - kiosk.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
+
+</details>
+
+<details>
 <summary><code>src/remote/js/kioskArenas.test.ts</code> — 9 tests</summary>
 
 - **kioskArenas.js scores**
@@ -5014,6 +5045,15 @@ Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - suit le statut et la sélection de l arbitre
   - signale la déconnexion
   - public.html ne contient plus de script inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 2 tests</summary>
+
+- **refereeApp.js dans referee.html**
+  - referee.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
 
 </details>
 

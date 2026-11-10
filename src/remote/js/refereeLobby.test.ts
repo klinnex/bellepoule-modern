@@ -104,7 +104,10 @@ describe('refereeLobby.js', () => {
 
 describe('referee.html et trainingLobby.html (#1500)', () => {
   const dir = path.join(__dirname, '..');
-  const referee = fs.readFileSync(path.join(dir, 'referee.html'), 'utf8');
+  const referee =
+    fs.readFileSync(path.join(dir, 'referee.html'), 'utf8') +
+    fs.readFileSync(path.join(dir, 'js', 'refereeApp.js'), 'utf8') +
+    fs.readFileSync(path.join(dir, 'js', 'refereeAppBase.js'), 'utf8'); // page + script extrait (#1600)
   const lobby = fs.readFileSync(path.join(dir, 'trainingLobby.html'), 'utf8');
 
   it('referee.html charge le module et lance install', () => {
