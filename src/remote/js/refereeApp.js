@@ -1218,10 +1218,7 @@ class RefereeApp extends RefereeAppBase {
       );
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
-        this.showNotification(
-          `❌ ${window.errorText(data, window.T('error.update_failed'))}`,
-          true
-        );
+        this.showNotification(window.errorText(data, window.T('error.update_failed')), true);
         return;
       }
       this.showNotification(window.T('referee.black_card_cancelled'));
@@ -1230,7 +1227,7 @@ class RefereeApp extends RefereeAppBase {
       this.loadNextMatches();
     } catch (e) {
       console.error('Erreur annulation carton noir:', e);
-      this.showNotification(`❌ ${window.T('remote.error_connection')}`, true);
+      this.showNotification(window.T('remote.error_connection'), true);
     }
   }
 
@@ -1302,6 +1299,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       dot.classList.add('disconnected');
       dot.classList.remove('connected');
     }
-    if (text) text.textContent = `❌ ${window.T('referee.error')}: ${e?.message || e}`;
+    if (text) text.textContent = `${window.T('referee.error')}: ${e?.message || e}`;
   }
 });

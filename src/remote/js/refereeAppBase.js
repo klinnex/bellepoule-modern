@@ -514,13 +514,13 @@ class RefereeAppBase {
 
     this.socket.on('disconnect', () => {
       this.updateConnectionStatus(false);
-      this.showNotification(`❌ ${window.T('remote.disconnected')}`, true);
+      this.showNotification(window.T('remote.disconnected'), true);
     });
 
     this.socket.on('connect_error', err => {
       this.updateConnectionStatus(false);
       const text = document.getElementById('connection-text');
-      if (text) text.textContent = `❌ ${err?.message || window.T('referee.network_error')}`;
+      if (text) text.textContent = err?.message || window.T('referee.network_error');
     });
 
     this.socket.on('auth_error', () => {
