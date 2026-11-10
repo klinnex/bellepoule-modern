@@ -53,6 +53,7 @@ beforeEach(() => {
   planArenaUpdate = vi.fn();
   const g = globalThis as Record<string, unknown>;
   g.io = () => socket;
+  g.bpSocket = () => socket;
   g.fetch = () => Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
   g.escHtml = (s: string) => s;
   g.T = (k: string) => k;

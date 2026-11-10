@@ -4,16 +4,11 @@
  * Script classique chargé en <script src="/js/arenaDisplay.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global ArenaClient, ArenaUpdate, BPArenaOverlays, BPArenaRender, BPArenaPanels, escHtml */
+/* global bpSocket, ArenaClient, ArenaUpdate, BPArenaOverlays, BPArenaRender, BPArenaPanels, escHtml */
 const { setBannerLines, arenaIdFromPath, applyArenaTheme } = window.BPArenaUtils;
 class ArenaDisplay {
   constructor() {
-    this.socket = io({
-      reconnection: true,
-      reconnectionDelay: 200,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-    });
+    this.socket = bpSocket();
     this.arenaId = this.getArenaId();
     this.arenaNumber = this.arenaNumberFromId();
     this.currentMatch = null;

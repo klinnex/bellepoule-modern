@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/kioskApp.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global KioskArenas, KioskBracket, KioskBracketRender, KioskConfig, KioskData, KioskLists, KioskRender, KioskTiming, bpCssVar, escHtml */
+/* global bpSocket, KioskArenas, KioskBracket, KioskBracketRender, KioskConfig, KioskData, KioskLists, KioskRender, KioskTiming, bpCssVar, escHtml */
 // ─── État ────────────────────────────────────────────────────────────────
 const ALL_VIEWS = ['poules', 'classement', 'final', 'direct', 'suivants', 'tableau'];
 
@@ -996,12 +996,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Socket.IO : mise à jour temps réel du bracket
   try {
-    const socket = io({
-      reconnection: true,
-      reconnectionDelay: 200,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-    });
+    const socket = bpSocket();
     socket.on('bracket:update', fetchBracket);
     socket.on('kiosk:data', scheduleRefresh);
     socket.on('logo:update', d => applyLogo((d && d.logo) || null));

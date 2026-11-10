@@ -4,18 +4,13 @@
  * Script classique chargé en <script src="/js/refereeAppBase.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
+/* global bpSocket, BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
 /* exported RefereeAppBase */
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 // escHtml : helper partagé (/common.js)
 class RefereeAppBase {
   constructor(slotArenaId) {
-    this.socket = io({
-      reconnection: true,
-      reconnectionDelay: 200,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-    });
+    this.socket = bpSocket();
     this.baseArenaId = this.getArenaId();
     this.arenaId = slotArenaId || this.baseArenaId;
     this.arenaNumber = this.arenaNumberFromId();
