@@ -9,11 +9,12 @@
   "serverMessage": 0,
   "rawBtn": 0,
   "emojiUi": 0,
-  "emojiLocale": 0,
   "unnamedButton": 0,
   "remoteUnescaped": 0,
-  "remoteHardLocale": 5,
+  "remoteHardLocale": 3,
   "remoteHardColor": 0,
+  "emojiLocale": 0,
+  "remoteEmoji": 1308,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
@@ -22,9 +23,9 @@
     "src/renderer/components/RemoteScoreManager.tsx": 1689,
     "src/renderer/components/TableauView.tsx": 1557,
     "src/renderer/components/wiki/wikiData.ts": 2035,
-    "src/remote/arena.html": 1909,
-    "src/remote/kiosk.html": 2755,
-    "src/remote/referee.html": 4167,
+    "src/remote/arena.html": 1533,
+    "src/remote/kiosk.html": 1673,
+    "src/remote/referee.html": 1824,
     "src/main/remoteScoreServer.ts": 1989
   }
 }
