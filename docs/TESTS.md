@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 381 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 45 | 298 |
+| `src/remote/` | 45 | 302 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **321** | **2506** |
+| **Total** | **321** | **2510** |
 
-Unitaires : 311 fichiers, 2467 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 311 fichiers, 2471 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4645,10 +4645,15 @@ Unitaires : 311 fichiers, 2467 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/remote/`
 
 <details>
-<summary><code>src/remote/a11yPages.test.ts</code> — 1 test</summary>
+<summary><code>src/remote/a11yPages.test.ts</code> — 5 tests</summary>
 
 - **axe sur les pages distantes (#1537)**
   - ${page}.html : aucune violation
+- **repères et annonces des pages distantes (#1537)**
+  - kiosk : la navigation porte un nom accessible traduit
+  - referee : chaque tireur est une région nommée
+  - les scores de référence, arène et public sont annoncés (aria-live)
+  - clé kiosk.menu\_label présente dans toutes les langues
 
 </details>
 
