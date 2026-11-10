@@ -64,7 +64,7 @@ describe('arenaDisplayUtils.js', () => {
     const html = fs.readFileSync(path.join(__dirname, '../arena.html'), 'utf8');
     const tag = html.indexOf('<script src="/js/arenaDisplayUtils.js"></script>');
     expect(tag).toBeGreaterThan(-1);
-    expect(tag).toBeLessThan(html.indexOf('class ArenaDisplay'));
+    expect(tag).toBeLessThan(html.indexOf('/js/arenaDisplay.js'));
     expect(html).not.toContain('function setBannerLines');
   });
 
