@@ -146,7 +146,7 @@ class ArenaDisplay {
     this.socket.on('connect_error', err => {
       this.updateConnectionStatus(false);
       const text = document.getElementById('connection-text');
-      if (text) text.textContent = `❌ ${err?.message || 'Erreur réseau'}`;
+      if (text) text.textContent = err?.message || 'Erreur réseau';
     });
 
     this.socket.on(`arena:${this.arenaId}:update`, data => {
@@ -420,7 +420,7 @@ if (typeof module === 'undefined')
         dot.classList.add('disconnected');
         dot.classList.remove('connected');
       }
-      if (text) text.textContent = '❌ Erreur: ' + (e?.message || e);
+      if (text) text.textContent = 'Erreur: ' + (e?.message || e);
     }
   });
 
