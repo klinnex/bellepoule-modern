@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useFencerManagement } from './useFencerManagement';
 import { Competition, Fencer, Gender, FencerStatus } from '../../shared/types';
 
+const showToast = vi.fn();
+vi.mock('../components/Toast', () => ({ useToast: () => ({ showToast }) }));
 vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
 const fencer = (id: string): Fencer => ({
@@ -134,6 +136,21 @@ describe('deleteFencer', () => {
     });
     expect(db.deleteFencer).toHaveBeenCalledWith('1');
     expect(onUpdate.mock.calls[0][0].fencers).toHaveLength(0);
+  });
+
+  it('propose d’annuler : le tireur est ré-ajouté sans identifiant (#1535)', async () => {
+    const r = setup();
+    await act(async () => {
+      await r.current.deleteFencer('1');
+    });
+    const options = showToast.mock.calls[showToast.mock.calls.length - 1][2];
+    expect(options.action.label).toBe('fencerList.undo');
+    await act(async () => {
+      options.action.onClick();
+    });
+    const data = db.addFencer.mock.calls[0][1];
+    expect(data.lastName).toBe('L1');
+    expect(data.id).toBeUndefined();
   });
 });
 

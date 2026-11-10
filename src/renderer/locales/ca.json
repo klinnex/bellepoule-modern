@@ -1501,7 +1501,8 @@
     "bpf_imported": "{{added}} afegit(s), {{updated}} actualitzat(s) (.bpf)",
     "bpf_import_error": "Error en la importació .bpf",
     "col_region": "Regió",
-    "col_department": "Departament"
+    "col_department": "Departament",
+    "deleted": "{{name}} eliminat"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
