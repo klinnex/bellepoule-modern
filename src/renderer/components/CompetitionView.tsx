@@ -4,9 +4,8 @@
  */
 
 import { GregAutoPublish } from './remote/GregAutoPublishToggle';
-import { usePrintShortcut } from '../hooks/usePrintShortcut';
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import { Fencer, FencerStatus, Gender, Pool } from '../../shared/types';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import { Fencer, FencerStatus, Gender } from '../../shared/types';
 import FencerList from './FencerList';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -18,25 +17,14 @@ import {
 } from '../../shared/utils/splitCompetition';
 import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
-import { poolsHaveScores } from './poolLaunchState';
-import { persistPools } from './poolPersistence';
 import { buildStripQrs } from '../hooks/useExport';
 import { usePoolStripChange } from '../hooks/usePoolStripChange';
 import { useCompetitionPhases } from '../hooks/useCompetitionPhases';
 import { useRemoteCheckinSync } from '../hooks/useRemoteCheckinSync';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
 import type { TeamPhase } from './competition/teamPhases';
-import { useSplitGroups } from '../hooks/useSplitGroups';
 import { buildMatchAuditOptions } from './competition/matchAuditOptions';
 import { CV_STYLES } from './competition/competitionViewStyles';
-import { useCompetitionNavigation } from '../hooks/useCompetitionNavigation';
-import { useCompetitionMenu } from '../hooks/useCompetitionMenu';
-import { useCompetitionBootstrap } from '../hooks/useCompetitionBootstrap';
-import { useCompetitionRestore } from '../hooks/useCompetitionRestore';
-import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
-import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
-import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
-import { useMatchDbSync } from '../hooks/useMatchDbSync';
 import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
 import {
   rapieresSemifinalists,
@@ -46,8 +34,6 @@ import {
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
 import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
-import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
-import { useRapieresViewProps } from '../../features/rapieres/useRapieresViewProps';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
 import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
@@ -65,6 +51,7 @@ import {
   computeMatchProgress,
 } from './competition/competitionDerived';
 import type { CompetitionViewProps } from './competition/competitionViewTypes';
+import { useCompetitionSessionSync } from '../hooks/competitionView/useCompetitionSessionSync';
 import { useCompetitionCore } from '../hooks/competitionView/useCompetitionCore';
 import QuestSection from './competition/QuestSection';
 import PoolsPhase from './competition/PoolsPhase';
@@ -83,6 +70,7 @@ const TeamManagerView = React.lazy(() =>
 
 const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewProps) => {
   const competitionCore = useCompetitionCore({ ...props });
+  const competitionSessionSync = useCompetitionSessionSync({ ...props, ...competitionCore });
   const {
     competition,
     language,
@@ -94,13 +82,21 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     fencers,
     getCheckedInFencers,
     setCurrentPhase,
+    handleGeneratePools,
+    questEnabled,
+    questConfig,
+    isLoaded,
     isRemoteActive,
+    poolsLaunched,
     currentPoolRound,
     viewedRoundAppel,
     viewedPoolRound,
     currentAppelFencers,
+    handleCheckInFencer,
     isRapieres,
     setRapieresTeamModal,
+    rapieresViewProps,
+    rapieresTeams,
     remoteServerUrl,
     updateFencer,
     deleteFencer,
@@ -119,8 +115,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     expertMode,
     remoteArenaCount,
     remoteStripStart,
+    confirmScoresLoss,
+    setPoolsLaunched,
+    resetRapieresWaves,
     setPools,
     setSkipPoolPhase,
+    persistPoolsToDB,
+    handleSkipToRanking,
     setMinFencersPerPool,
     setMaxFencersPerPool,
     tieBreakByVictory,
@@ -130,12 +131,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     confirm,
     setOverallRanking,
     computeOverallRanking,
+    handlePrintWaveSheets,
+    printWaves,
     poolCardSize,
     setPoolCardSize,
     poolsViewMode,
     setPoolsViewMode,
     singlePoolIndex,
     setSinglePoolIndex,
+    handlePrintAllPoolsPDF,
+    handleExportAllPoolsPDF,
     viewedRoundPools,
     overallRanking,
     hasDirectElimination,
@@ -143,9 +148,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     poolWinnersOnly,
     postPoolSplitCriteria,
     splitOffCompetitionIds,
+    handleGoToTableau,
     setRankingChanged,
+    handleSplitOff,
+    handleNextPoolRound,
+    rapieresStats,
     setRankingValidated,
+    handleQuestConfigUpdate,
     activeSplitGroup,
+    splitGroups,
+    handleSwitchSplitGroup,
     setTableauMatches,
     consolationBrackets,
     setConsolationBrackets,
@@ -156,6 +168,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     thirdPlaceMatch,
     playAllPositions,
     maxRefereesPerMatch,
+    autoFillReferees,
     poolHistory,
     appelFencers,
     appelHistory,
@@ -168,11 +181,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     setRemoteServerUrl,
     referees,
     setReferees,
+    refereeAssignableMatches,
+    applyPoolRefereeAssignments,
     arenaStates,
     exports,
+    poolsRemoteInfo,
     rapieresTeamModal,
+    handleSaveRapieresTeam,
     addFencer,
     pendingSplitOffGroup,
+    createSplitOffCompetition,
     setPendingSplitOffGroup,
     onUpdate,
     importData,
@@ -180,329 +198,29 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handleImportRanking,
     setImportData,
     showRapieresTableauDialog,
+    handleRapieresTableauMode,
     setShowRapieresTableauDialog,
+    handleThirdPlaceDecision,
     areAllPoolsComplete,
     updateScore,
-    setCurrentPoolRound,
-    setPoolHistory,
-    setAppelHistory,
-    rapieresState,
-    setRapieresState,
-    syncFencersToPool,
-    tableauMatchesRef,
-    consolationBracketsRef,
-    poolsRef,
-    handleFencerForfeitRef,
-    updateMatchFromRemote,
-    handleBlackCardCancelled,
-    effectiveSettings,
-    generatePoolsHook,
-    bulkAddFencers,
-    setRapieresTeam,
-    exportPoolsPDF,
-    printPoolsPDF,
-    updateFencers,
-    nextPoolRound,
-    poolRoundQualifiers,
-    customFormula,
-    setViewedPoolRound,
-    rankingChanged,
-    setActiveSplitGroup,
-    splitTableauStates,
-    setSplitTableauStates,
-    onOpenCompetition,
-    splitOffInProgress,
-    setSplitOffInProgress,
+    handleGoToRanking,
     rankingValidated,
     poolRounds,
+    questNoPool,
     auditLogEnabled,
     setShowConfetti,
     setShowActionsMenu,
+    customFormula,
+    setViewedPoolRound,
     maxRefereesPerPool,
     resetMatch,
     cancelMatch,
     computePoolRanking,
-  } = { ...props, ...competitionCore };
-
-  // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
-  const [poolsLaunched, setPoolsLaunched] = useState(false);
-
-  const { isLoaded } = useCompetitionRestore({
-    competitionId: competition.id,
-    currentPhase,
-    setCurrentPhase,
-    currentPoolRound,
-    setCurrentPoolRound,
-    pools,
-    setPools,
-    poolHistory,
-    setPoolHistory,
-    appelHistory,
-    setAppelHistory,
-    overallRanking,
-    setOverallRanking,
-    tableauMatches,
-    setTableauMatches,
-    finalResults,
-    setFinalResults,
-    consolationBrackets,
-    setConsolationBrackets,
-    skipPoolPhase,
-    setSkipPoolPhase,
-    setRankingValidated,
-    remoteArenaCount,
-    setRemoteArenaCount,
-    remoteStripStart,
-    setRemoteStripStart,
-    isRapieres,
-    rapieresState,
-    setRapieresState,
-    minFencersPerPool,
-    maxFencersPerPool,
-    setMinFencersPerPool,
-    setMaxFencersPerPool,
-    poolsLaunched,
-    setPoolsLaunched,
-  });
-
-  useCompetitionBootstrap({
-    competitionId: competition.id,
-    refereeFeatureEnabled: !!competition.settings?.refereeFeatureEnabled,
-    fencers,
-    loadFencers,
-    syncFencersToPool,
-    setReferees,
-    isRemoteActive,
-    setIsRemoteActive,
-    setRemoteServerUrl,
-  });
-
-  // Scores, cartons et pistes distants (#1599)
-  const { fireWebhookNotif } = useRemoteScoreSync({
-    competitionId: competition.id,
-    competitionTitle: competition.title,
-    isRemoteActive,
-    tableauMatchesRef,
-    consolationBracketsRef,
-    poolsRef,
-    handleFencerForfeitRef,
-    setTableauMatches,
-    setConsolationBrackets,
-    setArenaStates,
-    updateMatchFromRemote,
-    handleBlackCardCancelled,
-    updateFencer,
-  });
-
-  // Sync scores/statuts de poule et matchs de tableau vers la DB (#1599)
-  useMatchDbSync({
-    competitionId: competition.id,
-    pools,
-    tableauMatches,
-    isLoaded,
-    tableMaxScore: effectiveSettings?.defaultTableMaxScore,
-  });
-
-  // Menu natif
-  useCompetitionMenu({
-    competitionId: competition.id,
-    competitionTitle: competition.title,
-    currentPhase,
-    fencers,
-    hasPools: pools.length > 0,
-    overallRanking,
-    finalResults,
-    isLaserSabre,
-    exports,
-    loadFencers,
-    setImportData,
-    setShowPropertiesModal: modals.setShowPropertiesModal,
-    setShowAddFencerModal: modals.setShowAddFencerModal,
-  });
-
-  // Persister les poules générées dans les tables DB (pools, pool_fencers, matches)
-  const persistPoolsToDB = useCallback(
-    (generatedPools: Pool[]) => persistPools(competition.id, generatedPools),
-    [competition.id]
-  );
-
-  // Handlers
-  const handleCheckInFencer = (id: string) => {
-    const fencer = fencers.find(f => f.id === id);
-    if (fencer) {
-      const newStatus =
-        fencer.status === FencerStatus.CHECKED_IN
-          ? FencerStatus.NOT_CHECKED_IN
-          : FencerStatus.CHECKED_IN;
-      updateFencer(id, { status: newStatus });
-    }
-  };
-
-  /** Alerte « scores perdus » avant de régénérer des poules déjà saisies (#1499) */
-  const confirmScoresLoss = async (): Promise<boolean> =>
-    !poolsHaveScores(pools) || (await confirm(t('pools.relaunch_confirm')));
-
-  const handleGeneratePools = async () => {
-    if (!(await confirmScoresLoss())) return;
-    const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
-    if (newPools) {
-      resetRapieresWaves(newPools);
-      await persistPoolsToDB(newPools);
-      // Fermer l'inscription distante dès que les poules sont générées
-      if (isRemoteActive && window.electronAPI?.remote?.setRegistrationEnabled) {
-        window.electronAPI.remote.setRegistrationEnabled(competition.id, false).catch(() => {});
-        window.electronAPI.remote.setCheckinEnabled?.(competition.id, false).catch(() => {});
-      }
-      setCurrentPhase('poolprep');
-    }
-  };
-
-  // ─── Tournoi des rapières : équipes enregistrées comme tireurs (#1118) ─────
-  const rapieresViewProps = useRapieresViewProps(rapieres.teams, t); // appel + préparation (#1441)
-  const rapieresTeams = useRapieresTeams({
-    competitionDate: competition.date,
-    addFencer,
-    bulkAddFencers,
-    updateFencer,
-    setRapieresTeam,
-  });
-  const { rapieresFencerFields, handleSaveRapieresTeam } = rapieresTeams;
-
-  const {
-    resetRapieresWaves,
-    rapieresStats,
-    currentWaveMatchIds,
-    printWaves,
-    handlePrintWaveSheets,
-  } = useRapieresCompetition({
-    competitionId: competition.id,
-    competitionTitle: competition.title,
-    isRapieres,
-    isLoaded,
-    isRemoteActive,
-    fencers,
-    pools,
-    overallRanking,
-    rapieres,
-    rapieresState,
-    setRapieresState,
-    updateRapieres,
-    bulkAddFencers,
-    rapieresFencerFields,
-  });
-
-  // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
-  const poolsRemoteInfo =
-    isRemoteActive && remoteServerUrl
-      ? { serverUrl: remoteServerUrl, arenaCount: remoteArenaCount, stripStart: remoteStripStart }
-      : undefined;
-
-  const handleExportAllPoolsPDF = () => {
-    exportPoolsPDF(pools, currentPoolRound, poolsRemoteInfo);
-  };
-
-  const handlePrintAllPoolsPDF = () => {
-    printPoolsPDF(pools, currentPoolRound, poolsRemoteInfo);
-  };
-
-  // Ctrl+P / Cmd+P → imprimer les feuilles de poule (le tableau gère son propre raccourci)
-  usePrintShortcut(currentPhase === 'pools' && pools.length > 0, handlePrintAllPoolsPDF);
-
-  const {
-    handleQuestConfigUpdate,
-    handleGoToRanking,
-    handleSkipToRanking,
-    handleGoToTableau,
-    handleRapieresTableauMode,
-    handleThirdPlaceDecision,
-    handleNextPoolRound,
-  } = useCompetitionNavigation({
-    competition,
-    onUpdate,
-    setCurrentPhase,
-    fencers,
-    updateFencers,
-    getCheckedInFencers,
-    pools,
-    setPools,
-    overallRanking,
-    setOverallRanking,
-    computeOverallRanking,
-    nextPoolRound,
-    currentPoolRound,
-    currentAppelFencers,
-    poolRoundQualifiers,
-    customFormula,
-    hasDirectElimination,
-    thirdPlaceMatch,
-    playAllPositions,
-    isRapieres,
-    updateRapieres,
-    setShowRapieresTableauDialog,
-    setShowThirdPlaceDialog: modals.setShowThirdPlaceDialog,
-    setPoolsLaunched,
-    setViewedPoolRound,
-    setRankingValidated,
-    setSkipPoolPhase,
-    rankingChanged,
-    setRankingChanged,
-    tableauMatches,
-    setTableauMatches,
-    consolationBrackets,
-    setConsolationBrackets,
-    finalResults,
-    setFinalResults,
-    activeSplitGroup,
-    setActiveSplitGroup,
-    splitTableauStates,
-    setSplitTableauStates,
-  });
-  const { splitGroups, handleSwitchSplitGroup, handleSplitOff, createSplitOffCompetition } =
-    useSplitGroups({
-      competition,
-      onUpdate,
-      onOpenCompetition,
-      setCurrentPhase,
-      overallRanking,
-      tableauMatches,
-      setTableauMatches,
-      consolationBrackets,
-      setConsolationBrackets,
-      finalResults,
-      setFinalResults,
-      activeSplitGroup,
-      setActiveSplitGroup,
-      setPendingSplitOffGroup,
-      splitOffInProgress,
-      setSplitOffInProgress,
-      splitTableauStates,
-      setSplitTableauStates,
-    });
-
-  const questConfig = competition.settings?.questConfig;
-  const questEnabled = isLaserSabre && questConfig?.enabled === true;
-  const questNoPool = questEnabled && !questConfig?.hasPreliminaryPools;
-
-  // Arbitres proposés au remplissage automatique (tests) — uniquement si la gestion des arbitres est active
-  const autoFillReferees = competition.settings?.refereeFeatureEnabled ? referees : undefined;
-
-  const {
-    applyPoolRefereeAssignments,
+    fireWebhookNotif,
     handlePoolAutoFillReferees,
     handlePoolRefereeAssigned,
-    refereeAssignableMatches,
-  } = useCompetitionReferees({
-    competitionId: competition.id,
-    pools,
-    setPools,
-    referees,
-    setReferees,
-    tableauMatches,
-    setTableauMatches,
-    consolationBrackets,
-    setConsolationBrackets,
-    tableMaxScore,
-  });
+    currentWaveMatchIds,
+  } = { ...props, ...competitionCore, ...competitionSessionSync };
 
   const isTeamEvent = !!competition.isTeamEvent;
   const { phases, handleGoBack, canAdvanceFromPools, isLastPoolRound } = useCompetitionPhases({
