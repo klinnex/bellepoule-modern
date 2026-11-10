@@ -227,3 +227,21 @@
   --color-primary: var(--tw-amber-400);
   --color-on-primary: var(--color-black);
 }
+
+/* Anneau de focus global (issue 1537) : 2 px, décalage 2 px, compatible forced-colors */
+:root {
+  --focus-ring-color: var(--color-primary);
+}
+.theme-dark,
+.theme-contrast {
+  --focus-ring-color: var(--tw-amber-400);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

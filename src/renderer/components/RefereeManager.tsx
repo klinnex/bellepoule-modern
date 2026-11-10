@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import { Pencil, Trash2, TriangleAlert } from 'lucide-react';
 import { Icon } from './common/Icon';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
@@ -539,38 +540,42 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       })()}
                     </td>
                     <td style={TD}>
-                      <button
-                        onClick={() => {
-                          setEditingId(ref.id);
-                          setAddError('');
-                          setNewReferee({
-                            name: `${ref.firstName} ${ref.lastName}`.trim(),
-                            club: ref.club ?? '',
-                            license: ref.license ?? '',
-                            category: ref.category ?? '',
-                            nationality: ref.nationality ?? 'FRA',
-                          });
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="is-54fefa"
-                        title={t('actions.edit')}
-                      >
-                        <Icon icon={Pencil} />
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await window.electronAPI.db.deleteReferee(ref.id);
-                            onRefereesChange(referees.filter(r => r.id !== ref.id));
-                          } catch {
-                            /* silencieux */
-                          }
-                        }}
-                        className="is-b6f00b"
-                        title={t('actions.delete')}
-                      >
-                        <Icon icon={Trash2} />
-                      </button>
+                      <Tooltip content={t('actions.edit')}>
+                        <button
+                          onClick={() => {
+                            setEditingId(ref.id);
+                            setAddError('');
+                            setNewReferee({
+                              name: `${ref.firstName} ${ref.lastName}`.trim(),
+                              club: ref.club ?? '',
+                              license: ref.license ?? '',
+                              category: ref.category ?? '',
+                              nationality: ref.nationality ?? 'FRA',
+                            });
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="is-54fefa"
+                          aria-label={t('actions.edit')}
+                        >
+                          <Icon icon={Pencil} />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content={t('actions.delete')}>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await window.electronAPI.db.deleteReferee(ref.id);
+                              onRefereesChange(referees.filter(r => r.id !== ref.id));
+                            } catch {
+                              /* silencieux */
+                            }
+                          }}
+                          className="is-b6f00b"
+                          aria-label={t('actions.delete')}
+                        >
+                          <Icon icon={Trash2} />
+                        </button>
+                      </Tooltip>
                     </td>
                   </tr>
                 ))}

@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { MatchEventEntry, MatchEventType } from '../../shared/types';
@@ -598,22 +599,24 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     </td>
                     {showMatchColumn && (
                       <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMatchId(entry.matchId)}
-                          title={t('matchAudit.only_match')}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            color: 'var(--color-primary)',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            fontSize: 'inherit',
-                          }}
-                        >
-                          {matchLabelOf(entry.matchId)}
-                        </button>
+                        <Tooltip content={t('matchAudit.only_match')}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMatchId(entry.matchId)}
+                            aria-label={t('matchAudit.only_match')}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              color: 'var(--color-primary)',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              fontSize: 'inherit',
+                            }}
+                          >
+                            {matchLabelOf(entry.matchId)}
+                          </button>
+                        </Tooltip>
                       </td>
                     )}
                     <td style={{ padding: '0.5rem 0.75rem' }}>

@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 382 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 45 | 304 |
+| `src/remote/` | 47 | 311 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **322** | **2516** |
+| **Total** | **324** | **2523** |
 
-Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 314 fichiers, 2484 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4681,6 +4681,15 @@ Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/dialogsA11y.test.ts</code> — 2 tests</summary>
+
+- **dialogues des pages distantes (#1537)**
+  - ${page} : chaque role=dialog est modal et nommé
+  - referee.html : 5 dialogues (fin de match, carton noir, raison, poule, signature)
+
+</details>
+
+<details>
 <summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
 
 - **échelle typographique fluide (#1540)**
@@ -4713,6 +4722,16 @@ Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - des codes sont bien émis
   - chaque code est traduit (%s) _(each)_
   - errorText : traduction paramétrée, texte brut, repli
+
+</details>
+
+<details>
+<summary><code>src/remote/focusRing.test.ts</code> — 3 tests</summary>
+
+- **focus visible global des pages distantes (#1537)**
+  - tokens.css définit :focus-visible 2 px / décalage 2 px et forced-colors
+  - chaque page distante charge tokens.css
+  - styles.css ne supprime pas le focus sans repli visible
 
 </details>
 
@@ -5207,7 +5226,7 @@ Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/refereeTouchErgonomics.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/refereeTouchErgonomics.test.ts</code> — 7 tests</summary>
 
 - **referee.html ergonomie tactile (#1539)**
   - espace les cibles de score et de cartons d au moins 8 px
@@ -5215,6 +5234,8 @@ Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - rend le focus visible sur les contrôles de saisie
   - garde le bouton Annuler plus grand que les sorties d arène
   - annonce les scores aux lecteurs d écran
+  - hiérarchie : le bouton de score domine les cartons et les sorties (#1539)
+  - prévoit une mise en page paysage compacte qui garde des cibles \>= 44 px
 
 </details>
 

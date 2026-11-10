@@ -4,6 +4,7 @@
  * un clic bascule la piste en indisponible (case rouge).
  * Licensed under GPL-3.0
  */
+import { Tooltip } from '../Tooltip';
 import React, { useState } from 'react';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -40,18 +41,26 @@ export const StripPlanCard: React.FC<StripPlanCardProps> = ({ start, end }) => {
             {stripNumbers(start, end).map(n => {
               const off = unavailable.includes(n);
               return (
-                <button
-                  type="button"
+                <Tooltip
                   key={n}
-                  className={`strip-plan-cell${off ? ' is-unavailable' : ''}`}
-                  aria-pressed={off}
-                  title={
+                  content={
                     off ? t('rsm.strip_plan_make_available') : t('rsm.strip_plan_make_unavailable')
                   }
-                  onClick={() => onToggle(n)}
                 >
-                  {n}
-                </button>
+                  <button
+                    type="button"
+                    className={`strip-plan-cell${off ? ' is-unavailable' : ''}`}
+                    aria-pressed={off}
+                    aria-label={
+                      off
+                        ? t('rsm.strip_plan_make_available')
+                        : t('rsm.strip_plan_make_unavailable')
+                    }
+                    onClick={() => onToggle(n)}
+                  >
+                    {n}
+                  </button>
+                </Tooltip>
               );
             })}
           </div>

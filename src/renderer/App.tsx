@@ -690,17 +690,19 @@ const AppContent: React.FC = () => {
               <Swords size={15} />
               {t('app.training')}
             </Button>
-            <button
-              className="btn-theme-toggle"
-              onClick={() => {
-                const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length];
-                changeTheme(next);
-              }}
-              title={`Thème : ${theme}`}
-              aria-label={`Thème : ${theme}`}
-            >
-              <ThemeIcon theme={theme} />
-            </button>
+            <Tooltip content={`Thème : ${theme}`}>
+              <button
+                className="btn-theme-toggle"
+                onClick={() => {
+                  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length];
+                  changeTheme(next);
+                }}
+
+                aria-label={`Thème : ${theme}`}
+              >
+                <ThemeIcon theme={theme} />
+              </button>
+            </Tooltip>
             <Button
               variant="ghost"
               className="btn-icon"
@@ -958,32 +960,34 @@ const AppContent: React.FC = () => {
                     ) : null;
                   })()}
                 </span>
-                <button
-                  onClick={e => handleTabClose(openComp.competition.id, e)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#6b7280',
-                    cursor: 'pointer',
-                    padding: '0.125rem',
-                    borderRadius: '3px',
-                    fontSize: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#e5e7eb';
-                    e.currentTarget.style.color = '#374151';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'none';
-                    e.currentTarget.style.color = '#6b7280';
-                  }}
-                  title={t('app.close_tab')}
-                >
-                  <X size={12} />
-                </button>
+                <Tooltip content={t('app.close_tab')}>
+                  <button
+                    onClick={e => handleTabClose(openComp.competition.id, e)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      padding: '0.125rem',
+                      borderRadius: '3px',
+                      fontSize: '0.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#e5e7eb';
+                      e.currentTarget.style.color = '#374151';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'none';
+                      e.currentTarget.style.color = '#6b7280';
+                    }}
+                    aria-label={t('app.close_tab')}
+                  >
+                    <X size={12} />
+                  </button>
+                </Tooltip>
               </div>
             ))}
           </div>
