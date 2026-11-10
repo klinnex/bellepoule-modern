@@ -5,6 +5,8 @@
  */
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Moon, Sparkles, Sun, Zap } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn';
 type KioskViews = { poules: boolean; classement: boolean; direct: boolean; suivants: boolean };
@@ -90,10 +92,10 @@ export const DisplayOptionsPanel: React.FC<Props> = ({
         <div style={S.themeRow}>
           {(
             [
-              { value: 'dark', label: t('rsm.theme_dark'), icon: '🌙' },
-              { value: 'light', label: t('rsm.theme_light'), icon: '☀️' },
-              { value: 'neon', label: t('rsm.theme_neon'), icon: '⚡' },
-              { value: 'unicorn', label: 'Unicorn', icon: '🦄' },
+              { value: 'dark', label: t('rsm.theme_dark'), icon: Moon },
+              { value: 'light', label: t('rsm.theme_light'), icon: Sun },
+              { value: 'neon', label: t('rsm.theme_neon'), icon: Zap },
+              { value: 'unicorn', label: 'Unicorn', icon: Sparkles },
             ] as const
           ).map(({ value, label, icon }) => (
             <button
@@ -116,7 +118,7 @@ export const DisplayOptionsPanel: React.FC<Props> = ({
                 transition: 'all 0.15s',
               }}
             >
-              {icon} {label}
+              <Icon icon={icon} /> {label}
             </button>
           ))}
         </div>

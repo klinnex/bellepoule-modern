@@ -20,6 +20,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import BookSectionsModal from './BookSectionsModal';
 import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
 import { Medal, Trophy, Upload } from 'lucide-react';
+import { RankMedal } from './common/RankMedal';
 import { Icon } from './common/Icon';
 
 interface FinalResult {
@@ -319,13 +320,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       document.removeEventListener('keydown', onKey);
     };
   }, [isExportMenuOpen]);
-
-  const getMedalEmoji = (rank: number | null): string => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return '';
-  };
 
   const getRowStyle = (rank: number | null): React.CSSProperties => {
     if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
@@ -747,7 +741,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 }}
               >
                 <td style={RV_STYLES.tdPad}>
-                  <span style={RV_STYLES.tdMedalSpan}>{getMedalEmoji(result.rank)}</span>
+                  <span style={RV_STYLES.tdMedalSpan}>
+                    <RankMedal rank={result.rank} />
+                  </span>
                   {finalRankLabel(result.rank, result.fencer, result.eliminatedAt)}
                 </td>
                 <td style={RV_STYLES.tdPad}>

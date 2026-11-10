@@ -17,6 +17,7 @@ import {
   formatIndex,
 } from '../../shared/utils/poolCalculations';
 import { ChartColumn, Medal, Pause, Trophy } from 'lucide-react';
+import { RankMedal } from './common/RankMedal';
 import { Icon } from './common/Icon';
 
 type KioskView = 'pools' | 'ranking' | 'tableau';
@@ -1151,7 +1152,6 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                     </thead>
                     <tbody>
                       {elimRanking.map(r => {
-                        const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
                         return (
                           <tr
                             key={r.fencer.id}
@@ -1162,7 +1162,9 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                             }}
                           >
                             <td style={KIOSK_STYLES.elimTdRank}>
-                              {medals[r.place] ?? (
+                              {r.place <= 3 ? (
+                                <RankMedal rank={r.place} size={24} />
+                              ) : (
                                 <span style={KIOSK_STYLES.elimTdRankSmall}>{r.place}</span>
                               )}
                             </td>

@@ -52,9 +52,9 @@ export const useTheme = () => {
     isDark,
     isLight,
     availableThemes: [
-      { code: 'default' as const, name: 'Système', icon: '💻' },
-      { code: 'light' as const, name: 'Clair', icon: '☀️' },
-      { code: 'dark' as const, name: 'Sombre', icon: '🌙' },
+      { code: 'default' as const, name: 'Système' },
+      { code: 'light' as const, name: 'Clair' },
+      { code: 'dark' as const, name: 'Sombre' },
     ],
   };
 };

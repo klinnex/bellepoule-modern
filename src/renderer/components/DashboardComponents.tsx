@@ -6,6 +6,9 @@
 
 import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { CircleAlert, Sparkles, ThumbsUp, TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { RankMedal } from './common/RankMedal';
 
 // Modern Stat Card with icon and trend
 interface StatCardProps {
@@ -225,12 +228,7 @@ const LeaderboardItem_: React.FC<{
     }
   };
 
-  const getRankIcon = () => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return rank;
-  };
+  const getRankIcon = () => (rank <= 3 ? <RankMedal rank={rank} size={24} /> : rank);
 
   return (
     <div
@@ -340,10 +338,10 @@ const ConditionWidget_: React.FC<{
   value: string;
 }> = ({ condition, label, value }) => {
   const conditions = {
-    excellent: { color: '#10b981', icon: '✨', label: 'Excellent' },
-    good: { color: '#3b82f6', icon: '👍', label: 'Bon' },
-    fair: { color: '#f59e0b', icon: '⚠️', label: 'Moyen' },
-    poor: { color: '#ef4444', icon: '🔴', label: 'Faible' },
+    excellent: { color: '#10b981', icon: <Icon icon={Sparkles} />, label: 'Excellent' },
+    good: { color: '#3b82f6', icon: <Icon icon={ThumbsUp} />, label: 'Bon' },
+    fair: { color: '#f59e0b', icon: <Icon icon={TriangleAlert} />, label: 'Moyen' },
+    poor: { color: '#ef4444', icon: <Icon icon={CircleAlert} />, label: 'Faible' },
   };
 
   const theme = conditions[condition];
