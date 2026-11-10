@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import { TipButton } from './Tooltip';
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   ChartColumn,
@@ -1625,42 +1626,41 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             )}
           </div>
           <div className="pv-toolbar">
-            <button
+            <TipButton
               onClick={undo}
               disabled={!canUndo}
               className="pv-icon-btn is-gray"
-              title={t('poolView.undo_title')}
+              tip={t('poolView.undo_title')}
               aria-label={t('poolView.undo_aria')}
             >
               <Icon icon={Undo2} />
-            </button>
-            <button
+            </TipButton>
+            <TipButton
               onClick={redo}
               disabled={!canRedo}
               className="pv-icon-btn is-gray"
-              title={t('poolView.redo_title')}
+              tip={t('poolView.redo_title')}
               aria-label={t('poolView.redo_aria')}
             >
               <Icon icon={Redo2} />
-            </button>
-            <button
+            </TipButton>
+            <TipButton
               onClick={handleAutoFillScores}
               className="pv-icon-btn is-amber"
-              title={t('poolView.autofill')}
-              aria-label={t('poolView.autofill')}
+              tip={t('poolView.autofill')}
             >
               <Icon icon={Dices} />
-            </button>
-            <button
+            </TipButton>
+            <TipButton
               onClick={handlePrintPool}
               className="pv-icon-btn is-primary"
-              title={t('poolView.print_title')}
+              tip={t('poolView.print_title')}
               aria-label={t('poolView.print_aria')}
             >
               <Icon icon={Printer} />
-            </button>
+            </TipButton>
             {pool.isComplete && isRemoteActive && remoteServerUrl && (
-              <button
+              <TipButton
                 onClick={() => {
                   const url = `${remoteServerUrl}/arene${defaultArena}/poule`;
                   if (window.electronAPI?.openExternal) {
@@ -1670,31 +1670,31 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }
                 }}
                 className="pv-icon-btn is-indigo"
-                title={t('poolView.signatures_title', { arena: defaultArena })}
+                tip={t('poolView.signatures_title', { arena: defaultArena })}
                 aria-label={t('poolView.signatures')}
               >
                 <Icon icon={PenLine} />
-              </button>
+              </TipButton>
             )}
             {competitionId && (
-              <button
+              <TipButton
                 onClick={() => setShowAddFencerModal(true)}
                 className="pv-icon-btn"
-                title={t('poolView.add_fencer')}
+                tip={t('poolView.add_fencer')}
                 aria-label={t('poolView.add_fencer')}
               >
                 <Icon icon={Plus} />
-              </button>
+              </TipButton>
             )}
             <div style={RELATIVE} ref={columnMenuRef}>
-              <button
+              <TipButton
                 onClick={() => setShowColumnMenu(!showColumnMenu)}
                 className={`pv-icon-btn${showColumnMenu ? ' is-open' : ''}${columnFilterEdited ? ' is-edited' : ''}`}
-                title={columnFilterEdited ? t('poolView.columns_edited') : t('poolView.columns')}
+                tip={columnFilterEdited ? t('poolView.columns_edited') : t('poolView.columns')}
                 aria-label={t('poolView.columns')}
               >
                 <Funnel size={14} />
-              </button>
+              </TipButton>
               {showColumnMenu && (
                 <div style={COL_MENU}>
                   <div style={COL_MENU_HEADER}>{t('poolView.columns_shown')}</div>
@@ -1733,14 +1733,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </div>
               )}
             </div>
-            <button
+            <TipButton
               type="button"
               role="switch"
               aria-checked={viewMode === 'matches'}
               aria-label={t('poolView.matches_view')}
               onClick={() => setViewMode(viewMode === 'grid' ? 'matches' : 'grid')}
               className={`pv-view-switch${viewMode === 'matches' ? ' is-matches' : ''}`}
-              title={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
+              tip={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
             >
               <span className="pv-view-switch-icon" aria-hidden="true">
                 <Icon icon={ChartColumn} />
@@ -1749,7 +1749,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 <Icon icon={Swords} />
               </span>
               <span className="pv-view-switch-thumb" aria-hidden="true" />
-            </button>
+            </TipButton>
           </div>
         </div>
         <div className="card-body pv-body">

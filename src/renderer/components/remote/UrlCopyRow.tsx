@@ -2,6 +2,7 @@
  * BellePoule Modern - Ligne « URL + copier + QR code » de la saisie distante (#1414)
  * Licensed under GPL-3.0
  */
+import { TipButton } from '../Tooltip';
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ClipboardList, Smartphone } from 'lucide-react';
@@ -25,9 +26,9 @@ export const UrlCopyRow: React.FC<Props> = ({ url, id, copiedIndex, onCopy, onQr
       <button className="btn-copy" onClick={() => onCopy(url, id)} title={t('rsm.copy_url')}>
         {copiedIndex === id ? t('rsm.copied_short') : <Icon icon={ClipboardList} />}
       </button>
-      <button className="btn-qr" onClick={onQr} title={t('rsm.qr_code')}>
+      <TipButton className="btn-qr" onClick={onQr} tip={t('rsm.qr_code')}>
         <Icon icon={Smartphone} />
-      </button>
+      </TipButton>
     </div>
   );
 };

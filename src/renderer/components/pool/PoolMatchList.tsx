@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { TipButton } from '../Tooltip';
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Match, Fencer, FencerStatus } from '../../../shared/types';
@@ -86,9 +87,9 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
     .join(' ');
 
   return (
-    <button
+    <TipButton
       onClick={isRemoteActive ? onClick : undefined}
-      title={
+      tip={
         isRemoteActive
           ? t('poolView.arena_reassign', { n: assignedArena })
           : t('poolView.remote_not_started')
@@ -98,7 +99,7 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
       style={scale !== 1 ? ({ '--badge-scale': scale } as React.CSSProperties) : undefined}
     >
       <Icon icon={MapPin} /> {assignedArena}
-    </button>
+    </TipButton>
   );
 };
 
@@ -341,29 +342,29 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     {fencerBAbandoned && ' ✕'}
                   </span>
                   {onShowMatchAudit && (
-                    <button
+                    <TipButton
                       onClick={e => {
                         e.stopPropagation();
                         onShowMatchAudit(match.id);
                       }}
-                      title={t('poolMatches.match_log')}
+                      tip={t('poolMatches.match_log')}
                       className="pml-icon-btn"
                     >
                       <Icon icon={ClipboardList} />
-                    </button>
+                    </TipButton>
                   )}
                   {!isAbandonMatch && !isLocked && onMatchReset && (
-                    <button
+                    <TipButton
                       onClick={e => {
                         e.stopPropagation();
                         onMatchReset(index);
                       }}
-                      title={t('poolMatches.delete_result')}
+                      tip={t('poolMatches.delete_result')}
                       className="pml-icon-btn is-danger"
                       style={{ opacity: isHighlighted ? 1 : 0 }}
                     >
                       <Icon icon={Trash2} />
-                    </button>
+                    </TipButton>
                   )}
                 </div>
               );
