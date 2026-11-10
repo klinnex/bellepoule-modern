@@ -193,7 +193,7 @@
     .row-actions { display: flex; gap: 8px; }
     .label-sm { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
   </style>
-  <script src="/common.js"></script>
+  <script src="/common.js"></script><script src="/js/icons.js"></script>
     <script src="/js/ui.js" data-bp-init></script>
   <script src="/i18n.js"></script>
 </head>
@@ -201,13 +201,13 @@
 
 <div class="topbar">
   <a class="back" href="#" data-click="history.back" data-i18n="ocr.back">← Retour</a>
-  <h1 data-i18n="ocr.title">📸 Saisie par photo</h1>
+  <h1><span data-icon="camera"></span> <span data-i18n="ocr.title">Saisie par photo</span></h1>
 </div>
 
 <!-- ════ STAGE : SCAN ════ -->
 <div id="stage-scan" class="stage active">
   <label class="upload-zone" for="photo-input" id="upload-zone">
-    <div class="icon">📷</div>
+    <div class="icon"><span data-icon="camera"></span></div>
     <strong data-i18n="ocr.take_photo">Photographier la feuille de poule</strong>
     <p data-i18n="ocr.take_photo_hint">Appuyez pour prendre une photo ou choisir une image</p>
   </label>
@@ -263,7 +263,7 @@
 <!-- ════ STAGE : DONE ════ -->
 <div id="stage-done" class="stage">
   <div class="done-center">
-    <div class="done-icon">✅</div>
+    <div class="done-icon"><span data-icon="check-circle"></span></div>
     <h2 data-i18n="ocr.done">Import terminé</h2>
     <p id="done-msg"></p>
     <a href="#" data-click="history.back" class="btn btn-secondary" data-i18n="ocr.back_short">Retour</a>
