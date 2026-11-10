@@ -1491,7 +1491,8 @@
     "bpf_imported": "新增 {{added}}，更新 {{updated}}（.bpf）",
     "bpf_import_error": "匯入 .bpf 時發生錯誤",
     "col_region": "地區",
-    "col_department": "省份"
+    "col_department": "省份",
+    "deleted": "已刪除 {{name}}"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",

@@ -1491,7 +1491,8 @@
     "bpf_imported": "{{added}} added, {{updated}} updated (.bpf)",
     "bpf_import_error": ".bpf import error",
     "col_region": "Region",
-    "col_department": "Department"
+    "col_department": "Department",
+    "deleted": "{{name}} deleted"
   },
   "questPhase": {
     "running_title": "Quest round in progress",

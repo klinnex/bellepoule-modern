@@ -1491,7 +1491,8 @@
     "bpf_imported": "{{added}} ajouté(s), {{updated}} mis à jour (.bpf)",
     "bpf_import_error": "Erreur lors de l'import .bpf",
     "col_region": "Région",
-    "col_department": "Département"
+    "col_department": "Département",
+    "deleted": "{{name}} supprimé"
   },
   "questPhase": {
     "running_title": "Tour Quest en cours",

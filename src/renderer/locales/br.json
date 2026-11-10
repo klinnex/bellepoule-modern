@@ -1491,7 +1491,8 @@
     "bpf_imported": "{{added}} ouzhpennet, {{updated}} hizivaet (.bpf)",
     "bpf_import_error": "Fazi en enporzhiañ .bpf",
     "col_region": "Rannvro",
-    "col_department": "Departamant"
+    "col_department": "Departamant",
+    "deleted": "{{name}} dilamet"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",

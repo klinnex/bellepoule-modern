@@ -418,15 +418,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     }
   };
 
-  const handleDeleteFencer = async (id: string) => {
-    if (await confirm(t('messages.confirm_delete_fencer'))) {
-      if (editingFencer && editingFencer.id === id) {
-        setEditingFencer(null);
-      }
-      if (onDeleteFencer) {
-        onDeleteFencer(id);
-      }
+  // Suppression annulable via le toast du parent (#1535) : pas de modale de confirmation
+  const handleDeleteFencer = (id: string) => {
+    if (editingFencer && editingFencer.id === id) {
+      setEditingFencer(null);
     }
+    onDeleteFencer?.(id);
   };
 
   // Changement de statut réversible : pas de modale, toast avec « Annuler » (#1535)
