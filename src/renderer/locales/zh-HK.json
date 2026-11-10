@@ -461,7 +461,9 @@
     "info": "資訊",
     "connection_lost": "連線中斷",
     "connection_restored": "連線已恢復",
-    "name_required": "姓和名為必填欄位"
+    "name_required": "姓和名為必填欄位",
+    "export_competition_failed": "匯出賽事失敗",
+    "import_archive_failed": "匯入封存檔失敗"
   },
   "time": {
     "minutes": "分鐘",
@@ -1015,7 +1017,15 @@
     "port_in_use": "連接埠 {{port}} 已被使用",
     "temp_file_failed": "無法建立暫存檔：{{detail}}",
     "invalid_proxy": "代理伺服器無效",
-    "invalid_directory": "資料夾無效"
+    "invalid_directory": "資料夾無效",
+    "hint_file_missing": "找不到檔案：請確認檔案未被移動或改名，然後重試。",
+    "hint_permission": "存取被拒：請選擇其他資料夾或檢查寫入權限，然後重試。",
+    "hint_file_busy": "檔案正被其他程式使用：請先關閉（試算表、PDF 等），然後重試。",
+    "hint_disk_full": "磁碟已滿：請釋出空間或選擇其他位置，然後重試。",
+    "hint_network": "網絡無法使用：請檢查 Wi-Fi／互聯網連線，然後重試。",
+    "hint_invalid_format": "檔案無法讀取或格式錯誤：請檢查檔案類型，或從來源重新匯出。",
+    "hint_db_locked": "資料庫忙碌中：請稍候數秒，然後重試。",
+    "hint_unknown": "原因不明：請重試；如問題持續，請重新啟動應用程式並查看記錄。"
   },
   "properties": {
     "one_round": "1 輪",

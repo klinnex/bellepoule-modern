@@ -461,7 +461,9 @@
     "info": "Information",
     "connection_lost": "Connexion perdue",
     "connection_restored": "Connexion rétablie",
-    "name_required": "Le nom et le prénom sont obligatoires"
+    "name_required": "Le nom et le prénom sont obligatoires",
+    "export_competition_failed": "Échec de l'export de la compétition",
+    "import_archive_failed": "Échec de l'import de l'archive"
   },
   "time": {
     "minutes": "minutes",
@@ -1015,7 +1017,15 @@
     "port_in_use": "Le port {{port}} est déjà utilisé",
     "temp_file_failed": "Impossible de créer le fichier temporaire : {{detail}}",
     "invalid_proxy": "Proxy invalide",
-    "invalid_directory": "Dossier invalide"
+    "invalid_directory": "Dossier invalide",
+    "hint_file_missing": "fichier introuvable : vérifiez qu'il n'a pas été déplacé ou renommé, puis réessayez.",
+    "hint_permission": "accès refusé : choisissez un autre dossier ou vérifiez les droits d'écriture, puis réessayez.",
+    "hint_file_busy": "fichier utilisé par un autre programme : fermez-le (tableur, PDF…), puis réessayez.",
+    "hint_disk_full": "disque plein : libérez de l'espace ou choisissez un autre emplacement, puis réessayez.",
+    "hint_network": "réseau indisponible : vérifiez la connexion Wi-Fi/Internet, puis réessayez.",
+    "hint_invalid_format": "fichier illisible ou au mauvais format : vérifiez le type de fichier, ou réexportez-le depuis sa source.",
+    "hint_db_locked": "base de données occupée : patientez quelques secondes, puis réessayez.",
+    "hint_unknown": "cause inconnue : réessayez ; si l'erreur persiste, redémarrez l'application et consultez les journaux."
   },
   "properties": {
     "one_round": "1 tour",

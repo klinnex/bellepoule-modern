@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { ClipboardList, Pencil, QrCode, RotateCcw, Search, Swords, Trash2 } from 'lucide-react';
 import { Icon } from './common/Icon';
 import EmptyState from './common/EmptyState';
+import { actionableMessage } from '../../shared/utils/actionableError';
 import { useOperation } from './common/OperationProgress';
 import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
@@ -352,8 +353,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           window.electronAPI.file.exportPhotos(competitionId, result.filePath!)
         );
         showPhotoMessage(t('fencerList.photos_exported', { count }));
-      } catch {
-        showPhotoMessage(t('fencerList.export_error'));
+      } catch (err) {
+        showPhotoMessage(actionableMessage(t, t('fencerList.export_error'), err));
       }
     }
   };
@@ -372,8 +373,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         showPhotoMessage(
           t('fencerList.photos_imported', { count: total, matched: String(matched) })
         );
-      } catch {
-        showPhotoMessage(t('fencerList.import_error'));
+      } catch (err) {
+        showPhotoMessage(actionableMessage(t, t('fencerList.import_error'), err));
       }
     }
   };
@@ -391,8 +392,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           window.electronAPI.file.exportFencersArchive(competitionId, result.filePath!)
         );
         showPhotoMessage(t('fencerList.bpf_exported', { count }));
-      } catch {
-        showPhotoMessage(t('fencerList.bpf_export_error'));
+      } catch (err) {
+        showPhotoMessage(actionableMessage(t, t('fencerList.bpf_export_error'), err));
       }
     }
   };
@@ -412,8 +413,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           t('fencerList.bpf_imported', { added: String(added), updated: String(updated) })
         );
         if (onFencersImported) onFencersImported();
-      } catch {
-        showPhotoMessage(t('fencerList.bpf_import_error'));
+      } catch (err) {
+        showPhotoMessage(actionableMessage(t, t('fencerList.bpf_import_error'), err));
       }
     }
   };

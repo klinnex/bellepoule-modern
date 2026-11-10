@@ -461,7 +461,9 @@
     "info": "Informació",
     "connection_lost": "Connexió perduda",
     "connection_restored": "Connexió restablerta",
-    "name_required": "El cognom i el nom són obligatoris"
+    "name_required": "El cognom i el nom són obligatoris",
+    "export_competition_failed": "Error en exportar la competició",
+    "import_archive_failed": "Error en importar l'arxiu"
   },
   "time": {
     "minutes": "minuts",
@@ -1015,7 +1017,15 @@
     "port_in_use": "El port {{port}} ja està en ús",
     "temp_file_failed": "No s'ha pogut crear el fitxer temporal: {{detail}}",
     "invalid_proxy": "Proxy no vàlid",
-    "invalid_directory": "Carpeta no vàlida"
+    "invalid_directory": "Carpeta no vàlida",
+    "hint_file_missing": "fitxer no trobat: comproveu que no s'hagi mogut o canviat de nom i torneu-ho a provar.",
+    "hint_permission": "accés denegat: trieu una altra carpeta o comproveu els permisos d'escriptura i torneu-ho a provar.",
+    "hint_file_busy": "fitxer en ús per un altre programa: tanqueu-lo (full de càlcul, PDF…) i torneu-ho a provar.",
+    "hint_disk_full": "disc ple: allibereu espai o trieu una altra ubicació i torneu-ho a provar.",
+    "hint_network": "xarxa no disponible: comproveu la connexió Wi-Fi/Internet i torneu-ho a provar.",
+    "hint_invalid_format": "fitxer il·legible o amb format incorrecte: comproveu el tipus de fitxer o exporteu-lo de nou des de l'origen.",
+    "hint_db_locked": "base de dades ocupada: espereu uns segons i torneu-ho a provar.",
+    "hint_unknown": "causa desconeguda: torneu-ho a provar; si l'error persisteix, reinicieu l'aplicació i consulteu els registres."
   },
   "properties": {
     "one_round": "1 ronda",
