@@ -843,6 +843,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               {onImport && (
                 <CoachMark
                   id="import-fencers"
+                  dismissLabel={t('competitionNav.coach_dismiss')}
                   message={t('fencerList.import_formats_hint')}
                   position="bottom"
                 >

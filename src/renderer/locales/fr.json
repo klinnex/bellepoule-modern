@@ -2391,7 +2391,8 @@
     "tableau": "{{a}}/{{b}} tableau",
     "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
     "next_step_hint": "Étape suivante une fois les poules terminées",
-    "regenerate": "Repréparer les poules"
+    "regenerate": "Repréparer les poules",
+    "coach_dismiss": "Ne plus afficher"
   },
   "offline": {
     "never": "Jamais",

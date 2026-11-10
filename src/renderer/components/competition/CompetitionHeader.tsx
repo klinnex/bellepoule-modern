@@ -206,6 +206,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             <div className="comp-header-actions" ref={actionsMenuRef}>
               <CoachMark
                 id="actions-menu"
+                dismissLabel={t('competitionNav.coach_dismiss')}
                 message={t('competitionHeader.actions_hint')}
                 position="left"
               >

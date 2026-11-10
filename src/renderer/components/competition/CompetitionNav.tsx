@@ -214,6 +214,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             (!questEnabled || questConfig?.hasPreliminaryPools) && (
               <CoachMark
                 id="generate-pools"
+                dismissLabel={t('competitionNav.coach_dismiss')}
                 message={t('competitionNav.generate_hint')}
                 position="bottom"
               >
@@ -261,6 +262,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           {currentPhase === 'pools' && poolsNextAction && (
             <CoachMark
               id="pools-next-action"
+              dismissLabel={t('competitionNav.coach_dismiss')}
               message={t('competitionNav.next_step_hint')}
               position="bottom"
             >

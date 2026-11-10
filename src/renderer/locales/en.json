@@ -2391,7 +2391,8 @@
     "tableau": "{{a}}/{{b}} bracket",
     "generate_hint": "Click here once all your fencers are checked in",
     "next_step_hint": "Next step once the pools are finished",
-    "regenerate": "Re-prepare pools"
+    "regenerate": "Re-prepare pools",
+    "coach_dismiss": "Don't show again"
   },
   "offline": {
     "never": "Never",
