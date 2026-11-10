@@ -63,7 +63,10 @@ describe('refereeTts.js', () => {
   });
 
   it('referee.html charge le module et délègue', () => {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8');
+    const html =
+      fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'refereeApp.js'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'refereeAppBase.js'), 'utf8'); // page + script extrait (#1600)
     expect(html).toContain('<script src="/js/refereeTts.js"></script>');
     expect(html).toContain('BPRefereeTts.announcementFor(');
     expect(html).not.toContain('Trente secondes');
