@@ -23,7 +23,6 @@ import {
   FencerStatus,
   MatchStatus,
   Weapon,
-  QuestPhaseConfig,
   Referee,
   Gender,
   Pool,
@@ -52,7 +51,6 @@ import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
 import { buildStripQrs, useExport } from '../hooks/useExport';
 import { usePoolStripChange } from '../hooks/usePoolStripChange';
-import { useMenuEvents } from '../hooks/useMenuEvents';
 import { useCompetitionPhases } from '../hooks/useCompetitionPhases';
 import { useRemoteCheckinSync } from '../hooks/useRemoteCheckinSync';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
@@ -62,30 +60,25 @@ import { useCompetitionImport } from '../hooks/useCompetitionImport';
 import { usePoolsWindowSize } from '../hooks/usePoolsWindowSize';
 import { buildMatchAuditOptions } from './competition/matchAuditOptions';
 import { CV_STYLES } from './competition/competitionViewStyles';
+import { useCompetitionNavigation } from '../hooks/useCompetitionNavigation';
+import { useCompetitionMenu } from '../hooks/useCompetitionMenu';
 import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
 import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
 import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../hooks/useMatchDbSync';
-import { generateInitialRanking, filterPoolWinners } from '../../shared/utils/poolCalculations';
-import {
-  getRoundQualifierCount,
-  selectNextRoundFencers,
-  seedFencersFromRanking,
-} from '../../shared/utils/poolRounds';
+import { filterPoolWinners } from '../../shared/utils/poolCalculations';
+import { seedFencersFromRanking } from '../../shared/utils/poolRounds';
 import {
   applyTableauAdvancement,
   getActiveFormula,
-  getAdvancementCount,
-  getPoolRoundAdvancement,
   getTableauAdvancement,
   isRapieresMode,
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
 import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
-import { emptyRapieresTeamInfo, RapieresTableauMode } from '../../features/rapieres/rapieres.types';
+import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
 import {
   rapieresTableauQualifiers,
-  rapieresTableauSettings,
   rapieresPoolNumbers,
   rapieresSemifinalists,
   mergeFinalRanking,
@@ -607,66 +600,21 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     tableMaxScore: effectiveSettings?.defaultTableMaxScore,
   });
 
-  // Menu events
-  useMenuEvents({
+  // Menu natif
+  useCompetitionMenu({
+    competitionId: competition.id,
+    competitionTitle: competition.title,
     currentPhase,
-    onShowProperties: () => modals.setShowPropertiesModal(true),
-    onShowAddFencer: () => modals.setShowAddFencerModal(true),
-    onExportFencers: format => exportFencersList(fencers, format),
-    onExportFencersBpf: async () => {
-      const result = await window.electronAPI.dialog.saveFile({
-        title: t('dialogs.exportFencersArchive'),
-        defaultPath: `tireurs-${competition.title}.bpf`,
-        filters: [{ name: 'BellePoule Fencers', extensions: ['bpf'] }],
-      });
-      if (result && !result.canceled && result.filePath) {
-        const { count } = await runOperation('export', () =>
-          window.electronAPI.file.exportFencersArchive(competition.id, result.filePath!)
-        );
-        showToast(
-          `${count} tireur${count !== 1 ? 's' : ''} exporté${count !== 1 ? 's' : ''} (.bpf)`,
-          'success'
-        );
-      }
-    },
-    onExportPhotos: async () => {
-      const result = await window.electronAPI.dialog.saveFile({
-        title: t('dialogs.exportPhotos'),
-        defaultPath: `photos-${competition.title}.zip`,
-        filters: [{ name: 'Archive ZIP', extensions: ['zip'] }],
-      });
-      if (result && !result.canceled && result.filePath) {
-        const { count } = await runOperation('export', () =>
-          window.electronAPI.file.exportPhotos(competition.id, result.filePath!)
-        );
-        showToast(
-          `${count} photo${count !== 1 ? 's' : ''} exportée${count !== 1 ? 's' : ''}`,
-          'success'
-        );
-      }
-    },
-    onExportRanking: format => exportRanking(overallRanking, format, isLaserSabre),
-    onExportResults: format => exportResults(finalResults, format),
-    onImport: async (format, filepath, content) => {
-      if (format === 'fencers-bpf') {
-        try {
-          await runOperation('import', () =>
-            window.electronAPI.file.importFencersArchive(competition.id, filepath)
-          );
-          loadFencers();
-        } catch (err) {
-          showActionableError('messages.import_archive_failed', err);
-        }
-        return;
-      }
-      setImportData({ format, filepath, content });
-    },
-    onNextPhase: () => {},
-    loadFencers,
+    fencers,
     hasPools: pools.length > 0,
     overallRanking,
     finalResults,
     isLaserSabre,
+    exports,
+    loadFencers,
+    setImportData,
+    setShowPropertiesModal: modals.setShowPropertiesModal,
+    setShowAddFencerModal: modals.setShowAddFencerModal,
   });
 
   // Persister les poules générées dans les tables DB (pools, pool_fencers, matches)
@@ -757,90 +705,55 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Ctrl+P / Cmd+P → imprimer les feuilles de poule (le tableau gère son propre raccourci)
   usePrintShortcut(currentPhase === 'pools' && pools.length > 0, handlePrintAllPoolsPDF);
 
-  const handleQuestConfigUpdate = useCallback(
-    async (updates: Partial<QuestPhaseConfig>) => {
-      if (!competition.settings?.questConfig) return;
-      const updatedCompetition = {
-        ...competition,
-        settings: {
-          ...competition.settings,
-          questConfig: { ...competition.settings.questConfig, ...updates },
-        },
-      };
-      onUpdate(updatedCompetition);
-      await window.electronAPI?.db.updateCompetition(competition.id, updatedCompetition);
-    },
-    [competition, onUpdate]
-  );
-
-  const handleGoToRanking = () => {
-    if (overallRanking.length === 0) {
-      const ranking = computeOverallRanking(pools);
-      setOverallRanking(ranking);
-    }
-    setCurrentPhase('ranking');
-  };
-
-  const handleSkipToRanking = () => {
-    const checkedIn = getCheckedInFencers();
-    const initialRanking = generateInitialRanking(checkedIn);
-    setOverallRanking(initialRanking);
-    setSkipPoolPhase(true);
-    setPools([]);
-    setRankingValidated(false);
-    setCurrentPhase('ranking');
-  };
-
-  const handleGoToTableau = (splitGroup?: string) => {
-    setRankingValidated(true);
-    // Ne pas recalculer : overallRanking est déjà à jour
-
-    if (splitGroup && splitGroup !== activeSplitGroup) {
-      // Sauvegarder l'état du groupe courant avant de basculer
-      if (activeSplitGroup) {
-        setSplitTableauStates(prev => ({
-          ...prev,
-          [activeSplitGroup]: {
-            matches: tableauMatches,
-            consolation: consolationBrackets,
-            results: finalResults,
-          },
-        }));
-      }
-      // Charger l'état sauvegardé du nouveau groupe (ou partir de zéro)
-      const saved = splitTableauStates[splitGroup];
-      setTableauMatches(saved?.matches ?? []);
-      setConsolationBrackets(saved?.consolation ?? []);
-      setFinalResults(saved?.results ?? []);
-      setActiveSplitGroup(splitGroup);
-    }
-
-    // Si le classement a changé, réinitialiser les matches du tableau
-    if (rankingChanged) {
-      setTableauMatches([]);
-      setConsolationBrackets([]);
-      setRankingChanged(false);
-      showToast("Le classement a changé. Le tableau d'élimination va être régénéré.", 'warning');
-    }
-
-    // Rapières : mode de tableau demandé à chaque passage au tableau (#1441)
-    if (isRapieres) {
-      setShowRapieresTableauDialog(true);
-      return;
-    }
-    // Tirer toutes les places → 3ème place implicite, pas de question
-    if (playAllPositions) {
-      handleThirdPlaceDecision(true);
-      return;
-    }
-    // Formule personnalisée : 3ème place déjà choisie dans la formule (#1125)
-    if (customFormula && hasDirectElimination) {
-      handleThirdPlaceDecision(thirdPlaceMatch);
-      return;
-    }
-    modals.setShowThirdPlaceDialog(true);
-  };
-
+  const {
+    handleQuestConfigUpdate,
+    handleGoToRanking,
+    handleSkipToRanking,
+    handleGoToTableau,
+    handleRapieresTableauMode,
+    handleThirdPlaceDecision,
+    handleNextPoolRound,
+  } = useCompetitionNavigation({
+    competition,
+    onUpdate,
+    setCurrentPhase,
+    fencers,
+    updateFencers,
+    getCheckedInFencers,
+    pools,
+    setPools,
+    overallRanking,
+    setOverallRanking,
+    computeOverallRanking,
+    nextPoolRound,
+    currentPoolRound,
+    currentAppelFencers,
+    poolRoundQualifiers,
+    customFormula,
+    hasDirectElimination,
+    thirdPlaceMatch,
+    playAllPositions,
+    isRapieres,
+    updateRapieres,
+    setShowRapieresTableauDialog,
+    setShowThirdPlaceDialog: modals.setShowThirdPlaceDialog,
+    setPoolsLaunched,
+    setViewedPoolRound,
+    setRankingValidated,
+    setSkipPoolPhase,
+    rankingChanged,
+    setRankingChanged,
+    tableauMatches,
+    setTableauMatches,
+    consolationBrackets,
+    setConsolationBrackets,
+    finalResults,
+    setFinalResults,
+    activeSplitGroup,
+    setActiveSplitGroup,
+    splitTableauStates,
+    setSplitTableauStates,
+  });
   const { splitGroups, handleSwitchSplitGroup, handleSplitOff, createSplitOffCompetition } =
     useSplitGroups({
       competition,
@@ -862,88 +775,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       splitTableauStates,
       setSplitTableauStates,
     });
-
-  /** Rapières : mode de tableau choisi dans la popup (#1441) */
-  const handleRapieresTableauMode = (mode: RapieresTableauMode) => {
-    if (mode === 'semis' && !rapieresSemifinalists(pools, overallRanking)) {
-      showToast(t('rapieres.semis_unavailable'), 'error');
-      return;
-    }
-    updateRapieres({ tableauMode: mode });
-    setShowRapieresTableauDialog(false);
-    const { thirdPlaceMatch, ...extra } = rapieresTableauSettings(mode); // toutes places (#1441)
-    handleThirdPlaceDecision(thirdPlaceMatch, extra);
-  };
-
-  const handleThirdPlaceDecision = (thirdPlace: boolean, extra?: { playAllPositions: boolean }) => {
-    const settings = { ...competition.settings, ...extra, thirdPlaceMatch: thirdPlace };
-    const updatedCompetition = { ...competition, settings };
-
-    if (window.electronAPI) {
-      window.electronAPI.db.updateCompetition(competition.id, updatedCompetition);
-    }
-
-    onUpdate(updatedCompetition);
-    setTableauMatches([]);
-    setConsolationBrackets([]);
-    setCurrentPhase('tableau');
-    modals.setShowThirdPlaceDialog(false);
-  };
-
-  // Tour suivant (#1051) : qualifiés selon le classement du tour terminé, non-qualifiés
-  // éliminés, puis appel + nouveau tirage seedé sur ce classement.
-  const handleNextPoolRound = async () => {
-    const nextRound = currentPoolRound + 1;
-    const qualifierCount = customFormula
-      ? getAdvancementCount(
-          computeOverallRanking(pools).length,
-          getPoolRoundAdvancement(customFormula, currentPoolRound - 1)
-        )
-      : getRoundQualifierCount(poolRoundQualifiers, nextRound);
-    const { qualified, eliminated } = selectNextRoundFencers(
-      computeOverallRanking(pools),
-      qualifierCount
-    );
-    if (qualified.length < 4) {
-      showToast('Il faut au moins 4 qualifiés pour un nouveau tour de poules.', 'warning');
-      return;
-    }
-    const toEliminate = eliminated.filter(f => {
-      const status = fencers.find(x => x.id === f.id)?.status;
-      return (
-        status !== undefined &&
-        status !== FencerStatus.ELIMINATED &&
-        status !== FencerStatus.ABANDONED &&
-        status !== FencerStatus.FORFAIT &&
-        status !== FencerStatus.EXCLUDED
-      );
-    });
-    const ok = await confirm(
-      t('pools.next_round_confirm', {
-        n: nextRound,
-        qualified: qualified.length,
-        eliminated: toEliminate.length,
-      })
-    );
-    if (!ok) return;
-    // Appel du tour terminé figé avant MAJ (consultation + export PDF par tour)
-    const appelSnapshot = currentAppelFencers;
-    // Non-qualifiés éliminés ; qualifiés : classement = place au tour terminé
-    const updates: Record<string, Partial<Fencer>> = {};
-    for (const f of toEliminate) updates[f.id] = { status: FencerStatus.ELIMINATED };
-    for (const f of qualified) {
-      if (fencers.find(x => x.id === f.id)?.ranking !== f.ranking) {
-        updates[f.id] = { ranking: f.ranking };
-      }
-    }
-    await updateFencers(updates);
-    nextPoolRound(appelSnapshot);
-    setPoolsLaunched(false);
-    setRankingValidated(false);
-    setViewedPoolRound(null);
-    setCurrentPhase('checkin');
-    showToast(t('pools.next_round_checkin', { n: nextRound }), 'success');
-  };
 
   const questConfig = competition.settings?.questConfig;
   const questEnabled = isLaserSabre && questConfig?.enabled === true;
