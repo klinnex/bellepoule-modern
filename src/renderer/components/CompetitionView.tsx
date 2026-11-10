@@ -13,14 +13,10 @@ import {
   CV_DATA_INIT,
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import EmptyState from './common/EmptyState';
-import { PoolViewSkeleton } from './Skeleton';
 import { useOperation } from './common/OperationProgress';
-import { PhaseEmptyIcon } from './competition/phaseIcons';
 import { Competition, Fencer, FencerStatus, Weapon, Gender, Pool } from '../../shared/types';
 import FencerList from './FencerList';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
-import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
 import CompetitionPropertiesModal from './CompetitionPropertiesModal';
@@ -67,7 +63,6 @@ import {
 import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
 import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
 import {
-  rapieresPoolNumbers,
   rapieresSemifinalists,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
@@ -77,16 +72,12 @@ import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauMo
 import { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
-import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import { useRapieresViewProps } from '../../features/rapieres/useRapieresViewProps';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
 import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
-const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
-const ExportCenterModal = React.lazy(() => import('./competition/ExportCenterModal'));
-import { presetScale } from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import { useModalFlags } from '../hooks/useModalFlags';
 import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
@@ -102,36 +93,18 @@ import {
   computeEffectiveTableauRanking,
   computeMatchProgress,
 } from './competition/competitionDerived';
-import PoolsToolbar from './competition/PoolsToolbar';
-import SinglePoolNav from './competition/SinglePoolNav';
+import QuestSection from './competition/QuestSection';
+import PoolsPhase from './competition/PoolsPhase';
+import RankingPhase from './competition/RankingPhase';
 
-const PoolView = React.lazy(() => import('./PoolView'));
-const TableauView = React.lazy(() => import('./TableauView'));
 const RemoteScoreManager = React.lazy(() => import('./RemoteScoreManager'));
-const KioskDisplay = React.lazy(() => import('./KioskDisplay'));
-const FencerComparison = React.lazy(() =>
-  import('./FencerComparison').then(m => ({ default: m.FencerComparison }))
-);
 const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
 
-const AnalyticsDashboard = React.lazy(() =>
-  import('./AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard }))
-);
-const SeasonRankingView = React.lazy(() =>
-  import('./SeasonRankingView').then(m => ({ default: m.SeasonRankingView }))
-);
 const TeamManagerView = React.lazy(() =>
   import('./TeamManagerView').then(m => ({ default: m.TeamManagerView }))
 );
-
-const FFEConnectModal = React.lazy(() => import('./FFEConnectModal'));
-const FFEExportModal = React.lazy(() => import('./FFEExportModal'));
-const PresentationMode = React.lazy(() =>
-  import('./PresentationMode').then(m => ({ default: m.PresentationMode }))
-);
-const QuestPhaseView = React.lazy(() => import('./QuestPhaseView'));
 
 interface CompetitionViewProps {
   competition: Competition;
@@ -1031,136 +1004,58 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         )}
 
         {currentPhase === 'pools' && (
-          <div className="content">
-            {poolRoundSelector}
-            {historyPoolsToShow ? (
-              <div
-                style={{
-                  display: 'grid',
-                  gap: '2rem',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 480px), 1fr))',
-                }}
-              >
-                <Suspense fallback={null}>
-                  {historyPoolsToShow.map(pool => (
-                    <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
-                      {/* Tour terminé : consultation seule */}
-                      <div inert>
-                        <PoolView
-                          pool={pool}
-                          weapon={competition.weapon}
-                          tieBreakByVictory={tieBreakByVictory}
-                          competitionName={competition.title}
-                          maxScore={poolMaxScore}
-                          competitionId={competition.id}
-                          onScoreUpdate={() => {}}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </Suspense>
-              </div>
-            ) : pools.length === 0 ? (
-              <EmptyState
-                icon={<PhaseEmptyIcon />}
-                title={t('competitionView.no_pools')}
-                description={t('competitionView.no_pools_hint')}
-                actionLabel={t('competitionView.back_checkin')}
-                onAction={() => setCurrentPhase('checkin')}
-              />
-            ) : (
-              <>
-                {isRapieres && (
-                  <RapieresWaveBar
-                    pools={pools}
-                    launchedWave={rapieres.launchedWave}
-                    wavesEnded={rapieres.wavesEnded}
-                    onLaunchWave={wave => updateRapieres({ launchedWave: wave })}
-                    onEndWaves={async () => {
-                      if (!(await confirm(t('rapieres.confirm_end_waves')))) return;
-                      updateRapieres({ wavesEnded: true });
-                      setOverallRanking(computeOverallRanking(pools));
-                      setCurrentPhase('ranking');
-                    }}
-                    onResumeWaves={() => updateRapieres({ wavesEnded: false })}
-                    onPrintWaveSheets={handlePrintWaveSheets}
-                    onPrintWaveRange={printWaves}
-                  />
-                )}
-                <PoolsToolbar
-                  isLaserSabre={isLaserSabre}
-                  poolCardSize={poolCardSize}
-                  onPoolCardSizeChange={setPoolCardSize}
-                  poolsViewMode={poolsViewMode}
-                  onPoolsViewModeChange={setPoolsViewMode}
-                  poolCount={pools.length}
-                  onPrintAll={handlePrintAllPoolsPDF}
-                  onExportAll={handleExportAllPoolsPDF}
-                />
-                {poolsViewMode === 'single' ? (
-                  <>
-                    <SinglePoolNav
-                      pools={pools}
-                      singlePoolIndex={singlePoolIndex}
-                      setSinglePoolIndex={setSinglePoolIndex}
-                    />
-                    {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
-                    <div style={{ width: '100%', overflowX: 'auto' }}>
-                      <div
-                        className="pools-single-card"
-                        style={{
-                          maxWidth: `${100 / presetScale(poolCardSize)}%`,
-                          zoom: presetScale(poolCardSize),
-                        }}
-                      >
-                        <Suspense fallback={null}>
-                          {pools[singlePoolIndex] &&
-                            renderPoolCard(pools[singlePoolIndex], singlePoolIndex)}
-                        </Suspense>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gap: '2rem',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${Math.round(Math.max(480, 280 + (pools[0]?.fencers?.length ?? 6) * 38) * presetScale(poolCardSize))}px), 1fr))`,
-                    }}
-                  >
-                    <Suspense fallback={<PoolViewSkeleton />}>
-                      {pools.map((pool, poolIndex) => renderPoolCard(pool, poolIndex))}
-                    </Suspense>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {currentPhase === 'ranking' && poolRoundSelector}
-        {currentPhase === 'ranking' && viewedRoundPools && (
-          <PoolRankingView
-            key={`round-${viewedPoolRound}`}
-            pools={viewedRoundPools}
-            ranking={computeOverallRanking(viewedRoundPools)}
+          <PoolsPhase
+            poolRoundSelector={poolRoundSelector}
+            historyPools={historyPoolsToShow}
+            pools={pools}
             weapon={competition.weapon}
-            hasDirectElimination={hasDirectElimination}
-            rapieres={isRapieres}
+            competitionId={competition.id}
+            competitionTitle={competition.title}
+            tieBreakByVictory={tieBreakByVictory}
+            poolMaxScore={poolMaxScore}
+            isLaserSabre={isLaserSabre}
+            onBackToCheckin={() => setCurrentPhase('checkin')}
+            renderPoolCard={renderPoolCard}
+            isRapieres={isRapieres}
+            launchedWave={rapieres.launchedWave}
+            wavesEnded={rapieres.wavesEnded}
+            onLaunchWave={wave => updateRapieres({ launchedWave: wave })}
+            onEndWaves={async () => {
+              if (!(await confirm(t('rapieres.confirm_end_waves')))) return;
+              updateRapieres({ wavesEnded: true });
+              setOverallRanking(computeOverallRanking(pools));
+              setCurrentPhase('ranking');
+            }}
+            onResumeWaves={() => updateRapieres({ wavesEnded: false })}
+            onPrintWaveSheets={handlePrintWaveSheets}
+            onPrintWaveRange={printWaves}
+            poolCardSize={poolCardSize}
+            onPoolCardSizeChange={setPoolCardSize}
+            poolsViewMode={poolsViewMode}
+            onPoolsViewModeChange={setPoolsViewMode}
+            singlePoolIndex={singlePoolIndex}
+            setSinglePoolIndex={setSinglePoolIndex}
+            onPrintAll={handlePrintAllPoolsPDF}
+            onExportAll={handleExportAllPoolsPDF}
           />
         )}
-        {currentPhase === 'ranking' && !viewedRoundPools && (
-          <PoolRankingView
+
+        {currentPhase === 'ranking' && (
+          <RankingPhase
+            poolRoundSelector={poolRoundSelector}
+            viewedPoolRound={viewedPoolRound}
+            viewedRoundPools={viewedRoundPools}
+            computeOverallRanking={computeOverallRanking}
             pools={pools}
-            ranking={overallRanking}
+            overallRanking={overallRanking}
+            fencers={fencers}
             weapon={competition.weapon}
+            competitionTitle={competition.title}
             hasDirectElimination={hasDirectElimination}
-            isInitialRanking={skipPoolPhase}
-            rapieres={isRapieres}
+            skipPoolPhase={skipPoolPhase}
+            poolWinnersOnly={poolWinnersOnly}
+            postPoolSplitCriteria={postPoolSplitCriteria}
+            splitOffCompetitionIds={splitOffCompetitionIds}
             onGoToTableau={handleGoToTableau}
             onGoToResults={() => setCurrentPhase('results')}
             onPoolsChange={(updatedPools, hasRankingChanged) => {
@@ -1169,10 +1064,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 setRankingChanged(true);
               }
             }}
-            onRankingChange={ranking => setOverallRanking(ranking)}
-            poolWinnersOnly={poolWinnersOnly}
-            splitCriteria={postPoolSplitCriteria}
-            splitOffGroups={splitOffCompetitionIds}
+            onRankingChange={setOverallRanking}
             onSplitOff={handleSplitOff}
             nextRoundAction={
               !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
@@ -1182,55 +1074,26 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   }
                 : undefined
             }
-          />
-        )}
-        {currentPhase === 'ranking' && isRapieres && !viewedRoundPools && (
-          <RapieresRankingPanel
-            competitionTitle={competition.title}
-            wave={rapieres.launchedWave}
-            ranked={overallRanking.map(r => ({ teamId: r.fencer.id, rank: r.rank }))}
-            fencers={fencers}
-            teams={rapieres.teams}
-            stats={rapieresStats}
-            poolOf={rapieresPoolNumbers(pools)}
+            isRapieres={isRapieres}
+            launchedWave={rapieres.launchedWave}
+            rapieresTeams={rapieres.teams}
+            rapieresStats={rapieresStats}
           />
         )}
 
         {questEnabled && questConfig && (
-          <div style={currentPhase === 'quest' ? undefined : CV_STYLES.questWrapper}>
-            <Suspense fallback={null}>
-              <QuestPhaseView
-                fencers={(() => {
-                  const checked = getCheckedInFencers();
-                  if (questConfig.hasPreliminaryPools && questConfig.qualifiersCount) {
-                    return overallRanking
-                      .slice(0, questConfig.qualifiersCount)
-                      .map(r => r.fencer)
-                      .filter(Boolean);
-                  }
-                  return checked;
-                })()}
-                questConfig={questConfig}
-                competitionWeapon={competition.weapon}
-                maxScore={poolMaxScore}
-                onQuestComplete={ranking => {
-                  if (!questConfig.hasPreliminaryPools) {
-                    setOverallRanking(ranking);
-                  } else {
-                    // Fusionner qualifiés re-classés par quest + non-qualifiés du classement poules
-                    const questFencerIds = new Set(ranking.map(r => r.fencer?.id).filter(Boolean));
-                    const nonQualifiers = overallRanking
-                      .filter(r => !questFencerIds.has(r.fencer?.id))
-                      .map((r, i) => ({ ...r, rank: ranking.length + i + 1 }));
-                    setOverallRanking([...ranking, ...nonQualifiers]);
-                  }
-                  setRankingValidated(true);
-                  setCurrentPhase('ranking');
-                }}
-                onConfigUpdate={handleQuestConfigUpdate}
-              />
-            </Suspense>
-          </div>
+          <QuestSection
+            isActive={currentPhase === 'quest'}
+            questConfig={questConfig}
+            weapon={competition.weapon}
+            poolMaxScore={poolMaxScore}
+            getCheckedInFencers={getCheckedInFencers}
+            overallRanking={overallRanking}
+            setOverallRanking={setOverallRanking}
+            setRankingValidated={setRankingValidated}
+            setCurrentPhase={setCurrentPhase}
+            handleQuestConfigUpdate={handleQuestConfigUpdate}
+          />
         )}
 
         {currentPhase === 'tableau' && (
