@@ -1288,6 +1288,60 @@
         flex-shrink: 0;
       }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
+
+      /* Styles ex-inline (#1600) : doublement de classe pour garder la priorité de l'attribut style */
+      .inl-4325d6.inl-4325d6 {
+        display: flex;
+        align-items: center;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .inl-e7f79c.inl-e7f79c {
+        position: relative;
+        margin-left: 0.5rem;
+      }
+      .inl-23f265.inl-23f265 {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 0.5rem 0;
+      }
+      .inl-774c02.inl-774c02 {
+        accent-color: var(--blue-500);
+        cursor: pointer;
+      }
+      .inl-61cd3c.inl-61cd3c {
+        width: 56px;
+        background: var(--slate-900);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.4rem;
+        color: var(--tw-slate-200);
+        padding: 0.2rem 0.4rem;
+        font-size: 0.875rem;
+      }
+      .inl-911b6d.inl-911b6d {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .inl-d7a512.inl-d7a512 {
+        width: 60px;
+      }
+      .inl-7023da.inl-7023da {
+        text-align: center;
+      }
+      .inl-caf873.inl-caf873 {
+        text-align: center;
+        color: var(--slate-500);
+        padding: 3rem;
+      }
+      .inl-2b40b2.inl-2b40b2 {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+      }
     </style>
   </head>
   <body>
@@ -1313,7 +1367,7 @@
 
     <!-- Menu escamotable -->
     <div id="kiosk-menu" role="navigation" aria-label="Menu du kiosque" data-i18n-aria-label="kiosk.menu_label">
-      <div style="display: flex; align-items: center; flex: 1 1 0; min-width: 0">
+      <div class="inl-4325d6">
         <img
           id="org-logo"
           src=""
@@ -1358,7 +1412,7 @@
         <button id="btn-tableau" data-click="switchView" data-args='["tableau"]' data-i18n="kiosk.de_bracket">
           Tableau DE
         </button>
-        <div style="position: relative; margin-left: 0.5rem">
+        <div class="inl-e7f79c">
           <button
             id="btn-settings"
             class="settings-btn"
@@ -1398,8 +1452,7 @@
               <span data-i18n="kiosk.show_eta">Fin estimée</span>
             </label>
             <hr
-              style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 0.5rem 0"
-            />
+             class="inl-23f265"/>
             <div class="settings-title" data-i18n="kiosk.bracket_mode">Mode tableau DE</div>
             <label class="settings-item">
               <input
@@ -1408,8 +1461,7 @@
                 id="tableau-mode-auto"
                 value="auto"
                 checked
-                style="accent-color: var(--blue-500); cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_auto">Auto</span>
             </label>
             <label class="settings-item">
@@ -1418,8 +1470,7 @@
                 name="tableau-mode"
                 id="tableau-mode-compact"
                 value="compact"
-                style="accent-color: var(--blue-500); cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_compact">Tableau complet</span>
             </label>
             <label class="settings-item">
@@ -1428,8 +1479,7 @@
                 name="tableau-mode"
                 id="tableau-mode-focus"
                 value="focus"
-                style="accent-color: var(--blue-500); cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.order">Ordre de passage</span>
             </label>
             <label class="settings-item">
@@ -1438,13 +1488,11 @@
                 name="tableau-mode"
                 id="tableau-mode-cinema"
                 value="cinema"
-                style="accent-color: var(--blue-500); cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_cinema">Ciné (zoom auto)</span>
             </label>
             <hr
-              style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 0.5rem 0"
-            />
+             class="inl-23f265"/>
             <div class="settings-title" data-i18n="kiosk.rotation_label">Rafraîchissement</div>
             <div class="settings-item">
               <input
@@ -1453,30 +1501,14 @@
                 min="3"
                 max="300"
                 value="15"
-                style="
-                  width: 56px;
-                  background: var(--slate-900);
-                  border: 1px solid rgba(255, 255, 255, 0.2);
-                  border-radius: 0.4rem;
-                  color: var(--tw-slate-200);
-                  padding: 0.2rem 0.4rem;
-                  font-size: 0.875rem;
-                "
-              />
+               class="inl-61cd3c"/>
               <span data-i18n="kiosk.rotation_unit">s</span>
             </div>
           </div>
         </div>
       </div>
       <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          flex: 1 1 0;
-          min-width: 0;
-        "
-      >
+       class="inl-911b6d">
         <div class="menu-status">
           <div id="status-dot" class="status-dot"></div>
           <span id="status-text">—</span>
@@ -1518,21 +1550,21 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th style="width: 60px" data-i18n="kiosk.col_rank">Rg</th>
+                <th data-i18n="kiosk.col_rank" class="inl-d7a512">Rg</th>
                 <th data-i18n="kiosk.col_fencer">Tireur</th>
                 <th data-i18n="kiosk.col_club">Club</th>
-                <th style="text-align: center">V</th>
-                <th style="text-align: center" data-i18n="kiosk.col_index">Ind</th>
-                <th style="text-align: center" data-i18n="kiosk.col_ts">TD</th>
+                <th class="inl-7023da">V</th>
+                <th data-i18n="kiosk.col_index" class="inl-7023da">Ind</th>
+                <th data-i18n="kiosk.col_ts" class="inl-7023da">TD</th>
               </tr>
             </thead>
             <tbody id="ranking-body">
               <tr>
                 <td
                   colspan="6"
-                  style="text-align: center; color: var(--slate-500); padding: 3rem"
+                 
                   data-i18n="kiosk.waiting_results"
-                >
+                 class="inl-caf873">
                   En attente des résultats...
                 </td>
               </tr>
@@ -1555,8 +1587,7 @@
       </div>
       <div
         id="final-ranking-body"
-        style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1"
-      >
+       class="inl-2b40b2">
         <div class="final-ranking-not-done" data-i18n="kiosk.not_finished">
           ⏳ Compétition non terminée
         </div>

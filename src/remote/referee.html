@@ -1335,6 +1335,94 @@
         50% { transform: scale(1.03); box-shadow: 0 0 0 16px rgba(79,70,229,0); }
       }
       .score-btn:focus-visible, .card-btn:focus-visible, .swap-btn:focus-visible, .modal-btn:focus-visible { outline: 3px solid var(--tw-amber-400); outline-offset: 2px; }
+
+      /* Styles ex-inline (#1600) : doublement de classe pour garder la priorité de l'attribut style */
+      .inl-702af5.inl-702af5 {
+        background: rgba(139,92,246,0.15);
+        border: 1px solid rgba(139,92,246,0.4);
+        color: var(--tw-violet-300);
+        border-radius: 0.5rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .inl-3aee51.inl-3aee51 {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 0.5rem;
+      }
+      .inl-fc7f64.inl-fc7f64 {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.35);
+        border-radius: 0.5rem;
+        color: var(--color-white);
+        font-weight: 600;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+      .inl-38b293.inl-38b293 {
+        display: flex;
+        justify-content: center;
+        margin-top: 0.4rem;
+      }
+      .inl-46bbcf.inl-46bbcf {
+        background: none;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 0.5rem;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+      }
+      .inl-bff8d5.inl-bff8d5 {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border: none;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        outline: none;
+      }
+      .inl-bc804a.inl-bc804a {
+        font-size: 0.875rem;
+        color: var(--tw-gray-500);
+      }
+      .inl-39aaac.inl-39aaac {
+        border: 3px solid var(--c-111111);
+      }
+      .inl-981067.inl-981067 {
+        background: var(--c-111111);
+        color: var(--color-white);
+      }
+      .inl-dc8ee3.inl-dc8ee3 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 0.5rem;
+      }
+      .inl-93198c.inl-93198c {
+        text-align: center;
+        color: var(--color-danger);
+      }
+      .inl-6fc1be.inl-6fc1be {
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--tw-gray-500);
+      }
+      .inl-800d9a.inl-800d9a {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .inl-13ec75.inl-13ec75 {
+        margin-top: 1rem;
+        background: var(--tw-violet-900);
+        animation: none;
+        font-size: 1.2rem;
+        padding: 0.9rem 2rem;
+      }
     </style>
   </head>
   <body>
@@ -1373,8 +1461,7 @@
           data-click="openJournal"
           title="Journal du match" data-i18n-title="referee.journal_title"
           aria-label="Journal" data-i18n-aria-label="referee.journal_label"
-          style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:var(--tw-violet-300); border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
-        >📋</button>
+         class="inl-702af5">📋</button>
       </div>
     </div>
 
@@ -1383,14 +1470,14 @@
     <div class="main-container" role="main">
       <!-- Match actif -->
       <div class="active-match" id="active-match">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
+        <div class="inl-3aee51">
           <button aria-label="Retour à la liste des matchs" data-i18n-aria-label="referee.back_title"
             id="btn-back-to-list"
             data-click="reloadIfIdle"
-            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:var(--color-white);font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
+           
             title="Retour à la liste des matchs"
             data-i18n="referee.back" data-i18n-title="referee.back_title"
-          >← Retour</button>
+           class="inl-fc7f64">← Retour</button>
         </div>
         <div class="fencers-container">
           <!-- Tireur A (Rouge) -->
@@ -1539,13 +1626,12 @@
           <div class="timer-hint" data-i18n="referee.timer_hint">
             Tapez pour démarrer/pause - Appui long pour reset
           </div>
-          <div style="display:flex;justify-content:center;margin-top:0.4rem;">
+          <div class="inl-38b293">
             <button aria-label="Minuteur vocal" data-i18n-aria-label="referee.voice_title"
               id="btn-tts-toggle"
               data-click="refereeApp.toggleTTS"
               title="Minuteur vocal" data-i18n-title="referee.voice_title" data-i18n="referee.voice_off"
-              style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;padding:0.2rem 0.6rem;cursor:pointer;"
-            >🔇 Voix</button>
+             class="inl-46bbcf">🔇 Voix</button>
           </div>
         </div>
 
@@ -1615,18 +1701,7 @@
           data-i18n-placeholder="referee.search_placeholder"
           placeholder="🔍 Rechercher un tireur..."
           data-input="refereeApp.filterMatches" data-args='["$value"]'
-          style="
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: none;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            outline: none;
-          "
-        />
+         class="inl-bff8d5"/>
         <div id="black-cards-list"></div>
         <div id="next-matches-list">
           <div class="next-matches-empty" data-i18n="remote.loading">Chargement...</div>
@@ -1641,7 +1716,7 @@
         <div class="modal-body">
           <p data-i18n="referee.modal_confirm_text">Confirmez-vous la fin de ce match ?</p>
           <div class="final-score" id="final-score-display">0 - 0</div>
-          <p style="font-size: 0.875rem; color: var(--tw-gray-500)" data-i18n="referee.modal_note">
+          <p data-i18n="referee.modal_note" class="inl-bc804a">
             Le score sera enregistré dans le tableau de poules.
           </p>
         </div>
@@ -1658,16 +1733,16 @@
 
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
-      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="black-card-title" style="border:3px solid var(--c-111111)">
-        <div class="modal-title" id="black-card-title" style="background:var(--c-111111);color:var(--color-white)" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
+      <div class="modal-content inl-39aaac" role="dialog" aria-modal="true" aria-labelledby="black-card-title">
+        <div class="modal-title inl-981067" id="black-card-title" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
-          <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
-          <p id="black-card-cause" style="text-align:center;color:var(--color-danger)"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
-          <p style="text-align:center;font-size:0.875rem;color:var(--tw-gray-500)" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
+          <p id="black-card-fencer-name" class="inl-dc8ee3">—</p>
+          <p id="black-card-cause" class="inl-93198c"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
+          <p data-i18n="referee.black_card_desc" class="inl-6fc1be">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
           <button class="modal-btn modal-btn-cancel" data-click="refereeApp.cancelBlackCard" data-i18n="referee.cancel">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:var(--c-111111);color:var(--color-white)" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-confirm inl-981067" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -1675,7 +1750,7 @@
     <!-- Overlay confirmation tirage au sort -->
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
-        <div style="font-size:2.5rem;margin-bottom:0.75rem">🪙</div>
+        <div class="inl-800d9a">🪙</div>
         <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
@@ -1713,7 +1788,7 @@
       <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">
         ✍️ SIGNATURE
       </button>
-      <button class="pco-btn" data-click="openJournal" data-i18n="referee.journal_btn" style="margin-top:1rem; background:var(--tw-violet-900); animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
+      <button class="pco-btn inl-13ec75" data-click="openJournal" data-i18n="referee.journal_btn">
         📋 JOURNAL
       </button>
     </div>
