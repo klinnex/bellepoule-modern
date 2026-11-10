@@ -36,4 +36,18 @@ describe('referee.html ergonomie tactile (#1539)', () => {
     expect(html).toMatch(/id="score-a" role="status" aria-live="polite"/);
     expect(html).toMatch(/id="score-b" role="status" aria-live="polite"/);
   });
+
+  it('hiérarchie : le bouton de score domine les cartons et les sorties (#1539)', () => {
+    const px = (r: string) => Number(/min-height:\s*(\d+)px/.exec(r)?.[1]);
+    expect(px(rule('.score-btn'))).toBeGreaterThan(px(rule('.card-btn')));
+    expect(px(rule('.score-btn'))).toBeGreaterThan(px(rule('.btn-undo')));
+    expect(rule('.card-buttons')).toContain('margin-top: 1rem');
+  });
+
+  it('prévoit une mise en page paysage compacte qui garde des cibles >= 44 px', () => {
+    const i = html.indexOf('@media (orientation: landscape) and (max-height: 500px)');
+    expect(i).toBeGreaterThan(-1);
+    const block = html.slice(i, html.indexOf('</style>', i));
+    expect(block).toMatch(/\.score-btn\s*\{\s*min-height:\s*(5\d|[6-9]\d)px/);
+  });
 });
