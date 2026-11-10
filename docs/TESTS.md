@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 82 | 393 |
+| `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 55 | 343 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **337** | **2567** |
+| **Total** | **338** | **2573** |
 
-Unitaires : 327 fichiers, 2528 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 328 fichiers, 2534 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4170,6 +4170,20 @@ Unitaires : 327 fichiers, 2528 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 6 tests</summary>
+
+- **computeMatchProgress**
+  - renvoie null sans poule ni tableau
+  - compte les matchs de poule terminés
+  - retombe sur le tableau quand il n’y a pas de poule
+- **computeEffectiveTableauRanking**
+  - garde le classement tel quel sans option
+  - ne garde que le groupe actif et renumérote
+  - exclut les groupes déjà extraits dans une compétition séparée
 
 </details>
 
