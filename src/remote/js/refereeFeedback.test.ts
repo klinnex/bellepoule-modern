@@ -10,7 +10,10 @@ import path from 'path';
 
 const req = createRequire(import.meta.url);
 const F = req('./refereeFeedback.js');
-const html = fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8');
+const html =
+  fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8') +
+  fs.readFileSync(path.join(__dirname, 'refereeApp.js'), 'utf8') +
+  fs.readFileSync(path.join(__dirname, 'refereeAppBase.js'), 'utf8'); // page + script extrait (#1600)
 
 beforeEach(() => {
   document.head.innerHTML = '';
