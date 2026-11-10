@@ -19,7 +19,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 81 | 391 |
+| `src/renderer/components/` | 82 | 393 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 54 | 332 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **335** | **2554** |
+| **Total** | **336** | **2556** |
 
-Unitaires : 325 fichiers, 2515 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 326 fichiers, 2517 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4071,6 +4071,15 @@ Unitaires : 325 fichiers, 2515 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton désactivé + lame affichée pendant le téléchargement
   - erreur %s : message explicite (plus de clic muet) _(each)_
   - ses styles sont dans une feuille chargée (components.css)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/CardIcon.test.tsx</code> — 2 tests</summary>
+
+- **CardIcon**
+  - est décorative par défaut et porte la couleur du carton
+  - expose un nom accessible quand elle est seule
 
 </details>
 
