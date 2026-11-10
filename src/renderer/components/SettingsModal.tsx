@@ -3,24 +3,13 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
-import {
-  Bell,
-  FileText,
-  Hourglass,
-  Palette,
-  PenLine,
-  Settings as SettingsIcon,
-  Volume2,
-  type LucideIcon,
-} from 'lucide-react';
+import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
@@ -46,7 +35,6 @@ import {
   type LogoEntry,
   loadLogoLibrary,
   saveLogoLibraryLocal,
-  sanitizeLogoLibrary,
   ensureActiveInLibrary,
   addLogo,
   renameLogo,
@@ -63,386 +51,86 @@ import {
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { Button } from './common/Button';
 import { Icon } from './common/Icon';
+import {
+  SettingsSectionId,
+  SettingsItemId,
+  SETTINGS_SECTIONS,
+  SECTION_STORAGE_KEY,
+  loadActiveSection,
+  normalizeSearch,
+  loadTtsConfig,
+  resizeLogo,
+  WEBHOOK_STORAGE_KEY,
+  AUDIT_LOG_KEY,
+  QUICK_MOUSE_KEY,
+  SIMPLIFIED_INPUT_KEY,
+  TTS_THRESHOLDS,
+  type SettingsModalProps,
+} from './settingsModal.helpers';
+import { useSettingsPreferences } from '../hooks/settingsModal/useSettingsPreferences';
 
-const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
-const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
-const TTS_CONFIG_KEY = 'bellepoule-tts-config';
-export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
-export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
-
-interface TtsConfig {
-  voiceName: string | null;
-  rate: number;
-  announce: Record<string, boolean>;
-}
-
-const DEFAULT_TTS_CONFIG: TtsConfig = {
-  voiceName: null,
-  rate: 1.1,
-  announce: { '60': true, '30': true, '10': true, '5': true, countdown: true, '0': true },
-};
-
-// Paliers annoncés par le minuteur vocal — clé de config + libellé affiché
-// Paliers annoncés : clé de config → clé de traduction (settings.*)
-const TTS_THRESHOLDS: { key: string; label: string }[] = [
-  { key: '60', label: 'settings.tts_m60' },
-  { key: '30', label: 'settings.tts_m30' },
-  { key: '10', label: 'settings.tts_m10' },
-  { key: '5', label: 'settings.tts_m5' },
-  { key: 'countdown', label: 'settings.tts_countdown' },
-  { key: '0', label: 'settings.tts_m0' },
-];
-
-// Organisation des paramètres : sections (onglets) → réglages.
-// `keys` = clés de traduction parcourues par la recherche.
-type SettingsSectionId =
-  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'system';
-type SettingsItemId =
-  | 'language'
-  | 'pseudo'
-  | 'theme'
-  | 'text_size'
-  | 'density'
-  | 'animations'
-  | 'quick_mouse'
-  | 'simplified'
-  | 'audit'
-  | 'logo'
-  | 'pdf'
-  | 'tts'
-  | 'webhook'
-  | 'updates'
-  | 'proxy'
-  | 'backup'
-  | 'tour';
-
-interface SettingsSectionDef {
-  id: SettingsSectionId;
-  icon: LucideIcon;
-  labelKey: string;
-  items: { id: SettingsItemId; keys: string[] }[];
-}
-
-const SETTINGS_SECTIONS: SettingsSectionDef[] = [
-  {
-    id: 'display',
-    icon: Palette,
-    labelKey: 'settings.section_display',
-    items: [
-      { id: 'language', keys: ['settings.language'] },
-      { id: 'theme', keys: ['settings.theme'] },
-      { id: 'text_size', keys: ['settings.text_size'] },
-      { id: 'density', keys: ['settings.density'] },
-      { id: 'animations', keys: ['settings.animations_title', 'settings.animations_hint'] },
-      { id: 'pseudo', keys: ['settings.pseudo_locale', 'settings.pseudo_locale_hint'] },
-    ],
-  },
-  {
-    id: 'scoring',
-    icon: PenLine,
-    labelKey: 'settings.section_scoring',
-    items: [
-      { id: 'quick_mouse', keys: ['settings.quick_mouse_title', 'settings.quick_mouse_hint'] },
-      { id: 'simplified', keys: ['settings.simplified_title', 'settings.simplified_hint'] },
-      { id: 'audit', keys: ['settings.audit_title', 'settings.audit_hint'] },
-    ],
-  },
-  {
-    id: 'documents',
-    icon: FileText,
-    labelKey: 'settings.section_documents',
-    items: [
-      { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
-      { id: 'pdf', keys: ['settings.pdf_title', 'settings.pdf_hint'] },
-    ],
-  },
-  {
-    id: 'referee',
-    icon: Volume2,
-    labelKey: 'settings.section_referee',
-    items: [
-      {
-        id: 'tts',
-        keys: [
-          'settings.tts_title',
-          'settings.tts_hint',
-          'settings.tts_voice',
-          'settings.tts_milestones',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'notifications',
-    icon: Bell,
-    labelKey: 'settings.section_notifications',
-    items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
-  },
-  {
-    id: 'system',
-    icon: SettingsIcon,
-    labelKey: 'settings.section_system',
-    items: [
-      {
-        id: 'updates',
-        keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
-      },
-      { id: 'proxy', keys: ['settings.proxy_title', 'settings.proxy_hint'] },
-      { id: 'backup', keys: ['settings.backup_title', 'settings.backup_hint'] },
-      { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
-    ],
-  },
-];
-
-const SECTION_STORAGE_KEY = 'bellepoule-settings-section';
-
-function loadActiveSection(): SettingsSectionId {
-  try {
-    const saved = localStorage.getItem(SECTION_STORAGE_KEY);
-    if (saved && SETTINGS_SECTIONS.some(s => s.id === saved)) return saved as SettingsSectionId;
-  } catch {
-    /* stockage indisponible */
-  }
-  return 'display';
-}
-
-// Minuscules sans accents : « theme » trouve « Thème »
-function normalizeSearch(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
-}
-
-function loadTtsConfig(): TtsConfig {
-  try {
-    const raw = localStorage.getItem(TTS_CONFIG_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        ...DEFAULT_TTS_CONFIG,
-        ...parsed,
-        announce: { ...DEFAULT_TTS_CONFIG.announce, ...(parsed.announce ?? {}) },
-      };
-    }
-  } catch {
-    /* config corrompue → défaut */
-  }
-  return { ...DEFAULT_TTS_CONFIG, announce: { ...DEFAULT_TTS_CONFIG.announce } };
-}
-
-const LOGO_MAX_W = 600;
-const LOGO_MAX_H = 200;
-
-function resizeLogo(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width;
-        let h = img.height;
-        if (w > LOGO_MAX_W || h > LOGO_MAX_H) {
-          const ratio = Math.min(LOGO_MAX_W / w, LOGO_MAX_H / h);
-          w = Math.round(w * ratio);
-          h = Math.round(h * ratio);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = reject;
-      img.src = e.target!.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-interface SettingsModalProps {
-  onClose: () => void;
-  onSave: (settings: any) => void;
-}
-
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const { t, language, theme, changeLanguage, changeTheme, pseudoLocale, setPseudoLocale } =
-    useTranslation();
-  const [showPdfEditor, setShowPdfEditor] = useState(false);
-  const [settings, setSettings] = useState({
-    language: language,
-    theme: theme,
-  });
-  const [logo, setLogo] = useState<string | null>(() => localStorage.getItem(LOGO_STORAGE_KEY));
-  const [logos, setLogos] = useState<LogoEntry[]>(() =>
-    ensureActiveInLibrary(loadLogoLibrary(), localStorage.getItem(LOGO_STORAGE_KEY))
-  );
-  const [isDragging, setIsDragging] = useState(false);
-  const [logoError, setLogoError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Activé par défaut (journal désactivable explicitement, pas activable par défaut négatif)
-  const [auditLogEnabled, setAuditLogEnabled] = useState<boolean>(
-    () => localStorage.getItem(AUDIT_LOG_KEY) !== 'false'
-  );
-
-  const [quickMouseScoring, setQuickMouseScoring] = useState<boolean>(
-    () => localStorage.getItem(QUICK_MOUSE_KEY) === 'true'
-  );
-
-  const [simplifiedInputMode, setSimplifiedInputMode] = useState<boolean>(
-    () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
-  );
-
-  const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
-  const [uiDensity, setUiDensity] = useState<UiDensity>(() => loadUiDensity());
-  const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
-  // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
-  const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
-  const [updateDir, setUpdateDir] = useState<{ dir: string; isDefault: boolean } | null>(null);
-  const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
-  // Écran de démarrage : préférence stockée côté main (lue avant la création des fenêtres)
-  const [splashEnabled, setSplashEnabledState] = useState<boolean>(true);
-  useEffect(() => {
-    window.electronAPI?.splash
-      ?.getEnabled?.()
-      .then(r => setSplashEnabledState(r.enabled))
-      .catch(() => {
-        // indisponible (dev / tests)
-      });
-  }, []);
-  useEffect(() => {
-    const updater = window.electronAPI?.updater;
-    updater
-      ?.getDownloadDir?.()
-      .then(r => setUpdateDir({ dir: r.dir, isDefault: r.isDefault }))
-      .catch(() => {
-        // updater indisponible (dev / tests)
-      });
-    updater
-      ?.getAutoCheck?.()
-      .then(r => setUpdateAutoCheck(r.enabled))
-      .catch(() => {
-        // updater indisponible (dev / tests)
-      });
-    updater
-      ?.getChannel?.()
-      .then(r => setUpdateChannel(r.channel))
-      .catch(() => {
-        // updater indisponible (dev / tests)
-      });
-  }, []);
-  const [webhookUrl, setWebhookUrl] = useState<string>(
-    () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
-  );
-  const [webhookTestStatus, setWebhookTestStatus] = useState<
-    'idle' | 'testing' | 'success' | 'error'
-  >('idle');
-  const [webhookTestMessage, setWebhookTestMessage] = useState<string>('');
-
-  // Paramètres minuteur vocal (TTS) des tablettes d'arbitrage
-  const [ttsConfig, setTtsConfig] = useState<TtsConfig>(() => loadTtsConfig());
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    setSettings(prev => ({ ...prev, language, theme }));
-  }, [language, theme]);
-
-  // Sync persisted logo from main process if localStorage is empty
-  useEffect(() => {
-    if (!logo) {
-      const api = (window as any).electronAPI;
-      api?.getLogo?.().then((persisted: string | null) => {
-        if (persisted) {
-          setLogo(persisted);
-          localStorage.setItem(LOGO_STORAGE_KEY, persisted);
-        }
-      });
-    }
-    const api = (window as any).electronAPI;
-    // Bibliothèque persistée (logos.json) : fusion avec la copie locale
-    api
-      ?.getLogos?.()
-      .then((raw: unknown) => {
-        const disk = sanitizeLogoLibrary(raw);
-        if (disk.length === 0) return;
-        setLogos(prev => {
-          const ids = new Set(disk.map(l => l.id));
-          const merged = sanitizeLogoLibrary([...disk, ...prev.filter(l => !ids.has(l.id))]);
-          const withActive = ensureActiveInLibrary(merged, localStorage.getItem(LOGO_STORAGE_KEY));
-          saveLogoLibraryLocal(withActive);
-          return withActive;
-        });
-      })
-      .catch(() => {
-        /* bibliothèque optionnelle */
-      });
-    const unsub = api?.onLogoLoaded?.((persisted: string | null) => {
-      if (persisted && !localStorage.getItem(LOGO_STORAGE_KEY)) {
-        setLogo(persisted);
-        localStorage.setItem(LOGO_STORAGE_KEY, persisted);
-      }
-    });
-    return () => {
-      if (typeof unsub === 'function') unsub();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Liste des voix disponibles (peut arriver de façon asynchrone)
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return;
-    const refresh = () => setVoices(window.speechSynthesis.getVoices());
-    refresh();
-    window.speechSynthesis.onvoiceschanged = refresh;
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
-  }, []);
-
-  // Pousse la config TTS : persistance locale + serveurs distants actifs
-  const persistTtsConfig = useCallback((next: TtsConfig) => {
-    setTtsConfig(next);
-    localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(next));
-    (window as any).electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {
-      /* serveur inactif */
-    });
-  }, []);
-
-  const handleTtsVoiceChange = (voiceName: string) => {
-    persistTtsConfig({ ...ttsConfig, voiceName: voiceName || null });
-  };
-
-  const handleTtsRateChange = (rate: number) => {
-    persistTtsConfig({ ...ttsConfig, rate });
-  };
-
-  const handleTtsThresholdToggle = (key: string, enabled: boolean) => {
-    persistTtsConfig({ ...ttsConfig, announce: { ...ttsConfig.announce, [key]: enabled } });
-  };
-
-  const handleTtsTestVoice = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance('30 secondes');
-    const v = voices.find(x => x.name === ttsConfig.voiceName);
-    if (v) {
-      utt.voice = v;
-      utt.lang = v.lang;
-    }
-    utt.rate = ttsConfig.rate;
-    window.speechSynthesis.speak(utt);
-  };
-
-  const handleLanguageChange = (newLanguage: Language) => {
-    setSettings(prev => ({ ...prev, language: newLanguage }));
-  };
-
-  const handleThemeChange = (newTheme: 'default' | 'light' | 'dark') => {
-    setSettings(prev => ({ ...prev, theme: newTheme }));
-  };
+const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) => {
+  const settingsPreferences = useSettingsPreferences({ ...props });
+  const {
+    modalRef,
+    t,
+    onClose,
+    showPdfEditor,
+    setShowPdfEditor,
+    setLogo,
+    setLogos,
+    setLogoError,
+    logos,
+    setIsDragging,
+    logo,
+    setWebhookUrl,
+    setWebhookTestStatus,
+    webhookUrl,
+    setWebhookTestMessage,
+    setAuditLogEnabled,
+    setQuickMouseScoring,
+    setConfettiDisabled,
+    setSplashEnabledState,
+    setUpdateAutoCheck,
+    setUpdateDir,
+    updateChannel,
+    setUpdateChannel,
+    setUiScale,
+    setUiDensity,
+    setSimplifiedInputMode,
+    persistTtsConfig,
+    changeLanguage,
+    changeTheme,
+    setSettings,
+    settings,
+    language,
+    theme,
+    onSave,
+    handleLanguageChange,
+    pseudoLocale,
+    setPseudoLocale,
+    handleThemeChange,
+    uiScale,
+    uiDensity,
+    fileInputRef,
+    isDragging,
+    logoError,
+    quickMouseScoring,
+    simplifiedInputMode,
+    auditLogEnabled,
+    confettiDisabled,
+    splashEnabled,
+    updateAutoCheck,
+    updateDir,
+    webhookTestStatus,
+    webhookTestMessage,
+    ttsConfig,
+    handleTtsVoiceChange,
+    voices,
+    handleTtsTestVoice,
+    handleTtsRateChange,
+    handleTtsThresholdToggle,
+  } = { ...props, ...settingsPreferences };
 
   // Logo actif : localStorage (PDF/kiosque) + logo.dat + serveurs distants
   const setActiveLogo = useCallback((data: string | null) => {
