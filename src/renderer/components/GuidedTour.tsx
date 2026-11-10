@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Check, X, Sparkles } from 'lucide-react';
 import { MatchStatus } from '../../shared/types';
@@ -195,15 +196,16 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
       <div className="guided-tour-header">
         <Sparkles size={16} aria-hidden="true" />
         <strong>{finished ? t('tour.finished_title') : t('tour.title')}</strong>
-        <button
-          type="button"
-          className="guided-tour-skip"
-          onClick={close}
-          aria-label={finished ? t('tour.close') : t('tour.skip')}
-          title={finished ? t('tour.close') : t('tour.skip')}
-        >
-          <X size={14} />
-        </button>
+        <Tooltip content={finished ? t('tour.close') : t('tour.skip')}>
+          <button
+            type="button"
+            className="guided-tour-skip"
+            onClick={close}
+            aria-label={finished ? t('tour.close') : t('tour.skip')}
+          >
+            <X size={14} />
+          </button>
+        </Tooltip>
       </div>
       <ol className="guided-tour-steps">
         {TOUR_STEPS.map((step: TourStepId) => {

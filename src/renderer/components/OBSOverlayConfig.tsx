@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ArrowUpRight, ClipboardList } from 'lucide-react';
@@ -185,13 +186,15 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
           <button style={S.copyBtn} onClick={copyUrl}>
             {copied ? '✓' : <Icon icon={ClipboardList} />}
           </button>
-          <button
-            style={S.openBtn}
-            onClick={() => window.open(overlayUrl, '_blank')}
-            title={t('obsOverlay.open')}
-          >
-            <Icon icon={ArrowUpRight} />
-          </button>
+          <Tooltip content={t('obsOverlay.open')}>
+            <button
+              style={S.openBtn}
+              onClick={() => window.open(overlayUrl, '_blank')}
+              aria-label={t('obsOverlay.open')}
+            >
+              <Icon icon={ArrowUpRight} />
+            </button>
+          </Tooltip>
         </div>
       </div>
 

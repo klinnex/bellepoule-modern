@@ -1,3 +1,4 @@
+import { Tooltip } from '../Tooltip';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import {
@@ -114,14 +115,16 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
           >
             {url}
           </code>
-          <button
-            onClick={handleCopy}
-            title={t('trainingPanel.copy_url')}
-            aria-label={t('trainingPanel.copy_url')}
-            className={`training-copy-btn${copied ? ' is-copied' : ''}`}
-          >
-            {copied ? <Check size={20} /> : <Copy size={16} />}
-          </button>
+          <Tooltip content={t('trainingPanel.copy_url')}>
+            <button
+              onClick={handleCopy}
+
+              aria-label={t('trainingPanel.copy_url')}
+              className={`training-copy-btn${copied ? ' is-copied' : ''}`}
+            >
+              {copied ? <Check size={20} /> : <Copy size={16} />}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </div>
