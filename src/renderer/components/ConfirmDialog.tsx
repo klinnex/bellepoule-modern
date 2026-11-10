@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef, createContext, useContext, useCallb
 import { translateStatic } from '../contexts/TranslationContext';
 import { Button } from './common/Button';
 
-interface ConfirmOptions {
+export interface ConfirmOptions {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;

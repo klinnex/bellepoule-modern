@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 82 | 393 |
+| `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 341 |
+| `src/remote/` | 55 | 344 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **337** | **2565** |
+| **Total** | **338** | **2574** |
 
-Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4174,6 +4174,20 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 6 tests</summary>
+
+- **computeMatchProgress**
+  - renvoie null sans poule ni tableau
+  - compte les matchs de poule terminés
+  - retombe sur le tableau quand il n’y a pas de poule
+- **computeEffectiveTableauRanking**
+  - garde le classement tel quel sans option
+  - ne garde que le groupe actif et renumérote
+  - exclut les groupes déjà extraits dans une compétition séparée
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/competition/phaseRegistry.test.ts</code> — 2 tests</summary>
 
 - **phaseRegistry**
@@ -4914,7 +4928,7 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/icons.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/js/icons.test.ts</code> — 10 tests</summary>
 
 - **icons.js**
   - rend un SVG décoratif, taille 1em, couleur héritée
@@ -4923,9 +4937,12 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - classe additionnelle échappée
   - hydrate remplit \[data-icon\] et reste idempotent
   - rank : médaille pour 1-3, texte au-delà
+  - card : pastille colorée par type, texte échappé si inconnu
   - expose des noms sans doublon
 - **pages distantes**
   - %s charge /js/icons.js dès qu’elle utilise une icône _(each)_
+- **noms d’icônes utilisés**
+  - chaque data-icon / bpIcon / icon: référence une icône du jeu
 
 </details>
 
@@ -5037,7 +5054,7 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - sans petite finale : perdants de demi-finale classés 3e et 4e par tête de série
   - byes ignorés dans les tours principaux
 - **kioskLists.js HTML**
-  - rankLabel : médailles puis rang
+  - rankLabel : texte du rang (la médaille SVG vient de /js/icons.js)
   - finalTableHtml : ligne de tête et échappement
   - notDoneHtml
   - suivantsHtml : vide, regroupement par poule, en cours, initiales, échappement
@@ -5175,7 +5192,7 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 9 tests</summary>
 
 - **son optionnel**
   - désactivé par défaut, bascule mémorisée, stockage cassé toléré
@@ -5183,6 +5200,7 @@ Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - le bouton #btn-sound reflète l état (aria-pressed)
 - **bouton Annuler la touche temporaire**
   - visible puis masqué après le délai, clic = annulation
+  - icône SVG devant le libellé quand /js/icons.js est chargé
 - **referee.html (#1539)**
   - +1/+3/+5 ont un aria-label traduit (deux côtés)
   - charge le module sans script inline et branche afterScore

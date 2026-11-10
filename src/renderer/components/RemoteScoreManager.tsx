@@ -4,797 +4,117 @@
  * Licensed under GPL-3.0
  */
 import { TipButton } from './Tooltip';
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React from 'react';
 import { Icon } from './common/Icon';
 import { CopyUrlLabel } from './remote/CopyUrlLabel';
 import { Camera, LockOpen, Moon, Pencil, Smartphone, Square, Sun, Zap } from 'lucide-react';
-import { useStateGroup } from '../hooks/useStateGroup';
-import { useArenaThemes } from './remote/useArenaThemes';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
-import { Competition, FencerStatus, Pool } from '../../shared/types';
-import { logger, LogCategory } from '@shared/services/logger';
-import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
-import { useToast } from './Toast';
 import ThemeEditor from './ThemeEditor';
-import ArenaQrCodesModal from './ArenaQrCodesModal';
 import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { OrgNotePanel } from './remote/OrgNotePanel';
 import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
-import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
-import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
-import { useRemoteCommand } from '../hooks/useRemoteCommand';
 import { DisplayOptionsPanel } from './remote/DisplayOptionsPanel';
 import { UrlCopyRow } from './remote/UrlCopyRow';
 import RemoteViewModeTabs from './remote/RemoteViewModeTabs';
-import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { RSM_STYLES } from './remote/rsmStyles';
-import { StripRangeControls } from './remote/StripRangeControls';
 import { StripPlanCard } from './remote/StripPlanCard';
-import { buildSessionMatches } from './remote/sessionMatches';
-import { useStripAvailability, useStripPlanSync } from '../hooks/useStripAvailability';
-import { MAX_STRIP, normalizeStripRange, stripNumbers } from '../../shared/utils/stripRange';
-import { useRemoteViewMode } from './remote/remoteViewMode';
-import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
+import { type KioskPreset } from '../hooks/useKioskTheme';
 import { Button } from './common/Button';
+import { RemoteScoreManagerProps } from './remote/remoteScoreManagerShared';
+import { useRemoteServerActions } from '../hooks/remoteScoreManager/useRemoteServerActions';
+import { useRemoteServerState } from '../hooks/remoteScoreManager/useRemoteServerState';
 
-interface RemoteScoreManagerProps {
-  competition: Competition;
-  pools: Pool[];
-  tableauMatches?: TableauMatch[];
-  consolationBrackets?: ConsolationBracket[];
-  onArenaCountChange?: (count: number) => void;
-  /** Piste de départ de l'intervalle (la piste de fin = nombre transmis à onArenaCountChange) */
-  onStripStartChange?: (start: number) => void;
-  onStartRemote: () => void;
-  onStopRemote: () => void;
-  /** Serveur démarré et joignable (IPC utilisables) */
-  onServerStarted?: (url: string) => void;
-  isRemoteActive?: boolean;
-  initialStripCount?: number;
-  initialStripStart?: number;
-  isVisible?: boolean;
-}
-
-interface RemoteSession {
-  competitionId: string;
-  strips: Array<{
-    number: number;
-    status: 'available' | 'occupied' | 'maintenance';
-    currentMatch?: any;
-    assignedReferee?: string;
-  }>;
-  isRunning: boolean;
-  startTime?: Date;
-}
-
-/** Clé de synchro des matchs DE : id + arbitre(s) assigné(s) */
-function deMatchesKey(
-  matches: Array<{ id: string; referee?: { id: string } | null; referees?: Array<{ id: string }> }>
-): string {
-  return matches
-    .map(
-      m =>
-        `${m.id}:${(m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(r => r.id).join('+')}`
-    )
-    .join(',');
-}
-
-const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
-  competition,
-  pools,
-  tableauMatches,
-  consolationBrackets,
-  onArenaCountChange,
-  onStripStartChange,
-  onStartRemote,
-  onStopRemote,
-  onServerStarted,
-  isRemoteActive = false,
-  initialStripCount,
-  initialStripStart,
-  isVisible = false,
-}) => {
-  const [mode, setMode] = useRemoteViewMode(competition.id);
-  const isExpert = mode === 'expert';
-  const { showToast } = useToast();
-  const { t } = useTranslation();
-  const unavailableStrips = useStripAvailability(s => s.unavailable);
-  const [session, setSession] = useState<RemoteSession | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [serverUrl, setServerUrl] = useState<string>('');
+const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScoreManagerProps) => {
+  const remoteServerState = useRemoteServerState({ ...props });
+  const remoteServerActions = useRemoteServerActions({ ...props, ...remoteServerState });
   const {
-    useHttps,
-    setUseHttps,
+    mode,
+    setMode,
+    t,
+    isExpert,
+    serverUrl,
     certFingerprint,
-    setCertFingerprint,
+    competition,
     remotePort,
-    setRemotePort,
-    networkInterfaces,
-    selectedInterface,
-    setSelectedInterface,
-  } = useRemoteNetworkSettings(competition.id);
-  // Compteurs d'arènes, QR, mots de passe par arène et affichage des écrans (#1241)
-  const {
-    // pendingCount : valeur affichée (modifiée par +/−, non encore appliquée)
-    pendingStart,
-    setPendingStart,
-    committedStart,
-    setCommittedStart,
-    pendingCount,
-    setPendingCount,
-    // committedCount : valeur appliquée au serveur ou confirmée par l'utilisateur
-    committedCount,
-    setCommittedCount,
-    copiedIndex,
-    setCopiedIndex,
-    activeQR,
-    setActiveQR,
-    arenaPasswords,
-    setArenaPasswords,
-    checkinPassword,
-    setCheckinPassword,
-    qrDataUrl,
-    setQrDataUrl,
+    handlePortChange,
+    isLoading,
+    handleChangePort,
+    handleStopRemote,
+    arenaCount,
+    stripStart,
+    stripCountControls,
+    effectiveCommittedStart,
+    effectiveCommitted,
     showPhotos,
     setShowPhotos,
     cardAnnounce,
     setCardAnnounce,
-  } = useStateGroup({
-    pendingStart: null as number | null,
-    committedStart: null as number | null,
-    pendingCount: null as number | null,
-    committedCount: null as number | null,
-    copiedIndex: null as number | null,
-    activeQR: null as { url: string; label: string } | null,
-    arenaPasswords: {} as Record<string, string>,
-    checkinPassword: '',
-    qrDataUrl: null as string | null,
-    showPhotos: false,
-    cardAnnounce: false,
-  });
-  // Thèmes, kiosque et éditeur de thème : état et actions (#1241)
-  const {
+    commonArenaPassword,
+    setCommonArenaPassword,
+    handleApplyCommonPassword,
+    arenaUrls,
+    arenaThemes,
+    arenaScreenTab,
+    savedThemes,
+    setArenaScreenTab,
+    handleArenaThemeChange,
+    setThemeEditorScreenType,
+    setThemeEditorTarget,
+    handleClearArenaThemeOverride,
+    handleClearArenaScreenTheme,
+    handleArenaScreenThemeChange,
+    copyToClipboard,
+    copiedIndex,
+    setActiveQR,
+    arenaPasswords,
+    setArenaPasswords,
+    applyArenaPassword,
+    globalThemeSection,
+    setGlobalThemeSection,
+    setGlobalThemeId,
+    globalThemeId,
+    handleGlobalThemeApply,
     displayTheme,
     setDisplayTheme,
     arenaWallpaper,
     setArenaWallpaper,
     kioskViews,
     setKioskViews,
-    arenaThemes,
-    arenaScreenTab,
-    setArenaScreenTab,
-    themeEditorTarget,
-    setThemeEditorTarget,
-    themeEditorScreenType,
-    setThemeEditorScreenType,
-    showArenaQrModal,
-    setShowArenaQrModal,
-    savedThemes,
-    globalThemeSection,
-    setGlobalThemeSection,
-    globalThemeId,
-    setGlobalThemeId,
-    handleArenaThemeChange,
-    handleArenaScreenThemeChange,
-    handleClearArenaThemeOverride,
-    handleClearArenaScreenTheme,
-    refreshSavedThemes,
-  } = useArenaThemes({ competitionId: competition.id, hasSession: !!session });
-  const {
     kioskTheme,
     kioskPreset,
-    kioskThemeEditorOpen,
+    applyKioskPreset,
     setKioskThemeEditorOpen,
-    applyKioskPreset: applyKioskPresetRaw,
-    applyKioskCustomTheme,
-  } = useKioskTheme(competition.id);
-  const applyKioskPreset = async (preset: KioskPreset) => {
-    const result = await applyKioskPresetRaw(preset, !!session);
-    if (!result?.success) showToast(ipcErrorText(t, result, 'Erreur thème kiosk'), 'error');
-  };
-
-  useEffect(() => {
-    if (!activeQR) {
-      setQrDataUrl(null);
-      return;
-    }
-    import('qrcode')
-      .then(m => m.default.toDataURL(activeQR.url, { width: 220, margin: 1 }))
-      .then(setQrDataUrl)
-      .catch(() => setQrDataUrl(null));
-  }, [activeQR]);
-
-  // Initialisation : priorité localStorage → initialStripCount (parent) → nombre de poules
-  useEffect(() => {
-    if (pendingCount !== null) return;
-    const lsKey = `bellepoule-remote-strips-${competition.id}`;
-    const lsSaved = localStorage.getItem(lsKey);
-    const initial = lsSaved
-      ? parseInt(lsSaved, 10)
-      : (initialStripCount ?? (pools.length > 0 ? pools.length : 1));
-    const startSaved = parseInt(
-      localStorage.getItem(`bellepoule-remote-strip-start-${competition.id}`) ?? '',
-      10
-    );
-    const initStart = Number.isFinite(startSaved) ? startSaved : (initialStripStart ?? 1);
-    const range = normalizeStripRange(initStart, Math.max(initial, initStart));
-    setPendingStart(range.start);
-    setCommittedStart(range.start);
-    setPendingCount(range.end);
-    setCommittedCount(range.end);
-  }, [initialStripCount, pools.length, competition.id]);
-
-  const effectivePending = pendingCount ?? pools.length ?? 1;
-  const effectiveCommitted = committedCount ?? pools.length ?? 1;
-  const effectivePendingStart = pendingStart ?? 1;
-  const effectiveCommittedStart = committedStart ?? 1;
-  const hasPendingChanges =
-    effectivePending !== effectiveCommitted || effectivePendingStart !== effectiveCommittedStart;
-
-  // Poules générées après le démarrage de la saisie distante ou piste modifiée :
-  // réassigner les poules aux pistes côté serveur (#1037)
-  const sessionPoolsLayoutRef = useRef<string>('');
-  useEffect(() => {
-    const layout = pools.map(p => `${p.id}@${p.strip ?? ''}`).join('|');
-    if (!isRemoteActive || !session) {
-      sessionPoolsLayoutRef.current = layout;
-      return;
-    }
-    if (layout === sessionPoolsLayoutRef.current) return;
-    sessionPoolsLayoutRef.current = layout;
-    const stripMap = computePoolStrips(
-      pools,
-      effectiveCommitted,
-      effectiveCommittedStart,
-      unavailableStrips
-    );
-    const poolsData = pools.map(pool => ({
-      poolId: pool.id,
-      poolNumber: pool.number,
-      strip: stripMap.get(pool.id) ?? pool.strip ?? null,
-      fencers: pool.fencers ?? [],
-      matches: pool.matches ?? [],
-    }));
-    window.electronAPI.remote.assignPools?.(competition.id, poolsData).catch((err: unknown) => {
-      logger.warn(LogCategory.NETWORK, 'Échec assignPools', err instanceof Error ? err : undefined);
-    });
-  }, [pools, isRemoteActive, session]);
-
-  // Cache poolFencersCache du serveur resynchronisé si les poules changent en session
-  const sessionPoolsFingerprintRef = useRef<string>('');
-  useEffect(() => {
-    const fingerprint = pools
-      .map(p => `${p.id}:${(p.fencers ?? []).map((f: any) => f.id).join(',')}`)
-      .join('|');
-    if (!isRemoteActive || !session) {
-      sessionPoolsFingerprintRef.current = fingerprint;
-      return;
-    }
-    if (fingerprint === sessionPoolsFingerprintRef.current) return;
-    sessionPoolsFingerprintRef.current = fingerprint;
-    const updates = pools.map(pool => ({ poolId: pool.id, fencers: pool.fencers ?? [] }));
-    window.electronAPI.remote.updatePoolFencers(competition.id, updates).catch((err: unknown) => {
-      logger.warn(
-        LogCategory.NETWORK,
-        'Échec updatePoolFencers',
-        err instanceof Error ? err : undefined
-      );
-    });
-  }, [pools, isRemoteActive, session]);
-
-  // Quand les résultats de matchs de poule changent dans le logiciel, synchroniser le serveur distant
-  const sessionMatchesFingerprintRef = useRef<string>('');
-  useEffect(() => {
-    const fingerprint = pools
-      .map(
-        p =>
-          `${p.id}:${(p.matches ?? []).map((m: any) => `${m.id}=${m.status}|${m.scoreA ?? ''}-${m.scoreB ?? ''}|${m.refereeId ?? ''}`).join(',')}`
-      )
-      .join('|');
-    if (!isRemoteActive || !session) {
-      sessionMatchesFingerprintRef.current = fingerprint;
-      return;
-    }
-    if (fingerprint === sessionMatchesFingerprintRef.current) return;
-    sessionMatchesFingerprintRef.current = fingerprint;
-    const poolsData = pools.map(pool => ({
-      poolId: pool.id,
-      matches: (pool.matches ?? []).map((m: any) => ({ ...m, poolNumber: pool.number })),
-    }));
-    window.electronAPI.remote.syncPoolMatches(competition.id, poolsData).catch((err: unknown) => {
-      logger.warn(
-        LogCategory.NETWORK,
-        'Échec syncPoolMatches',
-        err instanceof Error ? err : undefined
-      );
-    });
-  }, [pools, isRemoteActive, session]);
-
-  // Quand les matchs tableau changent pendant une session active, mettre à jour le serveur
-  // sans avoir à arrêter/relancer la saisie distante (transition poules → tableau).
-  const prevDeMatchesKeyRef = useRef<string>('');
-  const pendingDeMatches = useMemo(
-    () =>
-      [...(tableauMatches || []), ...(consolationBrackets || []).flatMap(b => b.matches || [])]
-        .filter(m => m.winner === null && m.fencerA && m.fencerB)
-        .map(m => ({ ...m, isTableau: true })),
-    [tableauMatches, consolationBrackets]
-  );
-  useEffect(() => {
-    if (!isRemoteActive || !session) return;
-    // NB : on envoie aussi la liste VIDE quand le dernier match DE vient d'être terminé
-    // (ex. finale saisie dans l'appli alors qu'elle était assignée à une piste). Sans ça,
-    // le serveur garde le match terminé sur la piste / en file d'attente et peut le
-    // renvoyer (0-0) plus tard, écrasant le vainqueur (#909). Le ref initial vaut '' :
-    // aucun envoi tant qu'aucun match DE n'a jamais existé.
-    // Arbitres inclus dans la clé : un changement d'arbitre est renvoyé à la tablette (#977)
-    const key = deMatchesKey(pendingDeMatches);
-    if (key === prevDeMatchesKeyRef.current) return;
-    prevDeMatchesKeyRef.current = key;
-    window.electronAPI.remote
-      .refreshDeMatches(competition.id, pendingDeMatches)
-      .catch((err: unknown) => {
-        logger.warn(
-          LogCategory.NETWORK,
-          'Échec refreshDeMatches',
-          err instanceof Error ? err : undefined
-        );
-      });
-  }, [pendingDeMatches, isRemoteActive, session]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!isRemoteActive) return;
-    // Si une session est déjà active (retour sur l'onglet après navigation), on reconnecte
-    // sans redémarrer le serveur pour ne pas perdre l'état des pistes configurées.
-    window.electronAPI.remote.getSession(competition.id).then(async (result: any) => {
-      if (result.success && result.session) {
-        // Récupérer l'IP réseau réelle (éviter localhost)
-        const info = await window.electronAPI.remote.getServerInfo(competition.id);
-        if (info.success && info.serverInfo) {
-          setServerUrl(info.serverInfo.url);
-          setCertFingerprint(info.serverInfo.certFingerprint ?? null);
-        }
-        setSession(result.session);
-        const existingCount = result.session.strips.length;
-        setPendingCount(existingCount);
-        setCommittedCount(existingCount);
-      } else {
-        startRemoteServer();
-      }
-    });
-  }, [isRemoteActive]);
-
-  const startRemoteServer = async () => {
-    try {
-      setIsLoading(true);
-      const result = await window.electronAPI.remote.startServer(
-        competition.id,
-        remotePort,
-        selectedInterface,
-        useHttps
-      );
-
-      if (result.success && result.serverInfo) {
-        if (result.serverInfo.port !== remotePort) {
-          setRemotePort(result.serverInfo.port);
-          localStorage.setItem(
-            `bellepoule-remote-port-${competition.id}`,
-            String(result.serverInfo.port)
-          );
-        }
-        setServerUrl(result.serverInfo.url);
-        setCertFingerprint(result.serverInfo.certFingerprint ?? null);
-        onServerStarted?.(result.serverInfo.url);
-        await startSession(result.serverInfo.url, effectivePending);
-      } else {
-        showToast(`Erreur: ${ipcErrorText(t, result, 'Échec du démarrage')}`, 'error');
-      }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to start remote server', error as Error);
-      showToast('Impossible de démarrer le serveur distant', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const startSession = async (baseUrl: string, count: number) => {
-    try {
-      const { poolMatches, deMatches, allMatches } = buildSessionMatches(
-        pools,
-        [...(tableauMatches || []), ...(consolationBrackets || []).flatMap(b => b.matches || [])],
-        computePoolStrips(pools, count, effectiveCommittedStart, unavailableStrips)
-      );
-      logger.debug(LogCategory.UI, '[RemoteScoreManager] Passing matches to server', {
-        pool: poolMatches.length,
-        de: deMatches.length,
-      });
-      const result = await window.electronAPI.remote.startSession(
-        competition.id,
-        count,
-        allMatches,
-        showPhotos,
-        kioskViews,
-        cardAnnounce
-      );
-      if (result.success && result.session) {
-        setSession(result.session);
-        if (kioskPreset !== 'default') {
-          window.electronAPI.remote
-            .updateKioskTheme(competition.id, { '--k-preset': kioskPreset })
-            .catch(() => {});
-        }
-        // Le serveur peut étendre le nombre de pistes (poule assignée au-delà du nombre configuré)
-        const effectiveCount = result.session.strips?.length || count;
-        setPendingCount(effectiveCount);
-        setCommittedCount(effectiveCount);
-        onArenaCountChange?.(effectiveCount);
-        showToast('Saisie distante démarrée', 'success');
-        // Synchroniser le webhook URL configuré vers le serveur qui vient de démarrer
-        const savedWebhook = localStorage.getItem('bellepoule-webhook-url');
-        if (savedWebhook) {
-          window.electronAPI.remote.setWebhookUrl?.(savedWebhook).catch(() => {});
-        }
-        // Envoyer les matchs DE avec leurs pistes au serveur (la clé ref est déjà stockée
-        // avant que session/isRemoteActive soient prêts, donc l'effet ne se déclenche pas).
-        if (deMatches.length > 0) {
-          await window.electronAPI.remote.refreshDeMatches(competition.id, deMatches);
-          prevDeMatchesKeyRef.current = deMatchesKey(deMatches);
-        }
-      } else {
-        showToast(`Erreur session: ${ipcErrorText(t, result)}`, 'error');
-      }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to start session', error as Error);
-    }
-  };
-
-  const commitStart = (start: number) => {
-    setCommittedStart(start);
-    onStripStartChange?.(start);
-    localStorage.setItem(`bellepoule-remote-strip-start-${competition.id}`, String(start));
-  };
-
-  const handleSaveStripCount = async () => {
-    const newCount = effectivePending;
-    const newStart = effectivePendingStart;
-    if (newStart < 1 || newCount < newStart || newCount > MAX_STRIP) return;
-
-    if (session) {
-      // Serveur actif : appliquer via IPC
-      try {
-        const result = await window.electronAPI.remote.updateStripCount(competition.id, newCount);
-        if (result.success && result.session) {
-          setSession(result.session);
-          setCommittedCount(newCount);
-          commitStart(newStart);
-          onArenaCountChange?.(newCount);
-          localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
-          showToast('Nombre de pistes mis à jour', 'success');
-        } else {
-          showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
-        }
-      } catch (error) {
-        logger.error(LogCategory.UI, 'Failed to update strip count', error as Error);
-        showToast('Erreur lors de la mise à jour des pistes', 'error');
-      }
-    } else {
-      // Serveur non démarré : persister la préférence
-      setCommittedCount(newCount);
-      commitStart(newStart);
-      onArenaCountChange?.(newCount);
-      localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
-      showToast('Préférence sauvegardée', 'success');
-    }
-  };
-
-  const handlePortChange = (value: number) => {
-    const port = Math.max(1, Math.min(65535, value || 8066));
-    setRemotePort(port);
-    localStorage.setItem(`bellepoule-remote-port-${competition.id}`, String(port));
-  };
-
-  const handleChangePort = async () => {
-    setIsLoading(true);
-    try {
-      const result = await window.electronAPI.remote.changePort(competition.id, remotePort);
-      if (result.success && result.serverInfo) {
-        setServerUrl(result.serverInfo.url);
-        showToast(`Port changé : ${result.serverInfo.port}`, 'success');
-      } else {
-        showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
-      }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to change port', error as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleStopRemote = async () => {
-    setIsLoading(true);
-    try {
-      const result = await window.electronAPI.remote.stopServer(competition.id);
-      if (result.success) {
-        setSession(null);
-        showToast('Saisie distante arrêtée', 'success');
-        onStopRemote();
-      } else {
-        showToast(`Erreur: ${ipcErrorText(t, result, "Impossible d'arrêter le serveur")}`, 'error');
-      }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to stop remote server', error as Error);
-      showToast("Impossible d'arrêter le serveur distant", 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  useRemoteCommand(isRemoteActive, onStartRemote, handleStopRemote); // palette « /remote »
-
-  // Mots de passe : commun aux pistes, y compris celles ajoutées ensuite (#988), et formateurs (#989)
-  const {
-    commonArenaPassword,
-    setCommonArenaPassword,
-    appliedCommonPassword,
-    setAppliedCommonPassword,
+    kioskUrl,
+    checkinUrl,
+    checkinPassword,
+    setCheckinPassword,
+    applyCheckinPassword,
+    trainerEnabled,
+    trainerUrl,
     trainerPassword,
     setTrainerPassword,
-  } = useStateGroup({
-    commonArenaPassword: '',
-    appliedCommonPassword: null as string | null,
-    trainerPassword: '',
-  });
-
-  const applyCommonArenaPassword = async (pwd: string, numbers: number[]): Promise<boolean> => {
-    for (const n of numbers) {
-      const result = await window.electronAPI.remote.setArenaPassword(
-        competition.id,
-        `arena${n}`,
-        pwd
-      );
-      if (!result.success) {
-        showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-        return false;
-      }
-    }
-    setArenaPasswords(p => {
-      const next = { ...p };
-      for (const n of numbers) next[`arena${n}`] = pwd;
-      return next;
-    });
-    return true;
-  };
-
-  const applyArenaPassword = async (n: number) => {
-    const pwd = arenaPasswords[`arena${n}`] ?? '';
-    const result = await window.electronAPI.remote.setArenaPassword(
-      competition.id,
-      `arena${n}`,
-      pwd
-    );
-    if (result.success) {
-      showToast(t(pwd ? 'rsm.pwd_set' : 'rsm.pwd_removed', { number: n }), 'success');
-    } else {
-      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-    }
-  };
-
-  const handleApplyCommonPassword = async () => {
-    const numbers = stripNumbers(effectiveCommittedStart, arenaCount);
-    if (await applyCommonArenaPassword(commonArenaPassword, numbers)) {
-      setAppliedCommonPassword(commonArenaPassword || null);
-      showToast(
-        commonArenaPassword
-          ? t('plural.common_password_set', { count: numbers.length })
-          : 'Mots de passe des pistes supprimés',
-        'success'
-      );
-    }
-  };
-
-  // Espace formateurs (#989) : ouvert si l'option de compétition est cochée
-  const trainerEnabled = competition.settings?.trainerCommentsEnabled === true;
-  useEffect(() => {
-    if (!session) return;
-    window.electronAPI.remote.setTrainerEnabled?.(competition.id, trainerEnabled).catch(() => {});
-  }, [session, trainerEnabled, competition.id]);
-
-  const applyTrainerPassword = async () => {
-    const result = await window.electronAPI.remote.setTrainerPassword(
-      competition.id,
-      trainerPassword
-    );
-    if (result.success) {
-      showToast(
-        trainerPassword ? 'Mot de passe formateurs défini' : 'Mot de passe formateurs supprimé',
-        'success'
-      );
-    } else {
-      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-    }
-  };
-
-  const exportTrainerComments = async () => {
-    try {
-      const [referees, comments] = await Promise.all([
-        window.electronAPI.db.getRefereesByCompetition(competition.id),
-        window.electronAPI.db.getRefereeComments(competition.id),
-      ]);
-      if (comments.length === 0) {
-        showToast('Aucun commentaire enregistré', 'info');
-        return;
-      }
-      const { exportRefereeCommentsToPDF } =
-        await import('../../shared/utils/pdfExport/refereeCommentsPdf');
-      await exportRefereeCommentsToPDF(referees, comments, competition.title);
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Export commentaires arbitres', error as Error);
-      showToast("Échec de l'export PDF", 'error');
-    }
-  };
-
-  const applyCheckinPassword = async () => {
-    const result = await window.electronAPI.remote.setCheckinPassword(
-      competition.id,
-      checkinPassword
-    );
-    if (result.success) {
-      showToast(
-        checkinPassword
-          ? "Mot de passe d'appel défini"
-          : "Mot de passe d'appel supprimé (appel fermé)",
-        'success'
-      );
-    } else {
-      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-    }
-  };
-
-  const copyToClipboard = useCallback(async (text: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch {
-      // Fallback
-      const el = document.createElement('textarea');
-      el.value = text;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    }
-  }, []);
-
-  // Appliquer un thème sauvegardé globalement (toutes les arènes, un type d'écran)
-  const handleGlobalThemeApply = useCallback(async () => {
-    const theme = savedThemes.find(t => t.id === globalThemeId);
-    if (!theme) return;
-    if (globalThemeSection === 'arena') {
-      await handleArenaThemeChange('all', 'custom', theme);
-      showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
-    } else if (globalThemeSection === 'kiosk') {
-      const result = await applyKioskCustomTheme(theme);
-      if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
-      else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-    } else {
-      // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
-      const count = session ? session.strips.length : effectiveCommitted;
-      for (const i of stripNumbers(effectiveCommittedStart, count)) {
-        await window.electronAPI.remote.updateArenaScreenTheme(
-          competition.id,
-          `arena${i}`,
-          globalThemeSection,
-          theme
-        );
-      }
-      showToast(
-        `Thème "${theme.name}" appliqué (${globalThemeSection}) à toutes les pistes`,
-        'success'
-      );
-    }
-    setGlobalThemeId('');
-  }, [
-    savedThemes,
-    globalThemeId,
-    globalThemeSection,
-    handleArenaThemeChange,
-    competition.id,
-    session,
-    effectiveCommitted,
-  ]);
-
-  // La grille d'URLs reflète l'état réel du serveur (committedCount) ou la session active
-  const arenaCount = session ? session.strips.length : effectiveCommitted;
-  const kioskUrl = `${serverUrl}/kiosk`;
-  const lobbyUrl = `${serverUrl}/lobby`;
-  const checkinUrl = `${serverUrl}/appel`;
-  const trainerUrl = `${serverUrl}/formateur`;
-  // Pistes ajoutées après définition du MDP commun : même mot de passe (#988)
-  const commonPwdCountRef = useRef(arenaCount);
-  useEffect(() => {
-    const prev = commonPwdCountRef.current;
-    commonPwdCountRef.current = arenaCount;
-    if (!appliedCommonPassword || !session || arenaCount <= prev) return;
-    const added = Array.from({ length: arenaCount - prev }, (_, i) => prev + i + 1);
-    void applyCommonArenaPassword(appliedCommonPassword, added);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arenaCount]);
-  const stripStart = effectiveCommittedStart;
-  useStripPlanSync(competition.id, !!session, stripStart, unavailableStrips);
-  const arenaUrls = stripNumbers(stripStart, arenaCount).map(n => ({
-    number: n,
-    refereeUrl: `${serverUrl}/arene${n}/arbitre`,
-    displayUrl: `${serverUrl}/arene${n}`,
-    poolUrl: `${serverUrl}/arene${n}/poule`,
-    matchOrderUrl: `${serverUrl}/arene${n}/matchs`,
-    publicUrl: `${serverUrl}/arene${n}/public`,
-    overlayUrl: `${serverUrl}/arene${n}/overlay`,
-  }));
-
-  // QR personnels des tireurs engagés (#1078)
-  const fencerQrTargets = (competition.fencers ?? [])
-    .filter(
-      f =>
-        f.status !== FencerStatus.ABANDONED &&
-        f.status !== FencerStatus.EXCLUDED &&
-        f.status !== FencerStatus.FORFAIT
-    )
-    .map(f => ({
-      name: `${f.lastName.toUpperCase()} ${f.firstName}`.trim(),
-      club: f.club,
-      url: `${serverUrl}/tireur/${encodeURIComponent(f.id)}`,
-    }));
-
-  // Contrôles +/− communs aux deux vues (pending uniquement, sans appel IPC direct)
-  const stripCountControls = (
-    <div style={RSM_STYLES.stripCountControls}>
-      <StripRangeControls
-        start={effectivePendingStart}
-        end={effectivePending}
-        disabled={isLoading}
-        onChange={(st, en) => {
-          setPendingStart(st);
-          setPendingCount(en);
-        }}
-      />
-      {hasPendingChanges && (
-        <span style={RSM_STYLES.stripCountPending} title={t('rsm.unsaved')}>
-          ●
-        </span>
-      )}
-      <Button
-        variant="primary"
-        onClick={handleSaveStripCount}
-        disabled={!hasPendingChanges || isLoading}
-        style={RSM_STYLES.stripCountSave}
-      >
-        {t('rsm.save')}
-      </Button>
-      <Button
-        onClick={() => setShowArenaQrModal(true)}
-        title={t('rsm.qr_export_title')}
-        style={RSM_STYLES.stripCountSave}
-        disabled={!isRemoteActive || !serverUrl}
-      >
-        {t('rsm.qr_codes')}
-      </Button>
-      {showArenaQrModal &&
-        createPortal(
-          <ArenaQrCodesModal
-            arenas={arenaUrls}
-            fencers={fencerQrTargets}
-            competitionTitle={competition.title}
-            onClose={() => setShowArenaQrModal(false)}
-          />,
-          document.body
-        )}
-    </div>
-  );
+    applyTrainerPassword,
+    exportTrainerComments,
+    lobbyUrl,
+    isRemoteActive,
+    themeEditorTarget,
+    themeEditorScreenType,
+    showToast,
+    refreshSavedThemes,
+    kioskThemeEditorOpen,
+    applyKioskCustomTheme,
+    activeQR,
+    qrDataUrl,
+    isVisible,
+    selectedInterface,
+    networkInterfaces,
+    useHttps,
+    setSelectedInterface,
+    setUseHttps,
+    onStartRemote,
+  } = { ...props, ...remoteServerState, ...remoteServerActions };
 
   // Tous les hooks ont été appelés — retour null si l'onglet n'est pas visible
   if (!isVisible) return null;
