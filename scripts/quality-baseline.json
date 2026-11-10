@@ -18,7 +18,6 @@
   "lineExceptions": {
     "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
-    "src/renderer/components/RemoteScoreManager.tsx": 1009,
     "src/renderer/components/TableauView.tsx": 1557,
     "src/renderer/components/wiki/wikiData.ts": 2035,
     "src/remote/arena.html": 1533,
