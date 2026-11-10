@@ -31,7 +31,7 @@ describe('arenaOverlays.js', () => {
       isRevalorisation: true,
       fromCard: 'white',
     });
-    expect(r.line1).toBe('⚠️ Revalorisation 2ème blanc → ROUGE — X');
+    expect(r.line1).toBe('Revalorisation 2ème blanc → ROUGE — X');
     expect(r.line2).toBeNull();
     const u = O.cardAnnouncement({ cardType: 'zzz', fencerName: 'Y' });
     expect(u.line1).toBe('Carton NOIR — Y');
@@ -40,7 +40,7 @@ describe('arenaOverlays.js', () => {
 
   it('exitAnnouncement', () => {
     const r = O.exitAnnouncement({ fencerName: 'Z', points: 2 });
-    expect(r.line1).toBe("🚪 Sortie d'arène — Z");
+    expect(r.line1).toBe("Sortie d'arène — Z");
     expect(r.line2).toBe("+2 pts pour l'adversaire");
     expect(r.className).toContain('card-exit');
   });
@@ -48,7 +48,7 @@ describe('arenaOverlays.js', () => {
   it('coinFlipPlan : vainqueur A = vert 3600, B = rouge 3780, noms par défaut', () => {
     const a = O.coinFlipPlan('A', { lastName: 'Martin', firstName: 'Léa' }, null);
     expect(a).toMatchObject({ nameGreen: 'Martin Léa', nameRed: 'ROUGE', finalDeg: 3600 });
-    expect(a.resultText).toBe('🏆 Martin Léa gagne ! (VERT)');
+    expect(a.resultText).toBe('Martin Léa gagne ! (VERT)');
     expect(a.resultClass).toBe('winner-green');
     const b = O.coinFlipPlan('B', { lastName: '', firstName: '' }, { lastName: 'Roux' });
     expect(b).toMatchObject({ nameGreen: 'VERT', nameRed: 'Roux', finalDeg: 3780 });

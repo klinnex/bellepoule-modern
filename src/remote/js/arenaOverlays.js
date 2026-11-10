@@ -7,6 +7,8 @@
 (function (root) {
   'use strict';
 
+  const bpIcon = name => (root && typeof root.bpIcon === 'function' ? root.bpIcon(name) : '');
+
   const CARD_LABELS = { white: 'BLANC', yellow: 'JAUNE', red: 'ROUGE' };
 
   /** Lignes + classe CSS de la bannière de carton (revalorisation incluse) */
@@ -16,7 +18,7 @@
     if (ann.isRevalorisation) {
       const from =
         ann.fromCard === 'white' ? 'blanc' : ann.fromCard === 'yellow' ? 'jaune' : ann.fromCard;
-      line1 = `⚠️ Revalorisation 2ème ${from} → ${typeLabel} — ${ann.fencerName}`;
+      line1 = `Revalorisation 2ème ${from} → ${typeLabel} — ${ann.fencerName}`;
     } else {
       line1 = `Carton ${typeLabel} — ${ann.fencerName}`;
     }
@@ -33,7 +35,7 @@
   /** Lignes + classe CSS de la bannière de sortie d'arène */
   function exitAnnouncement(ann) {
     return {
-      line1: `🚪 Sortie d'arène — ${ann.fencerName}`,
+      line1: `Sortie d'arène — ${ann.fencerName}`,
       line2: `+${ann.points} pts pour l'adversaire`,
       className: 'card-announcement-banner visible card-exit',
     };
@@ -50,7 +52,7 @@
       nameGreen,
       nameRed,
       finalDeg: green ? 3600 : 3780,
-      resultText: `🏆 ${green ? nameGreen : nameRed} gagne ! (${green ? 'VERT' : 'ROUGE'})`,
+      resultText: `${green ? nameGreen : nameRed} gagne ! (${green ? 'VERT' : 'ROUGE'})`,
       resultClass: green ? 'winner-green' : 'winner-red',
     };
   }
@@ -93,7 +95,9 @@
     }
     ov.innerHTML =
       '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">📺 ' +
+      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">' +
+      bpIcon('tv') +
+      ' ' +
       esc(label) +
       '</div>' +
       '<div style="font-size:1rem;color:var(--slate-400);">' +
