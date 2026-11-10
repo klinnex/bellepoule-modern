@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 77 | 382 |
+| `src/renderer/components/` | 78 | 385 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 47 | 311 |
+| `src/remote/` | 50 | 324 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **323** | **2520** |
+| **Total** | **327** | **2536** |
 
-Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 317 fichiers, 2497 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3639,9 +3639,10 @@ Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 10 tests</summary>
 
 - **CommandPalette**
+  - propose la navigation vers les phases accessibles (#1536)
   - affiche les compétitions et les actions statiques
   - filtre selon la requête
   - affiche un message si aucun résultat
@@ -4120,6 +4121,15 @@ Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/phaseRegistry.test.ts</code> — 2 tests</summary>
+
+- **phaseRegistry**
+  - liste les phases accessibles hors phase courante, avec leur position
+  - se vide au retrait
 
 </details>
 
@@ -4738,6 +4748,18 @@ Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/js/arenaDisplay.test.ts</code> — 5 tests</summary>
+
+- **arenaDisplay.js ArenaDisplay**
+  - déduit la piste de l URL et affiche son numéro
+  - rejoint l arène et s enregistre à la connexion
+  - applique les opérations du plan de mise à jour
+  - signale la déconnexion
+  - arena.html ne contient plus de script inline
+
+</details>
+
+<details>
 <summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 7 tests</summary>
 
 - **arenaDisplayUtils.js**
@@ -4979,6 +5001,19 @@ Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - correspondance côté logique vers panneau affiché
   - le cadre est sur le panneau qui affiche le nom du prioritaire
   - le cadre survit au recalcul des classes (updateMatchDisplay)
+
+</details>
+
+<details>
+<summary><code>src/remote/js/publicDisplay.test.ts</code> — 6 tests</summary>
+
+- **publicDisplay.js PublicDisplay**
+  - déduit la piste de l URL
+  - rejoint l arène en rôle public et s enregistre
+  - affiche les scores selon l inversion locale
+  - suit le statut et la sélection de l arbitre
+  - signale la déconnexion
+  - public.html ne contient plus de script inline
 
 </details>
 
@@ -5303,6 +5338,15 @@ Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **pages résultats / journal : bpPoll, plus de setInterval (#1345)**
   - %s _(each)_
   - paramètres de cadence
+
+</details>
+
+<details>
+<summary><code>src/remote/swPrecache.test.ts</code> — 2 tests</summary>
+
+- **sw.js précache (#1600)**
+  - ${page} : tous ses scripts /js/\* sont précachés et existent
+  - aucun doublon dans la liste précachée
 
 </details>
 
