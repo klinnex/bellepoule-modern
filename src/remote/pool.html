@@ -565,9 +565,9 @@
     </div>
 
     <!-- Modal signature -->
-    <div class="sig-modal-overlay" id="sig-modal-overlay">
+    <div class="sig-modal-overlay" id="sig-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sig-modal-title">
       <div class="sig-modal">
-        <h2><span data-i18n="pool.signature">Signature</span><strong id="sig-modal-name"></strong></h2>
+        <h2 id="sig-modal-title"><span data-i18n="pool.signature">Signature</span><strong id="sig-modal-name"></strong></h2>
         <p class="sig-instructions" data-i18n="pool.sign_here">Signez dans le cadre ci-dessous</p>
         <canvas id="sig-canvas"></canvas>
         <div class="sig-modal-actions">
