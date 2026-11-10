@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 80 | 389 |
+| `src/renderer/components/` | 81 | 391 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 54 | 332 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **334** | **2552** |
+| **Total** | **335** | **2554** |
 
-Unitaires : 324 fichiers, 2513 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 325 fichiers, 2515 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4110,6 +4110,15 @@ Unitaires : 324 fichiers, 2513 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - opération longue : barre affichée après 1 s puis retirée
   - propage l’erreur de la tâche et retire la barre
   - hors provider : exécute la tâche
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/RankMedal.test.tsx</code> — 2 tests</summary>
+
+- **RankMedal**
+  - affiche une médaille décorative pour les trois premiers rangs
+  - ne rend rien au-delà du 3e rang ni sans rang
 
 </details>
 
