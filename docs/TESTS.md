@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 343 |
+| `src/remote/` | 55 | 344 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **338** | **2573** |
+| **Total** | **338** | **2574** |
 
-Unitaires : 328 fichiers, 2534 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4928,7 +4928,7 @@ Unitaires : 328 fichiers, 2534 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/icons.test.ts</code> — 9 tests</summary>
+<summary><code>src/remote/js/icons.test.ts</code> — 10 tests</summary>
 
 - **icons.js**
   - rend un SVG décoratif, taille 1em, couleur héritée
@@ -4937,6 +4937,7 @@ Unitaires : 328 fichiers, 2534 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - classe additionnelle échappée
   - hydrate remplit \[data-icon\] et reste idempotent
   - rank : médaille pour 1-3, texte au-delà
+  - card : pastille colorée par type, texte échappé si inconnu
   - expose des noms sans doublon
 - **pages distantes**
   - %s charge /js/icons.js dès qu’elle utilise une icône _(each)_
