@@ -210,6 +210,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
   );
 };
 
+/** Bouton icône : infobulle accessible (survol + focus clavier) et aria-label par défaut */
+export const TipButton: React.FC<
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { tip: string }
+> = ({ tip, ...rest }) => (
+  <Tooltip content={tip}>
+    <button aria-label={tip} {...rest} />
+  </Tooltip>
+);
+
 // Icon Button with Tooltip
 interface IconButtonProps {
   icon: string;

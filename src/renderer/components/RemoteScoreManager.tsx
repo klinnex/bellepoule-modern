@@ -3,7 +3,7 @@
  * Interface for managing remote score entry
  * Licensed under GPL-3.0
  */
-
+import { TipButton } from './Tooltip';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Icon } from './common/Icon';
 import { CopyUrlLabel } from './remote/CopyUrlLabel';
@@ -1104,17 +1104,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         { value: 'light' as const, icon: Sun, title: t('rsm.theme_light') },
                         { value: 'neon' as const, icon: Zap, title: t('rsm.theme_neon') },
                       ].map(({ value, icon, title }) => (
-                        <button
+                        <TipButton
                           key={value}
-                          title={title}
+                          tip={title}
                           className={`arena-theme-btn ${arenaTheme?.theme === value ? 'active' : ''}`}
                           onClick={() => handleArenaThemeChange(arenaId, value)}
                         >
                           <Icon icon={icon} />
-                        </button>
+                        </TipButton>
                       ))}
-                      <button
-                        title={t('rsm.theme_custom')}
+                      <TipButton
+                        tip={t('rsm.theme_custom')}
                         className={`arena-theme-btn ${arenaTheme?.theme === 'custom' ? 'active' : ''}`}
                         onClick={() => {
                           setThemeEditorScreenType('arena');
@@ -1122,16 +1122,16 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         }}
                       >
                         <Icon icon={Pencil} />
-                      </button>
+                      </TipButton>
                       {arenaThemes[arenaId] && (
-                        <button
-                          title={t('rsm.unlock_theme')}
+                        <TipButton
+                          tip={t('rsm.unlock_theme')}
                           className="arena-theme-btn"
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaThemeOverride(arenaId)}
                         >
                           <Icon icon={LockOpen} />
-                        </button>
+                        </TipButton>
                       )}
                     </>
                   ) : (
@@ -1147,14 +1147,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         <Icon icon={Pencil} /> {arenaTheme?.screenThemes?.[screenTab] ? '●' : ''}
                       </button>
                       {arenaTheme?.screenThemes?.[screenTab] && (
-                        <button
-                          title={t('rsm.unlock_theme')}
+                        <TipButton
+                          tip={t('rsm.unlock_theme')}
                           className="arena-theme-btn"
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaScreenTheme(arenaId, screenTab)}
                         >
                           <Icon icon={LockOpen} />
-                        </button>
+                        </TipButton>
                       )}
                     </>
                   )}
@@ -1194,13 +1194,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_referee')}</span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
-                    title={t('rsm.copy_url')}
+                    tip={t('rsm.copy_url')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>
@@ -1219,13 +1219,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_display')}</span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
-                    title={t('rsm.copy_url')}
+                    tip={t('rsm.copy_url')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 1} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>
@@ -1244,13 +1244,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_pool')}</span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
-                    title={t('rsm.copy_url')}
+                    tip={t('rsm.copy_url')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 2} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>
@@ -1271,13 +1271,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <span className="arena-url-label" title={t('rsm.matches_title')}>
                     {t('rsm.matches')}
                   </span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
-                    title={t('rsm.copy_url')}
+                    tip={t('rsm.copy_url')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 5} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>
@@ -1296,13 +1296,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_public')}</span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
-                    title={t('rsm.copy_url')}
+                    tip={t('rsm.copy_url')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 3} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>
@@ -1323,13 +1323,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <span className="arena-url-label" title={t('rsm.overlay_title')}>
                     <Icon icon={Camera} /> Overlay
                   </span>
-                  <button
+                  <TipButton
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
-                    title={t('rsm.overlay_copy_title')}
+                    tip={t('rsm.overlay_copy_title')}
                   >
                     <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 4} t={t} />
-                  </button>
+                  </TipButton>
                   <button
                     className="btn-qr btn-wide"
                     onClick={() =>

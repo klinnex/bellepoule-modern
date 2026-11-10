@@ -22,7 +22,7 @@ describe('UrlCopyRow', () => {
     expect(screen.getByText('http://x/kiosk')).toBeInTheDocument();
     fireEvent.click(screen.getByTitle('rsm.copy_url'));
     expect(onCopy).toHaveBeenCalledWith('http://x/kiosk', 999);
-    fireEvent.click(screen.getByTitle('rsm.qr_code'));
+    fireEvent.click(screen.getByLabelText('rsm.qr_code'));
     expect(onQr).toHaveBeenCalled();
   });
 
