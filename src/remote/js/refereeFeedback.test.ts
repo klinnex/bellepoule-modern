@@ -94,6 +94,16 @@ describe('bouton Annuler la touche temporaire', () => {
     expect(undo).toHaveBeenCalledTimes(1);
     expect(document.getElementById('undo-toast')!.hidden).toBe(true);
   });
+
+  it('icône SVG devant le libellé quand /js/icons.js est chargé', () => {
+    (window as unknown as { bpIcon: (n: string) => string }).bpIcon = n =>
+      `<svg data-n="${n}"></svg>`;
+    const t = { set: () => 0, clear: () => undefined };
+    const box = F.showUndoToast(document, (k: string) => `T:${k}`, vi.fn(), 5000, t);
+    expect(box.querySelector('svg[data-n="undo"]')).not.toBeNull();
+    expect(box.textContent).toBe(' T:referee.undo_touch');
+    delete (window as unknown as { bpIcon?: unknown }).bpIcon;
+  });
 });
 
 describe('referee.html (#1539)', () => {

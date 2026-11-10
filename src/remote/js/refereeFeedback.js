@@ -70,7 +70,12 @@
       doc.body.appendChild(box);
     }
     const btn = box.firstChild;
-    btn.textContent = T('referee.undo_touch');
+    const win = doc.defaultView;
+    const icon = win && typeof win.bpIcon === 'function' ? win.bpIcon : () => '';
+    const svg = icon('undo');
+    btn.textContent = '';
+    btn.insertAdjacentHTML('beforeend', svg);
+    btn.appendChild(doc.createTextNode((svg ? ' ' : '') + T('referee.undo_touch')));
     btn.onclick = () => {
       hideUndoToast(doc, t);
       onUndo();
