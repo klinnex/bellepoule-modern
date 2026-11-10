@@ -87,9 +87,8 @@ describe('kioskLists.js computeFinalRanking', () => {
 });
 
 describe('kioskLists.js HTML', () => {
-  it('rankLabel : médailles puis rang', () => {
-    expect(K.rankLabel(1)).toBe('🥇');
-    expect(K.rankLabel(4)).toBe('4️⃣');
+  it('rankLabel : texte du rang (la médaille SVG vient de /js/icons.js)', () => {
+    expect(K.rankLabel(1)).toBe('1e');
     expect(K.rankLabel(7)).toBe('7e');
   });
 

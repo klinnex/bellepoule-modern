@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/kioskApp.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global bpSocket, KioskArenas, KioskBracket, KioskBracketRender, KioskConfig, KioskData, KioskLists, KioskRender, KioskTiming, bpCssVar, escHtml */
+/* global bpSocket, KioskArenas, KioskBracket, KioskBracketRender, KioskConfig, KioskData, KioskLists, KioskRender, KioskTiming, bpCssVar, bpIcon, escHtml */
 // ─── État ────────────────────────────────────────────────────────────────
 const ALL_VIEWS = ['poules', 'classement', 'final', 'direct', 'suivants', 'tableau'];
 
@@ -207,7 +207,7 @@ function applyLocalViews() {
   if (!state.views.includes(state.currentView)) switchView(state.views[0]);
 }
 
-// Bouton ⚙ – toggle panneau
+// Bouton Configuration – toggle panneau
 document.getElementById('btn-settings').addEventListener('click', e => {
   e.stopPropagation();
   const panel = document.getElementById('settings-panel');
@@ -440,7 +440,9 @@ function renderArenas() {
 
   if (!arenas || arenas.length === 0) {
     container.innerHTML =
-      '<div class="no-data"><div class="no-data-icon">⏱️</div><h3>' +
+      '<div class="no-data"><div class="no-data-icon">' +
+      bpIcon('timer') +
+      '</div><h3>' +
       escHtml(tk('kiosk.no_strips')) +
       '</h3></div>';
     return;
@@ -838,7 +840,9 @@ function renderBracket() {
     document.getElementById('tableau-badge').textContent = '—';
     stopFocusMode();
     container.innerHTML =
-      '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' +
+      '<div class="no-data"><div class="no-data-icon">' +
+      bpIcon('trophy') +
+      '</div><h3>' +
       escHtml(tk('kiosk.no_bracket')) +
       '</h3><p>' +
       escHtml(tk('kiosk.no_bracket_hint')) +
@@ -874,7 +878,9 @@ function renderBracket() {
   const orderedRounds = getBracketRoundOrder(data.rounds);
   if (orderedRounds.length === 0) {
     container.innerHTML =
-      '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' +
+      '<div class="no-data"><div class="no-data-icon">' +
+      bpIcon('trophy') +
+      '</div><h3>' +
       escHtml(tk('kiosk.no_match')) +
       '</h3></div>';
     return;
@@ -980,7 +986,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     ov.innerHTML =
       '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">📺 ' +
+      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">' +
+      bpIcon('tv') +
+      ' ' +
       escHtml(label) +
       '</div>' +
       '<div style="font-size:1rem;color:var(--slate-400);">' +

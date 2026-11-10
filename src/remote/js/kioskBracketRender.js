@@ -8,6 +8,8 @@
 (function (root) {
   'use strict';
 
+  const bpIcon = name => (root && typeof root.bpIcon === 'function' ? root.bpIcon(name) : '');
+
   /** Badge « T32 · 12/31 » : matchs joués / total (byes exclus) */
   function bracketBadge(data) {
     const pending = data.rounds.reduce(
@@ -141,7 +143,7 @@
           ? finaleMatch.fencerA
           : finaleMatch.fencerB;
       if (winner) {
-        winnerBanner = `<div class="bracket-trophy-banner">🏆 ${escHtml(winner.lastName + ' ' + (winner.firstName || ''))}</div>`;
+        winnerBanner = `<div class="bracket-trophy-banner">${bpIcon('trophy')} ${escHtml(winner.lastName + ' ' + (winner.firstName || ''))}</div>`;
       }
     }
 

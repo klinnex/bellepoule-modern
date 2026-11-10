@@ -73,7 +73,10 @@
     return { ranked };
   }
 
-  const rankLabel = r => (r <= 4 ? ['🥇', '🥈', '🥉', '4️⃣'][r - 1] : r + 'e');
+  const bpIcon = name => (root && typeof root.bpIcon === 'function' ? root.bpIcon(name) : '');
+  /** Rang en texte (« 4e ») ; les 3 premiers sont une médaille SVG (bpRank, /js/icons.js) */
+  const rankLabel = r => r + 'e';
+  const bpRank = r => (root && typeof root.bpRank === 'function' ? root.bpRank(r) : rankLabel(r));
 
   function notDoneHtml(tk, escHtml) {
     return (
@@ -95,7 +98,7 @@
               ${ranked
                 .map(
                   ({ rank, fencer }) => `<tr class="${rank === 1 ? 'top-row' : ''}">
-                <td><span class="rank-medal">${escHtml(rankLabel(rank))}</span></td>
+                <td><span class="rank-medal">${bpRank(rank)}</span></td>
                 <td style="font-weight:600;font-size:1.1rem">${escHtml(fencer.lastName + ' ' + (fencer.firstName || ''))}</td>
                 <td style="color:var(--slate-500)">${escHtml(fencer.club || '—')}</td>
               </tr>`
@@ -119,7 +122,9 @@
   function suivantsHtml(matches, tk, escHtml) {
     if (!matches || matches.length === 0) {
       return (
-        '<div class="no-data"><div class="no-data-icon">📋</div><h3>' +
+        '<div class="no-data"><div class="no-data-icon">' +
+        bpIcon('list') +
+        '</div><h3>' +
         escHtml(tk('kiosk.no_next')) +
         '</h3><p>' +
         escHtml(tk('kiosk.no_next_done')) +
