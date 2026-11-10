@@ -16,7 +16,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } fr
 import EmptyState from './common/EmptyState';
 import { PoolViewSkeleton, TableSkeleton } from './Skeleton';
 import { useOperation } from './common/OperationProgress';
-import { PHASE_ICONS, PhaseEmptyIcon, TEAM_PHASE_ICONS } from './competition/phaseIcons';
+import { PhaseEmptyIcon } from './competition/phaseIcons';
 import {
   Competition,
   Fencer,
@@ -50,7 +50,7 @@ import {
 import type { CompetitionCreateData, FencerCreateData } from '../../shared/types/preload';
 import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
-import { inferPoolsLaunched, poolsHaveScores, poolTabLock } from './poolLaunchState';
+import { inferPoolsLaunched, poolsHaveScores } from './poolLaunchState';
 import { persistPools } from './poolPersistence';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -61,6 +61,10 @@ import { usePoolManagement } from '../hooks/usePoolManagement';
 import { buildStripQrs, useExport } from '../hooks/useExport';
 import { usePoolStripChange } from '../hooks/usePoolStripChange';
 import { useMenuEvents } from '../hooks/useMenuEvents';
+import { useCompetitionPhases } from '../hooks/useCompetitionPhases';
+import { useRemoteCheckinSync } from '../hooks/useRemoteCheckinSync';
+import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
+import type { TeamPhase } from './competition/teamPhases';
 import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
 import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
 import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
@@ -107,15 +111,14 @@ import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
 const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
 const ExportCenterModal = React.lazy(() => import('./competition/ExportCenterModal'));
-import GlobalPoolColumnsMenu from './pool/GlobalPoolColumnsMenu';
-import WindowSizePresets, { presetScale } from './pool/WindowSizePresets';
+import { presetScale } from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import { useModalFlags } from '../hooks/useModalFlags';
 import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
 import { MODAL_FLAGS } from './competition/modalFlags';
 import { Button } from './common/Button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Icon } from './common/Icon';
+import PoolsToolbar from './competition/PoolsToolbar';
+import SinglePoolNav from './competition/SinglePoolNav';
 import { SplitGroupTabs } from './competition/SplitGroupTabs';
 
 const PoolView = React.lazy(() => import('./PoolView'));
@@ -170,15 +173,6 @@ const TeamManagerView = React.lazy(() =>
   import('./TeamManagerView').then(m => ({ default: m.TeamManagerView }))
 );
 
-/** Phases d'une compétition par équipes ↔ onglet de TeamManagerView (#1085) */
-const TEAM_PHASE_VIEWS = {
-  teams: 'teams',
-  teampool: 'pool',
-  teamtableau: 'tableau',
-  teamranking: 'ranking',
-} as const;
-type TeamPhase = keyof typeof TEAM_PHASE_VIEWS;
-const isTeamPhase = (p: string): p is TeamPhase => p in TEAM_PHASE_VIEWS;
 const FFEConnectModal = React.lazy(() => import('./FFEConnectModal'));
 const FFEExportModal = React.lazy(() => import('./FFEExportModal'));
 const PresentationMode = React.lazy(() =>
@@ -1232,206 +1226,38 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   });
 
   const isTeamEvent = !!competition.isTeamEvent;
-  const phaseOrder = useMemo<Phase[]>(() => {
-    if (isTeamEvent) return ['checkin', 'teams', 'teampool', 'teamtableau', 'teamranking'];
-    if (!questEnabled) return ['checkin', 'poolprep', 'pools', 'ranking', 'tableau', 'results'];
-    if (questConfig?.hasPreliminaryPools)
-      return ['checkin', 'poolprep', 'pools', 'quest', 'ranking', 'tableau', 'results'];
-    return ['checkin', 'quest', 'ranking', 'tableau', 'results'];
-  }, [isTeamEvent, questEnabled, questConfig?.hasPreliminaryPools]);
-
-  // Réinitialiser currentPhase si elle n'existe plus dans le nouveau phaseOrder
-  useEffect(() => {
-    if (!phaseOrder.includes(currentPhase)) {
-      setCurrentPhase('checkin');
-    }
-  }, [phaseOrder]);
-
-  // Synchroniser l'état d'inscription distante avec la phase courante
-  useEffect(() => {
-    if (!isRemoteActive || !window.electronAPI?.remote?.setRegistrationEnabled) return;
-    const enabled = currentPhase === 'checkin';
-    window.electronAPI.remote.setRegistrationEnabled(competition.id, enabled).catch(() => {});
-    // remoteServerUrl : re-synchronise une fois le serveur réellement démarré (#986)
-  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
-
-  // Appel distant (/appel) : actif dès que la saisie distante tourne, quelle que soit
-  // la vue affichée (pointage tardif des arbitres pendant les poules, #1016)
-  useEffect(() => {
-    if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
-    window.electronAPI.remote.setCheckinEnabled(competition.id, true).catch(() => {});
-  }, [isRemoteActive, competition.id, remoteServerUrl]);
-
-  // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
-  useEffect(() => {
-    const off = window.electronAPI?.onRemoteCheckinUpdated?.(({ kind }) => {
-      if (kind === 'fencer') {
-        loadFencers();
-      } else {
-        window.electronAPI.db
-          .getRefereesByCompetition(competition.id)
-          .then((rows: Referee[]) => setReferees(rows))
-          .catch(() => {});
-      }
-    });
-    return () => off?.();
-  }, [loadFencers, competition.id]);
-
-  const handleGoBack = () => {
-    if (skipPoolPhase && currentPhase === 'ranking') {
-      setCurrentPhase('poolprep');
-      return;
-    }
-    const currentIndex = phaseOrder.indexOf(currentPhase);
-    if (currentIndex > 0) {
-      setCurrentPhase(phaseOrder[currentIndex - 1]);
-    }
-  };
-
-  // Phases dynamiques
-  const canAdvanceFromPools =
-    skipPoolPhase ||
-    (pools.length > 0 && (areAllPoolsComplete() || (isRapieres && rapieres.wavesEnded)));
-  const isLastPoolRound = currentPoolRound >= poolRounds;
-  const isResultsLocked = hasDirectElimination && finalResults.length === 0;
-  // En mode quest-sans-poules, le tableau se débloque par la complétion de la quête (rankingValidated)
-  // Le tableau reste accessible en lecture seule si les résultats finaux existent déjà
-  // ou si des matchs de tableau ont déjà été générés (session restaurée même sans poules chargées)
-  const isTableauUnlocked =
-    finalResults.length > 0 ||
-    tableauMatches.length > 0 ||
-    (questNoPool ? rankingValidated : canAdvanceFromPools && rankingValidated);
-
-  // Réinitialiser la validation du classement si les poules ne sont plus toutes terminées
-  // (sauf en mode quest-sans-poules ou si on est déjà en phase tableau/résultats)
-  useEffect(() => {
-    const postPoolPhase = ['tableau', 'results', 'remote'].includes(currentPhase);
-    if (!canAdvanceFromPools && !questNoPool && !postPoolPhase) {
-      setRankingValidated(false);
-    }
-  }, [canAdvanceFromPools, questNoPool, currentPhase]);
-
-  const teamPhases = (Object.keys(TEAM_PHASE_VIEWS) as TeamPhase[]).map((id, i) => ({
-    id,
-    label: t(`phases.${id}`),
-    icon: TEAM_PHASE_ICONS[i],
-    disabled: false,
-    title: undefined as string | undefined,
-  }));
-
-  const { prepLocked, poolsLocked } = poolTabLock({
-    pools,
-    poolHistory,
+  const { phases, handleGoBack, canAdvanceFromPools, isLastPoolRound } = useCompetitionPhases({
+    isTeamEvent,
+    currentPhase,
+    setCurrentPhase,
+    setRankingValidated,
+    rankingValidated,
     skipPoolPhase,
     poolsLaunched,
+    pools,
+    poolHistory,
+    areAllPoolsComplete,
+    isRapieres,
+    rapieresWavesEnded: rapieres.wavesEnded,
+    currentPoolRound,
+    poolRounds,
+    hasDirectElimination,
+    finalResults,
+    tableauMatches,
+    questEnabled,
+    questNoPool,
+    questConfig,
+    auditLogEnabled,
+    refereeFeatureEnabled: !!competition.settings?.refereeFeatureEnabled,
   });
-
-  const phases = [
-    {
-      id: 'checkin',
-      label: t('phases.checkin'),
-      icon: PHASE_ICONS.checkin,
-      disabled: false,
-      title: undefined as string | undefined,
-    },
-    ...(isTeamEvent ? teamPhases : []),
-    // Phases de poules : masquées en mode Quest sans poules préliminaires
-    ...(!questEnabled || questConfig?.hasPreliminaryPools
-      ? [
-          {
-            id: 'poolprep',
-            label: t('phases.poolprep'),
-            icon: PHASE_ICONS.poolprep,
-            disabled: prepLocked,
-            title: prepLocked ? t('phases.poolprep_locked_tooltip') : undefined,
-          },
-          {
-            id: 'pools',
-            label: skipPoolPhase
-              ? t('phases.pools_skip')
-              : poolRounds > 1
-                ? t('phases.pools_round', { current: currentPoolRound, total: poolRounds })
-                : t('phases.pools'),
-            icon: skipPoolPhase ? PHASE_ICONS.skipPools : PHASE_ICONS.pools,
-            disabled: skipPoolPhase || poolsLocked,
-            title: skipPoolPhase
-              ? t('phases.pools_skip_tooltip')
-              : poolsLocked
-                ? t('phases.pools_locked_tooltip')
-                : (undefined as string | undefined),
-          },
-        ]
-      : []),
-    ...(questEnabled
-      ? [
-          {
-            id: 'quest',
-            label: 'Tour Quest',
-            icon: PHASE_ICONS.quest,
-            disabled: false,
-            title: undefined as string | undefined,
-          },
-        ]
-      : []),
-    // Classement : toujours présent (désactivé en mode quest-sans-poules jusqu'à fin de quête)
-    {
-      id: 'ranking',
-      label: t('phases.ranking'),
-      icon: PHASE_ICONS.ranking,
-      disabled: questNoPool && !rankingValidated,
-      title:
-        questNoPool && !rankingValidated
-          ? t('phases.tableau_locked_tooltip')
-          : (undefined as string | undefined),
-    },
-    ...(hasDirectElimination
-      ? [
-          {
-            id: 'tableau',
-            label: t('phases.tableau'),
-            icon: PHASE_ICONS.tableau,
-            disabled: !isTableauUnlocked && finalResults.length === 0,
-            title:
-              !isTableauUnlocked && finalResults.length === 0
-                ? t('phases.tableau_locked_tooltip')
-                : (undefined as string | undefined),
-          },
-        ]
-      : []),
-    {
-      id: 'results',
-      label: t('phases.results'),
-      icon: PHASE_ICONS.results,
-      disabled: isResultsLocked,
-      title: undefined as string | undefined,
-    },
-    ...(auditLogEnabled
-      ? [
-          {
-            id: 'logs',
-            label: t('phases.logs'),
-            icon: PHASE_ICONS.logs,
-            disabled: false,
-            title: undefined as string | undefined,
-          },
-        ]
-      : []),
-    ...(competition.settings?.refereeFeatureEnabled
-      ? [
-          {
-            id: 'referees',
-            label: t('phases.referees') || 'Arbitres',
-            icon: PHASE_ICONS.referees,
-            disabled: false,
-            title: undefined as string | undefined,
-          },
-        ]
-      : []),
-  ].filter(
-    // Équipes : les phases individuelles (poules, tableau…) laissent place aux phases équipes
-    p =>
-      !isTeamEvent || isTeamPhase(p.id) || ['checkin', 'remote', 'logs', 'referees'].includes(p.id)
-  );
+  useRemoteCheckinSync({
+    competitionId: competition.id,
+    currentPhase,
+    isRemoteActive,
+    remoteServerUrl,
+    loadFencers,
+    setReferees,
+  });
 
   const getPoolsNextAction = () => {
     if (!canAdvanceFromPools) return null;
@@ -1906,85 +1732,23 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     onPrintWaveRange={printWaves}
                   />
                 )}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '0.75rem',
-                    marginBottom: '2rem',
-                  }}
-                >
-                  <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} />
-                  <WindowSizePresets value={poolCardSize} onChange={setPoolCardSize} />
-                  <select
-                    className="form-input"
-                    style={{ width: 'auto', fontWeight: 600 }}
-                    value={poolsViewMode}
-                    onChange={e => setPoolsViewMode(e.target.value as 'grid' | 'single')}
-                    title={t('competitionView.pools_mode')}
-                    aria-label={t('competitionView.pools_mode')}
-                  >
-                    <option value="grid">{t('competitionView.grid_view')}</option>
-                    <option value="single">{t('competitionView.single_view')}</option>
-                  </select>
-                  <Button
-                    variant="primary"
-                    onClick={handlePrintAllPoolsPDF}
-                    title={t('competitionView.print_title')}
-                  >
-                    {t('competitionView.print')}
-                  </Button>
-                  {pools.length > 1 && (
-                    <Button variant="success" onClick={handleExportAllPoolsPDF}>
-                      {t('competitionView.export_all')}
-                    </Button>
-                  )}
-                </div>
+                <PoolsToolbar
+                  isLaserSabre={isLaserSabre}
+                  poolCardSize={poolCardSize}
+                  onPoolCardSizeChange={setPoolCardSize}
+                  poolsViewMode={poolsViewMode}
+                  onPoolsViewModeChange={setPoolsViewMode}
+                  poolCount={pools.length}
+                  onPrintAll={handlePrintAllPoolsPDF}
+                  onExportAll={handleExportAllPoolsPDF}
+                />
                 {poolsViewMode === 'single' ? (
                   <>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        marginBottom: '1.5rem',
-                      }}
-                    >
-                      <Button
-                        onClick={() =>
-                          setSinglePoolIndex(i => (i - 1 + pools.length) % pools.length)
-                        }
-                        disabled={pools.length <= 1}
-                        title={t('competitionView.prev_pool')}
-                        aria-label={t('competitionView.prev_pool')}
-                      >
-                        <Icon icon={ChevronLeft} />
-                      </Button>
-                      <select
-                        className="form-input"
-                        style={{ width: 'auto', fontWeight: 600, textAlign: 'center' }}
-                        value={singlePoolIndex}
-                        onChange={e => setSinglePoolIndex(Number(e.target.value))}
-                        aria-label={t('competitionView.select_pool')}
-                      >
-                        {pools.map((pool, i) => (
-                          <option key={pool.id} value={i}>
-                            {t('competitionView.pool_n', { n: pool.number })}
-                          </option>
-                        ))}
-                      </select>
-                      <Button
-                        onClick={() => setSinglePoolIndex(i => (i + 1) % pools.length)}
-                        disabled={pools.length <= 1}
-                        title={t('competitionView.next_pool')}
-                        aria-label={t('competitionView.next_pool')}
-                      >
-                        <Icon icon={ChevronRight} />
-                      </Button>
-                    </div>
+                    <SinglePoolNav
+                      pools={pools}
+                      singlePoolIndex={singlePoolIndex}
+                      setSinglePoolIndex={setSinglePoolIndex}
+                    />
                     {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
                     <div style={{ width: '100%', overflowX: 'auto' }}>
                       <div
