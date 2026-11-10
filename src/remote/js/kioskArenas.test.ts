@@ -113,7 +113,9 @@ describe('kioskArenas.js gabarit', () => {
   });
 
   it('kiosk.html charge le module et délègue', () => {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'kiosk.html'), 'utf8');
+    const html =
+      fs.readFileSync(path.join(__dirname, '..', 'kiosk.html'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'kioskApp.js'), 'utf8'); // page + script extrait (#1600)
     expect(html).toContain('<script src="/js/kioskArenas.js"></script>');
     expect(html).toContain('KioskArenas.renderArenasHtml(');
     expect(html).not.toContain('class="arena-matchup"');
