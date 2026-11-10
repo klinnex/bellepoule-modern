@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 79 | 388 |
+| `src/renderer/components/` | 80 | 389 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 53 | 329 |
+| `src/remote/` | 54 | 332 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **332** | **2548** |
+| **Total** | **334** | **2552** |
 
-Unitaires : 322 fichiers, 2509 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 324 fichiers, 2513 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3947,6 +3947,14 @@ Unitaires : 322 fichiers, 2509 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/Skeleton.test.tsx</code> — 1 test</summary>
+
+- **TableSkeleton**
+  - annonce le chargement et rend le nombre de lignes demandé
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/TableauView.test.tsx</code> — 8 tests</summary>
 
 - **TableauView**
@@ -4698,6 +4706,16 @@ Unitaires : 322 fichiers, 2509 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
   - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
+
+<details>
+<summary><code>src/remote/bpSocket.test.ts</code> — 3 tests</summary>
+
+- **bpSocket (/common.js)**
+  - applique la politique de reconnexion commune
+  - permet de surcharger ou compléter les options sans modifier les défauts
+  - aucune page distante ne reconstruit ces options à la main
 
 </details>
 
