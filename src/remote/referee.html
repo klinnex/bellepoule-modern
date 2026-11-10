@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
-    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
+    <script src="/common.js"></script><script src="/js/icons.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
@@ -1428,12 +1428,12 @@
   <body>
     <div class="header">
       <h1>
-        <span>⚔️</span>
+        <span data-icon="swords"></span>
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
         <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore">🔇</button>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1448,20 +1448,20 @@
           "
           title="Batterie faible" data-i18n-title="referee.battery_low"
         >
-          🔋 <span id="battery-level">--</span>%
+          <span data-icon="battery-low"></span> <span id="battery-level">--</span>%
         </span>
         <button
           id="btn-dt-icon"
           class="dt-icon-btn"
           title="Appel DT (appui long = annuler)" data-i18n-title="referee.dt_call_title"
           aria-label="Appel DT" data-i18n-aria-label="referee.dt_call_label"
-        >📣</button>
+        ><span data-icon="megaphone"></span></button>
         <button
           id="btn-journal"
           data-click="openJournal"
           title="Journal du match" data-i18n-title="referee.journal_title"
           aria-label="Journal" data-i18n-aria-label="referee.journal_label"
-         class="inl-702af5">📋</button>
+         class="inl-702af5"><span data-icon="list"></span></button>
       </div>
     </div>
 
@@ -1593,7 +1593,7 @@
               animation: pulse-timer 0.6s infinite;
             " data-i18n="referee.sd_zone_c"
           >
-            ⚡ MORT SUBITE – Zone C uniquement !
+            MORT SUBITE – Zone C uniquement !
           </div>
           <div class="timer-row">
             <button
@@ -1621,7 +1621,7 @@
               animation: pulse-timer 0.8s infinite;
             "
           >
-            ⏱ 30s SUPPLEMENTAIRE
+            30s SUPPLEMENTAIRE
           </div>
           <div class="timer-hint" data-i18n="referee.timer_hint">
             Tapez pour démarrer/pause - Appui long pour reset
@@ -1630,8 +1630,8 @@
             <button aria-label="Minuteur vocal" data-i18n-aria-label="referee.voice_title"
               id="btn-tts-toggle"
               data-click="refereeApp.toggleTTS"
-              title="Minuteur vocal" data-i18n-title="referee.voice_title" data-i18n="referee.voice_off"
-             class="inl-46bbcf">🔇 Voix</button>
+              title="Minuteur vocal" data-i18n-title="referee.voice_title"
+             class="inl-46bbcf"><span data-icon="volume-off"></span> <span data-i18n="referee.voice_off">Voix</span></button>
           </div>
         </div>
 
@@ -1642,7 +1642,7 @@
             id="btn-start"
             data-click="refereeApp.handleStartPauseClick"
           >
-            <span data-i18n="referee.start">▶️ Démarrer</span>
+            <span data-icon="play"></span> <span data-i18n="referee.start">Démarrer</span>
           </button>
           <button
             class="control-btn btn-finish"
@@ -1650,7 +1650,7 @@
             data-click="refereeApp.showFinishModal"
             disabled
           >
-            <span data-i18n="referee.finish">🏁 Terminer</span>
+            <span data-icon="flag"></span> <span data-i18n="referee.finish">Terminer</span>
           </button>
         </div>
         <!-- Boutons secondaires : sortie d'arène + annuler -->
@@ -1660,7 +1660,7 @@
             id="btn-exit-a"
             data-click="refereeApp.arenaExit" data-args='["A"]'
           >
-            <span data-i18n="referee.exit_red">🚪 Sortie rouge</span>
+            <span data-icon="door"></span> <span data-i18n="referee.exit_red">Sortie rouge</span>
           </button>
           <button
             class="control-btn btn-undo"
@@ -1668,20 +1668,20 @@
             data-click="refereeApp.undoLastAction"
             disabled
           >
-            <span data-i18n="referee.undo">↩ Annuler</span>
+            <span data-icon="undo"></span> <span data-i18n="referee.undo">Annuler</span>
           </button>
           <button
             class="control-btn btn-arena-exit-green"
             id="btn-exit-b"
             data-click="refereeApp.arenaExit" data-args='["B"]'
           >
-            <span data-i18n="referee.exit_green">🚪 Sortie verte</span>
+            <span data-icon="door"></span> <span data-i18n="referee.exit_green">Sortie verte</span>
           </button>
         </div>
 
         <!-- Barre arbitre (visible si refereeFeatureEnabled) -->
         <div class="referee-bar hidden" id="referee-bar">
-          <div class="referee-bar-label" data-i18n="referee.referee_label">⚖️ Arbitre :</div>
+          <div class="referee-bar-label"><span data-icon="scale"></span> <span data-i18n="referee.referee_label">Arbitre :</span></div>
           <div class="referee-bar-name" id="referee-bar-name">—</div>
           <button class="referee-change-btn" id="referee-change-btn" data-click="refereeApp.toggleRefereeSelector" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
@@ -1694,12 +1694,12 @@
 
       <!-- Écran de sélection de match -->
       <div class="next-matches-screen" id="next-matches-screen">
-        <h2><span data-i18n="referee.matches_prefix">📋 Matchs —</span> <span id="next-arena-label">Arène</span> <span id="next-arena-number">1</span></h2>
+        <h2><span data-icon="list"></span> <span data-i18n="referee.matches_prefix">Matchs —</span> <span id="next-arena-label">Arène</span> <span id="next-arena-number">1</span></h2>
         <input
           type="search"
           id="match-search"
           data-i18n-placeholder="referee.search_placeholder"
-          placeholder="🔍 Rechercher un tireur..."
+          placeholder="Rechercher un tireur..."
           data-input="refereeApp.filterMatches" data-args='["$value"]'
          class="inl-bff8d5"/>
         <div id="black-cards-list"></div>
@@ -1712,7 +1712,7 @@
     <!-- Modal de confirmation -->
     <div class="modal-overlay" id="finish-modal">
       <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="finish-modal-title">
-        <div class="modal-title" id="finish-modal-title" data-i18n="referee.modal_title">🏁 Fin de match</div>
+        <div class="modal-title" id="finish-modal-title"><span data-icon="flag"></span> <span data-i18n="referee.modal_title">Fin de match</span></div>
         <div class="modal-body">
           <p data-i18n="referee.modal_confirm_text">Confirmez-vous la fin de ce match ?</p>
           <div class="final-score" id="final-score-display">0 - 0</div>
@@ -1734,7 +1734,7 @@
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
       <div class="modal-content inl-39aaac" role="dialog" aria-modal="true" aria-labelledby="black-card-title">
-        <div class="modal-title inl-981067" id="black-card-title" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
+        <div class="modal-title inl-981067" id="black-card-title"><span data-icon="card"></span> <span data-i18n="referee.black_card_title">Carton Noir</span></div>
         <div class="modal-body">
           <p id="black-card-fencer-name" class="inl-dc8ee3">—</p>
           <p id="black-card-cause" class="inl-93198c"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
@@ -1742,7 +1742,7 @@
         </div>
         <div class="modal-buttons">
           <button class="modal-btn modal-btn-cancel" data-click="refereeApp.cancelBlackCard" data-i18n="referee.cancel">Annuler</button>
-          <button class="modal-btn modal-btn-confirm inl-981067" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-confirm inl-981067" data-click="refereeApp.confirmBlackCard"><span data-icon="card"></span> <span data-i18n="referee.black_card_confirm">Confirmer l'élimination</span></button>
         </div>
       </div>
     </div>
@@ -1750,12 +1750,12 @@
     <!-- Overlay confirmation tirage au sort -->
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
-        <div class="inl-800d9a">🪙</div>
+        <div class="inl-800d9a"><span data-icon="coins"></span></div>
         <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
-        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish" data-i18n="referee.finish_match">
-          🏁 Terminer le match
+        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish">
+          <span data-icon="flag"></span> <span data-i18n="referee.finish_match">Terminer le match</span>
         </button>
       </div>
     </div>
@@ -1782,21 +1782,21 @@
 
     <!-- Overlay plein-écran : fin de poule / signature -->
     <div id="pool-complete-overlay" class="pool-complete-overlay" role="dialog" aria-modal="true" aria-labelledby="pool-complete-title">
-      <div class="pco-icon">✍️</div>
+      <div class="pco-icon"><span data-icon="sign"></span></div>
       <h1 id="pool-complete-title" class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
       <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
-      <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">
-        ✍️ SIGNATURE
+      <button class="pco-btn" data-click="refereeApp.goToSignature">
+        <span data-icon="sign"></span> <span data-i18n="referee.signature_btn">SIGNATURE</span>
       </button>
-      <button class="pco-btn inl-13ec75" data-click="openJournal" data-i18n="referee.journal_btn">
-        📋 JOURNAL
+      <button class="pco-btn inl-13ec75" data-click="openJournal">
+        <span data-icon="list"></span> <span data-i18n="referee.journal_btn">JOURNAL</span>
       </button>
     </div>
 
     <!-- Overlay signature des combattants après un match du tableau -->
     <div id="match-sig-overlay" class="match-sig-overlay" role="dialog" aria-modal="true" aria-labelledby="match-sig-title">
       <div class="match-sig-box">
-        <h2 id="match-sig-title" data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
+        <h2 id="match-sig-title"><span data-icon="sign"></span> <span data-i18n="referee.sig_title">Signature des combattants</span></h2>
         <p class="match-sig-instructions" data-i18n="referee.sig_instructions">Chaque tireur signe pour valider le score du match</p>
         <div class="match-sig-score-recall">
           <span class="match-sig-score-label" data-i18n="referee.sig_final_score">Score final</span>

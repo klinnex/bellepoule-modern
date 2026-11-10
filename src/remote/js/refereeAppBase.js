@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/refereeAppBase.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global bpSocket, BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
+/* global bpIcon, bpSocket, BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
 /* exported RefereeAppBase */
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 // escHtml : helper partagé (/common.js)
@@ -442,7 +442,9 @@ class RefereeAppBase {
     }
     ov.innerHTML =
       '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">🤺 ' +
+      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">' +
+      bpIcon('users') +
+      ' ' +
       escHtml(label) +
       '</div>' +
       '<div style="font-size:1rem;color:var(--slate-400);">' +

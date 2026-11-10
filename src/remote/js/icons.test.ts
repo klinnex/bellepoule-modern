@@ -76,3 +76,26 @@ describe('pages distantes', () => {
     }
   });
 });
+
+describe('noms d’icônes utilisés', () => {
+  const files = [
+    ...fs.readdirSync(remoteDir).filter(f => /\.(html|js)$/.test(f)),
+    ...fs.readdirSync(__dirname).filter(f => /\.js$/.test(f) && f !== 'icons.js'),
+  ].map(f =>
+    fs.existsSync(path.join(remoteDir, f)) ? path.join(remoteDir, f) : path.join(__dirname, f)
+  );
+  it('chaque data-icon / bpIcon / icon: référence une icône du jeu', () => {
+    const unknown: string[] = [];
+    for (const f of files) {
+      const text = fs.readFileSync(f, 'utf8');
+      const re =
+        /data-icon="([a-z-]+)"|bpIcon\('([a-z-]+)'|icon: '([a-z-]+)'|iconName: '([a-z-]+)'/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text))) {
+        const name = m[1] || m[2] || m[3] || m[4];
+        if (!names.includes(name)) unknown.push(`${path.basename(f)}:${name}`);
+      }
+    }
+    expect(unknown).toEqual([]);
+  });
+});
