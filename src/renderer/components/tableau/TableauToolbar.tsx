@@ -7,6 +7,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Fencer } from '../../../shared/types';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ChartColumn, ClipboardList, LayoutGrid, Triangle, Trophy, Undo2 } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface TableauToolbarProps {
   tableauSize: number;
@@ -77,7 +79,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
         </h2>
         {champion && (
           <div className="tt-champion">
-            🏆 {champion.lastName} {champion.firstName}
+            <Icon icon={Trophy} /> {champion.lastName} {champion.firstName}
           </div>
         )}
       </div>
@@ -86,7 +88,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
       <div className="tt-right">
         {onUndo && (
           <button onClick={onUndo} className="tt-toggle" title={t('tableauToolbar.undo')}>
-            ↩ {t('tableauToolbar.undo')}
+            <Icon icon={Undo2} /> {t('tableauToolbar.undo')}
           </button>
         )}
         {/* View mode toggles — toujours visibles */}
@@ -97,9 +99,15 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
             viewMode === 'full' ? t('tableauToolbar.match_list') : t('tableauToolbar.full_bracket')
           }
         >
-          {viewMode === 'full'
-            ? `📋 ${t('tableauToolbar.match_list')}`
-            : `📊 ${t('tableauToolbar.bracket')}`}
+          {viewMode === 'full' ? (
+            <>
+              <Icon icon={ClipboardList} /> {t('tableauToolbar.match_list')}
+            </>
+          ) : (
+            <>
+              <Icon icon={ChartColumn} /> {t('tableauToolbar.bracket')}
+            </>
+          )}
         </button>
         <button
           onClick={onPyramidViewModeToggle}
@@ -108,9 +116,15 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
             pyramidViewMode ? t('tableauToolbar.bracket_view') : t('tableauToolbar.pyramid_view')
           }
         >
-          {pyramidViewMode
-            ? `🔲 ${t('tableauToolbar.bracket')}`
-            : `🔺 ${t('tableauToolbar.pyramid')}`}
+          {pyramidViewMode ? (
+            <>
+              <Icon icon={LayoutGrid} /> {t('tableauToolbar.bracket')}
+            </>
+          ) : (
+            <>
+              <Icon icon={Triangle} /> {t('tableauToolbar.pyramid')}
+            </>
+          )}
         </button>
 
         {/* FAB */}

@@ -9,6 +9,8 @@ import {
 import { ColumnId } from '../../hooks/useColumnVisibility';
 import { useTranslation } from '../../hooks/useTranslation';
 import { findNeighbourCell, isArrowKey } from './poolMatrixNav';
+import { ArrowLeftRight } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface PoolScoreMatrixProps {
   pool: Pool;
@@ -628,7 +630,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
                 >
-                  ↔
+                  <Icon icon={ArrowLeftRight} />
                 </button>
               )}
             </div>

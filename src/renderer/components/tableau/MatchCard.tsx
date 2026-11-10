@@ -3,6 +3,8 @@ import { TableauMatch } from './tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { useStripAvailability } from '../../hooks/useStripAvailability';
 import { focusNeighbourCard, isNavKey } from './matchCardNav';
+import { PenLine, Pencil, Plus } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -180,7 +182,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             title={translateStatic('matchCard.signatures')}
             aria-label={translateStatic('matchCard.signatures')}
           >
-            ✍
+            <Icon icon={PenLine} />
           </button>
         </div>
       )}
@@ -232,9 +234,15 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (
         <div className={`match-cta ${hasScore ? 'match-cta-edit' : 'match-cta-enter'}`}>
-          {hasScore
-            ? `✏️ ${translateStatic('poolRanking.edit')}`
-            : `➕ ${translateStatic('matchCard.enter_score')}`}
+          {hasScore ? (
+            <>
+              <Icon icon={Pencil} /> {translateStatic('poolRanking.edit')}
+            </>
+          ) : (
+            <>
+              <Icon icon={Plus} /> {translateStatic('matchCard.enter_score')}
+            </>
+          )}
         </div>
       )}
     </div>

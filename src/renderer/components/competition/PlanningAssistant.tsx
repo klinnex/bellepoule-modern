@@ -18,6 +18,8 @@ import {
 } from '../../../shared/services/tournamentFlow';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 import { Button } from '../common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface PlanningAssistantProps {
   competition: Competition;
@@ -210,7 +212,9 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 <li key={`rec-${i}`}>{r}</li>
               ))}
               {insights.bottlenecks.map((b, i) => (
-                <li key={`bn-${i}`}>⚠️ {b}</li>
+                <li key={`bn-${i}`}>
+                  <Icon icon={TriangleAlert} /> {b}
+                </li>
               ))}
             </ul>
           )}

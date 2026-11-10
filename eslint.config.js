@@ -16,6 +16,7 @@ module.exports = [
       'release',
       'src/examples',
       '**/*.js',
+      '!src/remote/**/*.js',
       '**/*.cjs',
       '**/*.mjs',
     ],
@@ -84,6 +85,23 @@ module.exports = [
       'no-undef': 'off',
       'prefer-const': 'warn',
       'no-useless-escape': 'warn',
+    },
+  },
+  {
+    // JS distant servi aux navigateurs (CSP, sans bundler) : scripts classiques, globales navigateur (#1600)
+    files: ['src/remote/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'script',
+      globals: { ...globals.browser, module: 'readonly', io: 'readonly' },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-alert': 'error',
+      'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none' }],
+      'prefer-const': 'warn',
+      'no-var': 'off',
+      'no-useless-assignment': 'off',
     },
   },
   prettierConfig,

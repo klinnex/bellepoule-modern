@@ -5,6 +5,8 @@
 import React, { memo } from 'react';
 import { FormulaSimulation } from '../../../shared/types';
 import { useTranslation } from '../../hooks/useTranslation';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 type TFn = ReturnType<typeof useTranslation>['t'];
 
@@ -97,7 +99,7 @@ const FormulaSimulationPreview_: React.FC<Props> = ({ simulation, fencerCount })
         <div className="simulation-warnings">
           {simulation.warnings.map((w, i) => (
             <div key={i} className="sim-warning">
-              ⚠ {w}
+              <Icon icon={TriangleAlert} /> {w}
             </div>
           ))}
         </div>

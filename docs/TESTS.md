@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 382 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 45 | 302 |
+| `src/remote/` | 45 | 304 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **322** | **2514** |
+| **Total** | **322** | **2516** |
 
-Unitaires : 312 fichiers, 2475 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 312 fichiers, 2477 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4731,7 +4731,7 @@ Unitaires : 312 fichiers, 2475 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 7 tests</summary>
 
 - **arenaDisplayUtils.js**
   - bannière : texte seul, jamais interprété comme HTML
@@ -4739,6 +4739,8 @@ Unitaires : 312 fichiers, 2475 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - thèmes valides, repli sur dark, mémorisation
   - thème personnalisé : variables et overlay, nettoyé au retour
   - arena.html charge le module avant le script de page
+  - applyScreenTheme : variables sur :root puis retrait (#1600)
+  - public, pool et referee partagent applyScreenTheme (plus de copie inline)
 
 </details>
 

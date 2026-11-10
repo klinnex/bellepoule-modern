@@ -7,6 +7,8 @@
 import React from 'react';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { TableauMatch } from './tableauTypes';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface TableauPendingSectionProps {
   round: number;
@@ -46,7 +48,9 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
         }}
       >
         <div className="u-row">
-          <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
+          <span style={{ fontSize: '1rem' }}>
+            <Icon icon={isExpanded ? ChevronDown : ChevronRight} />
+          </span>
           <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
             {roundName}
           </span>
