@@ -139,7 +139,7 @@
         ov._t = setTimeout(() => { ov.style.display = 'none'; }, durationMs ?? 5000);
       }
 
-      const socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
+      const socket = bpSocket();
 
       let _screenId = localStorage.getItem('bp_screen_id');
       if (!_screenId) {

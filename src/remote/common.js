@@ -263,6 +263,23 @@
   root.bpClaimArenaSlot = claimArenaSlot;
 
   /**
+   * Connexion Socket.IO avec la politique de reconnexion commune des pages distantes (#1600) :
+   * reprise rapide (200 ms, plafond 5 s) avec gigue. `extra` surcharge ou complète les options.
+   */
+  var SOCKET_OPTIONS = {
+    reconnection: true,
+    reconnectionDelay: 200,
+    reconnectionDelayMax: 5000,
+    randomizationFactor: 0.5,
+  };
+  function bpSocket(extra, ioFn) {
+    var factory = ioFn || root.io;
+    return factory(Object.assign({}, SOCKET_OPTIONS, extra || {}));
+  }
+  bpSocket.OPTIONS = SOCKET_OPTIONS;
+  root.bpSocket = bpSocket;
+
+  /**
    * Valeur résolue d'une variable de /tokens.css (#1538) : pour les API qui n'acceptent pas
    * `var(--…)` (canvas `strokeStyle`, comparaisons JS). `fallback` si la variable est absente.
    */
@@ -322,6 +339,7 @@
       html: html,
       claimArenaSlot: claimArenaSlot,
       applyContrast: applyContrast,
+      bpSocket: bpSocket,
     };
   }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/publicDisplay.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global escHtml */
+/* global bpSocket, escHtml */
 const { setBannerLines } = window.BPArenaUtils;
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 
@@ -12,12 +12,7 @@ class PublicDisplay {
   constructor() {
     if (new URLSearchParams(window.location.search).get('cb') === '1')
       document.body.classList.add('colorblind');
-    this.socket = io({
-      reconnection: true,
-      reconnectionDelay: 200,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-    });
+    this.socket = bpSocket();
     this.arenaId = this.getArenaId();
     this.arenaNumber = this.arenaNumberFromId();
     this.currentMatch = null;
