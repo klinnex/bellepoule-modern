@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 77 | 381 |
+| `src/renderer/components/` | 77 | 382 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 47 | 311 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **323** | **2519** |
+| **Total** | **323** | **2520** |
 
-Unitaires : 313 fichiers, 2480 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 313 fichiers, 2481 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3957,10 +3957,11 @@ Unitaires : 313 fichiers, 2480 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 2 tests</summary>
 
 - **Tooltip**
   - apparaît au focus clavier avec role=tooltip et aria-describedby, se ferme avec Échap
+  - TipButton : aria-label par défaut et pas de title natif
 
 </details>
 
