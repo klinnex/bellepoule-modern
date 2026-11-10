@@ -12,12 +12,12 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 
 | Événement | Écouté par le serveur | Émis par |
 |---|:---:|---|
-| `arena_control` | ✓ | `arena.html`, `referee.html` |
+| `arena_control` | ✓ | `referee.html` |
 | `client:battery` | ✓ | `referee.html` |
-| `client:pong` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
-| `client:register` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
+| `client:pong` | ✓ | `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
+| `client:register` | ✓ | `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
 | `dashboard:subscribe` | ✓ | `dashboard.html` |
-| `join_arena` | ✓ | `arena.html`, `overlay.html`, `public.html`, `referee.html` |
+| `join_arena` | ✓ | `overlay.html`, `public.html`, `referee.html` |
 | `join_pool` | ✓ | `pool.html` |
 | `join_team_arena` | ✓ | `teamArena.html`, `teamReferee.html` |
 | `team_advance_bout` | ✓ | `teamReferee.html` |
@@ -37,14 +37,14 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 
 | Événement | Émis par le serveur | Écouté par |
 |---|:---:|---|
-| `arena:{…}:card_announcement` | ✓ | `arena.html`, `public.html` |
-| `arena:{…}:coin_flip` | ✓ | `arena.html`, `public.html` |
+| `arena:{…}:card_announcement` | ✓ | `public.html` |
+| `arena:{…}:coin_flip` | ✓ | `public.html` |
 | `arena:{…}:dt_call_ack` | ✓ | `referee.html` |
-| `arena:{…}:exit_announcement` | ✓ | `arena.html` |
+| `arena:{…}:exit_announcement` | ✓ | — |
 | `arena:{…}:replay` | ✓ | `overlay.html` |
 | `arena:{…}:score_limit_reached` | ✓ | `referee.html` |
 | `arena:{…}:sign_request` | ✓ | `referee.html` |
-| `arena:{…}:update` | ✓ | `arena.html`, `overlay.html`, `public.html`, `referee.html` |
+| `arena:{…}:update` | ✓ | `overlay.html`, `public.html`, `referee.html` |
 | `arenas:updated` | ✓ | — |
 | `auth_error` | ✓ | `referee.html`, `teamReferee.html` |
 | `bracket:update` | ✓ | `kiosk.html` |
@@ -58,11 +58,11 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `pool:{…}:update` | ✓ | `pool.html` |
 | `pools:update` | ✓ | `dashboard.html` |
 | `rankings:update` | ✓ | `dashboard.html` |
-| `server:command` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `pool.html`, `public.html`, `referee.html` |
+| `server:command` | ✓ | `kiosk.html`, `lobby.html`, `pool.html`, `public.html`, `referee.html` |
 | `strips:plan` | ✓ | — |
 | `team_arena_state` | ✓ | `teamArena.html`, `teamReferee.html` |
 | `tts:update` | ✓ | `referee.html` |
-| `wallpaper:update` | ✓ | `arena.html` |
+| `wallpaper:update` | ✓ | — |
 
 ✗ dans « Émis par le serveur » : écouté par une page mais jamais émis tel quel
 (nom construit autrement, ou événement mort côté page).
