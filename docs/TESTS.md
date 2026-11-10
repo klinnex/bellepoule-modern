@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 82 | 393 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 54 | 332 |
+| `src/remote/` | 55 | 341 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **336** | **2556** |
+| **Total** | **337** | **2565** |
 
-Unitaires : 326 fichiers, 2517 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 327 fichiers, 2526 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4914,6 +4914,22 @@ Unitaires : 326 fichiers, 2517 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/js/icons.test.ts</code> — 8 tests</summary>
+
+- **icons.js**
+  - rend un SVG décoratif, taille 1em, couleur héritée
+  - icônes pleines : fill = currentColor
+  - nom inconnu ou hostile : chaîne vide, aucun HTML injecté
+  - classe additionnelle échappée
+  - hydrate remplit \[data-icon\] et reste idempotent
+  - rank : médaille pour 1-3, texte au-delà
+  - expose des noms sans doublon
+- **pages distantes**
+  - %s charge /js/icons.js dès qu’elle utilise une icône _(each)_
+
+</details>
+
+<details>
 <summary><code>src/remote/js/kioskApp.test.ts</code> — 2 tests</summary>
 
 - **kioskApp.js dans kiosk.html**
@@ -5348,7 +5364,7 @@ Unitaires : 326 fichiers, 2517 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 13 tests</summary>
+<summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 14 tests</summary>
 
 - **escHtml (/common.js)**
   - échappe & \< \> " ' et \`
@@ -5363,6 +5379,7 @@ Unitaires : 326 fichiers, 2517 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - accepte un fragment audité marqué par un commentaire html
   - arr.map(…).join() : seuls les gabarits internes comptent
   - signale une concaténation brute assignée à innerHTML
+  - bpIcon(…) (icône SVG de /js/icons.js) est une interpolation sûre
   - analyse les scripts inline des pages HTML
 - **pages distantes (barrière de non-régression)**
   - aucune interpolation HTML non échappée dans src/remote
