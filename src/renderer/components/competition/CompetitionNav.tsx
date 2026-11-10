@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,6 +23,7 @@ import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
 import GuidedTour from '../GuidedTour';
 import { usePhaseShortcuts } from './usePhaseShortcuts';
+import { registerPhases } from './phaseRegistry';
 import { phaseStepStates, nextBlockedReason } from './phaseStepper';
 import { Button } from '../common/Button';
 
@@ -110,6 +111,16 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
   usePhaseShortcuts(phases, currentPhase, id => setCurrentPhase(id as Phase));
+  // Publie les phases pour la palette de commandes (Ctrl+K)
+  useEffect(
+    () =>
+      registerPhases({
+        phases,
+        currentId: currentPhase,
+        select: id => setCurrentPhase(id as Phase),
+      }),
+    [phases, currentPhase, setCurrentPhase]
+  );
   const stepStates = phaseStepStates(phases, currentPhase);
   const blockedReason = nextBlockedReason(phases, currentPhase);
   return (
