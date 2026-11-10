@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="pool.page_title">Saisie Poule – BellePoule</title>
-    <script src="/common.js"></script><script src="/js/arenaDisplayUtils.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script><script src="/js/arenaDisplayUtils.js"></script>
     <script src="/js/ui.js" data-bp-init></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -540,8 +540,8 @@
         <div class="header-badge" id="match-count-badge" style="display:none"></div>
       </div>
       <button class="back-to-referee-btn" data-click="goBackToReferee" data-i18n="pool.back_referee">← Arbitre</button>
-      <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)" aria-label="Saisie par photo (OCR)" data-i18n-title="pool.ocr" data-i18n-aria-label="pool.ocr">📷</a>
-      <div class="connection-badge" id="connection-badge" role="status" aria-live="polite" data-i18n="pool.connecting">⚡ Connexion…</div>
+      <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)" aria-label="Saisie par photo (OCR)" data-i18n-title="pool.ocr" data-i18n-aria-label="pool.ocr"><span data-icon="camera"></span></a>
+      <div class="connection-badge" id="connection-badge" role="status" aria-live="polite" data-i18n="pool.connecting">Connexion…</div>
     </header>
 
     <div class="tabs" role="tablist" aria-label="Vue de la poule" data-i18n-aria-label="pool.view_label">
@@ -549,7 +549,7 @@
         <span data-i18n="pool.tab_grid">⊞ Tableau</span>
       </button>
       <button class="tab-btn" id="tab-matches" role="tab" aria-selected="false" aria-controls="pool-container" data-click="switchTab" data-args='["matches"]'>
-        <span data-i18n="pool.tab_matches">⚔ Matchs</span>
+        <span data-icon="swords"></span> <span data-i18n="pool.tab_matches">Matchs</span>
       </button>
     </div>
 
@@ -559,7 +559,7 @@
 
     <!-- Overlay fin de poule -->
     <div class="fin-overlay" id="fin-overlay">
-      <span class="fin-icon">🏆</span>
+      <span class="fin-icon" data-icon="trophy"></span>
       <h1 data-i18n="pool.finished">POULE TERMINÉE</h1>
       <span style="color:var(--slate-400);font-size:0.85rem;font-weight:500;" data-i18n="pool.signature_phase">— Phase de signature</span>
     </div>
@@ -746,9 +746,10 @@
           if (!isDone) {
             sigBtn.disabled = true;
             sigBtn.title = window.T('pool.sign_unavailable');
-            sigBtn.textContent = '✍';
+            sigBtn.innerHTML = bpIcon('sign');
           } else {
-            sigBtn.textContent = isSigned ? '✓' : '✍';
+            if (isSigned) sigBtn.textContent = '✓';
+            else sigBtn.innerHTML = bpIcon('sign');
             sigBtn.title = window.T(isSigned ? 'pool.resign' : 'pool.sign');
             if (isSigned) sigBtn.classList.add('signed');
             sigBtn.addEventListener('click', e => {
