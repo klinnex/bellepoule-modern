@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 79 | 388 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 50 | 324 |
+| `src/remote/` | 51 | 326 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **329** | **2542** |
+| **Total** | **330** | **2544** |
 
-Unitaires : 319 fichiers, 2503 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 320 fichiers, 2505 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4865,6 +4865,15 @@ Unitaires : 319 fichiers, 2503 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - prochain match : affichage d’attente selon le statut résultant
   - mort subite : démarrage annule l’attente d’overtime
   - arena.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskApp.test.ts</code> — 2 tests</summary>
+
+- **kioskApp.js dans kiosk.html**
+  - kiosk.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
 
 </details>
 
