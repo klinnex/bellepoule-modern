@@ -26,7 +26,7 @@ describe('i18n des pages distantes découpé par langue (#1213)', () => {
     await win.initRemoteI18n();
     expect(win.T('referee.time_up')).toBe("Time's up!");
     expect(win.T('referee.wins', { name: 'A', reason: 'coin toss' })).toBe(
-      '🏆 A wins the match (coin toss)'
+      'A wins the match (coin toss)'
     );
   });
 
