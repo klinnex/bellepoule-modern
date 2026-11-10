@@ -143,7 +143,7 @@ describe('deleteFencer', () => {
     await act(async () => {
       await r.current.deleteFencer('1');
     });
-    const options = showToast.mock.calls.at(-1)?.[2];
+    const options = showToast.mock.calls[showToast.mock.calls.length - 1][2];
     expect(options.action.label).toBe('fencerList.undo');
     await act(async () => {
       options.action.onClick();
