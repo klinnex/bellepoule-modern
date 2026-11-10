@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 381 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 45 | 304 |
+| `src/remote/` | 46 | 307 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **321** | **2512** |
+| **Total** | **322** | **2515** |
 
-Unitaires : 311 fichiers, 2473 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 312 fichiers, 2476 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4700,6 +4700,16 @@ Unitaires : 311 fichiers, 2473 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - des codes sont bien émis
   - chaque code est traduit (%s) _(each)_
   - errorText : traduction paramétrée, texte brut, repli
+
+</details>
+
+<details>
+<summary><code>src/remote/focusRing.test.ts</code> — 3 tests</summary>
+
+- **focus visible global des pages distantes (#1537)**
+  - tokens.css définit :focus-visible 2 px / décalage 2 px et forced-colors
+  - chaque page distante charge tokens.css
+  - styles.css ne supprime pas le focus sans repli visible
 
 </details>
 
