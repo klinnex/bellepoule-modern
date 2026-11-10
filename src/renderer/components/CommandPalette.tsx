@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../contexts/TranslationContext';
+import { getPhaseTargets, selectPhase } from './competition/phaseRegistry';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import {
   matchSlashCommands,
@@ -83,7 +84,19 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
       keywords: [c.title.toLowerCase(), c.weapon, c.category],
     }));
-    return [...staticCommands, ...competitionCommands];
+    // Navigation entre phases de la compétition ouverte (#1536)
+    const phaseCommands: Command[] = getPhaseTargets().map(p => ({
+      id: `phase-${p.id}`,
+      label: p.label,
+      description: `Ctrl + ${p.position}`,
+      icon: '→',
+      action: () => {
+        onClose();
+        selectPhase(p.id);
+      },
+      keywords: ['phase', 'aller', 'go', p.label.toLowerCase()],
+    }));
+    return [...staticCommands, ...phaseCommands, ...competitionCommands];
   }, [competitions, t, onClose, onNewCompetition, onOpenSettings, onSelectCompetition]);
 
   const isSlash = query.trimStart().startsWith('/') && !!onRunCommand;
