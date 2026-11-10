@@ -131,10 +131,10 @@ class RemoteRefereeApp {
 
     updateConnectionStatus() {
         if (this.isConnected) {
-            this.connectionStatus.textContent = '🟢 Connecté';
+            this.connectionStatus.textContent = 'Connecté';
             this.connectionStatus.className = 'status-indicator';
         } else {
-            this.connectionStatus.textContent = '🔴 Déconnecté';
+            this.connectionStatus.textContent = 'Déconnecté';
             this.connectionStatus.className = 'status-indicator error';
         }
     }
