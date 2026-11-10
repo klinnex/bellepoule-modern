@@ -237,13 +237,13 @@
     }
     .obs-hint .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
   </style>
-  <script src="/common.js"></script>
+  <script src="/common.js"></script><script src="/js/icons.js"></script>
   <script src="/i18n.js"></script>
 </head>
 <body>
 <div class="app">
   <header>
-    <span class="logo">🎥</span>
+    <span class="logo" data-icon="video"></span>
     <span data-i18n="overlay.config_title">Overlay Streaming — Configurateur</span>
     <span class="sub">BellePoule Modern</span>
   </header>
@@ -304,19 +304,19 @@
       <div class="section-body">
         <div class="chips">
           <label class="chip active" id="chip-timer">
-            <input type="checkbox" checked data-change="toggleHide" data-args='["timer","$el"]' /> <span data-i18n="overlay.el_timer">⏱ Timer</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["timer","$el"]' /> <span data-icon="timer"></span> <span data-i18n="overlay.el_timer">Timer</span>
           </label>
           <label class="chip active" id="chip-cards">
-            <input type="checkbox" checked data-change="toggleHide" data-args='["cards","$el"]' /> <span data-i18n="overlay.el_cards">🟨 Cartons</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["cards","$el"]' /> <span data-icon="card"></span> <span data-i18n="overlay.el_cards">Cartons</span>
           </label>
           <label class="chip active" id="chip-club">
-            <input type="checkbox" checked data-change="toggleHide" data-args='["club","$el"]' /> <span data-i18n="overlay.el_club">🏟 Club</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["club","$el"]' /> <span data-icon="club"></span> <span data-i18n="overlay.el_club">Club</span>
           </label>
           <label class="chip active" id="chip-phase">
             <input type="checkbox" checked data-change="toggleHide" data-args='["phase","$el"]' /> <span data-i18n="overlay.el_phase"># Phase</span>
           </label>
           <label class="chip" id="chip-swap">
-            <input type="checkbox" data-change="toggleSwap" data-args='["$el"]' /> <span data-i18n="overlay.el_swap">↔ Inverser vert/rouge</span>
+            <input type="checkbox" data-change="toggleSwap" data-args='["$el"]' /> <span data-icon="swap"></span> <span data-i18n="overlay.el_swap">Inverser vert/rouge</span>
           </label>
         </div>
       </div>
@@ -328,10 +328,10 @@
       <div class="section-body">
         <div class="chips">
           <label class="chip active" id="chip-scores-inner" data-click="setScorePos" data-args='["inner"]'>
-            <span data-i18n="overlay.score_outer">[Nom·Score] ⬛ [Score·Nom] — côté extérieur</span>
+            <span data-i18n="overlay.score_outer">[Nom·Score] | [Score·Nom] — côté extérieur</span>
           </label>
           <label class="chip" id="chip-scores-outer" data-click="setScorePos" data-args='["outer"]'>
-            <span data-i18n="overlay.score_inner">[Score·Nom] ⬛ [Nom·Score] — côté centre</span>
+            <span data-i18n="overlay.score_inner">[Score·Nom] | [Nom·Score] — côté centre</span>
           </label>
         </div>
       </div>
@@ -346,7 +346,7 @@
           <input type="url" id="logo-url" placeholder="http://192.168.1.x/logo.png" />
         </label>
         <div class="obs-hint">
-          <span class="icon">💡</span>
+          <span class="icon" data-icon="bulb"></span>
           <span data-i18n="overlay.logo_tip">Astuce : dans OBS, tu peux aussi superposer une source Image directement sur ta scène pour plus de contrôle.</span>
         </div>
       </div>
@@ -358,12 +358,12 @@
       <div class="section-body">
         <div class="url-box" id="generated-url">—</div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="copy-btn" data-click="copyUrl" data-i18n="overlay.copy_url">📋 Copier l'URL</button>
-          <button class="btn btn-ghost" data-click="openPreviewTab" data-i18n="overlay.open">↗ Ouvrir</button>
+          <button class="btn btn-primary" id="copy-btn" data-click="copyUrl"><span data-icon="copy"></span> <span data-i18n="overlay.copy_url">Copier l'URL</span></button>
+          <button class="btn btn-ghost" data-click="openPreviewTab"><span data-icon="external"></span> <span data-i18n="overlay.open">Ouvrir</span></button>
         </div>
         <div class="obs-hint">
-          <span class="icon">🎬</span>
-          <span data-i18n="overlay.obs_howto">Dans OBS : Sources → + → Navigateur → coller l'URL → saisir la largeur et hauteur ci-dessus → ✔ Actualiser quand la scène devient active.</span>
+          <span class="icon" data-icon="clapper"></span>
+          <span data-i18n="overlay.obs_howto">Dans OBS : Sources → + → Navigateur → coller l'URL → saisir la largeur et hauteur ci-dessus → Actualiser quand la scène devient active.</span>
         </div>
       </div>
     </div>
@@ -518,9 +518,10 @@
   function copyUrl() {
     navigator.clipboard.writeText(buildUrl()).then(() => {
       const btn = document.getElementById('copy-btn');
-      btn.textContent = window.T ? window.T('overlay.copied') : '✓ Copié !';
+      const label = btn.querySelector('[data-i18n]');
+      label.textContent = window.T ? window.T('overlay.copied') : '✓ Copié !';
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = window.T ? window.T('overlay.copy_url') : '📋 Copier l\'URL'; btn.classList.remove('copied'); }, 2000);
+      setTimeout(() => { label.textContent = window.T ? window.T('overlay.copy_url') : 'Copier l\'URL'; btn.classList.remove('copied'); }, 2000);
     });
   }
   function openPreviewTab() { window.open(buildUrl(), '_blank'); }

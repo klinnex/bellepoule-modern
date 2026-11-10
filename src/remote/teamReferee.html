@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title data-i18n="team.referee_page_title">Arbitre équipe — BellePoule</title>
-    <script src="/i18n.js"></script>
+    <script src="/js/icons.js"></script><script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <link rel="stylesheet" href="/tokens.css" />
     <style>
@@ -164,15 +164,15 @@
 
       <div class="timer" id="timer">3:00</div>
       <div class="timer-controls">
-        <button id="timer-start" data-i18n="team.start">▶ Démarrer</button>
-        <button id="timer-pause" data-i18n="team.pause">⏸ Pause</button>
+        <button id="timer-start"><span data-icon="play"></span> <span data-i18n="team.start">Démarrer</span></button>
+        <button id="timer-pause"><span data-icon="pause"></span> <span data-i18n="team.pause">Pause</span></button>
       </div>
 
       <div id="zones-a" class="zone-row"></div>
       <div id="zones-b" class="zone-row"></div>
 
       <div class="actions-row">
-        <button class="reset-btn" id="reset-bout" data-i18n="team.reset_bout">↩ Réinitialiser l'assaut</button>
+        <button class="reset-btn" id="reset-bout"><span data-icon="undo"></span> <span data-i18n="team.reset_bout">Réinitialiser l'assaut</span></button>
         <button class="advance-btn" id="advance-bout" data-i18n="team.next_relay">Relais suivant →</button>
       </div>
 
@@ -197,7 +197,6 @@
 
     <script>
       (function () {
-        const CARD_BADGE = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
         const CARD_TYPES = ['white', 'yellow', 'red', 'black'];
 
         function getArenaId() {
@@ -259,7 +258,7 @@
           CARD_TYPES.filter(type => type !== 'black' || lastState.blackCardEnabled).forEach(type => {
             const btn = document.createElement('button');
             btn.className = 'card-btn';
-            btn.textContent = CARD_BADGE[type];
+            btn.innerHTML = bpCard(type);
             btn.title = tk('team.card_title', { type });
             btn.onclick = () => socket.emit('team_card', { arenaId, teamId, type });
             container.appendChild(btn);
@@ -291,7 +290,7 @@
         function fencerCardsLog(fencerId) {
           return lastState.fencerCards
             .filter(c => c.fencerId === fencerId)
-            .map(c => CARD_BADGE[String(c.type).toLowerCase()] || c.type)
+            .map(c => bpCard(c.type))
             .join(' ');
         }
 
@@ -371,17 +370,17 @@
           const logA = document.getElementById('cards-log-a');
           const logB = document.getElementById('cards-log-b');
           if (isRelay()) {
-            logA.textContent = bout0 ? fencerCardsLog(bout0.fencerAId) : '';
-            logB.textContent = bout0 ? fencerCardsLog(bout0.fencerBId) : '';
+            logA.innerHTML = bout0 ? fencerCardsLog(bout0.fencerAId) : '';
+            logB.innerHTML = bout0 ? fencerCardsLog(bout0.fencerBId) : '';
             return;
           }
-          logA.textContent = lastState.cards
+          logA.innerHTML = lastState.cards
             .filter(c => c.teamId === lastState.teamAId)
-            .map(c => CARD_BADGE[c.type])
+            .map(c => bpCard(c.type))
             .join(' ');
-          logB.textContent = lastState.cards
+          logB.innerHTML = lastState.cards
             .filter(c => c.teamId === lastState.teamBId)
-            .map(c => CARD_BADGE[c.type])
+            .map(c => bpCard(c.type))
             .join(' ');
         }
 
