@@ -112,6 +112,7 @@ describe('arenaUpdate.js planArenaUpdate', () => {
   it('arena.html charge le module et délègue', () => {
     const html = fs.readFileSync(path.join(__dirname, '..', 'arena.html'), 'utf8');
     expect(html).toContain('<script src="/js/arenaUpdate.js"></script>');
-    expect(html).toContain('ArenaUpdate.planArenaUpdate(');
+    const page = fs.readFileSync(path.join(__dirname, 'arenaDisplay.js'), 'utf8');
+    expect(page).toContain('ArenaUpdate.planArenaUpdate(');
   });
 });

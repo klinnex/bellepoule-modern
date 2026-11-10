@@ -12,7 +12,7 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 
 | Événement | Écouté par le serveur | Émis par |
 |---|:---:|---|
-| `arena_control` | ✓ | `arena.html`, `referee.html` |
+| `arena_control` | ✓ | `arena.html`, `public.html`, `referee.html` |
 | `client:battery` | ✓ | `referee.html` |
 | `client:pong` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
 | `client:register` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
