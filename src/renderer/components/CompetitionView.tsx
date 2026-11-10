@@ -21,7 +21,6 @@ import {
   Competition,
   Fencer,
   FencerStatus,
-  Match,
   MatchStatus,
   Weapon,
   QuestPhaseConfig,
@@ -29,19 +28,12 @@ import {
   Gender,
   Pool,
 } from '../../shared/types';
-import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
-import { NotificationService } from '../../shared/services/notificationService';
 import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
-import {
-  TableauMatch,
-  propagateWinners,
-  ConsolationBracket,
-  isBracketComplete,
-} from './tableau/tableauTypes';
+import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import { getRoundName } from './tableau/tableauCalculations';
-import { poolMatchesWithReferee, propagatePoolReferee } from '../../shared/utils/refereeStats';
+import { poolMatchesWithReferee } from '../../shared/utils/refereeStats';
 import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
@@ -70,6 +62,8 @@ import { buildStripQrs, useExport } from '../hooks/useExport';
 import { usePoolStripChange } from '../hooks/usePoolStripChange';
 import { useMenuEvents } from '../hooks/useMenuEvents';
 import { useRemoteScoreSync } from '../hooks/useRemoteScoreSync';
+import { useCompetitionReferees } from '../hooks/useCompetitionReferees';
+import { useRapieresCompetition } from '../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../hooks/useMatchDbSync';
 import { generateInitialRanking, filterPoolWinners } from '../../shared/utils/poolCalculations';
 import {
@@ -87,12 +81,7 @@ import {
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
 import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
-import {
-  createRapieresSession,
-  emptyRapieresTeamInfo,
-  RapieresTableauMode,
-  RapieresTeamInfo,
-} from '../../features/rapieres/rapieres.types';
+import { emptyRapieresTeamInfo, RapieresTableauMode } from '../../features/rapieres/rapieres.types';
 import {
   rapieresTableauQualifiers,
   rapieresTableauSettings,
@@ -100,20 +89,15 @@ import {
   rapieresSemifinalists,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
-  waveMatchIds,
-  waveSheetMatches,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
 import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
 import { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
-import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import { useRapieresViewProps } from '../../features/rapieres/useRapieresViewProps';
-import RapieresRankingPanel, {
-  RapieresTeamStats,
-} from '../../features/rapieres/RapieresRankingPanel';
+import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
 import { QRCodeShare } from './QRCodeShare';
 import { checkInStatusUpdate, specialStatusPatch } from '../../shared/utils/forfeit';
 import KioskScoreEntry from './competition/KioskScoreEntry';
@@ -843,126 +827,28 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   });
   const { rapieresFencerFields, handleSaveRapieresTeam } = rapieresTeams;
 
-  // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
-  const rapieresMigrating = useRef(false);
-  useEffect(() => {
-    if (!isRapieres || !isLoaded || rapieresState?.version !== 1 || rapieresMigrating.current)
-      return;
-    rapieresMigrating.current = true;
-    const legacy = rapieresState;
-    const LEGACY_STATUS: Record<string, FencerStatus> = {
-      checked_in: FencerStatus.CHECKED_IN,
-      abandoned: FencerStatus.ABANDONED,
-      forfait: FencerStatus.FORFAIT,
-      excluded: FencerStatus.EXCLUDED,
-    };
-    (async () => {
-      const teams: Record<string, RapieresTeamInfo> = {};
-      if (fencers.length === 0 && legacy.teams.length > 0) {
-        const added = await bulkAddFencers(
-          legacy.teams.map(
-            tm =>
-              ({
-                ...rapieresFencerFields({
-                  name: tm.name,
-                  info: { level: tm.level, fencers: tm.fencers },
-                }),
-                gender: Gender.MIXED,
-                nationality: 'FRA',
-                status: LEGACY_STATUS[tm.status ?? 'checked_in'] ?? FencerStatus.NOT_CHECKED_IN,
-              }) as Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>
-          )
-        );
-        added.forEach((f, i) => {
-          teams[f.id] = { level: legacy.teams[i].level, fencers: legacy.teams[i].fencers };
-        });
-      }
-      setRapieresState({ ...createRapieresSession(), teams });
-    })().catch(error => {
-      rapieresMigrating.current = false;
-      logger.error(LogCategory.UI, 'Rapières : migration impossible', error as Error);
-    });
-  }, [isRapieres, isLoaded, rapieresState, fencers.length]);
-
-  /** Nouvelles poules : aucune vague lancée tant qu'aucun match n'est joué */
-  const resetRapieresWaves = (newPools: Pool[]) => {
-    if (!isRapieres) return;
-    const played = newPools.some(p => p.matches.some(m => m.status !== MatchStatus.NOT_STARTED));
-    if (!played) updateRapieres({ launchedWave: 0, wavesEnded: false });
-  };
-
-  // Statistiques de poule par équipe (classements rapières)
-  const rapieresStats = useMemo(
-    () =>
-      new Map<string, RapieresTeamStats>(
-        overallRanking.map(r => [
-          r.fencer.id,
-          {
-            victories: r.victories,
-            matches: r.matchesPlayed,
-            index: r.index,
-            touchesGiven: r.touchesScored,
-          },
-        ])
-      ),
-    [overallRanking]
-  );
-
-  // Matchs de la vague en cours (surbrillance violette)
-  const currentWaveMatchIds = useMemo(
-    () =>
-      isRapieres && !rapieres.wavesEnded ? waveMatchIds(pools, rapieres.launchedWave) : undefined,
-    [isRapieres, pools, rapieres.launchedWave, rapieres.wavesEnded]
-  );
-
-  // Tablettes arbitre : matchs de la vague active seulement (rapières, #1118), mémorisé par le main
-  useEffect(() => {
-    if (!isRapieres || !competition?.id) return;
-    const ids = currentWaveMatchIds ? [...currentWaveMatchIds] : null;
-    const api = window.electronAPI?.remote;
-    api?.setActiveWave?.(competition.id, ids, !!rapieres.wavesEnded)?.catch?.(() => undefined);
-  }, [isRapieres, isRemoteActive, competition?.id, currentWaveMatchIds, rapieres.wavesEnded]);
-
-  // Impression des feuilles de match d'un intervalle de vagues (#1118, plage #1441).
-  // Flux continu : une feuille qui ne tient pas sur la page bascule sur la suivante.
-  const printWaves = useCallback(
-    async (from: number, to: number) => {
-      const sheets = [];
-      for (let wave = from; wave <= to; wave++) sheets.push(...waveSheetMatches(pools, wave));
-      if (sheets.length === 0) {
-        showToast(t('rapieres.print_wave_sheets_empty'), 'error');
-        return;
-      }
-      const label = from === to ? `Vague ${from}` : `Vagues ${from} à ${to}`;
-      try {
-        const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-        const { printTableauHTML } = await import('../../shared/utils/pdfExport');
-        await printTableauHTML(
-          sheets,
-          3,
-          `${competition.title} — ${label}`,
-          logo,
-          usePdfTemplateStore.getState().templates.tableau,
-          undefined,
-          {
-            subtitle: `Feuilles d'arbitrage — ${label}`,
-            badge: 'V' + from,
-            continuous: true,
-            sheetsOnly: true, // sans bandeau titre ni pied de page (#1441)
-          }
-        );
-      } catch (e) {
-        showToast((e as Error).message, 'error');
-      }
-    },
-    [pools, competition.title, showToast, t]
-  );
-
-  // Impression des feuilles de match de la vague active (même rendu que les feuilles du tableau) (#1118)
-  const handlePrintWaveSheets = useCallback(
-    () => printWaves(rapieres.launchedWave, rapieres.launchedWave),
-    [printWaves, rapieres.launchedWave]
-  );
+  const {
+    resetRapieresWaves,
+    rapieresStats,
+    currentWaveMatchIds,
+    printWaves,
+    handlePrintWaveSheets,
+  } = useRapieresCompetition({
+    competitionId: competition.id,
+    competitionTitle: competition.title,
+    isRapieres,
+    isLoaded,
+    isRemoteActive,
+    fencers,
+    pools,
+    overallRanking,
+    rapieres,
+    rapieresState,
+    setRapieresState,
+    updateRapieres,
+    bulkAddFencers,
+    rapieresFencerFields,
+  });
 
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
   const poolsRemoteInfo =
@@ -1327,130 +1213,23 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Arbitres proposés au remplissage automatique (tests) — uniquement si la gestion des arbitres est active
   const autoFillReferees = competition.settings?.refereeFeatureEnabled ? referees : undefined;
 
-  // Applique des assignations d'arbitres (matchId → arbitre) aux matchs de poule
-  const applyPoolRefereeAssignments = useCallback(
-    (assignments: Map<string, Referee>) => {
-      setPools(prev =>
-        prev.map(pool => ({
-          ...pool,
-          matches: (pool.matches ?? []).map(m => {
-            const ref = assignments.get(m.id);
-            return ref !== undefined ? { ...m, referee: ref } : m;
-          }),
-        }))
-      );
-    },
-    [setPools]
-  );
-
-  // Remplissage automatique des poules : assignation persistée en DB
-  const handlePoolAutoFillReferees = useCallback(
-    (assignments: Map<string, Referee>) => {
-      applyPoolRefereeAssignments(assignments);
-      for (const [matchId, ref] of assignments) {
-        // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID
-        Promise.resolve()
-          .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId: ref.id }))
-          .catch((e: unknown) =>
-            logger.warn(
-              LogCategory.DATABASE,
-              'updateMatch (arbitre auto) failed',
-              e instanceof Error ? e : undefined
-            )
-          );
-      }
-    },
-    [applyPoolRefereeAssignments]
-  );
-
-  // Arbitre(s) assigné(s) à une poule entière : l'arbitre principal est répercuté
-  // sur les matchs de la poule (onglet Assignations + statistiques) (#977)
-  const handlePoolRefereeAssigned = useCallback(
-    (poolId: string, poolReferees: Referee[]) => {
-      const pool = pools.find(p => p.id === poolId);
-      if (!pool) return;
-      const { matches, changes } = propagatePoolReferee(
-        pool.matches ?? [],
-        pool.referees?.[0]?.id,
-        poolReferees[0]
-      );
-      setPools(prev =>
-        prev.map(p => (p.id === poolId ? { ...p, referees: poolReferees, matches } : p))
-      );
-      for (const { matchId, refereeId } of changes) {
-        Promise.resolve()
-          .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId }))
-          .catch((e: unknown) =>
-            logger.warn(
-              LogCategory.DATABASE,
-              'updateMatch (arbitre de poule) failed',
-              e instanceof Error ? e : undefined
-            )
-          );
-      }
-    },
-    [pools, setPools]
-  );
-
-  // Arbitre changé depuis une tablette : répercuté sur poules, tableau et consolantes (#977)
-  const refereesRef = useRef(referees);
-  refereesRef.current = referees;
-  useEffect(() => {
-    const off = window.electronAPI?.onRemoteRefereeChanged?.(async ({ matchId, refereeId }) => {
-      let ref = refereesRef.current.find(r => r.id === refereeId);
-      if (!ref) {
-        const rows: Referee[] = await window.electronAPI.db
-          .getRefereesByCompetition(competition.id)
-          .catch(() => []);
-        setReferees(rows);
-        ref = rows.find(r => r.id === refereeId);
-      }
-      if (!ref) return;
-      const principal = ref;
-      const withReferee = <T extends { id: string; referees?: Array<{ id: string }> }>(m: T): T =>
-        m.id !== matchId
-          ? m
-          : {
-              ...m,
-              referee: principal,
-              ...(m.referees?.length ? { referees: [principal, ...m.referees.slice(1)] } : {}),
-            };
-      applyPoolRefereeAssignments(new Map([[matchId, principal]]));
-      setTableauMatches(prev => prev.map(withReferee));
-      setConsolationBrackets(prev =>
-        prev.map(b =>
-          b.matches.some(m => m.id === matchId) ? { ...b, matches: b.matches.map(withReferee) } : b
-        )
-      );
-    });
-    return () => off?.();
-  }, [competition.id, applyPoolRefereeAssignments]);
-
-  // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
-  const refereeAssignableMatches = useMemo<Match[]>(() => {
-    const now = new Date();
-    const toMatch = (m: TableauMatch, tableId: string): Match => ({
-      id: m.id,
-      number: m.position,
-      fencerA: m.fencerA,
-      fencerB: m.fencerB,
-      scoreA: null,
-      scoreB: null,
-      maxScore: tableMaxScore === 0 ? 999 : tableMaxScore,
-      status: m.winner || m.isBye ? MatchStatus.FINISHED : MatchStatus.NOT_STARTED,
-      referee: m.referee ? referees.find(r => r.id === m.referee!.id) : undefined,
-      tableId,
-      round: m.round,
-      position: m.position,
-      createdAt: now,
-      updatedAt: now,
-    });
-    return [
-      ...pools.flatMap(poolMatchesWithReferee),
-      ...tableauMatches.map(m => toMatch(m, competition.id)),
-      ...consolationBrackets.flatMap(b => b.matches.map(m => toMatch(m, b.id))),
-    ];
-  }, [pools, tableauMatches, consolationBrackets, referees, tableMaxScore, competition.id]);
+  const {
+    applyPoolRefereeAssignments,
+    handlePoolAutoFillReferees,
+    handlePoolRefereeAssigned,
+    refereeAssignableMatches,
+  } = useCompetitionReferees({
+    competitionId: competition.id,
+    pools,
+    setPools,
+    referees,
+    setReferees,
+    tableauMatches,
+    setTableauMatches,
+    consolationBrackets,
+    setConsolationBrackets,
+    tableMaxScore,
+  });
 
   const isTeamEvent = !!competition.isTeamEvent;
   const phaseOrder = useMemo<Phase[]>(() => {
