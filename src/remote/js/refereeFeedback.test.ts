@@ -95,6 +95,47 @@ describe('bouton Annuler la touche temporaire', () => {
     expect(document.getElementById('undo-toast')!.hidden).toBe(true);
   });
 
+  it('minuteurs par défaut : setTimeout appelé sans this détourné (navigateur, #1716)', () => {
+    // Le navigateur lève « Illegal invocation » si setTimeout est appelé comme méthode d'un objet
+    const realSet = globalThis.setTimeout;
+    const realClear = globalThis.clearTimeout;
+    const calls: number[] = [];
+    function strictSet(this: unknown, _f: () => void, ms?: number) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+      calls.push(ms ?? 0);
+      return 1;
+    }
+    function strictClear(this: unknown) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+    }
+    globalThis.setTimeout = strictSet as unknown as typeof setTimeout;
+    globalThis.clearTimeout = strictClear as unknown as typeof clearTimeout;
+    try {
+      expect(() => F.showUndoToast(document, (k: string) => k, vi.fn(), 4000)).not.toThrow();
+      // second appel : clear du minuteur précédent puis nouveau set
+      expect(() => F.showUndoToast(document, (k: string) => k, vi.fn(), 4000)).not.toThrow();
+      expect(calls).toEqual([4000, 4000]);
+    } finally {
+      globalThis.setTimeout = realSet;
+      globalThis.clearTimeout = realClear;
+    }
+  });
+
+  it('afterScore ne lève pas avec les minuteurs natifs (+1 opérant, #1716)', () => {
+    const realSet = globalThis.setTimeout;
+    function strictSet(this: unknown) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+      return 1;
+    }
+    globalThis.setTimeout = strictSet as unknown as typeof setTimeout;
+    try {
+      expect(() => F.afterScore({ undoLastAction: vi.fn() }, 1)).not.toThrow();
+      expect(document.getElementById('undo-toast')!.hidden).toBe(false);
+    } finally {
+      globalThis.setTimeout = realSet;
+    }
+  });
+
   it('icône SVG devant le libellé quand /js/icons.js est chargé', () => {
     (window as unknown as { bpIcon: (n: string) => string }).bpIcon = n =>
       `<svg data-n="${n}"></svg>`;
