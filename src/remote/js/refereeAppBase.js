@@ -1285,7 +1285,7 @@ class RefereeAppBase {
       const fencerName = nameEl ? nameEl.textContent.trim() : exitColor;
       this.socket.emit('arena_control', {
         arenaId: this.arenaId,
-        action: 'arena_exit',
+        action: 'exit_announcement',
         announcement: { fencer: ef, fencerName, points },
       });
     }
