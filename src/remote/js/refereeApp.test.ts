@@ -31,6 +31,7 @@ async function loadReferee() {
   vc.on('error', (...a) => errors.push(a.join(' ')));
   const handlers: Record<string, Handler> = {};
   const emitted: string[] = [];
+  const emittedData: unknown[] = [];
   const dom = new JSDOM(prep.serialize(), {
     url: 'http://localhost/arene1/arbitre',
     runScripts: 'dangerously',
@@ -44,8 +45,9 @@ async function loadReferee() {
           handlers[e] = cb;
           return socket;
         },
-        emit(e: string) {
+        emit(e: string, data?: unknown) {
           emitted.push(e);
+          emittedData.push(data);
           return socket;
         },
       };
@@ -58,7 +60,7 @@ async function loadReferee() {
     },
   });
   await new Promise(resolve => setTimeout(resolve, 300));
-  return { dom, handlers, emitted, errors };
+  return { dom, handlers, emitted, emittedData, errors };
 }
 
 describe('refereeApp.js dans referee.html', () => {
@@ -74,5 +76,85 @@ describe('refereeApp.js dans referee.html', () => {
     expect(errors).toEqual([]);
     expect(handlers['connect']).toBeTypeOf('function');
     expect(handlers['server:command']).toBeTypeOf('function');
+  });
+});
+
+describe('chrono conservé après rafraîchissement (#1717)', () => {
+  const KEY = 'bp_referee_timer_arena1'; // arenaId de /arene1/arbitre
+  type App = {
+    matches: Array<Record<string, unknown>>;
+    currentMatch: { id: string } | null;
+    matchStatus: string;
+    timerSeconds: number;
+    defaultTimerSeconds: number;
+    isSuddenDeath: boolean;
+    timerRunning: boolean;
+    _timerCs: number;
+    selectMatch: (id: string) => void;
+    broadcastTimerUpdate: () => void;
+  };
+  const fencer = (id: string) => ({ id, firstName: id, lastName: id, club: '' });
+  const match = (status: string) => ({
+    id: 'm1',
+    poolId: 'p1',
+    fencerA: fencer('a'),
+    fencerB: fencer('b'),
+    scoreA: { value: 2 },
+    scoreB: { value: 1 },
+    status,
+  });
+
+  it('pendant le match : le chrono diffusé est mémorisé en localStorage', async () => {
+    const { dom, errors } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; localStorage: Storage };
+    const app = w.refereeApp;
+    app.currentMatch = { id: 'm1' };
+    app.matchStatus = 'in_progress';
+    app._timerCs = 9500;
+    app.broadcastTimerUpdate();
+    const saved = JSON.parse(w.localStorage.getItem(KEY) ?? '{}');
+    expect(saved).toMatchObject({ matchId: 'm1', cs: 9500 });
+    expect(errors).toEqual([]);
+  });
+
+  it('reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours', async () => {
+    const { dom, emittedData, errors } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; localStorage: Storage };
+    const app = w.refereeApp;
+    w.localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        matchId: 'm1',
+        cs: 9500,
+        isSuddenDeath: false,
+        overtimeType: null,
+        isResting: false,
+        savedAt: Date.now(),
+      })
+    );
+    app.matches = [match('in_progress')];
+    app.selectMatch('m1');
+    expect(app.timerSeconds).toBe(95);
+    expect(app.matchStatus).toBe('in_progress');
+    expect(app.timerRunning).toBe(false);
+    const actions = emittedData.map(d => (d as { action?: string } | undefined)?.action);
+    expect(actions).toContain('select_match');
+    expect(actions.indexOf('start')).toBeGreaterThan(actions.indexOf('select_match'));
+    expect(actions).toContain('pause_timer');
+    expect(errors).toEqual([]);
+  });
+
+  it('match non commencé ou autre match : durée initiale, sauvegarde effacée', async () => {
+    const { dom, emittedData } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; localStorage: Storage };
+    const app = w.refereeApp;
+    w.localStorage.setItem(KEY, JSON.stringify({ matchId: 'm1', cs: 9500, savedAt: Date.now() }));
+    app.matches = [match('not_started')];
+    app.selectMatch('m1');
+    expect(app.timerSeconds).toBe(app.defaultTimerSeconds);
+    expect(app.matchStatus).not.toBe('in_progress');
+    expect(w.localStorage.getItem(KEY)).toBeNull();
+    const actions = emittedData.map(d => (d as { action?: string } | undefined)?.action);
+    expect(actions).not.toContain('start');
   });
 });
