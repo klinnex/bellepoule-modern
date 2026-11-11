@@ -602,6 +602,7 @@ class RefereeApp extends RefereeAppBase {
   }
 
   broadcastTimerUpdate() {
+    this.persistTimerState();
     this.socket.emit('arena_control', {
       arenaId: this.arenaId,
       action: this.timerRunning ? 'update_timer' : 'pause_timer',
@@ -610,6 +611,34 @@ class RefereeApp extends RefereeAppBase {
       suddenDeath: this.isSuddenDeath,
       overtimeType: this.overtimeType,
     });
+  }
+
+  // Stockage local du chrono (#1717) : null si indisponible (navigation privée stricte)
+  _timerStorage() {
+    try {
+      return window.localStorage;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Mémorise le chrono du match en cours pour le restaurer après un rafraîchissement (#1717)
+  persistTimerState() {
+    if (!this.currentMatch || this.matchStatus !== 'in_progress') return;
+    const storage = this._timerStorage();
+    if (!storage) return;
+    BPRefereeTimer.saveTimerState(
+      storage,
+      this.arenaId,
+      {
+        matchId: this.currentMatch.id,
+        cs: this._timerCs,
+        isSuddenDeath: this.isSuddenDeath,
+        overtimeType: this.overtimeType,
+        isResting: this.isResting,
+      },
+      Date.now()
+    );
   }
 
   broadcastUpdate() {
