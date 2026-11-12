@@ -33,6 +33,8 @@
  *                  formatTime / formatNumber (langue active, #1160)
  *   - serverMessage : `error: '…'` en clair (texte avec espace) dans les réponses du process
  *                  principal (src/main) → code d'erreur stable traduit côté client (#1159)
+ *   - diagProbe  : sonde de débogage temporaire (`DIAGNOSTIC`, canal `remote:diag`) restée
+ *                  dans src/ (ts, tsx, js, html, hors tests) → logger.debug (#1773)
  *   - rawBtn     : `className` JSX contenant la classe `btn` écrite à la main dans le renderer
  *                  → primitive `<Button variant=… size=…>` (common/Button.tsx, #1529)
  *
@@ -386,6 +388,32 @@ function remoteEmojiFindings() {
   return out;
 }
 
+const DIAG_PROBE_RE = /DIAGNOSTIC|remote:diag/;
+
+/** Sondes de débogage temporaires restées dans src/ (hors tests, #1773) */
+function diagProbeFindings() {
+  const out = [];
+  const stack = [SRC];
+  while (stack.length) {
+    const dir = stack.pop();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (/\.(tsx?|js|html)$/.test(entry.name) && !EXCLUDE_RE.test(full)) {
+        const lines = [];
+        fs.readFileSync(full, 'utf8')
+          .split('\n')
+          .forEach((l, i) => {
+            if (DIAG_PROBE_RE.test(l)) lines.push(i + 1);
+          });
+        if (lines.length)
+          out.push({ file: path.relative(ROOT, full).split(path.sep).join('/'), lines });
+      }
+    }
+  }
+  return out.sort((a, b) => a.file.localeCompare(b.file));
+}
+
 /** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
 function fileLengths() {
   const out = {};
@@ -422,6 +450,7 @@ function collect() {
     'remoteHardColor',
     'emojiLocale',
     'remoteEmoji',
+    'diagProbe',
   ]) {
     totals[key] = 0;
     details[key] = [];
@@ -444,6 +473,8 @@ function collect() {
   totals.emojiLocale = details.emojiLocale.reduce((n, f) => n + f.lines.length, 0);
   details.remoteEmoji = remoteEmojiFindings();
   totals.remoteEmoji = details.remoteEmoji.reduce((n, f) => n + f.lines.length, 0);
+  details.diagProbe = diagProbeFindings();
+  totals.diagProbe = details.diagProbe.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 

@@ -34,7 +34,7 @@ export interface ArenaControlContext {
   readonly pauseArenaMatch: S['pauseArenaMatch'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
-  readonly sendDiag: S['sendDiag'];
+  readonly logDiag: S['logDiag'];
   readonly session: S['session'];
   readonly sessionCardAnnounce: S['sessionCardAnnounce'];
   readonly sessionMatches: S['sessionMatches'];
@@ -90,7 +90,7 @@ export function handleArenaControl(
       // Sélection d'un match par l'arbitre (depuis sa tablette)
       if (data.match) {
         const m = data.match;
-        ctx.sendDiag(
+        ctx.logDiag(
           `[select_match] arena=${data.arenaId} matchId=${m.id} isTableau=${(m as any).isTableau}`
         );
         // Restaurer isTableau depuis sessionMatches car la tablette ne le transmet pas
@@ -131,7 +131,7 @@ export function handleArenaControl(
       ctx.pauseArenaMatch(data.arenaId);
       break;
     case 'finish':
-      ctx.sendDiag(`[socket finish] arena=${data.arenaId}`);
+      ctx.logDiag(`[socket finish] arena=${data.arenaId}`);
       ctx.arenaSuddenDeath.set(data.arenaId, false);
       ctx.arenaOvertimeType.set(data.arenaId, null);
       ctx.arenaWaitingOvertime.set(data.arenaId, false);

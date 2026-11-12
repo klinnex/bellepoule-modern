@@ -97,8 +97,8 @@ export function useRemoteScoreSync({
       const inTableau = tableauMatchesRef.current.some(idMatches);
       const inConsolation = consolationBracketsRef.current.some(b => b.matches.some(idMatches));
 
-      // DIAGNOSTIC (visible en prod, niveau WARN) : tracer le routage du score distant.
-      logger.warn(
+      // Trace de routage du score distant (DEBUG : silencieuse en production).
+      logger.debug(
         LogCategory.UI,
         `[applyRemoteScore] match=${matchId} score=${scoreA}-${scoreB} fini=${finished} ` +
           `→ tableau=${inTableau} consolante=${inConsolation} | ` +

@@ -37,6 +37,7 @@ import {
   type UpdateChannel,
 } from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
+import { getVersionInfo } from './versionInfo';
 
 /** Libellé unique par build (les builds dev partagent la même version X.Y.Z). */
 function pendingVersionLabel(info: { latestVersion: string; latestBuild: number }): string {
@@ -341,66 +342,11 @@ export class AutoUpdater {
     return Array.isArray(data) ? data : [];
   }
 
+  // version.json lu une seule fois (versionInfo.ts, mis en cache) : plus de lecture
+  // disque synchrone à chaque vérification de mise à jour (#1776).
   private getCurrentVersion(): { version: string; build: number } {
-    try {
-      const versionPaths = [
-        path.join(app.getAppPath(), 'version.json'),
-        path.join(process.cwd(), 'version.json'),
-      ];
-
-      for (const versionPath of versionPaths) {
-        if (fs.existsSync(versionPath)) {
-          const content = fs.readFileSync(versionPath, 'utf-8');
-          return JSON.parse(content);
-        }
-      }
-    } catch (e) {
-      logger.error(
-        LogCategory.SYSTEM,
-        'Failed to read version:',
-        toError(e instanceof Error ? e.message : e)
-      );
-    }
-
-    // Fallback depuis package.json
-    try {
-      const pkgPath = path.join(app.getAppPath(), 'package.json');
-      if (fs.existsSync(pkgPath)) {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
-        if (match) {
-          return {
-            version: match[1],
-            build: parseInt(match[2]) || 0,
-          };
-        }
-      }
-    } catch (e) {
-      logger.error(
-        LogCategory.SYSTEM,
-        'Failed to read package.json:',
-        toError(e instanceof Error ? e.message : e)
-      );
-    }
-
-    // Fallback depuis package.json
-    try {
-      const pkgPath = path.join(app.getAppPath(), 'package.json');
-      if (fs.existsSync(pkgPath)) {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
-        if (match) {
-          return {
-            version: match[1],
-            build: parseInt(match[2]) || 0,
-          };
-        }
-      }
-    } catch (e) {
-      logger.error(LogCategory.SYSTEM, 'Failed to read package.json:', toError(e));
-    }
-
-    return { version: '1.0.0', build: 0 };
+    const { version, build } = getVersionInfo();
+    return { version, build };
   }
 
   private showUpdateNotification(updateInfo: UpdateInfo): void {

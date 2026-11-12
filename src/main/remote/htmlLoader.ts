@@ -1,6 +1,8 @@
 /**
  * BellePoule Modern - Chargement en mémoire des pages distantes et du client socket.io (#1240)
  * Fonctions pures de lecture disque : l'état (htmlFiles, remoteBasePath…) reste dans le serveur.
+ * Lecture synchrone au démarrage du serveur uniquement : les pages sont ensuite servies
+ * depuis la mémoire, jamais relues par requête (#1776).
  * Licensed under GPL-3.0
  */
 import * as fs from 'fs';
@@ -66,15 +68,14 @@ export function loadSocketIoClient(): string | null {
 
   for (const candidate of candidates) {
     try {
-      if (fs.existsSync(candidate)) {
-        const js = fs.readFileSync(candidate, 'utf-8');
-        logger.info(
-          LogCategory.NETWORK,
-          `[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`
-        );
-        return js;
-      }
+      const js = fs.readFileSync(candidate, 'utf-8');
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`
+      );
+      return js;
     } catch (err) {
+      if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') continue;
       logger.error(
         LogCategory.NETWORK,
         `[RemoteScoreServer] Erreur lecture client socket.io ${candidate}:`,
@@ -141,10 +142,11 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
 
         for (const file of REMOTE_HTML_FILES) {
           const filePath = path.join(basePath, file);
-          if (fs.existsSync(filePath)) {
+          try {
             htmlFiles.set(file, fs.readFileSync(filePath, 'utf-8'));
             logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chargé: ${file}`);
-          } else {
+          } catch (e) {
+            if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') throw e;
             logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Fichier non trouvé: ${filePath}`);
           }
         }

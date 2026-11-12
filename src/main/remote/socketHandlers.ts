@@ -37,7 +37,7 @@ export interface SocketHandlersContext {
   readonly kioskThemeVariables: S['kioskThemeVariables'];
   readonly peekNextMatch: S['peekNextMatch'];
   readonly screenLabels: S['screenLabels'];
-  readonly sendDiag: S['sendDiag'];
+  readonly logDiag: S['logDiag'];
   readonly session: S['session'];
   readonly sessionBlackCardEnabled: S['sessionBlackCardEnabled'];
   readonly sessionCardAnnounce: S['sessionCardAnnounce'];
@@ -65,7 +65,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         try {
           return handler(...args);
         } catch (err) {
-          ctx.sendDiag(
+          ctx.logDiag(
             `[Sécurité] Événement socket « ${event} » rejeté : ${(err as Error)?.message}`
           );
         }
@@ -78,7 +78,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
     const clientIp = normalizeIp(socket.handshake?.address);
     const count = (ctx.socketsPerIp.get(clientIp) ?? 0) + 1;
     if (count > ctx.MAX_SOCKETS_PER_IP && !isLoopbackAddress(clientIp)) {
-      ctx.sendDiag(`[Sécurité] Trop de connexions socket depuis ${clientIp} — refusée`);
+      ctx.logDiag(`[Sécurité] Trop de connexions socket depuis ${clientIp} — refusée`);
       socket.disconnect(true);
       return;
     }
@@ -100,7 +100,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       );
       lastRefill = now;
       if (tokens < 1) {
-        ctx.sendDiag(`[Sécurité] Flood socket depuis ${clientIp} — déconnecté`);
+        ctx.logDiag(`[Sécurité] Flood socket depuis ${clientIp} — déconnecté`);
         socket.disconnect(true);
         return;
       }
