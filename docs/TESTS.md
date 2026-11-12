@@ -22,7 +22,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
-| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
+| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
 `npm run test:e2e`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 52 | 683 |
+| `src/shared/utils/` | 53 | 690 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -96,19 +96,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 6 | 138 |
-| `src/main/` | 56 | 457 |
+| `src/database/` | 7 | 146 |
+| `src/main/` | 57 | 461 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 84 | 409 |
+| `src/renderer/components/` | 85 | 412 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **347** | **2667** |
+| **Total** | **351** | **2689** |
 
-Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 341 fichiers, 2650 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -412,6 +412,20 @@ Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - exporte un JSON parsable
 - **trim à 100 entrées**
   - ne conserve que les 100 dernières
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/eventDay.test.ts</code> — 7 tests</summary>
+
+- **eventDay (#1714)**
+  - parse et sérialise les armes
+  - autorise selon les armes (vide = toutes)
+  - nom complet
+  - statut commun libre / occupé
+  - détecte les conflits sur toute la journée
+  - pas de conflit pour deux poules successives sur la même piste
+  - occupé ailleurs : ignore l’épreuve courante
 
 </details>
 
@@ -2081,10 +2095,11 @@ Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/competitionArchive.test.ts</code> — 4 tests</summary>
+<summary><code>src/database/competitionArchive.test.ts</code> — 5 tests</summary>
 
 - **competitionArchive (#1117)**
   - keepOnlyCompetition ne garde que la compétition demandée
+  - keepOnlyCompetition ne garde que la journée de la compétition (#1714)
   - mergeAttachedDatabase importe la compétition et remplace l'état existant
   - mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)
   - keepOnlyCompetition retire poules et matchs des autres compétitions
@@ -2146,6 +2161,20 @@ Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - retourne le repli sur null / vide
 - **cache de statements borné (#1007)**
   - ne dépasse pas la taille max et réutilise les statements
+
+</details>
+
+<details>
+<summary><code>src/database/repos/eventDayRepo.test.ts</code> — 7 tests</summary>
+
+- **EventDayRepo (#1714)**
+  - crée une journée et rattache des épreuves
+  - borne le nombre de pistes
+  - reporte les arbitres selon leur arme, sans doublon
+  - reprend une fiche homonyme existante et répercute les modifications
+  - n'agit pas sur une épreuve hors journée
+  - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
+  - délie les fiches quand on supprime arbitre, rattachement ou journée
 
 </details>
 
@@ -2410,6 +2439,17 @@ Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - emitCompetitionEvent diffuse aux fenêtres
   - db:updateMatch et db:createMatch émettent matches:changed
   - db:addFencer émet fencers:changed pour la compétition
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/eventDayHandlers.test.ts</code> — 4 tests</summary>
+
+- **handlers eventDay:\* (#1714)**
+  - synchronise toutes les épreuves de la journée
+  - rattacher synchronise, détacher non
+  - vue d’ensemble : statut commun et conflits
+  - occupé ailleurs : vide hors journée, sinon autres épreuves seulement
 
 </details>
 
@@ -3890,6 +3930,16 @@ Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - rend les enfants quand il n’y a pas d’erreur
   - affiche l’UI par défaut quand un enfant lève une erreur
   - affiche le fallback personnalisé s’il est fourni
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/EventDayModal.test.tsx</code> — 3 tests</summary>
+
+- **EventDayModal**
+  - affiche la journée, ses épreuves et le statut commun des arbitres
+  - rattache une épreuve et reporte les arbitres
+  - ajoute un arbitre avec ses armes
 
 </details>
 
