@@ -43,13 +43,10 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
 
   ipcMain.handle('cyrano:isRunning', (): boolean => cyranoServer.running);
 
-  ipcMain.handle(
-    'cyrano:setPistes',
-    (_, pistes: CyranoPisteConfig[]): void => {
-      if (!Array.isArray(pistes)) return;
-      cyranoServer.setPistes(pistes);
-    }
-  );
+  ipcMain.handle('cyrano:setPistes', (_, pistes: CyranoPisteConfig[]): void => {
+    if (!Array.isArray(pistes)) return;
+    cyranoServer.setPistes(pistes);
+  });
 
   ipcMain.handle('cyrano:getStatus', () => ({
     running: cyranoServer.running,
@@ -59,13 +56,10 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
 
   ipcMain.handle('cyrano:getLog', () => cyranoServer.getLog());
 
-  ipcMain.handle(
-    'cyrano:setOptions',
-    (_, opts: PisteHubOptions): void => {
-      pisteHub.setOptions(opts);
-      if (opts.international !== undefined || opts.natSource !== undefined) {
-        cyranoServer.getStatuses().forEach(p => pisteHub.clearDispCache(p.piste));
-      }
+  ipcMain.handle('cyrano:setOptions', (_, opts: PisteHubOptions): void => {
+    pisteHub.setOptions(opts);
+    if (opts.international !== undefined || opts.natSource !== undefined) {
+      cyranoServer.getStatuses().forEach(p => pisteHub.clearDispCache(p.piste));
     }
-  );
+  });
 }

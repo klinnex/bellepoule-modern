@@ -334,7 +334,8 @@ export class RemoteScoreServer {
   private readonly EVENT_BUFFER_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   /** Rappel PisteHub Cyrano : reçoit chaque update d'arène pour envoyer DISP (#1720). */
-  public cyranoHook: ((arenaId: string, update: import('../shared/types/remote').ArenaUpdate) => void) | undefined;
+  public cyranoHook:
+    ((arenaId: string, update: import('../shared/types/remote').ArenaUpdate) => void) | undefined;
 
   // Registre des clients TV/affichage connectés (télécommande)
   private connectedClients: Map<
