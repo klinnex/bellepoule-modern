@@ -92,7 +92,8 @@ export const TOUR_STEP_HALOS: Record<TourHaloKey, TourHalo[]> = {
     { selector: '[data-tour="check-in"]', first: true },
   ],
   pools: [{ selector: '[data-tour="generate-pools"]', green: true }],
-  remote: [],
+  // Bouton de démarrage de la saisie distante pulsé (#1305)
+  remote: [{ selector: '[data-tour="start-remote"]' }],
   scores: [{ selector: '[data-tour="pool-cell"]', first: true }],
   tableau: [{ selector: '[data-tour="view-ranking"]' }, { selector: '[data-tour="go-tableau"]' }],
   edit: [
