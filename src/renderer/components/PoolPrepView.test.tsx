@@ -6,7 +6,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import PoolPrepView from './PoolPrepView';
 import { TranslationProvider } from '../contexts/TranslationContext';
 import { Fencer, FencerStatus, Gender, Pool } from '../../shared/types';
@@ -95,6 +95,49 @@ describe('PoolPrepView (#1499)', () => {
     );
     expect(onLaunch).toHaveBeenCalledWith(
       expect.objectContaining({ label: 'Relancer les poules' })
+    );
+  });
+});
+
+describe('PoolPrepView – brouillon de préparation (#1649)', () => {
+  const base = [1, 2, 3, 4, 5, 6].map(fencer);
+
+  it("le brouillon prime sur les poules initiales (retour depuis l'appel)", () => {
+    const draftPools = [pool([base[0], base[1], base[2]]), { ...pool(base.slice(3)), id: 'p2' }];
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          draft={{ pools: draftPools, poolCount: 2, criteria: [] }}
+        />
+      </TranslationProvider>
+    );
+    expect(document.querySelector('.pool-prep-stepper-value')).toHaveTextContent('2');
+  });
+
+  it('modification manuelle → brouillon transmis ; ouverture seule → rien', () => {
+    const onDraftChange = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          onDraftChange={onDraftChange}
+        />
+      </TranslationProvider>
+    );
+    expect(onDraftChange).not.toHaveBeenCalled();
+    fireEvent.click(screen.getAllByRole('button', { pressed: true })[0]);
+    expect(onDraftChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        poolCount: 1,
+        criteria: expect.arrayContaining([expect.objectContaining({ enabled: false })]),
+      })
     );
   });
 });

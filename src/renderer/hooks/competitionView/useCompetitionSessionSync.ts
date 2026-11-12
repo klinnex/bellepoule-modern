@@ -21,6 +21,7 @@ import { useRapieresTeams } from '../../../features/rapieres/useRapieresTeams';
 import { useRapieresViewProps } from '../../../features/rapieres/useRapieresViewProps';
 import type { CompetitionViewProps } from '../../components/competition/competitionViewTypes';
 import { useCompetitionCore } from './useCompetitionCore';
+import type { PoolPrepDraft } from '../../components/PoolPrepView';
 
 type Ctx = CompetitionViewProps & ReturnType<typeof useCompetitionCore>;
 
@@ -121,6 +122,10 @@ export function useCompetitionSessionSync(ctx: Ctx) {
 
   // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
   const [poolsLaunched, setPoolsLaunched] = useState(false);
+  // Poules lancées puis repréparées : onglet Poules verrouillé, bouton « Relancer » (#1649)
+  const [poolsRelaunchPending, setPoolsRelaunchPending] = useState(false);
+  // Préparation modifiée, conservée au retour vers l'appel jusqu'à « Repréparer » (#1649)
+  const [poolPrepDraft, setPoolPrepDraft] = useState<PoolPrepDraft | null>(null);
 
   const { isLoaded } = useCompetitionRestore({
     competitionId: competition.id,
@@ -241,6 +246,12 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     if (!(await confirmScoresLoss())) return;
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
+      setPoolPrepDraft(null);
+      // Poules lancées vidées : onglet Poules verrouillé jusqu'à « Relancer les poules » (#1649)
+      if (poolsLaunched) {
+        setPoolsLaunched(false);
+        setPoolsRelaunchPending(true);
+      }
       resetRapieresWaves(newPools);
       await persistPoolsToDB(newPools);
       // Fermer l'inscription distante dès que les poules sont générées
@@ -402,6 +413,10 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   return {
     poolsLaunched,
     setPoolsLaunched,
+    poolsRelaunchPending,
+    setPoolsRelaunchPending,
+    poolPrepDraft,
+    setPoolPrepDraft,
     isLoaded,
     fireWebhookNotif,
     persistPoolsToDB,

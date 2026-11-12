@@ -121,6 +121,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handlePoolStripChange,
     confirmScoresLoss,
     setPoolsLaunched,
+    poolsRelaunchPending,
+    setPoolsRelaunchPending,
+    poolPrepDraft,
+    setPoolPrepDraft,
     resetRapieresWaves,
     setPools,
     setSkipPoolPhase,
@@ -364,10 +368,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             arenaCount={remoteArenaCount}
             stripStart={remoteStripStart}
             onStripChange={handlePoolStripChange}
-            poolsLaunched={poolsLaunched}
+            poolsLaunched={poolsLaunched || poolsRelaunchPending}
+            draft={poolPrepDraft}
+            onDraftChange={setPoolPrepDraft}
             onPoolsConfirm={async confirmedPools => {
               if (!(await confirmScoresLoss())) return;
               setPoolsLaunched(true);
+              setPoolsRelaunchPending(false);
+              setPoolPrepDraft(null);
               resetRapieresWaves(confirmedPools);
               setPools(confirmedPools);
               setSkipPoolPhase(false);
