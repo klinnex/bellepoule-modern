@@ -1425,7 +1425,10 @@
     "cyrano_nat_club": "Club",
     "cyrano_nat_region": "Région",
     "cyrano_auto": "Auto",
-    "cyrano_international": "International"
+    "cyrano_international": "International",
+    "sections_menu": "Sections affichées",
+    "sec_display": "Thème & fond d’écran",
+    "sec_screens": "Écrans connectés"
   },
   "comparison": {
     "title": "Comparaison Head-to-Head",

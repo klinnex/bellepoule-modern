@@ -26,6 +26,11 @@ import { useRemoteServerState } from '../hooks/remoteScoreManager/useRemoteServe
 import { RemoteArenaGrid } from './remote/RemoteArenaGrid';
 import { RemoteHeaderSection } from './remote/RemoteHeaderSection';
 import { CyranoPanel } from './remote/CyranoPanel';
+import {
+  RemoteSectionsMenu,
+  useRemoteHiddenSections,
+  type RemoteSectionId,
+} from './remote/RemoteSectionsMenu';
 
 const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScoreManagerProps) => {
   const remoteServerState = useRemoteServerState({ ...props });
@@ -108,6 +113,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
   const ctx = { ...props, ...remoteServerState, ...remoteServerActions };
   // Générateur de thème global (toutes les pistes, type d'écran choisi : public, arbitre…)
   const [globalThemeEditorOpen, setGlobalThemeEditorOpen] = React.useState(false);
+  // Sections masquables (préférence locale)
+  const {
+    hidden: hiddenSections,
+    toggle: toggleSection,
+    isVisible: show,
+  } = useRemoteHiddenSections();
 
   // Tous les hooks ont été appelés — retour null si l'onglet n'est pas visible
   if (!isVisible) return null;
@@ -227,84 +238,141 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
     );
   }
 
+  const availableSections: RemoteSectionId[] = [
+    'strips',
+    'kiosk',
+    ...(isExpert ? (['orgNote'] as RemoteSectionId[]) : []),
+    'globalTheme',
+    ...(isExpert ? (['displayOptions', 'overlay', 'checkin'] as RemoteSectionId[]) : []),
+    ...(trainerEnabled ? (['trainer'] as RemoteSectionId[]) : []),
+    ...(isExpert ? (['lobby', 'cyrano'] as RemoteSectionId[]) : []),
+    'screens',
+  ];
+
   return (
     <div className="remote-score-manager">
       <RemoteViewModeTabs mode={mode} onChange={setMode} />
       <RemoteHeaderSection ctx={ctx} />
 
       <div className="arena-urls-section">
-        {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
-        <div className="rsm-sections">
-          <div className="rsm-section">
-            <div className="rsm-section-label">
-              {t('rsm.strips_n', { count: arenaCount - stripStart + 1 })}
+        <RemoteSectionsMenu
+          sections={availableSections}
+          hidden={hiddenSections}
+          onToggle={toggleSection}
+        />
+        {show('strips') && (
+          <>
+            {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
+            <div className="rsm-sections">
+              <div className="rsm-section">
+                <div className="rsm-section-label">
+                  {t('rsm.strips_n', { count: arenaCount - stripStart + 1 })}
+                </div>
+                <div className="rsm-strip-row">{stripCountControls}</div>
+                <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
+              </div>
+              <div className="rsm-section">
+                <div className="rsm-section-label">{t('rsm.section_display')}</div>
+                <label className="rsm-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={showPhotos}
+                    onChange={async e => {
+                      setShowPhotos(e.target.checked);
+                      await window.electronAPI.remote.updateShowPhotos(
+                        competition.id,
+                        e.target.checked
+                      );
+                    }}
+                  />
+                  {t('rsm.show_photos_long')}
+                </label>
+                <label className="rsm-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={cardAnnounce}
+                    onChange={async e => {
+                      setCardAnnounce(e.target.checked);
+                      await window.electronAPI.remote.updateCardAnnounce(
+                        competition.id,
+                        e.target.checked
+                      );
+                    }}
+                  />
+                  {t('rsm.card_announce_long')}
+                </label>
+              </div>
             </div>
-            <div className="rsm-strip-row">{stripCountControls}</div>
-            <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
-          </div>
-          <div className="rsm-section">
-            <div className="rsm-section-label">{t('rsm.section_display')}</div>
-            <label className="rsm-toggle-row">
+            <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
+              <span className="arena-url-label">{t('rsm.common_pwd')}</span>
               <input
-                type="checkbox"
-                checked={showPhotos}
-                onChange={async e => {
-                  setShowPhotos(e.target.checked);
-                  await window.electronAPI.remote.updateShowPhotos(
-                    competition.id,
-                    e.target.checked
-                  );
+                type="password"
+                className="arena-password-input"
+                placeholder={t('rsm.common_pwd_placeholder')}
+                value={commonArenaPassword}
+                onChange={e => setCommonArenaPassword(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleApplyCommonPassword();
                 }}
               />
-              {t('rsm.show_photos_long')}
-            </label>
-            <label className="rsm-toggle-row">
-              <input
-                type="checkbox"
-                checked={cardAnnounce}
-                onChange={async e => {
-                  setCardAnnounce(e.target.checked);
-                  await window.electronAPI.remote.updateCardAnnounce(
-                    competition.id,
-                    e.target.checked
-                  );
-                }}
-              />
-              {t('rsm.card_announce_long')}
-            </label>
+              <button
+                className="btn-copy"
+                title={t('rsm.apply_all_strips')}
+                onClick={handleApplyCommonPassword}
+              >
+                ✓
+              </button>
+            </div>
+
+            <RemoteArenaGrid ctx={ctx} />
+          </>
+        )}
+
+        {show('kiosk') && (
+          <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+            <div className="arena-url-header u-row-between">
+              <strong>{t('rsm.kiosk_card')}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <select
+                  className="form-input"
+                  style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
+                  value={kioskTheme ? '' : kioskPreset}
+                  onChange={e => applyKioskPreset(e.target.value as KioskPreset)}
+                  title={t('rsm.kiosk_look')}
+                  aria-label={t('rsm.kiosk_look')}
+                >
+                  {kioskTheme && <option value="">{t('rsm.custom')}</option>}
+                  <option value="default">{t('rsm.opt_dark')}</option>
+                  <option value="neon">{t('rsm.opt_neon')}</option>
+                  <option value="light">{t('rsm.opt_light')}</option>
+                </select>
+                <button
+                  title={t('rsm.kiosk_custom_theme')}
+                  className={`arena-theme-btn ${kioskTheme ? 'active' : ''}`}
+                  onClick={() => setKioskThemeEditorOpen(true)}
+                >
+                  {t('rsm.theme_btn')}
+                </button>
+              </div>
+            </div>
+            <UrlCopyRow
+              url={kioskUrl}
+              id={999}
+              copiedIndex={copiedIndex}
+              onCopy={copyToClipboard}
+              onQr={() => setActiveQR({ url: kioskUrl, label: t('rsm.kiosk_qr') })}
+            />
           </div>
-        </div>
-        <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
-          <span className="arena-url-label">{t('rsm.common_pwd')}</span>
-          <input
-            type="password"
-            className="arena-password-input"
-            placeholder={t('rsm.common_pwd_placeholder')}
-            value={commonArenaPassword}
-            onChange={e => setCommonArenaPassword(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleApplyCommonPassword();
-            }}
-          />
-          <button
-            className="btn-copy"
-            title={t('rsm.apply_all_strips')}
-            onClick={handleApplyCommonPassword}
-          >
-            ✓
-          </button>
-        </div>
+        )}
 
-        <RemoteArenaGrid ctx={ctx} />
-
-        {isExpert && (
+        {isExpert && show('orgNote') && (
           <>
             {/* Note d'organisation */}
             <OrgNotePanel competitionId={competition.id} />
           </>
         )}
 
-        {
+        {show('globalTheme') && (
           <>
             {/* ── Thème global : générateur + bibliothèque (toutes les pistes) ── */}
             {(() => {
@@ -388,9 +456,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
               );
             })()}
           </>
-        }
+        )}
 
-        {isExpert && (
+        {isExpert && show('displayOptions') && (
           <DisplayOptionsPanel
             competitionId={competition.id}
             displayTheme={displayTheme}
@@ -402,7 +470,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           />
         )}
 
-        {isExpert && (
+        {isExpert && show('overlay') && (
           <>
             <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
               <div className="arena-url-header">
@@ -413,42 +481,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </>
         )}
 
-        <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div className="arena-url-header u-row-between">
-            <strong>{t('rsm.kiosk_card')}</strong>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <select
-                className="form-input"
-                style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
-                value={kioskTheme ? '' : kioskPreset}
-                onChange={e => applyKioskPreset(e.target.value as KioskPreset)}
-                title={t('rsm.kiosk_look')}
-                aria-label={t('rsm.kiosk_look')}
-              >
-                {kioskTheme && <option value="">{t('rsm.custom')}</option>}
-                <option value="default">{t('rsm.opt_dark')}</option>
-                <option value="neon">{t('rsm.opt_neon')}</option>
-                <option value="light">{t('rsm.opt_light')}</option>
-              </select>
-              <button
-                title={t('rsm.kiosk_custom_theme')}
-                className={`arena-theme-btn ${kioskTheme ? 'active' : ''}`}
-                onClick={() => setKioskThemeEditorOpen(true)}
-              >
-                {t('rsm.theme_btn')}
-              </button>
-            </div>
-          </div>
-          <UrlCopyRow
-            url={kioskUrl}
-            id={999}
-            copiedIndex={copiedIndex}
-            onCopy={copyToClipboard}
-            onQr={() => setActiveQR({ url: kioskUrl, label: t('rsm.kiosk_qr') })}
-          />
-        </div>
-
-        {isExpert && (
+        {isExpert && show('checkin') && (
           <>
             <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
               <div className="arena-url-header">
@@ -485,7 +518,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </>
         )}
 
-        {trainerEnabled && (
+        {trainerEnabled && show('trainer') && (
           <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
             <div className="arena-url-header">
               <strong>{t('rsm.trainer_card')}</strong>
@@ -521,27 +554,27 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </div>
         )}
 
-        {isExpert && (
-          <>
-            <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-              <div className="arena-url-header">
-                <strong>{t('rsm.lobby_card')}</strong>
-              </div>
-              <UrlCopyRow
-                url={lobbyUrl}
-                id={997}
-                copiedIndex={copiedIndex}
-                onCopy={copyToClipboard}
-                onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
-              />
+        {isExpert && show('lobby') && (
+          <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+            <div className="arena-url-header">
+              <strong>{t('rsm.lobby_card')}</strong>
             </div>
-            <CyranoPanel />
-          </>
+            <UrlCopyRow
+              url={lobbyUrl}
+              id={997}
+              copiedIndex={copiedIndex}
+              onCopy={copyToClipboard}
+              onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
+            />
+          </div>
         )}
+        {isExpert && show('cyrano') && <CyranoPanel />}
       </div>
 
       {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
-      <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
+      {show('screens') && (
+        <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
+      )}
 
       {themeEditorTarget && (
         <ThemeEditor
