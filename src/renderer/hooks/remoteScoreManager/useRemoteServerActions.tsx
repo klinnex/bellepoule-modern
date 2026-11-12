@@ -19,6 +19,7 @@ import { useStripPlanSync } from '../useStripAvailability';
 import { MAX_STRIP, stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../../components/common/Button';
 import { RemoteScoreManagerProps } from '../../components/remote/remoteScoreManagerShared';
+import { resolveBuiltinTheme } from '../../components/remote/builtinThemes';
 import { useRemoteServerState } from './useRemoteServerState';
 
 type Ctx = RemoteScoreManagerProps & ReturnType<typeof useRemoteServerState>;
@@ -289,7 +290,11 @@ export function useRemoteServerActions(ctx: Ctx) {
   const applyThemeToAllScreens = useCallback(
     async (section: typeof globalThemeSection, theme: CustomTheme) => {
       if (section === 'arena') {
-        await handleArenaThemeChange('all', 'custom', theme);
+        // Une surcharge par piste : l'id 'all' n'est pas reconnu côté serveur
+        const count = session ? session.strips.length : effectiveCommitted;
+        for (const i of stripNumbers(effectiveCommittedStart, count)) {
+          await handleArenaThemeChange(`arena${i}`, 'custom', theme);
+        }
         showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
       } else if (section === 'kiosk') {
         const result = await applyKioskCustomTheme(theme);
@@ -323,11 +328,33 @@ export function useRemoteServerActions(ctx: Ctx) {
 
   // Appliquer un thème sauvegardé globalement (toutes les arènes, un type d'écran)
   const handleGlobalThemeApply = useCallback(async () => {
-    const theme = savedThemes.find(t => t.id === globalThemeId);
+    const builtin = resolveBuiltinTheme(globalThemeSection, globalThemeId, t);
+    if (builtin?.preset) {
+      const count = session ? session.strips.length : effectiveCommitted;
+      for (const i of stripNumbers(effectiveCommittedStart, count)) {
+        await handleArenaThemeChange(`arena${i}`, builtin.preset);
+      }
+      showToast(t('rsm.custom_theme_applied'), 'success');
+      setGlobalThemeId('');
+      return;
+    }
+    const theme = builtin?.theme ?? savedThemes.find(x => x.id === globalThemeId);
     if (!theme) return;
     await applyThemeToAllScreens(globalThemeSection, theme);
     setGlobalThemeId('');
-  }, [savedThemes, globalThemeId, globalThemeSection, applyThemeToAllScreens, setGlobalThemeId]);
+  }, [
+    savedThemes,
+    globalThemeId,
+    globalThemeSection,
+    applyThemeToAllScreens,
+    setGlobalThemeId,
+    handleArenaThemeChange,
+    showToast,
+    t,
+    session,
+    effectiveCommitted,
+    effectiveCommittedStart,
+  ]);
 
   // La grille d'URLs reflète l'état réel du serveur (committedCount) ou la session active
   const arenaCount = session ? session.strips.length : effectiveCommitted;
