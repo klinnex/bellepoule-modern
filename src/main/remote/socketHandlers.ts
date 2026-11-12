@@ -3,6 +3,7 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
+import type { Socket } from 'socket.io';
 import { CardReason } from '../../shared/types';
 import { relayCumul, relayWinnerSide } from '../../features/teams/utils/teamRelayLive';
 import { createCard, getAvailableReasons } from '../../shared/utils/cardSystem';
@@ -54,13 +55,13 @@ export interface SocketHandlersContext {
 }
 
 export function setupSocketHandlers(ctx: SocketHandlersContext): void {
-  ctx.io.on('connection', (socket: any) => {
+  ctx.io.on('connection', (socket: Socket) => {
     logger.info(LogCategory.NETWORK, 'Client connected:', socket.id);
 
     // Toute exception d'un handler reste locale : sans ce garde, une donnée nulle
     // (ex. `join_arena` null) remonte en uncaughtException et gèle l'app (#993).
     const rawOn = socket.on.bind(socket);
-    socket.on = (event: string, handler: (...args: unknown[]) => unknown) =>
+    socket.on = ((event: string, handler: (...args: unknown[]) => unknown) =>
       rawOn(event, (...args: unknown[]) => {
         try {
           return handler(...args);
@@ -69,7 +70,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
             `[Sécurité] Événement socket « ${event} » rejeté : ${(err as Error)?.message}`
           );
         }
-      });
+      })) as typeof socket.on;
     socket.on('error', (err: Error) => {
       logger.error(LogCategory.NETWORK, 'Socket.IO error', undefined, [socket.id, err?.message]);
     });

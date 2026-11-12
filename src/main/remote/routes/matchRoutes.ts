@@ -128,7 +128,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // réellement terminé dans sessionMatches.
       if (arena?.currentMatch) {
         const scoreUpdate = ctx.sessionMatchScores.get(arena.currentMatch.id);
-        const inSession = ctx.sessionMatches.find((m: any) => m.id === arena.currentMatch!.id);
+        const inSession = ctx.sessionMatches.find(m => m.id === arena.currentMatch!.id);
         const effectiveStatus =
           scoreUpdate?.status ?? inSession?.status ?? arena.currentMatch.status;
         // Tournoi des rapières : un match de poule hors vague active n'est pas proposé (#1118)
@@ -269,9 +269,9 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       // Vérifier que le match existe (en DB ou en mémoire)
       const dbMatch = ctx.db.getMatch(matchId);
-      const inMemoryMatch = !dbMatch && ctx.sessionMatches.find((m: any) => m.id === matchId);
+      const inMemoryMatch = !dbMatch && ctx.sessionMatches.find(m => m.id === matchId);
       ctx.logDiag(
-        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${(dbMatch as any)?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map((m: any) => m.id).join(',')}]`
+        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${(dbMatch as any)?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map(m => m.id).join(',')}]`
       );
       if (!dbMatch && !inMemoryMatch) {
         ctx.logDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
@@ -403,7 +403,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           // Match en mémoire non trouvé dans une arène : notifier quand même le renderer
           const mainWin = getSharedMainWindow();
           if (mainWin) {
-            const sm = ctx.sessionMatches.find((m: any) => m.id === matchId);
+            const sm = ctx.sessionMatches.find(m => m.id === matchId);
             mainWin.webContents.send('match:finished', {
               matchId,
               scoreA,

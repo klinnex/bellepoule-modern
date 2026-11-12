@@ -3,6 +3,7 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
+import type { Socket } from 'socket.io';
 import { ArenaMatch } from '../../shared/types/remote';
 import { sanitizeAnnouncement } from './announcement';
 import type { RemoteScoreServer } from '../remoteScoreServer';
@@ -46,7 +47,7 @@ export interface ArenaControlContext {
 
 export function handleArenaControl(
   ctx: ArenaControlContext,
-  socket: any,
+  socket: Socket,
   data: {
     arenaId: string;
     action: string;
@@ -396,7 +397,7 @@ export function handleArenaControl(
       ctx.db.updateMatch(data.matchId, { refereeId: data.refereeId });
       emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
       // Mettre à jour sessionMatches en mémoire
-      const idx = ctx.sessionMatches.findIndex((m: any) => m.id === data.matchId);
+      const idx = ctx.sessionMatches.findIndex(m => m.id === data.matchId);
       if (idx >= 0)
         ctx.sessionMatches[idx] = { ...ctx.sessionMatches[idx], refereeId: data.refereeId };
       // Mettre à jour l'ArenaMatch courant
