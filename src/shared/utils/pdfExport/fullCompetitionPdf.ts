@@ -233,7 +233,10 @@ export interface NoSignatureExportData {
   tableauMatches: TableauMatchForPDF[];
   consolationBrackets: { id: string; name: string; matches: TableauMatchForPDF[] }[];
   competitionTitle: string;
-  template?: PdfTemplate;
+  /** Modèle des feuilles de poule (docType `pool`) — jamais le modèle classement (#1712) */
+  poolTemplate?: PdfTemplate;
+  /** Modèle des tableaux (docType `tableau`) — jamais le modèle classement (#1712) */
+  tableauTemplate?: PdfTemplate;
 }
 
 /**
@@ -244,7 +247,14 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
   data: NoSignatureExportData
 ): Promise<void> {
   const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-  const { pools, tableauMatches, consolationBrackets, competitionTitle, template } = data;
+  const {
+    pools,
+    tableauMatches,
+    consolationBrackets,
+    competitionTitle,
+    poolTemplate,
+    tableauTemplate,
+  } = data;
 
   const sections: string[] = [];
 
@@ -257,7 +267,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
           logoBase64: logo,
           competitionName: competitionTitle,
         },
-        template
+        poolTemplate
       )
     );
   }
@@ -272,7 +282,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
         MAX_MATCHES_PER_PAGE_TABLEAU,
         `${getTableauRoundName(round)} — ${competitionTitle}`,
         logo,
-        template,
+        tableauTemplate,
         true
       )
     );
@@ -289,7 +299,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
           MAX_MATCHES_PER_PAGE_TABLEAU,
           `${bracket.name} — ${getTableauRoundName(round)} — ${competitionTitle}`,
           logo,
-          template,
+          tableauTemplate,
           true
         )
       );
