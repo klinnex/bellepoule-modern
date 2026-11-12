@@ -89,7 +89,8 @@ describe('analyseur des interpolations HTML', () => {
   });
 
   it('analyse les scripts inline des pages HTML', () => {
-    const page = '<html><script>\nconst a = `<td>${x.name}</td>`;\n</script></html>';
+    // `$` + `{…}` concaténés : évite l'alerte CodeQL js/template-syntax-in-string-literal
+    const page = '<html><script>\nconst a = `<td>$' + '{x.name}</td>`;\n</script></html>';
     expect(analyzeRemoteSource('p.html', page)).toMatchObject([{ line: 2, expr: 'x.name' }]);
   });
 });
