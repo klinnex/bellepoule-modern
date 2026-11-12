@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 56 | 457 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 84 | 407 |
+| `src/renderer/components/` | 84 | 409 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **347** | **2665** |
+| **Total** | **347** | **2667** |
 
-Unitaires : 337 fichiers, 2626 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4005,7 +4005,7 @@ Unitaires : 337 fichiers, 2626 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 7 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
@@ -4013,6 +4013,9 @@ Unitaires : 337 fichiers, 2626 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton « Lancer » puis « Relancer » une fois les poules lancées
   - brouillon : modifications reprises au retour depuis l'appel (#1649)
   - sans brouillon : publie l'état initial
+- **PoolPrepView – brouillon de préparation (#1649)**
+  - le brouillon prime sur les poules initiales (retour depuis l'appel)
+  - modification manuelle → brouillon transmis
 
 </details>
 
