@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} ist auf mehreren Bahnen eingesetzt",
     "conflict_weapon": "{{name}} leitet einen Wettbewerb außerhalb seiner Waffen",
     "busy_elsewhere": "Anderweitig eingesetzt: {{where}}",
-    "busy_elsewhere_title": "Kampfrichter in einem anderen Wettbewerb des Tages eingesetzt"
+    "busy_elsewhere_title": "Kampfrichter in einem anderen Wettbewerb des Tages eingesetzt",
+    "strips_title": "Pisten des Tages",
+    "strips_pool": "Pool {{n}} · {{title}}",
+    "strips_match": "Gefecht {{n}} · {{title}}",
+    "strips_no_config": "Anzahl Pisten nicht konfiguriert.",
+    "kiosk_link": "Tagesanzeige (Kiosk)"
   }
 }

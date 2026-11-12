@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} занят на нескольких дорожках",
     "conflict_weapon": "{{name}} судит соревнование не своего оружия",
     "busy_elsewhere": "Занят в другом месте: {{where}}",
-    "busy_elsewhere_title": "Судья занят в другом соревновании дня"
+    "busy_elsewhere_title": "Судья занят в другом соревновании дня",
+    "strips_title": "Дорожки дня",
+    "strips_pool": "Пул {{n}} · {{title}}",
+    "strips_match": "Бой {{n}} · {{title}}",
+    "strips_no_config": "Количество дорожек не задано.",
+    "kiosk_link": "Дисплей дня (киоск)"
   }
 }

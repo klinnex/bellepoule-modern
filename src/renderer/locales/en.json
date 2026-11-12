@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} is busy on several strips",
     "conflict_weapon": "{{name}} referees an event outside their weapons",
     "busy_elsewhere": "Busy elsewhere: {{where}}",
-    "busy_elsewhere_title": "Referee busy in another event of the day"
+    "busy_elsewhere_title": "Referee busy in another event of the day",
+    "strips_title": "Day strips",
+    "strips_pool": "Pool {{n}} · {{title}}",
+    "strips_match": "Bout {{n}} · {{title}}",
+    "strips_no_config": "Strip count not configured.",
+    "kiosk_link": "Day display (kiosk)"
   }
 }

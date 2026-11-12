@@ -840,6 +840,8 @@ const electronApi = {
     getOverview: (dayId: string) => ipcRenderer.invoke('eventDay:getOverview', dayId),
     getBusyElsewhere: (competitionId: string) =>
       ipcRenderer.invoke('eventDay:getBusyElsewhere', competitionId),
+    getStripOccupation: (dayId: string) =>
+      ipcRenderer.invoke('eventDay:getStripOccupation', dayId),
   },
 
   training: {

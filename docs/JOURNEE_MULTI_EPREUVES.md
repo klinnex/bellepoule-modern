@@ -1,6 +1,6 @@
 # Journée multi-épreuves
 
-> Demande [#1714](https://github.com/klinnex/bellepoule-modern/issues/1714). Lot 1 : journée + arbitres partagés.
+> Demande [#1714](https://github.com/klinnex/bellepoule-modern/issues/1714). Lot 1 : journée + arbitres partagés. Lot 2 : pistes partagées + kiosk journée.
 
 Plusieurs épreuves dans la même salle, le même jour, partagent les pistes et les arbitres.
 Une **journée** regroupe ces épreuves sur un même poste (même base `bellepoule.db`).
@@ -60,8 +60,31 @@ Migration 22 :
 IPC : `window.electronAPI.eventDay.*` (`src/main/ipc/eventDayHandlers.ts`), dépôt
 `src/database/repos/eventDayRepo.ts`, règles pures `src/shared/utils/eventDay.ts`.
 
+## Pistes de la journée
+
+L'onglet **Pistes** dans la fenêtre Journées affiche l'état de chaque piste numérotée (1 à N,
+N = nombre de pistes de la salle) :
+
+- **Libre** : aucune poule ou match de tableau en cours sur cette piste.
+- **Poule N · Épreuve** / **Match N · Épreuve** : occupation en temps réel.
+
+Rafraîchi à la même fréquence que les arbitres (10 s).
+
+IPC : `window.electronAPI.eventDay.getStripOccupation(dayId)`.
+
+## Kiosk journée
+
+Page d'affichage public accessible à `/journee` sur le serveur distant (sans session requise).
+Affiche :
+
+- Nom et date de la journée.
+- Liste des épreuves rattachées (titre + arme).
+- Grille des pistes : libre ou occupée (poule/match + épreuve).
+
+Rafraîchissement automatique toutes les 10 s.
+
+API : `GET /api/journee-status` → `{ day, strips, competitions }`.
+
 ## Pas encore fait
 
-- Registre de pistes partagé (piste libérée par une épreuve → disponible pour les autres).
-- Affichage public commun (kiosk de la journée).
-- Pilotage de chaque épreuve depuis un poste différent.
+- Pilotage de chaque épreuve depuis un poste différent (multi-poste réseau).

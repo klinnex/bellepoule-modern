@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} a zo ac'hubet war meur a leurenn",
     "conflict_weapon": "{{name}} a varn ur genstrivadeg er-maez eus e armoù",
     "busy_elsewhere": "Ac'hubet e lec'h all : {{where}}",
-    "busy_elsewhere_title": "Barner ac'hubet en ur genstrivadeg all eus an devezh"
+    "busy_elsewhere_title": "Barner ac'hubet en ur genstrivadeg all eus an devezh",
+    "strips_title": "Pisted an deiz",
+    "strips_pool": "Pool {{n}} · {{title}}",
+    "strips_match": "Match {{n}} · {{title}}",
+    "strips_no_config": "Niver pistenn digenset.",
+    "kiosk_link": "Skrin an deiz (kiosk)"
   }
 }

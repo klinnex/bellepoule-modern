@@ -5,6 +5,7 @@ import type {
   DayRefereeAssignment,
   DayRefereeInput,
   DaySyncResult,
+  DayStripStatus,
   EventDay,
 } from '../../shared/types/eventDay';
 import {
@@ -413,5 +414,87 @@ export class EventDayRepo {
       [dayId]
     );
     return Object.fromEntries(rows.map(r => [r.id, r.weapon as Weapon]));
+  }
+
+  /**
+   * État d'occupation de chaque piste numérotée de la journée.
+   * Les pistes 1..stripCount sont retournées ; les autres (pistes libres sans
+   * numéro de salle) sont ignorées.
+   */
+  public getStripOccupation(dayId: string): DayStripStatus[] {
+    if (!this.sql.db) return [];
+    const day = this.getDay(dayId);
+    if (!day) return [];
+    const stripCount = day.stripCount;
+
+    const occupied = new Map<number, DayStripStatus>();
+
+    const pools = this.sql.queryAll<{
+      strip: number;
+      number: number;
+      competition_id: string;
+      title: string;
+    }>(
+      `SELECT p.strip, p.number, c.id AS competition_id, c.title
+       FROM pools p
+       JOIN phases ph ON ph.id = p.phase_id
+       JOIN competitions c ON c.id = ph.competition_id
+       WHERE c.event_day_id = ? AND p.strip IS NOT NULL AND COALESCE(p.is_complete, 0) = 0`,
+      [dayId]
+    );
+    for (const p of pools) {
+      if (!occupied.has(p.strip)) {
+        occupied.set(p.strip, {
+          strip: p.strip,
+          free: false,
+          competitionId: p.competition_id,
+          competitionTitle: p.title,
+          kind: 'pool',
+          number: p.number,
+        });
+      }
+    }
+
+    const matches = this.sql.queryAll<{
+      strip: number;
+      number: number;
+      competition_id: string;
+      title: string;
+    }>(
+      `SELECT m.strip, m.number, c.id AS competition_id, c.title
+       FROM matches m
+       JOIN fencers f ON f.id = m.fencer_a_id
+       JOIN competitions c ON c.id = f.competition_id
+       WHERE c.event_day_id = ? AND m.pool_id IS NULL AND m.strip IS NOT NULL
+         AND m.status = 'in_progress'`,
+      [dayId]
+    );
+    for (const m of matches) {
+      if (!occupied.has(m.strip)) {
+        occupied.set(m.strip, {
+          strip: m.strip,
+          free: false,
+          competitionId: m.competition_id,
+          competitionTitle: m.title,
+          kind: 'match',
+          number: m.number,
+        });
+      }
+    }
+
+    const result: DayStripStatus[] = [];
+    for (let s = 1; s <= stripCount; s++) {
+      result.push(
+        occupied.get(s) ?? {
+          strip: s,
+          free: true,
+          competitionId: null,
+          competitionTitle: null,
+          kind: null,
+          number: null,
+        }
+      );
+    }
+    return result;
   }
 }

@@ -63,4 +63,7 @@ export function registerEventDayHandlers({ db }: EventDayHandlersContext): void 
       repo.getLinks({ competitionId })
     );
   });
+  ipcMain.handle('eventDay:getStripOccupation', (_, dayId: string) =>
+    repo.getStripOccupation(dayId)
+  );
 }

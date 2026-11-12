@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Journée — BellePoule Modern</title>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--slate-900);
+        color: var(--tw-slate-200);
+        min-height: 100vh;
+        padding: 1.5rem 1rem;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      header h1 {
+        font-size: 1.75rem;
+        color: var(--slate-50);
+      }
+      header p {
+        color: var(--slate-400);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+      h2 {
+        font-size: 1rem;
+        color: var(--slate-400);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+        margin-top: 1.75rem;
+      }
+      .strips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+        gap: 0.5rem;
+      }
+      .strip-card {
+        background: var(--slate-800);
+        border: 1px solid var(--slate-700);
+        border-radius: 8px;
+        padding: 0.6rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .strip-card.busy {
+        border-color: #d97706;
+        background: rgba(217, 119, 6, 0.12);
+      }
+      .strip-card .strip-num {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--slate-50);
+      }
+      .strip-card .strip-status {
+        font-size: 0.78rem;
+        color: var(--slate-400);
+      }
+      .strip-card.busy .strip-status {
+        color: #fbbf24;
+      }
+      .competitions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .competition-row {
+        background: var(--slate-800);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .competition-row .comp-title {
+        font-weight: 600;
+        color: var(--slate-50);
+        flex: 1;
+      }
+      .competition-row .comp-weapon {
+        font-size: 0.8rem;
+        background: var(--blue-500);
+        color: white;
+        padding: 0.1rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .no-day {
+        text-align: center;
+        color: var(--slate-500);
+        padding: 3rem 0;
+      }
+      .refresh-time {
+        text-align: center;
+        color: var(--slate-600);
+        font-size: 0.75rem;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const POLL_MS = 10000;
+
+      const WEAPON_LABELS = { E: 'Épée', F: 'Fleuret', S: 'Sabre', L: 'Sabre Laser', C: 'Perso.' };
+
+      function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function renderStrips(strips) {
+        if (!strips || strips.length === 0) return '';
+        const cards = strips.map(s => {
+          const busy = !s.free;
+          let statusText = 'Libre';
+          if (!s.free) {
+            const prefix = s.kind === 'pool' ? 'Poule ' : 'Match ';
+            statusText = prefix + esc(s.number) + (s.competitionTitle ? ' · ' + esc(s.competitionTitle) : '');
+          }
+          return '<div class="strip-card' + (busy ? ' busy' : '') + '">'
+            + '<span class="strip-num">Piste ' + esc(s.strip) + '</span>'
+            + '<span class="strip-status">' + statusText + '</span>'
+            + '</div>';
+        }).join('');
+        return '<h2>Pistes</h2><div class="strips-grid">' + cards + '</div>';
+      }
+
+      function renderCompetitions(competitions) {
+        if (!competitions || competitions.length === 0) return '';
+        const rows = competitions.map(c => {
+          const weaponLabel = WEAPON_LABELS[c.weapon] || c.weapon || '—';
+          return '<div class="competition-row">'
+            + '<span class="comp-title">' + esc(c.title) + '</span>'
+            + '<span class="comp-weapon">' + esc(weaponLabel) + '</span>'
+            + '</div>';
+        }).join('');
+        return '<h2>Épreuves</h2><div class="competitions-list">' + rows + '</div>';
+      }
+
+      async function refresh() {
+        const root = document.getElementById('root');
+        try {
+          const resp = await fetch('/api/journee-status');
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const data = await resp.json();
+          if (!data.day) {
+            root.innerHTML = '<div class="no-day">Aucune journée multi-épreuves configurée pour ce serveur.</div>';
+            return;
+          }
+          const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          root.innerHTML = '<header><h1>' + esc(data.day.name) + '</h1><p>' + esc(data.day.date) + '</p></header>'
+            + renderCompetitions(data.competitions)
+            + renderStrips(data.strips)
+            + '<p class="refresh-time">Actualisé à ' + now + '</p>';
+        } catch (_e) {
+          root.innerHTML = '<div class="no-day">Erreur de chargement.</div>';
+        }
+      }
+
+      void refresh();
+      setInterval(() => void refresh(), POLL_MS);
+    </script>
+  </body>
+</html>
