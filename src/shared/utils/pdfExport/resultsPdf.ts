@@ -14,6 +14,7 @@ import {
   BASE_CSS,
   pdfLang,
   pdfT,
+  templateFor,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
 import { statusCode, finalRankLabel } from '../forfeit';
@@ -31,8 +32,9 @@ export function generateResultsHTML(
   results: FinalResultForPDF[],
   title: string,
   logoBase64?: string,
-  template?: PdfTemplate
+  rawTemplate?: PdfTemplate
 ): string {
+  const template = templateFor(rawTemplate, 'ranking');
   const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',

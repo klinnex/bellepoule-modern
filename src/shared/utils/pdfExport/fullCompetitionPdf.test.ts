@@ -1,9 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const savePDF = vi.hoisted(() => vi.fn(async (_html: string, _name: string) => {}));
 vi.mock('./core', async orig => ({ ...(await orig<typeof import('./core')>()), savePDF }));
 
-import { exportPoolsAndTableauxNoSignaturePDF } from './fullCompetitionPdf';
+import {
+  exportPoolsAndTableauxNoSignaturePDF,
+  exportFullCompetitionPDF,
+} from './fullCompetitionPdf';
+import { generatePoolHTML } from './poolPdf';
+import { generateTableauHTML, type TableauMatchForPDF } from './tableauPdf';
 import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
@@ -51,5 +56,58 @@ describe('exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)', () => {
       competitionTitle: 'Test',
     });
     expect(savePDF.mock.calls[0][0]).not.toContain('class="ocr-corner');
+  });
+});
+
+const deMatch: TableauMatchForPDF = {
+  id: 'd1',
+  round: 2,
+  position: 1,
+  fencerA: { id: 'a', lastName: 'Alpha', firstName: 'A' },
+  fencerB: { id: 'b', lastName: 'Bravo', firstName: 'B' },
+  scoreA: null,
+  scoreB: null,
+  winner: null,
+  isBye: false,
+};
+
+describe('modèle PDF d’un autre type ignoré (#1712)', () => {
+  it('poule : un modèle « classement » ne vide pas la grille', () => {
+    const html = generatePoolHTML(makePool(), {}, buildDefaultTemplate('ranking'));
+    expect(html).toContain('class="score-grid"');
+  });
+
+  it('tableau : un modèle « classement » ne vide pas les feuilles de match', () => {
+    const html = generateTableauHTML([deMatch], 4, 'T', undefined, buildDefaultTemplate('ranking'));
+    expect(html).toContain('ALPHA');
+  });
+
+  it('poule : titre personnalisé d’un modèle « classement » ignoré', () => {
+    const tpl = { ...buildDefaultTemplate('ranking'), customTitle: 'Classement X' };
+    expect(generatePoolHTML(makePool(), { title: 'Poule 1' }, tpl)).not.toContain('Classement X');
+  });
+});
+
+describe('exportFullCompetitionPDF – coins OCR (#1712)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('pas de cadre OCR fixe répété sur toutes les pages du dossier', async () => {
+    savePDF.mockClear();
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    vi.stubGlobal('window', {});
+    await exportFullCompetitionPDF({
+      fencers: [],
+      pools: [makePool()],
+      overallRanking: [],
+      tableauMatches: [deMatch],
+      consolationBrackets: [],
+      finalResults: [],
+      competitionTitle: 'Open',
+    });
+    const html = savePDF.mock.calls[0][0];
+    expect(html).toContain('<table class="score-grid">');
+    expect(html).not.toContain('class="ocr-corner');
   });
 });

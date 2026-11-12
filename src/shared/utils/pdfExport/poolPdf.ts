@@ -7,7 +7,15 @@
 import { Pool, Match, MatchStatus, Fencer } from '../../types';
 import { calculateFencerQuestStats } from '../poolCalculations';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  buildCssOverrides,
+  assembleBody,
+  templateFor,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { getActiveLocale } from '../localeFormat';
 import { extractBodyContent, extractStyleContent } from './bookPdf';
 import { escHtml } from './bookToc';
@@ -30,6 +38,8 @@ export interface PoolExportOptions {
   stripQrUrl?: string; // saisie distante active : URL arbitre de la piste de la poule
   stripQrDataUrl?: string; // QR de stripQrUrl, généré par buildPoolExportHTML
   stripNumber?: number;
+  /** Coins OCR (position fixe) ; false dans les dossiers multi-sections, sinon répétés sur chaque page (#1712) */
+  ocrMarks?: boolean;
 }
 
 /** Colonnes calculées masquées par l'option `hideStatColumns`. */
@@ -141,8 +151,9 @@ const statCols = (): StatCol[] => [
 export function generatePoolHTML(
   pool: Pool,
   options: PoolExportOptions,
-  template?: PdfTemplate
+  rawTemplate?: PdfTemplate
 ): string {
+  const template = templateFor(rawTemplate, 'pool');
   const runtimeTitle = pdfT('pool_n', 'Poule {{n}}', { n: pool.number });
   const effectiveTitle = template?.customTitle?.trim() || options.title || runtimeTitle;
   const { competitionName = '', weapon = '', category = '', logoBase64, qrDataUrl } = options;
@@ -312,7 +323,7 @@ export function generatePoolHTML(
 
   // Repères OCR (cadre bas-droit + QR) : seulement sur les feuilles qui portent un QR (#1712)
   const defaultOrder = [
-    ...(qrDataUrl ? ['ocr-marks'] : []),
+    ...(qrDataUrl && options.ocrMarks !== false ? ['ocr-marks'] : []),
     'header',
     'gold-bar',
     'competition-name',

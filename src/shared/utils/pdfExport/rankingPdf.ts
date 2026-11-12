@@ -15,6 +15,7 @@ import {
   BASE_CSS,
   pdfLang,
   pdfT,
+  templateFor,
 } from './core';
 import { formatQuestPerMatch, isDnf, isDnsRanking } from '../poolCalculations';
 import { getActiveLocale } from '../localeFormat';
@@ -43,9 +44,10 @@ export function generateRankingHTML(
   isLaserSabre: boolean,
   visibleColumns: string[],
   logoBase64?: string,
-  template?: PdfTemplate,
+  rawTemplate?: PdfTemplate,
   nameLabels?: { lastName: string; firstName: string }
 ): string {
+  const template = templateFor(rawTemplate, 'ranking');
   const vis = (col: string) => visibleColumns.includes(col);
   const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',

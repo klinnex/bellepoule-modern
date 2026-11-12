@@ -78,6 +78,17 @@ export function buildCssOverrides(t: PdfTemplate): string {
   return vars ? `:root { ${vars} }` : '';
 }
 
+/**
+ * Garde le modèle seulement s'il vise ce type de document (#1712) : un modèle « classement »
+ * appliqué à une poule ou un tableau ne garde que l'en-tête et le pied (corps vide).
+ */
+export function templateFor(
+  t: PdfTemplate | undefined,
+  docType: PdfTemplate['docType']
+): PdfTemplate | undefined {
+  return t && t.docType === docType ? t : undefined;
+}
+
 function isVisible(t: PdfTemplate | undefined, id: string): boolean {
   if (!t) return true;
   return t.elements.find(e => e.id === id)?.visible ?? true;
