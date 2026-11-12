@@ -19,10 +19,11 @@ describe('UrlCopyRow', () => {
     render(
       <UrlCopyRow url="http://x/kiosk" id={999} copiedIndex={null} onCopy={onCopy} onQr={onQr} />
     );
-    expect(screen.getByText('http://x/kiosk')).toBeInTheDocument();
-    fireEvent.click(screen.getByTitle('rsm.copy_url'));
+    // URL masquée (#1414) : portée par l’infobulle / aria-label du bouton Copier
+    expect(screen.queryByText('http://x/kiosk')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'http://x/kiosk' }));
     expect(onCopy).toHaveBeenCalledWith('http://x/kiosk', 999);
-    fireEvent.click(screen.getByLabelText('rsm.qr_code'));
+    fireEvent.click(screen.getByRole('button', { name: /rsm\.qr_code/ }));
     expect(onQr).toHaveBeenCalled();
   });
 

@@ -46,10 +46,10 @@ function writePort(p: number): void {
 }
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
-  online: <Wifi size={14} style={{ color: 'var(--success)' }} />,
-  stale: <AlertCircle size={14} style={{ color: 'var(--warning)' }} />,
-  offline: <WifiOff size={14} style={{ color: 'var(--danger)' }} />,
-  never: <Circle size={14} style={{ color: 'var(--slate-400)' }} />,
+  online: <Wifi size={14} className="cyrano-st cyrano-st--online" />,
+  stale: <AlertCircle size={14} className="cyrano-st cyrano-st--stale" />,
+  offline: <WifiOff size={14} className="cyrano-st cyrano-st--offline" />,
+  never: <Circle size={14} className="cyrano-st cyrano-st--never" />,
 };
 
 const EMPTY_ROW: CyranoPisteConfigDTO = {
@@ -139,16 +139,16 @@ export const CyranoPanel: React.FC = () => {
   const portValid = udpPort >= 1 && udpPort <= 65535;
 
   return (
-    <div className="arena-url-card" style={{ marginTop: '1rem' }}>
+    <div className="arena-url-card cyrano-panel">
       {/* ── Header ── */}
       <div className="arena-url-header u-row-between">
         <strong>{t('rsm.cyrano_card')}</strong>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="cyrano-inline">
           <span
             className={`rsm-status-dot rsm-status-dot--${running ? 'on' : 'off'}`}
             title={t(running ? 'rsm.cyrano_running' : 'rsm.cyrano_stopped')}
           />
-          <span style={{ fontSize: '0.8rem', color: 'var(--slate-400)' }}>
+          <span className="cyrano-muted">
             {t(running ? 'rsm.cyrano_running' : 'rsm.cyrano_stopped')}
           </span>
           <button
@@ -164,14 +164,11 @@ export const CyranoPanel: React.FC = () => {
       </div>
 
       {/* ── Port + démarrer/arrêter ── */}
-      <div className="arena-url-row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
-        <label style={{ fontSize: '0.8rem', color: 'var(--slate-400)', whiteSpace: 'nowrap' }}>
-          {t('rsm.cyrano_port')}
-        </label>
+      <div className="arena-url-row cyrano-port-row">
+        <label className="cyrano-muted cyrano-nowrap">{t('rsm.cyrano_port')}</label>
         <input
           type="number"
-          className="form-input"
-          style={{ width: '90px', padding: '0.2rem 0.4rem', fontSize: '0.85rem' }}
+          className="form-input cyrano-input cyrano-w-port"
           min={1}
           max={65535}
           value={udpPort}
@@ -209,40 +206,23 @@ export const CyranoPanel: React.FC = () => {
       </div>
 
       {/* ── Table des pistes ── */}
-      <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+      <div className="cyrano-table-wrap">
+        <table className="cyrano-table">
           <thead>
-            <tr style={{ color: 'var(--slate-400)', borderBottom: '1px solid var(--slate-700)' }}>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>
-                {t('rsm.cyrano_piste_id')}
-              </th>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>IP</th>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>
-                {t('rsm.cyrano_port_dev')}
-              </th>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>
-                {t('rsm.cyrano_arena')}
-              </th>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>
-                {t('rsm.cyrano_protocol')}
-              </th>
-              <th style={{ textAlign: 'left', padding: '0.2rem 0.4rem', fontWeight: 600 }}>
-                {t('rsm.cyrano_status')}
-              </th>
+            <tr>
+              <th>{t('rsm.cyrano_piste_id')}</th>
+              <th>IP</th>
+              <th>{t('rsm.cyrano_port_dev')}</th>
+              <th>{t('rsm.cyrano_arena')}</th>
+              <th>{t('rsm.cyrano_protocol')}</th>
+              <th>{t('rsm.cyrano_status')}</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {pistes.length === 0 && (
               <tr>
-                <td
-                  colSpan={7}
-                  style={{
-                    color: 'var(--slate-500)',
-                    padding: '0.5rem 0.4rem',
-                    fontStyle: 'italic',
-                  }}
-                >
+                <td colSpan={7} className="cyrano-empty">
                   {t('rsm.cyrano_no_pistes')}
                 </td>
               </tr>
@@ -250,31 +230,28 @@ export const CyranoPanel: React.FC = () => {
             {pistes.map((row, i) => {
               const st = statusOf(row.ip);
               return (
-                <tr key={i} style={{ borderBottom: '1px solid var(--slate-800)' }}>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                <tr key={i}>
+                  <td>
                     <input
-                      className="form-input"
-                      style={{ width: '70px', padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+                      className="form-input cyrano-input cyrano-w-sm"
                       maxLength={8}
                       placeholder="1"
                       value={row.piste}
                       onChange={e => updateRow(i, 'piste', e.target.value)}
                     />
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     <input
-                      className="form-input"
-                      style={{ width: '130px', padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+                      className="form-input cyrano-input cyrano-w-ip"
                       placeholder="192.168.1.100"
                       value={row.ip}
                       onChange={e => updateRow(i, 'ip', e.target.value)}
                     />
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     <input
                       type="number"
-                      className="form-input"
-                      style={{ width: '70px', padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+                      className="form-input cyrano-input cyrano-w-sm"
                       min={1}
                       max={65535}
                       value={row.port ?? DEFAULT_PORT}
@@ -284,11 +261,10 @@ export const CyranoPanel: React.FC = () => {
                       }}
                     />
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     <input
                       type="number"
-                      className="form-input"
-                      style={{ width: '55px', padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+                      className="form-input cyrano-input cyrano-w-xs"
                       min={1}
                       max={99}
                       placeholder="—"
@@ -299,31 +275,30 @@ export const CyranoPanel: React.FC = () => {
                       }}
                     />
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     <select
-                      className="form-input"
-                      style={{ padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+                      className="form-input cyrano-input"
                       value={row.protocol ?? 'auto'}
                       onChange={e => updateRow(i, 'protocol', e.target.value)}
                     >
-                      <option value="auto">auto</option>
-                      <option value="EFP1">EFP1</option>
-                      <option value="EFP1.1">EFP1.1</option>
+                      <option value="auto">{t('rsm.cyrano_auto')}</option>
+                      <option value="EFP1">{'EFP1'}</option>
+                      <option value="EFP1.1">{'EFP1.1'}</option>
                     </select>
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     {st ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <span className="cyrano-status">
                         {STATUS_ICONS[st.status]}
-                        <span style={{ color: 'var(--slate-400)', fontSize: '0.78rem' }}>
+                        <span className="cyrano-muted cyrano-small">
                           {st.detectedProtocol ?? ''}
                         </span>
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--slate-600)', fontSize: '0.78rem' }}>—</span>
+                      <span className="cyrano-dim cyrano-small">—</span>
                     )}
                   </td>
-                  <td style={{ padding: '0.25rem 0.4rem' }}>
+                  <td>
                     <button
                       className="btn-copy"
                       onClick={() => removeRow(i)}
@@ -337,7 +312,7 @@ export const CyranoPanel: React.FC = () => {
             })}
           </tbody>
         </table>
-        <div style={{ marginTop: '0.4rem' }}>
+        <div className="cyrano-add">
           <Button size="sm" onClick={addRow}>
             <Icon icon={Plus} /> {t('rsm.cyrano_add_piste')}
           </Button>
@@ -345,22 +320,11 @@ export const CyranoPanel: React.FC = () => {
       </div>
 
       {/* ── Options noms / nat ── */}
-      <div
-        style={{
-          marginTop: '0.75rem',
-          display: 'flex',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          fontSize: '0.82rem',
-          color: 'var(--slate-300)',
-        }}
-      >
-        <label style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+      <div className="cyrano-options">
+        <label className="cyrano-option">
           {t('rsm.cyrano_name_length')}
           <select
-            className="form-input"
-            style={{ padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+            className="form-input cyrano-input"
             value={nameLength}
             onChange={e => {
               const v = parseInt(e.target.value, 10) as 10 | 12 | 15 | 20;
@@ -375,11 +339,10 @@ export const CyranoPanel: React.FC = () => {
             ))}
           </select>
         </label>
-        <label style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+        <label className="cyrano-option">
           {t('rsm.cyrano_nat_source')}
           <select
-            className="form-input"
-            style={{ padding: '0.15rem 0.3rem', fontSize: '0.82rem' }}
+            className="form-input cyrano-input"
             value={natSource}
             onChange={e => {
               const v = e.target.value as typeof natSource;
@@ -387,13 +350,13 @@ export const CyranoPanel: React.FC = () => {
               if (running) void window.electronAPI?.cyrano?.setOptions({ natSource: v });
             }}
           >
-            <option value="auto">auto</option>
+            <option value="auto">{t('rsm.cyrano_auto')}</option>
             <option value="country">{t('rsm.cyrano_nat_country')}</option>
             <option value="club">{t('rsm.cyrano_nat_club')}</option>
             <option value="region">{t('rsm.cyrano_nat_region')}</option>
           </select>
         </label>
-        <label style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+        <label className="cyrano-option">
           <input
             type="checkbox"
             checked={international}

@@ -1,0 +1,105 @@
+/* Panneau Cyrano EFP1/EFP1.1 (#1720) */
+.cyrano-panel {
+  margin-top: var(--space-4);
+}
+.cyrano-inline {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.cyrano-port-row {
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.cyrano-muted {
+  font-size: var(--fs-xs);
+  color: var(--slate-400);
+}
+.cyrano-dim {
+  color: var(--slate-600);
+}
+.cyrano-small {
+  font-size: var(--fs-xs);
+}
+.cyrano-nowrap {
+  white-space: nowrap;
+}
+.cyrano-st--online {
+  color: var(--success);
+}
+.cyrano-st--stale {
+  color: var(--warning);
+}
+.cyrano-st--offline {
+  color: var(--danger);
+}
+.cyrano-st--never {
+  color: var(--slate-400);
+}
+.cyrano-input {
+  padding: 0.15rem 0.3rem;
+  font-size: var(--fs-xs);
+}
+.cyrano-w-port {
+  width: 90px;
+}
+.cyrano-w-sm {
+  width: 70px;
+}
+.cyrano-w-xs {
+  width: 55px;
+}
+.cyrano-w-ip {
+  width: 130px;
+}
+.cyrano-table-wrap {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+}
+.cyrano-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-xs);
+}
+.cyrano-table thead tr {
+  color: var(--slate-400);
+  border-bottom: 1px solid var(--slate-700);
+}
+.cyrano-table th {
+  text-align: left;
+  padding: 0.2rem 0.4rem;
+  font-weight: 600;
+}
+.cyrano-table tbody tr {
+  border-bottom: 1px solid var(--slate-800);
+}
+.cyrano-table td {
+  padding: var(--space-1) 0.4rem;
+}
+.cyrano-table td.cyrano-empty {
+  color: var(--slate-500);
+  padding: var(--space-2) 0.4rem;
+  font-style: italic;
+}
+.cyrano-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.cyrano-add {
+  margin-top: 0.4rem;
+}
+.cyrano-options {
+  margin-top: var(--space-3);
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--slate-300);
+}
+.cyrano-option {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
