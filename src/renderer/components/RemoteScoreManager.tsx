@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { Icon } from './common/Icon';
-import { Zap } from 'lucide-react';
+import { Pencil, Zap } from 'lucide-react';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import ThemeEditor from './ThemeEditor';
@@ -65,6 +65,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
     setGlobalThemeId,
     globalThemeId,
     handleGlobalThemeApply,
+    applyThemeToAllScreens,
     displayTheme,
     setDisplayTheme,
     arenaWallpaper,
@@ -105,6 +106,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
     onStartRemote,
   } = { ...props, ...remoteServerState, ...remoteServerActions };
   const ctx = { ...props, ...remoteServerState, ...remoteServerActions };
+  // Générateur de thème global (toutes les pistes, type d'écran choisi : public, arbitre…)
+  const [globalThemeEditorOpen, setGlobalThemeEditorOpen] = React.useState(false);
 
   // Tous les hooks ont été appelés — retour null si l'onglet n'est pas visible
   if (!isVisible) return null;
@@ -300,14 +303,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </>
         )}
 
-        {isExpert && (
+        {
           <>
-            {/* ── Thème global ── */}
+            {/* ── Thème global : générateur + bibliothèque (toutes les pistes) ── */}
             {(() => {
               const filteredForSection = savedThemes.filter(
                 t => (t.targetType ?? 'arena') === globalThemeSection
               );
-              if (savedThemes.length === 0) return null;
               return (
                 <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
                   <div className="arena-url-header">
@@ -372,12 +374,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                     >
                       {t('rsm.apply_all')}
                     </Button>
+                    <button
+                      title={t('rsm.theme_custom')}
+                      aria-label={t('rsm.theme_custom')}
+                      className="arena-theme-btn"
+                      onClick={() => setGlobalThemeEditorOpen(true)}
+                    >
+                      <Icon icon={Pencil} /> {t('rsm.theme_custom')}
+                    </button>
                   </div>
                 </div>
               );
             })()}
           </>
-        )}
+        }
 
         {isExpert && (
           <DisplayOptionsPanel
@@ -558,6 +568,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           }}
           onClose={() => {
             setThemeEditorTarget(null);
+            refreshSavedThemes();
+          }}
+        />
+      )}
+
+      {globalThemeEditorOpen && (
+        <ThemeEditor
+          targetArenaId={globalThemeSection === 'kiosk' ? 'kiosk' : 'all'}
+          targetType={globalThemeSection}
+          initialTheme={globalThemeSection === 'kiosk' ? kioskTheme : undefined}
+          onApply={async (_arenaId, theme) => {
+            setGlobalThemeEditorOpen(false);
+            await applyThemeToAllScreens(globalThemeSection, theme);
+          }}
+          onClose={() => {
+            setGlobalThemeEditorOpen(false);
             refreshSavedThemes();
           }}
         />
