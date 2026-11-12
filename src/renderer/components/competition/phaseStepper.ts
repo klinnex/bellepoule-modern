@@ -15,12 +15,19 @@ export interface PhaseStepperItem {
   isSupplementary?: boolean;
 }
 
-/** États de chaque phase, dans l'ordre de la barre */
-export function phaseStepStates(phases: PhaseStepperItem[], currentId: string): PhaseStepState[] {
+/**
+ * États de chaque phase, dans l'ordre de la barre.
+ * Onglet utilitaire actif : l'avancement suit la dernière étape du flow visitée
+ * (`lastFlowId`) ; sans elle, aucune étape n'est marquée faite (#1650).
+ */
+export function phaseStepStates(
+  phases: PhaseStepperItem[],
+  currentId: string,
+  lastFlowId?: string
+): PhaseStepState[] {
   const currentIndex = phases.findIndex(p => p.id === currentId);
-  const lastFlowIndex = phases.reduce((acc, p, i) => (!p.isSupplementary ? i : acc), -1);
   const effectiveCurrentIndex = phases[currentIndex]?.isSupplementary
-    ? lastFlowIndex
+    ? phases.findIndex(p => p.id === lastFlowId && !p.isSupplementary)
     : currentIndex;
   return phases.map((p, i) => {
     if (p.id === currentId) return 'current';

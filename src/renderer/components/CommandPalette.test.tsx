@@ -57,6 +57,16 @@ describe('CommandPalette', () => {
     off();
   });
 
+  it('trouve un paramètre et ouvre son onglet (#1651)', () => {
+    const props = setup();
+    // t() renvoie la clé : « proxy_title » cible le paramètre Proxy de la section Système
+    fireEvent.change(screen.getByLabelText('commandPalette.search_aria'), {
+      target: { value: 'proxy_title' },
+    });
+    fireEvent.click(screen.getByText('settings.proxy_title'));
+    expect(props.onOpenSettings).toHaveBeenCalledWith('system');
+  });
+
   it('affiche les compétitions et les actions statiques', () => {
     setup();
     expect(screen.getByText('Coupe Alpha')).toBeInTheDocument();

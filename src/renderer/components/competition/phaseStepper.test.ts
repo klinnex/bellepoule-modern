@@ -24,6 +24,21 @@ describe('phaseStepStates', () => {
       'blocked',
     ]);
   });
+  it('onglet utilitaire actif : avancement de la dernière étape du flow (#1650)', () => {
+    const withExtra = [
+      ...phases.map(p => ({ ...p, disabled: false })),
+      { id: 'logs', label: 'Historique', disabled: false, isSupplementary: true },
+    ];
+    expect(phaseStepStates(withExtra, 'logs', 'pools')).toEqual([
+      'done',
+      'todo',
+      'todo',
+      'todo',
+      'todo',
+      'current',
+    ]);
+    expect(phaseStepStates(withExtra, 'logs')).not.toContain('done');
+  });
   it('phase inconnue : rien de fait', () => {
     expect(phaseStepStates(phases, 'x')[0]).toBe('todo');
   });

@@ -122,7 +122,15 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
       }),
     [phases, currentPhase, setCurrentPhase]
   );
-  const stepStates = phaseStepStates(phases, currentPhase);
+  // Dernière étape du flow visitée : référence d'avancement quand Historique/Arbitres est actif (#1650)
+  const [lastFlowPhase, setLastFlowPhase] = useState<string | undefined>(undefined);
+  const onFlowPhase = !phases.find(p => p.id === currentPhase)?.isSupplementary;
+  if (onFlowPhase && lastFlowPhase !== currentPhase) setLastFlowPhase(currentPhase);
+  const stepStates = phaseStepStates(
+    phases,
+    currentPhase,
+    onFlowPhase ? currentPhase : lastFlowPhase
+  );
   const blockedReason = nextBlockedReason(phases, currentPhase);
   return (
     <>

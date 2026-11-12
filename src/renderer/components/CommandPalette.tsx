@@ -11,6 +11,11 @@ import { Icon } from './common/Icon';
 import { getPhaseTargets, selectPhase } from './competition/phaseRegistry';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import {
+  SETTINGS_SECTIONS,
+  normalizeSearch,
+  type SettingsSectionId,
+} from './settingsModal.helpers';
+import {
   matchSlashCommands,
   resolveSelection,
   usageBase,
@@ -32,7 +37,8 @@ interface CommandPaletteProps {
   onClose: () => void;
   onSelectCompetition: (id: string) => void;
   onNewCompetition: () => void;
-  onOpenSettings: () => void;
+  /** Ouvre les paramètres, sur l'onglet donné s'il est précisé (#1651) */
+  onOpenSettings: (section?: SettingsSectionId) => void;
   /** Exécute une commande « / » (ex. « /remote start ») */
   onRunCommand?: (text: string) => void;
 }
@@ -131,13 +137,33 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
     if (!query.trim()) return allCommands;
     const q = query.toLowerCase();
-    return allCommands.filter(
+    const commands = allCommands.filter(
       cmd =>
         cmd.label.toLowerCase().includes(q) ||
         cmd.description?.toLowerCase().includes(q) ||
         cmd.keywords?.some(k => k.includes(q))
     );
-  }, [query, allCommands, isSlash, runSlash, t]);
+    // Paramètres de l'application : ouvre directement l'onglet concerné (#1651)
+    const nq = normalizeSearch(query.trim());
+    const settingCommands: Command[] = SETTINGS_SECTIONS.flatMap(section => {
+      const sectionLabel = t(section.labelKey);
+      return section.items
+        .filter(item =>
+          normalizeSearch([sectionLabel, ...item.keys.map(k => t(k))].join(' ')).includes(nq)
+        )
+        .map(item => ({
+          id: `setting-${item.id}`,
+          label: t(item.keys[0]),
+          description: `${t('settings.title')} · ${sectionLabel}`,
+          icon: <Icon icon={Settings} />,
+          action: () => {
+            onClose();
+            onOpenSettings(section.id);
+          },
+        }));
+    });
+    return [...commands, ...settingCommands];
+  }, [query, allCommands, isSlash, runSlash, t, onClose, onOpenSettings]);
 
   useEffect(() => {
     setSelectedIndex(0);

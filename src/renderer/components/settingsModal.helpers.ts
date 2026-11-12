@@ -126,6 +126,15 @@ export function loadActiveSection(): SettingsSectionId {
   return 'display';
 }
 
+/** Mémorise l'onglet à ouvrir (palette de commandes → paramètre, #1651) */
+export function saveActiveSection(id: SettingsSectionId): void {
+  try {
+    localStorage.setItem(SECTION_STORAGE_KEY, id);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
 // Minuscules sans accents : « theme » trouve « Thème »
 export function normalizeSearch(text: string): string {
   return text

@@ -132,11 +132,15 @@ describe('refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#
 
   it('autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1', async () => {
     const { win, replaceState } = lobbyWin();
-    const app: Record<string, unknown> = { currentMatch: null, allMatches: undefined };
+    // État initial réel : allMatches = [] avant le chargement (#1500)
+    const app: Record<string, unknown> = { currentMatch: null, allMatches: [] };
     const select = vi.fn();
     let calls = 0;
     const getApp = () => {
-      if (++calls === 2) app.allMatches = [{ id: 'm1', status: 'not_started' }];
+      if (++calls === 3) {
+        app.allMatches = [{ id: 'm1', status: 'not_started' }];
+        app.matchesLoaded = true;
+      }
       app.selectMatchFromNextScreen = select;
       return app;
     };
@@ -149,7 +153,12 @@ describe('refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#
     const select = vi.fn();
     const busy = { currentMatch: { id: 'x' }, allMatches: [], selectMatchFromNextScreen: select };
     expect(await L.autoOpen(lobbyWin().win, () => busy)).toBe(false);
-    const empty = { currentMatch: null, allMatches: [], selectMatchFromNextScreen: select };
+    const empty = {
+      currentMatch: null,
+      allMatches: [],
+      matchesLoaded: true,
+      selectMatchFromNextScreen: select,
+    };
     expect(await L.autoOpen(lobbyWin().win, () => empty)).toBe(false);
     expect(select).not.toHaveBeenCalled();
   });
