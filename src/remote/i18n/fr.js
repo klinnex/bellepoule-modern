@@ -603,6 +603,7 @@
   'error.signature_tableau_only': 'Signature de match réservée au tableau',
   'error.signature_too_large': 'Signature trop volumineuse (max 150 Ko)',
   'error.status_locked': 'Statut du tireur non modifiable',
+  'error.journee_status_failed': 'Impossible de charger l\'état de la journée',
   'error.too_many_attempts': 'Trop de tentatives. Réessayez dans {{retryAfter}} s.',
   'error.too_many_cells': 'Trop de cellules (max 120)',
   'error.trainer_closed': 'Espace formateurs fermé',

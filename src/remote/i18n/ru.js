@@ -602,6 +602,7 @@
   'error.signature_tableau_only': 'Подпись боя доступна только для боёв таблицы',
   'error.signature_too_large': 'Подпись слишком большая (макс. 150 КБ)',
   'error.status_locked': 'Статус фехтовальщика нельзя изменить',
+  'error.journee_status_failed': 'Не удалось загрузить состояние дня соревнований',
   'error.too_many_attempts': 'Слишком много попыток. Повторите через {{retryAfter}} с.',
   'error.too_many_cells': 'Слишком много ячеек (макс. 120)',
   'error.trainer_closed': 'Зона тренера закрыта',

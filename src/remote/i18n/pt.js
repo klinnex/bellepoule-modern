@@ -602,6 +602,7 @@
   'error.signature_tableau_only': 'A assinatura de combate aplica-se apenas aos combates de quadro',
   'error.signature_too_large': 'Assinatura demasiado grande (máx. 150 KB)',
   'error.status_locked': 'O estado do esgrimista não pode ser alterado',
+  'error.journee_status_failed': 'Não foi possível carregar o estado da jornada',
   'error.too_many_attempts': 'Demasiadas tentativas. Tente novamente dentro de {{retryAfter}} s.',
   'error.too_many_cells': 'Demasiadas células (máx. 120)',
   'error.trainer_closed': 'Área do treinador encerrada',

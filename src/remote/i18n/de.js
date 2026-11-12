@@ -595,6 +595,7 @@
   'error.signature_tableau_only': 'Gefechtsunterschrift nur im K.-o.-Tableau',
   'error.signature_too_large': 'Unterschrift zu groß (max. 150 KB)',
   'error.status_locked': 'Fechterstatus nicht änderbar',
+  'error.journee_status_failed': 'Status des Wettkampftags konnte nicht geladen werden',
   'error.too_many_attempts': 'Zu viele Versuche. Versuchen Sie es in {{retryAfter}} s erneut.',
   'error.too_many_cells': 'Zu viele Zellen (max. 120)',
   'error.trainer_closed': 'Ausbilderbereich geschlossen',
