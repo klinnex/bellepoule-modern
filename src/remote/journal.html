@@ -11,7 +11,8 @@
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: system-ui, sans-serif; background: var(--slate-900); color: var(--tw-slate-200); padding: 1rem; font-size: 14px; }
-      header { text-align: center; padding: 0.75rem 0 1rem; }
+      header { position: relative; text-align: center; padding: 0.75rem 0 1rem; }
+      .back-btn { position: absolute; left: 0; top: 0.5rem; display: inline-flex; align-items: center; min-height: 44px; padding: 0.5rem 1rem; background: var(--slate-800); color: var(--slate-50); border: 1px solid var(--slate-600); border-radius: 0.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
       header h1 { font-size: 1.1rem; color: var(--slate-50); }
       #match-info { color: var(--slate-400); font-size: 0.8rem; margin-top: 0.25rem; }
       #status { text-align: center; color: var(--slate-400); padding: 2rem; }
@@ -33,6 +34,7 @@
   </head>
   <body>
     <header>
+      <a id="btn-back" class="back-btn" href="/arene1/arbitre" data-i18n="referee.back" data-i18n-title="referee.back" title="Retour">← Retour</a>
       <h1 id="title"></h1>
       <div id="match-info" data-i18n="journal.loading">Chargement…</div>
     </header>
@@ -58,6 +60,15 @@
         const arenaNum = m ? m[1] : '1';
         const arenaId = 'arena' + arenaNum;
         let baseTs = null;
+        // Bouton retour : ferme l'onglet ouvert par l'arbitre, sinon revient à /areneN/arbitre
+        const backBtn = document.getElementById('btn-back');
+        backBtn.href = '/arene' + arenaNum + '/arbitre';
+        backBtn.addEventListener('click', (e) => {
+          if (window.opener && !window.opener.closed) {
+            e.preventDefault();
+            window.close();
+          }
+        });
         const loc = () => document.documentElement.lang || undefined;
 
         // Retourne du HTML : tous les paramètres injectés sont échappés
