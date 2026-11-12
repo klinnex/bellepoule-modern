@@ -56,7 +56,11 @@
    * @param {() => void} onUndo
    */
   function showUndoToast(doc, T, onUndo, ms, timers) {
-    const t = timers || { set: setTimeout, clear: clearTimeout };
+    // Fonctions fléchées : setTimeout natif exige this === window (sinon « Illegal invocation », #1716)
+    const t = timers || {
+      set: (fn, delay) => setTimeout(fn, delay),
+      clear: id => clearTimeout(id),
+    };
     let box = doc.getElementById('undo-toast');
     if (!box) {
       box = doc.createElement('div');
