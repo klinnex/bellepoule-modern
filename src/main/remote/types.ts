@@ -18,6 +18,9 @@ export interface SessionMatch {
   [key: string]: any;
 }
 
+/** Élément de liste envoyé par le renderer : match (poule ou tableau) ou marqueur `__poolFencers` */
+export type RendererMatch = Partial<SessionMatch>;
+
 /** Score d'un tireur conservé en mémoire : objet Score (base) ou simple valeur (tablette) */
 export type SessionScore = Score | number | null | undefined;
 

@@ -35,7 +35,7 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type { BlackCardRecord, SessionMatch, SessionScore, TeamArenaState } from './remote/types';
+import type { BlackCardRecord, RendererMatch, SessionMatch, SessionScore, TeamArenaState } from './remote/types';
 import type { PhaseEtaSummary } from './remote/routes/context';
 import {
   LoginGuard,
@@ -1867,7 +1867,7 @@ export class RemoteScoreServer {
     return updatePoolFencers(this.poolSyncCtx, updates);
   }
 
-  public syncPoolMatches(poolsData: Array<{ poolId: string; matches: SessionMatch[] }>): void {
+  public syncPoolMatches(poolsData: Array<{ poolId: string; matches: RendererMatch[] }>): void {
     return syncPoolMatches(this.poolSyncCtx, poolsData);
   }
 

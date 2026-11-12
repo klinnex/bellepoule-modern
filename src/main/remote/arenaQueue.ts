@@ -4,7 +4,8 @@
  * Licensed under GPL-3.0
  */
 import { ArenaMatch } from '../../shared/types/remote';
-import { Match, MatchStatus } from '../../shared/types';
+import { Match, MatchStatus, type Fencer } from '../../shared/types';
+import type { RendererMatch, SessionMatch } from './types';
 import * as slots from './arenaSlots';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
@@ -54,11 +55,11 @@ export function peekNextMatch(ctx: ArenaQueueContext, arenaId: string): ArenaMat
 
   if (currentPoolId && ctx.sessionMatches.length > 0) {
     const rawPoolMatches = ctx.sessionMatches
-      .filter((m: any) => {
+      .filter((m: SessionMatch) => {
         const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
         return matchPoolId === currentPoolId && ctx.isInActiveWave(m);
       })
-      .map((m: any) => {
+      .map((m: SessionMatch) => {
         const scoreUpdate = ctx.sessionMatchScores.get(m.id);
         return scoreUpdate ? { ...m, ...scoreUpdate } : m;
       });
@@ -76,7 +77,9 @@ export function peekNextMatch(ctx: ArenaQueueContext, arenaId: string): ArenaMat
       return !override || override === slots.baseArenaId(arenaId);
     });
     if (nextMatch) {
-      const nextReferee = ctx.resolveReferee((nextMatch as any).refereeId ?? nextMatch.referee?.id);
+      const nextReferee = ctx.resolveReferee(
+        (nextMatch as { refereeId?: string }).refereeId ?? nextMatch.referee?.id
+      );
       return {
         id: nextMatch.id,
         poolId: currentPoolId,
@@ -156,7 +159,7 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
         const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
         return matchPoolId === currentPoolId && ctx.isInActiveWave(m);
       })
-      .map((m: any) => {
+      .map((m: SessionMatch) => {
         const scoreUpdate = ctx.sessionMatchScores.get(m.id);
         return scoreUpdate ? { ...m, ...scoreUpdate } : m;
       });
@@ -257,8 +260,8 @@ export function updateMatchArena(
   matchId: string,
   fromArena: number | null,
   toArena: number | null,
-  fencerA?: any,
-  fencerB?: any
+  fencerA?: Fencer,
+  fencerB?: Fencer
 ): void {
   let matchToMove: ArenaMatch | undefined;
 
@@ -308,7 +311,7 @@ export function updateMatchArena(
 
   // Si le match n'est dans aucune arène, le construire depuis sessionMatches ou les données passées
   if (!matchToMove) {
-    const sm = ctx.sessionMatches.find((m: any) => m.id === matchId);
+    const sm = ctx.sessionMatches.find((m: SessionMatch) => m.id === matchId);
     if (sm) {
       // Mettre à jour les données de tireurs si le renderer fournit des données plus récentes
       if (fencerA) sm.fencerA = fencerA;
@@ -358,7 +361,7 @@ export function updateMatchArena(
         fencerB,
         isTableau: true,
         status: 'not_started',
-      } as any);
+      });
       logger.info(
         LogCategory.NETWORK,
         `[RemoteScoreServer] Match DE ${matchId} ajouté à sessionMatches depuis updateMatchArena`
@@ -403,18 +406,20 @@ export function assignPools(
     poolId: string;
     poolNumber?: number;
     strip?: number | null;
-    fencers?: any[];
-    matches: any[];
+    fencers?: Fencer[];
+    matches: RendererMatch[];
   }>
 ): void {
   if (!ctx.session) return;
-  const poolKey = (m: any) => m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
+  const poolKey = (m: SessionMatch) => m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
   const poolIds = new Set(poolsData.map(p => p.poolId));
 
   // 1. Matchs de poule en mémoire remplacés par ceux du renderer (poules obsolètes retirées)
   ctx.sessionMatches = [
-    ...ctx.sessionMatches.filter((m: any) => m.isTableau || !m.poolId),
-    ...poolsData.flatMap(p => p.matches.map(m => ({ ...m, poolNumber: p.poolNumber }))),
+    ...ctx.sessionMatches.filter((m: SessionMatch) => m.isTableau || !m.poolId),
+    ...poolsData.flatMap(p =>
+      p.matches.map(m => ({ ...m, poolNumber: p.poolNumber }) as SessionMatch)
+    ),
   ];
   for (const p of poolsData) {
     if (p.fencers && p.fencers.length > 0) ctx.poolFencersCache.set(p.poolId, p.fencers);
@@ -481,8 +486,8 @@ export function assignPools(
     if (queue.some(m => m.poolId === p.poolId)) continue;
 
     const poolMatches = ctx.sessionMatches
-      .filter((m: any) => !m.isTableau && poolKey(m) === p.poolId)
-      .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+      .filter((m: SessionMatch) => !m.isTableau && poolKey(m) === p.poolId)
+      .sort((a: SessionMatch, b: SessionMatch) => (a.number || 0) - (b.number || 0));
     const first = poolMatches.find(m => m.status !== 'finished' && m.status !== 'in_progress');
     if (!first || !first.fencerA || !first.fencerB) {
       if (!arena.currentMatch && poolMatches.length > 0) arena.activePoolId = p.poolId;
@@ -512,14 +517,14 @@ export function assignPools(
     const poolId = arena.currentMatch?.poolId ?? arena.activePoolId;
     if (!poolId || !poolIds.has(poolId)) continue;
     const matches = ctx.sessionMatches
-      .filter((m: any) => !m.isTableau && poolKey(m) === poolId)
-      .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
-      .map((m: any) => {
+      .filter((m: SessionMatch) => !m.isTableau && poolKey(m) === poolId)
+      .sort((a: SessionMatch, b: SessionMatch) => (a.number || 0) - (b.number || 0))
+      .map((m: SessionMatch) => {
         const u = ctx.sessionMatchScores.get(m.id);
         return u ? { ...m, ...u } : m;
       });
     const isComplete =
-      matches.length > 0 && matches.every((m: any) => m.status === MatchStatus.FINISHED);
+      matches.length > 0 && matches.every((m: SessionMatch) => m.status === MatchStatus.FINISHED);
     ctx.io?.to(`pool:${arenaId}`).emit(`pool:${arenaId}:update`, {
       poolId,
       fencers: ctx.poolFencersCache.get(poolId) ?? [],
@@ -529,7 +534,10 @@ export function assignPools(
   }
 }
 
-export function refreshDeMatches(ctx: ArenaQueueContext, matchesFromRenderer: any[]): void {
+export function refreshDeMatches(
+  ctx: ArenaQueueContext,
+  matchesFromRenderer: RendererMatch[]
+): void {
   if (!ctx.session) throw new Error('Aucune session active');
 
   const strips = ctx.session.strips.length;
@@ -541,12 +549,14 @@ export function refreshDeMatches(ctx: ArenaQueueContext, matchesFromRenderer: an
   }
 
   // Build the new DE match list, excluding already-active matches
-  const deMatches = matchesFromRenderer
-    .filter(m => !m.__poolFencers && m.isTableau && m.fencerA && m.fencerB)
-    .sort((a: any, b: any) => (b.round || 0) - (a.round || 0));
+  const deMatches = (
+    matchesFromRenderer.filter(
+      m => !m.__poolFencers && m.isTableau && m.fencerA && m.fencerB
+    ) as SessionMatch[]
+  ).sort((a: SessionMatch, b: SessionMatch) => (b.round || 0) - (a.round || 0));
 
   // Replace DE entries in sessionMatches (keep pool matches intact)
-  ctx.sessionMatches = ctx.sessionMatches.filter((m: any) => !m.isTableau);
+  ctx.sessionMatches = ctx.sessionMatches.filter((m: SessionMatch) => !m.isTableau);
   for (const m of deMatches) ctx.sessionMatches.push(m);
 
   // Rebuild DE queues (preserve any non-DE entries already queued)
@@ -629,7 +639,9 @@ export function refreshDeMatches(ctx: ArenaQueueContext, matchesFromRenderer: an
       } else {
         // Cas 2 : score remote ou fast-poule → vérifier le statut effectif
         const scoreUpdate = ctx.sessionMatchScores.get(arena.currentMatch.id);
-        const inSession = ctx.sessionMatches.find((m: any) => m.id === arena.currentMatch!.id);
+        const inSession = ctx.sessionMatches.find(
+          (m: SessionMatch) => m.id === arena.currentMatch!.id
+        );
         const effectiveStatus =
           scoreUpdate?.status ?? inSession?.status ?? arena.currentMatch.status;
         if (effectiveStatus === MatchStatus.FINISHED) {
