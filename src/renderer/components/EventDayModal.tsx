@@ -496,11 +496,11 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                           ? t('eventDay.free')
                           : s.kind === 'pool'
                             ? t('eventDay.strips_pool', {
-                                n: s.number,
+                                n: s.number ?? 0,
                                 title: s.competitionTitle ?? '',
                               })
                             : t('eventDay.strips_match', {
-                                n: s.number,
+                                n: s.number ?? 0,
                                 title: s.competitionTitle ?? '',
                               })}
                       </span>
