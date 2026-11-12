@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 58 | 466 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 86 | 430 |
+| `src/renderer/components/` | 86 | 432 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **353** | **2712** |
+| **Total** | **353** | **2714** |
 
-Unitaires : 343 fichiers, 2673 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 343 fichiers, 2675 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4660,7 +4660,7 @@ Unitaires : 343 fichiers, 2673 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 5 tests</summary>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 7 tests</summary>
 
 - **builtinThemes**
   - liste jamais vide pour chaque section
@@ -4668,6 +4668,8 @@ Unitaires : 343 fichiers, 2673 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - autres écrans : thème custom aux valeurs par défaut
   - id non prédéfini ou inconnu → null
   - Steampunk proposé et résolu pour chaque section
+  - chaque thème décoratif couvre toutes les sections avec des variables connues
+  - clé héritée de Object.prototype → null
 
 </details>
 
