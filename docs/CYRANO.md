@@ -80,8 +80,27 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
 ## 5. Suite prévue (#1720)
 
 1. Socle arènes : source d'entrée et numéro de séquence (`ArenaInputGate`), validation unifiée.
+   - **Couche multi-protocole avant tout raccordement** : modèle d'état de piste commun
+     (`PisteState`, `PisteInput`, `PisteCommand`) et pilotes déclarant leurs capacités
+     (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoServer` devient le premier
+     pilote ; RS422-FPA, Favero série (lecture seule) et OPP2/MQTT suivront sans toucher aux arènes.
+   - **Une seule validation de fin** : `endValidation.ts`, `scoreValidation.ts` et le calcul du
+     vainqueur de `matchRoutes.ts` fusionnés ; contrôle de la limite de score de l'épreuve.
+   - **Reprise de l'état des arènes** au redémarrage (`saveArenaState` est écrit mais jamais relu).
+   - **Chrono tenu côté serveur** en individuel, alimenté par la source maîtresse (appareil ou
+     tablette) : référence pour la tablette en miroir.
 2. Pilote Cyrano en lecture (mode afficheur), supervision dans l'interface.
 3. Télécommande : NEXT / PREV via `arenaQueue`, END → ACK / NAK → `matchFinish`, alerte BAD MATCH.
+   - PREV suppose une fonction « match précédent », absente de `arenaQueue` aujourd'hui ;
+     fenêtre de correction bornée (cf. Engarde : refus au-delà de 3 min ou si le match est verrouillé).
 4. Interface : table des pistes enregistrée en base, profils constructeur, format des noms.
+   - Actions de secours par piste : ACK forcé, passage en manuel, NEXT envoyé depuis le poste,
+     remise à zéro de l'affichage.
+   - Ajout de pistes en lot, import / export de la liste, mur de pistes (mini-vues en grille).
+   - Écoute limitée à l'interface réseau choisie ; journal des trames exportable et rejouable
+     dans le simulateur.
 5. Vue arbitre : bandeau appareil, choix de match → DISP.
 6. Cartons P, équipes (`Type=T`, relais, remplaçant).
+
+Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
+second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).
