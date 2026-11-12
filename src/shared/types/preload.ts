@@ -19,6 +19,15 @@ import {
   FencerCompetitionStats,
 } from '../types';
 import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
+import type {
+  DayReferee,
+  DayRefereeAssignment,
+  DayRefereeConflict,
+  DayRefereeInput,
+  DayRefereeStatus,
+  DaySyncResult,
+  EventDay,
+} from './eventDay';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -1221,6 +1230,33 @@ export interface TrainingMatchRecord {
   finishedAt: string;
 }
 
+/** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
+export interface EventDayAPI {
+  list: () => Promise<EventDay[]>;
+  create: (data: { name: string; date: string; stripCount?: number }) => Promise<EventDay>;
+  update: (
+    id: string,
+    updates: { name?: string; date?: string; stripCount?: number }
+  ) => Promise<EventDay | null>;
+  delete: (id: string) => Promise<void>;
+  setCompetitionDay: (competitionId: string, dayId: string | null) => Promise<DaySyncResult>;
+  listReferees: (dayId: string) => Promise<DayReferee[]>;
+  createReferee: (dayId: string, data: DayRefereeInput) => Promise<DayReferee>;
+  updateReferee: (id: string, data: DayRefereeInput) => Promise<void>;
+  deleteReferee: (id: string) => Promise<void>;
+  /** Reporte les arbitres de la journée dans chaque épreuve selon son arme */
+  syncReferees: (dayId: string) => Promise<DaySyncResult>;
+  /** Statut commun des arbitres + conflits sur toute la journée */
+  getOverview: (dayId: string) => Promise<EventDayOverview>;
+  /** Arbitres de l'épreuve occupés dans une autre épreuve de la journée (clé = id arbitre) */
+  getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
+}
+
+export interface EventDayOverview {
+  statuses: DayRefereeStatus[];
+  conflicts: DayRefereeConflict[];
+}
+
 export interface TrainingAPI {
   startServer: (
     port?: number,
@@ -1343,6 +1379,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
+  eventDay: EventDayAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;

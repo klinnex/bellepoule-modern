@@ -16,6 +16,7 @@ import { FencerRepo } from './repos/fencerRepo';
 import { MatchRepo } from './repos/matchRepo';
 import { PoolRepo } from './repos/poolRepo';
 import { RefereeRepo } from './repos/refereeRepo';
+import { EventDayRepo } from './repos/eventDayRepo';
 import { TeamRepo } from './repos/teamRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
@@ -50,6 +51,8 @@ export class DatabaseManager {
   private readonly pools = new PoolRepo(this.sql, this);
   private readonly referees = new RefereeRepo(this.sql);
   private readonly teams = new TeamRepo(this.sql);
+  /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
+  public readonly eventDays = new EventDayRepo(this.sql);
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');
