@@ -4,7 +4,8 @@
  * Licensed under GPL-3.0
  */
 import { RemoteSession, ArenaMatch } from '../../shared/types/remote';
-import { Weapon } from '../../shared/types';
+import { Weapon, type Fencer } from '../../shared/types';
+import type { RendererMatch, SessionMatch } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 
@@ -40,7 +41,7 @@ export async function startSession(
   ctx: SessionStartContext,
   competitionId: string,
   strips: number,
-  matchesFromRenderer?: any[],
+  matchesFromRenderer?: RendererMatch[],
   showPhotos?: boolean,
   kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
   cardAnnounce?: boolean
@@ -96,7 +97,7 @@ export async function startSession(
   const isDeOnlySession =
     matchesFromRenderer &&
     matchesFromRenderer.length > 0 &&
-    matchesFromRenderer.every((m: any) => m.isTableau || m.__poolFencers);
+    matchesFromRenderer.every(m => m.isTableau || m.__poolFencers);
   if (!isDeOnlySession && strips <= 0) {
     const actualStrips = poolCount > 0 ? poolCount : 1;
     logger.info(
@@ -110,8 +111,8 @@ export async function startSession(
   // Le nombre d'arènes est étendu si une poule vise une piste au-delà du nombre configuré.
   const poolStripMap = new Map<string, number>();
   for (const m of matchesFromRenderer ?? []) {
-    const s = Number((m as any).__poolFencers ? (m as any).strip : NaN);
-    if (Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
+    const s = Number(m.__poolFencers ? m.strip : NaN);
+    if (m.poolId && Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
   }
   const maxPoolStrip = Math.max(0, ...poolStripMap.values());
   if (maxPoolStrip > strips) {
@@ -130,7 +131,7 @@ export async function startSession(
   ctx.poolSignaturesCache.clear();
 
   // Utiliser les matches passés depuis le renderer si disponibles, sinon chercher dans la DB
-  let allMatches: any[];
+  let allMatches: SessionMatch[];
   const poolNumberMap = new Map<string, number>();
   if (matchesFromRenderer && matchesFromRenderer.length > 0) {
     logger.info(
@@ -141,14 +142,14 @@ export async function startSession(
     // Extraire les marqueurs d'ordre des tireurs injectés par le renderer (__poolFencers)
     // Nécessaire car l'ordre FIE (ex: 4 tireurs: [1,4],[2,3],...) ne permet pas de reconstruire
     // l'ordre correct par simple extraction des paires de matchs.
-    const fencerOrderMap = new Map<string, any[]>();
-    const realMatches: any[] = [];
+    const fencerOrderMap = new Map<string, Fencer[]>();
+    const realMatches: SessionMatch[] = [];
     for (const m of matchesFromRenderer) {
-      if ((m as any).__poolFencers) {
+      if (m.__poolFencers && m.poolId) {
         fencerOrderMap.set(m.poolId, m.fencers);
-        if ((m as any).poolNumber != null) poolNumberMap.set(m.poolId, (m as any).poolNumber);
-      } else {
-        realMatches.push(m);
+        if (m.poolNumber != null) poolNumberMap.set(m.poolId, m.poolNumber);
+      } else if (!m.__poolFencers) {
+        realMatches.push(m as SessionMatch);
       }
     }
     // Pré-remplir le cache uniquement si la liste de tireurs est non vide
@@ -214,7 +215,7 @@ export async function startSession(
   );
 
   // Grouper les matches par pool
-  const matchesByPool = new Map<string, any[]>();
+  const matchesByPool = new Map<string, SessionMatch[]>();
   for (const match of allMatches) {
     if (match.isTableau) continue; // Les matchs DE sont traités séparément plus bas
     const poolId = match.poolId || match.pool?.id || `pool-${match.poolNumber || match.number}`;
@@ -244,9 +245,9 @@ export async function startSession(
       // la première apparition de chaque tireur dans l'ordre des matchs FIE correspond
       // à sa position dans la poule (match 1 : pos1 vs pos4, match 2 : pos2 vs pos3…).
       const sortedMatches = [...poolMatches].sort(
-        (a: any, b: any) => (a.number || 0) - (b.number || 0)
+        (a: SessionMatch, b: SessionMatch) => (a.number || 0) - (b.number || 0)
       );
-      const fencerMap = new Map<string, any>();
+      const fencerMap = new Map<string, Fencer>();
       for (const match of sortedMatches) {
         if (match.fencerA?.id) fencerMap.set(match.fencerA.id, match.fencerA);
         if (match.fencerB?.id) fencerMap.set(match.fencerB.id, match.fencerB);
@@ -352,7 +353,7 @@ export async function startSession(
   // Tri décroissant : 8ès en premier, finale en dernier → pistes chargées dans l'ordre logique
   const deMatches = allMatches
     .filter(m => !m.poolId && (m.round !== undefined || m.isTableau) && m.fencerA && m.fencerB)
-    .sort((a: any, b: any) => (b.round || 0) - (a.round || 0));
+    .sort((a: SessionMatch, b: SessionMatch) => (b.round || 0) - (a.round || 0));
 
   if (deMatches.length > 0) {
     logger.info(
