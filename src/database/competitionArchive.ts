@@ -83,6 +83,14 @@ const pruneForeignKeyViolations = (db: Db): void => {
 const pruneUnownedRows = (db: Db, competitionId: string): void => {
   const tables = new Set(listTables(db, 'main'));
   const has = (...names: string[]) => names.every(n => tables.has(n));
+  if (has('event_days', 'competitions')) {
+    // Journée multi-épreuves (#1714) : seule celle de la compétition gardée reste
+    const kept = 'SELECT event_day_id FROM competitions WHERE event_day_id IS NOT NULL';
+    if (has('event_day_referees')) {
+      db.exec(`DELETE FROM event_day_referees WHERE event_day_id NOT IN (${kept})`);
+    }
+    db.exec(`DELETE FROM event_days WHERE id NOT IN (${kept})`);
+  }
   if (has('pools', 'phases')) {
     db.exec('DELETE FROM pools WHERE phase_id NOT IN (SELECT id FROM phases)');
   }

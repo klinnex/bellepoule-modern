@@ -96,7 +96,7 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
@@ -194,9 +194,9 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
-├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
+├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 20 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 22 versions)
 ```
 
 ### Key Patterns
@@ -215,6 +215,7 @@ Database (src/database/)
    - `dialog.*` – Open/save file dialogs
    - `remote.*` – Start/stop server, manage arenas/sessions/themes/passwords
    - `training.*` – Training-mode server
+   - `eventDay.*` – Journée multi-épreuves : épreuves regroupées, arbitres partagés, conflits (docs/JOURNEE_MULTI_EPREUVES.md)
    - `updater.*` – Auto-update control
    - `crypto.*` – safeStorage protect/unprotect
    - `themes.*` – Screen themes

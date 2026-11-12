@@ -34,6 +34,8 @@ import {
 } from './refereeManager.styles';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import { useBusyElsewhere } from '../hooks/useBusyElsewhere';
+import { formatAssignment } from './eventDayFormat';
 
 const PRESENCE_COLORS: Record<RefereePresence, string> = {
   not_checked_in: '#9ca3af',
@@ -69,6 +71,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   onAssignmentsChange,
 }) => {
   const { t } = useTranslation();
+  // Journée multi-épreuves (#1714) : occupation dans les autres épreuves
+  const busyElsewhere = useBusyElsewhere(competition.id);
   const [config, setConfig] = useState<RefereeRotationConfig>({
     maxConsecutiveMatches: 3,
     minRestTimeMinutes: 15,
@@ -535,6 +539,19 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                                 {ref.status === 'unavailable' ? 'Pointer' : 'Dépointer'}
                               </Button>
                             )}
+                            {busyElsewhere[ref.id] && (
+                              <span
+                                className="event-day-busy"
+                                title={t('eventDay.busy_elsewhere_title')}
+                              >
+                                <Icon icon={TriangleAlert} />{' '}
+                                {t('eventDay.busy_elsewhere', {
+                                  where: busyElsewhere[ref.id]
+                                    .map(a => formatAssignment(a, t))
+                                    .join(' ; '),
+                                })}
+                              </span>
+                            )}
                           </span>
                         );
                       })()}
@@ -890,6 +907,15 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     >
                       {REFEREE_PRESENCE_LABELS[getRefereePresence(referee, matches)]}
                     </div>
+                    {busyElsewhere[referee.id] && (
+                      <div className="event-day-busy event-day-busy--small">
+                        {t('eventDay.busy_elsewhere', {
+                          where: busyElsewhere[referee.id]
+                            .map(a => formatAssignment(a, t))
+                            .join(' ; '),
+                        })}
+                      </div>
+                    )}
                     <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
                       <span style={{ color: 'var(--color-text)' }}>
                         {t('refereeManager.today_matches', { n: stats.todayMatches })}

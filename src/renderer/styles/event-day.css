@@ -1,0 +1,73 @@
+/* Journée multi-épreuves (#1714) */
+.event-day {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.event-day-aside {
+  flex: 0 0 220px;
+  min-width: 0;
+}
+.event-day-main {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+.event-day-list {
+  list-style: none;
+  padding: 0;
+}
+.event-day-list--days {
+  margin: 0 0 1rem;
+}
+.event-day-day-btn {
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 0.25rem;
+}
+.event-day-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.event-day-row--end {
+  align-items: flex-end;
+}
+.event-day-h3-inline {
+  margin: 0;
+}
+.event-day-weapons {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.event-day-nowrap {
+  white-space: nowrap;
+}
+.event-day-input--sm {
+  width: 6rem;
+}
+.event-day-input--md {
+  width: 9rem;
+}
+.event-day-table {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+.event-day-ok,
+.event-day-free {
+  color: var(--color-success, #166534);
+}
+.event-day-free,
+.event-day-busy {
+  font-weight: 600;
+}
+.event-day-busy {
+  color: #b45309;
+}
+.event-day-busy--small {
+  font-size: 0.8rem;
+}
+.event-day-conflict {
+  color: var(--color-danger, #b91c1c);
+}
