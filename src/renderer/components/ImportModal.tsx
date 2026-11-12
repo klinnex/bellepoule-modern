@@ -36,7 +36,7 @@ interface ImportModalProps {
   filepath: string;
   content: string;
   fencers: Fencer[];
-  onImport: (fencers: Partial<Fencer>[]) => void;
+  onImport: (fencers: Partial<Fencer>[]) => void | Promise<void>;
   onImportRanking?: (result: RankingImportResult) => void;
   /** Arbitres du bloc <Arbitres> d'un XML (#1504) */
   onImportReferees?: (referees: ImportedReferee[]) => void;
@@ -131,9 +131,12 @@ const ImportModal: React.FC<ImportModalProps> = ({
       onClose();
     } else if (result) {
       const fencersToImport = result.fencers.filter((_, i) => selectedFencers.has(i));
-      if (fencersToImport.length > 0) onImport(fencersToImport);
       const refereesToImport = referees.filter((_, i) => selectedReferees.has(i));
-      if (refereesToImport.length > 0) onImportReferees?.(refereesToImport);
+      // Arbitres après les tireurs : l'activation des arbitres part de la compétition à jour (#1504)
+      const fencersDone =
+        fencersToImport.length > 0 ? Promise.resolve(onImport(fencersToImport)) : Promise.resolve();
+      if (refereesToImport.length > 0 && onImportReferees)
+        void fencersDone.then(() => onImportReferees(refereesToImport));
       onClose();
     }
   };

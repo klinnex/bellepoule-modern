@@ -7,7 +7,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('../hooks/useTranslation', () => ({
   useTranslation: () => ({
@@ -70,13 +70,14 @@ describe('ImportModal', () => {
       expect(screen.queryByText('DUPONT')).not.toBeInTheDocument();
     });
 
-    it('importe tireurs et arbitres sélectionnés', () => {
+    it('importe tireurs puis arbitres sélectionnés', async () => {
       const onImportReferees = vi.fn();
       const { onImport } = setup({ format: 'xml', content: xml, onImportReferees });
       fireEvent.click(
         screen.getByText('importModal.import_fencers_referees {"fencers":1,"referees":1}')
       );
       expect(onImport.mock.calls[0][0]).toHaveLength(1);
+      await waitFor(() => expect(onImportReferees).toHaveBeenCalled());
       expect(onImportReferees.mock.calls[0][0][0]).toMatchObject({ lastName: 'DURAND' });
     });
 

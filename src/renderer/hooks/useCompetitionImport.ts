@@ -2,7 +2,7 @@
  * BellePoule Modern - Import de tireurs et de classements (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Competition, Fencer, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import type { ImportedReferee, RankingImportResult } from '../../shared/utils/fileParser';
@@ -38,6 +38,11 @@ export function useCompetitionImport({
   const { showToast } = useToast();
   const { t } = useTranslation();
   const [importData, setImportData] = useState<ImportData | null>(null);
+  // Compétition à jour pour les traitements asynchrones (import tireurs puis arbitres)
+  const latestCompetition = useRef(competition);
+  useEffect(() => {
+    latestCompetition.current = competition;
+  }, [competition]);
 
   const handleImportFencers = async (importedFencers: Partial<Fencer>[]) => {
     await bulkAddFencers(importedFencers as any);
@@ -69,6 +74,20 @@ export function useCompetitionImport({
       }
     }
     if (created.length > 0) setReferees?.(prev => [...prev, ...created]);
+    // Arbitres importés : gestion des arbitres activée d'office (#1504)
+    const current = latestCompetition.current;
+    if (created.length > 0 && !current.settings?.refereeFeatureEnabled) {
+      const updated: Competition = {
+        ...current,
+        settings: { ...current.settings, refereeFeatureEnabled: true } as Competition['settings'],
+      };
+      onUpdate(updated);
+      try {
+        await window.electronAPI.db.updateCompetition?.(current.id, updated);
+      } catch (err) {
+        logger.error(LogCategory.UI, 'Failed to enable referee feature', err as Error);
+      }
+    }
     showToast(t('plural.referees_imported', { count: created.length }), 'success');
     setImportData(null);
   };

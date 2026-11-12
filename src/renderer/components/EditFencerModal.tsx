@@ -31,6 +31,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
   const [license, setLicense] = useState(fencer.license || '');
   const [ranking, setRanking] = useState(fencer.ranking?.toString() || '');
   const [status, setStatus] = useState<FencerStatus>(fencer.status);
+  const [handedness, setHandedness] = useState<'R' | 'L'>(fencer.handedness ?? 'R');
   const [photo, setPhoto] = useState<string | undefined>(fencer.photo);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -48,6 +49,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
       ranking: ranking ? parseInt(ranking) : undefined,
       status,
       photo,
+      handedness,
     });
 
     onClose();
@@ -197,6 +199,35 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
                 value={license}
                 onChange={e => setLicense(e.target.value)}
               />
+            </div>
+          </div>
+
+          {/* Latéralité modifiable (#1504) */}
+          <div className="form-group">
+            <label className="form-label" id="edit-fencer-handedness">
+              {t('addFencer.handedness')}
+            </label>
+            <div className="u-row" role="radiogroup" aria-labelledby="edit-fencer-handedness">
+              <label>
+                <input
+                  type="radio"
+                  name="edit-handedness"
+                  value="R"
+                  checked={handedness === 'R'}
+                  onChange={() => setHandedness('R')}
+                />{' '}
+                {t('addFencer.right')}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="edit-handedness"
+                  value="L"
+                  checked={handedness === 'L'}
+                  onChange={() => setHandedness('L')}
+                />{' '}
+                {t('addFencer.left')}
+              </label>
             </div>
           </div>
 

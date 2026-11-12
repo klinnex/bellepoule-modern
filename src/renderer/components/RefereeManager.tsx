@@ -34,6 +34,7 @@ import {
 } from './refereeManager.styles';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import NationalityPicker from './common/NationalityPicker';
 import { useBusyElsewhere } from '../hooks/useBusyElsewhere';
 import { formatAssignment } from './eventDayFormat';
 
@@ -355,12 +356,13 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 onChange={e => setNewReferee({ ...newReferee, category: e.target.value })}
                 style={INPUT}
               />
-              <input
-                placeholder={t('refereeManager.ph_nationality')}
-                value={newReferee.nationality}
-                onChange={e => setNewReferee({ ...newReferee, nationality: e.target.value })}
-                style={INPUT}
-              />
+              {/* Même sélecteur de nationalité que l'ajout d'un tireur (#1504) */}
+              <div aria-label={t('refereeManager.ph_nationality')}>
+                <NationalityPicker
+                  value={newReferee.nationality || 'FRA'}
+                  onChange={code => setNewReferee({ ...newReferee, nationality: code })}
+                />
+              </div>
             </div>
             {addError && <p className="is-72cabb">{addError}</p>}
             <div className="is-52d632">
