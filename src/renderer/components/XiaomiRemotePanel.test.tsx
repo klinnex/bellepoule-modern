@@ -7,9 +7,12 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react';
+import { render, act, waitFor, fireEvent, screen } from '@testing-library/react';
 
 vi.mock('../hooks/useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn((url: string) => Promise.resolve(`data:image/png;qr=${url}`)) },
+}));
 vi.mock('../hooks/useFocusTrap', () => ({ useFocusTrap: () => ({ current: null }) }));
 import { XiaomiRemotePanel } from './XiaomiRemotePanel';
 
@@ -77,5 +80,22 @@ describe('XiaomiRemotePanel', () => {
     expect(container.textContent).not.toContain('Etranger');
     act(() => push(clientsFor('Propre', 'a'), 'c1'));
     expect(container.textContent).toContain('Propre');
+  });
+
+  it("affiche le QR code de l'URL du lobby au clic", async () => {
+    render(
+      <XiaomiRemotePanel
+        competitionId="c1"
+        serverUrl="http://h:8066/"
+        arenaCount={2}
+        onClose={() => {}}
+      />
+    );
+    expect(screen.queryByAltText('rsm.qr_code')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'rsm.qr_code' }));
+    const img = await screen.findByAltText('rsm.qr_code');
+    expect(img).toHaveAttribute('src', 'data:image/png;qr=http://h:8066/lobby');
+    fireEvent.click(screen.getByRole('button', { name: 'rsm.qr_code' }));
+    expect(screen.queryByAltText('rsm.qr_code')).toBeNull();
   });
 });
