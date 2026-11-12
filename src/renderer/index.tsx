@@ -30,6 +30,7 @@ import './styles/utilities.css';
 import './styles/components.css';
 import './styles/dashboard.css';
 import './styles/event-day.css';
+import './styles/cyrano.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
 import './styles/resize-guard.css';
