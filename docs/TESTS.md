@@ -25,7 +25,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
-`npm run test:e2e`.
+`npm run test:e2e`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
 
 Sécurité : `.github/workflows/codeql.yml` (CodeQL JS/TS, PR vers `dev` + hebdo) et `security.yml` (`npm audit --omit=dev` non bloquant + SBOM CycloneDX), Dependabot (`.github/dependabot.yml`).
 
@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 50 | 663 |
+| `src/shared/utils/` | 51 | 667 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 424 |
+| `src/main/` | 55 | 453 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 354 |
+| `src/remote/` | 55 | 355 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **338** | **2584** |
+| **Total** | **341** | **2618** |
 
-Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -734,6 +734,15 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/fullCompetitionPdf.test.ts</code> — 2 tests</summary>
+
+- **exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)**
+  - les feuilles de poule gardent leur contenu avec le modèle poule
+  - aucun repère OCR dans l’export sans signature
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 5 tests</summary>
 
 - **pdfT**
@@ -746,13 +755,16 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 11 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
   - masque V, V/M, TD, TR, Ind et Rg avec hideStatColumns
   - conserve les colonnes non statistiques (club) avec hideStatColumns
   - applique le format paysage
+- **generatePoolHTML – repères OCR (#1712)**
+  - pas de cadre OCR bas-droit sans QR (export complet)
+  - cadre OCR et QR présents sur une feuille avec QR
 - **exportMultiplePoolsToPDF – un seul PDF (#1413)**
   - nom par défaut « \<compétition\>-poules.pdf », caractères interdits remplacés
   - toutes les poules dans un seul fichier, une seule boîte de dialogue
@@ -2265,6 +2277,53 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/codec.test.ts</code> — 24 tests</summary>
+
+- **parseCyrano — trames de la spécification**
+  - HELLO / NEXT / PREV
+  - INFO incomplet sans DISP : chrono, état et données appareil
+  - INFO après DISP vide
+  - INFO complet
+  - INFO en attente sans match
+  - DISP abrégé, espaces parasites retirés
+  - EFP1 et carton P (EFP1.1)
+  - rejette les trames invalides
+  - valeurs hors domaine ignorées
+- **buildCyrano**
+  - HELLO conforme à la spécification
+  - champs obligatoires présents même vides
+  - aller-retour sur une trame complète
+  - EFP1 omet le carton P, EFP1.1 le transmet
+  - nettoie \| et % et tronque
+  - zone droite vide mais gauche présente
+  - sanitizeField
+- **noms et nations**
+  - translittération
+  - convention olympique
+  - nation sur 3 caractères
+  - source du champ nation
+- **fin de match (ACK / NAK)**
+  - cas de la spécification
+  - résultat par identifiant : insensible à l’inversion droite/gauche
+- **DISP depuis un match**
+  - construit les champs et respecte les longueurs
+  - armes hors protocole
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/server.test.ts</code> — 5 tests</summary>
+
+- **CyranoServer**
+  - HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés
+  - ignore les IP non déclarées et les trames illisibles
+  - supervision : en ligne → incertain → hors ligne
+  - journal borné
+  - version imposée par piste
 
 </details>
 
@@ -5127,7 +5186,7 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 6 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
@@ -5136,6 +5195,7 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - pendant le match : le chrono diffusé est mémorisé en localStorage
   - reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours
   - match non commencé ou autre match : durée initiale, sauvegarde effacée
+  - retour à la liste (fin de match) : sauvegarde du chrono effacée
 
 </details>
 

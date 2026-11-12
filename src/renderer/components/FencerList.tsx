@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { QrCode, Search, Trash2 } from 'lucide-react';
+import { Funnel, QrCode, Search, Trash2 } from 'lucide-react';
 import { Icon } from './common/Icon';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import EditFencerModal from './EditFencerModal';
@@ -123,6 +123,46 @@ const FencerListComponent: React.FC<FencerListProps> = (props: FencerListProps) 
           {customImportTemplate && !readOnly && (
             <Button onClick={customImportTemplate.onClick}>{customImportTemplate.label}</Button>
           )}
+          {fencers.length > 0 && (
+            <div ref={colMenuRef} style={DROPDOWN_WRAP}>
+              <Button
+                onClick={() => setColMenuOpen(o => !o)}
+                title={t('fencerList.columns_title')}
+                icon={<Icon icon={Funnel} />}
+              >
+                {t('fencerList.columns_menu')}
+              </Button>
+              {colMenuOpen && (
+                <div className="is-a36aa5">
+                  {COLUMNS.map(col => (
+                    <label key={col.id} className="is-80fd54">
+                      <input
+                        type="checkbox"
+                        checked={!hiddenCols.has(col.id)}
+                        onChange={() => {
+                          setHiddenCols(prev => {
+                            const next = new Set(prev);
+                            if (next.has(col.id)) next.delete(col.id);
+                            else next.add(col.id);
+                            return next;
+                          });
+                        }}
+                      />
+                      {columnLabels?.[col.id] ?? t(col.labelKey)}
+                    </label>
+                  ))}
+                  <div className="is-a6ae95" />
+                  <Button
+                    variant="ghost"
+                    className="is-539e77"
+                    onClick={() => setColOrder(COLUMNS.map(c => c.id))}
+                  >
+                    {t('fencerList.reset_order')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
           {onImport && !readOnly && (
             <div ref={importMenuRef} style={DROPDOWN_WRAP}>
               <Button
@@ -216,43 +256,6 @@ const FencerListComponent: React.FC<FencerListProps> = (props: FencerListProps) 
           )}
           {fencers.length > 0 && (
             <>
-              <div ref={colMenuRef} style={DROPDOWN_WRAP}>
-                <Button
-                  onClick={() => setColMenuOpen(o => !o)}
-                  title={t('fencerList.columns_title')}
-                >
-                  {t('fencerList.columns_menu')}
-                </Button>
-                {colMenuOpen && (
-                  <div className="is-a36aa5">
-                    {COLUMNS.map(col => (
-                      <label key={col.id} className="is-80fd54">
-                        <input
-                          type="checkbox"
-                          checked={!hiddenCols.has(col.id)}
-                          onChange={() => {
-                            setHiddenCols(prev => {
-                              const next = new Set(prev);
-                              if (next.has(col.id)) next.delete(col.id);
-                              else next.add(col.id);
-                              return next;
-                            });
-                          }}
-                        />
-                        {columnLabels?.[col.id] ?? t(col.labelKey)}
-                      </label>
-                    ))}
-                    <div className="is-a6ae95" />
-                    <Button
-                      variant="ghost"
-                      className="is-539e77"
-                      onClick={() => setColOrder(COLUMNS.map(c => c.id))}
-                    >
-                      {t('fencerList.reset_order')}
-                    </Button>
-                  </div>
-                )}
-              </div>
               <div ref={exportMenuRef} style={DROPDOWN_WRAP}>
                 <Button onClick={() => setExportMenuOpen(o => !o)} title={t('actions.export')}>
                   {t('fencerList.export_menu')}
