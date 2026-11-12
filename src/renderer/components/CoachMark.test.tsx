@@ -3,8 +3,7 @@
  * Tests CoachMark : aide ponctuelle avec « Ne plus afficher » (#1536).
  */
 import '@testing-library/jest-dom';
-import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 import CoachMark from './CoachMark';
