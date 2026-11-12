@@ -186,3 +186,14 @@ describe('PoolPrepView – brouillon de préparation (#1649)', () => {
     );
   });
 });
+
+describe('PoolPrepView — pastille du critère prioritaire (#1440)', () => {
+  it('club en priorité 1 : pastille club, orange si doublon dans la poule', () => {
+    // f1 et f4 : Club1 (doublon), f2 : Club2, f3 : Club0
+    const base = [1, 2, 3, 4].map(fencer);
+    const { container } = render(view(base, [pool(base)]));
+    const pills = [...container.querySelectorAll('.pool-prep-club-pill')];
+    expect(pills.map(p => p.textContent)).toEqual(['Club1', 'Club2', 'Club0', 'Club1']);
+    expect(pills.filter(p => p.classList.contains('conflict'))).toHaveLength(2);
+  });
+});

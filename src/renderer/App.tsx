@@ -62,6 +62,7 @@ import { ipcErrorText } from './services/ipcError';
 import { Button } from './components/common/Button';
 import { Tooltip } from './components/Tooltip';
 import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
+import { createPortal } from 'react-dom';
 import { saveActiveSection } from './components/settingsModal.helpers';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
@@ -105,6 +106,7 @@ const AppContent: React.FC = () => {
   const [trainingLaunching, setTrainingLaunching] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const toolsBtnRef = useRef<HTMLButtonElement>(null);
+  const toolsPanelRef = useRef<HTMLDivElement>(null);
   const [toolsMenuPos, setToolsMenuPos] = useState<{ top: number; right: number }>({
     top: 0,
     right: 0,
@@ -279,8 +281,9 @@ const AppContent: React.FC = () => {
     const rect = toolsBtnRef.current?.getBoundingClientRect();
     if (rect) setToolsMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     const handler = (e: MouseEvent) => {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node))
-        setShowToolsMenu(false);
+      const target = e.target as Node;
+      if (toolsMenuRef.current?.contains(target) || toolsPanelRef.current?.contains(target)) return;
+      setShowToolsMenu(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -726,75 +729,79 @@ const AppContent: React.FC = () => {
                   <Wrench size={15} />
                   <span className="header-btn-label">{t('app.tools')}</span>
                 </Button>
-                {showToolsMenu && (
-                  <div
-                    style={{
-                      position: 'fixed',
-                      right: toolsMenuPos.right,
-                      top: toolsMenuPos.top,
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                      boxShadow: 'var(--shadow-xl)',
-                      minWidth: '200px',
-                      zIndex: 1100,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <button
-                      className="comp-header-dropdown-item"
-                      onClick={() => {
-                        setShowWifiQR(true);
-                        setShowToolsMenu(false);
-                      }}
+                {/* Portail vers body : le header (backdrop-filter) piège position:fixed sous la bannière (#1755) */}
+                {showToolsMenu &&
+                  createPortal(
+                    <div
+                      ref={toolsPanelRef}
                       style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
+                        position: 'fixed',
+                        right: toolsMenuPos.right,
+                        top: toolsMenuPos.top,
+                        background: 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        boxShadow: 'var(--shadow-xl)',
+                        minWidth: '200px',
+                        zIndex: 1100,
+                        overflow: 'hidden',
                       }}
                     >
-                      <Wifi size={15} /> {t('app.wifi_qr')}
-                    </button>
-                    <button
-                      className="comp-header-dropdown-item"
-                      onClick={() => {
-                        setShowTVRemote(true);
-                        setShowToolsMenu(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <Tv2 size={15} /> {t('app.tv_remote')}
-                    </button>
-                    <button
-                      className="comp-header-dropdown-item tools-menu-item"
-                      onClick={() => {
-                        restartGuidedTour();
-                        setShowToolsMenu(false);
-                      }}
-                    >
-                      <Sparkles size={15} /> {t('app.guided_tour')}
-                    </button>
-                    <button
-                      className="comp-header-dropdown-item tools-menu-item"
-                      onClick={() => {
-                        setShowToolsMenu(false);
-                        handleStartDemo();
-                      }}
-                      title={t('demo.hint')}
-                    >
-                      <PlayCircle size={15} /> {t('demo.button')}
-                    </button>
-                  </div>
-                )}
+                      <button
+                        className="comp-header-dropdown-item"
+                        onClick={() => {
+                          setShowWifiQR(true);
+                          setShowToolsMenu(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Wifi size={15} /> {t('app.wifi_qr')}
+                      </button>
+                      <button
+                        className="comp-header-dropdown-item"
+                        onClick={() => {
+                          setShowTVRemote(true);
+                          setShowToolsMenu(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Tv2 size={15} /> {t('app.tv_remote')}
+                      </button>
+                      <button
+                        className="comp-header-dropdown-item tools-menu-item"
+                        onClick={() => {
+                          restartGuidedTour();
+                          setShowToolsMenu(false);
+                        }}
+                      >
+                        <Sparkles size={15} /> {t('app.guided_tour')}
+                      </button>
+                      <button
+                        className="comp-header-dropdown-item tools-menu-item"
+                        onClick={() => {
+                          setShowToolsMenu(false);
+                          handleStartDemo();
+                        }}
+                        title={t('demo.hint')}
+                      >
+                        <PlayCircle size={15} /> {t('demo.button')}
+                      </button>
+                    </div>,
+                    document.body
+                  )}
               </div>
             )}
             <Button

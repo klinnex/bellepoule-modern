@@ -861,7 +861,7 @@
   }
   45%,
   70% {
-    transform: translate(calc(100% + 0.9rem), 1.15rem);
+    transform: translate(calc(100% + 0.9rem), 0); /* glissement horizontal (#1305) */
     box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.35);
   }
   90%,

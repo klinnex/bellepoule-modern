@@ -896,7 +896,7 @@ body {
 .pool-prep-club-pill.conflict {
   border-color: var(--color-warning);
   color: var(--color-warning);
-  background: rgba(217, 119, 6, 0.08);
+  background: rgba(217, 119, 6, 0.22); /* surbrillance orange (#1440) */
 }
 .pool-prep-ranking,
 .pool-prep-strength {

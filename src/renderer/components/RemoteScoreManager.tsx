@@ -215,6 +215,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           {/* CTA */}
           <button
             className="rsm-start-btn"
+            data-tour="start-remote"
             onClick={onStartRemote}
             disabled={!portValid || isLoading}
           >

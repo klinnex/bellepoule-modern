@@ -514,6 +514,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const isCriterionEnabled = (key: SeparationCriterionKey) =>
     separationCriteria.some(c => c.key === key && c.enabled);
 
+  /** Critère de séparation de priorité 1 (premier actif) : valeur affichée dans la pastille (#1440) */
+  const primaryKey = separationCriteria.find(
+    (c): c is SeparationCriterion & { key: SeparationCriterionKey } =>
+      c.enabled && c.key in CRITERION_NOUN
+  )?.key;
+  const primaryValue = (f: Fencer): string | undefined => {
+    if (primaryKey === 'byRegion') return f.region;
+    if (primaryKey === 'byNation') return f.nationality;
+    return f.club;
+  };
+
   /** « Club Street Fighter » → « Street Fighter » (gain de place, nom complet en infobulle) */
   const shortClub = (club: string) => club.replace(/^club\s+/i, '');
 
@@ -786,6 +797,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             const regionConflicts = isCriterionEnabled('byRegion')
               ? getPoolConflicts(pool, f => f.region)
               : new Map<string, number>();
+            const primaryConflicts = primaryKey
+              ? getPoolConflicts(pool, f => primaryValue(f))
+              : new Map<string, number>();
             const topClubConflict = [...clubConflicts.entries()].sort((a, b) => b[1] - a[1])[0];
             const avgRanking = getPoolAvgRanking(pool);
             const isOutOfRange =
@@ -887,6 +901,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     const hasClubConflict = fencer.club
                       ? clubConflicts.has(fencer.club.trim())
                       : false;
+                    // Pastille = critère de priorité 1, en orange s'il est en conflit (#1440)
+                    const pillValue = primaryValue(fencer)?.trim();
+                    const hasPrimaryConflict =
+                      !!primaryKey && !!pillValue && primaryConflicts.has(pillValue);
                     const display = fencerDisplay?.(fencer);
                     return (
                       <div
@@ -933,14 +951,16 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                             {display.pill}
                           </span>
                         )}
-                        {!display && fencer.club && (
+                        {!display && pillValue && (
                           <span
-                            className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
-                            title={
-                              fencer.region ? `${fencer.club} — ${fencer.region}` : fencer.club
-                            }
+                            className={`pool-prep-club-pill${hasPrimaryConflict ? ' conflict' : ''}`}
+                            title={[fencer.club, fencer.region, fencer.nationality]
+                              .filter(Boolean)
+                              .join(' — ')}
                           >
-                            {shortClub(fencer.club)}
+                            {primaryKey && primaryKey !== 'byClub'
+                              ? pillValue
+                              : shortClub(pillValue)}
                           </span>
                         )}
                       </div>
