@@ -148,6 +148,13 @@ export function launchCompetition(ctx: LifecycleContext): void {
 export function stopSession(ctx: LifecycleContext): void {
   ctx.demoPlayer?.stop();
   ctx.demoPlayer = null;
+  // Entraînement / démo : matchs fictifs retirés des pistes (sinon tablettes et écrans
+  // gardent un match jouable après l'arrêt)
+  if (ctx.isTrainingMode) {
+    for (const arenaId of ctx.arenas.keys()) {
+      ctx.updateArena(arenaId, { status: 'idle', currentMatch: null });
+    }
+  }
   ctx.isTrainingMode = false;
   ctx.trainingCustomRules = null;
   ctx.session = null;

@@ -8,6 +8,7 @@ import { useStateGroup } from '../useStateGroup';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { FencerStatus } from '../../../shared/types';
+import type { CustomTheme } from '../../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import ArenaQrCodesModal from '../../components/ArenaQrCodesModal';
 import { ipcErrorText } from '../../services/ipcError';
@@ -284,43 +285,49 @@ export function useRemoteServerActions(ctx: Ctx) {
     }
   }, []);
 
+  // Appliquer un thème à toutes les pistes pour un type d'écran (ou au kiosque)
+  const applyThemeToAllScreens = useCallback(
+    async (section: typeof globalThemeSection, theme: CustomTheme) => {
+      if (section === 'arena') {
+        await handleArenaThemeChange('all', 'custom', theme);
+        showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
+      } else if (section === 'kiosk') {
+        const result = await applyKioskCustomTheme(theme);
+        if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
+        else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
+      } else {
+        // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
+        const count = session ? session.strips.length : effectiveCommitted;
+        for (const i of stripNumbers(effectiveCommittedStart, count)) {
+          await window.electronAPI.remote.updateArenaScreenTheme(
+            competition.id,
+            `arena${i}`,
+            section,
+            theme
+          );
+        }
+        showToast(`Thème "${theme.name}" appliqué (${section}) à toutes les pistes`, 'success');
+      }
+    },
+    [
+      handleArenaThemeChange,
+      applyKioskCustomTheme,
+      showToast,
+      t,
+      competition.id,
+      session,
+      effectiveCommitted,
+      effectiveCommittedStart,
+    ]
+  );
+
   // Appliquer un thème sauvegardé globalement (toutes les arènes, un type d'écran)
   const handleGlobalThemeApply = useCallback(async () => {
     const theme = savedThemes.find(t => t.id === globalThemeId);
     if (!theme) return;
-    if (globalThemeSection === 'arena') {
-      await handleArenaThemeChange('all', 'custom', theme);
-      showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
-    } else if (globalThemeSection === 'kiosk') {
-      const result = await applyKioskCustomTheme(theme);
-      if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
-      else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
-    } else {
-      // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
-      const count = session ? session.strips.length : effectiveCommitted;
-      for (const i of stripNumbers(effectiveCommittedStart, count)) {
-        await window.electronAPI.remote.updateArenaScreenTheme(
-          competition.id,
-          `arena${i}`,
-          globalThemeSection,
-          theme
-        );
-      }
-      showToast(
-        `Thème "${theme.name}" appliqué (${globalThemeSection}) à toutes les pistes`,
-        'success'
-      );
-    }
+    await applyThemeToAllScreens(globalThemeSection, theme);
     setGlobalThemeId('');
-  }, [
-    savedThemes,
-    globalThemeId,
-    globalThemeSection,
-    handleArenaThemeChange,
-    competition.id,
-    session,
-    effectiveCommitted,
-  ]);
+  }, [savedThemes, globalThemeId, globalThemeSection, applyThemeToAllScreens, setGlobalThemeId]);
 
   // La grille d'URLs reflète l'état réel du serveur (committedCount) ou la session active
   const arenaCount = session ? session.strips.length : effectiveCommitted;
@@ -426,6 +433,7 @@ export function useRemoteServerActions(ctx: Ctx) {
     applyCheckinPassword,
     copyToClipboard,
     handleGlobalThemeApply,
+    applyThemeToAllScreens,
     arenaCount,
     kioskUrl,
     lobbyUrl,

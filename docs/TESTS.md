@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 7 | 146 |
-| `src/main/` | 57 | 461 |
+| `src/main/` | 57 | 462 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 85 | 418 |
+| `src/renderer/components/` | 85 | 420 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **351** | **2695** |
+| **Total** | **351** | **2698** |
 
-Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2376,9 +2376,10 @@ Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/server.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/cyrano/server.test.ts</code> — 6 tests</summary>
 
 - **CyranoServer**
+  - start(port) écoute sur le port demandé, sans piste configurée
   - HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés
   - ignore les IP non déclarées et les trames illisibles
   - supervision : en ligne → incertain → hors ligne
@@ -3823,10 +3824,11 @@ Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 10 tests</summary>
+<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 11 tests</summary>
 
 - **CommandPalette**
   - propose la navigation vers les phases accessibles (#1536)
+  - trouve un paramètre et ouvre son onglet (#1651)
   - affiche les compétitions et les actions statiques
   - filtre selon la requête
   - affiche un message si aucun résultat
@@ -3845,7 +3847,7 @@ Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
 - **CompetitionList (export accueil)**
-  - bouton Exporter ouvre le choix de compétition puis appelle onExport avec l’identifiant
+  - pas de bouton Exporter global : export par carte uniquement (#1651)
   - pas de bouton Exporter sans compétition
 - **CompetitionList (filtres et tri #1534)**
   - filtre par arme avec une puce, puis réinitialise
@@ -4389,10 +4391,11 @@ Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/phaseStepper.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/competition/phaseStepper.test.ts</code> — 5 tests</summary>
 
 - **phaseStepStates**
   - marque fait, en cours, à faire et bloqué
+  - onglet utilitaire actif : avancement de la dernière étape du flow (#1650)
   - phase inconnue : rien de fait
 - **nextBlockedReason**
   - renvoie le motif de la première phase bloquée suivante

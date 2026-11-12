@@ -20,6 +20,45 @@ export interface TrainingHandlersContext {
   getMainWindow(): BrowserWindow | null;
 }
 
+/**
+ * Arrête le serveur d'entraînement (démo comprise) : arbitre virtuel, écrans de démo, port.
+ * Renvoie false s'il ne tournait pas.
+ */
+export function stopTrainingServer(): boolean {
+  const entry = remoteServers.get(TRAINING_ID);
+  if (!entry) return false;
+  closeDemoScreens();
+  entry.server.stop();
+  usedPorts.delete(entry.port);
+  remoteServers.delete(TRAINING_ID);
+  return true;
+}
+
+/** Détache les écouteurs posés sur la fenêtre principale par bindToMainWindow. */
+let unbindMainWindow: (() => void) | null = null;
+
+/**
+ * Le serveur d'entraînement n'est piloté que par la fenêtre principale : fermée (macOS, l'app
+ * reste dans le Dock) ou rechargée (état React perdu, plus de bouton « Arrêter »), il ne doit
+ * pas continuer en arrière-plan (démo qui joue encore, saisie distante encore acceptée).
+ */
+function bindToMainWindow(main: BrowserWindow | null): void {
+  if (!main || main.isDestroyed()) return;
+  const stop = () => {
+    stopTrainingServer();
+    detach();
+  };
+  const detach = () => {
+    unbindMainWindow = null;
+    main.removeListener('closed', stop);
+    if (!main.isDestroyed()) main.webContents.removeListener('did-navigate', stop);
+  };
+  unbindMainWindow?.();
+  main.once('closed', stop);
+  main.webContents.once('did-navigate', stop);
+  unbindMainWindow = detach;
+}
+
 export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlersContext): void {
   ipcMain.handle(
     'training:startServer',
@@ -62,6 +101,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
           /* optionnel */
         }
         setSharedMainWindow(getMainWindow());
+        bindToMainWindow(getMainWindow());
         return {
           success: true,
           serverInfo: {
@@ -83,12 +123,8 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
 
   ipcMain.handle('training:stopServer', async () => {
     try {
-      const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'training_not_started' };
-      closeDemoScreens();
-      entry.server.stop();
-      usedPorts.delete(entry.port);
-      remoteServers.delete(TRAINING_ID);
+      if (!stopTrainingServer()) return { success: false, error: 'training_not_started' };
+      unbindMainWindow?.();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };

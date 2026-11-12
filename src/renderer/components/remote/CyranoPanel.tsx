@@ -69,6 +69,7 @@ export const CyranoPanel: React.FC = () => {
   const [nameLength, setNameLength] = useState<10 | 12 | 15 | 20>(10);
   const [natSource, setNatSource] = useState<'auto' | 'country' | 'club' | 'region'>('auto');
   const [international, setInternational] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshStatus = useCallback(async () => {
@@ -99,11 +100,21 @@ export const CyranoPanel: React.FC = () => {
   }, [running, refreshStatus]);
 
   const handleStart = async () => {
-    if (!window.electronAPI?.cyrano) return;
-    const res = await window.electronAPI.cyrano.start({ port: udpPort });
-    if (res.success) {
-      await window.electronAPI.cyrano.setPistes(pistes.filter(p => p.piste && p.ip));
-      await window.electronAPI.cyrano.setOptions({ nameLength, natSource, international });
+    if (!window.electronAPI?.cyrano) {
+      setStartError('electronAPI.cyrano indisponible');
+      return;
+    }
+    setStartError(null);
+    try {
+      const res = await window.electronAPI.cyrano.start({ port: udpPort });
+      if (res.success) {
+        await window.electronAPI.cyrano.setPistes(pistes.filter(p => p.piste && p.ip));
+        await window.electronAPI.cyrano.setOptions({ nameLength, natSource, international });
+      } else {
+        setStartError(res.error ?? 'start_failed');
+      }
+    } catch (err) {
+      setStartError(err instanceof Error ? err.message : String(err));
     }
     void refreshStatus();
   };
@@ -195,7 +206,7 @@ export const CyranoPanel: React.FC = () => {
           <Button
             size="sm"
             variant="primary"
-            disabled={!portValid || pistes.filter(p => p.piste && p.ip).length === 0}
+            disabled={!portValid}
             onClick={() => {
               void handleStart();
             }}
@@ -204,6 +215,11 @@ export const CyranoPanel: React.FC = () => {
           </Button>
         )}
       </div>
+      {startError && !running && (
+        <div className="cyrano-error" role="alert">
+          <Icon icon={AlertCircle} /> {startError}
+        </div>
+      )}
 
       {/* ── Table des pistes ── */}
       <div className="cyrano-table-wrap">
