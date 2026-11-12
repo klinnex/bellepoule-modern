@@ -545,6 +545,7 @@ class RefereeApp extends RefereeAppBase {
     this.overtimeType = null;
     this.updateSuddenDeathUI();
     this.matchStatus = 'finished';
+    this._clearStoredTimer();
     this.stopTimer();
 
     try {
@@ -740,6 +741,7 @@ class RefereeApp extends RefereeAppBase {
     const finishedMatch = this.currentMatch;
 
     this.matchStatus = 'finished';
+    this._clearStoredTimer();
     this.stopTimer();
     this.hideFinishModal();
 
@@ -1080,6 +1082,7 @@ class RefereeApp extends RefereeAppBase {
   }
 
   _clearActiveMatch() {
+    this._clearStoredTimer();
     this.currentMatch = null;
     this.scoreA = 0;
     this.scoreB = 0;
