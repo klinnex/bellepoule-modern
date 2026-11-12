@@ -11,15 +11,21 @@ export interface PhaseStepperItem {
   label: string;
   disabled: boolean;
   title?: string;
+  /** Onglet utilitaire hors du flow principal (Historique, Arbitres) : jamais en état done (#1650) */
+  isSupplementary?: boolean;
 }
 
 /** États de chaque phase, dans l'ordre de la barre */
 export function phaseStepStates(phases: PhaseStepperItem[], currentId: string): PhaseStepState[] {
   const currentIndex = phases.findIndex(p => p.id === currentId);
+  const lastFlowIndex = phases.reduce((acc, p, i) => (!p.isSupplementary ? i : acc), -1);
+  const effectiveCurrentIndex =
+    phases[currentIndex]?.isSupplementary ? lastFlowIndex : currentIndex;
   return phases.map((p, i) => {
     if (p.id === currentId) return 'current';
     if (p.disabled) return 'blocked';
-    return currentIndex >= 0 && i < currentIndex ? 'done' : 'todo';
+    if (p.isSupplementary) return 'todo';
+    return effectiveCurrentIndex >= 0 && i < effectiveCurrentIndex ? 'done' : 'todo';
   });
 }
 
