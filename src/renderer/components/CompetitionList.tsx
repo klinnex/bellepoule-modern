@@ -14,7 +14,6 @@ import {
   MapPin,
   Medal,
   PlayCircle,
-  Plus,
   Search,
   Sparkles,
   Trash2,
@@ -341,7 +340,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               onClick={onNewCompetition}
               style={{ padding: '0.75rem 2rem' }}
             >
-              <Plus size={18} />
+              {/* Sans compétition : libellé seul, sans « + » (#1755) */}
               {t('menu.new_competition')}
             </Button>
             {onOpenFile && (
