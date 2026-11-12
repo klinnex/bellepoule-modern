@@ -602,6 +602,7 @@
   'error.signature_tableau_only': 'Bout signature is for bracket bouts only',
   'error.signature_too_large': 'Signature too large (max 150 KB)',
   'error.status_locked': 'Fencer status cannot be changed',
+  'error.journee_status_failed': 'Unable to load event day status',
   'error.too_many_attempts': 'Too many attempts. Try again in {{retryAfter}} s.',
   'error.too_many_cells': 'Too many cells (max 120)',
   'error.trainer_closed': 'Trainer area closed',

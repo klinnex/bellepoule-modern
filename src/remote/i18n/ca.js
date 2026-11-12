@@ -595,6 +595,7 @@
   'error.signature_tableau_only': 'Signatura de combat reservada al quadre',
   'error.signature_too_large': 'Signatura massa gran (màx. 150 KB)',
   'error.status_locked': 'Estat del tirador no modificable',
+  'error.journee_status_failed': 'No s\'ha pogut carregar l\'estat de la jornada',
   'error.too_many_attempts': "Massa intents. Torneu-ho a provar d'aquí a {{retryAfter}} s.",
   'error.too_many_cells': 'Massa cel·les (màx. 120)',
   'error.trainer_closed': 'Espai de formadors tancat',

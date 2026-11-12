@@ -71,6 +71,7 @@ beforeEach(() => {
       conflicts: [],
     }),
     getBusyElsewhere: vi.fn(),
+    getStripOccupation: vi.fn().mockResolvedValue([]),
   };
   (window as unknown as { electronAPI: unknown }).electronAPI = { eventDay: api };
 });

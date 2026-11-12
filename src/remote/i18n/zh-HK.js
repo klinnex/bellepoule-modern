@@ -597,6 +597,7 @@
   'error.signature_tableau_only': '比賽簽名只適用於淘汰賽',
   'error.signature_too_large': '簽名過大（最多 150 KB）',
   'error.status_locked': '劍手狀態無法更改',
+  'error.journee_status_failed': '無法載入比賽日狀態',
   'error.too_many_attempts': '嘗試次數過多，請於 {{retryAfter}} 秒後再試。',
   'error.too_many_cells': '儲存格過多（最多 120）',
   'error.trainer_closed': '教練專區已關閉',

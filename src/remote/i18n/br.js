@@ -595,6 +595,7 @@
   'error.signature_tableau_only': "Sinadur emgann miret d'an daolenn",
   'error.signature_too_large': "Sinadur re vras (150 KB d'ar muiañ)",
   'error.status_locked': "Stad an emganner na c'hall ket bezañ kemmet",
+  'error.journee_status_failed': 'Dibosupl kargañ stad an devezh',
   'error.too_many_attempts': 'Re a daolioù-esae. Klaskit en-dro a-benn {{retryAfter}} s.',
   'error.too_many_cells': "Re a gelligoù (120 d'ar muiañ)",
   'error.trainer_closed': 'Takad ar stummerien serret',

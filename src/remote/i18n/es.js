@@ -595,6 +595,7 @@
   'error.signature_tableau_only': 'Firma de combate reservada al cuadro',
   'error.signature_too_large': 'Firma demasiado grande (máx. 150 KB)',
   'error.status_locked': 'Estado del tirador no modificable',
+  'error.journee_status_failed': 'No se pudo cargar el estado de la jornada',
   'error.too_many_attempts': 'Demasiados intentos. Inténtelo de nuevo en {{retryAfter}} s.',
   'error.too_many_cells': 'Demasiadas celdas (máx. 120)',
   'error.trainer_closed': 'Espacio de formadores cerrado',

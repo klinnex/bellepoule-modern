@@ -586,6 +586,7 @@
   'error.signature_tableau_only': 'La firma dell\'incontro è riservata al tabellone',
   'error.signature_too_large': 'Firma troppo grande (max 150 KB)',
   'error.status_locked': 'Stato dello schermidore non modificabile',
+  'error.journee_status_failed': 'Impossibile caricare lo stato della giornata',
   'error.too_many_attempts': 'Troppi tentativi. Riprova tra {{retryAfter}} s.',
   'error.too_many_cells': 'Troppe celle (max 120)',
   'error.trainer_closed': 'Area formatori chiusa',
