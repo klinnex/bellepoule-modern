@@ -763,9 +763,9 @@ button.pv-pill {
 .ranking-black-card {
   display: inline-flex;
   align-items: center;
-  margin-left: 0.5rem;
+  margin-left: 1.5rem;
   vertical-align: middle;
 }
 .ranking-black-card + .ranking-status-badge {
-  margin-left: 0.5rem;
+  margin-left: 1rem;
 }
