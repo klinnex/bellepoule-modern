@@ -7,6 +7,7 @@
  */
 import { ipcMain } from 'electron';
 import {
+  applyPageOverride,
   buildPdfOptions,
   buildPrintOptions,
   normalizePrintSettings,
@@ -55,7 +56,8 @@ export async function renderPreview(
 ): Promise<{ success: boolean; data?: Uint8Array; error?: string }> {
   if (!checkHtml(html)) return { success: false, error: 'html_required' };
   try {
-    const pdf = await deps.renderPdf(html, buildPdfOptions(normalizePrintSettings(settings)));
+    const s = normalizePrintSettings(settings);
+    const pdf = await deps.renderPdf(applyPageOverride(html, s), buildPdfOptions(s));
     return { success: true, data: new Uint8Array(pdf) };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : String(e) };
@@ -69,7 +71,8 @@ export async function executePrint(
 ): Promise<PrintResult> {
   if (!checkHtml(html)) return { success: false, error: 'html_required' };
   try {
-    const ok = await deps.printHtml(html, buildPrintOptions(normalizePrintSettings(settings)));
+    const s = normalizePrintSettings(settings);
+    const ok = await deps.printHtml(applyPageOverride(html, s), buildPrintOptions(s));
     return ok ? { success: true } : { success: false, error: 'print_failed' };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : String(e) };
@@ -102,7 +105,8 @@ export async function savePdf(
   try {
     const target = await deps.chooseSavePath(pdfFileName(title));
     if (!target) return { success: false, canceled: true };
-    const pdf = await deps.renderPdf(html, buildPdfOptions(normalizePrintSettings(settings)));
+    const s = normalizePrintSettings(settings);
+    const pdf = await deps.renderPdf(applyPageOverride(html, s), buildPdfOptions(s));
     await deps.writeFile(target, pdf);
     return { success: true, path: target };
   } catch (e) {

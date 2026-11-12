@@ -419,6 +419,18 @@ export function generatePoolHTML(
       border-left: 2px solid var(--navy-light) !important;
     }
 
+    /* Paysage (boîte d'impression ou option de la poule) : grille sur toute la largeur,
+       texte et cellules agrandis (#1653) */
+    @media print and (orientation: landscape) {
+      .score-grid { font-size: 10.5pt; }
+      .score-grid thead tr th { font-size: 9.5pt; padding: 2.4mm 2mm; }
+      .score-grid tbody td { padding: 2.6mm 2mm; }
+      .score-grid .num-cell { font-size: 9.5pt; }
+      .score-grid .name-cell { font-size: 11pt; }
+      .score-grid .stat-cell { font-size: 10pt; }
+      .score-grid .rank-cell { font-size: 12pt; }
+    }
+
     /* Piste : QR et numéro centrés dans la barre d'en-tête (#1653) */
     .doc-header { position: relative; }
     .doc-header-strip-qr {

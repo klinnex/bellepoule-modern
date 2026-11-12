@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }));
 
 import {
+  applyPageOverride,
   buildPdfOptions,
   buildPrintOptions,
   DEFAULT_PRINT_SETTINGS,
@@ -159,9 +160,23 @@ describe('handlers print:* (#1214)', () => {
     });
     expect(res.success).toBe(true);
     expect(Array.from(res.data!.slice(0, 4))).toEqual([0x25, 0x50, 0x44, 0x46]);
+    // Orientation imposée : règle @page ajoutée, sinon le @page du document l'emporte (#1653)
     expect(deps.renderPdf).toHaveBeenCalledWith(
-      '<p>a</p>',
+      '<style data-print-override>@page { size: A4 landscape; }</style><p>a</p>',
       expect.objectContaining({ scale: 0.5, pageSize: 'A4', landscape: true })
+    );
+  });
+
+  it('applyPageOverride : règle insérée avant </head>, HTML inchangé en auto (#1653)', () => {
+    const html = '<html><head><style>@page { size: A4; }</style></head><body></body></html>';
+    const s = normalizePrintSettings({ orientation: 'landscape' });
+    expect(applyPageOverride(html, s)).toBe(
+      '<html><head><style>@page { size: A4; }</style>' +
+        '<style data-print-override>@page { size: A4 landscape; }</style></head><body></body></html>'
+    );
+    expect(applyPageOverride(html, normalizePrintSettings({}))).toBe(html);
+    expect(applyPageOverride(html, normalizePrintSettings({ paperSize: 'A3' }))).toContain(
+      '@page { size: A3; }'
     );
   });
 
