@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 51 | 675 |
+| `src/shared/utils/` | 52 | 683 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 55 | 453 |
-| `src/renderer/services/` | 8 | 51 |
+| `src/main/` | 56 | 457 |
+| `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 84 | 400 |
+| `src/renderer/components/` | 84 | 409 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 365 |
+| `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **344** | **2642** |
+| **Total** | **347** | **2667** |
 
-Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 337 fichiers, 2628 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -474,7 +474,7 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/fileParser.test.ts</code> — 45 tests</summary>
+<summary><code>src/shared/utils/fileParser.test.ts</code> — 49 tests</summary>
 
 - **parseSimpleTXTFile**
   - fichier vide → success=false, erreur
@@ -526,6 +526,11 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **issue #906 — lignes .fff avec champs omis**
   - tireur conservé : %s _(each)_
   - section personnelle incomplète : club et licence non décalés
+- **parseXMLFile — #1504 (arbitres, département, latéralité)**
+  - normalise le département 095 → 95 et 5 → 05
+  - lit la latéralité
+  - lit les arbitres du bloc \<Arbitres\> (références de poule ignorées)
+  - pas de bloc \<Arbitres\> → referees absent
 
 </details>
 
@@ -600,6 +605,17 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **isGregUrl (#1331)**
   - reconnaît les adresses escrime-info.com comme l'ancien BellePoule
   - laisse passer les autres serveurs
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/handedness.test.ts</code> — 4 tests</summary>
+
+- **needsLeftHandedSwap (#1439)**
+  - gaucher A contre droitier B : inversion
+  - gaucher B contre droitier A : déjà à gauche
+  - deux gauchers ou deux droitiers : placement de l’appel
+  - armes non olympiques : jamais
 
 </details>
 
@@ -2661,6 +2677,17 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaBroadcast.test.ts</code> — 4 tests</summary>
+
+- **applyLeftHandedSwap**
+  - gaucher A contre droitier B : bascule, une seule fois par match
+  - match suivant normal : retour au placement de l’appel
+  - inversion manuelle de l’écran conservée (XOR)
+  - arme non olympique ou pas de match : rien
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaSlots.test.ts</code> — 7 tests</summary>
 
 - **sous-pistes des rapières (#1118)**
@@ -3250,6 +3277,15 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - resolveConflict("local") écrase le serveur avec la version locale
   - resolveConflict("remote") accepte la version serveur et met en cache
   - resolveConflict échoue si le conflit est introuvable
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/resizeGuard.test.ts</code> — 2 tests</summary>
+
+- **installResizeGuard (#1652)**
+  - pose data-resizing pendant le geste et le retire après inactivité
+  - dispose retire l’attribut et l’écouteur
 
 </details>
 
@@ -3908,12 +3944,16 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 6 tests</summary>
 
 - **ImportModal**
   - affiche le fichier et la liste des tireurs parsés
   - importe les tireurs sélectionnés (tous par défaut) puis ferme
   - le bouton fermer déclenche onClose
+  - **XML avec \<Arbitres\> (#1504)**
+    - affiche le nombre d'arbitres et bascule la liste
+    - importe tireurs et arbitres sélectionnés
+    - sans onImportReferees : arbitres affichés, non importés
 
 </details>
 
@@ -3965,12 +4005,17 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 7 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
   - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
   - bouton « Lancer » puis « Relancer » une fois les poules lancées
+  - brouillon : modifications reprises au retour depuis l'appel (#1649)
+  - sans brouillon : publie l'état initial
+- **PoolPrepView – brouillon de préparation (#1649)**
+  - le brouillon prime sur les poules initiales (retour depuis l'appel)
+  - modification manuelle → brouillon transmis
 
 </details>
 
@@ -4253,12 +4298,14 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 5 tests</summary>
 
 - **CompetitionHeader - bouton propriétés (#1505)**
   - affiche le bouton directement dans le bandeau et ouvre les propriétés
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
+  - reste surligné (aria-current) quand la vue saisie distante est active
+  - non surligné hors de la vue saisie distante
   - sans gestionnaire : pas de bouton
 
 </details>
@@ -5415,7 +5462,7 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 10 tests</summary>
 
 - **refereeUpdate.js**
   - scoreValue : nombre, objet, absent
@@ -5426,6 +5473,9 @@ Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - ready : nouveau match, déjà courant, ou match en cours
   - replaceOrPush et markReadyOrPush
   - referee.html charge le module et délègue
+- **leftHandedSwap (#1439)**
+  - gaucher A contre droitier B, arme olympique : inversion
+  - B gaucher, deux gauchers, Laser, sans match : pas d’inversion
 
 </details>
 

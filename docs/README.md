@@ -15,6 +15,7 @@
 | [../FILE_FORMATS.md](../FILE_FORMATS.md) | Formats d'import/export (FFF, XML, CSV, ...) |
 | **[PROCEDURE_SABRE_LASER.md](PROCEDURE_SABRE_LASER.md)** | **Procédure de bout en bout d'une compétition Sabre Laser individuelle** |
 | [TEAM_COMPETITIONS.md](TEAM_COMPETITIONS.md) | Compétitions par équipes (relais FIE, format arène Sabre Laser) |
+| [JOURNEE_MULTI_EPREUVES.md](JOURNEE_MULTI_EPREUVES.md) | Journée multi-épreuves : arbitres partagés entre épreuves d'une même salle |
 | [GUIDE_PHOTOS.md](GUIDE_PHOTOS.md) | Photos des tireurs |
 | [USER_GUIDE_PDF_EXPORT.md](USER_GUIDE_PDF_EXPORT.md) | Exports PDF |
 | [../UPDATE_SYSTEM.md](../UPDATE_SYSTEM.md) | Mises à jour automatiques |

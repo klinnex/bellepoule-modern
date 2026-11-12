@@ -627,4 +627,51 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 22,
+    description: 'Journée multi-épreuves : pistes de la salle et arbitres partagés (#1714)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_days (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          date TEXT NOT NULL,
+          strip_count INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      // weapons = codes d'arme séparés par des virgules ("F,E") ; vide = toutes armes
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_day_referees (
+          id TEXT PRIMARY KEY,
+          event_day_id TEXT NOT NULL,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          club TEXT,
+          license TEXT,
+          category TEXT,
+          weapons TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (event_day_id) REFERENCES event_days(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_event_day_referees_day ON event_day_referees(event_day_id)`
+      );
+      try {
+        db.run(`ALTER TABLE competitions ADD COLUMN event_day_id TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      // Lien arbitre de l'épreuve → arbitre de la journée
+      try {
+        db.run(`ALTER TABLE referees ADD COLUMN day_referee_id TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      db.run(`CREATE INDEX IF NOT EXISTS idx_referees_day_referee ON referees(day_referee_id)`);
+    },
+  },
 ];

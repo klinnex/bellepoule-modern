@@ -5,6 +5,7 @@
 
 import React from 'react';
 import {
+  CalendarDays,
   ChevronRight,
   Download,
   Pin,
@@ -54,6 +55,7 @@ import { restartGuidedTour } from './guidedTourFlags';
 import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
 import { CompetitionExportPicker } from './CompetitionExportPicker';
+import { EventDayModal } from './EventDayModal';
 import { Button } from './common/Button';
 import { Icon } from './common/Icon';
 
@@ -85,6 +87,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   const { t } = useTranslation();
   const { confirm } = useConfirm();
   const [showExportPicker, setShowExportPicker] = React.useState(false);
+  const [showEventDays, setShowEventDays] = React.useState(false);
 
   const handleDelete = async (competition: Competition) => {
     const ok = await confirm({
@@ -416,6 +419,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               {t('demo.button')}
             </Button>
           )}
+          {window.electronAPI?.eventDay && competitions.length > 0 && (
+            <Button
+              type="button"
+              size="lg"
+              className="btn-icon-label"
+              onClick={() => setShowEventDays(true)}
+              title={t('eventDay.button_title')}
+            >
+              <CalendarDays size={18} />
+              {t('eventDay.button')}
+            </Button>
+          )}
           {onExport && competitions.length > 0 && (
             <Button
               type="button"
@@ -616,6 +631,9 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         ))}
       </div>
 
+      {showEventDays && (
+        <EventDayModal competitions={competitions} onClose={() => setShowEventDays(false)} />
+      )}
       {showExportPicker && onExport && (
         <CompetitionExportPicker
           competitions={competitions}
