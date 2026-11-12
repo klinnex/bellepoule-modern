@@ -3,10 +3,11 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import type { ArenaUpdate } from '../../shared/types/remote';
+import type { Arena, ArenaUpdate } from '../../shared/types/remote';
 import { getSharedMainWindow } from '../mainWindowRef';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { needsLeftHandedSwap } from '../../shared/utils/handedness';
 
 type S = RemoteScoreServer;
 
@@ -36,6 +37,7 @@ export interface ArenaBroadcastContext {
   readonly sessionShowPhotos: S['sessionShowPhotos'];
   readonly sessionTableTimerSeconds: S['sessionTableTimerSeconds'];
   readonly sessionTheme: S['sessionTheme'];
+  readonly sessionWeapon: S['sessionWeapon'];
 }
 
 /** Clone l'update sans les photos base64 (sans muter l'état partagé de l'arène). */
@@ -56,12 +58,30 @@ export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
   };
 }
 
+/**
+ * Gaucher contre droitier, armes olympiques (#1439) : à chaque nouveau match, bascule
+ * `arena.swapped` pour placer le gaucher à gauche (rouge). Bascule relative (XOR) :
+ * l'inversion manuelle de l'écran est conservée.
+ */
+export function applyLeftHandedSwap(
+  arena: Arena,
+  match: ArenaUpdate['match'],
+  weapon: string | null | undefined
+): void {
+  if (!match?.id || arena.leftHandedMatchId === match.id) return;
+  const want = needsLeftHandedSwap(weapon, match.fencerA, match.fencerB);
+  if (want !== (arena.leftHandedSwap ?? false)) arena.swapped = !(arena.swapped ?? false);
+  arena.leftHandedSwap = want;
+  arena.leftHandedMatchId = match.id;
+}
+
 export function broadcastArenaUpdate(
   ctx: ArenaBroadcastContext,
   arenaId: string,
   update: ArenaUpdate
 ): void {
   const arena = ctx.getArena(arenaId);
+  if (arena) applyLeftHandedSwap(arena, update.match, ctx.sessionWeapon);
   const override = ctx.arenaThemeOverrides.get(arenaId);
   const isPoolMatch = !!arena?.currentMatch?.poolId;
   const updateWithPhotos: ArenaUpdate = {

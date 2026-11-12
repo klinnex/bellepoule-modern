@@ -74,6 +74,16 @@ interface PoolPrepViewProps {
   fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
+  /** Brouillon conservé hors de la vue : modifications gardées au retour vers l'appel (#1649) */
+  draft?: PoolPrepDraft | null;
+  onDraftChange?: (draft: PoolPrepDraft) => void;
+}
+
+/** État de préparation en cours (poules, nombre, critères de séparation) */
+export interface PoolPrepDraft {
+  pools: Pool[];
+  poolCount: number;
+  criteria: Array<{ key: SeparationCriterionKey | 'byLevel'; enabled: boolean }>;
 }
 
 export interface PoolPrepLaunchAction {
@@ -109,13 +119,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   separationKeys,
   fencerDisplay,
   customMatchOrder,
+  draft,
+  onDraftChange,
 }) => {
   const { t } = useTranslation();
   const { showUndoToast } = useToast();
-  const [poolCount, setPoolCount] = useState<number>(0);
+  // Brouillon pris à l'ouverture seulement (#1649)
+  const [initialDraft] = useState(() => (draft && draft.pools.length > 0 ? draft : null));
+  const [poolCount, setPoolCount] = useState<number>(initialDraft?.poolCount ?? 0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
-  const [pools, setPools] = useState<Pool[]>(initialPools || []);
+  const [pools, setPools] = useState<Pool[]>(initialDraft?.pools ?? initialPools ?? []);
   const [draggedFencer, setDraggedFencer] = useState<{ fencer: Fencer; poolIndex: number } | null>(
     null
   );
@@ -126,14 +140,21 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     label: string;
     enabled: boolean;
   }
-  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>(() =>
-    [
+  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>(() => {
+    const defaults: SeparationCriterion[] = [
       { key: 'byClub' as const, label: 'Club', enabled: !customDistribution },
       { key: 'byRegion' as const, label: 'Région', enabled: !customDistribution },
       { key: 'byNation' as const, label: 'Nation', enabled: false },
       ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
-    ].filter(c => !separationKeys || separationKeys.includes(c.key))
-  );
+    ].filter(c => !separationKeys || separationKeys.includes(c.key));
+    if (!initialDraft) return defaults;
+    // Ordre et activation repris du brouillon (#1649)
+    const restored = initialDraft.criteria.flatMap(d => {
+      const c = defaults.find(x => x.key === d.key);
+      return c ? [{ ...c, enabled: d.enabled }] : [];
+    });
+    return [...restored, ...defaults.filter(c => !restored.some(r => r.key === c.key))];
+  });
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
@@ -142,7 +163,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       .map(c => c.key as SeparationCriterionKey);
 
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
-  const hasInitialized = useRef(false);
+  const hasInitialized = useRef(initialDraft !== null);
+
+  // Publie le brouillon à chaque modification (#1649)
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    onDraftChange?.({
+      pools,
+      poolCount,
+      criteria: separationCriteria.map(c => ({ key: c.key, enabled: c.enabled })),
+    });
+  }, [pools, poolCount, separationCriteria, onDraftChange]);
 
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
   const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
@@ -492,6 +523,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       .map(([v, n]) => `${n}× ${v}`)
       .join(', ');
 
+  /** Avertissement club/région affiché sur au moins une carte → cartes élargies (#1440) */
+  const hasConflictWarning = pools.some(
+    pool =>
+      (isCriterionEnabled('byClub') && getPoolConflicts(pool, f => f.club).size > 0) ||
+      (isCriterionEnabled('byRegion') && getPoolConflicts(pool, f => f.region).size > 0)
+  );
+
   /** Classement moyen des tireurs classés de la poule (force de la poule) */
   const getPoolAvgRanking = (pool: Pool): number | null => {
     const ranks = pool.fencers.map(f => f.ranking).filter((r): r is number => r != null && r > 0);
@@ -720,7 +758,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             overflowY: 'auto',
             display: poolCount === 0 ? 'flex' : 'grid',
             gridTemplateColumns:
-              poolCount === 0 ? undefined : 'repeat(auto-fill, minmax(280px, 1fr))',
+              poolCount === 0
+                ? undefined
+                : `repeat(auto-fill, minmax(${hasConflictWarning ? 360 : 280}px, 1fr))`,
             alignItems: poolCount === 0 ? 'center' : undefined,
             justifyContent: poolCount === 0 ? 'center' : undefined,
             gap: '1rem',
@@ -763,8 +803,16 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 }
               >
                 <div className="pool-prep-card-header u-row-between">
-                  <div className="is-5c17a8">
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
+                  <div className="is-5c17a8 pool-prep-card-title">
+                    <h3
+                      style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        margin: 0,
+                        color: accent,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {t('pools.prep_pool_n', { n: pool.number })}
                     </h3>
                     {pools.length === 1 && (
@@ -791,7 +839,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="u-row">
+                  <div className="u-row pool-prep-card-meta">
                     {avgRanking != null && (
                       <span
                         className="pool-prep-strength"

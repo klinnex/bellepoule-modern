@@ -3,7 +3,7 @@
  * CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -126,17 +126,23 @@ export function useCompetitionRestore({
     poolsLaunched,
   });
 
-  // Synchroniser le nombre d'arènes avec le nombre de poules
+  // Synchroniser le nombre d'arènes avec le nombre de poules.
+  // Ne se déclenche que lorsque le nombre de poules change : un nombre de pistes choisi par
+  // l'organisateur (ex. piste 10 à 20 pour 9 poules) n'est plus réécrasé (#1653).
+  const prevPoolsLengthRef = useRef(0);
   useEffect(() => {
     if (!isLoaded) return;
-    if (pools.length > 0) {
-      // Si les poules ont rétréci depuis le dernier run : clamp pour éviter des arènes fantômes.
-      const maxStrip = remoteStripStart + pools.length - 1;
-      if (!restoredState?.remoteArenaCount || remoteArenaCount > maxStrip) {
-        setRemoteArenaCount(maxStrip);
-      }
+    const prevLength = prevPoolsLengthRef.current;
+    prevPoolsLengthRef.current = pools.length;
+    if (pools.length === 0 || pools.length === prevLength) return;
+    const maxStrip = remoteStripStart + pools.length - 1;
+    if (!restoredState?.remoteArenaCount) {
+      setRemoteArenaCount(maxStrip);
+    } else if (prevLength > 0) {
+      // Les poules ont rétréci pendant la session : clamp pour éviter des arènes fantômes.
+      setRemoteArenaCount(count => (count > maxStrip ? maxStrip : count));
     }
-  }, [isLoaded, pools.length, remoteArenaCount, remoteStripStart]);
+  }, [isLoaded, pools.length, remoteStripStart]);
 
   // Restaurer l'état au chargement
   useEffect(() => {

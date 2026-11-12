@@ -60,6 +60,7 @@ class RefereeAppBase {
     this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
     this.refereesList = []; // Liste des arbitres de la compétition
     this.swapped = false;
+    this.weapon = null; // arme de la session (/api/session)
     this.pausedForModal = false;
     this.trainingCustomRules = null; // { matchDurationSeconds, allowedZones, disableSuddenDeath }
     this.offlineQueue = new OfflineQueueInline();
@@ -101,6 +102,7 @@ class RefereeAppBase {
       .then(r => (r.ok ? r.json() : null))
       .then(s => {
         if (s) {
+          this.weapon = s.weapon || null; // placement gaucher/droitier (#1439)
           this.isLaserSabre = s.weapon === 'L';
           this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
           this.applyScoringButtons();
@@ -116,9 +118,11 @@ class RefereeAppBase {
             const nextLabel = document.getElementById('next-arena-label');
             if (nextLabel) nextLabel.textContent = pisteLabel;
             if (!this.customScoring) {
+              // Olympique : pas de +1 ni de +3/+5 ; le point s'ajoute au clic sur la case score (#1713)
               document
-                .querySelectorAll('.btn-plus-3, .btn-plus-5')
+                .querySelectorAll('.btn-plus-1, .btn-plus-3, .btn-plus-5')
                 .forEach(b => (b.style.display = 'none'));
+              this.setupOlympicScoreTap();
             }
             this.updateRestButton();
             // Carton blanc remplacé par le carton de passivité (#1026)
@@ -229,6 +233,20 @@ class RefereeAppBase {
     this.showSyncIndicator(false);
     this.updateOfflineBadge();
     if (result.synced > 0) this.showNotification(window.T('referee.synced', { n: result.synced }));
+  }
+
+  // Olympique (#1713) : un clic sur la case score du tireur ajoute 1 point
+  setupOlympicScoreTap() {
+    ['A', 'B'].forEach(fencer => {
+      const el = document.getElementById(`score-${fencer.toLowerCase()}`);
+      if (!el || el.dataset.tapBound) return;
+      el.dataset.tapBound = '1';
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => {
+        if (!this.isModernFencing || this.customScoring) return;
+        this.addScore(fencer, this.slotPoints(1));
+      });
+    });
   }
 
   setupLongPressInteractions() {
@@ -681,7 +699,8 @@ class RefereeAppBase {
     this.isResting = false;
     this.overtimeType = null;
     this.actionHistory = [];
-    this.swapped = false;
+    // Gaucher contre droitier : gaucher à gauche en rouge (#1439)
+    this.swapped = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
     this.stopTimer();
     const timerRestored = this.restoreTimerState(match);
     const undoBtn = document.getElementById('btn-undo');
@@ -736,6 +755,12 @@ class RefereeAppBase {
     this.isResting = saved.isResting;
     this.matchStatus = 'in_progress';
     return true;
+  }
+
+  // Efface le chrono mémorisé (fin de match, retour à la liste) (#1717)
+  _clearStoredTimer() {
+    const storage = this._timerStorage();
+    if (storage) BPRefereeTimer.clearTimerState(storage, this.arenaId);
   }
 
   // Zones de score actives (formule personnalisée) pour le match courant, sinon null
@@ -805,6 +830,9 @@ class RefereeAppBase {
     }
 
     this.updateScores();
+
+    // Olympique (#1713) : le chrono s'arrête automatiquement à la marque
+    if (this.isModernFencing && !this.customScoring && this.timerRunning) this.pauseTimer();
 
     // Mode Challenger (Laser Sabre) : vérifier AVANT broadcastUpdate pour que le serveur
     // reçoive l'état correct
@@ -1107,6 +1135,7 @@ class RefereeAppBase {
 
     // Terminer le match : l'adversaire du fautif est vainqueur
     this.matchStatus = 'finished';
+    this._clearStoredTimer();
     this.stopTimer();
 
     try {

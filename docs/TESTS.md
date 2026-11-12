@@ -25,7 +25,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
-`npm run test:e2e`.
+`npm run test:e2e`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
 
 Sécurité : `.github/workflows/codeql.yml` (CodeQL JS/TS, PR vers `dev` + hebdo) et `security.yml` (`npm audit --omit=dev` non bloquant + SBOM CycloneDX), Dependabot (`.github/dependabot.yml`).
 
@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 50 | 663 |
+| `src/shared/utils/` | 51 | 675 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 424 |
+| `src/main/` | 55 | 453 |
 | `src/renderer/services/` | 8 | 51 |
-| `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 83 | 399 |
+| `src/renderer/hooks/` | 28 | 137 |
+| `src/renderer/components/` | 84 | 400 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 354 |
+| `src/remote/` | 56 | 365 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **338** | **2584** |
+| **Total** | **344** | **2642** |
 
-Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 334 fichiers, 2603 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -734,6 +734,21 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/fullCompetitionPdf.test.ts</code> — 6 tests</summary>
+
+- **exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)**
+  - les feuilles de poule gardent leur contenu avec le modèle poule
+  - aucun repère OCR dans l’export sans signature
+- **modèle PDF d’un autre type ignoré (#1712)**
+  - poule : un modèle « classement » ne vide pas la grille
+  - tableau : un modèle « classement » ne vide pas les feuilles de match
+  - poule : titre personnalisé d’un modèle « classement » ignoré
+- **exportFullCompetitionPDF – coins OCR (#1712)**
+  - pas de cadre OCR fixe répété sur toutes les pages du dossier
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 5 tests</summary>
 
 - **pdfT**
@@ -746,13 +761,21 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 15 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
   - masque V, V/M, TD, TR, Ind et Rg avec hideStatColumns
   - conserve les colonnes non statistiques (club) avec hideStatColumns
   - applique le format paysage
+- **generatePoolHTML – piste dans l'en-tête (#1653)**
+  - affiche le numéro de piste sans saisie distante (pas de QR)
+  - n'affiche aucun bloc piste sans numéro
+  - affiche le QR avec le numéro quand la saisie distante est active
+  - centre le bloc piste dans la barre d'en-tête
+- **generatePoolHTML – repères OCR (#1712)**
+  - pas de cadre OCR bas-droit sans QR (export complet)
+  - cadre OCR et QR présents sur une feuille avec QR
 - **exportMultiplePoolsToPDF – un seul PDF (#1413)**
   - nom par défaut « \<compétition\>-poules.pdf », caractères interdits remplacés
   - toutes les poules dans un seul fichier, une seule boîte de dialogue
@@ -2269,6 +2292,53 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/codec.test.ts</code> — 24 tests</summary>
+
+- **parseCyrano — trames de la spécification**
+  - HELLO / NEXT / PREV
+  - INFO incomplet sans DISP : chrono, état et données appareil
+  - INFO après DISP vide
+  - INFO complet
+  - INFO en attente sans match
+  - DISP abrégé, espaces parasites retirés
+  - EFP1 et carton P (EFP1.1)
+  - rejette les trames invalides
+  - valeurs hors domaine ignorées
+- **buildCyrano**
+  - HELLO conforme à la spécification
+  - champs obligatoires présents même vides
+  - aller-retour sur une trame complète
+  - EFP1 omet le carton P, EFP1.1 le transmet
+  - nettoie \| et % et tronque
+  - zone droite vide mais gauche présente
+  - sanitizeField
+- **noms et nations**
+  - translittération
+  - convention olympique
+  - nation sur 3 caractères
+  - source du champ nation
+- **fin de match (ACK / NAK)**
+  - cas de la spécification
+  - résultat par identifiant : insensible à l’inversion droite/gauche
+- **DISP depuis un match**
+  - construit les champs et respecte les longueurs
+  - armes hors protocole
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/server.test.ts</code> — 5 tests</summary>
+
+- **CyranoServer**
+  - HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés
+  - ignore les IP non déclarées et les trames illisibles
+  - supervision : en ligne → incertain → hors ligne
+  - journal borné
+  - version imposée par piste
+
+</details>
+
+<details>
 <summary><code>src/main/demoScreensLayout.test.ts</code> — 5 tests</summary>
 
 - **demoScreens**
@@ -3293,6 +3363,18 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useCompetitionRestore.test.tsx</code> — 5 tests</summary>
+
+- **useCompetitionRestore – nombre de pistes (#1653)**
+  - par défaut : une piste par poule à partir de la première piste
+  - conserve un nombre de pistes choisi au-delà du nombre de poules (10 pistes pour 9 poules)
+  - conserve la fin de plage choisie (piste 4 à 14 pour 9 poules)
+  - clamp au nombre de poules quand les poules rétrécissent
+  - ne modifie pas la fin de plage quand seule la première piste change
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useCompetitionSession.test.tsx</code> — 4 tests</summary>
 
 - **restoreState**
@@ -3889,6 +3971,14 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - titres Min / Max séparés au-dessus des deux champs
   - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
   - bouton « Lancer » puis « Relancer » une fois les poules lancées
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolRankingView.test.tsx</code> — 1 test</summary>
+
+- **PoolRankingView – exclusions (#1440)**
+  - carton noir → rang « - » + icône ; exclusion simple → DNF
 
 </details>
 
@@ -4761,6 +4851,17 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/displayMode.test.ts</code> — 4 tests</summary>
+
+- **mode display (#1303)**
+  - %s?display=1 : aucun contrôle visible _(each)_
+  - %s sans paramètre : contrôles inchangés _(each)_
+  - display=10 ou display=0 n’active pas le mode
+  - routes des écrans publics : GET uniquement
+
+</details>
+
+<details>
 <summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
 
 - **échelle typographique fluide (#1540)**
@@ -5127,7 +5228,7 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 7 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
@@ -5136,6 +5237,9 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - pendant le match : le chrono diffusé est mémorisé en localStorage
   - reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours
   - match non commencé ou autre match : durée initiale, sauvegarde effacée
+  - retour à la liste (fin de match) : sauvegarde du chrono effacée
+- **armes olympiques : point au clic sur la case score (#1713)**
+  - le +1 est masqué et un clic sur la case score ajoute 1 point, chrono arrêté
 
 </details>
 
@@ -5232,7 +5336,7 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeLobby.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 15 tests</summary>
 
 - **refereeLobby.js**
   - arenaFromPath : /areneN/arbitre et /arenaN
@@ -5243,6 +5347,12 @@ Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - install : hors entraînement, rien (pas de claim, pas de bouton)
   - install : miroir de démo (?demo=1) ignoré
   - install : piste occupée (409) → redirection vers le lobby
+- **refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)**
+  - fromLobby : ?lobby=1 uniquement
+  - pickMatch : en cours prioritaire, sinon premier à jouer, sinon null
+  - autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1
+  - autoOpen : match déjà ouvert ou liste vide → rien
+  - autoOpen : liste jamais chargée → abandon après les essais
 - **referee.html et trainingLobby.html (#1500)**
   - referee.html charge le module et lance install
   - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js

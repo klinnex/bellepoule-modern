@@ -614,6 +614,7 @@ export class RemoteScoreServer {
         'sessionShowPhotos',
         'sessionTableTimerSeconds',
         'sessionTheme',
+        'sessionWeapon',
       ],
       ['getArena', 'getSessionReferees', 'notifyKioskData']
     ));

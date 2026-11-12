@@ -29,7 +29,8 @@
   white-space: nowrap;
 }
 
-.comp-header-remote-btn:hover {
+.comp-header-remote-btn:hover,
+.comp-header-remote-btn[aria-current='page'] {
   background: rgba(255, 255, 255, 0.35);
 }
 

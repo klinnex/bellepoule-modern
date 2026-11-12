@@ -127,3 +127,19 @@ describe('refereeUpdate.js', () => {
     expect(html).not.toContain('const restored = {');
   });
 });
+
+describe('leftHandedSwap (#1439)', () => {
+  const L = { handedness: 'L' };
+  const R = { handedness: 'R' };
+  it('gaucher A contre droitier B, arme olympique : inversion', () => {
+    for (const w of ['E', 'F', 'S']) {
+      expect(U.leftHandedSwap(w, { fencerA: L, fencerB: R })).toBe(true);
+    }
+  });
+  it('B gaucher, deux gauchers, Laser, sans match : pas d’inversion', () => {
+    expect(U.leftHandedSwap('E', { fencerA: R, fencerB: L })).toBe(false);
+    expect(U.leftHandedSwap('E', { fencerA: L, fencerB: L })).toBe(false);
+    expect(U.leftHandedSwap('L', { fencerA: L, fencerB: R })).toBe(false);
+    expect(U.leftHandedSwap('E', null)).toBe(false);
+  });
+});

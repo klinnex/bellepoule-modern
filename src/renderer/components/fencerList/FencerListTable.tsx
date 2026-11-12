@@ -262,6 +262,12 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
                               {departmentLabel(fencer.department) || '-'}
                             </td>
                           );
+                        case 'handedness':
+                          return (
+                            <td key="handedness" className="text-sm text-muted">
+                              {t(fencer.handedness === 'L' ? 'addFencer.left' : 'addFencer.right')}
+                            </td>
+                          );
                         case 'ranking':
                           return (
                             <td key="ranking" className="text-sm">

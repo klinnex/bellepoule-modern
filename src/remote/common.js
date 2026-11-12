@@ -333,12 +333,33 @@
     applyContrast(document, location.search, st);
   }
 
+  /**
+   * Mode écran public `?display=1` (#1303) : masque tout contrôle marqué `data-display-hide`
+   * (menus, réglages, bascules). Lecture seule : aucune action n'est exposée. Retourne l'état.
+   */
+  function applyDisplayMode(doc, search) {
+    var on = /[?&]display=1(?:&|$)/.test(search || '');
+    doc.documentElement.classList.toggle('display-mode', on);
+    if (on && !doc.querySelector('style[data-bp="display-mode"]')) {
+      var st = doc.createElement('style');
+      st.setAttribute('data-bp', 'display-mode');
+      st.textContent = 'html.display-mode [data-display-hide]{display:none !important}';
+      (doc.head || doc.documentElement).appendChild(st);
+    }
+    return on;
+  }
+  root.bpApplyDisplayMode = applyDisplayMode;
+  if (typeof document !== 'undefined' && typeof location !== 'undefined') {
+    applyDisplayMode(document, location.search);
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       escHtml: escHtml,
       html: html,
       claimArenaSlot: claimArenaSlot,
       applyContrast: applyContrast,
+      applyDisplayMode: applyDisplayMode,
       bpSocket: bpSocket,
     };
   }

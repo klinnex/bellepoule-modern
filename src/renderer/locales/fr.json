@@ -1252,7 +1252,10 @@
     "victory": "Victoire",
     "waiting_previous_round": "En attente du tour précédent",
     "weapon": "Arme",
-    "col_department": "Département"
+    "col_department": "Département",
+    "col_handedness": "Latéralité",
+    "handedness_left": "Gaucher",
+    "handedness_right": "Droitier"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Erreur lors de l'import .bpf",
     "col_region": "Région",
     "col_department": "Département",
-    "deleted": "{{name}} supprimé"
+    "deleted": "{{name}} supprimé",
+    "col_handedness": "Latéralité"
   },
   "questPhase": {
     "running_title": "Tour Quest en cours",
@@ -1834,7 +1838,13 @@
     "update_n_one": "Mettre à jour {{count}} classement",
     "update_n_other": "Mettre à jour {{count}} classements",
     "import_n_one": "Importer {{count}} tireur",
-    "import_n_other": "Importer {{count}} tireurs"
+    "import_n_other": "Importer {{count}} tireurs",
+    "referees_found": "arbitres trouvés",
+    "list_choice": "Liste affichée",
+    "referee_level": "Niveau",
+    "import_referees_n_one": "Importer {{count}} arbitre",
+    "import_referees_n_other": "Importer {{count}} arbitres",
+    "import_fencers_referees": "Importer {{fencers}} tireur(s) et {{referees}} arbitre(s)"
   },
   "editFencer": {
     "title": "Modifier le tireur",

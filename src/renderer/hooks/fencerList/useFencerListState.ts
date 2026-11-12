@@ -66,8 +66,8 @@ export function useFencerListState(ctx: Ctx) {
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(
-    // Nationalité, région, département : colonnes affichables, masquées par défaut (#1415, #1504)
-    () => new Set(hiddenColumns ?? ['nationality', 'region', 'department'])
+    // Nationalité, région, département, latéralité : affichables, masquées par défaut (#1415, #1504)
+    () => new Set(hiddenColumns ?? ['nationality', 'region', 'department', 'handedness'])
   );
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
@@ -80,6 +80,11 @@ export function useFencerListState(ctx: Ctx) {
         for (const added of ['nationality', 'region', 'department'] as SortableCol[]) {
           if (!parsed.includes(added) && parsed.includes('club'))
             parsed.splice(parsed.indexOf('club') + 1 + (added === 'nationality' ? 0 : 1), 0, added);
+        }
+        // Latéralité (#1504) : avant le classement
+        if (!parsed.includes('handedness')) {
+          const at = parsed.indexOf('ranking');
+          parsed.splice(at >= 0 ? at : parsed.length, 0, 'handedness');
         }
         if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id)))
           return parsed;
@@ -193,6 +198,8 @@ export function useFencerListState(ctx: Ctx) {
             return dir * (a.region || '').localeCompare(b.region || '');
           case 'department':
             return dir * (a.department || '').localeCompare(b.department || '');
+          case 'handedness':
+            return dir * (a.handedness ?? 'R').localeCompare(b.handedness ?? 'R');
           case 'ranking':
             return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
           case 'status':

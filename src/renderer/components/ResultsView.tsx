@@ -298,6 +298,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const { showToast } = useToast();
   const { t } = useTranslation();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
+  const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
+  const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
   const [isBookModalOpen, setIsBookModalOpen] = React.useState(false);
@@ -647,7 +649,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           matches: b.matches as TableauMatchForPDF[],
         })),
         competitionTitle: competition.title,
-        template: rankingTemplate,
+        poolTemplate,
+        tableauTemplate,
       });
     } catch (e) {
       showToast((e as Error).message, 'error');
