@@ -25,7 +25,11 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
-`npm run test:e2e`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
+`npm run test:e2e`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
+`npm run check:i18n-visual` (`scripts/capture-i18n.js`, Electron, après `npm run build` ;
+`xvfb-run -a` sous Linux ; `-- --pseudo` pour la pseudo-localisation) : échoue si un écran clé
+défile horizontalement, rogne un libellé sans ellipse ni infobulle, coupe un mot sur deux lignes
+ou sort de la fenêtre ; captures + `report.json` dans `test-results/i18n-captures`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
 
 Sécurité : `.github/workflows/codeql.yml` (CodeQL JS/TS, PR vers `dev` + hebdo) et `security.yml` (`npm audit --omit=dev` non bloquant + SBOM CycloneDX), Dependabot (`.github/dependabot.yml`).
 
@@ -100,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 57 | 461 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 85 | 412 |
+| `src/renderer/components/` | 85 | 413 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **351** | **2689** |
+| **Total** | **351** | **2690** |
 
-Unitaires : 341 fichiers, 2650 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 341 fichiers, 2651 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3809,11 +3813,12 @@ Unitaires : 341 fichiers, 2650 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CoachMark.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/CoachMark.test.tsx</code> — 3 tests</summary>
 
 - **CoachMark**
   - affiche l’aide à la première apparition puis la masque définitivement
   - reste disponible au survol après fermeture, sans bouton de fermeture
+  - garde la bulle dans la fenêtre quand l’ancre est au bord droit (#1543)
 
 </details>
 
