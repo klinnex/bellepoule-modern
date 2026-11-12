@@ -85,7 +85,8 @@ describe('analyseur des interpolations HTML', () => {
   });
 
   it('bpIcon(…) (icône SVG de /js/icons.js) est une interpolation sûre', () => {
-    expect(analyze("x = `<b>${bpIcon('trophy')} ${escHtml(n)}</b>`;")).toEqual([]);
+    // `$` + `{…}` concaténés : évite l'alerte CodeQL js/template-syntax-in-string-literal
+    expect(analyze('x = `<b>$' + "{bpIcon('trophy')} $" + '{escHtml(n)}</b>`;')).toEqual([]);
   });
 
   it('analyse les scripts inline des pages HTML', () => {
