@@ -370,23 +370,22 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
   ctx.app.get('/api/journee-status', (req, res) => {
     try {
       const competitionId = ctx.session?.competitionId;
-      const dayId = competitionId
-        ? ctx.db.eventDays.getCompetitionDayId(competitionId)
-        : null;
+      const dayId = competitionId ? ctx.db.eventDays.getCompetitionDayId(competitionId) : null;
       if (!dayId) {
         return res.json({ day: null, strips: [], competitions: [] });
       }
       const day = ctx.db.eventDays.getDay(dayId);
       const strips = ctx.db.eventDays.getStripOccupation(dayId);
       const weapons = ctx.db.eventDays.getCompetitionWeapons(dayId);
-      const competitions = day?.competitionIds.map(cid => {
-        const c = ctx.db.getCompetition(cid);
-        return {
-          id: cid,
-          title: c?.title ?? cid,
-          weapon: weapons[cid] ?? null,
-        };
-      }) ?? [];
+      const competitions =
+        day?.competitionIds.map(cid => {
+          const c = ctx.db.getCompetition(cid);
+          return {
+            id: cid,
+            title: c?.title ?? cid,
+            weapon: weapons[cid] ?? null,
+          };
+        }) ?? [];
       res.json({ day, strips, competitions });
     } catch (error) {
       logger.error(LogCategory.NETWORK, 'Error getting journee status:', toError(error));
