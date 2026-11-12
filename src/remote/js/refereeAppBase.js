@@ -60,6 +60,7 @@ class RefereeAppBase {
     this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
     this.refereesList = []; // Liste des arbitres de la compétition
     this.swapped = false;
+    this.weapon = null; // arme de la session (/api/session)
     this.pausedForModal = false;
     this.trainingCustomRules = null; // { matchDurationSeconds, allowedZones, disableSuddenDeath }
     this.offlineQueue = new OfflineQueueInline();
@@ -101,6 +102,7 @@ class RefereeAppBase {
       .then(r => (r.ok ? r.json() : null))
       .then(s => {
         if (s) {
+          this.weapon = s.weapon || null; // placement gaucher/droitier (#1439)
           this.isLaserSabre = s.weapon === 'L';
           this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
           this.applyScoringButtons();
@@ -697,7 +699,8 @@ class RefereeAppBase {
     this.isResting = false;
     this.overtimeType = null;
     this.actionHistory = [];
-    this.swapped = false;
+    // Gaucher contre droitier : gaucher à gauche en rouge (#1439)
+    this.swapped = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
     this.stopTimer();
     const timerRestored = this.restoreTimerState(match);
     const undoBtn = document.getElementById('btn-undo');
