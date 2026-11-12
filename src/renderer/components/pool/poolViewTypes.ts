@@ -37,7 +37,7 @@ export interface PoolViewProps {
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
   /** Saisie distante active : QR de la piste de la poule sur la feuille (aperçu/impression/export) */
-  stripQr?: { url: string; strip: number };
+  stripQr?: { url?: string; strip: number };
   /** Facteur de taille des cartes de poule (préréglage) */
   cardScale?: number;
   onMatchArenaChange?: (

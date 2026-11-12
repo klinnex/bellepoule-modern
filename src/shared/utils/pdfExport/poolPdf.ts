@@ -265,8 +265,9 @@ export function generatePoolHTML(
       <div class="subtitle">${pdfT('pool_sheet', 'Grille de poule')} • ${pdfT('matches_played', '{{done}}/{{total}} matchs joués', { done: finishedCount, total: matches.length })}${refereeLabel ? ' &nbsp;' + refereeLabel : ''}</div>
     </div>
     ${
-      options.stripQrDataUrl
-        ? `<div class="doc-header-strip-qr" title="${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}"><img src="${options.stripQrDataUrl}" alt="QR" /><span>${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}</span></div>`
+      // Numéro de piste affiché dès qu'il est connu ; QR seulement si la saisie distante est active (#1653)
+      options.stripNumber != null
+        ? `<div class="doc-header-strip-qr" title="${pdfT('strip', 'Piste')} ${options.stripNumber}">${options.stripQrDataUrl ? `<img src="${options.stripQrDataUrl}" alt="QR" />` : ''}<span>${pdfT('strip', 'Piste')} ${options.stripNumber}</span></div>`
         : ''
     }
     <div class="doc-header-badge">P${pool.number}</div>
@@ -406,6 +407,17 @@ export function generatePoolHTML(
       border-left: 2px solid var(--navy-light) !important;
     }
 
+    /* Piste : QR et numéro centrés dans la barre d'en-tête (#1653) */
+    .doc-header { position: relative; }
+    .doc-header-strip-qr {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+    }
+    .doc-header-strip-qr span { font-size: 12pt; }
+
     /* Marqueurs OCR (imprimés uniquement) */
     @media print {
       .ocr-corner {
@@ -509,7 +521,8 @@ export async function exportPoolToPDF(
 
 /** Saisie distante active : QR de la piste de chaque poule sur sa feuille (#1037) */
 export interface PoolStripQr {
-  url: string;
+  /** URL arbitre de la piste (absente hors saisie distante : seul le numéro est imprimé) */
+  url?: string;
   strip: number;
 }
 

@@ -53,6 +53,34 @@ describe('generatePoolHTML – options export (#932)', () => {
   });
 });
 
+describe("generatePoolHTML – piste dans l'en-tête (#1653)", () => {
+  it('affiche le numéro de piste sans saisie distante (pas de QR)', () => {
+    const html = generatePoolHTML(makePool(), { stripNumber: 3 });
+    expect(html).toContain('doc-header-strip-qr');
+    expect(html).toContain('<span>Piste 3</span>');
+    expect(html).not.toContain('alt="QR"');
+  });
+
+  it("n'affiche aucun bloc piste sans numéro", () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('class="doc-header-strip-qr"');
+  });
+
+  it('affiche le QR avec le numéro quand la saisie distante est active', () => {
+    const html = generatePoolHTML(makePool(), {
+      stripNumber: 7,
+      stripQrDataUrl: 'data:image/png;base64,QR',
+    });
+    expect(html).toContain('<img src="data:image/png;base64,QR" alt="QR" />');
+    expect(html).toContain('<span>Piste 7</span>');
+  });
+
+  it("centre le bloc piste dans la barre d'en-tête", () => {
+    const html = generatePoolHTML(makePool(), { stripNumber: 1 });
+    expect(html).toContain('.doc-header { position: relative; }');
+    expect(html).toContain('left: 50%;');
+  });
+});
+
 describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
