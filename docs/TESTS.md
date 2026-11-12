@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 7 | 146 |
-| `src/main/` | 57 | 462 |
+| `src/main/` | 58 | 466 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 85 | 420 |
+| `src/renderer/components/` | 85 | 425 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **351** | **2698** |
+| **Total** | **352** | **2707** |
 
-Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 342 fichiers, 2668 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2564,6 +2564,16 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 3 tests</summary>
+
+- **registerTrainingHandlers : arrêt du serveur d’entraînement / démo**
+  - stopServer libère le port et arrête le serveur
+  - fenêtre principale fermée (macOS, app dans le Dock) → serveur arrêté
+  - fenêtre principale rechargée (bouton « Arrêter » perdu) → serveur arrêté
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 3 tests</summary>
 
 - **registerWindowPrintHandlers (#1341)**
@@ -2662,7 +2672,7 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/printDialog.test.ts</code> — 20 tests</summary>
+<summary><code>src/main/printDialog.test.ts</code> — 21 tests</summary>
 
 - **parsePageRanges (#1214)**
   - vide = toutes les pages
@@ -2682,6 +2692,7 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **handlers print:\* (#1214)**
   - liste les imprimantes, \[\] en cas d’erreur
   - aperçu : PDF en mémoire avec les réglages normalisés
+  - applyPageOverride : règle insérée avant \</head\>, HTML inchangé en auto (#1653)
   - refuse un HTML vide ou non textuel
   - impression : envoie les options et remonte les échecs
 - **enregistrement PDF (#1214)**
@@ -4009,7 +4020,7 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - le bouton fermer déclenche onClose
   - **XML avec \<Arbitres\> (#1504)**
     - affiche le nombre d'arbitres et bascule la liste
-    - importe tireurs et arbitres sélectionnés
+    - importe tireurs puis arbitres sélectionnés
     - sans onImportReferees : arbitres affichés, non importés
 
 </details>
@@ -4062,7 +4073,7 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 8 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
@@ -4073,6 +4084,8 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolPrepView – brouillon de préparation (#1649)**
   - le brouillon prime sur les poules initiales (retour depuis l'appel)
   - modification manuelle → brouillon transmis
+- **PoolPrepView — pastille du critère prioritaire (#1440)**
+  - club en priorité 1 : pastille club, orange si doublon dans la poule
 
 </details>
 
@@ -4181,20 +4194,25 @@ Unitaires : 341 fichiers, 2659 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 5 tests</summary>
 
 - **Tooltip**
   - apparaît au focus clavier avec role=tooltip et aria-describedby, se ferme avec Échap
   - TipButton : aria-label par défaut et pas de title natif
+- **placeTooltip (#1755)**
+  - au-dessus, centré sur le déclencheur
+  - bascule en dessous si pas de place en haut
+  - recadré au bord droit de la fenêtre
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/XiaomiRemotePanel.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/XiaomiRemotePanel.test.tsx</code> — 3 tests</summary>
 
 - **XiaomiRemotePanel**
   - charge la liste une fois puis ne réinterroge pas le processus principal
   - ignore la liste poussée par une autre compétition
+  - affiche le QR code de l'URL du lobby au clic
 
 </details>
 
