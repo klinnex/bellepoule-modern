@@ -102,3 +102,87 @@ describe('refereeTimer.js timeUpAction', () => {
     );
   });
 });
+
+describe('refereeTimer.js sauvegarde locale du chrono (#1717)', () => {
+  const NOW = 1_800_000_000_000;
+  const memory = () => {
+    const store: Record<string, string> = {};
+    return {
+      store,
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => {
+        store[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
+    };
+  };
+
+  it('aller-retour : même match restauré tel quel', () => {
+    const st = memory();
+    const state = {
+      matchId: 'm1',
+      cs: 9512.4,
+      isSuddenDeath: true,
+      overtimeType: 'supplementary',
+      isResting: false,
+    };
+    expect(T.saveTimerState(st, '1', state, NOW)).toBe(true);
+    expect(Object.keys(st.store)).toEqual([T.timerStateKey('1')]);
+    expect(T.loadTimerState(st, '1', 'm1', NOW + 5000)).toEqual({
+      cs: 9512,
+      isSuddenDeath: true,
+      overtimeType: 'supplementary',
+      isResting: false,
+    });
+  });
+
+  it('autre match, autre arène ou sauvegarde effacée : rien à restaurer', () => {
+    const st = memory();
+    T.saveTimerState(st, '1', { matchId: 'm1', cs: 6000 }, NOW);
+    expect(T.loadTimerState(st, '1', 'm2', NOW)).toBeNull();
+    expect(T.loadTimerState(st, '2', 'm1', NOW)).toBeNull();
+    T.clearTimerState(st, '1');
+    expect(T.loadTimerState(st, '1', 'm1', NOW)).toBeNull();
+  });
+
+  it('sauvegarde périmée (> 6 h) ou datée du futur : ignorée', () => {
+    const raw = JSON.stringify(T.snapshotTimer({ matchId: 'm1', cs: 6000 }, NOW));
+    expect(T.restoreTimer(raw, 'm1', NOW + 6 * 3600 * 1000)).not.toBeNull();
+    expect(T.restoreTimer(raw, 'm1', NOW + 6 * 3600 * 1000 + 1)).toBeNull();
+    expect(T.restoreTimer(raw, 'm1', NOW - 61000)).toBeNull();
+  });
+
+  it('valeurs corrompues : ignorées ; type de prolongation inconnu neutralisé', () => {
+    expect(T.restoreTimer('{pas du json', 'm1', NOW)).toBeNull();
+    expect(T.restoreTimer(null, 'm1', NOW)).toBeNull();
+    expect(T.restoreTimer({ matchId: 'm1', cs: -1, savedAt: NOW }, 'm1', NOW)).toBeNull();
+    expect(T.restoreTimer({ matchId: 'm1', cs: 'x', savedAt: NOW }, 'm1', NOW)).toBeNull();
+    expect(T.restoreTimer({ matchId: 'm1', cs: 4e5, savedAt: NOW }, 'm1', NOW)).toBeNull();
+    expect(T.restoreTimer({ matchId: 'm1', cs: 100 }, 'm1', NOW)).toBeNull();
+    const r = T.restoreTimer(
+      { matchId: 'm1', cs: 100, savedAt: NOW, overtimeType: '<img>', isResting: 'oui' },
+      'm1',
+      NOW
+    );
+    expect(r).toEqual({ cs: 100, isSuddenDeath: false, overtimeType: null, isResting: false });
+  });
+
+  it('stockage indisponible (navigation privée, quota) : toléré', () => {
+    const broken = {
+      getItem: () => {
+        throw new Error('x');
+      },
+      setItem: () => {
+        throw new Error('quota');
+      },
+      removeItem: () => {
+        throw new Error('x');
+      },
+    };
+    expect(T.saveTimerState(broken, '1', { matchId: 'm1', cs: 100 }, NOW)).toBe(false);
+    expect(T.loadTimerState(broken, '1', 'm1', NOW)).toBeNull();
+    expect(() => T.clearTimerState(broken, '1')).not.toThrow();
+  });
+});

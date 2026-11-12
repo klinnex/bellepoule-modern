@@ -178,6 +178,10 @@ pas de blanc. Le motif est annoncé sur l'écran d'arène (`card_announcement`),
   (180 s par défaut). Mode entraînement : durée personnalisée.
 - **← Retour** désactivé pendant que le chrono tourne.
 - Le temps est diffusé chaque seconde à l'écran d'arène.
+- Rafraîchissement de la page pendant un match (veille, fausse manipulation, **← Retour**) :
+  le temps restant est mémorisé sur la tablette (`localStorage bp_referee_timer_<arène>`, 6 h max).
+  En rouvrant le même match, le chrono reprend au temps restant, à l'arrêt : **▶️** le relance.
+  Pas de reprise sur un autre appareil.
 
 ### 3.6 Fin de temps, temps supplémentaire, mort subite
 

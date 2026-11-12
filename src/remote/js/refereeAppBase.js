@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/refereeAppBase.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global bpIcon, bpSocket, BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
+/* global bpIcon, bpSocket, BPRefereeCards, BPRefereeFeedback, BPRefereeScoring, BPRefereeTimer, FAULT_REASONS, FAULT_REASONS_OLYMPIC, OfflineQueueInline, PASSIVITY_CARDS, escHtml, isStandardCard, lastIndexWhere */
 /* exported RefereeAppBase */
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 // escHtml : helper partagé (/common.js)
@@ -683,6 +683,7 @@ class RefereeAppBase {
     this.actionHistory = [];
     this.swapped = false;
     this.stopTimer();
+    const timerRestored = this.restoreTimerState(match);
     const undoBtn = document.getElementById('btn-undo');
     if (undoBtn) undoBtn.disabled = true;
 
@@ -709,6 +710,32 @@ class RefereeAppBase {
         scoreB: this.scoreB,
       },
     });
+    if (timerRestored) {
+      // select_match repasse l'arène en « prête » : la remettre en cours, puis diffuser le temps restauré
+      this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'start' });
+      this.broadcastTimerUpdate();
+    }
+  }
+
+  // Reprise d'un match en cours après rafraîchissement : chrono restauré, à l'arrêt (#1717).
+  // « Démarrer » reprend alors le chrono au lieu de relancer le match.
+  restoreTimerState(match) {
+    const storage = this._timerStorage();
+    if (!storage) return false;
+    const saved =
+      match.status === 'in_progress'
+        ? BPRefereeTimer.loadTimerState(storage, this.arenaId, match.id, Date.now())
+        : null;
+    if (!saved) {
+      BPRefereeTimer.clearTimerState(storage, this.arenaId);
+      return false;
+    }
+    this._timerCs = saved.cs;
+    this.isSuddenDeath = saved.isSuddenDeath;
+    this.overtimeType = saved.overtimeType;
+    this.isResting = saved.isResting;
+    this.matchStatus = 'in_progress';
+    return true;
   }
 
   // Zones de score actives (formule personnalisée) pour le match courant, sinon null
