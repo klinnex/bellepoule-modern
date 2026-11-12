@@ -121,12 +121,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
     <div style={CONS_STYLES.consolationSection}>
       {consolationBrackets.length > 1 && (
         <div style={CONS_STYLES.consolationToolbar}>
-          <Button
-            type="button"
-
-            style={{ fontSize: '0.75rem' }}
-            onClick={toggleAll}
-          >
+          <Button type="button" style={{ fontSize: '0.75rem' }} onClick={toggleAll}>
             {allCollapsed
               ? translateStatic('tableauView.expand_all')
               : translateStatic('tableauView.collapse_all')}

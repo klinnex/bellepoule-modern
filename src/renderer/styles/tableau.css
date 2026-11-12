@@ -175,10 +175,12 @@
   cursor: not-allowed;
 }
 
-/* Carte de match : badges piste/arbitre centrés sur le séparateur, hors des scores (#1542) */
+/* Carte de match : badges piste/arbitre/signatures dans un bandeau en haut, hors des scores (#1542, #1440) */
+.match-card--badges {
+  padding-top: 20px;
+}
 .match-badges {
-  top: 50%;
-  transform: translateY(-50%);
+  top: 2px;
   opacity: 0.55;
   transition: opacity var(--duration-fast) ease;
 }
