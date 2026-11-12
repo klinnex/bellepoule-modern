@@ -71,24 +71,27 @@
   border-radius: 6px;
 }
 
-/* Menu de masquage des sections (RemoteSectionsMenu) */
-.rsm-sections-menu {
-  margin-bottom: 0.75rem;
+/* Volets dépliables de la saisie distante (RemoteFold) */
+.rsm-fold {
+  margin-bottom: 0.5rem;
 }
 
-.rsm-sections-menu__summary {
-  cursor: pointer;
+.rsm-fold-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #334155;
+  border-radius: 0.35rem;
+  background: #0f172a;
+  color: #e2e8f0;
   font-size: 0.85rem;
   font-weight: 600;
+  cursor: pointer;
+  text-align: left;
 }
 
-.rsm-sections-menu__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
+.rsm-fold-body {
   margin-top: 0.4rem;
-}
-
-.rsm-sections-menu__item {
-  margin: 0;
 }

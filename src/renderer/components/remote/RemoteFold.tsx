@@ -83,32 +83,17 @@ interface Props {
 export const RemoteFold: React.FC<Props> = ({ id, open, onToggle, children }) => {
   const { t } = useTranslation();
   return (
-    <div className="rsm-fold" data-section={id} style={{ marginBottom: '0.5rem' }}>
+    <div className="rsm-fold" data-section={id}>
       <button
         type="button"
         className="rsm-fold-header"
         aria-expanded={open}
         onClick={() => onToggle(id)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          width: '100%',
-          padding: '0.4rem 0.6rem',
-          border: '1px solid #334155',
-          borderRadius: '0.35rem',
-          background: '#0f172a',
-          color: '#e2e8f0',
-          fontSize: '0.85rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
       >
         <Icon icon={open ? ChevronDown : ChevronRight} />
         {t(SECTION_LABEL_KEYS[id])}
       </button>
-      {open && <div style={{ marginTop: '0.4rem' }}>{children}</div>}
+      {open && <div className="rsm-fold-body">{children}</div>}
     </div>
   );
 };
