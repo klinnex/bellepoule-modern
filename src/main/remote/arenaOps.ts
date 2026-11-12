@@ -56,7 +56,7 @@ export function assignMatchToArena(
   if (!match.referee) {
     const defaultRef =
       ctx.resolveTableauMatchReferees(match.poolId ? null : match.id) ??
-      ctx.resolveReferee((match as any).refereeId) ??
+      ctx.resolveReferee((match as { refereeId?: string | null }).refereeId) ??
       ctx.resolvePoolReferee(match.poolId);
     if (defaultRef) match = { ...match, referee: defaultRef };
   }

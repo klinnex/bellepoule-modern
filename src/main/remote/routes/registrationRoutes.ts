@@ -5,6 +5,7 @@
 
 import type express from 'express';
 import type { Arena } from '../../../shared/types/remote';
+import { FencerStatus, type Fencer } from '../../../shared/types';
 import type { RouteContext } from './context';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
@@ -119,7 +120,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
         status: 'N', // NOT_CHECKED_IN
       };
 
-      const newFencer = ctx.db.addFencer(competitionId, fencerData as any);
+      const newFencer = ctx.db.addFencer(competitionId, fencerData as Partial<Fencer>);
       logger.info(
         LogCategory.NETWORK,
         `[RemoteScoreServer] Inscription tireur: ${fencerData.lastName} ${fencerData.firstName} (id=${newFencer.id})`
@@ -329,7 +330,9 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
         if (fencer.status !== 'P' && fencer.status !== 'N') {
           return res.status(409).json({ error: 'status_locked' });
         }
-        ctx.db.updateFencer(id, { status: (present ? 'P' : 'N') as any });
+        ctx.db.updateFencer(id, {
+          status: present ? FencerStatus.CHECKED_IN : FencerStatus.NOT_CHECKED_IN,
+        });
       } else {
         const referee = ctx.db.getRefereesByCompetition(competitionId).find(r => r.id === id);
         if (!referee) return res.status(404).json({ error: 'referee_not_found' });

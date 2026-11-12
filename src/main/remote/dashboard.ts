@@ -24,10 +24,44 @@ export interface DashboardContext {
   readonly stripPlan: S['stripPlan'];
 }
 
+export interface DashboardRanking {
+  lastName: string;
+  firstName: string;
+  club: string;
+  victories: number;
+  quest: number;
+}
+
+export interface DashboardPool {
+  id: string;
+  number: number;
+  isComplete: boolean;
+  ranking: DashboardRanking[];
+}
+
+export interface DashboardLiveMatch {
+  number: number;
+  poolNumber: string | null;
+  fencerA: string;
+  fencerB: string;
+  clubA: string;
+  clubB: string;
+  scoreA: number;
+  scoreB: number;
+  winner: 'A' | 'B' | null;
+}
+
+/** Statistiques de poule stockées sur le tireur (JSON en base ou objet) */
+interface StoredPoolStats {
+  victories?: number;
+  questPoints?: number;
+  touchesScored?: number;
+}
+
 export function buildDashboardSnapshot(ctx: DashboardContext): {
-  rankings: any[];
-  pools: any[];
-  liveMatches: any[];
+  rankings: DashboardRanking[];
+  pools: DashboardPool[];
+  liveMatches: DashboardLiveMatch[];
   eta?: { finishAt: string; basis: string; remainingMatches: number; perMatchMinutes: number };
 } | null {
   if (!ctx.session) return null;
@@ -35,13 +69,14 @@ export function buildDashboardSnapshot(ctx: DashboardContext): {
   const { competitionId } = ctx.session;
 
   // Classement global (depuis les poules terminées)
-  let rankings: any[] = [];
+  let rankings: DashboardRanking[] = [];
   try {
     const fencers = ctx.db.getFencersByCompetition(competitionId);
     rankings = fencers
-      .filter((f: any) => f.poolStats)
-      .map((f: any) => {
-        const stats = typeof f.poolStats === 'string' ? JSON.parse(f.poolStats) : f.poolStats;
+      .filter(f => (f as { poolStats?: unknown }).poolStats)
+      .map(f => {
+        const raw = (f as { poolStats?: string | StoredPoolStats }).poolStats;
+        const stats: StoredPoolStats | undefined = typeof raw === 'string' ? JSON.parse(raw) : raw;
         return {
           lastName: f.lastName,
           firstName: f.firstName,
@@ -50,15 +85,15 @@ export function buildDashboardSnapshot(ctx: DashboardContext): {
           quest: stats?.questPoints ?? stats?.touchesScored ?? 0,
         };
       })
-      .sort((a: any, b: any) => b.victories - a.victories || b.quest - a.quest);
+      .sort((a, b) => b.victories - a.victories || b.quest - a.quest);
   } catch {
     /* */
   }
 
   // État des poules
-  const pools: any[] = [];
+  const pools: DashboardPool[] = [];
   try {
-    const matchesByPool = new Map<string, any[]>();
+    const matchesByPool = new Map<string, SessionMatch[]>();
     for (const m of ctx.sessionMatches) {
       const pid = m.poolId || m.pool?.id;
       if (!pid) continue;
@@ -67,7 +102,7 @@ export function buildDashboardSnapshot(ctx: DashboardContext): {
     }
     let poolNum = 1;
     for (const [pid, pMatches] of matchesByPool) {
-      const isComplete = pMatches.every((m: any) => {
+      const isComplete = pMatches.every(m => {
         const u = ctx.sessionMatchScores.get(m.id);
         return u ? u.status === 'finished' : m.status === 'finished';
       });
@@ -78,7 +113,7 @@ export function buildDashboardSnapshot(ctx: DashboardContext): {
   }
 
   // Matchs en direct (arènes actives)
-  const liveMatches: any[] = [];
+  const liveMatches: DashboardLiveMatch[] = [];
   for (const arena of visibleArenas([...ctx.arenas.values()], ctx.stripPlan)) {
     if (arena.currentMatch && arena.status === 'in_progress') {
       const m = arena.currentMatch;

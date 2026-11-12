@@ -101,6 +101,7 @@ Main Process (src/main/)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
+├── preloadApi/              # Groupes d'API du préload (dbApi, fileApi, dialogApi, remoteApi, printHandler) ; validation IPC dans ipc/validation.ts
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)

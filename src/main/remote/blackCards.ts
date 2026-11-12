@@ -45,14 +45,13 @@ export function getArenaBlackCards(ctx: BlackCardsContext, arenaId: string): Bla
         continue;
       const last = ctx.sessionMatches
         .filter(
-          (x: any) =>
+          x =>
             !x.isTableau &&
             (x.fencerA?.id === f.id || x.fencerB?.id === f.id) &&
             (ctx.sessionMatchScores.get(x.id)?.status ?? x.status) === MatchStatus.FINISHED
         )
         .sort(
-          (a: any, b: any) =>
-            new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
+          (a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
         )[0];
       if (!last) continue;
       const opponent = last.fencerA?.id === f.id ? last.fencerB : last.fencerA;
@@ -91,7 +90,7 @@ export function cancelBlackCard(
   if (!record) return { success: false, status: 404, error: 'black_card_not_found' };
   const { matchId } = record;
   const dbMatch = ctx.db.getMatch(matchId);
-  const sessionMatch = ctx.sessionMatches.find((m: any) => m.id === matchId);
+  const sessionMatch = ctx.sessionMatches.find(m => m.id === matchId);
   if ((dbMatch && !dbMatch.poolId) || sessionMatch?.isTableau) {
     return {
       success: false,
@@ -114,8 +113,10 @@ export function cancelBlackCard(
 
   // Rouvrir le match interrompu par le carton noir avec le score atteint
   const current = ctx.sessionMatchScores.get(matchId);
-  const valueOf = (s: any): number =>
-    typeof s === 'object' && s !== null ? Number(s.value ?? 0) : Number(s ?? 0);
+  const valueOf = (s: unknown): number =>
+    typeof s === 'object' && s !== null
+      ? Number((s as { value?: number }).value ?? 0)
+      : Number(s ?? 0);
   const scoreA = valueOf(current?.scoreA ?? dbMatch?.scoreA ?? sessionMatch?.scoreA);
   const scoreB = valueOf(current?.scoreB ?? dbMatch?.scoreB ?? sessionMatch?.scoreB);
   const reopened = (value: number): Score => ({
@@ -140,8 +141,9 @@ export function cancelBlackCard(
   });
 
   // Propager le statut dans les copies en mémoire : ses matchs suivants redeviennent jouables
-  const patch = (f: any) => (f?.id === fencerId ? { ...f, status, exclusionReason: null } : f);
-  ctx.sessionMatches = ctx.sessionMatches.map((m: any) =>
+  const patch = <F extends { id?: string } | null | undefined>(f: F): F =>
+    f?.id === fencerId ? ({ ...f, status, exclusionReason: null } as F) : f;
+  ctx.sessionMatches = ctx.sessionMatches.map(m =>
     m.fencerA?.id === fencerId || m.fencerB?.id === fencerId
       ? { ...m, fencerA: patch(m.fencerA), fencerB: patch(m.fencerB) }
       : m
