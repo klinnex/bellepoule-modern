@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 344 |
+| `src/remote/` | 55 | 352 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **338** | **2574** |
+| **Total** | **338** | **2582** |
 
-Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 328 fichiers, 2543 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5127,11 +5127,15 @@ Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 2 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 5 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
   - s exécute sans erreur et branche les événements socket
+- **chrono conservé après rafraîchissement (#1717)**
+  - pendant le match : le chrono diffusé est mémorisé en localStorage
+  - reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours
+  - match non commencé ou autre match : durée initiale, sauvegarde effacée
 
 </details>
 
@@ -5262,7 +5266,7 @@ Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeTimer.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/refereeTimer.test.ts</code> — 15 tests</summary>
 
 - **refereeTimer.js timerTick**
   - même dixième : ni affichage complet ni diffusion
@@ -5276,6 +5280,12 @@ Unitaires : 328 fichiers, 2535 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - égalité en temps supplémentaire : tirage au sort (classique) ou prioritaire (olympique)
   - pas d’égalité ou mort subite désactivée : temps écoulé
   - referee.html charge le module et délègue
+- **refereeTimer.js sauvegarde locale du chrono (#1717)**
+  - aller-retour : même match restauré tel quel
+  - autre match, autre arène ou sauvegarde effacée : rien à restaurer
+  - sauvegarde périmée (\> 6 h) ou datée du futur : ignorée
+  - valeurs corrompues : ignorées ; type de prolongation inconnu neutralisé
+  - stockage indisponible (navigation privée, quota) : toléré
 
 </details>
 
