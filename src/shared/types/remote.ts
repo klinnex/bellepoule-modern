@@ -103,6 +103,9 @@ export interface Arena {
   settings: ArenaSettings;
   password?: string;
   swapped?: boolean;
+  /** Inversion gaucher/droitier appliquée au match leftHandedMatchId (#1439) */
+  leftHandedSwap?: boolean;
+  leftHandedMatchId?: string;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
