@@ -16,6 +16,9 @@ describe('builtinThemes', () => {
       'builtin:light',
       'builtin:neon',
       'builtin:steampunk',
+      'builtin:musketeers',
+      'builtin:arcade',
+      'builtin:sumie',
     ]);
     expect(resolveBuiltinTheme('arena', 'builtin:light', t)).toEqual({ preset: 'light' });
   });
@@ -39,5 +42,25 @@ describe('builtinThemes', () => {
       expect(r?.theme?.targetType).toBe(s);
       expect(Object.values(r?.theme?.variables ?? {}).join(' ')).toMatch(/#d4a64a|#b5893b/);
     }
+  });
+
+  it('chaque thème décoratif couvre toutes les sections avec des variables connues', () => {
+    for (const key of ['steampunk', 'musketeers', 'arcade', 'sumie']) {
+      for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+        const base = resolveBuiltinTheme(s, s === 'arena' ? 'builtin:dark' : 'builtin:default', t);
+        const r = resolveBuiltinTheme(s, `builtin:${key}`, t);
+        expect(r?.theme?.name).toBe(`rsm.theme_${key}`);
+        // aucune variable inventée : mêmes clés que les valeurs par défaut de l'éditeur
+        if (base?.theme) {
+          expect(Object.keys(r!.theme!.variables).sort()).toEqual(
+            Object.keys(base.theme.variables).sort()
+          );
+        }
+      }
+    }
+  });
+
+  it('clé héritée de Object.prototype → null', () => {
+    expect(resolveBuiltinTheme('pool', 'builtin:toString', t)).toBeNull();
   });
 });

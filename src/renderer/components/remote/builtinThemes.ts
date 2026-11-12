@@ -1,7 +1,8 @@
 /**
  * BellePoule Modern - Thèmes prédéfinis du sélecteur « Thème global »
  * Liste jamais vide même sans thème sauvegardé : piste → Sombre/Clair/Néon,
- * autres écrans → valeurs par défaut de l'éditeur ; Steampunk pour tous.
+ * autres écrans → valeurs par défaut de l'éditeur ; thèmes décoratifs
+ * (Steampunk, Mousquetaires, Arcade 8-bit, Sumi-e) pour tous.
  * Licensed under GPL-3.0
  */
 import type { CustomTheme, DisplayTheme, ThemeTargetType } from '../../../shared/types/remote';
@@ -103,6 +104,250 @@ const STEAMPUNK: Record<ThemeTargetType, Record<string, string>> = {
   },
 };
 
+/**
+ * Mousquetaires : casaque bleu roi, liseré or, parchemin d'édit royal.
+ * Scores or pâle : vert émeraude / rouge cardinal ; chrono argent poli.
+ */
+const MUSKETEERS: Record<ThemeTargetType, Record<string, string>> = {
+  arena: {
+    '--bg': 'radial-gradient(ellipse at 50% 20%, #1f3f8f 0%, #13285e 55%, #0a1638 100%)',
+    '--text': '#f5ecd2',
+    '--header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
+    '--match-bg': 'linear-gradient(180deg, #fbf5e3 0%, #efe3c0 100%)',
+    '--fencer-name-color': '#14224d',
+    '--fencer-club-color': '#6b5a2e',
+    '--green-side-bg': 'linear-gradient(135deg, #eef3e6 0%, #d3e2c6 100%)',
+    '--green-side-border': '#1f5e3a',
+    '--red-side-bg': 'linear-gradient(135deg, #f7e3e6 0%, #e9c0c7 100%)',
+    '--red-side-border': '#8e1530',
+    '--score-bg': '#070a14',
+    '--score-green': '#8fe3b0',
+    '--score-green-glow': 'rgba(143,227,176,0.7), rgba(31,94,58,0.4)',
+    '--score-red': '#ff5a6e',
+    '--score-red-glow': 'rgba(255,90,110,0.7), rgba(142,21,48,0.4)',
+    '--timer-bg': '#070a14',
+    '--timer-color': '#d9dee8',
+    '--timer-glow': 'rgba(217,222,232,0.85), rgba(150,160,180,0.4)',
+    '--timer-border': '#c9a43e',
+    '--timer-run-color': '#ffffff',
+    '--timer-run-glow': 'rgba(255,255,255,0.9), rgba(200,210,230,0.5)',
+    '--timer-run-border': '#e8c35a',
+    '--waiting-color': '#f5ecd2',
+    '--idle-number-color': 'rgba(245,236,210,0.9)',
+    '--idle-label-color': 'rgba(232,195,90,0.75)',
+    '--score-font-family': 'Georgia, serif',
+    '--timer-font-family': 'Georgia, serif',
+    '--fencer-name-font-family': 'Georgia, serif',
+    '--vs-color': '#e8c35a',
+    '--vs-font-family': 'Georgia, serif',
+  },
+  kiosk: {
+    '--k-bg': 'radial-gradient(ellipse at top, #1a3478 0%, #0a1638 100%)',
+    '--k-accent': '#e8c35a',
+    '--k-accent2': '#8e1530',
+    '--k-card-bg': 'rgba(232,195,90,0.07)',
+    '--k-border': 'rgba(201,164,62,0.45)',
+    '--k-muted': 'rgba(245,236,210,0.6)',
+    '--k-progress': 'linear-gradient(90deg, #8e1530, #e8c35a, #1f5e3a)',
+  },
+  public: {
+    '--pub-bg': 'radial-gradient(ellipse at top, #1f3f8f 0%, #0a1638 100%)',
+    '--pub-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
+    '--pub-accent': '#e8c35a',
+    '--pub-accent2': '#8e1530',
+    '--pub-text': '#f5ecd2',
+    '--pub-muted': 'rgba(245,236,210,0.6)',
+    '--pub-card-bg': 'rgba(232,195,90,0.07)',
+    '--pub-border': 'rgba(201,164,62,0.45)',
+  },
+  referee: {
+    '--ref-bg': 'radial-gradient(ellipse at top, #1f3f8f 0%, #0a1638 100%)',
+    '--ref-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
+    '--ref-accent': '#e8c35a',
+    '--ref-accent2': '#8e1530',
+    '--ref-text': '#f5ecd2',
+    '--ref-muted': 'rgba(245,236,210,0.6)',
+    '--ref-card-bg': 'rgba(232,195,90,0.07)',
+    '--ref-border': 'rgba(201,164,62,0.45)',
+  },
+  pool: {
+    '--pool-bg': '#0e1d47',
+    '--pool-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
+    '--pool-accent': '#e8c35a',
+    '--pool-accent2': '#8e1530',
+    '--pool-text': '#f5ecd2',
+    '--pool-muted': 'rgba(245,236,210,0.6)',
+    '--pool-card-bg': 'rgba(232,195,90,0.07)',
+    '--pool-border': 'rgba(201,164,62,0.45)',
+  },
+};
+
+/**
+ * Arcade 8-bit : borne de salle de jeux, noir profond, néons saturés, chiffres pixel.
+ * Côté vert = vert phosphore, côté rouge = magenta ; chrono jaune « INSERT COIN ».
+ */
+const ARCADE: Record<ThemeTargetType, Record<string, string>> = {
+  arena: {
+    '--bg': 'repeating-linear-gradient(0deg, #07001a 0px, #07001a 3px, #0d0230 3px, #0d0230 4px)',
+    '--text': '#e0f7ff',
+    '--header-bg': 'linear-gradient(90deg, #2b0057 0%, #00135e 100%)',
+    '--match-bg': '#0b0420',
+    '--fencer-name-color': '#00f0ff',
+    '--fencer-club-color': '#b07cff',
+    '--green-side-bg': 'linear-gradient(135deg, #001a0d 0%, #00331a 100%)',
+    '--green-side-border': '#39ff14',
+    '--red-side-bg': 'linear-gradient(135deg, #1a0014 0%, #33002a 100%)',
+    '--red-side-border': '#ff2bd6',
+    '--score-bg': '#000000',
+    '--score-green': '#39ff14',
+    '--score-green-glow': 'rgba(57,255,20,0.9), rgba(57,255,20,0.45)',
+    '--score-red': '#ff2bd6',
+    '--score-red-glow': 'rgba(255,43,214,0.9), rgba(255,43,214,0.45)',
+    '--timer-bg': '#000000',
+    '--timer-color': '#ffe600',
+    '--timer-glow': 'rgba(255,230,0,0.95), rgba(255,170,0,0.5)',
+    '--timer-border': '#00f0ff',
+    '--timer-run-color': '#00f0ff',
+    '--timer-run-glow': 'rgba(0,240,255,0.95), rgba(0,140,255,0.5)',
+    '--timer-run-border': '#ff2bd6',
+    '--waiting-color': '#ffe600',
+    '--idle-number-color': '#00f0ff',
+    '--idle-label-color': 'rgba(255,43,214,0.8)',
+    '--score-font-family': '"Lucida Console", monospace',
+    '--timer-font-family': '"Lucida Console", monospace',
+    '--fencer-name-font-family': '"Lucida Console", monospace',
+    '--vs-color': '#ffe600',
+    '--vs-font-family': '"Lucida Console", monospace',
+  },
+  kiosk: {
+    '--k-bg': '#07001a',
+    '--k-accent': '#ffe600',
+    '--k-accent2': '#00f0ff',
+    '--k-card-bg': 'rgba(0, 240, 255, 0.06)',
+    '--k-border': 'rgba(255, 43, 214, 0.5)',
+    '--k-muted': '#b07cff',
+    '--k-progress': 'linear-gradient(90deg, #39ff14, #00f0ff, #ff2bd6)',
+  },
+  public: {
+    '--pub-bg':
+      'repeating-linear-gradient(0deg, #07001a 0px, #07001a 3px, #0d0230 3px, #0d0230 4px)',
+    '--pub-header-bg': 'linear-gradient(90deg, #2b0057 0%, #00135e 100%)',
+    '--pub-accent': '#ffe600',
+    '--pub-accent2': '#00f0ff',
+    '--pub-text': '#e0f7ff',
+    '--pub-muted': '#b07cff',
+    '--pub-card-bg': 'rgba(0, 240, 255, 0.06)',
+    '--pub-border': 'rgba(255, 43, 214, 0.5)',
+  },
+  referee: {
+    '--ref-bg':
+      'repeating-linear-gradient(0deg, #07001a 0px, #07001a 3px, #0d0230 3px, #0d0230 4px)',
+    '--ref-header-bg': 'linear-gradient(90deg, #2b0057 0%, #00135e 100%)',
+    '--ref-accent': '#ffe600',
+    '--ref-accent2': '#00f0ff',
+    '--ref-text': '#e0f7ff',
+    '--ref-muted': '#b07cff',
+    '--ref-card-bg': 'rgba(0, 240, 255, 0.06)',
+    '--ref-border': 'rgba(255, 43, 214, 0.5)',
+  },
+  pool: {
+    '--pool-bg': '#07001a',
+    '--pool-header-bg': 'linear-gradient(90deg, #2b0057 0%, #00135e 100%)',
+    '--pool-accent': '#ffe600',
+    '--pool-accent2': '#00f0ff',
+    '--pool-text': '#e0f7ff',
+    '--pool-muted': '#b07cff',
+    '--pool-card-bg': 'rgba(0, 240, 255, 0.06)',
+    '--pool-border': 'rgba(255, 43, 214, 0.5)',
+  },
+};
+
+/**
+ * Sumi-e : papier de riz, encre de Chine, rouge tampon (hanko). Clair et sobre.
+ * Côté rouge = vermillon, côté vert = vert bambou ; chiffres à l'encre.
+ */
+const SUMIE: Record<ThemeTargetType, Record<string, string>> = {
+  arena: {
+    '--bg': 'radial-gradient(ellipse at 30% 20%, #f7f2e6 0%, #ebe3d1 70%, #ddd2bb 100%)',
+    '--text': '#1b1b1b',
+    '--header-bg': 'linear-gradient(180deg, #efe7d4 0%, #e2d8c0 100%)',
+    '--match-bg': 'rgba(255,253,246,0.92)',
+    '--fencer-name-color': '#111111',
+    '--fencer-club-color': '#6e675a',
+    '--green-side-bg': 'linear-gradient(135deg, #f6f5ec 0%, #e5e8d6 100%)',
+    '--green-side-border': '#4f7a3a',
+    '--red-side-bg': 'linear-gradient(135deg, #faf1ea 0%, #f1dccf 100%)',
+    '--red-side-border': '#c8321e',
+    '--score-bg': '#fbf8ef',
+    '--score-green': '#2f5a22',
+    '--score-green-glow': 'rgba(47,90,34,0.15), rgba(47,90,34,0.05)',
+    '--score-red': '#c8321e',
+    '--score-red-glow': 'rgba(200,50,30,0.15), rgba(200,50,30,0.05)',
+    '--timer-bg': '#1b1b1b',
+    '--timer-color': '#f7f2e6',
+    '--timer-glow': 'rgba(247,242,230,0.35), rgba(247,242,230,0.1)',
+    '--timer-border': '#c8321e',
+    '--timer-run-color': '#ffffff',
+    '--timer-run-glow': 'rgba(255,255,255,0.4), rgba(255,255,255,0.15)',
+    '--timer-run-border': '#c8321e',
+    '--waiting-color': '#1b1b1b',
+    '--idle-number-color': 'rgba(27,27,27,0.85)',
+    '--idle-label-color': 'rgba(200,50,30,0.8)',
+    '--score-font-family': 'Georgia, serif',
+    '--timer-font-family': 'Georgia, serif',
+    '--fencer-name-font-family': 'Georgia, serif',
+    '--vs-color': '#c8321e',
+    '--vs-font-family': 'Georgia, serif',
+  },
+  kiosk: {
+    '--k-bg': 'radial-gradient(ellipse at 30% 20%, #f7f2e6 0%, #e4dbc6 100%)',
+    '--k-accent': '#c8321e',
+    '--k-accent2': '#4f7a3a',
+    '--k-card-bg': 'rgba(27, 27, 27, 0.04)',
+    '--k-border': 'rgba(27, 27, 27, 0.18)',
+    '--k-muted': '#6e675a',
+    '--k-progress': 'linear-gradient(90deg, #1b1b1b, #c8321e)',
+  },
+  public: {
+    '--pub-bg': 'radial-gradient(ellipse at 30% 20%, #f7f2e6 0%, #e4dbc6 100%)',
+    '--pub-header-bg': 'linear-gradient(180deg, #1b1b1b 0%, #2c2c2c 100%)',
+    '--pub-accent': '#c8321e',
+    '--pub-accent2': '#4f7a3a',
+    '--pub-text': '#1b1b1b',
+    '--pub-muted': '#6e675a',
+    '--pub-card-bg': 'rgba(27, 27, 27, 0.04)',
+    '--pub-border': 'rgba(27, 27, 27, 0.18)',
+  },
+  referee: {
+    '--ref-bg': 'radial-gradient(ellipse at 30% 20%, #f7f2e6 0%, #e4dbc6 100%)',
+    '--ref-header-bg': 'linear-gradient(180deg, #1b1b1b 0%, #2c2c2c 100%)',
+    '--ref-accent': '#c8321e',
+    '--ref-accent2': '#4f7a3a',
+    '--ref-text': '#1b1b1b',
+    '--ref-muted': '#6e675a',
+    '--ref-card-bg': 'rgba(27, 27, 27, 0.04)',
+    '--ref-border': 'rgba(27, 27, 27, 0.18)',
+  },
+  pool: {
+    '--pool-bg': '#f2ecdd',
+    '--pool-header-bg': 'linear-gradient(180deg, #1b1b1b 0%, #2c2c2c 100%)',
+    '--pool-accent': '#c8321e',
+    '--pool-accent2': '#4f7a3a',
+    '--pool-text': '#1b1b1b',
+    '--pool-muted': '#6e675a',
+    '--pool-card-bg': 'rgba(27, 27, 27, 0.04)',
+    '--pool-border': 'rgba(27, 27, 27, 0.18)',
+  },
+};
+
+/** Thèmes décoratifs proposés sur tous les écrans (clé = suffixe d'id et de libellé i18n) */
+const DECORATIVE_THEMES: Record<string, Record<ThemeTargetType, Record<string, string>>> = {
+  steampunk: STEAMPUNK,
+  musketeers: MUSKETEERS,
+  arcade: ARCADE,
+  sumie: SUMIE,
+};
+
 type Translate = (key: string) => string;
 
 /** Options prédéfinies affichées pour une section */
@@ -110,17 +355,20 @@ export function getBuiltinThemeOptions(
   section: ThemeTargetType,
   t: Translate
 ): { id: string; label: string }[] {
-  const steampunk = { id: `${BUILTIN_THEME_PREFIX}steampunk`, label: t('rsm.theme_steampunk') };
+  const decorative = Object.keys(DECORATIVE_THEMES).map(k => ({
+    id: `${BUILTIN_THEME_PREFIX}${k}`,
+    label: t(`rsm.theme_${k}`),
+  }));
   if (section === 'arena') {
     return [
       ...ARENA_PRESETS.map(p => ({
         id: `${BUILTIN_THEME_PREFIX}${p}`,
         label: t(`rsm.theme_${p}`),
       })),
-      steampunk,
+      ...decorative,
     ];
   }
-  return [{ id: `${BUILTIN_THEME_PREFIX}default`, label: t('rsm.theme_default') }, steampunk];
+  return [{ id: `${BUILTIN_THEME_PREFIX}default`, label: t('rsm.theme_default') }, ...decorative];
 }
 
 export function isBuiltinThemeId(id: string): boolean {
@@ -135,13 +383,13 @@ export function resolveBuiltinTheme(
 ): { preset: DisplayTheme; theme?: undefined } | { preset?: undefined; theme: CustomTheme } | null {
   if (!isBuiltinThemeId(id)) return null;
   const key = id.slice(BUILTIN_THEME_PREFIX.length);
-  if (key === 'steampunk') {
+  if (Object.prototype.hasOwnProperty.call(DECORATIVE_THEMES, key)) {
     return {
       theme: {
         id,
-        name: t('rsm.theme_steampunk'),
+        name: t(`rsm.theme_${key}`),
         targetType: section,
-        variables: { ...SECTION_DEFAULTS[section], ...STEAMPUNK[section] },
+        variables: { ...SECTION_DEFAULTS[section], ...DECORATIVE_THEMES[key][section] },
       },
     };
   }
