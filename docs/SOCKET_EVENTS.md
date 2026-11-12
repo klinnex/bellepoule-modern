@@ -50,7 +50,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `bracket:update` | ✓ | `kiosk.html` |
 | `eta:update` | ✓ | `dashboard.html` |
 | `kiosk:data` | ✓ | `demo.html`, `kiosk.html` |
-| `kiosk:note` | ✓ | — |
+| `kiosk:note` | ✓ | `kiosk.html` |
 | `logo:update` | ✓ | `kiosk.html` |
 | `match:finished` | ✓ | — |
 | `match:reset` | ✓ | — |
