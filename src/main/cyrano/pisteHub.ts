@@ -128,10 +128,7 @@ export class PisteHub {
     const verdict = validateCyranoEnd(msg);
     if (!verdict.ok) {
       this.cyrano.sendNak(piste.piste);
-      logger.info(
-        LogCategory.NETWORK,
-        `Cyrano: NAK → ${piste.piste} (motif : ${verdict.reason})`
-      );
+      logger.info(LogCategory.NETWORK, `Cyrano: NAK → ${piste.piste} (motif : ${verdict.reason})`);
       return;
     }
 
@@ -155,10 +152,7 @@ export class PisteHub {
     const arenaId = `arena${piste.arena}`;
     this.lastDispMatch.delete(piste.piste);
     remote.loadNextMatch(arenaId);
-    logger.info(
-      LogCategory.NETWORK,
-      `Cyrano: NEXT sur piste ${piste.piste} → arène ${arenaId}`
-    );
+    logger.info(LogCategory.NETWORK, `Cyrano: NEXT sur piste ${piste.piste} → arène ${arenaId}`);
   };
 
   private buildDispFromUpdate(update: ArenaUpdate): ReturnType<typeof buildDisp> {
@@ -189,9 +183,7 @@ export class PisteHub {
       weapon: 'E', // arme non disponible dans ArenaUpdate ; DISP reste valide
       right,
       left,
-      referee: match.referee
-        ? { id: match.referee.id, name: match.referee.name }
-        : undefined,
+      referee: match.referee ? { id: match.referee.id, name: match.referee.name } : undefined,
     };
     return buildDisp(dispMatch, { nameLength: this.opts.nameLength });
   }
@@ -206,8 +198,6 @@ function coordsFromMatch(match: ArenaMatch): {
   if (match.isTableau) {
     return { phase: 2, poulTab: 'A', matchNum: 1 };
   }
-  const poolNum = match.poolId
-    ? parseInt(match.poolId.replace(/.*-/, ''), 10) || 1
-    : 1;
+  const poolNum = match.poolId ? parseInt(match.poolId.replace(/.*-/, ''), 10) || 1 : 1;
   return { phase: 1, poulTab: String(poolNum), matchNum: 1 };
 }
