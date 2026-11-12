@@ -27,11 +27,7 @@ import { useRemoteServerState } from '../hooks/remoteScoreManager/useRemoteServe
 import { RemoteArenaGrid } from './remote/RemoteArenaGrid';
 import { RemoteHeaderSection } from './remote/RemoteHeaderSection';
 import { CyranoPanel } from './remote/CyranoPanel';
-import {
-  RemoteSectionsMenu,
-  useRemoteHiddenSections,
-  type RemoteSectionId,
-} from './remote/RemoteSectionsMenu';
+import { useRemoteFolds } from './remote/RemoteFold';
 
 const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScoreManagerProps) => {
   const remoteServerState = useRemoteServerState({ ...props });
@@ -114,12 +110,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
   const ctx = { ...props, ...remoteServerState, ...remoteServerActions };
   // Générateur de thème global (toutes les pistes, type d'écran choisi : public, arbitre…)
   const [globalThemeEditorOpen, setGlobalThemeEditorOpen] = React.useState(false);
-  // Sections masquables (préférence locale)
-  const {
-    hidden: hiddenSections,
-    toggle: toggleSection,
-    isVisible: show,
-  } = useRemoteHiddenSections();
+  // Volets dépliables par section (état replié mémorisé localement)
+  const { fold } = useRemoteFolds();
 
   // Tous les hooks ont été appelés — retour null si l'onglet n'est pas visible
   if (!isVisible) return null;
@@ -239,29 +231,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
     );
   }
 
-  const availableSections: RemoteSectionId[] = [
-    'strips',
-    'kiosk',
-    ...(isExpert ? (['orgNote'] as RemoteSectionId[]) : []),
-    'globalTheme',
-    ...(isExpert ? (['displayOptions', 'overlay', 'checkin'] as RemoteSectionId[]) : []),
-    ...(trainerEnabled ? (['trainer'] as RemoteSectionId[]) : []),
-    ...(isExpert ? (['lobby', 'cyrano'] as RemoteSectionId[]) : []),
-    'screens',
-  ];
-
   return (
     <div className="remote-score-manager">
       <RemoteViewModeTabs mode={mode} onChange={setMode} />
       <RemoteHeaderSection ctx={ctx} />
 
       <div className="arena-urls-section">
-        <RemoteSectionsMenu
-          sections={availableSections}
-          hidden={hiddenSections}
-          onToggle={toggleSection}
-        />
-        {show('strips') && (
+        {fold('strips')(
           <>
             {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
             <div className="rsm-sections">
@@ -329,7 +305,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </>
         )}
 
-        {show('kiosk') && (
+        {fold('kiosk')(
           <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
             <div className="arena-url-header u-row-between">
               <strong>{t('rsm.kiosk_card')}</strong>
@@ -366,14 +342,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </div>
         )}
 
-        {isExpert && show('orgNote') && (
-          <>
-            {/* Note d'organisation */}
-            <OrgNotePanel competitionId={competition.id} />
-          </>
-        )}
+        {isExpert &&
+          fold('orgNote')(
+            <>
+              {/* Note d'organisation */}
+              <OrgNotePanel competitionId={competition.id} />
+            </>
+          )}
 
-        {show('globalTheme') && (
+        {fold('globalTheme')(
           <>
             {/* ── Thème global : générateur + bibliothèque (toutes les pistes) ── */}
             {(() => {
@@ -470,121 +447,130 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           </>
         )}
 
-        {isExpert && show('displayOptions') && (
-          <DisplayOptionsPanel
-            competitionId={competition.id}
-            displayTheme={displayTheme}
-            setDisplayTheme={setDisplayTheme}
-            arenaWallpaper={arenaWallpaper}
-            setArenaWallpaper={setArenaWallpaper}
-            kioskViews={kioskViews}
-            setKioskViews={setKioskViews}
-          />
-        )}
+        {isExpert &&
+          fold('displayOptions')(
+            <DisplayOptionsPanel
+              competitionId={competition.id}
+              displayTheme={displayTheme}
+              setDisplayTheme={setDisplayTheme}
+              arenaWallpaper={arenaWallpaper}
+              setArenaWallpaper={setArenaWallpaper}
+              kioskViews={kioskViews}
+              setKioskViews={setKioskViews}
+            />
+          )}
 
-        {isExpert && show('overlay') && (
-          <>
-            <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-              <div className="arena-url-header">
-                <strong>{t('rsm.overlay_card')}</strong>
+        {isExpert &&
+          fold('overlay')(
+            <>
+              <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+                <div className="arena-url-header">
+                  <strong>{t('rsm.overlay_card')}</strong>
+                </div>
+                <OBSOverlayConfig serverUrl={serverUrl} arenaCount={arenaCount} />
               </div>
-              <OBSOverlayConfig serverUrl={serverUrl} arenaCount={arenaCount} />
-            </div>
-          </>
-        )}
+            </>
+          )}
 
-        {isExpert && show('checkin') && (
-          <>
+        {isExpert &&
+          fold('checkin')(
+            <>
+              <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+                <div className="arena-url-header">
+                  <strong>{t('rsm.checkin_card')}</strong>
+                </div>
+                <UrlCopyRow
+                  url={checkinUrl}
+                  id={996}
+                  copiedIndex={copiedIndex}
+                  onCopy={copyToClipboard}
+                  onQr={() => setActiveQR({ url: checkinUrl, label: t('rsm.checkin_qr') })}
+                />
+                <div className="arena-url-row">
+                  <span className="arena-url-label">{t('rsm.pwd')}</span>
+                  <input
+                    type="password"
+                    className="arena-password-input"
+                    placeholder={t('rsm.checkin_pwd_placeholder')}
+                    value={checkinPassword}
+                    onChange={e => setCheckinPassword(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') applyCheckinPassword();
+                    }}
+                  />
+                  <button
+                    className="btn-copy"
+                    title={t('rsm.set_pwd')}
+                    onClick={applyCheckinPassword}
+                  >
+                    ✓
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+        {trainerEnabled &&
+          fold('trainer')(
             <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
               <div className="arena-url-header">
-                <strong>{t('rsm.checkin_card')}</strong>
+                <strong>{t('rsm.trainer_card')}</strong>
               </div>
               <UrlCopyRow
-                url={checkinUrl}
-                id={996}
+                url={trainerUrl}
+                id={995}
                 copiedIndex={copiedIndex}
                 onCopy={copyToClipboard}
-                onQr={() => setActiveQR({ url: checkinUrl, label: t('rsm.checkin_qr') })}
+                onQr={() => setActiveQR({ url: trainerUrl, label: t('rsm.trainers') })}
               />
               <div className="arena-url-row">
                 <span className="arena-url-label">{t('rsm.pwd')}</span>
                 <input
                   type="password"
                   className="arena-password-input"
-                  placeholder={t('rsm.checkin_pwd_placeholder')}
-                  value={checkinPassword}
-                  onChange={e => setCheckinPassword(e.target.value)}
+                  placeholder={t('rsm.trainer_pwd_placeholder')}
+                  value={trainerPassword}
+                  onChange={e => setTrainerPassword(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter') applyCheckinPassword();
+                    if (e.key === 'Enter') applyTrainerPassword();
                   }}
                 />
                 <button
                   className="btn-copy"
                   title={t('rsm.set_pwd')}
-                  onClick={applyCheckinPassword}
+                  onClick={applyTrainerPassword}
                 >
                   ✓
                 </button>
               </div>
+              <div className="arena-url-row">
+                <Button size="sm" onClick={exportTrainerComments}>
+                  {t('rsm.trainer_pdf')}
+                </Button>
+              </div>
             </div>
-          </>
-        )}
+          )}
 
-        {trainerEnabled && show('trainer') && (
-          <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-            <div className="arena-url-header">
-              <strong>{t('rsm.trainer_card')}</strong>
-            </div>
-            <UrlCopyRow
-              url={trainerUrl}
-              id={995}
-              copiedIndex={copiedIndex}
-              onCopy={copyToClipboard}
-              onQr={() => setActiveQR({ url: trainerUrl, label: t('rsm.trainers') })}
-            />
-            <div className="arena-url-row">
-              <span className="arena-url-label">{t('rsm.pwd')}</span>
-              <input
-                type="password"
-                className="arena-password-input"
-                placeholder={t('rsm.trainer_pwd_placeholder')}
-                value={trainerPassword}
-                onChange={e => setTrainerPassword(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') applyTrainerPassword();
-                }}
+        {isExpert &&
+          fold('lobby')(
+            <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+              <div className="arena-url-header">
+                <strong>{t('rsm.lobby_card')}</strong>
+              </div>
+              <UrlCopyRow
+                url={lobbyUrl}
+                id={997}
+                copiedIndex={copiedIndex}
+                onCopy={copyToClipboard}
+                onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
               />
-              <button className="btn-copy" title={t('rsm.set_pwd')} onClick={applyTrainerPassword}>
-                ✓
-              </button>
             </div>
-            <div className="arena-url-row">
-              <Button size="sm" onClick={exportTrainerComments}>
-                {t('rsm.trainer_pdf')}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {isExpert && show('lobby') && (
-          <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-            <div className="arena-url-header">
-              <strong>{t('rsm.lobby_card')}</strong>
-            </div>
-            <UrlCopyRow
-              url={lobbyUrl}
-              id={997}
-              copiedIndex={copiedIndex}
-              onCopy={copyToClipboard}
-              onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
-            />
-          </div>
-        )}
-        {isExpert && show('cyrano') && <CyranoPanel />}
+          )}
+        {isExpert && fold('cyrano')(<CyranoPanel />)}
       </div>
 
       {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
-      {show('screens') && (
+      {fold('screens')(
         <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
       )}
 
