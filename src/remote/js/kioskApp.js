@@ -1007,6 +1007,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const socket = bpSocket();
     socket.on('bracket:update', fetchBracket);
     socket.on('kiosk:data', scheduleRefresh);
+    socket.on('kiosk:note', note => renderOrgNote(note || null));
     socket.on('logo:update', d => applyLogo((d && d.logo) || null));
     let _connectedOnce = false;
     socket.on('connect', () => {
