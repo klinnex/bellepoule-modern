@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 58 | 466 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 85 | 425 |
+| `src/renderer/components/` | 86 | 430 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **352** | **2707** |
+| **Total** | **353** | **2712** |
 
-Unitaires : 342 fichiers, 2668 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 343 fichiers, 2673 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4656,6 +4656,18 @@ Unitaires : 342 fichiers, 2668 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **UrlCopyRow**
   - copie l’URL et ouvre le QR code
   - affiche « Copié » sur la ligne copiée
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 5 tests</summary>
+
+- **builtinThemes**
+  - liste jamais vide pour chaque section
+  - piste : préréglages Sombre/Clair/Néon
+  - autres écrans : thème custom aux valeurs par défaut
+  - id non prédéfini ou inconnu → null
+  - Steampunk proposé et résolu pour chaque section
 
 </details>
 
