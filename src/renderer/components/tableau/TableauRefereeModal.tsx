@@ -6,9 +6,9 @@
 
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
 import { Gavel, Square, SquareCheck } from 'lucide-react';
 import { Icon } from '../common/Icon';
 
@@ -61,95 +61,76 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
   };
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal"
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '400px' }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tableau-referee-title"
-      >
-        <div className="modal-header">
-          <h3 className="modal-title" id="tableau-referee-title">
-            {isMulti ? t('tableauReferee.title_multi') : t('tableauReferee.title_one')}
-          </h3>
-          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
-            ×
-          </button>
-        </div>
-        <div className="modal-body" style={{ padding: '1.5rem' }}>
+    <Modal
+      title={isMulti ? t('tableauReferee.title_multi') : t('tableauReferee.title_one')}
+      onClose={onClose}
+      size="sm"
+    >
+      <p style={{ marginBottom: '1rem', color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+        {isMulti
+          ? t('tableauReferee.hint_multi', { n: maxReferees })
+          : t('tableauReferee.hint_one')}
+      </p>
+      <div className="u-stack-2">
+        <Button
+          variant={currentReferees.length === 0 ? 'primary' : 'secondary'}
+          onClick={() => onAssign([])}
+          style={REF_BTN}
+        >
+          {t('tableauReferee.none')}
+        </Button>
+        {referees.length === 0 && (
           <p
-            style={{ marginBottom: '1rem', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
+            style={{
+              color: 'var(--color-text-muted)',
+              fontSize: '0.875rem',
+              textAlign: 'center',
+            }}
           >
-            {isMulti
-              ? t('tableauReferee.hint_multi', { n: maxReferees })
-              : t('tableauReferee.hint_one')}
+            {t('tableauReferee.none_checked')}
           </p>
-          <div className="u-stack-2">
-            <Button
-              variant={currentReferees.length === 0 ? 'primary' : 'secondary'}
-              onClick={() => onAssign([])}
-              style={REF_BTN}
-            >
-              {t('tableauReferee.none')}
-            </Button>
-            {referees.length === 0 && (
-              <p
-                style={{
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.875rem',
-                  textAlign: 'center',
-                }}
+        )}
+        {isMulti &&
+          referees.map(ref => {
+            const order = pendingIds.indexOf(ref.id);
+            const selected = order >= 0;
+            return (
+              <Button
+                key={ref.id}
+                variant={selected ? 'primary' : 'secondary'}
+                onClick={() => toggle(ref.id)}
+                disabled={!selected && pendingIds.length >= maxReferees}
+                aria-pressed={selected}
+                style={{ ...REF_BTN, textAlign: 'left' }}
               >
-                {t('tableauReferee.none_checked')}
-              </p>
-            )}
-            {isMulti &&
-              referees.map(ref => {
-                const order = pendingIds.indexOf(ref.id);
-                const selected = order >= 0;
-                return (
-                  <Button
-                    key={ref.id}
-                    variant={selected ? 'primary' : 'secondary'}
-                    onClick={() => toggle(ref.id)}
-                    disabled={!selected && pendingIds.length >= maxReferees}
-                    aria-pressed={selected}
-                    style={{ ...REF_BTN, textAlign: 'left' }}
-                  >
-                    <Icon icon={selected ? SquareCheck : Square} /> {selected && `${order + 1}.`}{' '}
-                    <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
-                    {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
-                  </Button>
-                );
-              })}
-            {isMulti && referees.length > 0 && (
-              <Button variant="primary" onClick={confirm} style={REF_BTN}>
-                {t('tableauReferee.validate', { n: pendingIds.length, max: maxReferees })}
+                <Icon icon={selected ? SquareCheck : Square} /> {selected && `${order + 1}.`}{' '}
+                <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
+                {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
               </Button>
-            )}
-            {!isMulti &&
-              referees.map(ref => (
-                <Button
-                  key={ref.id}
-                  variant={currentReferees[0]?.id === ref.id ? 'primary' : 'secondary'}
-                  onClick={() =>
-                    onAssign([{ id: ref.id, firstName: ref.firstName, lastName: ref.lastName }])
-                  }
-                  style={{ ...REF_BTN, textAlign: 'left' }}
-                >
-                  <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
-                  {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
-                </Button>
-              ))}
-          </div>
-        </div>
+            );
+          })}
+        {isMulti && referees.length > 0 && (
+          <Button variant="primary" onClick={confirm} style={REF_BTN}>
+            {t('tableauReferee.validate', { n: pendingIds.length, max: maxReferees })}
+          </Button>
+        )}
+        {!isMulti &&
+          referees.map(ref => (
+            <Button
+              key={ref.id}
+              variant={currentReferees[0]?.id === ref.id ? 'primary' : 'secondary'}
+              onClick={() =>
+                onAssign([{ id: ref.id, firstName: ref.firstName, lastName: ref.lastName }])
+              }
+              style={{ ...REF_BTN, textAlign: 'left' }}
+            >
+              <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
+              {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
+            </Button>
+          ))}
       </div>
-    </div>,
+    </Modal>,
     document.body
   );
 };

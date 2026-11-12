@@ -6,11 +6,11 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { TableauMatch } from './tableauTypes';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
 
 interface TableauArenaModalProps {
   matches: TableauMatch[];
@@ -26,7 +26,6 @@ interface TableauArenaModalProps {
 // ─── Static style constants ───────────────────────────────────────────────────
 
 const ARENA_STYLES = {
-  arenaModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
   arenaModalHint: {
     marginBottom: '1rem',
     color: 'var(--color-text-light)',
@@ -54,59 +53,37 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal is-2c8110"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tableau-arena-title"
-      >
-        <div className="modal-header">
-          <h3 className="modal-title" id="tableau-arena-title">
-            {t('tableauArena.title')}
-          </h3>
-          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
-            ×
-          </button>
-        </div>
-        <div className="modal-body" style={ARENA_STYLES.arenaModalBody}>
-          <p style={ARENA_STYLES.arenaModalHint}>{t('tableauArena.hint')}</p>
-          <div style={ARENA_STYLES.arenaModalGrid}>
+    <Modal title={t('tableauArena.title')} onClose={onClose} className="is-2c8110">
+      <p style={ARENA_STYLES.arenaModalHint}>{t('tableauArena.hint')}</p>
+      <div style={ARENA_STYLES.arenaModalGrid}>
+        <Button
+          aria-label={t('actions.no_selection')}
+          variant={!currentArena ? 'primary' : 'secondary'}
+          onClick={() => onAssign(null)}
+          style={ARENA_STYLES.arenaModalNoArenaBtn}
+        >
+          -
+        </Button>
+        {stripNumbers(stripStart, arenaCount).map(arenaNum => {
+          const queueCount = matches.filter(
+            m => m.arena === arenaNum && m.id !== selectedMatchId && m.winner === null
+          ).length;
+          return (
             <Button
-              aria-label={t('actions.no_selection')}
-              variant={!currentArena ? 'primary' : 'secondary'}
-              onClick={() => onAssign(null)}
-              style={ARENA_STYLES.arenaModalNoArenaBtn}
+              key={arenaNum}
+              variant={currentArena === arenaNum ? 'primary' : 'secondary'}
+              className="is-0b9519"
+              onClick={() => onAssign(arenaNum)}
             >
-              -
+              {t('tableauSignatures.strip_n', { n: arenaNum })}
+              {queueCount > 0 && <span style={ARENA_STYLES.arenaQueueHint}>(+{queueCount})</span>}
             </Button>
-            {stripNumbers(stripStart, arenaCount).map(arenaNum => {
-              const queueCount = matches.filter(
-                m => m.arena === arenaNum && m.id !== selectedMatchId && m.winner === null
-              ).length;
-              return (
-                <Button
-                  key={arenaNum}
-                  variant={currentArena === arenaNum ? 'primary' : 'secondary'}
-                  className="is-0b9519"
-                  onClick={() => onAssign(arenaNum)}
-                >
-                  {t('tableauSignatures.strip_n', { n: arenaNum })}
-                  {queueCount > 0 && (
-                    <span style={ARENA_STYLES.arenaQueueHint}>(+{queueCount})</span>
-                  )}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
+          );
+        })}
       </div>
-    </div>,
+    </Modal>,
     document.body
   );
 };
