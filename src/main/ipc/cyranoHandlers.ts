@@ -30,8 +30,8 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
         const port = await cyranoServer.start();
         pisteHub.attach();
         return { success: true, port };
-      } catch (err: any) {
-        return { success: false, error: err?.message ?? 'start_failed' };
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'start_failed' };
       }
     }
   );
