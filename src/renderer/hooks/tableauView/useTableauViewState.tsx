@@ -173,7 +173,12 @@ export function useTableauViewState(ctx: Ctx) {
     handleBracketMouseDown,
     handleBracketMouseMove,
     handleBracketMouseUp,
-  } = useBracketZoomPan({ competitionId, viewMode, pyramidViewMode });
+  } = useBracketZoomPan({
+    competitionId,
+    viewMode,
+    pyramidViewMode,
+    contentRef: bracketContentRef,
+  });
 
   // Charge les arbitres de la compétition (montage + ouverture de la modale)
   const openRefereeModal = useCallback(
