@@ -1252,7 +1252,10 @@
     "victory": "Victòria",
     "waiting_previous_round": "A l'espera de la ronda anterior",
     "weapon": "Arma",
-    "col_department": "Departament"
+    "col_department": "Departament",
+    "col_handedness": "Lateralitat",
+    "handedness_left": "Esquerrà",
+    "handedness_right": "Dretà"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Error en la importació .bpf",
     "col_region": "Regió",
     "col_department": "Departament",
-    "deleted": "{{name}} eliminat"
+    "deleted": "{{name}} eliminat",
+    "col_handedness": "Lateralitat"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
@@ -1834,7 +1838,13 @@
     "update_n_one": "Actualitza {{count}} classificació",
     "update_n_other": "Actualitza {{count}} classificacions",
     "import_n_one": "Importa {{count}} tirador",
-    "import_n_other": "Importa {{count}} tiradors"
+    "import_n_other": "Importa {{count}} tiradors",
+    "referees_found": "àrbitres trobats",
+    "list_choice": "Llista mostrada",
+    "referee_level": "Nivell",
+    "import_referees_n_one": "Importa {{count}} àrbitre",
+    "import_referees_n_other": "Importa {{count}} àrbitres",
+    "import_fencers_referees": "Importa {{fencers}} tirador(s) i {{referees}} àrbitre(s)"
   },
   "editFencer": {
     "title": "Edita el tirador",

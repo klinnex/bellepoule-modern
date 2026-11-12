@@ -207,6 +207,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     importData,
     handleImportFencers,
     handleImportRanking,
+    handleImportReferees,
     setImportData,
     showRapieresTableauDialog,
     handleRapieresTableauMode,
@@ -678,6 +679,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           fencers={fencers}
           onImport={handleImportFencers}
           onImportRanking={handleImportRanking}
+          onImportReferees={handleImportReferees}
           onClose={() => setImportData(null)}
         />
       )}

@@ -1252,7 +1252,10 @@
     "victory": "Vittoria",
     "waiting_previous_round": "In attesa del turno precedente",
     "weapon": "Arma",
-    "col_department": "Dipartimento"
+    "col_department": "Dipartimento",
+    "col_handedness": "Lateralità",
+    "handedness_left": "Mancino",
+    "handedness_right": "Destrimane"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Errore durante l'importazione .bpf",
     "col_region": "Regione",
     "col_department": "Dipartimento",
-    "deleted": "{{name}} eliminato"
+    "deleted": "{{name}} eliminato",
+    "col_handedness": "Lateralità"
   },
   "questPhase": {
     "running_title": "Turno Quest in corso",
@@ -1834,7 +1838,13 @@
     "update_n_one": "Aggiorna {{count}} classifica",
     "update_n_other": "Aggiorna {{count}} classifiche",
     "import_n_one": "Importa {{count}} schermidore",
-    "import_n_other": "Importa {{count}} schermidori"
+    "import_n_other": "Importa {{count}} schermidori",
+    "referees_found": "arbitri trovati",
+    "list_choice": "Elenco visualizzato",
+    "referee_level": "Livello",
+    "import_referees_n_one": "Importa {{count}} arbitro",
+    "import_referees_n_other": "Importa {{count}} arbitri",
+    "import_fencers_referees": "Importa {{fencers}} schermidore/i e {{referees}} arbitro/i"
   },
   "editFencer": {
     "title": "Modifica lo schermidore",
