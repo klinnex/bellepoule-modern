@@ -46,7 +46,8 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 import { Button } from './common/Button';
-import { TriangleAlert } from 'lucide-react';
+import { TriangleAlert, Users } from 'lucide-react';
+import EmptyState from './common/EmptyState';
 import { Icon } from './common/Icon';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
@@ -613,7 +614,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           </div>
 
           {teams.length === 0 && (
-            <div className="text-center text-gray-400 py-10">{t('teamManager.no_team')}</div>
+            <EmptyState icon={<Icon icon={Users} />} title={t('teamManager.no_team')} />
           )}
 
           {/* Liste équipes */}
@@ -809,7 +810,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           selectedReason={selectedReason}
           onSelectReason={setSelectedReason}
           onAddCard={handleAddCard}
-          emptyLabel='Aucun match — cliquez sur "Générer la poule" dans l&apos;onglet Équipes.'
+          emptyLabel={t('teamManager.no_pool_match')}
           isLaserArena={isLaserArena}
           boutCap={boutCap}
           matchCards={matchCards}

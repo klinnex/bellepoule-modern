@@ -22,6 +22,7 @@ import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../contexts/TranslationContext';
 import { Flag, Radio, Swords, Undo2 } from 'lucide-react';
 import { Icon } from './common/Icon';
+import EmptyState from './common/EmptyState';
 import { CardIcon } from './common/CardIcon';
 
 const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = [
@@ -99,7 +100,7 @@ const TeamPoolView: React.FC<Props> = ({
   const teamById = new Map(teams.map(team => [team.id, team]));
 
   if (matches.length === 0) {
-    return <div className="text-center text-gray-400 py-10">{emptyLabel}</div>;
+    return emptyLabel ? <EmptyState icon={<Icon icon={Swords} />} title={emptyLabel} /> : null;
   }
 
   return (
