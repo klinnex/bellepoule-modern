@@ -69,3 +69,15 @@ export interface DaySyncResult {
   added: number;
   updated: number;
 }
+
+/** Occupation d'une piste de la salle sur toute la journée */
+export interface DayStripStatus {
+  strip: number;
+  /** Libre si aucune épreuve n'est en cours sur cette piste */
+  free: boolean;
+  competitionId: string | null;
+  competitionTitle: string | null;
+  /** 'pool' pour une poule en cours, 'match' pour un match de tableau en cours */
+  kind: 'pool' | 'match' | null;
+  number: number | null;
+}

@@ -260,6 +260,12 @@ export function registerPageRoutes(ctx: RouteContext): void {
     ctx.sendHtmlFromMemory('kiosk.html', res);
   });
 
+  // Kiosk journée multi-épreuves (#1714) : toutes les épreuves + pistes de la salle
+  ctx.app.get('/journee', (req, res) => {
+    logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Accès au kiosk journée');
+    ctx.sendHtmlFromMemory('journee.html', res);
+  });
+
   // Démo autonome : affichage du tournoi fictif (poules, classements, tableau)
   ctx.app.get('/demo', (_req, res) => {
     ctx.sendHtmlFromMemory('demo.html', res);

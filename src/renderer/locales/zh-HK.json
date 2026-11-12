@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} 同時在多條劍道執法",
     "conflict_weapon": "{{name}} 執法非其劍種的賽事",
     "busy_elsewhere": "在其他賽事執法中：{{where}}",
-    "busy_elsewhere_title": "裁判正在當日另一項賽事執法"
+    "busy_elsewhere_title": "裁判正在當日另一項賽事執法",
+    "strips_title": "當日劍道",
+    "strips_pool": "小組 {{n}} · {{title}}",
+    "strips_match": "比賽 {{n}} · {{title}}",
+    "strips_no_config": "未設定劍道數量。",
+    "kiosk_link": "當日顯示（查詢站）"
   }
 }

@@ -3013,6 +3013,11 @@
     "conflict_multi_strip": "{{name}} està ocupat en diverses pistes",
     "conflict_weapon": "{{name}} arbitra una prova fora de les seves armes",
     "busy_elsewhere": "Ocupat en una altra prova: {{where}}",
-    "busy_elsewhere_title": "Àrbitre ocupat en una altra prova de la jornada"
+    "busy_elsewhere_title": "Àrbitre ocupat en una altra prova de la jornada",
+    "strips_title": "Pistes del dia",
+    "strips_pool": "Poule {{n}} · {{title}}",
+    "strips_match": "Combat {{n}} · {{title}}",
+    "strips_no_config": "Nombre de pistes no configurat.",
+    "kiosk_link": "Pantalla del dia (kiosk)"
   }
 }

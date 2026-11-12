@@ -11,6 +11,7 @@ import type {
   DayReferee,
   DayRefereeConflict,
   DayRefereeStatus,
+  DayStripStatus,
   EventDay,
 } from '../../shared/types/eventDay';
 import { weaponLabel } from '../../shared/utils/categoryLabel';
@@ -72,6 +73,7 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
   const [referees, setReferees] = useState<DayReferee[]>([]);
   const [statuses, setStatuses] = useState<DayRefereeStatus[]>([]);
   const [conflicts, setConflicts] = useState<DayRefereeConflict[]>([]);
+  const [strips, setStrips] = useState<DayStripStatus[]>([]);
   const [newRef, setNewRef] = useState({
     firstName: '',
     lastName: '',
@@ -111,11 +113,16 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
   const loadDay = useCallback(
     () =>
       api && selectedId
-        ? Promise.all([api.listReferees(selectedId), api.getOverview(selectedId)])
-            .then(([refs, overview]) => {
+        ? Promise.all([
+            api.listReferees(selectedId),
+            api.getOverview(selectedId),
+            api.getStripOccupation(selectedId),
+          ])
+            .then(([refs, overview, stripData]) => {
               setReferees(refs);
               setStatuses(overview.statuses);
               setConflicts(overview.conflicts);
+              setStrips(stripData);
             })
             .catch(() => undefined)
         : Promise.resolve(),
@@ -466,6 +473,37 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                         name: refName.get(c.dayRefereeId) ?? '?',
                       })}{' '}
                       — {c.assignments.map(a => formatAssignment(a, t)).join(' ; ')}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <h3>{t('eventDay.strips_title')}</h3>
+              {selected.stripCount === 0 ? (
+                <p className="text-muted">{t('eventDay.strips_no_config')}</p>
+              ) : strips.length === 0 ? (
+                <p className="text-muted">{t('eventDay.strips_no_config')}</p>
+              ) : (
+                <ul className="event-day-strips">
+                  {strips.map(s => (
+                    <li
+                      key={s.strip}
+                      className={`event-day-strip${s.free ? '' : ' event-day-strip--busy'}`}
+                    >
+                      <strong>{t('eventDay.strip', { n: s.strip })}</strong>
+                      <span>
+                        {s.free
+                          ? t('eventDay.free')
+                          : s.kind === 'pool'
+                            ? t('eventDay.strips_pool', {
+                                n: s.number,
+                                title: s.competitionTitle ?? '',
+                              })
+                            : t('eventDay.strips_match', {
+                                n: s.number,
+                                title: s.competitionTitle ?? '',
+                              })}
+                      </span>
                     </li>
                   ))}
                 </ul>
