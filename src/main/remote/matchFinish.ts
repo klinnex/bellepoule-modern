@@ -32,7 +32,7 @@ export interface MatchFinishContext {
   readonly persistArenaState: S['persistArenaState'];
   readonly recentMatchDurationsMs: S['recentMatchDurationsMs'];
   readonly resolveDbMatchId: S['resolveDbMatchId'];
-  readonly sendDiag: S['sendDiag'];
+  readonly logDiag: S['logDiag'];
   readonly session: S['session'];
   readonly sessionMatchScores: S['sessionMatchScores'];
   readonly sessionModernRules: S['sessionModernRules'];
@@ -42,7 +42,7 @@ export interface MatchFinishContext {
 
 export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void {
   const arena = ctx.arenas.get(arenaId);
-  ctx.sendDiag(
+  ctx.logDiag(
     `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as any)?.isTableau}`
   );
   if (!arena || !arena.currentMatch) return;
@@ -159,7 +159,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
         }
       }
     } catch (e) {
-      ctx.sendDiag(
+      ctx.logDiag(
         `[finishArenaMatch] persistance secondaire échouée (non bloquant): ${(e as Error)?.message}`
       );
       logger.warn(

@@ -311,7 +311,7 @@ export class RemoteScoreServer {
   private arenaTokens: Map<string, Map<string, number>> = new Map(); // arène → (token → expiresAt)
 
   // Connexions : limites par IP / cible, blocage progressif (src/main/remote/auth.ts)
-  private loginGuard = new LoginGuard(msg => this.sendDiag(msg));
+  private loginGuard = new LoginGuard(msg => this.logDiag(msg));
   // Anti-DoS Socket.IO : connexions simultanées par IP + seau à jetons par socket
   private socketsPerIp: Map<string, number> = new Map();
   private readonly MAX_SOCKETS_PER_IP = 30;
@@ -396,7 +396,7 @@ export class RemoteScoreServer {
         'handleArenaControl',
         'handleDisconnect',
         'peekNextMatch',
-        'sendDiag',
+        'logDiag',
         'teamArenaElapsedSec',
       ]
     ));
@@ -435,7 +435,7 @@ export class RemoteScoreServer {
         'loadNextMatch',
         'pauseArenaMatch',
         'resolveReferee',
-        'sendDiag',
+        'logDiag',
         'stampArenaEvents',
         'startArenaMatch',
         'updateArenaScore',
@@ -583,7 +583,7 @@ export class RemoteScoreServer {
         'peekNextMatch',
         'persistArenaState',
         'resolveDbMatchId',
-        'sendDiag',
+        'logDiag',
       ]
     ));
   }
@@ -1104,7 +1104,7 @@ export class RemoteScoreServer {
           'isPendingMatch',
           'resolvePoolReferee',
           'restorableStatus',
-          'sendDiag',
+          'logDiag',
           'updateMatchScore',
           'assignMatchToArena',
           'createSession',
@@ -1532,15 +1532,11 @@ export class RemoteScoreServer {
     return updateMatchArena(this.arenaQueueCtx, ...args);
   }
 
-  // DIAGNOSTIC : envoie un message visible dans la console DevTools du renderer
-  // (les console.log serveur ne sont pas visibles dans l'app packagée).
-  private sendDiag(msg: string): void {
-    try {
-      const w = getSharedMainWindow();
-      if (w) w.webContents.send('remote:diag', msg);
-    } catch {
-      /* non bloquant */
-    }
+  // Trace du serveur distant via le logger (#1773) : alertes sécurité en WARN,
+  // traces de routage du score en DEBUG (silencieuses en production).
+  private logDiag(msg: string): void {
+    if (msg.startsWith('[Sécurité]')) logger.warn(NET, msg);
+    else logger.debug(NET, msg);
   }
 
   public finishArenaMatch(arenaId: string): void {
@@ -1614,9 +1610,15 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string): void { return loadNextMatch(this.arenaQueueCtx, arenaId); }
-  public hasSession(): boolean { return this.session !== null; }
-  public getSessionWeapon(): string | null { return this.sessionWeapon; }
+  public loadNextMatch(arenaId: string): void {
+    return loadNextMatch(this.arenaQueueCtx, arenaId);
+  }
+  public hasSession(): boolean {
+    return this.session !== null;
+  }
+  public getSessionWeapon(): string | null {
+    return this.sessionWeapon;
+  }
 
   private buildDashboardSnapshot(
     ...args: Tail<Parameters<typeof buildDashboardSnapshot>>

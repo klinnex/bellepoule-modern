@@ -6,10 +6,6 @@
 
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 
-// DIAGNOSTIC inconditionnel : affiche les sondes serveur dans la console renderer.
-ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
-  console.warn('[DIAG serveur]', msg);
-});
 import type {
   ElectronAPI,
   CompetitionEventType,
@@ -874,18 +870,7 @@ const electronApi = {
     return () => ipcRenderer.removeListener('arena:update', handler);
   },
   onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => {
-    const handler = (_: IpcRendererEvent, data: RemoteMatchFinishedEvent) => {
-      // DIAGNOSTIC : confirmer que l'IPC match:finished atteint bien le renderer.
-      console.warn(
-        '[preload] IPC match:finished reçu',
-        data?.matchId,
-        data?.scoreA,
-        data?.scoreB,
-        'tableau=',
-        data?.isTableau
-      );
-      callback(data);
-    };
+    const handler = (_: IpcRendererEvent, data: RemoteMatchFinishedEvent) => callback(data);
     ipcRenderer.on('match:finished', handler);
     return () => ipcRenderer.removeListener('match:finished', handler);
   },

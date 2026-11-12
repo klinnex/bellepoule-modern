@@ -1669,7 +1669,7 @@ describe('RemoteScoreServer', () => {
     });
 
     it("blocage progressif après 5 échecs, même après la fenêtre d'une minute", async () => {
-      const diag = vi.spyOn(server as any, 'sendDiag').mockImplementation(() => {});
+      const diag = vi.spyOn(server as any, 'logDiag').mockImplementation(() => {});
       for (let i = 0; i < 5; i++) {
         await attempt('mauvais!');
         (server as any).loginGuard.attempts.clear();

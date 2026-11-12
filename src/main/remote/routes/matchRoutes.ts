@@ -42,7 +42,7 @@ export interface MatchRouteContext extends PoolRouteContext {
   isPendingMatch(match: ArenaMatch): boolean;
   resolvePoolReferee(poolId?: string | null): { id: string; name: string } | null;
   restorableStatus(status: FencerStatus | undefined): FencerStatus;
-  sendDiag(message: string): void;
+  logDiag(message: string): void;
   updateMatchScore(matchId: string, update: RemoteScoreUpdate): Promise<void>;
 }
 
@@ -270,11 +270,11 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // Vérifier que le match existe (en DB ou en mémoire)
       const dbMatch = ctx.db.getMatch(matchId);
       const inMemoryMatch = !dbMatch && ctx.sessionMatches.find((m: any) => m.id === matchId);
-      ctx.sendDiag(
+      ctx.logDiag(
         `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${(dbMatch as any)?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map((m: any) => m.id).join(',')}]`
       );
       if (!dbMatch && !inMemoryMatch) {
-        ctx.sendDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
+        ctx.logDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
         return res.status(404).json({ error: 'match_not_found' });
       }
 
