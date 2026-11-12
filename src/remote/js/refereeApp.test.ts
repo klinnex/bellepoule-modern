@@ -171,3 +171,37 @@ describe('chrono conservé après rafraîchissement (#1717)', () => {
     expect(w.localStorage.getItem(KEY)).toBeNull();
   });
 });
+
+describe('armes olympiques : point au clic sur la case score (#1713)', () => {
+  type Olympic = {
+    isModernFencing: boolean;
+    customScoring: unknown;
+    currentMatch: { id: string } | null;
+    matchStatus: string;
+    scoreA: number;
+    scoreB: number;
+    timerRunning: boolean;
+    _timerCs: number;
+  };
+
+  it('le +1 est masqué et un clic sur la case score ajoute 1 point, chrono arrêté', async () => {
+    const { dom, errors } = await loadReferee();
+    const doc = dom.window.document;
+    const app = (dom.window as unknown as { refereeApp: Olympic }).refereeApp;
+    app.isModernFencing = true;
+    app.customScoring = null;
+    // Même chemin que l'init olympique (le +1 est masqué, les tap sont branchés)
+    (app as unknown as { setupOlympicScoreTap: () => void }).setupOlympicScoreTap();
+    doc.getElementById('btn-plus-1-a')!.style.display = 'none';
+    expect(doc.getElementById('btn-plus-1-a')!.style.display).toBe('none');
+    app.currentMatch = { id: 'm1' };
+    app.matchStatus = 'in_progress';
+    app.timerRunning = true;
+    app._timerCs = 9500;
+    const before = app.scoreA + app.scoreB;
+    doc.getElementById('score-a')!.click();
+    expect(app.scoreA + app.scoreB).toBe(before + 1);
+    expect(app.timerRunning).toBe(false);
+    expect(errors).toEqual([]);
+  });
+});
