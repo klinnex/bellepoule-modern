@@ -9,6 +9,7 @@ import { Pencil, Zap } from 'lucide-react';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import ThemeEditor from './ThemeEditor';
+import { getBuiltinThemeOptions } from './remote/builtinThemes';
 import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { OrgNotePanel } from './remote/OrgNotePanel';
 import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
@@ -361,11 +362,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                       }}
                     >
                       <option value="">{t('rsm.choose_theme')}</option>
-                      {filteredForSection.map(t => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
+                      <optgroup label={t('rsm.gt_builtin')}>
+                        {getBuiltinThemeOptions(globalThemeSection, t).map(o => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                      {filteredForSection.length > 0 && (
+                        <optgroup label={t('rsm.gt_saved')}>
+                          {filteredForSection.map(th => (
+                            <option key={th.id} value={th.id}>
+                              {th.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                     <Button
                       variant="primary"
@@ -581,6 +593,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           initialTheme={globalThemeSection === 'kiosk' ? kioskTheme : undefined}
           onApply={async (_arenaId, theme) => {
             setGlobalThemeEditorOpen(false);
+            refreshSavedThemes();
             await applyThemeToAllScreens(globalThemeSection, theme);
           }}
           onClose={() => {
