@@ -1360,6 +1360,7 @@
     "gt_builtin": "Built-in",
     "gt_saved": "My themes",
     "theme_default": "Default",
+    "theme_steampunk": "Steampunk",
     "apply_all": "Apply to all",
     "overlay_card": "Streaming overlay (OBS / vMix)",
     "kiosk_card": "Kiosk (public display)",

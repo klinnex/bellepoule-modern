@@ -15,6 +15,7 @@ describe('builtinThemes', () => {
       'builtin:dark',
       'builtin:light',
       'builtin:neon',
+      'builtin:steampunk',
     ]);
     expect(resolveBuiltinTheme('arena', 'builtin:light', t)).toEqual({ preset: 'light' });
   });
@@ -29,5 +30,14 @@ describe('builtinThemes', () => {
     expect(resolveBuiltinTheme('arena', 'custom-1', t)).toBeNull();
     expect(resolveBuiltinTheme('arena', 'builtin:default', t)).toBeNull();
     expect(resolveBuiltinTheme('pool', 'builtin:dark', t)).toBeNull();
+  });
+
+  it('Steampunk proposé et résolu pour chaque section', () => {
+    for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+      expect(getBuiltinThemeOptions(s, t).map(o => o.id)).toContain('builtin:steampunk');
+      const r = resolveBuiltinTheme(s, 'builtin:steampunk', t);
+      expect(r?.theme?.targetType).toBe(s);
+      expect(Object.values(r?.theme?.variables ?? {}).join(' ')).toMatch(/#d4a64a|#b5893b/);
+    }
   });
 });
