@@ -33,6 +33,7 @@ interface PhaseItem {
   icon: LucideIcon;
   disabled: boolean;
   title?: string;
+  isSupplementary?: boolean;
 }
 
 interface PoolItem {

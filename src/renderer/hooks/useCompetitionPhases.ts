@@ -216,6 +216,7 @@ export function useCompetitionPhases({
             icon: PHASE_ICONS.logs,
             disabled: false,
             title: undefined as string | undefined,
+            isSupplementary: true,
           },
         ]
       : []),
@@ -227,6 +228,7 @@ export function useCompetitionPhases({
             icon: PHASE_ICONS.referees,
             disabled: false,
             title: undefined as string | undefined,
+            isSupplementary: true,
           },
         ]
       : []),
