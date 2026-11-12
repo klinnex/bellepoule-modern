@@ -66,6 +66,48 @@
     });
   }
 
+  /** Arrivée depuis le lobby (?lobby=1) : ouvrir directement la vue arbitre du match */
+  function fromLobby(search) {
+    return new URLSearchParams(search || '').get('lobby') === '1';
+  }
+
+  /** Match à ouvrir : en cours d'abord, sinon le premier à jouer ; null si aucun */
+  function pickMatch(matches) {
+    var list = matches || [];
+    for (var i = 0; i < list.length; i++) if (list[i].status === 'in_progress') return list[i];
+    for (var j = 0; j < list.length; j++) if (list[j].status === 'not_started') return list[j];
+    return null;
+  }
+
+  /**
+   * Ouvre le match de la piste dès la liste chargée (`app().allMatches`), une seule fois.
+   * Le paramètre ?lobby=1 est retiré de l'URL : « Retour » (rechargement) garde la liste.
+   */
+  function autoOpen(win, app, tries) {
+    try {
+      var url = new URL(win.location.href);
+      url.searchParams.delete('lobby');
+      win.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch (_) {
+      /* URL non modifiable : sans effet */
+    }
+    var left = tries || 50;
+    return new Promise(function (resolve) {
+      function check() {
+        var a = app && app();
+        if (a && a.currentMatch) return resolve(false); // déjà sur un match
+        if (a && a.allMatches) {
+          var m = pickMatch(a.allMatches);
+          if (m) a.selectMatchFromNextScreen(m.id);
+          return resolve(!!m);
+        }
+        if (--left <= 0) return resolve(false);
+        win.setTimeout(check, 200);
+      }
+      check();
+    });
+  }
+
   /** Insère le bouton « Lobby » à gauche, « Retour » restant à droite */
   function addButton(doc, onClick) {
     var back = doc.getElementById('btn-back-to-list');
@@ -121,6 +163,7 @@
     }
 
     addButton(doc, goLobby);
+    if (fromLobby(win.location.search)) autoOpen(win, app);
 
     var tracker = createIdleTracker(Date.now, info.idleMs || IDLE_MS, function () {
       var a = app && app();
@@ -160,6 +203,9 @@
 
   var api = {
     arenaFromPath: arenaFromPath,
+    autoOpen: autoOpen,
+    fromLobby: fromLobby,
+    pickMatch: pickMatch,
     clientId: clientId,
     createIdleTracker: createIdleTracker,
     install: install,
