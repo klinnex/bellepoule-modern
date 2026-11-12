@@ -1252,7 +1252,10 @@
     "victory": "Victory",
     "waiting_previous_round": "Waiting for the previous round",
     "weapon": "Weapon",
-    "col_department": "Department"
+    "col_department": "Department",
+    "col_handedness": "Handedness",
+    "handedness_left": "Left-handed",
+    "handedness_right": "Right-handed"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": ".bpf import error",
     "col_region": "Region",
     "col_department": "Department",
-    "deleted": "{{name}} deleted"
+    "deleted": "{{name}} deleted",
+    "col_handedness": "Handedness"
   },
   "questPhase": {
     "running_title": "Quest round in progress",
@@ -1835,7 +1839,13 @@
     "update_n_one": "Update {{count}} ranking",
     "update_n_other": "Update {{count}} rankings",
     "import_n_one": "Import {{count}} fencer",
-    "import_n_other": "Import {{count}} fencers"
+    "import_n_other": "Import {{count}} fencers",
+    "referees_found": "referees found",
+    "list_choice": "Displayed list",
+    "referee_level": "Level",
+    "import_referees_n_one": "Import {{count}} referee",
+    "import_referees_n_other": "Import {{count}} referees",
+    "import_fencers_referees": "Import {{fencers}} fencer(s) and {{referees}} referee(s)"
   },
   "editFencer": {
     "title": "Edit fencer",

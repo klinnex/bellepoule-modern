@@ -1252,7 +1252,10 @@
     "victory": "Победа",
     "waiting_previous_round": "Ожидание предыдущего раунда",
     "weapon": "Оружие",
-    "col_department": "Департамент"
+    "col_department": "Департамент",
+    "col_handedness": "Ведущая рука",
+    "handedness_left": "Левша",
+    "handedness_right": "Правша"
   },
   "rsm": {
     "strip_plan": "План дорожек",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Ошибка импорта .bpf",
     "col_region": "Регион",
     "col_department": "Департамент",
-    "deleted": "{{name}} удалён"
+    "deleted": "{{name}} удалён",
+    "col_handedness": "Ведущая рука"
   },
   "questPhase": {
     "running_title": "Раунд Quest идёт",
@@ -1835,7 +1839,13 @@
     "update_n_one": "Обновить рейтингов: {{count}}",
     "update_n_other": "Обновить рейтингов: {{count}}",
     "import_n_one": "Импортировать фехтовальщиков: {{count}}",
-    "import_n_other": "Импортировать фехтовальщиков: {{count}}"
+    "import_n_other": "Импортировать фехтовальщиков: {{count}}",
+    "referees_found": "судей найдено",
+    "list_choice": "Отображаемый список",
+    "referee_level": "Уровень",
+    "import_referees_n_one": "Импортировать судей: {{count}}",
+    "import_referees_n_other": "Импортировать судей: {{count}}",
+    "import_fencers_referees": "Импортировать фехтовальщиков: {{fencers}}, судей: {{referees}}"
   },
   "editFencer": {
     "title": "Изменить фехтовальщика",

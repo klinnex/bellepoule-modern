@@ -1252,7 +1252,10 @@
     "victory": "Victoria",
     "waiting_previous_round": "En espera de la ronda anterior",
     "weapon": "Arma",
-    "col_department": "Departamento"
+    "col_department": "Departamento",
+    "col_handedness": "Lateralidad",
+    "handedness_left": "Zurdo",
+    "handedness_right": "Diestro"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Error al importar .bpf",
     "col_region": "Región",
     "col_department": "Departamento",
-    "deleted": "{{name}} eliminado"
+    "deleted": "{{name}} eliminado",
+    "col_handedness": "Lateralidad"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curso",
@@ -1835,7 +1839,13 @@
     "update_n_one": "Actualizar {{count}} clasificación",
     "update_n_other": "Actualizar {{count}} clasificaciones",
     "import_n_one": "Importar {{count}} tirador",
-    "import_n_other": "Importar {{count}} tiradores"
+    "import_n_other": "Importar {{count}} tiradores",
+    "referees_found": "árbitros encontrados",
+    "list_choice": "Lista mostrada",
+    "referee_level": "Nivel",
+    "import_referees_n_one": "Importar {{count}} árbitro",
+    "import_referees_n_other": "Importar {{count}} árbitros",
+    "import_fencers_referees": "Importar {{fencers}} tirador(es) y {{referees}} árbitro(s)"
   },
   "editFencer": {
     "title": "Editar tirador",

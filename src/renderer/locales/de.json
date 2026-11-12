@@ -1252,7 +1252,10 @@
     "victory": "Sieg",
     "waiting_previous_round": "Warten auf die vorherige Runde",
     "weapon": "Waffe",
-    "col_department": "Departement"
+    "col_department": "Departement",
+    "col_handedness": "Händigkeit",
+    "handedness_left": "Linkshänder",
+    "handedness_right": "Rechtshänder"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Fehler beim .bpf-Import",
     "col_region": "Region",
     "col_department": "Departement",
-    "deleted": "{{name}} gelöscht"
+    "deleted": "{{name}} gelöscht",
+    "col_handedness": "Händigkeit"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",
@@ -1835,7 +1839,13 @@
     "update_n_one": "{{count}} Rangliste aktualisieren",
     "update_n_other": "{{count}} Ranglisten aktualisieren",
     "import_n_one": "{{count}} Fechter importieren",
-    "import_n_other": "{{count}} Fechter importieren"
+    "import_n_other": "{{count}} Fechter importieren",
+    "referees_found": "Kampfrichter gefunden",
+    "list_choice": "Angezeigte Liste",
+    "referee_level": "Stufe",
+    "import_referees_n_one": "{{count}} Kampfrichter importieren",
+    "import_referees_n_other": "{{count}} Kampfrichter importieren",
+    "import_fencers_referees": "{{fencers}} Fechter und {{referees}} Kampfrichter importieren"
   },
   "editFencer": {
     "title": "Fechter bearbeiten",

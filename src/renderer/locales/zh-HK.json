@@ -1083,8 +1083,8 @@
     "ranking_imported_other": "排名已匯入：已更新 {{count}} 位劍手",
     "scores_generated_one": "已為 {{count}} 場比賽產生比分",
     "scores_generated_other": "已為 {{count}} 場比賽產生比分",
-    "referees_imported_one": "已匯入 {{count}} 位裁判",
-    "referees_imported_other": "已匯入 {{count}} 位裁判",
+    "referees_imported_one": "已匯入 {{count}} 名裁判",
+    "referees_imported_other": "已匯入 {{count}} 名裁判",
     "errors_one": "{{count}} 個錯誤",
     "errors_other": "{{count}} 個錯誤",
     "fencers_missing_one": "欠 {{count}} 位劍手",
@@ -1252,7 +1252,10 @@
     "victory": "勝",
     "waiting_previous_round": "等待上一輪",
     "weapon": "劍種",
-    "col_department": "省份"
+    "col_department": "省份",
+    "col_handedness": "慣用手",
+    "handedness_left": "左手",
+    "handedness_right": "右手"
   },
   "rsm": {
     "strip_plan": "劍道圖",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "匯入 .bpf 時發生錯誤",
     "col_region": "地區",
     "col_department": "省份",
-    "deleted": "已刪除 {{name}}"
+    "deleted": "已刪除 {{name}}",
+    "col_handedness": "慣用手"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",
@@ -1835,7 +1839,13 @@
     "update_n_one": "更新 {{count}} 項排名",
     "update_n_other": "更新 {{count}} 項排名",
     "import_n_one": "匯入 {{count}} 名劍手",
-    "import_n_other": "匯入 {{count}} 名劍手"
+    "import_n_other": "匯入 {{count}} 名劍手",
+    "referees_found": "名裁判已找到",
+    "list_choice": "顯示清單",
+    "referee_level": "級別",
+    "import_referees_n_one": "匯入 {{count}} 名裁判",
+    "import_referees_n_other": "匯入 {{count}} 名裁判",
+    "import_fencers_referees": "匯入 {{fencers}} 名劍手及 {{referees}} 名裁判"
   },
   "editFencer": {
     "title": "編輯劍手",

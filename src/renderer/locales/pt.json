@@ -1252,7 +1252,10 @@
     "victory": "Vitória",
     "waiting_previous_round": "A aguardar a ronda anterior",
     "weapon": "Arma",
-    "col_department": "Departamento"
+    "col_department": "Departamento",
+    "col_handedness": "Lateralidade",
+    "handedness_left": "Canhoto",
+    "handedness_right": "Destro"
   },
   "rsm": {
     "strip_plan": "Plano das pistas",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Erro de importação .bpf",
     "col_region": "Região",
     "col_department": "Departamento",
-    "deleted": "{{name}} eliminado"
+    "deleted": "{{name}} eliminado",
+    "col_handedness": "Lateralidade"
   },
   "questPhase": {
     "running_title": "Ronda Quest em curso",
@@ -1835,7 +1839,13 @@
     "update_n_one": "Atualizar {{count}} classificação",
     "update_n_other": "Atualizar {{count}} classificações",
     "import_n_one": "Importar {{count}} esgrimista",
-    "import_n_other": "Importar {{count}} esgrimistas"
+    "import_n_other": "Importar {{count}} esgrimistas",
+    "referees_found": "árbitros encontrados",
+    "list_choice": "Lista exibida",
+    "referee_level": "Nível",
+    "import_referees_n_one": "Importar {{count}} árbitro",
+    "import_referees_n_other": "Importar {{count}} árbitros",
+    "import_fencers_referees": "Importar {{fencers}} esgrimista(s) e {{referees}} árbitro(s)"
   },
   "editFencer": {
     "title": "Editar esgrimista",

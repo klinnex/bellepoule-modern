@@ -1083,8 +1083,8 @@
     "ranking_imported_other": "Renkadur enporzhiet : {{count}} c'hleze hizivaet",
     "scores_generated_one": "Skorioù krouet evit {{count}} c'hoari",
     "scores_generated_other": "Skorioù krouet evit {{count}} c'hoari",
-    "referees_imported_one": "{{count}} breutaer enporzhiet",
-    "referees_imported_other": "{{count}} breutaer enporzhiet",
+    "referees_imported_one": "{{count}} barner enporzhiet",
+    "referees_imported_other": "{{count}} barner enporzhiet",
     "errors_one": "{{count}} fazi",
     "errors_other": "{{count}} fazi",
     "fencers_missing_one": "{{count}} c'hleze a vank",
@@ -1252,7 +1252,10 @@
     "victory": "Trec'h",
     "waiting_previous_round": "O c'hortoz an tro kent",
     "weapon": "Arm",
-    "col_department": "Departamant"
+    "col_department": "Departamant",
+    "col_handedness": "Dorn",
+    "handedness_left": "Dorn kleiz",
+    "handedness_right": "Dorn dehou"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Fazi en enporzhiañ .bpf",
     "col_region": "Rannvro",
     "col_department": "Departamant",
-    "deleted": "{{name}} dilamet"
+    "deleted": "{{name}} dilamet",
+    "col_handedness": "Dorn"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",
@@ -1835,7 +1839,13 @@
     "update_n_one": "Hizivaat {{count}} renkadur",
     "update_n_other": "Hizivaat {{count}} renkadur",
     "import_n_one": "Enporzhiañ {{count}} kleizeier",
-    "import_n_other": "Enporzhiañ {{count}} kleizeier"
+    "import_n_other": "Enporzhiañ {{count}} kleizeier",
+    "referees_found": "barner kavet",
+    "list_choice": "Roll diskouezet",
+    "referee_level": "Live",
+    "import_referees_n_one": "Enporzhiañ {{count}} barner",
+    "import_referees_n_other": "Enporzhiañ {{count}} barner",
+    "import_fencers_referees": "Enporzhiañ {{fencers}} kleizeier ha {{referees}} barner"
   },
   "editFencer": {
     "title": "Kemmañ ar c'hleizeier",

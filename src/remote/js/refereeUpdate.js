@@ -89,8 +89,18 @@
     else matches.push(match);
   }
 
+  /**
+   * Gaucher contre droitier, armes olympiques (#1439) : true si A (gaucher, appelé
+   * en premier, à droite) doit passer à gauche (rouge). Miroir de shared/utils/handedness.ts.
+   */
+  function leftHandedSwap(weapon, match) {
+    if (!['E', 'F', 'S'].includes(weapon) || !match) return false;
+    return match.fencerA?.handedness === 'L' && match.fencerB?.handedness !== 'L';
+  }
+
   const api = {
     scoreValue,
+    leftHandedSwap,
     shouldReloadForRules,
     planStatusTransition,
     replaceOrPush,
