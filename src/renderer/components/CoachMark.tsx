@@ -52,7 +52,10 @@ const CoachMark: React.FC<CoachMarkProps> = ({
     return () => clearTimeout(timer);
   }, [intro]);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  // Décalage horizontal qui garde la bulle dans la fenêtre (#1543 : bouton au bord droit)
+  const [shift, setShift] = useState(0);
 
   useLayoutEffect(() => {
     if (!visible || !wrapRef.current) return;
@@ -63,17 +66,41 @@ const CoachMark: React.FC<CoachMarkProps> = ({
     else setPos({ top: r.bottom + 8, left: r.left + r.width / 2 });
   }, [visible, position]);
 
+  useLayoutEffect(() => {
+    if (!visible || !tipRef.current) return;
+    // Largeur seule (indépendante du décalage) : pas de boucle de rendu
+    const width = tipRef.current.offsetWidth;
+    const margin = 8;
+    const base =
+      position === 'right'
+        ? pos.left
+        : position === 'left'
+          ? pos.left - width
+          : pos.left - width / 2;
+    const right = base + width;
+    const next = Math.round(
+      right > window.innerWidth - margin
+        ? window.innerWidth - margin - right
+        : base < margin
+          ? margin - base
+          : 0
+    );
+    setShift(next);
+  }, [visible, pos, position, message]);
+
   const tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     top: pos.top,
-    left: pos.left,
+    left: pos.left + shift,
     zIndex: 99999,
     background: '#1e40af',
     color: 'white',
     padding: '0.5rem 0.75rem',
     borderRadius: '0.5rem',
     fontSize: '0.8rem',
-    whiteSpace: 'nowrap',
+    whiteSpace: 'normal',
+    width: 'max-content',
+    maxWidth: 'min(22rem, calc(100vw - 16px))',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     pointerEvents: intro ? 'auto' : 'none',
     ...(position === 'bottom'
@@ -92,7 +119,7 @@ const CoachMark: React.FC<CoachMarkProps> = ({
     ...(position === 'bottom'
       ? {
           bottom: '100%',
-          left: '50%',
+          left: `calc(50% - ${shift}px)`,
           transform: 'translateX(-50%)',
           borderLeft: '5px solid transparent',
           borderRight: '5px solid transparent',
@@ -101,7 +128,7 @@ const CoachMark: React.FC<CoachMarkProps> = ({
       : position === 'top'
         ? {
             top: '100%',
-            left: '50%',
+            left: `calc(50% - ${shift}px)`,
             transform: 'translateX(-50%)',
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
@@ -121,7 +148,7 @@ const CoachMark: React.FC<CoachMarkProps> = ({
     >
       {children}
       {visible && (
-        <div style={tooltipStyle}>
+        <div ref={tipRef} style={tooltipStyle}>
           <span style={arrowStyle} />
           {message}
           {intro && (

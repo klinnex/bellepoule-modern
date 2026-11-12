@@ -80,6 +80,7 @@ npm run type-check      # TypeScript no-emit check
 npm run check:i18n      # Locale completeness (CI)
 npm run check:bundle-size # Bundle budget (CI)
 npm run check:tests-doc # docs/TESTS.md à jour (local, hors CI)
+npm run check:i18n-visual # Débordements 10 langues à 1024×768, captures (après build ; xvfb-run -a sous Linux ; -- --pseudo)
 npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
 npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)

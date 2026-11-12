@@ -1169,10 +1169,53 @@
    LIBELLÉS LONGS (#1543) : de/ru/br/ca/pt dépassent le français
    ============================================================ */
 
+/* break-word et non anywhere : anywhere ramène la largeur minimale à une lettre,
+   et un bouton serré dans une barre flex se coupe en « Gé/né/ral ».
+   min-width : overflow hidden (reflet, design.css) ramène sinon la largeur minimale
+   flex à 0 et le libellé est rogné (« CS », « PD »). */
 .btn {
   max-width: 100%;
-  overflow-wrap: anywhere;
+  min-width: min-content;
+  overflow-wrap: break-word;
   text-wrap: balance;
+}
+
+/* En-tête : boutons sur une ligne ; sous 1400 px (fenêtre par défaut), icône seule,
+   libellé en infobulle (title). Évite l'écrasement à 1024 px (taille minimale). */
+.header-nav .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 1399px) {
+  .header-btn-label,
+  .header-nav .btn-kbd {
+    display: none;
+  }
+}
+
+/* Recherche Ctrl+K : libellé coupé par une ellipse (infobulle sur le bouton) */
+.header-search-hint {
+  min-width: 0;
+  max-width: 16rem;
+}
+
+.header-search-hint span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sous 1200 px : logo seul, le nom de l'application laisse la place aux boutons */
+@media (max-width: 1199px) {
+  .header-title-text {
+    display: none;
+  }
+
+  .header-search-hint {
+    min-width: 7rem;
+  }
 }
 
 .tab {
@@ -1195,6 +1238,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Barres d'outils : passage à la ligne plutôt que boutons rognés */
+.pool-ranking-view .is-b69013,
+.pool-ranking-view .is-5c17a8 {
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Barre de phases : le bouton d'action passe à la ligne au lieu de sortir de l'écran
+   (défilement horizontal sans barre visible = bouton introuvable à 1024 px) */
+.phase-nav {
+  flex-wrap: wrap;
+  row-gap: 0.375rem;
 }
 
 /* Libellé d'étape de navigation : coupé par une ellipse, valeur complète en infobulle (title) */
