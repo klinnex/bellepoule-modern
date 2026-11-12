@@ -5,7 +5,33 @@
 
 import { FencerStatus, MatchStatus } from '../../../shared/types';
 import type { RouteContext } from './context';
+import {
+  scoreValue,
+  type RankingRowView,
+  type SessionStateView,
+  type TableauMatchView,
+} from '../sessionStateView';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+
+/** Case du tableau renvoyée au kiosque (/api/bracket) */
+interface BracketCell {
+  id: string;
+  position: number;
+  fencerA: { lastName?: string; firstName?: string; club: string; id?: string } | null;
+  fencerB: { lastName?: string; firstName?: string; club: string; id?: string } | null;
+  scoreA: number | null;
+  scoreB: number | null;
+  winnerId: string | null;
+  status: 'finished' | 'live' | 'pending';
+  isBye: boolean;
+  arenaName: string | null;
+}
+
+/** N° de poule d'un match en mémoire : champ poolNumber, sinon chiffres du poolId */
+const poolNumberOf = (m: { poolNumber?: unknown; poolId?: string }): number =>
+  typeof m.poolNumber === 'number'
+    ? m.poolNumber
+    : parseInt(String(m.poolId || '').replace(/\D/g, '') || '0', 10);
 
 /** Résultats, tableau, historique d'entraînement et journal des matchs. */
 export function registerResultsRoutes(ctx: RouteContext): void {
@@ -19,11 +45,11 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       }
 
       // Priorité : lire les poules depuis le session_state (elles ne sont pas dans les tables SQL)
-      const sessionState = ctx.db.getSessionState(competitionId);
-      const sessionPools: any[] = sessionState?.pools || [];
+      const sessionState: SessionStateView | null = ctx.db.getSessionState(competitionId);
+      const sessionPools = sessionState?.pools || [];
       if (sessionPools.length > 0) {
-        const poolResults = sessionPools.map((pool: any) => {
-          const rankings = (pool.ranking || []).map((r: any) => ({
+        const poolResults = sessionPools.map(pool => {
+          const rankings = (pool.ranking || []).map(r => ({
             id: r.fencer?.id ?? '',
             lastName: r.fencer?.lastName ?? '',
             firstName: r.fencer?.firstName ?? '',
@@ -63,7 +89,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
             rankings,
           };
         });
-        const overallRanking = (sessionState?.overallRanking || []).map((r: any) => ({
+        const overallRanking = (sessionState?.overallRanking || []).map(r => ({
           id: r.fencer?.id ?? '',
           lastName: r.fencer?.lastName ?? '',
           firstName: r.fencer?.firstName ?? '',
@@ -182,18 +208,20 @@ export function registerResultsRoutes(ctx: RouteContext): void {
         }
       }
 
-      const upcoming: any[] = [];
+      const upcoming: Record<string, unknown>[] = [];
 
       // Priorité : session_state (pools du renderer avec leurs matchs)
-      const sessionState = ctx.db.getSessionState(ctx.session.competitionId);
-      const sessionPools: any[] = sessionState?.pools || [];
+      const sessionState: SessionStateView | null = ctx.db.getSessionState(
+        ctx.session.competitionId
+      );
+      const sessionPools = sessionState?.pools || [];
 
       if (sessionPools.length > 0) {
         for (const pool of sessionPools) {
           const poolName = 'Poule ' + pool.number;
-          const matches: any[] = (pool.matches || [])
-            .filter((m: any) => m.status !== MatchStatus.FINISHED && m.status !== 'finished')
-            .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+          const matches = (pool.matches || [])
+            .filter(m => m.status !== MatchStatus.FINISHED && m.status !== 'finished')
+            .sort((a, b) => (a.number || 0) - (b.number || 0));
           for (const m of matches) {
             upcoming.push({
               id: m.id,
@@ -222,7 +250,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       }
 
       // Matchs du tableau d'élimination directe (toutes phases confondues)
-      const tableauMatches: any[] = sessionState?.tableauMatches || [];
+      const tableauMatches = sessionState?.tableauMatches || [];
       if (tableauMatches.length > 0) {
         const roundLabels: Record<number, string> = {
           2: 'Finale',
@@ -235,8 +263,11 @@ export function registerResultsRoutes(ctx: RouteContext): void {
           128: 'Tableau de 128',
         };
         const pendingTableau = tableauMatches
-          .filter((m: any) => m.fencerA && m.fencerB && !m.isBye && !m.winner)
-          .sort((a: any, b: any) => b.round - a.round || a.position - b.position);
+          .filter(
+            (m): m is TableauMatchView & { fencerA: object; fencerB: object } =>
+              !!m.fencerA && !!m.fencerB && !m.isBye && !m.winner
+          )
+          .sort((a, b) => b.round - a.round || a.position - b.position);
         for (const m of pendingTableau) {
           const inArena = arenaByMatchId.has(m.id);
           upcoming.push({
@@ -263,21 +294,18 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       if (upcoming.length === 0 && ctx.sessionMatches.length > 0) {
         // Fallback : matchs en mémoire passés depuis le renderer
-        const pending = (ctx.sessionMatches as any[])
+        const pending = ctx.sessionMatches
           .filter(
-            (m: any) =>
+            m =>
               m.status !== MatchStatus.FINISHED && m.status !== 'finished' && m.fencerA && m.fencerB
           )
-          .sort((a: any, b: any) => {
-            const pA =
-              a.poolNumber ?? parseInt(String(a.poolId || '').replace(/\D/g, '') || '0', 10);
-            const pB =
-              b.poolNumber ?? parseInt(String(b.poolId || '').replace(/\D/g, '') || '0', 10);
+          .sort((a, b) => {
+            const pA = poolNumberOf(a);
+            const pB = poolNumberOf(b);
             return pA !== pB ? pA - pB : (a.number || 0) - (b.number || 0);
           });
         for (const m of pending) {
-          const poolNum =
-            m.poolNumber ?? parseInt(String(m.poolId || '').replace(/\D/g, '') || '0', 10);
+          const poolNum = poolNumberOf(m);
           upcoming.push({
             id: m.id,
             number: m.number,
@@ -320,12 +348,14 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       if (!ctx.session) return res.status(404).json({ error: 'no_session' });
 
       // Lire depuis la DB (inclut les matchs terminés) ; fallback sur sessionMatches (pending only)
-      const sessionState = ctx.db.getSessionState(ctx.session.competitionId);
-      const dbTableauMatches: any[] = sessionState?.tableauMatches || [];
-      const deMatches =
+      const sessionState: SessionStateView | null = ctx.db.getSessionState(
+        ctx.session.competitionId
+      );
+      const dbTableauMatches = sessionState?.tableauMatches || [];
+      const deMatches: TableauMatchView[] =
         dbTableauMatches.length > 0
           ? dbTableauMatches
-          : (ctx.sessionMatches as any[]).filter((m: any) => m.isTableau);
+          : (ctx.sessionMatches.filter(m => m.isTableau) as unknown as TableauMatchView[]);
 
       if (deMatches.length === 0) {
         return res.json({ tableSize: 0, currentRound: null, rounds: [] });
@@ -353,13 +383,12 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       // Déterminer la taille du tableau (plus grande puissance de 2 couvrant tous les rounds)
       // maxRound (sans petite finale round=3) = taille du tableau (puissance de 2)
-      const mainRounds = deMatches.filter((m: any) => m.round !== 3);
-      const maxRound =
-        mainRounds.length > 0 ? Math.max(...mainRounds.map((m: any) => m.round || 1)) : 4;
+      const mainRounds = deMatches.filter(m => m.round !== 3);
+      const maxRound = mainRounds.length > 0 ? Math.max(...mainRounds.map(m => m.round || 1)) : 4;
       const tableSize = maxRound;
 
       // Grouper par round, enrichir avec scores live
-      const roundMap = new Map<number, any[]>();
+      const roundMap = new Map<number, BracketCell[]>();
       for (const m of deMatches) {
         const round = m.round || 1;
         if (!roundMap.has(round)) roundMap.set(round, []);
@@ -392,16 +421,8 @@ export function registerResultsRoutes(ctx: RouteContext): void {
                 id: m.fencerB.id,
               }
             : null,
-          scoreA: (() => {
-            const s = live?.scoreA ?? m.scoreA;
-            if (s == null) return null;
-            return typeof s === 'number' ? s : ((s as any)?.value ?? null);
-          })(),
-          scoreB: (() => {
-            const s = live?.scoreB ?? m.scoreB;
-            if (s == null) return null;
-            return typeof s === 'number' ? s : ((s as any)?.value ?? null);
-          })(),
+          scoreA: scoreValue(live?.scoreA ?? m.scoreA),
+          scoreB: scoreValue(live?.scoreB ?? m.scoreB),
           winnerId: m.winner?.id ?? null,
           status: isFinished ? 'finished' : isLive ? 'live' : 'pending',
           isBye: !!m.isBye,
@@ -415,21 +436,23 @@ export function registerResultsRoutes(ctx: RouteContext): void {
         .map(([round, matches]) => ({
           round,
           label: roundLabels[round] ?? `Tour de ${round}`,
-          matches: matches.sort((a: any, b: any) => a.position - b.position),
+          matches: matches.sort((a, b) => a.position - b.position),
         }));
 
       // Round actif = premier round non entièrement terminé (du plus grand au plus petit)
       const currentRound =
-        rounds.find(r => r.matches.some((m: any) => m.status !== 'finished' && !m.isBye))?.round ??
-        null;
+        rounds.find(r => r.matches.some(m => m.status !== 'finished' && !m.isBye))?.round ?? null;
 
       // Classement final calculé par l'application (places distinctes, départage
       // par classement de poules / places jouées) : source de vérité du kiosk (#1013)
       const finalResults = (
         Array.isArray(sessionState?.finalResults) ? sessionState.finalResults : []
       )
-        .filter((r: any) => r?.fencer && typeof r.rank === 'number')
-        .map((r: any) => ({
+        .filter(
+          (r): r is RankingRowView & { fencer: { id?: string }; rank: number } =>
+            !!r?.fencer && typeof r.rank === 'number'
+        )
+        .map(r => ({
           rank: r.rank,
           fencer: {
             id: r.fencer.id,
