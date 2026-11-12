@@ -9,10 +9,14 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory } from '../../shared/services/logger';
+import type { SessionScore } from './types';
 
 type S = RemoteScoreServer;
 
 /** État et services du serveur utilisés par ce module (accesseurs : valeurs toujours à jour). */
+/** Score en mémoire marqué victoire (objet Score), sinon false */
+const isVictory = (s: SessionScore): boolean => typeof s === 'object' && !!s?.isVictory;
+
 export interface MatchFinishContext {
   readonly arenaCards: S['arenaCards'];
   readonly arenaEventTimes: S['arenaEventTimes'];
@@ -43,7 +47,7 @@ export interface MatchFinishContext {
 export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void {
   const arena = ctx.arenas.get(arenaId);
   ctx.logDiag(
-    `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as any)?.isTableau}`
+    `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as { isTableau?: boolean } | undefined)?.isTableau}`
   );
   if (!arena || !arena.currentMatch) return;
   // Éviter le double-déclenchement (REST + Socket.IO)
@@ -272,8 +276,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
               : null;
         if (!winner) {
           const mem = ctx.sessionMatchScores.get(finishedMatch.id);
-          if ((mem?.scoreA as any)?.isVictory) winner = 'A';
-          else if ((mem?.scoreB as any)?.isVictory) winner = 'B';
+          if (isVictory(mem?.scoreA)) winner = 'A';
+          else if (isVictory(mem?.scoreB)) winner = 'B';
         }
         const scoreAObj = {
           value: finishedMatch.scoreA,
@@ -327,7 +331,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           : null;
     if (!winnerForRenderer) {
       try {
-        const dbM = ctx.db.getMatch(finishedMatch.id) as any;
+        const dbM = ctx.db.getMatch(finishedMatch.id);
         if (dbM?.scoreA?.isVictory) winnerForRenderer = 'A';
         else if (dbM?.scoreB?.isVictory) winnerForRenderer = 'B';
       } catch (err) {
@@ -341,8 +345,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     // Fallback pour les matchs en mémoire (non persistés en DB) : tirage au sort
     if (!winnerForRenderer) {
       const memScore = ctx.sessionMatchScores.get(finishedMatch.id);
-      if ((memScore?.scoreA as any)?.isVictory) winnerForRenderer = 'A';
-      else if ((memScore?.scoreB as any)?.isVictory) winnerForRenderer = 'B';
+      if (isVictory(memScore?.scoreA)) winnerForRenderer = 'A';
+      else if (isVictory(memScore?.scoreB)) winnerForRenderer = 'B';
     }
     mainWindow.webContents.send('match:finished', {
       matchId: finishedMatch.id,

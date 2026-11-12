@@ -233,7 +233,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
         fatigueScore,
         isActive,
         needsRest: consecutive >= MAX_CONSECUTIVE || fatigueScore >= 80,
-        category: (ref as any).category ?? null,
+        category: ref.category ?? null,
       };
     });
 

@@ -6,7 +6,7 @@
  */
 import type { SessionMatch } from './types';
 import { buildPoolScores } from './poolScore';
-import { MatchStatus } from '../../shared/types';
+import { MatchStatus, type Fencer } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 
 type S = RemoteScoreServer;
@@ -25,7 +25,7 @@ export interface PoolSyncContext {
 
 export function updatePoolFencers(
   ctx: PoolSyncContext,
-  updates: Array<{ poolId: string; fencers: unknown[] }>
+  updates: Array<{ poolId: string; fencers: Fencer[] }>
 ): void {
   for (const { poolId, fencers } of updates) {
     if (fencers && fencers.length > 0) {

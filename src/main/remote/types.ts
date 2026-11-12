@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { CardReason, FencerStatus, Weapon } from '../../shared/types';
+import { CardReason, FencerStatus, Weapon, type Score } from '../../shared/types';
 
 /** Match transmis par le renderer (poules ou tableau) ; champs optionnels selon l'origine. */
 export interface SessionMatch {
@@ -17,6 +17,9 @@ export interface SessionMatch {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- champs libres issus du renderer
   [key: string]: any;
 }
+
+/** Score d'un tireur conservé en mémoire : objet Score (base) ou simple valeur (tablette) */
+export type SessionScore = Score | number | null | undefined;
 
 /** Carton noir distribué depuis une tablette (annulable depuis la sélection des matchs) */
 export interface BlackCardRecord {

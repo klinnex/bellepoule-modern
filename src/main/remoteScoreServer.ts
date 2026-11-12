@@ -5,7 +5,7 @@
  */
 
 import express from 'express';
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer, type Socket } from 'socket.io';
 import path from 'path';
 import {
   RemoteSession,
@@ -25,7 +25,7 @@ import {
   CustomScoringConfig,
   Match,
   MatchStatus,
-  FencerStatus,
+  FencerStatus, Fencer,
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import {
@@ -35,7 +35,7 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type { BlackCardRecord, SessionMatch, TeamArenaState } from './remote/types';
+import type { BlackCardRecord, SessionMatch, SessionScore, TeamArenaState } from './remote/types';
 import type { PhaseEtaSummary } from './remote/routes/context';
 import {
   LoginGuard,
@@ -183,7 +183,7 @@ type Tail<T extends unknown[]> = T extends [unknown, ...infer R] ? R : never;
 
 export class RemoteScoreServer {
   private app: express.Application;
-  private server: any;
+  private server!: ReturnType<typeof createHttpStack>['server'];
   private io: SocketIOServer;
   private port: number;
   private host: string;
@@ -212,8 +212,8 @@ export class RemoteScoreServer {
   private arenaNextMatchIndex: Map<string, number> = new Map(); // Index du prochain match par arène
   private arenaMatchQueue: Map<string, ArenaMatch[]> = new Map(); // File d'attente DE par arène
   private poolMatchArenaOverrides: Map<string, string> = new Map(); // matchId → arenaId (réassignation piste poule)
-  private poolFencersCache: Map<string, any[]> = new Map(); // Tireurs par poolId (depuis le renderer)
-  private sessionMatchScores: Map<string, { scoreA: any; scoreB: any; status: string }> = new Map(); // Scores en mémoire
+  private poolFencersCache: Map<string, Fencer[]> = new Map(); // Tireurs par poolId (depuis le renderer)
+  private sessionMatchScores: Map<string, { scoreA: SessionScore; scoreB: SessionScore; status: string }> = new Map(); // Scores en mémoire
   private sessionShowPhotos: boolean = false; // Afficher les photos des combattants avant le combat
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
@@ -962,7 +962,7 @@ export class RemoteScoreServer {
 
   /** Auth d'une socket pour une arène : re-vérifiée à chaque événement mutant
    *  (le cookie du handshake suffit, pas besoin d'avoir rejoint la room). */
-  private checkSocketArenaAuth(socket: any, arenaId: unknown): boolean {
+  private checkSocketArenaAuth(socket: Socket, arenaId: unknown): boolean {
     if (typeof arenaId !== 'string' || !arenaId) return false;
     if (this.checkArenaAuth(arenaId, socket.handshake?.headers?.cookie as string)) return true;
     socket.emit('auth_error', { message: 'Authentification requise' });
@@ -1147,7 +1147,7 @@ export class RemoteScoreServer {
 
   static sanitizeAnnouncement = sanitizeAnnouncement;
 
-  private handleDisconnect(socket: any): void {
+  private handleDisconnect(socket: Socket): void {
     logger.info(NET, `Client ${socket.id} disconnected`);
   }
 
@@ -1264,7 +1264,7 @@ export class RemoteScoreServer {
     return createSession(this.sessionOpsCtx, competitionId, strips);
   }
 
-  private formatFencerName(f: any): string {
+  private formatFencerName(f?: { lastName?: string; firstName?: string } | null): string {
     return f ? `${f.lastName ?? ''} ${f.firstName ?? ''}`.trim() : '';
   }
 
@@ -1275,7 +1275,7 @@ export class RemoteScoreServer {
       : FencerStatus.CHECKED_IN;
   }
 
-  private matchPoolId(m: any): string | null {
+  private matchPoolId(m?: SessionMatch | null): string | null {
     if (!m || m.isTableau) return null;
     return m.poolId || m.pool?.id || (m.poolNumber ? `pool-${m.poolNumber}` : null);
   }
@@ -1596,9 +1596,9 @@ export class RemoteScoreServer {
   }
 
   private isDeMatchBlocked(matchId: string): boolean {
-    const sm = this.sessionMatches.find((m: any) => m.id === matchId);
+    const sm = this.sessionMatches.find(m => m.id === matchId);
     if (!sm?.round) return false;
-    return this.sessionMatches.some((m: any) => {
+    return this.sessionMatches.some(m => {
       if (m.poolId || m.round === undefined || m.round <= sm.round) return false;
       const scoreUpdate = this.sessionMatchScores.get(m.id);
       const effectiveStatus = scoreUpdate?.status ?? m.status;
@@ -1863,11 +1863,11 @@ export class RemoteScoreServer {
     return updateKioskTheme(this.sessionSettingsCtx, variables);
   }
 
-  public updatePoolFencers(updates: Array<{ poolId: string; fencers: any[] }>): void {
+  public updatePoolFencers(updates: Array<{ poolId: string; fencers: Fencer[] }>): void {
     return updatePoolFencers(this.poolSyncCtx, updates);
   }
 
-  public syncPoolMatches(poolsData: Array<{ poolId: string; matches: any[] }>): void {
+  public syncPoolMatches(poolsData: Array<{ poolId: string; matches: SessionMatch[] }>): void {
     return syncPoolMatches(this.poolSyncCtx, poolsData);
   }
 
