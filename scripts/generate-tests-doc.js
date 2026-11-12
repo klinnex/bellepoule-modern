@@ -166,7 +166,7 @@ Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 | Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
-\`npm run test:e2e\`.
+\`npm run test:e2e\`. Simulateur d'appareil de piste Cyrano : \`npm run cyrano:sim\` (\`scripts/cyrano-simulator.js\`, voir \`docs/CYRANO.md\`).
 
 Sécurité : \`.github/workflows/codeql.yml\` (CodeQL JS/TS, PR vers \`dev\` + hebdo) et \`security.yml\` (\`npm audit --omit=dev\` non bloquant + SBOM CycloneDX), Dependabot (\`.github/dependabot.yml\`).
 

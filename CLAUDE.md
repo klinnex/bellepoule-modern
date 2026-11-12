@@ -84,6 +84,7 @@ npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
 npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
 npm run analyze         # Webpack bundle analyzer (opens browser)
+npm run cyrano:sim      # Simulateur d'appareil de piste Cyrano (docs/CYRANO.md)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode
 ```
@@ -102,6 +103,7 @@ Main Process (src/main/)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
+├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, endValidation (ACK/NAK), server (UDP, HELLO 15 s, supervision, journal) — pas encore raccordé aux arènes
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates

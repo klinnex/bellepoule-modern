@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 132 |
 | `src/renderer/components/` | 83 | 399 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 352 |
+| `src/remote/` | 55 | 354 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **338** | **2582** |
+| **Total** | **338** | **2584** |
 
-Unitaires : 328 fichiers, 2543 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 328 fichiers, 2545 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5196,7 +5196,7 @@ Unitaires : 328 fichiers, 2543 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 9 tests</summary>
+<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 11 tests</summary>
 
 - **son optionnel**
   - désactivé par défaut, bascule mémorisée, stockage cassé toléré
@@ -5204,6 +5204,8 @@ Unitaires : 328 fichiers, 2543 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - le bouton #btn-sound reflète l état (aria-pressed)
 - **bouton Annuler la touche temporaire**
   - visible puis masqué après le délai, clic = annulation
+  - minuteurs par défaut : setTimeout appelé sans this détourné (navigateur, #1716)
+  - afterScore ne lève pas avec les minuteurs natifs (+1 opérant, #1716)
   - icône SVG devant le libellé quand /js/icons.js est chargé
 - **referee.html (#1539)**
   - +1/+3/+5 ont un aria-label traduit (deux côtés)
