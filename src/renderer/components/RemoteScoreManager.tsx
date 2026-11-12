@@ -25,6 +25,7 @@ import { useRemoteServerActions } from '../hooks/remoteScoreManager/useRemoteSer
 import { useRemoteServerState } from '../hooks/remoteScoreManager/useRemoteServerState';
 import { RemoteArenaGrid } from './remote/RemoteArenaGrid';
 import { RemoteHeaderSection } from './remote/RemoteHeaderSection';
+import { CyranoPanel } from './remote/CyranoPanel';
 
 const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScoreManagerProps) => {
   const remoteServerState = useRemoteServerState({ ...props });
@@ -523,6 +524,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                 onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
               />
             </div>
+            <CyranoPanel />
           </>
         )}
       </div>
