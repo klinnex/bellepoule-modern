@@ -188,7 +188,8 @@ export function useCompetitionCore(ctx: Ctx) {
     handleImportFencers,
     handleOpenImportDialog,
     handleImportRanking,
-  } = useCompetitionImport({ competition, onUpdate, bulkAddFencers });
+    handleImportReferees,
+  } = useCompetitionImport({ competition, onUpdate, bulkAddFencers, referees, setReferees });
 
   const {
     pools,
@@ -378,6 +379,7 @@ export function useCompetitionCore(ctx: Ctx) {
     handleImportFencers,
     handleOpenImportDialog,
     handleImportRanking,
+    handleImportReferees,
     pools,
     setPools,
     poolHistory,

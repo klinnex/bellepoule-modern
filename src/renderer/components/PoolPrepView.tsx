@@ -61,10 +61,6 @@ interface PoolPrepViewProps {
   onSettingsChange?: (min: number, max: number) => void;
   /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
   onLaunchActionChange?: (action: PoolPrepLaunchAction | null) => void;
-  /** Brouillon conservé hors de la vue (retour à l'appel) jusqu'à « Repréparer les poules » (#1649) */
-  draft?: PoolPrepDraft | null;
-  /** Modification manuelle de la préparation : brouillon à conserver par le parent (#1649) */
-  onDraftChange?: (draft: PoolPrepDraft) => void;
   /**
    * Répartition spécifique (tournoi des rapières : regroupement par niveau).
    * Remplace la répartition serpentin et désactive les critères de séparation.
@@ -78,9 +74,12 @@ interface PoolPrepViewProps {
   fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
+  /** Brouillon conservé hors de la vue : modifications gardées au retour vers l'appel (#1649) */
+  draft?: PoolPrepDraft | null;
+  onDraftChange?: (draft: PoolPrepDraft) => void;
 }
 
-/** Préparation en cours, conservée quand on quitte l'onglet (#1649) */
+/** État de préparation en cours (poules, nombre, critères de séparation) */
 export interface PoolPrepDraft {
   pools: Pool[];
   poolCount: number;
@@ -115,20 +114,22 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onSkipPools,
   onSettingsChange,
   onLaunchActionChange,
-  draft,
-  onDraftChange,
   customDistribution,
   levelRankOf,
   separationKeys,
   fencerDisplay,
   customMatchOrder,
+  draft,
+  onDraftChange,
 }) => {
   const { t } = useTranslation();
   const { showUndoToast } = useToast();
-  const [poolCount, setPoolCount] = useState<number>(0);
+  // Brouillon pris à l'ouverture seulement (#1649)
+  const [initialDraft] = useState(() => (draft && draft.pools.length > 0 ? draft : null));
+  const [poolCount, setPoolCount] = useState<number>(initialDraft?.poolCount ?? 0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
-  const [pools, setPools] = useState<Pool[]>(draft?.pools ?? initialPools ?? []);
+  const [pools, setPools] = useState<Pool[]>(initialDraft?.pools ?? initialPools ?? []);
   const [draggedFencer, setDraggedFencer] = useState<{ fencer: Fencer; poolIndex: number } | null>(
     null
   );
@@ -146,13 +147,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       { key: 'byNation' as const, label: 'Nation', enabled: false },
       ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
     ].filter(c => !separationKeys || separationKeys.includes(c.key));
-    if (!draft) return defaults;
-    // Brouillon : ordre et activation des critères restaurés (#1649)
-    const restored = draft.criteria.flatMap(dc => {
-      const c = defaults.find(d => d.key === dc.key);
-      return c ? [{ ...c, enabled: dc.enabled }] : [];
+    if (!initialDraft) return defaults;
+    // Ordre et activation repris du brouillon (#1649)
+    const restored = initialDraft.criteria.flatMap(d => {
+      const c = defaults.find(x => x.key === d.key);
+      return c ? [{ ...c, enabled: d.enabled }] : [];
     });
-    return [...restored, ...defaults.filter(d => !restored.some(rc => rc.key === d.key))];
+    return [...restored, ...defaults.filter(c => !restored.some(r => r.key === c.key))];
   });
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
@@ -162,9 +163,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       .map(c => c.key as SeparationCriterionKey);
 
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
-  const hasInitialized = useRef(false);
-  // Modification manuelle depuis l'ouverture : brouillon transmis au parent (#1649)
-  const draftDirty = useRef(false);
+  const hasInitialized = useRef(initialDraft !== null);
+
+  // Publie le brouillon à chaque modification (#1649)
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    onDraftChange?.({
+      pools,
+      poolCount,
+      criteria: separationCriteria.map(c => ({ key: c.key, enabled: c.enabled })),
+    });
+  }, [pools, poolCount, separationCriteria, onDraftChange]);
 
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
   const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
@@ -192,7 +201,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   // Sauvegarder l'état actuel (avant action) dans la pile d'annulation
   const saveToHistory = () => {
-    draftDirty.current = true;
     undoStack.record({
       pools: structuredClone(pools),
       poolCount,
@@ -205,7 +213,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const handleRestore = () => {
     const previousState = undoStack.undo();
     if (!previousState) return;
-    draftDirty.current = true;
     setPools(previousState.pools);
     setPoolCount(previousState.poolCount);
     setMinFencersPerPool(previousState.minFencersPerPool);
@@ -281,10 +288,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   // Initialisation unique : depuis initialPools (session restaurée) ou calcul optimal
   // Le ref hasInitialized empêche la réinitialisation si initialPools arrive en retard (async DB)
   useEffect(() => {
-    if (draft && !hasInitialized.current) {
-      hasInitialized.current = true;
-      setPoolCount(draft.poolCount);
-    } else if (initialPools && initialPools.length > 0 && !hasInitialized.current) {
+    if (initialPools && initialPools.length > 0 && !hasInitialized.current) {
       hasInitialized.current = true;
       setPools(initialPools);
       setPoolCount(initialPools.length);
@@ -299,16 +303,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       generatePools(optimalCount, separationCriteria);
     }
   }, [fencers.length, initialPools]);
-
-  // Brouillon transmis au parent après chaque modification manuelle (#1649)
-  useEffect(() => {
-    if (!draftDirty.current) return;
-    onDraftChange?.({
-      pools,
-      poolCount,
-      criteria: separationCriteria.map(c => ({ key: c.key, enabled: c.enabled })),
-    });
-  }, [pools, poolCount, separationCriteria, onDraftChange]);
 
   const handlePoolCountChange = (newCount: number) => {
     if (newCount >= 0 && newCount <= Math.ceil(fencers.length / 3)) {
@@ -445,7 +439,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   const handleStripChange = (poolIndex: number, strip: number | undefined) => {
     const pool = pools[poolIndex];
-    draftDirty.current = true;
     setPools(pools.map((p, i) => (i === poolIndex ? { ...p, strip } : p)));
     if (pool) onStripChange?.(pool.id, strip);
   };
@@ -673,7 +666,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       const next = [...separationCriteria];
                       const [moved] = next.splice(dragCriterionIdx, 1);
                       next.splice(idx, 0, moved);
-                      draftDirty.current = true;
                       setSeparationCriteria(next);
                       setDragCriterionIdx(null);
                       if (poolCount > 0) generatePools(poolCount, next);
@@ -683,7 +675,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       const next = separationCriteria.map((c, i) =>
                         i === idx ? { ...c, enabled: !c.enabled } : c
                       );
-                      draftDirty.current = true;
                       setSeparationCriteria(next);
                       if (poolCount > 0) generatePools(poolCount, next);
                     }}

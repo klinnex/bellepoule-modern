@@ -2,10 +2,10 @@
  * BellePoule Modern - Import de tireurs et de classements (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
-import { useState } from 'react';
-import type { Competition, Fencer } from '../../shared/types';
+import { useState, type Dispatch, type SetStateAction } from 'react';
+import type { Competition, Fencer, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import type { RankingImportResult } from '../../shared/utils/fileParser';
+import type { ImportedReferee, RankingImportResult } from '../../shared/utils/fileParser';
 import { useToast } from '../components/Toast';
 import { useTranslation } from './useTranslation';
 import type { useFencerManagement } from './useFencerManagement';
@@ -20,13 +20,20 @@ interface UseCompetitionImportParams {
   competition: Competition;
   onUpdate: (competition: Competition) => void;
   bulkAddFencers: ReturnType<typeof useFencerManagement>['bulkAddFencers'];
+  referees?: Referee[];
+  setReferees?: Dispatch<SetStateAction<Referee[]>>;
 }
+
+const refereeKey = (lastName: string, firstName: string) =>
+  `${lastName} ${firstName}`.trim().toUpperCase().replace(/\s+/g, ' ');
 
 /** Fichier d'import en cours (modale) et gestionnaires d'import (tireurs, classement). */
 export function useCompetitionImport({
   competition,
   onUpdate,
   bulkAddFencers,
+  referees = [],
+  setReferees,
 }: UseCompetitionImportParams) {
   const { showToast } = useToast();
   const { t } = useTranslation();
@@ -34,6 +41,35 @@ export function useCompetitionImport({
 
   const handleImportFencers = async (importedFencers: Partial<Fencer>[]) => {
     await bulkAddFencers(importedFencers as any);
+    setImportData(null);
+  };
+
+  /** Arbitres du bloc <Arbitres> d'un XML (#1504) ; doublons nom + prénom ignorés */
+  const handleImportReferees = async (imported: ImportedReferee[]) => {
+    if (!window.electronAPI?.db?.createReferee) return;
+    const known = new Set(referees.map(r => refereeKey(r.lastName, r.firstName)));
+    const created: Referee[] = [];
+    for (const ref of imported) {
+      const key = refereeKey(ref.lastName, ref.firstName);
+      if (known.has(key)) continue;
+      known.add(key);
+      try {
+        created.push(
+          await window.electronAPI.db.createReferee(competition.id, {
+            name: `${ref.firstName} ${ref.lastName}`.trim(),
+            club: ref.club,
+            license: ref.license,
+            category: ref.category,
+            nationality: ref.nationality,
+            gender: ref.gender,
+          })
+        );
+      } catch (err) {
+        logger.error(LogCategory.UI, 'Failed to import referee', err as Error);
+      }
+    }
+    if (created.length > 0) setReferees?.(prev => [...prev, ...created]);
+    showToast(t('plural.referees_imported', { count: created.length }), 'success');
     setImportData(null);
   };
 
@@ -121,5 +157,6 @@ export function useCompetitionImport({
     handleImportFencers,
     handleOpenImportDialog,
     handleImportRanking,
+    handleImportReferees,
   };
 }

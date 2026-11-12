@@ -407,3 +407,45 @@ describe('issue #906 — lignes .fff avec champs omis', () => {
     });
   });
 });
+
+describe('parseXMLFile — #1504 (arbitres, département, latéralité)', () => {
+  const xml = [
+    '<CompetitionIndividuelle><Tireurs>',
+    '<Tireur ID="1" Nom="DUPONT" Prenom="Jean" Sexe="M" Departement="095" Lateralite="G"/>',
+    '<Tireur ID="2" Nom="MARTIN" Prenom="Alice" Sexe="F" Departement="5"/>',
+    '</Tireurs><Arbitres>',
+    '<Arbitre ID="1" Nom="durand" Prenom="Paul" Sexe="M" Club="CE PARIS" Categorie="National"/>',
+    '<Arbitre ID="2" Nom="LEROY" Prenom="Eve" Sexe="F" Nation="BEL"/>',
+    '</Arbitres><Phases><Poule><Arbitre REF="1"/><Tireur REF="1"/></Poule></Phases>',
+    '</CompetitionIndividuelle>',
+  ].join('');
+
+  it('normalise le département 095 → 95 et 5 → 05', () => {
+    const r = parseXMLFile(xml);
+    expect(r.fencers.map(f => f.department)).toEqual(['95', '05']);
+  });
+
+  it('lit la latéralité', () => {
+    const r = parseXMLFile(xml);
+    expect(r.fencers[0].handedness).toBe('L');
+    expect(r.fencers[1].handedness).toBeUndefined();
+  });
+
+  it('lit les arbitres du bloc <Arbitres> (références de poule ignorées)', () => {
+    const r = parseXMLFile(xml);
+    expect(r.referees).toHaveLength(2);
+    expect(r.referees![0]).toMatchObject({
+      lastName: 'DURAND',
+      firstName: 'Paul',
+      club: 'CE PARIS',
+      category: 'National',
+      nationality: 'FRA',
+    });
+    expect(r.referees![1].nationality).toBe('BEL');
+  });
+
+  it('pas de bloc <Arbitres> → referees absent', () => {
+    const r = parseXMLFile('<Tireur Nom="A" Prenom="B" Sexe="M"/>');
+    expect(r.referees).toBeUndefined();
+  });
+});

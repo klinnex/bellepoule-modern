@@ -121,8 +121,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handlePoolStripChange,
     confirmScoresLoss,
     setPoolsLaunched,
-    poolsRelaunchPending,
-    setPoolsRelaunchPending,
+    relaunchPending,
+    setRelaunchPending,
     poolPrepDraft,
     setPoolPrepDraft,
     resetRapieresWaves,
@@ -211,6 +211,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     importData,
     handleImportFencers,
     handleImportRanking,
+    handleImportReferees,
     setImportData,
     showRapieresTableauDialog,
     handleRapieresTableauMode,
@@ -368,13 +369,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             arenaCount={remoteArenaCount}
             stripStart={remoteStripStart}
             onStripChange={handlePoolStripChange}
-            poolsLaunched={poolsLaunched || poolsRelaunchPending}
+            poolsLaunched={poolsLaunched || relaunchPending}
             draft={poolPrepDraft}
             onDraftChange={setPoolPrepDraft}
             onPoolsConfirm={async confirmedPools => {
               if (!(await confirmScoresLoss())) return;
               setPoolsLaunched(true);
-              setPoolsRelaunchPending(false);
+              setRelaunchPending(false);
               setPoolPrepDraft(null);
               resetRapieresWaves(confirmedPools);
               setPools(confirmedPools);
@@ -686,6 +687,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           fencers={fencers}
           onImport={handleImportFencers}
           onImportRanking={handleImportRanking}
+          onImportReferees={handleImportReferees}
           onClose={() => setImportData(null)}
         />
       )}
