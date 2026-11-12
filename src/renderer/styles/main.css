@@ -1076,9 +1076,9 @@ body {
   align-items: center;
   padding: 0.05rem 0.4rem;
   border-radius: var(--radius-full);
-  font-size: 0.62rem;
+  font-size: 0.75rem; /* +20 % (#1440) */
   font-weight: 700;
-  margin-left: 0.3rem;
+  margin-left: 1.5rem; /* ~ une tabulation du nom (#1440) */
   vertical-align: middle;
 }
 .ranking-status-badge--abandon {

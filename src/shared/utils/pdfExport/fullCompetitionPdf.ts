@@ -234,9 +234,9 @@ export interface NoSignatureExportData {
   tableauMatches: TableauMatchForPDF[];
   consolationBrackets: { id: string; name: string; matches: TableauMatchForPDF[] }[];
   competitionTitle: string;
-  /** Modèle des feuilles de poule (docType 'pool') ; un modèle d'un autre type est ignoré (#1712) */
+  /** Modèle des feuilles de poule (docType `pool`) — jamais le modèle classement (#1712) */
   poolTemplate?: PdfTemplate;
-  /** Modèle des feuilles de tableau (docType 'tableau') */
+  /** Modèle des tableaux (docType `tableau`) — jamais le modèle classement (#1712) */
   tableauTemplate?: PdfTemplate;
 }
 

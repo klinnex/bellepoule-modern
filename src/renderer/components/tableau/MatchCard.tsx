@@ -6,6 +6,7 @@ import { useStripAvailability } from '../../hooks/useStripAvailability';
 import { focusNeighbourCard, isNavKey } from './matchCardNav';
 import { PenLine, Pencil, Plus } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -20,8 +21,6 @@ interface MatchCardProps {
   /** Rang de sortie de poules par tireur (#1119) ; sinon classement d'entrée */
   seedRanks?: Map<string, number>;
 }
-
-const BASE_MATCH_HEIGHT = 100;
 
 const MatchCard: React.FC<MatchCardProps> = ({
   match,
@@ -97,9 +96,13 @@ const MatchCard: React.FC<MatchCardProps> = ({
         }
       : { position: 'relative' as const, marginBottom: '0.375rem' };
 
+  // Badges (piste/arbitre ou signatures) affichés : bandeau réservé en haut de carte (#1440)
+  const showAssignBadges = canEdit && !isMatchComplete && !!(onArenaClick || onRefereeClick);
+  const showSignatures = hasBothFencers && isMatchComplete && !!onSignaturesClick;
+
   return (
     <div
-      className={`match-card ${canEdit ? 'match-card-clickable' : ''} ${isMatchComplete ? 'match-card-done' : ''}`}
+      className={`match-card ${canEdit ? 'match-card-clickable' : ''} ${isMatchComplete ? 'match-card-done' : ''}${showAssignBadges || showSignatures ? ' match-card--badges' : ''}`}
       style={posStyle}
       onClick={() => canEdit && onMatchClick && onMatchClick(match)}
       role={canEdit ? 'button' : undefined}
@@ -134,7 +137,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       />
 
       {/* Arena + Referee badges */}
-      {canEdit && !isMatchComplete && (onArenaClick || onRefereeClick) && (
+      {showAssignBadges && (
         <div className="match-badges">
           {onArenaClick && (
             <button
@@ -175,7 +178,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       )}
 
       {/* Consultation des signatures (match terminé) */}
-      {hasBothFencers && isMatchComplete && onSignaturesClick && (
+      {showSignatures && (
         <div className="match-badges">
           <TipButton
             className="match-badge-btn"

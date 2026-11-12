@@ -492,6 +492,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       .map(([v, n]) => `${n}× ${v}`)
       .join(', ');
 
+  /** Avertissement club/région affiché sur au moins une carte → cartes élargies (#1440) */
+  const hasConflictWarning = pools.some(
+    pool =>
+      (isCriterionEnabled('byClub') && getPoolConflicts(pool, f => f.club).size > 0) ||
+      (isCriterionEnabled('byRegion') && getPoolConflicts(pool, f => f.region).size > 0)
+  );
+
   /** Classement moyen des tireurs classés de la poule (force de la poule) */
   const getPoolAvgRanking = (pool: Pool): number | null => {
     const ranks = pool.fencers.map(f => f.ranking).filter((r): r is number => r != null && r > 0);
@@ -720,7 +727,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             overflowY: 'auto',
             display: poolCount === 0 ? 'flex' : 'grid',
             gridTemplateColumns:
-              poolCount === 0 ? undefined : 'repeat(auto-fill, minmax(280px, 1fr))',
+              poolCount === 0
+                ? undefined
+                : `repeat(auto-fill, minmax(${hasConflictWarning ? 360 : 280}px, 1fr))`,
             alignItems: poolCount === 0 ? 'center' : undefined,
             justifyContent: poolCount === 0 ? 'center' : undefined,
             gap: '1rem',
@@ -763,8 +772,16 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 }
               >
                 <div className="pool-prep-card-header u-row-between">
-                  <div className="is-5c17a8">
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
+                  <div className="is-5c17a8 pool-prep-card-title">
+                    <h3
+                      style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        margin: 0,
+                        color: accent,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {t('pools.prep_pool_n', { n: pool.number })}
                     </h3>
                     {pools.length === 1 && (
@@ -791,7 +808,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="u-row">
+                  <div className="u-row pool-prep-card-meta">
                     {avgRanking != null && (
                       <span
                         className="pool-prep-strength"

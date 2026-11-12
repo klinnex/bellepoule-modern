@@ -353,6 +353,8 @@ Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** ; Intel : **x64**
 2. Rendre le fichier exécutable : `chmod +x BellePoule.Modern-*.AppImage`
 3. Lancer avec : `./BellePoule.Modern-*.AppImage`
 
+Ubuntu 24.04+ : le sandbox Chromium peut être indisponible (restriction AppArmor des user namespaces). Détails et risques : [docs/SECURITE_ELECTRON.md](docs/SECURITE_ELECTRON.md#sandbox-chromium-sous-linux-ubuntu-2404-1715).
+
 
 ## 🚀 **Installation pour développeurs**
 
@@ -365,7 +367,7 @@ cd bellepoule-modern
 npm install          # recompile better-sqlite3 pour Electron (postinstall)
 
 # Construire et lancer
-npm start
+npm start   # Ubuntu 24.04+ : si Electron plante (SUID sandbox), voir docs/SECURITE_ELECTRON.md
 
 # Développement (watch main + dev server renderer)
 npm run dev

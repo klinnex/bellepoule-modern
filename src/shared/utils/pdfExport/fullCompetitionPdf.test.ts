@@ -1,4 +1,8 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+const savePDF = vi.hoisted(() => vi.fn(async (_html: string, _name: string) => {}));
+vi.mock('./core', async orig => ({ ...(await orig<typeof import('./core')>()), savePDF }));
+
 import {
   exportPoolsAndTableauxNoSignaturePDF,
   exportFullCompetitionPDF,
@@ -23,6 +27,38 @@ function makePool(): Pool {
   return { id: 'p1', number: 1, fencers: [a, b], matches: [match] } as unknown as Pool;
 }
 
+describe('exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)', () => {
+  beforeEach(() => {
+    savePDF.mockClear();
+    vi.stubGlobal('localStorage', { getItem: () => null });
+  });
+
+  it('les feuilles de poule gardent leur contenu avec le modèle poule', async () => {
+    await exportPoolsAndTableauxNoSignaturePDF({
+      pools: [makePool()],
+      tableauMatches: [],
+      consolationBrackets: [],
+      competitionTitle: 'Test',
+      poolTemplate: buildDefaultTemplate('pool'),
+    });
+    expect(savePDF).toHaveBeenCalledTimes(1);
+    const html = savePDF.mock.calls[0][0];
+    expect(html).toContain('score-grid');
+    expect(html).toContain('class="meta-row"');
+    expect(html).not.toContain('ranking-table');
+  });
+
+  it('aucun repère OCR dans l’export sans signature', async () => {
+    await exportPoolsAndTableauxNoSignaturePDF({
+      pools: [makePool()],
+      tableauMatches: [],
+      consolationBrackets: [],
+      competitionTitle: 'Test',
+    });
+    expect(savePDF.mock.calls[0][0]).not.toContain('class="ocr-corner');
+  });
+});
+
 const deMatch: TableauMatchForPDF = {
   id: 'd1',
   round: 2,
@@ -34,14 +70,6 @@ const deMatch: TableauMatchForPDF = {
   winner: null,
   isBye: false,
 };
-
-function stubElectron() {
-  const saveFile = vi.fn().mockResolvedValue({ filePath: '/tmp/x.pdf' });
-  const printHtmlToPDF = vi.fn().mockResolvedValue({ success: true });
-  vi.stubGlobal('localStorage', { getItem: () => null });
-  vi.stubGlobal('window', { electronAPI: { dialog: { saveFile }, file: { printHtmlToPDF } } });
-  return printHtmlToPDF;
-}
 
 describe('modèle PDF d’un autre type ignoré (#1712)', () => {
   it('poule : un modèle « classement » ne vide pas la grille', () => {
@@ -60,35 +88,15 @@ describe('modèle PDF d’un autre type ignoré (#1712)', () => {
   });
 });
 
-describe('exportPoolsAndTableauxNoSignaturePDF (#1712)', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('corps des poules et tableaux présent, sans coins OCR', async () => {
-    const printHtmlToPDF = stubElectron();
-    await exportPoolsAndTableauxNoSignaturePDF({
-      pools: [makePool()],
-      tableauMatches: [deMatch],
-      consolationBrackets: [],
-      competitionTitle: 'Open',
-      poolTemplate: buildDefaultTemplate('pool'),
-      tableauTemplate: buildDefaultTemplate('tableau'),
-    });
-    const html = printHtmlToPDF.mock.calls[0][0] as string;
-    expect(html).toContain('<table class="score-grid">');
-    expect(html).toContain('ALPHA');
-    expect(html).not.toContain('class="ocr-corner');
-  });
-});
-
 describe('exportFullCompetitionPDF – coins OCR (#1712)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
   it('pas de cadre OCR fixe répété sur toutes les pages du dossier', async () => {
-    const printHtmlToPDF = stubElectron();
+    savePDF.mockClear();
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    vi.stubGlobal('window', {});
     await exportFullCompetitionPDF({
       fencers: [],
       pools: [makePool()],
@@ -98,7 +106,7 @@ describe('exportFullCompetitionPDF – coins OCR (#1712)', () => {
       finalResults: [],
       competitionTitle: 'Open',
     });
-    const html = printHtmlToPDF.mock.calls[0][0] as string;
+    const html = savePDF.mock.calls[0][0];
     expect(html).toContain('<table class="score-grid">');
     expect(html).not.toContain('class="ocr-corner');
   });

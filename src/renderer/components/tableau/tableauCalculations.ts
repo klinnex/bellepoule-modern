@@ -15,7 +15,7 @@ import {
   TableauSpecialStatusType,
 } from './tableauTypes';
 
-export const BASE_MATCH_HEIGHT = 100;
+export const BASE_MATCH_HEIGHT = 120; // +20 px : bandeau des badges piste/arbitre/signatures (#1440)
 export const SLOT_HEIGHT = BASE_MATCH_HEIGHT + 50; // hauteur d'un créneau dans la première colonne
 
 export const getTableauSize = (fencerCount: number): number => {

@@ -106,6 +106,8 @@ prochain match, sa piste et ses résultats.
 
 Alias anglais : `/arena{N}`, `/arena{N}/referee`, `/arena{N}/public`, ...
 
+Mode écran de salle : `?display=1` sur `/kiosk`, `/arene{N}/public`, `/arene{N}/overlay` masque menu, réglages et bascules (lecture seule, routes GET uniquement).
+
 ## 4. Options de la compétition utiles à la saisie distante
 
 | Paramètre (`competition.settings`) | Effet tablette |
