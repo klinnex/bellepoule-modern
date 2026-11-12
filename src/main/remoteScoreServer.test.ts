@@ -2060,6 +2060,11 @@ describe('mode démo (session d’entraînement)', () => {
     expect(history.some(r => Math.max(r.scoreA, r.scoreB) === 15)).toBe(true);
 
     srv.stopSession();
+    // Matchs fictifs retirés des pistes : plus de saisie possible après l'arrêt
+    for (const id of ['arena1', 'arena2']) {
+      expect(srv.getArena(id)?.status).toBe('idle');
+      expect(srv.getArena(id)?.currentMatch).toBeNull();
+    }
     const remaining = srv.getTrainingHistory().length;
     vi.advanceTimersByTime(600_000);
     expect(srv.getTrainingHistory().length).toBe(remaining);
