@@ -309,8 +309,9 @@ export function generatePoolHTML(
   <div class="ocr-corner ocr-br" aria-hidden="true">${qrDataUrl ? `<img src="${qrDataUrl}" alt="" style="display:block;width:100%;height:100%;" />` : ''}</div>`,
   };
 
+  // Repères OCR (cadre bas-droit + QR) : seulement sur les feuilles qui portent un QR (#1712)
   const defaultOrder = [
-    'ocr-marks',
+    ...(qrDataUrl ? ['ocr-marks'] : []),
     'header',
     'gold-bar',
     'competition-name',

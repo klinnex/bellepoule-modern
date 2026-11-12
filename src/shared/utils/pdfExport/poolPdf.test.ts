@@ -53,6 +53,18 @@ describe('generatePoolHTML – options export (#932)', () => {
   });
 });
 
+describe('generatePoolHTML – repères OCR (#1712)', () => {
+  it('pas de cadre OCR bas-droit sans QR (export complet)', () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('class="ocr-corner');
+  });
+
+  it('cadre OCR et QR présents sur une feuille avec QR', () => {
+    const html = generatePoolHTML(makePool(), { qrDataUrl: 'data:image/png;base64,AAAA' });
+    expect(html).toContain('class="ocr-corner ocr-br"');
+    expect(html).toContain('data:image/png;base64,AAAA');
+  });
+});
+
 describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
