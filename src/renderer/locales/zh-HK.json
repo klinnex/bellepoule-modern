@@ -1428,7 +1428,10 @@
     "cyrano_nat_club": "俱樂部",
     "cyrano_nat_region": "地區",
     "cyrano_auto": "自動",
-    "cyrano_international": "國際"
+    "cyrano_international": "國際",
+    "sections_menu": "顯示的區塊",
+    "sec_display": "主題與背景",
+    "sec_screens": "已連線螢幕"
   },
   "comparison": {
     "title": "對賽比較",
