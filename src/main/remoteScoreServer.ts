@@ -1610,15 +1610,9 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string): void {
-    return loadNextMatch(this.arenaQueueCtx, arenaId);
-  }
-  public hasSession(): boolean {
-    return this.session !== null;
-  }
-  public getSessionWeapon(): string | null {
-    return this.sessionWeapon;
-  }
+  public loadNextMatch(arenaId: string): void { return loadNextMatch(this.arenaQueueCtx, arenaId); }
+  public hasSession(): boolean { return this.session !== null; }
+  public getSessionWeapon(): string | null { return this.sessionWeapon; }
 
   private buildDashboardSnapshot(
     ...args: Tail<Parameters<typeof buildDashboardSnapshot>>
