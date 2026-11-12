@@ -19,8 +19,9 @@ export interface PhaseStepperItem {
 export function phaseStepStates(phases: PhaseStepperItem[], currentId: string): PhaseStepState[] {
   const currentIndex = phases.findIndex(p => p.id === currentId);
   const lastFlowIndex = phases.reduce((acc, p, i) => (!p.isSupplementary ? i : acc), -1);
-  const effectiveCurrentIndex =
-    phases[currentIndex]?.isSupplementary ? lastFlowIndex : currentIndex;
+  const effectiveCurrentIndex = phases[currentIndex]?.isSupplementary
+    ? lastFlowIndex
+    : currentIndex;
   return phases.map((p, i) => {
     if (p.id === currentId) return 'current';
     if (p.disabled) return 'blocked';
