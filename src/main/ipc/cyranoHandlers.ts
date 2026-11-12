@@ -27,7 +27,7 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
       if (cyranoServer.running) return { success: true, port: cyranoServer.port };
       if (options?.compe) cyranoServer.setCompe(options.compe);
       try {
-        const port = await cyranoServer.start();
+        const port = await cyranoServer.start(options?.port);
         pisteHub.attach();
         return { success: true, port };
       } catch (err) {

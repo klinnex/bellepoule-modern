@@ -116,8 +116,11 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   }
 
   /** Démarre l'écoute UDP ; résout avec le port réellement ouvert. */
-  start(): Promise<number> {
+  start(port?: number): Promise<number> {
     if (this.socket) return Promise.resolve(this.boundPort);
+    if (port !== undefined && Number.isInteger(port) && port >= 0 && port <= 65535) {
+      this.opts.port = port;
+    }
     const host = this.opts.host;
     const socket = dgram.createSocket({ type: host?.includes(':') ? 'udp6' : 'udp4' });
     this.socket = socket;

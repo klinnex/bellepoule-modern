@@ -39,6 +39,17 @@ describe('CyranoServer', () => {
     while (cleanup.length) await cleanup.pop()!();
   });
 
+  it('start(port) écoute sur le port demandé, sans piste configurée', async () => {
+    const probe = dgram.createSocket('udp4');
+    await new Promise<void>(r => probe.bind(0, '127.0.0.1', () => r()));
+    const wanted = probe.address().port;
+    await new Promise<void>(r => probe.close(() => r()));
+    const server = new CyranoServer({ host: '127.0.0.1' });
+    cleanup.push(() => server.stop());
+    expect(await server.start(wanted)).toBe(wanted);
+    expect(server.running).toBe(true);
+  });
+
   it('HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés', async () => {
     const app = await fakeApparatus();
     cleanup.push(app.close);

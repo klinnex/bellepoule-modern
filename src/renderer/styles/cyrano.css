@@ -103,3 +103,12 @@
   gap: 0.3rem;
   align-items: center;
 }
+
+.cyrano-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--red-600, #dc2626);
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+}
