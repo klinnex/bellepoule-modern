@@ -738,6 +738,12 @@ class RefereeAppBase {
     return true;
   }
 
+  // Efface le chrono mémorisé (fin de match, retour à la liste) (#1717)
+  _clearStoredTimer() {
+    const storage = this._timerStorage();
+    if (storage) BPRefereeTimer.clearTimerState(storage, this.arenaId);
+  }
+
   // Zones de score actives (formule personnalisée) pour le match courant, sinon null
   activeCustomZones() {
     return BPRefereeScoring.activeCustomZones(
@@ -1107,6 +1113,7 @@ class RefereeAppBase {
 
     // Terminer le match : l'adversaire du fautif est vainqueur
     this.matchStatus = 'finished';
+    this._clearStoredTimer();
     this.stopTimer();
 
     try {

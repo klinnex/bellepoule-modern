@@ -157,4 +157,17 @@ describe('chrono conservé après rafraîchissement (#1717)', () => {
     const actions = emittedData.map(d => (d as { action?: string } | undefined)?.action);
     expect(actions).not.toContain('start');
   });
+
+  it('retour à la liste (fin de match) : sauvegarde du chrono effacée', async () => {
+    const { dom } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; localStorage: Storage };
+    const app = w.refereeApp;
+    app.currentMatch = { id: 'm1' };
+    app.matchStatus = 'in_progress';
+    app._timerCs = 9500;
+    app.broadcastTimerUpdate();
+    expect(w.localStorage.getItem(KEY)).not.toBeNull();
+    (app as unknown as { _clearActiveMatch: () => void })._clearActiveMatch();
+    expect(w.localStorage.getItem(KEY)).toBeNull();
+  });
 });
