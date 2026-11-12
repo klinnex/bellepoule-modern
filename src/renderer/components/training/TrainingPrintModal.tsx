@@ -5,10 +5,10 @@
  */
 
 import React, { useState } from 'react';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { buildQrSheetsHTML, type QrCard } from '../ArenaQrCodesModal';
 import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
 
 export interface TrainingQrSelection {
   kiosk: boolean;
@@ -59,7 +59,6 @@ interface Props {
 
 const TrainingPrintModal: React.FC<Props> = ({ serverUrl, strips, onClose }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [sel, setSel] = useState<TrainingQrSelection>({
     kiosk: true,
     referees: true,
@@ -120,40 +119,29 @@ const TrainingPrintModal: React.FC<Props> = ({ serverUrl, strips, onClose }) => 
   ];
 
   return (
-    <div className="modal-overlay training-print-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal training-print-modal"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="training-print-title"
-      >
-        <div className="modal-header">
-          <h2 className="modal-title" id="training-print-title">
-            {t('trainingPanel.print_title')}
-          </h2>
-          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
-            ×
-          </button>
-        </div>
-        <div className="modal-body u-stack-4">
-          {options.map(([key, label]) => (
-            <label key={key} className="u-row">
-              <input type="checkbox" checked={sel[key]} onChange={() => toggle(key)} />
-              {t(label)}
-            </label>
-          ))}
-          {error && <div role="alert">{error}</div>}
-        </div>
-        <div className="modal-footer">
+    <Modal
+      title={t('trainingPanel.print_title')}
+      onClose={onClose}
+      className="training-print-modal"
+      bodyClassName="u-stack-4"
+      elevated
+      footer={
+        <>
           <Button onClick={onClose}>{t('actions.cancel')}</Button>
           <Button variant="primary" onClick={handlePrint} disabled={busy || count === 0}>
             {t('trainingPanel.print_confirm')}
           </Button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      {options.map(([key, label]) => (
+        <label key={key} className="u-row">
+          <input type="checkbox" checked={sel[key]} onChange={() => toggle(key)} />
+          {t(label)}
+        </label>
+      ))}
+      {error && <div role="alert">{error}</div>}
+    </Modal>
   );
 };
 

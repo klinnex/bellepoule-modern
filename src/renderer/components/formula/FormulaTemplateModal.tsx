@@ -3,7 +3,6 @@
  */
 
 import React, { useRef, useState, memo } from 'react';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { CustomFormulaConfig } from '../../../shared/types';
 import {
@@ -15,6 +14,7 @@ import {
 } from '../../../shared/utils/tournamentTemplates';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
 
 interface Props {
   mode: 'save' | 'load';
@@ -25,7 +25,6 @@ interface Props {
 
 const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, onClose }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [name, setName] = useState('');
   const [templates, setTemplates] = useState(() => getCustomFormulaTemplates());
   const [error, setError] = useState('');
@@ -79,118 +78,102 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="modal-header">
-          <h2 className="modal-title">
-            {mode === 'save' ? t('formulaTemplate.save_title') : t('formulaTemplate.load_title')}
-          </h2>
-          <Button className="btn-icon" onClick={onClose} aria-label={t('actions.close')}>
-            ✕
-          </Button>
+    <Modal
+      title={mode === 'save' ? t('formulaTemplate.save_title') : t('formulaTemplate.load_title')}
+      onClose={onClose}
+    >
+      {mode === 'save' && (
+        <div className="form-group">
+          <label className="form-label">{t('formulaTemplate.name')}</label>
+          <div className="input-row">
+            <input
+              type="text"
+              className="form-input"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder={t('formulaTemplate.name_ph')}
+              onKeyDown={e => e.key === 'Enter' && handleSave()}
+              autoFocus
+            />
+            <Button type="button" variant="primary" onClick={handleSave}>
+              {t('formulaTemplate.save')}
+            </Button>
+          </div>
+          {error && <p className="form-error">{error}</p>}
         </div>
+      )}
 
-        <div className="modal-body">
-          {mode === 'save' && (
-            <div className="form-group">
-              <label className="form-label">{t('formulaTemplate.name')}</label>
-              <div className="input-row">
-                <input
-                  type="text"
-                  className="form-input"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder={t('formulaTemplate.name_ph')}
-                  onKeyDown={e => e.key === 'Enter' && handleSave()}
-                  autoFocus
-                />
-                <Button type="button" variant="primary" onClick={handleSave}>
-                  {t('formulaTemplate.save')}
+      <div className="template-list">
+        {templates.length === 0 ? (
+          <p className="template-empty">{t('formulaTemplate.empty')}</p>
+        ) : (
+          templates.map(entry => (
+            <div key={entry.name} className="template-entry">
+              <div className="template-entry-info">
+                <strong>{entry.name}</strong>
+                <span className="template-entry-date">
+                  {new Date(entry.savedAt).toLocaleDateString(getActiveLocale())}
+                </span>
+                <span className="template-entry-phases">
+                  {t('formulaTemplate.phases', { count: entry.formula.phases.length })}
+                </span>
+              </div>
+              <div className="template-entry-actions">
+                {mode === 'load' && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      onLoad(entry.formula);
+                      onClose();
+                    }}
+                  >
+                    {t('formulaTemplate.load')}
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleExport(entry.formula, entry.name)}
+                >
+                  {t('formulaTemplate.export_json')}
+                </Button>
+                <Button
+                  aria-label={t('actions.delete')}
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDelete(entry.name)}
+                >
+                  ✕
                 </Button>
               </div>
-              {error && <p className="form-error">{error}</p>}
             </div>
-          )}
-
-          <div className="template-list">
-            {templates.length === 0 ? (
-              <p className="template-empty">{t('formulaTemplate.empty')}</p>
-            ) : (
-              templates.map(entry => (
-                <div key={entry.name} className="template-entry">
-                  <div className="template-entry-info">
-                    <strong>{entry.name}</strong>
-                    <span className="template-entry-date">
-                      {new Date(entry.savedAt).toLocaleDateString(getActiveLocale())}
-                    </span>
-                    <span className="template-entry-phases">
-                      {t('formulaTemplate.phases', { count: entry.formula.phases.length })}
-                    </span>
-                  </div>
-                  <div className="template-entry-actions">
-                    {mode === 'load' && (
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        onClick={() => {
-                          onLoad(entry.formula);
-                          onClose();
-                        }}
-                      >
-                        {t('formulaTemplate.load')}
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleExport(entry.formula, entry.name)}
-                    >
-                      {t('formulaTemplate.export_json')}
-                    </Button>
-                    <Button
-                      aria-label={t('actions.delete')}
-                      type="button"
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(entry.name)}
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {mode === 'load' && (
-            <div className="template-import-section">
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={handleImportFile}
-              />
-              <Button
-                type="button"
-
-                onClick={() => fileRef.current?.click()}
-              >
-                {t('formulaTemplate.import_json')}
-              </Button>
-              {error && <p className="form-error">{error}</p>}
-            </div>
-          )}
-        </div>
+          ))
+        )}
       </div>
-    </div>
+
+      {mode === 'load' && (
+        <div className="template-import-section">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+          <Button
+            type="button"
+
+            onClick={() => fileRef.current?.click()}
+          >
+            {t('formulaTemplate.import_json')}
+          </Button>
+          {error && <p className="form-error">{error}</p>}
+        </div>
+      )}
+    </Modal>
   );
 };
 

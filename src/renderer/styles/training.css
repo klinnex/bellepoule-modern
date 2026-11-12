@@ -61,10 +61,6 @@
 }
 
 /* Impression des QR Codes d'entraînement (#1500) */
-.training-print-overlay {
-  z-index: 2100;
-}
-
 .training-print-modal {
   max-width: 400px;
 }
