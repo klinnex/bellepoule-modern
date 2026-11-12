@@ -37,3 +37,8 @@
   top: 0;
   z-index: var(--z-sticky, 200);
 }
+
+/* Menu « ⋯ » ouvert : passer au-dessus de la barre de phases collante (.phase-nav, --z-sticky) */
+.comp-header.comp-header-menu-open {
+  z-index: calc(var(--z-sticky, 200) + 1);
+}
