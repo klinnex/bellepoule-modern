@@ -1703,6 +1703,7 @@
     "club_ph": "Club / association",
     "create": "+ Create",
     "no_team": "No teams — create one above.",
+    "no_pool_match": "No bouts — click “Generate pool” in the Teams tab.",
     "complete": "✓ Complete",
     "reserve_short": "Res.",
     "no_fencer": "No fencers",
