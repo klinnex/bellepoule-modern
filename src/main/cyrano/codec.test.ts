@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildCyrano, parseCyrano, sanitizeField } from './codec';
-import { formatCyranoName, formatCyranoNat, transliterate } from './names';
+import { formatCyranoName, formatCyranoNat, pickCyranoNat, transliterate } from './names';
 import { cyranoResult, validateCyranoEnd } from './endValidation';
 import { buildDisp, toCyranoWeapon } from './disp';
 
@@ -201,6 +201,17 @@ describe('noms et nations', () => {
     expect(formatCyranoNat('fra')).toBe('FRA');
     expect(formatCyranoNat('Cercle d’Escrime')).toBe('CER');
     expect(formatCyranoNat(undefined)).toBe('');
+  });
+
+  it('source du champ nation', () => {
+    const f = { nationality: 'FRA', club: 'Rennes', region: 'BRE' };
+    expect(pickCyranoNat(f, 'country')).toBe('FRA');
+    expect(pickCyranoNat(f, 'club')).toBe('REN');
+    expect(pickCyranoNat(f, 'region')).toBe('BRE');
+    expect(pickCyranoNat(f, 'auto')).toBe('REN');
+    expect(pickCyranoNat(f, 'auto', true)).toBe('FRA');
+    expect(pickCyranoNat({ nationality: 'ITA' }, 'club')).toBe('ITA');
+    expect(pickCyranoNat({}, 'auto')).toBe('');
   });
 });
 

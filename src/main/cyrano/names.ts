@@ -64,3 +64,35 @@ export function formatCyranoNat(value: string | undefined | null): string {
   if (!value) return '';
   return transliterate(value).replace(/\s/g, '').toUpperCase().slice(0, 3);
 }
+
+/** Source du champ « nation » : réglage par compétition (#1720). */
+export type CyranoNatSource = 'country' | 'club' | 'region' | 'auto';
+
+export interface CyranoNatFencer {
+  nationality?: string | null;
+  club?: string | null;
+  region?: string | null;
+}
+
+/**
+ * Valeur du champ « nation » selon la source choisie. `auto` : pays si la
+ * compétition est internationale, club sinon. Repli sur la première valeur disponible.
+ */
+export function pickCyranoNat(
+  fencer: CyranoNatFencer,
+  source: CyranoNatSource,
+  international = false
+): string {
+  const resolved = source === 'auto' ? (international ? 'country' : 'club') : source;
+  const order: (keyof CyranoNatFencer)[] =
+    resolved === 'country'
+      ? ['nationality', 'club', 'region']
+      : resolved === 'club'
+        ? ['club', 'nationality', 'region']
+        : ['region', 'club', 'nationality'];
+  for (const key of order) {
+    const v = formatCyranoNat(fencer[key]);
+    if (v) return v;
+  }
+  return '';
+}
