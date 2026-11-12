@@ -1014,6 +1014,18 @@ const electronApi = {
     },
   },
 
+  // Cyrano scoring machine integration (#1720)
+  cyrano: {
+    start: (options?: { port?: number; host?: string; compe?: string }) =>
+      ipcRenderer.invoke('cyrano:start', options),
+    stop: () => ipcRenderer.invoke('cyrano:stop'),
+    isRunning: () => ipcRenderer.invoke('cyrano:isRunning'),
+    setPistes: (pistes: unknown[]) => ipcRenderer.invoke('cyrano:setPistes', pistes),
+    getStatus: () => ipcRenderer.invoke('cyrano:getStatus'),
+    getLog: () => ipcRenderer.invoke('cyrano:getLog'),
+    setOptions: (options: unknown) => ipcRenderer.invoke('cyrano:setOptions', options),
+  },
+
   // Language injected before renderer loads (avoids race with localStorage read)
   initialLanguage: (() => {
     const arg = process.argv.find(a => a.startsWith('--initial-lang='));

@@ -333,6 +333,9 @@ export class RemoteScoreServer {
   private readonly EVENT_BUFFER_MAX = 50;
   private readonly EVENT_BUFFER_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+  /** Rappel PisteHub Cyrano : reçoit chaque update d'arène pour envoyer DISP (#1720). */
+  public cyranoHook: ((arenaId: string, update: import('../shared/types/remote').ArenaUpdate) => void) | undefined;
+
   // Registre des clients TV/affichage connectés (télécommande)
   private connectedClients: Map<
     string,
@@ -615,6 +618,7 @@ export class RemoteScoreServer {
         'sessionTableTimerSeconds',
         'sessionTheme',
         'sessionWeapon',
+        'cyranoHook',
       ],
       ['getArena', 'getSessionReferees', 'notifyKioskData']
     ));
@@ -1612,8 +1616,16 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  private loadNextMatch(arenaId: string): void {
+  public loadNextMatch(arenaId: string): void {
     return loadNextMatch(this.arenaQueueCtx, arenaId);
+  }
+
+  public hasSession(): boolean {
+    return this.session !== null;
+  }
+
+  public getSessionWeapon(): string | null {
+    return this.sessionWeapon;
   }
 
   private buildDashboardSnapshot(

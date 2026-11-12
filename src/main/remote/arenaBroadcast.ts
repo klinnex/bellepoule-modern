@@ -38,6 +38,8 @@ export interface ArenaBroadcastContext {
   readonly sessionTableTimerSeconds: S['sessionTableTimerSeconds'];
   readonly sessionTheme: S['sessionTheme'];
   readonly sessionWeapon: S['sessionWeapon'];
+  /** Rappel Cyrano : envoi DISP quand le match change (#1720). */
+  readonly cyranoHook: S['cyranoHook'];
 }
 
 /** Clone l'update sans les photos base64 (sans muter l'état partagé de l'arène). */
@@ -127,6 +129,7 @@ export function broadcastArenaUpdate(
   ctx.notifyKioskData();
 
   getSharedMainWindow()?.webContents.send('arena:update', { arenaId, update: payload });
+  ctx.cyranoHook?.(arenaId, payload);
 }
 
 export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): void {

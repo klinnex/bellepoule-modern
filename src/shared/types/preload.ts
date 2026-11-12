@@ -1366,6 +1366,48 @@ export interface PrintDialogAPI {
 /** Types d'événements du bus de données main → renderer (#1298) */
 export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
 
+// ============================================================================
+// Cyrano API (#1720)
+// ============================================================================
+
+export interface CyranoPisteConfigDTO {
+  piste: string;
+  ip: string;
+  port?: number;
+  arena?: number;
+  protocol?: 'EFP1' | 'EFP1.1' | 'auto';
+}
+
+export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
+  status: 'online' | 'stale' | 'offline' | 'never';
+  lastSeen: number | null;
+  detectedProtocol: 'EFP1' | 'EFP1.1' | null;
+}
+
+export interface CyranoStatusDTO {
+  running: boolean;
+  port: number;
+  pistes: CyranoPisteStatusDTO[];
+}
+
+export interface CyranoAPI {
+  start: (options?: {
+    port?: number;
+    host?: string;
+    compe?: string;
+  }) => Promise<{ success: boolean; port?: number; error?: string }>;
+  stop: () => Promise<void>;
+  isRunning: () => Promise<boolean>;
+  setPistes: (pistes: CyranoPisteConfigDTO[]) => Promise<void>;
+  getStatus: () => Promise<CyranoStatusDTO>;
+  getLog: () => Promise<unknown[]>;
+  setOptions: (options: {
+    nameLength?: 10 | 12 | 15 | 20;
+    natSource?: 'country' | 'club' | 'region' | 'auto';
+    international?: boolean;
+  }) => Promise<void>;
+}
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
@@ -1380,6 +1422,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   remote: RemoteServerAPI;
   training: TrainingAPI;
   eventDay: EventDayAPI;
+  cyrano: CyranoAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
