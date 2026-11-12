@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 57 | 461 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 85 | 413 |
+| `src/renderer/components/` | 85 | 418 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **351** | **2690** |
+| **Total** | **351** | **2695** |
 
-Unitaires : 341 fichiers, 2651 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 341 fichiers, 2656 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4765,13 +4765,19 @@ Unitaires : 341 fichiers, 2651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/useBracketZoomPan.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/tableau/useBracketZoomPan.test.ts</code> — 9 tests</summary>
 
 - **zoom mémorisé du tableau**
   - renvoie 1 par défaut
   - restitue le zoom par compétition
   - ignore une valeur invalide ou hors bornes
   - supprime l entrée quand le zoom revient à 1
+- **pan borné du tableau**
+  - bloque le défilement au-dessus / à gauche du bracket
+  - bloque le défilement au-delà du bas / de la droite
+  - tient compte du zoom
+  - contenu plus petit que la vue : reste visible
+  - laisse un pan valide inchangé
 
 </details>
 
