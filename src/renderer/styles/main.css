@@ -774,6 +774,21 @@ body {
 .theme-dark .pool-prep-card-header {
   border-color: var(--color-border);
 }
+/* Titre + avertissements : se réduit sans déborder ; compteur jamais rogné (#1440) */
+.pool-prep-card-header {
+  gap: 0.5rem;
+}
+.pool-prep-card-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.pool-prep-card-meta {
+  flex-shrink: 0;
+}
+.pool-prep-card-title .pool-prep-conflict-warning {
+  min-width: 0;
+  flex-shrink: 1;
+}
 
 /* Count badge */
 .pool-prep-count-badge {
@@ -1076,10 +1091,19 @@ body {
   align-items: center;
   padding: 0.05rem 0.4rem;
   border-radius: var(--radius-full);
-  font-size: 0.62rem;
+  font-size: 0.75rem; /* +20 % (#1440) */
   font-weight: 700;
-  margin-left: 0.3rem;
+  margin-left: 1.5rem; /* ~ une tabulation du nom (#1440) */
   vertical-align: middle;
+}
+.ranking-black-card {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.ranking-black-card + .ranking-status-badge {
+  margin-left: 0.5rem;
 }
 .ranking-status-badge--abandon {
   background: var(--warning-soft);

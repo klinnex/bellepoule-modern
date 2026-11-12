@@ -32,6 +32,7 @@ import {
   isDnsRanking,
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
+import { CardIcon } from './common/CardIcon';
 import { Funnel } from 'lucide-react';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
 import {
@@ -322,6 +323,18 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       rankingChanged ? t('poolRanking.saved_changed') : t('poolRanking.saved_unchanged'),
       rankingChanged ? 'warning' : 'success'
     );
+  };
+
+  /** Exclusion par carton noir (rang affiché « - » + icône carton noir) (#1440) */
+  const isBlackCardExcluded = (r: PoolRanking) =>
+    r.fencer.status === FencerStatus.EXCLUDED && r.fencer.exclusionReason === 'black_card';
+
+  /** Rang affiché : DNS / DNF (forfait, abandon, exclusion simple) / « - » (carton noir) */
+  const displayRank = (r: PoolRanking): string | number => {
+    if (isDnsRanking(r)) return 'DNS';
+    if (isDnf(r)) return 'DNF';
+    if (r.fencer.status === FencerStatus.EXCLUDED) return isBlackCardExcluded(r) ? '-' : 'DNF';
+    return r.rank;
   };
 
   const generateCSV = () => {
@@ -617,7 +630,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                         </div>
                       ) : (
                         <span className={getRankBadgeClass(ranking.rank)}>
-                          {isDnsRanking(ranking) ? 'DNS' : isDnf(ranking) ? 'DNF' : ranking.rank}
+                          {displayRank(ranking)}
                         </span>
                       )}
                     </td>
@@ -625,6 +638,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                   {isVisible('lastName') && (
                     <td className="font-medium">
                       {ranking.fencer.lastName}
+                      {isBlackCardExcluded(ranking) && (
+                        <span className="ranking-black-card">
+                          <CardIcon type="black" label={t('pdf.black_card')} />
+                        </span>
+                      )}
                       {ranking.fencer.status === FencerStatus.ABANDONED && (
                         <span className="ranking-status-badge ranking-status-badge--abandon">
                           {statusCode(FencerStatus.ABANDONED)}
