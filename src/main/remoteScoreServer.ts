@@ -1472,10 +1472,7 @@ export class RemoteScoreServer {
     return resolveDbMatchId(this.arenaOpsCtx, match);
   }
 
-  /**
-   * Match d'une autre poule réassigné manuellement sur cette piste (#1037) :
-   * ne change pas la poule propre de la piste (activePoolId).
-   */
+  /** Match d'une autre poule réassigné sur cette piste (#1037) : activePoolId inchangé. */
   private isGuestMatch(arenaId: string, m: { id: string; poolId?: string }): boolean {
     return isGuestMatch(this.arenaQueueCtx, arenaId, m);
   }
