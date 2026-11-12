@@ -96,6 +96,29 @@ module.exports = [
     rules: { 'max-lines': 'off' },
   },
   {
+    // Serveur distant (score en direct) : pas d'E/S fs synchrone, elle bloque la boucle
+    // d'événements des tablettes et arènes (#1776). Lecture au démarrage seulement
+    // (htmlLoader, i18nBundle, middleware), puis service depuis la mémoire.
+    files: ['src/main/remote/**/*.ts'],
+    ignores: [
+      '**/*.test.ts',
+      'src/main/remote/htmlLoader.ts',
+      'src/main/remote/i18nBundle.ts',
+      'src/main/remote/middleware.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.object.name='fs'][callee.property.name=/Sync$/], CallExpression[callee.object.callee.name='require'][callee.property.name=/Sync$/]",
+          message:
+            'E/S fs synchrone interdite dans le serveur distant (#1776) : fs.promises ou chargement au démarrage.',
+        },
+      ],
+    },
+  },
+  {
     // JS distant servi aux navigateurs (CSP, sans bundler) : scripts classiques, globales navigateur (#1600)
     files: ['src/remote/**/*.js'],
     languageOptions: {
