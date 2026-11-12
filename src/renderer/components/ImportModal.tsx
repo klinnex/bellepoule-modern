@@ -6,7 +6,18 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
-import { TD, TD_CENTER, TD_LEFT, LIST_INDENT, TABLE, STICKY_HEAD } from './importModal.styles';
+import {
+  TD,
+  TD_CENTER,
+  TD_LEFT,
+  LIST_INDENT,
+  TABLE,
+  STICKY_HEAD,
+  TH_CHECK,
+  TAB_LIST,
+  tabStyle,
+  rowStyle,
+} from './importModal.styles';
 import { Fencer } from '../../shared/types';
 import {
   parseFFEFile,
@@ -326,11 +337,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             }}
           >
             {result.referees ? (
-              <span
-                role="tablist"
-                aria-label={t('importModal.list_choice')}
-                style={{ display: 'flex', gap: '0.25rem' }}
-              >
+              <span role="tablist" aria-label={t('importModal.list_choice')} style={TAB_LIST}>
                 {(['fencers', 'referees'] as const).map(v => {
                   const active = (v === 'referees') === showReferees;
                   return (
@@ -341,15 +348,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                       aria-selected={active}
                       disabled={v === 'referees' && referees.length === 0}
                       onClick={() => setView(v)}
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        fontSize: '0.875rem',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        background: active ? 'var(--color-primary)' : 'transparent',
-                        color: active ? '#FFFFFF' : 'var(--color-text)',
-                      }}
+                      style={tabStyle(active)}
                     >
                       <strong>{v === 'fencers' ? result.fencers.length : referees.length}</strong>{' '}
                       {t(v === 'fencers' ? 'importModal.found' : 'importModal.referees_found')}
@@ -394,9 +393,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
               <table style={TABLE}>
                 <thead style={STICKY_HEAD}>
                   <tr>
-                    {canSelect && (
-                      <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
-                    )}
+                    {canSelect && <th style={TH_CHECK}>✓</th>}
                     <th style={TD_LEFT}>{t('importModal.last_name')}</th>
                     <th style={TD_LEFT}>{t('importModal.first_name')}</th>
                     <th style={TD_CENTER}>{t('importModal.sex')}</th>
@@ -409,12 +406,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                     <tr
                       key={index}
                       onClick={() => toggleFencer(index)}
-                      style={{
-                        cursor: canSelect ? 'pointer' : 'default',
-                        background: selected.has(index) ? 'var(--color-primary)' : 'transparent',
-                        color: selected.has(index) ? '#FFFFFF' : 'var(--color-text)',
-                        borderBottom: '1px solid var(--color-border)',
-                      }}
+                      style={rowStyle(selected.has(index), canSelect)}
                     >
                       {canSelect && (
                         <td style={TD_CENTER}>
@@ -441,7 +433,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
               <table style={TABLE}>
                 <thead style={STICKY_HEAD}>
                   <tr>
-                    <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
+                    <th style={TH_CHECK}>✓</th>
                     <th style={TD_LEFT}>{t('importModal.last_name')}</th>
                     <th style={TD_LEFT}>{t('importModal.first_name')}</th>
                     <th style={TD_CENTER}>{t('importModal.sex')}</th>
@@ -454,14 +446,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                     <tr
                       key={index}
                       onClick={() => toggleFencer(index)}
-                      style={{
-                        cursor: 'pointer',
-                        background: selectedFencers.has(index)
-                          ? 'var(--color-primary)'
-                          : 'transparent',
-                        color: selectedFencers.has(index) ? '#FFFFFF' : 'var(--color-text)',
-                        borderBottom: '1px solid var(--color-border)',
-                      }}
+                      style={rowStyle(selectedFencers.has(index), true)}
                     >
                       <td style={TD_CENTER}>
                         <input
