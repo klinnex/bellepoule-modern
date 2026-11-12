@@ -70,3 +70,25 @@
   background: #fff;
   border-radius: 6px;
 }
+
+/* Menu de masquage des sections (RemoteSectionsMenu) */
+.rsm-sections-menu {
+  margin-bottom: 0.75rem;
+}
+
+.rsm-sections-menu__summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rsm-sections-menu__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.4rem;
+}
+
+.rsm-sections-menu__item {
+  margin: 0;
+}

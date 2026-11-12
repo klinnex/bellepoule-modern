@@ -69,14 +69,14 @@ interface Props {
 export const RemoteSectionsMenu: React.FC<Props> = ({ sections, hidden, onToggle }) => {
   const { t } = useTranslation();
   return (
-    <details className="rsm-sections-menu" style={{ marginBottom: '0.75rem' }}>
-      <summary style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+    <details className="rsm-sections-menu">
+      <summary className="rsm-sections-menu__summary">
         {t('rsm.sections_menu')} (
         {sections.length - sections.filter(s => hidden.includes(s)).length}/{sections.length})
       </summary>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem 1rem', marginTop: '0.4rem' }}>
+      <div className="rsm-sections-menu__list">
         {sections.map(id => (
-          <label key={id} className="rsm-toggle-row" style={{ margin: 0 }}>
+          <label key={id} className="rsm-toggle-row rsm-sections-menu__item">
             <input type="checkbox" checked={!hidden.includes(id)} onChange={() => onToggle(id)} />
             {t(SECTION_LABEL_KEYS[id])}
           </label>
