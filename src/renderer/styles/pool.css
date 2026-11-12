@@ -742,3 +742,30 @@ button.pv-pill {
     padding-inline: 0.25rem;
   }
 }
+
+/* Titre + avertissements : se réduit sans déborder ; compteur jamais rogné (#1440) */
+.pool-prep-card-header {
+  gap: 0.5rem;
+}
+.pool-prep-card-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.pool-prep-card-meta {
+  flex-shrink: 0;
+}
+.pool-prep-card-title .pool-prep-conflict-warning {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* Classement après poules : icône carton noir à côté du nom (#1440) */
+.ranking-black-card {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.ranking-black-card + .ranking-status-badge {
+  margin-left: 0.5rem;
+}
