@@ -63,7 +63,7 @@ const UpdateMenuButton: React.FC = () => {
         aria-label={title}
       >
         <Download size={15} />
-        {t('updateNotif.menuButton')}
+        <span className="header-btn-label">{t('updateNotif.menuButton')}</span>
       </Button>
     );
   }
@@ -78,7 +78,9 @@ const UpdateMenuButton: React.FC = () => {
       title={upToDate ? t('updateNotif.menuUpToDateTitle') : t('updateNotif.menuCheck')}
     >
       {upToDate ? <CheckCircle2 size={15} /> : <RefreshCw size={15} />}
-      {upToDate ? t('updateNotif.menuUpToDate') : t('updateNotif.menuCheck')}
+      <span className="header-btn-label">
+        {upToDate ? t('updateNotif.menuUpToDate') : t('updateNotif.menuCheck')}
+      </span>
     </Button>
   );
 };

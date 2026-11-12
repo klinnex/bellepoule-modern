@@ -166,7 +166,11 @@ Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 | Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
-\`npm run test:e2e\`. Simulateur d'appareil de piste Cyrano : \`npm run cyrano:sim\` (\`scripts/cyrano-simulator.js\`, voir \`docs/CYRANO.md\`).
+\`npm run test:e2e\`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
+\`npm run check:i18n-visual\` (\`scripts/capture-i18n.js\`, Electron, après \`npm run build\` ;
+\`xvfb-run -a\` sous Linux ; \`-- --pseudo\` pour la pseudo-localisation) : échoue si un écran clé
+défile horizontalement, rogne un libellé sans ellipse ni infobulle, coupe un mot sur deux lignes
+ou sort de la fenêtre ; captures + \`report.json\` dans \`test-results/i18n-captures\`. Simulateur d'appareil de piste Cyrano : \`npm run cyrano:sim\` (\`scripts/cyrano-simulator.js\`, voir \`docs/CYRANO.md\`).
 
 Sécurité : \`.github/workflows/codeql.yml\` (CodeQL JS/TS, PR vers \`dev\` + hebdo) et \`security.yml\` (\`npm audit --omit=dev\` non bloquant + SBOM CycloneDX), Dependabot (\`.github/dependabot.yml\`).
 
@@ -274,7 +278,12 @@ function generate() {
     }
   }
 
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+  return (
+    lines
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd() + '\n'
+  );
 }
 
 const content = generate();

@@ -623,7 +623,7 @@ const AppContent: React.FC = () => {
             <span className="brand-logo-wrap" aria-hidden="true">
               <BrandLogo size={30} />
             </span>
-            {t('app.title')}
+            <span className="header-title-text">{t('app.title')}</span>
           </div>
           {/* Ctrl+K hint — clickable (inutile tant qu'il n'y a rien à chercher) */}
           {!isEmptyHome && (
@@ -658,7 +658,7 @@ const AppContent: React.FC = () => {
                 title={t('app.back_to_list')}
               >
                 <Home size={15} />
-                {t('app.home')}
+                <span className="header-btn-label">{t('app.home')}</span>
               </Button>
             )}
             {!isEmptyHome && (
@@ -689,7 +689,7 @@ const AppContent: React.FC = () => {
               }
             >
               <Swords size={15} />
-              {t('app.training')}
+              <span className="header-btn-label">{t('app.training')}</span>
             </Button>
             <Tooltip content={`Thème : ${theme}`}>
               <button
@@ -723,7 +723,8 @@ const AppContent: React.FC = () => {
                   aria-haspopup="true"
                   aria-expanded={showToolsMenu}
                 >
-                  <Wrench size={15} /> {t('app.tools')}
+                  <Wrench size={15} />
+                  <span className="header-btn-label">{t('app.tools')}</span>
                 </Button>
                 {showToolsMenu && (
                   <div
@@ -802,7 +803,7 @@ const AppContent: React.FC = () => {
               title={t('settings.title')}
             >
               <Settings size={15} />
-              {t('settings.title')}
+              <span className="header-btn-label">{t('settings.title')}</span>
             </Button>
           </div>
         </header>
