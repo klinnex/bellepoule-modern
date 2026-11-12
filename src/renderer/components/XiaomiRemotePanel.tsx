@@ -4,12 +4,13 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeftRight, Lightbulb, Lock, Monitor, Pencil, Tv } from 'lucide-react';
+import { ArrowLeftRight, Lightbulb, Lock, Monitor, Pencil, QrCode, Tv } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
 import type { ConnectedClient, TVCommand, KioskScreenConfig } from '@shared/types/preload';
 import { Button } from './common/Button';
+import { LobbyQrCode } from './remote/LobbyQrCode';
 
 interface XiaomiRemotePanelProps {
   competitionId: string;
@@ -164,6 +165,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
     () => localStorage.getItem('bp_remote_locked') === '1'
   );
   const [assign, setAssign] = useState<Record<string, { role: AssignRole; arena: number }>>({});
+  const [showLobbyQr, setShowLobbyQr] = useState(false);
 
   const toggleLock = () => {
     setLocked(prev => {
@@ -177,6 +179,8 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
   const allNavTargets = buildNavTargets(base, arenaCount, t);
   const assignRoles = buildAssignRoles(t);
   const kioskViews = buildKioskViews(t);
+
+  const lobbyUrl = `${base}/lobby`;
 
   const fetchClients = useCallback(async () => {
     const res = await window.electronAPI.remote.getConnectedClients(competitionId);
@@ -323,9 +327,20 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
         <div className="is-b37067">
           <Icon icon={Lightbulb} />
           <span>
-            {t('xiaomi.url_no_arena')} <strong>{base}/lobby</strong> {t('xiaomi.screens_waiting')}
+            {t('xiaomi.url_no_arena')} <strong>{lobbyUrl}</strong> {t('xiaomi.screens_waiting')}
           </span>
+          <Button
+            variant={showLobbyQr ? 'primary' : 'secondary'}
+            className="is-c90036"
+            onClick={() => setShowLobbyQr(v => !v)}
+            title={t('rsm.lobby_qr')}
+            aria-label={t('rsm.qr_code')}
+            aria-pressed={showLobbyQr}
+          >
+            <Icon icon={QrCode} />
+          </Button>
         </div>
+        {showLobbyQr && <LobbyQrCode url={lobbyUrl} />}
 
         {/* Bandeau verrou */}
         {locked && (
