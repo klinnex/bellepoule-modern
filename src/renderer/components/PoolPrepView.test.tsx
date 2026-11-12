@@ -6,7 +6,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import PoolPrepView from './PoolPrepView';
 import { TranslationProvider } from '../contexts/TranslationContext';
 import { Fencer, FencerStatus, Gender, Pool } from '../../shared/types';
@@ -95,6 +95,94 @@ describe('PoolPrepView (#1499)', () => {
     );
     expect(onLaunch).toHaveBeenCalledWith(
       expect.objectContaining({ label: 'Relancer les poules' })
+    );
+  });
+
+  it("brouillon : modifications reprises au retour depuis l'appel (#1649)", () => {
+    const onDraft = vi.fn();
+    const draftPools = [{ ...pool(base.slice(0, 3)), id: 'pd' }];
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          draft={{
+            pools: draftPools,
+            poolCount: 1,
+            criteria: [
+              { key: 'byNation', enabled: true },
+              { key: 'byClub', enabled: false },
+            ],
+          }}
+          onDraftChange={onDraft}
+        />
+      </TranslationProvider>
+    );
+    expect(screen.queryByText('#4')).toBeNull();
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    const last = onDraft.mock.lastCall?.[0];
+    expect(last.pools[0].id).toBe('pd');
+    expect(last.criteria[0]).toEqual({ key: 'byNation', enabled: true });
+    expect(last.criteria.find((c: { key: string }) => c.key === 'byClub').enabled).toBe(false);
+  });
+
+  it("sans brouillon : publie l'état initial", () => {
+    const onDraft = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          onDraftChange={onDraft}
+        />
+      </TranslationProvider>
+    );
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ poolCount: 1 }));
+  });
+});
+
+describe('PoolPrepView – brouillon de préparation (#1649)', () => {
+  const base = [1, 2, 3, 4, 5, 6].map(fencer);
+
+  it("le brouillon prime sur les poules initiales (retour depuis l'appel)", () => {
+    const draftPools = [pool([base[0], base[1], base[2]]), { ...pool(base.slice(3)), id: 'p2' }];
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          draft={{ pools: draftPools, poolCount: 2, criteria: [] }}
+        />
+      </TranslationProvider>
+    );
+    expect(document.querySelector('.pool-prep-stepper-value')).toHaveTextContent('2');
+  });
+
+  it('modification manuelle → brouillon transmis', () => {
+    const onDraftChange = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          onPoolsConfirm={vi.fn()}
+          onDraftChange={onDraftChange}
+        />
+      </TranslationProvider>
+    );
+    fireEvent.click(screen.getAllByRole('button', { pressed: true })[0]);
+    expect(onDraftChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        poolCount: 1,
+        criteria: expect.arrayContaining([expect.objectContaining({ enabled: false })]),
+      })
     );
   });
 });

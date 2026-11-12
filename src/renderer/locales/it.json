@@ -1252,7 +1252,10 @@
     "victory": "Vittoria",
     "waiting_previous_round": "In attesa del turno precedente",
     "weapon": "Arma",
-    "col_department": "Dipartimento"
+    "col_department": "Dipartimento",
+    "col_handedness": "Lateralità",
+    "handedness_left": "Mancino",
+    "handedness_right": "Destrimane"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Errore durante l'importazione .bpf",
     "col_region": "Regione",
     "col_department": "Dipartimento",
-    "deleted": "{{name}} eliminato"
+    "deleted": "{{name}} eliminato",
+    "col_handedness": "Lateralità"
   },
   "questPhase": {
     "running_title": "Turno Quest in corso",
@@ -1703,6 +1707,7 @@
     "club_ph": "Club / associazione",
     "create": "+ Crea",
     "no_team": "Nessuna squadra — creane una qui sopra.",
+    "no_pool_match": "Nessun incontro — clicca su «Genera il girone» nella scheda Squadre.",
     "complete": "✓ Completa",
     "reserve_short": "Ris.",
     "no_fencer": "Nessuno schermidore",
@@ -1834,7 +1839,13 @@
     "update_n_one": "Aggiorna {{count}} classifica",
     "update_n_other": "Aggiorna {{count}} classifiche",
     "import_n_one": "Importa {{count}} schermidore",
-    "import_n_other": "Importa {{count}} schermidori"
+    "import_n_other": "Importa {{count}} schermidori",
+    "referees_found": "arbitri trovati",
+    "list_choice": "Elenco visualizzato",
+    "referee_level": "Livello",
+    "import_referees_n_one": "Importa {{count}} arbitro",
+    "import_referees_n_other": "Importa {{count}} arbitri",
+    "import_fencers_referees": "Importa {{fencers}} schermidore/i e {{referees}} arbitro/i"
   },
   "editFencer": {
     "title": "Modifica lo schermidore",
@@ -2960,5 +2971,48 @@
     "import": "Importazione in corso…",
     "export": "Esportazione in corso…",
     "sync": "Sincronizzazione in corso…"
+  },
+  "eventDay": {
+    "button": "Giornate",
+    "button_title": "Raggruppare le gare di una stessa sala: pedane e arbitri condivisi",
+    "title": "Giornate multigara",
+    "new_day": "Nuova giornata",
+    "name": "Nome",
+    "date": "Data",
+    "strips": "Pedane della sala",
+    "create": "Crea",
+    "save": "Salva",
+    "delete_confirm": "Eliminare la giornata «{{name}}»? Le gare vengono mantenute.",
+    "empty": "Nessuna giornata",
+    "select_hint": "Seleziona o crea una giornata.",
+    "competitions": "Gare",
+    "competitions_hint": "Spunta le gare della giornata. Gli arbitri della giornata vi vengono copiati in base alla loro arma.",
+    "other_day": "giornata {{name}}",
+    "referees": "Arbitri della giornata",
+    "referees_hint": "Inseriti una sola volta, copiati in ogni gara della loro arma. Nessuna arma spuntata = tutte le armi.",
+    "referee": "Arbitro",
+    "first_name": "Nome",
+    "last_name": "Cognome",
+    "club": "Società",
+    "weapons": "Armi",
+    "weapons_all": "tutte le armi",
+    "status": "Stato",
+    "free": "Libero",
+    "strip": "Pedana {{n}}",
+    "pool": "Girone {{n}}",
+    "match": "Assalto {{n}}",
+    "add_referee": "Aggiungi",
+    "referee_delete_confirm": "Rimuovere «{{name}}» dalla giornata? Le sue schede nelle gare vengono mantenute.",
+    "sync": "Copia nelle gare",
+    "sync_title": "Crea o aggiorna le schede arbitro di ogni gara in base all'arma",
+    "sync_done": "{{added}} arbitro/i aggiunto/i, {{updated}} aggiornato/i",
+    "refresh": "Aggiorna",
+    "conflicts": "Conflitti nella giornata",
+    "no_conflicts": "Nessun conflitto.",
+    "conflict_multi_competition": "{{name}} è impegnato in più gare",
+    "conflict_multi_strip": "{{name}} è impegnato su più pedane",
+    "conflict_weapon": "{{name}} arbitra una gara fuori dalle sue armi",
+    "busy_elsewhere": "Impegnato altrove: {{where}}",
+    "busy_elsewhere_title": "Arbitro impegnato in un'altra gara della giornata"
   }
 }

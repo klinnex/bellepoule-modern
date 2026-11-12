@@ -820,6 +820,28 @@ const electronApi = {
       ipcRenderer.invoke('remote:setClientKioskMode', competitionId, socketId, config),
   },
 
+  // Journée multi-épreuves (#1714)
+  eventDay: {
+    list: () => ipcRenderer.invoke('eventDay:list'),
+    create: (data: { name: string; date: string; stripCount?: number }) =>
+      ipcRenderer.invoke('eventDay:create', data),
+    update: (id: string, updates: { name?: string; date?: string; stripCount?: number }) =>
+      ipcRenderer.invoke('eventDay:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('eventDay:delete', id),
+    setCompetitionDay: (competitionId: string, dayId: string | null) =>
+      ipcRenderer.invoke('eventDay:setCompetitionDay', competitionId, dayId),
+    listReferees: (dayId: string) => ipcRenderer.invoke('eventDay:listReferees', dayId),
+    createReferee: (dayId: string, data: Record<string, unknown>) =>
+      ipcRenderer.invoke('eventDay:createReferee', dayId, data),
+    updateReferee: (id: string, data: Record<string, unknown>) =>
+      ipcRenderer.invoke('eventDay:updateReferee', id, data),
+    deleteReferee: (id: string) => ipcRenderer.invoke('eventDay:deleteReferee', id),
+    syncReferees: (dayId: string) => ipcRenderer.invoke('eventDay:syncReferees', dayId),
+    getOverview: (dayId: string) => ipcRenderer.invoke('eventDay:getOverview', dayId),
+    getBusyElsewhere: (competitionId: string) =>
+      ipcRenderer.invoke('eventDay:getBusyElsewhere', competitionId),
+  },
+
   training: {
     startServer: (port?: number, host?: string, useHttps?: boolean) =>
       ipcRenderer.invoke('training:startServer', port, host, useHttps),
@@ -990,6 +1012,18 @@ const electronApi = {
       if (typeof enabled !== 'boolean') throw new Error('Enabled must be a boolean');
       return ipcRenderer.invoke('app:setSplashEnabled', enabled);
     },
+  },
+
+  // Cyrano scoring machine integration (#1720)
+  cyrano: {
+    start: (options?: { port?: number; host?: string; compe?: string }) =>
+      ipcRenderer.invoke('cyrano:start', options),
+    stop: () => ipcRenderer.invoke('cyrano:stop'),
+    isRunning: () => ipcRenderer.invoke('cyrano:isRunning'),
+    setPistes: (pistes: unknown[]) => ipcRenderer.invoke('cyrano:setPistes', pistes),
+    getStatus: () => ipcRenderer.invoke('cyrano:getStatus'),
+    getLog: () => ipcRenderer.invoke('cyrano:getLog'),
+    setOptions: (options: unknown) => ipcRenderer.invoke('cyrano:setOptions', options),
   },
 
   // Language injected before renderer loads (avoids race with localStorage read)

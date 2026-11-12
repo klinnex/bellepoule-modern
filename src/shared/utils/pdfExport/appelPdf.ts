@@ -22,6 +22,7 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
   nationality: pdfT('col_nation', 'Nation'),
   region: pdfT('col_region', 'Région'),
   department: pdfT('col_department', 'Département'),
+  handedness: pdfT('col_handedness', 'Latéralité'),
   ranking: pdfT('col_ranking', 'Classement'),
   status: pdfT('col_status', 'Statut'),
 });
@@ -54,6 +55,10 @@ function getFencerCellValue(fencer: Fencer, col: string): string {
       return fencer.region || '-';
     case 'department':
       return departmentLabel(fencer.department) || '-';
+    case 'handedness':
+      return fencer.handedness === 'L'
+        ? pdfT('handedness_left', 'Gaucher')
+        : pdfT('handedness_right', 'Droitier');
     case 'ranking':
       return fencer.ranking ? `#${fencer.ranking}` : '-';
     case 'status':

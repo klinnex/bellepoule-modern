@@ -42,7 +42,14 @@ export function buildStripQrs(
   pools: Pool[],
   remote?: PoolsRemoteInfo
 ): Record<string, PoolStripQr> | undefined {
-  if (!remote?.serverUrl) return undefined;
+  if (!remote?.serverUrl) {
+    // Saisie distante inactive : seul le numéro de piste assigné à la poule est imprimé (#1653)
+    const assigned: Record<string, PoolStripQr> = {};
+    for (const pool of pools) {
+      if (pool.strip != null) assigned[pool.id] = { strip: pool.strip };
+    }
+    return Object.keys(assigned).length > 0 ? assigned : undefined;
+  }
   const strips = computePoolStrips(
     pools,
     remote.arenaCount,

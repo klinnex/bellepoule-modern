@@ -28,7 +28,7 @@ export function useRapieresViewProps(teams: Record<string, RapieresTeamInfo>, t:
           birthDate: t('rapieres.category'),
           club: t('rapieres.level'),
         },
-        hiddenColumns: ['ranking' as const, 'nationality' as const],
+        hiddenColumns: ['ranking' as const, 'nationality' as const, 'handedness' as const],
         cellValues: {
           club: levelLabel,
           birthDate: (f: Fencer) => {

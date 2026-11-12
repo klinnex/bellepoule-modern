@@ -18,6 +18,7 @@ import { createMenu } from './menu';
 import { createMainWindow } from './mainWindow';
 import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './splash';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
+import { registerEventDayHandlers } from './ipc/eventDayHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
 import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
@@ -36,6 +37,9 @@ import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
+import { CyranoServer } from './cyrano/server';
+import { PisteHub } from './cyrano/pisteHub';
+import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 
 // Database instance
 const db = new DatabaseManager();
@@ -73,6 +77,7 @@ const buildMenu = (language?: string): void =>
   );
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
+registerEventDayHandlers({ db });
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
 
 // File handlers
@@ -93,7 +98,24 @@ ipcMain.on('app:current-competition', (_, competitionId: unknown) => {
 
 registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 
-registerRemoteServerHandlers({ db, getMainWindow: () => mainWindow });
+// Cyrano scoring machine integration (#1720)
+const cyranoServer = new CyranoServer();
+const pisteHub = new PisteHub(cyranoServer, () => {
+  for (const { server } of remoteServers.values()) {
+    if (server.hasSession()) return server;
+  }
+  return null;
+});
+
+registerRemoteServerHandlers({
+  db,
+  getMainWindow: () => mainWindow,
+  onServerCreated: server => {
+    server.cyranoHook = pisteHub.onArenaUpdate;
+  },
+});
+
+registerCyranoHandlers({ cyranoServer, pisteHub });
 
 registerRemoteMatchHandlers();
 

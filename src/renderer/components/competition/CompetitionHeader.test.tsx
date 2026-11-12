@@ -22,7 +22,11 @@ const competition = {
 
 const noop = () => {};
 
-function renderHeader(onOpenRemote?: () => void, setShowPropertiesModal: () => void = noop) {
+function renderHeader(
+  onOpenRemote?: () => void,
+  setShowPropertiesModal: () => void = noop,
+  currentPhase: 'checkin' | 'remote' = 'checkin'
+) {
   return render(
     <CompetitionHeader
       competition={competition}
@@ -33,7 +37,7 @@ function renderHeader(onOpenRemote?: () => void, setShowPropertiesModal: () => v
       showActionsMenu={false}
       setShowActionsMenu={noop}
       actionsMenuRef={{ current: null }}
-      currentPhase="checkin"
+      currentPhase={currentPhase}
       pools={[]}
       tableauMatches={[]}
       fencersCount={0}
@@ -67,6 +71,21 @@ describe('CompetitionHeader - bouton saisie distante', () => {
     renderHeader(onOpenRemote);
     fireEvent.click(screen.getByText('competitionHeader.remote_button'));
     expect(onOpenRemote).toHaveBeenCalledTimes(1);
+  });
+
+  it('reste surligné (aria-current) quand la vue saisie distante est active', () => {
+    renderHeader(vi.fn(), noop, 'remote');
+    expect(screen.getByText('competitionHeader.remote_button').closest('button')).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('non surligné hors de la vue saisie distante', () => {
+    renderHeader(vi.fn());
+    expect(
+      screen.getByText('competitionHeader.remote_button').closest('button')
+    ).not.toHaveAttribute('aria-current');
   });
 
   it('sans gestionnaire : pas de bouton', () => {

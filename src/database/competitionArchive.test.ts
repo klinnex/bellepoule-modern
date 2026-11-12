@@ -45,6 +45,26 @@ describe.skipIf(!Database)('competitionArchive (#1117)', () => {
     ]);
   });
 
+  it('keepOnlyCompetition ne garde que la journée de la compétition (#1714)', () => {
+    const db = new Database(':memory:');
+    db.exec(SCHEMA.replace('title TEXT)', 'title TEXT, event_day_id TEXT)'));
+    db.exec(`
+      CREATE TABLE event_days (id TEXT PRIMARY KEY, name TEXT);
+      CREATE TABLE event_day_referees (id TEXT PRIMARY KEY, event_day_id TEXT NOT NULL,
+        FOREIGN KEY (event_day_id) REFERENCES event_days(id) ON DELETE CASCADE);
+    `);
+    db.exec(`
+      INSERT INTO event_days VALUES ('d1', 'NEC'), ('d2', 'Autre');
+      INSERT INTO event_day_referees VALUES ('r1', 'd1'), ('r2', 'd2');
+      INSERT INTO competitions VALUES ('a', 'A', 'd1'), ('b', 'B', 'd2'), ('c', 'C', NULL);
+    `);
+    keepOnlyCompetition(db, 'a');
+    expect(db.prepare('SELECT id FROM event_days').all()).toEqual([{ id: 'd1' }]);
+    expect(db.prepare('SELECT id FROM event_day_referees').all()).toEqual([{ id: 'r1' }]);
+    keepOnlyCompetition(db, 'zzz');
+    expect(db.prepare('SELECT id FROM event_days').all()).toEqual([]);
+  });
+
   it("mergeAttachedDatabase importe la compétition et remplace l'état existant", () => {
     const db = new Database(':memory:');
     db.pragma('foreign_keys = ON');

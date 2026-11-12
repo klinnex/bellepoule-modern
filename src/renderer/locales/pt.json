@@ -1252,7 +1252,10 @@
     "victory": "Vitória",
     "waiting_previous_round": "A aguardar a ronda anterior",
     "weapon": "Arma",
-    "col_department": "Departamento"
+    "col_department": "Departamento",
+    "col_handedness": "Lateralidade",
+    "handedness_left": "Canhoto",
+    "handedness_right": "Destro"
   },
   "rsm": {
     "strip_plan": "Plano das pistas",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Erro de importação .bpf",
     "col_region": "Região",
     "col_department": "Departamento",
-    "deleted": "{{name}} eliminado"
+    "deleted": "{{name}} eliminado",
+    "col_handedness": "Lateralidade"
   },
   "questPhase": {
     "running_title": "Ronda Quest em curso",
@@ -1703,6 +1707,7 @@
     "club_ph": "Clube / associação",
     "create": "+ Criar",
     "no_team": "Sem equipas — crie uma acima.",
+    "no_pool_match": "Nenhum combate — clique em «Gerar a poule» no separador Equipas.",
     "complete": "✓ Completa",
     "reserve_short": "Res.",
     "no_fencer": "Sem esgrimistas",
@@ -1834,7 +1839,13 @@
     "update_n_one": "Atualizar {{count}} classificação",
     "update_n_other": "Atualizar {{count}} classificações",
     "import_n_one": "Importar {{count}} esgrimista",
-    "import_n_other": "Importar {{count}} esgrimistas"
+    "import_n_other": "Importar {{count}} esgrimistas",
+    "referees_found": "árbitros encontrados",
+    "list_choice": "Lista exibida",
+    "referee_level": "Nível",
+    "import_referees_n_one": "Importar {{count}} árbitro",
+    "import_referees_n_other": "Importar {{count}} árbitros",
+    "import_fencers_referees": "Importar {{fencers}} esgrimista(s) e {{referees}} árbitro(s)"
   },
   "editFencer": {
     "title": "Editar esgrimista",
@@ -2960,5 +2971,48 @@
     "import": "Importação em curso…",
     "export": "Exportação em curso…",
     "sync": "Sincronização em curso…"
+  },
+  "eventDay": {
+    "button": "Jornadas",
+    "button_title": "Agrupar as provas de uma mesma sala: pistas e árbitros partilhados",
+    "title": "Jornadas multiprova",
+    "new_day": "Nova jornada",
+    "name": "Nome",
+    "date": "Data",
+    "strips": "Pistas da sala",
+    "create": "Criar",
+    "save": "Guardar",
+    "delete_confirm": "Eliminar a jornada «{{name}}»? As provas são mantidas.",
+    "empty": "Nenhuma jornada",
+    "select_hint": "Selecione ou crie uma jornada.",
+    "competitions": "Provas",
+    "competitions_hint": "Marque as provas da jornada. Os árbitros da jornada são copiados para elas segundo a sua arma.",
+    "other_day": "jornada {{name}}",
+    "referees": "Árbitros da jornada",
+    "referees_hint": "Introduzidos uma única vez, copiados para cada prova da sua arma. Nenhuma arma marcada = todas as armas.",
+    "referee": "Árbitro",
+    "first_name": "Nome próprio",
+    "last_name": "Apelido",
+    "club": "Clube",
+    "weapons": "Armas",
+    "weapons_all": "todas as armas",
+    "status": "Estado",
+    "free": "Livre",
+    "strip": "Pista {{n}}",
+    "pool": "Poule {{n}}",
+    "match": "Assalto {{n}}",
+    "add_referee": "Adicionar",
+    "referee_delete_confirm": "Retirar «{{name}}» da jornada? As suas fichas nas provas são mantidas.",
+    "sync": "Copiar para as provas",
+    "sync_title": "Criar ou atualizar as fichas de árbitro de cada prova segundo a arma",
+    "sync_done": "{{added}} árbitro(s) adicionado(s), {{updated}} atualizado(s)",
+    "refresh": "Atualizar",
+    "conflicts": "Conflitos na jornada",
+    "no_conflicts": "Nenhum conflito.",
+    "conflict_multi_competition": "{{name}} está ocupado em várias provas",
+    "conflict_multi_strip": "{{name}} está ocupado em várias pistas",
+    "conflict_weapon": "{{name}} arbitra uma prova fora das suas armas",
+    "busy_elsewhere": "Ocupado noutra prova: {{where}}",
+    "busy_elsewhere_title": "Árbitro ocupado noutra prova da jornada"
   }
 }

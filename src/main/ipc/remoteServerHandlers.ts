@@ -18,11 +18,14 @@ import { logger, LogCategory, toError } from '../../shared/services/logger';
 export interface RemoteServerHandlersContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
+  /** Appelé après création d'un RemoteScoreServer pour brancher le PisteHub Cyrano (#1720). */
+  onServerCreated?: (server: RemoteScoreServer) => void;
 }
 
 export function registerRemoteServerHandlers({
   db,
   getMainWindow,
+  onServerCreated,
 }: RemoteServerHandlersContext): void {
   // Remote score server handlers
   ipcMain.handle('remote:getNetworkInterfaces', async () => {
@@ -88,6 +91,7 @@ export function registerRemoteServerHandlers({
           certFingerprint,
         });
         usedPorts.add(effectivePort);
+        onServerCreated?.(server);
 
         // Appliquer la config TTS persistée aux tablettes de ce nouveau serveur
         try {

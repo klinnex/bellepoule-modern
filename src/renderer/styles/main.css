@@ -1078,7 +1078,7 @@ body {
   border-radius: var(--radius-full);
   font-size: 0.75rem; /* +20 % (#1440) */
   font-weight: 700;
-  margin-left: 1.5rem; /* ~ une tabulation du nom (#1440) */
+  margin-left: 2.5rem; /* écart net avec le nom (#1440, #1654) */
   vertical-align: middle;
 }
 .ranking-status-badge--abandon {
@@ -1087,9 +1087,9 @@ body {
   border: 1px solid var(--warning);
 }
 .ranking-status-badge--forfait {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  background: #ffffff; /* blanc, aligné sur MED / Exclu (#1654) */
+  color: #1f2937;
+  border: 1px solid #9ca3af;
 }
 .ranking-status-badge--exclu {
   background: var(--danger-soft);

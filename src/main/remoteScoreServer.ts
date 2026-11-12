@@ -333,6 +333,10 @@ export class RemoteScoreServer {
   private readonly EVENT_BUFFER_MAX = 50;
   private readonly EVENT_BUFFER_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+  /** Rappel PisteHub Cyrano : reçoit chaque update d'arène pour envoyer DISP (#1720). */
+  public cyranoHook:
+    ((arenaId: string, update: import('../shared/types/remote').ArenaUpdate) => void) | undefined;
+
   // Registre des clients TV/affichage connectés (télécommande)
   private connectedClients: Map<
     string,
@@ -614,6 +618,8 @@ export class RemoteScoreServer {
         'sessionShowPhotos',
         'sessionTableTimerSeconds',
         'sessionTheme',
+        'sessionWeapon',
+        'cyranoHook',
       ],
       ['getArena', 'getSessionReferees', 'notifyKioskData']
     ));
@@ -1471,10 +1477,7 @@ export class RemoteScoreServer {
     return resolveDbMatchId(this.arenaOpsCtx, match);
   }
 
-  /**
-   * Match d'une autre poule réassigné manuellement sur cette piste (#1037) :
-   * ne change pas la poule propre de la piste (activePoolId).
-   */
+  /** Match d'une autre poule réassigné sur cette piste (#1037) : activePoolId inchangé. */
   private isGuestMatch(arenaId: string, m: { id: string; poolId?: string }): boolean {
     return isGuestMatch(this.arenaQueueCtx, arenaId, m);
   }
@@ -1614,8 +1617,16 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  private loadNextMatch(arenaId: string): void {
+  public loadNextMatch(arenaId: string): void {
     return loadNextMatch(this.arenaQueueCtx, arenaId);
+  }
+
+  public hasSession(): boolean {
+    return this.session !== null;
+  }
+
+  public getSessionWeapon(): string | null {
+    return this.sessionWeapon;
   }
 
   private buildDashboardSnapshot(

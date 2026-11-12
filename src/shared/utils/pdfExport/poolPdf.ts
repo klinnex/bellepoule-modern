@@ -7,7 +7,15 @@
 import { Pool, Match, MatchStatus, Fencer } from '../../types';
 import { calculateFencerQuestStats } from '../poolCalculations';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  buildCssOverrides,
+  assembleBody,
+  templateFor,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { getActiveLocale } from '../localeFormat';
 import { extractBodyContent, extractStyleContent } from './bookPdf';
 import { escHtml } from './bookToc';
@@ -30,6 +38,8 @@ export interface PoolExportOptions {
   stripQrUrl?: string; // saisie distante active : URL arbitre de la piste de la poule
   stripQrDataUrl?: string; // QR de stripQrUrl, généré par buildPoolExportHTML
   stripNumber?: number;
+  /** Coins OCR (position fixe) ; false dans les dossiers multi-sections, sinon répétés sur chaque page (#1712) */
+  ocrMarks?: boolean;
 }
 
 /** Colonnes calculées masquées par l'option `hideStatColumns`. */
@@ -141,8 +151,9 @@ const statCols = (): StatCol[] => [
 export function generatePoolHTML(
   pool: Pool,
   options: PoolExportOptions,
-  template?: PdfTemplate
+  rawTemplate?: PdfTemplate
 ): string {
+  const template = templateFor(rawTemplate, 'pool');
   const runtimeTitle = pdfT('pool_n', 'Poule {{n}}', { n: pool.number });
   const effectiveTitle = template?.customTitle?.trim() || options.title || runtimeTitle;
   const { competitionName = '', weapon = '', category = '', logoBase64, qrDataUrl } = options;
@@ -265,8 +276,9 @@ export function generatePoolHTML(
       <div class="subtitle">${pdfT('pool_sheet', 'Grille de poule')} • ${pdfT('matches_played', '{{done}}/{{total}} matchs joués', { done: finishedCount, total: matches.length })}${refereeLabel ? ' &nbsp;' + refereeLabel : ''}</div>
     </div>
     ${
-      options.stripQrDataUrl
-        ? `<div class="doc-header-strip-qr" title="${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}"><img src="${options.stripQrDataUrl}" alt="QR" /><span>${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}</span></div>`
+      // Numéro de piste affiché dès qu'il est connu ; QR seulement si la saisie distante est active (#1653)
+      options.stripNumber != null
+        ? `<div class="doc-header-strip-qr" title="${pdfT('strip', 'Piste')} ${options.stripNumber}">${options.stripQrDataUrl ? `<img src="${options.stripQrDataUrl}" alt="QR" />` : ''}<span>${pdfT('strip', 'Piste')} ${options.stripNumber}</span></div>`
         : ''
     }
     <div class="doc-header-badge">P${pool.number}</div>
@@ -311,7 +323,7 @@ export function generatePoolHTML(
 
   // Repères OCR (cadre bas-droit + QR) : seulement sur les feuilles qui portent un QR (#1712)
   const defaultOrder = [
-    ...(qrDataUrl ? ['ocr-marks'] : []),
+    ...(qrDataUrl && options.ocrMarks !== false ? ['ocr-marks'] : []),
     'header',
     'gold-bar',
     'competition-name',
@@ -406,6 +418,17 @@ export function generatePoolHTML(
       background: #1f3a5a;
       border-left: 2px solid var(--navy-light) !important;
     }
+
+    /* Piste : QR et numéro centrés dans la barre d'en-tête (#1653) */
+    .doc-header { position: relative; }
+    .doc-header-strip-qr {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+    }
+    .doc-header-strip-qr span { font-size: 12pt; }
 
     /* Marqueurs OCR (imprimés uniquement) */
     @media print {
@@ -510,7 +533,8 @@ export async function exportPoolToPDF(
 
 /** Saisie distante active : QR de la piste de chaque poule sur sa feuille (#1037) */
 export interface PoolStripQr {
-  url: string;
+  /** URL arbitre de la piste (absente hors saisie distante : seul le numéro est imprimé) */
+  url?: string;
   strip: number;
 }
 

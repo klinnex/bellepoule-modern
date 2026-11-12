@@ -111,11 +111,15 @@ export const DEPARTMENTS: readonly (readonly [string, string])[] = [
 
 const BY_CODE = new Map(DEPARTMENTS.map(([code, name]) => [code, name]));
 
-/** Normalise une saisie (« 5 » -> « 05 », « 2a » -> « 2A ») ; '' si invalide. */
+/**
+ * Normalise une saisie (« 5 » -> « 05 », « 2a » -> « 2A », « 095 » -> « 95 ») ; '' si invalide.
+ * Les zéros de tête superflus (codes sur 3 chiffres des XML FFE, #1504) sont retirés.
+ */
 export function normalizeDepartment(raw: string | undefined | null): string {
   const v = (raw ?? '').trim().toUpperCase();
   if (!v) return '';
-  const padded = /^\d$/.test(v) ? `0${v}` : v;
+  const stripped = v.replace(/^0+(?=[0-9A-Z]{2})/, '');
+  const padded = /^\d$/.test(stripped) ? `0${stripped}` : stripped;
   return BY_CODE.has(padded) ? padded : '';
 }
 

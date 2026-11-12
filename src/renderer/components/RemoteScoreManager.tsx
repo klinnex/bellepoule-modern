@@ -137,8 +137,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
               <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
             </div>
 
-            {/* Réseau */}
-            <div className="rsm-section rsm-section--full">
+            {/* Réseau : à droite de la carte Pistes (#1414) */}
+            <div className="rsm-section">
               <div className="rsm-section-label">{t('rsm.section_network')}</div>
               <div className="rsm-network-grid">
                 <select

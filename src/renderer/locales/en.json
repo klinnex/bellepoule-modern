@@ -1252,7 +1252,10 @@
     "victory": "Victory",
     "waiting_previous_round": "Waiting for the previous round",
     "weapon": "Weapon",
-    "col_department": "Department"
+    "col_department": "Department",
+    "col_handedness": "Handedness",
+    "handedness_left": "Left-handed",
+    "handedness_right": "Right-handed"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": ".bpf import error",
     "col_region": "Region",
     "col_department": "Department",
-    "deleted": "{{name}} deleted"
+    "deleted": "{{name}} deleted",
+    "col_handedness": "Handedness"
   },
   "questPhase": {
     "running_title": "Quest round in progress",
@@ -1703,6 +1707,7 @@
     "club_ph": "Club / association",
     "create": "+ Create",
     "no_team": "No teams — create one above.",
+    "no_pool_match": "No bouts — click “Generate pool” in the Teams tab.",
     "complete": "✓ Complete",
     "reserve_short": "Res.",
     "no_fencer": "No fencers",
@@ -1834,7 +1839,13 @@
     "update_n_one": "Update {{count}} ranking",
     "update_n_other": "Update {{count}} rankings",
     "import_n_one": "Import {{count}} fencer",
-    "import_n_other": "Import {{count}} fencers"
+    "import_n_other": "Import {{count}} fencers",
+    "referees_found": "referees found",
+    "list_choice": "Displayed list",
+    "referee_level": "Level",
+    "import_referees_n_one": "Import {{count}} referee",
+    "import_referees_n_other": "Import {{count}} referees",
+    "import_fencers_referees": "Import {{fencers}} fencer(s) and {{referees}} referee(s)"
   },
   "editFencer": {
     "title": "Edit fencer",
@@ -2960,5 +2971,48 @@
     "import": "Import in progress…",
     "export": "Export in progress…",
     "sync": "Synchronisation in progress…"
+  },
+  "eventDay": {
+    "button": "Event days",
+    "button_title": "Group the events of one venue: shared strips and referees",
+    "title": "Multi-event days",
+    "new_day": "New day",
+    "name": "Name",
+    "date": "Date",
+    "strips": "Venue strips",
+    "create": "Create",
+    "save": "Save",
+    "delete_confirm": "Delete the day \"{{name}}\"? Events are kept.",
+    "empty": "No day yet",
+    "select_hint": "Select or create a day.",
+    "competitions": "Events",
+    "competitions_hint": "Tick the events of the day. Day referees are copied into them according to their weapon.",
+    "other_day": "day {{name}}",
+    "referees": "Day referees",
+    "referees_hint": "Entered once, copied into every event of their weapon. No weapon ticked = all weapons.",
+    "referee": "Referee",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "club": "Club",
+    "weapons": "Weapons",
+    "weapons_all": "all weapons",
+    "status": "Status",
+    "free": "Free",
+    "strip": "Strip {{n}}",
+    "pool": "Pool {{n}}",
+    "match": "Bout {{n}}",
+    "add_referee": "Add",
+    "referee_delete_confirm": "Remove \"{{name}}\" from the day? Their records in the events are kept.",
+    "sync": "Copy into events",
+    "sync_title": "Create or update the referee records of each event according to weapon",
+    "sync_done": "{{added}} referee(s) added, {{updated}} updated",
+    "refresh": "Refresh",
+    "conflicts": "Conflicts across the day",
+    "no_conflicts": "No conflict.",
+    "conflict_multi_competition": "{{name}} is busy in several events",
+    "conflict_multi_strip": "{{name}} is busy on several strips",
+    "conflict_weapon": "{{name}} referees an event outside their weapons",
+    "busy_elsewhere": "Busy elsewhere: {{where}}",
+    "busy_elsewhere_title": "Referee busy in another event of the day"
   }
 }

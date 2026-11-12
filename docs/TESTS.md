@@ -22,7 +22,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
-| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
+| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
 `npm run test:e2e`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 51 | 667 |
+| `src/shared/utils/` | 53 | 690 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -96,19 +96,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 6 | 138 |
-| `src/main/` | 55 | 453 |
-| `src/renderer/services/` | 8 | 51 |
-| `src/renderer/hooks/` | 27 | 132 |
-| `src/renderer/components/` | 83 | 399 |
+| `src/database/` | 7 | 146 |
+| `src/main/` | 57 | 461 |
+| `src/renderer/services/` | 9 | 53 |
+| `src/renderer/hooks/` | 28 | 137 |
+| `src/renderer/components/` | 85 | 412 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 55 | 355 |
+| `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **341** | **2618** |
+| **Total** | **351** | **2689** |
 
-Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 341 fichiers, 2650 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -416,6 +416,20 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/eventDay.test.ts</code> — 7 tests</summary>
+
+- **eventDay (#1714)**
+  - parse et sérialise les armes
+  - autorise selon les armes (vide = toutes)
+  - nom complet
+  - statut commun libre / occupé
+  - détecte les conflits sur toute la journée
+  - pas de conflit pour deux poules successives sur la même piste
+  - occupé ailleurs : ignore l’épreuve courante
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/fencerExport.test.ts</code> — 12 tests</summary>
 
 - **exportFencersToFFF**
@@ -474,7 +488,7 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/fileParser.test.ts</code> — 45 tests</summary>
+<summary><code>src/shared/utils/fileParser.test.ts</code> — 49 tests</summary>
 
 - **parseSimpleTXTFile**
   - fichier vide → success=false, erreur
@@ -526,6 +540,11 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **issue #906 — lignes .fff avec champs omis**
   - tireur conservé : %s _(each)_
   - section personnelle incomplète : club et licence non décalés
+- **parseXMLFile — #1504 (arbitres, département, latéralité)**
+  - normalise le département 095 → 95 et 5 → 05
+  - lit la latéralité
+  - lit les arbitres du bloc \<Arbitres\> (références de poule ignorées)
+  - pas de bloc \<Arbitres\> → referees absent
 
 </details>
 
@@ -600,6 +619,17 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **isGregUrl (#1331)**
   - reconnaît les adresses escrime-info.com comme l'ancien BellePoule
   - laisse passer les autres serveurs
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/handedness.test.ts</code> — 4 tests</summary>
+
+- **needsLeftHandedSwap (#1439)**
+  - gaucher A contre droitier B : inversion
+  - gaucher B contre droitier A : déjà à gauche
+  - deux gauchers ou deux droitiers : placement de l’appel
+  - armes non olympiques : jamais
 
 </details>
 
@@ -734,11 +764,17 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/fullCompetitionPdf.test.ts</code> — 2 tests</summary>
+<summary><code>src/shared/utils/pdfExport/fullCompetitionPdf.test.ts</code> — 6 tests</summary>
 
 - **exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)**
   - les feuilles de poule gardent leur contenu avec le modèle poule
   - aucun repère OCR dans l’export sans signature
+- **modèle PDF d’un autre type ignoré (#1712)**
+  - poule : un modèle « classement » ne vide pas la grille
+  - tableau : un modèle « classement » ne vide pas les feuilles de match
+  - poule : titre personnalisé d’un modèle « classement » ignoré
+- **exportFullCompetitionPDF – coins OCR (#1712)**
+  - pas de cadre OCR fixe répété sur toutes les pages du dossier
 
 </details>
 
@@ -755,13 +791,18 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 11 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 15 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
   - masque V, V/M, TD, TR, Ind et Rg avec hideStatColumns
   - conserve les colonnes non statistiques (club) avec hideStatColumns
   - applique le format paysage
+- **generatePoolHTML – piste dans l'en-tête (#1653)**
+  - affiche le numéro de piste sans saisie distante (pas de QR)
+  - n'affiche aucun bloc piste sans numéro
+  - affiche le QR avec le numéro quand la saisie distante est active
+  - centre le bloc piste dans la barre d'en-tête
 - **generatePoolHTML – repères OCR (#1712)**
   - pas de cadre OCR bas-droit sans QR (export complet)
   - cadre OCR et QR présents sur une feuille avec QR
@@ -2054,10 +2095,11 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/competitionArchive.test.ts</code> — 4 tests</summary>
+<summary><code>src/database/competitionArchive.test.ts</code> — 5 tests</summary>
 
 - **competitionArchive (#1117)**
   - keepOnlyCompetition ne garde que la compétition demandée
+  - keepOnlyCompetition ne garde que la journée de la compétition (#1714)
   - mergeAttachedDatabase importe la compétition et remplace l'état existant
   - mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)
   - keepOnlyCompetition retire poules et matchs des autres compétitions
@@ -2119,6 +2161,20 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - retourne le repli sur null / vide
 - **cache de statements borné (#1007)**
   - ne dépasse pas la taille max et réutilise les statements
+
+</details>
+
+<details>
+<summary><code>src/database/repos/eventDayRepo.test.ts</code> — 7 tests</summary>
+
+- **EventDayRepo (#1714)**
+  - crée une journée et rattache des épreuves
+  - borne le nombre de pistes
+  - reporte les arbitres selon leur arme, sans doublon
+  - reprend une fiche homonyme existante et répercute les modifications
+  - n'agit pas sur une épreuve hors journée
+  - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
+  - délie les fiches quand on supprime arbitre, rattachement ou journée
 
 </details>
 
@@ -2387,6 +2443,17 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/ipc/eventDayHandlers.test.ts</code> — 4 tests</summary>
+
+- **handlers eventDay:\* (#1714)**
+  - synchronise toutes les épreuves de la journée
+  - rattacher synchronise, détacher non
+  - vue d’ensemble : statut commun et conflits
+  - occupé ailleurs : vide hors journée, sinon autres épreuves seulement
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/fileHandlers.test.ts</code> — 2 tests</summary>
 
 - **registerFileHandlers (#1341)**
@@ -2646,6 +2713,17 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - vagues terminées : fermeture des poules réappliquée au redémarrage (#1118)
   - rien de mémorisé (hors rapières) : serveur laissé sans filtre
   - setActiveWave sans serveur : mémorisé ; avec serveur : appliqué ; non-tableau = null
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaBroadcast.test.ts</code> — 4 tests</summary>
+
+- **applyLeftHandedSwap**
+  - gaucher A contre droitier B : bascule, une seule fois par match
+  - match suivant normal : retour au placement de l’appel
+  - inversion manuelle de l’écran conservée (XOR)
+  - arme non olympique ou pas de match : rien
 
 </details>
 
@@ -3243,6 +3321,15 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/services/resizeGuard.test.ts</code> — 2 tests</summary>
+
+- **installResizeGuard (#1652)**
+  - pose data-resizing pendant le geste et le retire après inactivité
+  - dispose retire l’attribut et l’écouteur
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/settingsTransfer.test.ts</code> — 5 tests</summary>
 
 - **settingsTransfer**
@@ -3348,6 +3435,18 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - filtre par type : matches:changed n'active pas fencers:changed
   - se désabonne au démontage
   - ne plante pas sans electronAPI
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionRestore.test.tsx</code> — 5 tests</summary>
+
+- **useCompetitionRestore – nombre de pistes (#1653)**
+  - par défaut : une piste par poule à partir de la première piste
+  - conserve un nombre de pistes choisi au-delà du nombre de poules (10 pistes pour 9 poules)
+  - conserve la fin de plage choisie (piste 4 à 14 pour 9 poules)
+  - clamp au nombre de poules quand les poules rétrécissent
+  - ne modifie pas la fin de plage quand seule la première piste change
 
 </details>
 
@@ -3835,6 +3934,16 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/EventDayModal.test.tsx</code> — 3 tests</summary>
+
+- **EventDayModal**
+  - affiche la journée, ses épreuves et le statut commun des arbitres
+  - rattache une épreuve et reporte les arbitres
+  - ajoute un arbitre avec ses armes
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/FencerList.test.tsx</code> — 5 tests</summary>
 
 - **FencerList**
@@ -3885,12 +3994,16 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 6 tests</summary>
 
 - **ImportModal**
   - affiche le fichier et la liste des tireurs parsés
   - importe les tireurs sélectionnés (tous par défaut) puis ferme
   - le bouton fermer déclenche onClose
+  - **XML avec \<Arbitres\> (#1504)**
+    - affiche le nombre d'arbitres et bascule la liste
+    - importe tireurs et arbitres sélectionnés
+    - sans onImportReferees : arbitres affichés, non importés
 
 </details>
 
@@ -3942,12 +4055,25 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 7 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
   - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
   - bouton « Lancer » puis « Relancer » une fois les poules lancées
+  - brouillon : modifications reprises au retour depuis l'appel (#1649)
+  - sans brouillon : publie l'état initial
+- **PoolPrepView – brouillon de préparation (#1649)**
+  - le brouillon prime sur les poules initiales (retour depuis l'appel)
+  - modification manuelle → brouillon transmis
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolRankingView.test.tsx</code> — 1 test</summary>
+
+- **PoolRankingView – exclusions (#1440)**
+  - carton noir → rang « - » + icône ; exclusion simple → DNF
 
 </details>
 
@@ -4222,12 +4348,14 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 5 tests</summary>
 
 - **CompetitionHeader - bouton propriétés (#1505)**
   - affiche le bouton directement dans le bandeau et ouvre les propriétés
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
+  - reste surligné (aria-current) quand la vue saisie distante est active
+  - non surligné hors de la vue saisie distante
   - sans gestionnaire : pas de bouton
 
 </details>
@@ -4820,6 +4948,17 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/displayMode.test.ts</code> — 4 tests</summary>
+
+- **mode display (#1303)**
+  - %s?display=1 : aucun contrôle visible _(each)_
+  - %s sans paramètre : contrôles inchangés _(each)_
+  - display=10 ou display=0 n’active pas le mode
+  - routes des écrans publics : GET uniquement
+
+</details>
+
+<details>
 <summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
 
 - **échelle typographique fluide (#1540)**
@@ -5186,7 +5325,7 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 6 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 7 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
@@ -5196,6 +5335,8 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours
   - match non commencé ou autre match : durée initiale, sauvegarde effacée
   - retour à la liste (fin de match) : sauvegarde du chrono effacée
+- **armes olympiques : point au clic sur la case score (#1713)**
+  - le +1 est masqué et un clic sur la case score ajoute 1 point, chrono arrêté
 
 </details>
 
@@ -5292,7 +5433,7 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeLobby.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 15 tests</summary>
 
 - **refereeLobby.js**
   - arenaFromPath : /areneN/arbitre et /arenaN
@@ -5303,6 +5444,12 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - install : hors entraînement, rien (pas de claim, pas de bouton)
   - install : miroir de démo (?demo=1) ignoré
   - install : piste occupée (409) → redirection vers le lobby
+- **refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)**
+  - fromLobby : ?lobby=1 uniquement
+  - pickMatch : en cours prioritaire, sinon premier à jouer, sinon null
+  - autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1
+  - autoOpen : match déjà ouvert ou liste vide → rien
+  - autoOpen : liste jamais chargée → abandon après les essais
 - **referee.html et trainingLobby.html (#1500)**
   - referee.html charge le module et lance install
   - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
@@ -5365,7 +5512,7 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 10 tests</summary>
 
 - **refereeUpdate.js**
   - scoreValue : nombre, objet, absent
@@ -5376,6 +5523,9 @@ Unitaires : 331 fichiers, 2579 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - ready : nouveau match, déjà courant, ou match en cours
   - replaceOrPush et markReadyOrPush
   - referee.html charge le module et délègue
+- **leftHandedSwap (#1439)**
+  - gaucher A contre droitier B, arme olympique : inversion
+  - B gaucher, deux gauchers, Laser, sans match : pas d’inversion
 
 </details>
 

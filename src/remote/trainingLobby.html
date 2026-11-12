@@ -72,7 +72,7 @@
         for (const a of arenas) {
           const el = document.createElement(a.occupied && !a.mine ? 'div' : 'a');
           el.className = 'strip' + (a.occupied ? (a.mine ? ' mine' : ' occupied') : '');
-          if (el.tagName === 'A') el.href = '/arene' + encodeURIComponent(a.number) + '/arbitre';
+          if (el.tagName === 'A') el.href = '/arene' + encodeURIComponent(a.number) + '/arbitre?lobby=1';
           if (a.occupied && !a.mine) el.setAttribute('aria-disabled', 'true');
           const name = document.createElement('span');
           name.textContent = window.T('traininglobby.arena', { n: a.number });

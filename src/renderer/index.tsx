@@ -9,6 +9,7 @@ import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { applyUiScale, loadUiScale } from './services/uiScale';
 import { applyUiDensity, loadUiDensity } from './services/uiDensity';
+import { installResizeGuard } from './services/resizeGuard';
 import './styles/main.css';
 import './styles/formula.css';
 import './styles/design.css';
@@ -28,8 +29,10 @@ import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
 import './styles/dashboard.css';
+import './styles/event-day.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
+import './styles/resize-guard.css';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 /// <reference path="./types.d.ts" />
 
@@ -46,6 +49,8 @@ window.addEventListener('error', event => {
 // Taille du texte choisie dans les paramètres (#1156), avant le premier rendu
 applyUiScale(loadUiScale());
 applyUiDensity(loadUiDensity());
+// Redimensionnement manuel : flou et animations coupés pendant le geste (#1652)
+installResizeGuard();
 
 const container = document.getElementById('root');
 if (container) {

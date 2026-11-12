@@ -19,6 +19,15 @@ import {
   FencerCompetitionStats,
 } from '../types';
 import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
+import type {
+  DayReferee,
+  DayRefereeAssignment,
+  DayRefereeConflict,
+  DayRefereeInput,
+  DayRefereeStatus,
+  DaySyncResult,
+  EventDay,
+} from './eventDay';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -1221,6 +1230,33 @@ export interface TrainingMatchRecord {
   finishedAt: string;
 }
 
+/** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
+export interface EventDayAPI {
+  list: () => Promise<EventDay[]>;
+  create: (data: { name: string; date: string; stripCount?: number }) => Promise<EventDay>;
+  update: (
+    id: string,
+    updates: { name?: string; date?: string; stripCount?: number }
+  ) => Promise<EventDay | null>;
+  delete: (id: string) => Promise<void>;
+  setCompetitionDay: (competitionId: string, dayId: string | null) => Promise<DaySyncResult>;
+  listReferees: (dayId: string) => Promise<DayReferee[]>;
+  createReferee: (dayId: string, data: DayRefereeInput) => Promise<DayReferee>;
+  updateReferee: (id: string, data: DayRefereeInput) => Promise<void>;
+  deleteReferee: (id: string) => Promise<void>;
+  /** Reporte les arbitres de la journée dans chaque épreuve selon son arme */
+  syncReferees: (dayId: string) => Promise<DaySyncResult>;
+  /** Statut commun des arbitres + conflits sur toute la journée */
+  getOverview: (dayId: string) => Promise<EventDayOverview>;
+  /** Arbitres de l'épreuve occupés dans une autre épreuve de la journée (clé = id arbitre) */
+  getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
+}
+
+export interface EventDayOverview {
+  statuses: DayRefereeStatus[];
+  conflicts: DayRefereeConflict[];
+}
+
 export interface TrainingAPI {
   startServer: (
     port?: number,
@@ -1330,6 +1366,48 @@ export interface PrintDialogAPI {
 /** Types d'événements du bus de données main → renderer (#1298) */
 export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
 
+// ============================================================================
+// Cyrano API (#1720)
+// ============================================================================
+
+export interface CyranoPisteConfigDTO {
+  piste: string;
+  ip: string;
+  port?: number;
+  arena?: number;
+  protocol?: 'EFP1' | 'EFP1.1' | 'auto';
+}
+
+export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
+  status: 'online' | 'stale' | 'offline' | 'never';
+  lastSeen: number | null;
+  detectedProtocol: 'EFP1' | 'EFP1.1' | null;
+}
+
+export interface CyranoStatusDTO {
+  running: boolean;
+  port: number;
+  pistes: CyranoPisteStatusDTO[];
+}
+
+export interface CyranoAPI {
+  start: (options?: {
+    port?: number;
+    host?: string;
+    compe?: string;
+  }) => Promise<{ success: boolean; port?: number; error?: string }>;
+  stop: () => Promise<void>;
+  isRunning: () => Promise<boolean>;
+  setPistes: (pistes: CyranoPisteConfigDTO[]) => Promise<void>;
+  getStatus: () => Promise<CyranoStatusDTO>;
+  getLog: () => Promise<unknown[]>;
+  setOptions: (options: {
+    nameLength?: 10 | 12 | 15 | 20;
+    natSource?: 'country' | 'club' | 'region' | 'auto';
+    international?: boolean;
+  }) => Promise<void>;
+}
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
@@ -1343,6 +1421,8 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
+  eventDay: EventDayAPI;
+  cyrano: CyranoAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;

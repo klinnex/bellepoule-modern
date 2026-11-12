@@ -97,14 +97,14 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), cyranoHandlers (cyrano:*, #1720) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
-├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, endValidation (ACK/NAK), server (UDP, HELLO 15 s, supervision, journal) — pas encore raccordé aux arènes
+├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, endValidation (ACK/NAK), server (UDP, HELLO 15 s, supervision, journal), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
@@ -195,9 +195,9 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
-├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
+├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 20 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 22 versions)
 ```
 
 ### Key Patterns
@@ -216,9 +216,11 @@ Database (src/database/)
    - `dialog.*` – Open/save file dialogs
    - `remote.*` – Start/stop server, manage arenas/sessions/themes/passwords
    - `training.*` – Training-mode server
+   - `eventDay.*` – Journée multi-épreuves : épreuves regroupées, arbitres partagés, conflits (docs/JOURNEE_MULTI_EPREUVES.md)
    - `updater.*` – Auto-update control
    - `crypto.*` – safeStorage protect/unprotect
    - `themes.*` – Screen themes
+   - `cyrano.*` – Appareils de piste Cyrano : start/stop UDP, pistes, statuts, log (#1720)
    - `notifyLanguageChanged(lang)` – Rebuild native menu when UI language changes
 
 ## TypeScript Configuration

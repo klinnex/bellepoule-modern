@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { FencerStatus, Pool } from '../../../shared/types';
 import { poolsHaveScores } from '../../components/poolLaunchState';
 import { persistPools } from '../../components/poolPersistence';
+import type { PoolPrepDraft } from '../../components/PoolPrepView';
 import { useSplitGroups } from '../useSplitGroups';
 import { useCompetitionNavigation } from '../useCompetitionNavigation';
 import { useCompetitionMenu } from '../useCompetitionMenu';
@@ -121,6 +122,10 @@ export function useCompetitionSessionSync(ctx: Ctx) {
 
   // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
   const [poolsLaunched, setPoolsLaunched] = useState(false);
+  // « Repréparer » après lancement : onglet Poules verrouillé jusqu'à « Relancer » (#1649)
+  const [relaunchPending, setRelaunchPending] = useState(false);
+  // Modifications de préparation gardées au retour vers l'appel (#1649)
+  const [poolPrepDraft, setPoolPrepDraft] = useState<PoolPrepDraft | null>(null);
 
   const { isLoaded } = useCompetitionRestore({
     competitionId: competition.id,
@@ -242,6 +247,11 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
       resetRapieresWaves(newPools);
+      setPoolPrepDraft(null);
+      if (poolsLaunched) {
+        setPoolsLaunched(false);
+        setRelaunchPending(true);
+      }
       await persistPoolsToDB(newPools);
       // Fermer l'inscription distante dès que les poules sont générées
       if (isRemoteActive && window.electronAPI?.remote?.setRegistrationEnabled) {
@@ -402,6 +412,10 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   return {
     poolsLaunched,
     setPoolsLaunched,
+    relaunchPending,
+    setRelaunchPending,
+    poolPrepDraft,
+    setPoolPrepDraft,
     isLoaded,
     fireWebhookNotif,
     persistPoolsToDB,

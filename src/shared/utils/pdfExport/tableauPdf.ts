@@ -5,7 +5,15 @@
  */
 
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  buildCssOverrides,
+  assembleBody,
+  templateFor,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Tableau Élimination Directe ──────────────────────────────────────
@@ -59,11 +67,12 @@ export function generateTableauHTML(
   matchesPerPage: number,
   title: string,
   logoBase64?: string,
-  template?: PdfTemplate,
+  rawTemplate?: PdfTemplate,
   showScores = false,
   signatures?: Record<string, { A?: string; B?: string }>,
   options?: TableauSheetOptions
 ): string {
+  const template = templateFor(rawTemplate, 'tableau');
   const real = realMatches(matches);
   const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',

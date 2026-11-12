@@ -1252,7 +1252,10 @@
     "victory": "Sieg",
     "waiting_previous_round": "Warten auf die vorherige Runde",
     "weapon": "Waffe",
-    "col_department": "Departement"
+    "col_department": "Departement",
+    "col_handedness": "Händigkeit",
+    "handedness_left": "Linkshänder",
+    "handedness_right": "Rechtshänder"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Fehler beim .bpf-Import",
     "col_region": "Region",
     "col_department": "Departement",
-    "deleted": "{{name}} gelöscht"
+    "deleted": "{{name}} gelöscht",
+    "col_handedness": "Händigkeit"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",
@@ -1703,6 +1707,7 @@
     "club_ph": "Verein",
     "create": "+ Erstellen",
     "no_team": "Keine Teams — oben eines erstellen.",
+    "no_pool_match": "Keine Gefechte — im Tab „Teams“ auf „Pool erzeugen“ klicken.",
     "complete": "✓ Vollständig",
     "reserve_short": "Ers.",
     "no_fencer": "Keine Fechter",
@@ -1834,7 +1839,13 @@
     "update_n_one": "{{count}} Rangliste aktualisieren",
     "update_n_other": "{{count}} Ranglisten aktualisieren",
     "import_n_one": "{{count}} Fechter importieren",
-    "import_n_other": "{{count}} Fechter importieren"
+    "import_n_other": "{{count}} Fechter importieren",
+    "referees_found": "Kampfrichter gefunden",
+    "list_choice": "Angezeigte Liste",
+    "referee_level": "Stufe",
+    "import_referees_n_one": "{{count}} Kampfrichter importieren",
+    "import_referees_n_other": "{{count}} Kampfrichter importieren",
+    "import_fencers_referees": "{{fencers}} Fechter und {{referees}} Kampfrichter importieren"
   },
   "editFencer": {
     "title": "Fechter bearbeiten",
@@ -2960,5 +2971,48 @@
     "import": "Import läuft…",
     "export": "Export läuft…",
     "sync": "Synchronisierung läuft…"
+  },
+  "eventDay": {
+    "button": "Turniertage",
+    "button_title": "Wettbewerbe einer Halle gruppieren: gemeinsame Bahnen und Kampfrichter",
+    "title": "Turniertage mit mehreren Wettbewerben",
+    "new_day": "Neuer Turniertag",
+    "name": "Name",
+    "date": "Datum",
+    "strips": "Bahnen der Halle",
+    "create": "Erstellen",
+    "save": "Speichern",
+    "delete_confirm": "Turniertag „{{name}}“ löschen? Die Wettbewerbe bleiben erhalten.",
+    "empty": "Noch kein Turniertag",
+    "select_hint": "Turniertag auswählen oder erstellen.",
+    "competitions": "Wettbewerbe",
+    "competitions_hint": "Wettbewerbe des Tages ankreuzen. Die Kampfrichter des Tages werden je nach Waffe übernommen.",
+    "other_day": "Turniertag {{name}}",
+    "referees": "Kampfrichter des Tages",
+    "referees_hint": "Einmal erfasst, in jeden Wettbewerb ihrer Waffe übernommen. Keine Waffe angekreuzt = alle Waffen.",
+    "referee": "Kampfrichter",
+    "first_name": "Vorname",
+    "last_name": "Nachname",
+    "club": "Verein",
+    "weapons": "Waffen",
+    "weapons_all": "alle Waffen",
+    "status": "Status",
+    "free": "Frei",
+    "strip": "Bahn {{n}}",
+    "pool": "Pool {{n}}",
+    "match": "Gefecht {{n}}",
+    "add_referee": "Hinzufügen",
+    "referee_delete_confirm": "„{{name}}“ aus dem Turniertag entfernen? Die Einträge in den Wettbewerben bleiben erhalten.",
+    "sync": "In Wettbewerbe übernehmen",
+    "sync_title": "Kampfrichtereinträge jedes Wettbewerbs je nach Waffe anlegen oder aktualisieren",
+    "sync_done": "{{added}} Kampfrichter hinzugefügt, {{updated}} aktualisiert",
+    "refresh": "Aktualisieren",
+    "conflicts": "Konflikte am Turniertag",
+    "no_conflicts": "Kein Konflikt.",
+    "conflict_multi_competition": "{{name}} ist in mehreren Wettbewerben eingesetzt",
+    "conflict_multi_strip": "{{name}} ist auf mehreren Bahnen eingesetzt",
+    "conflict_weapon": "{{name}} leitet einen Wettbewerb außerhalb seiner Waffen",
+    "busy_elsewhere": "Anderweitig eingesetzt: {{where}}",
+    "busy_elsewhere_title": "Kampfrichter in einem anderen Wettbewerb des Tages eingesetzt"
   }
 }

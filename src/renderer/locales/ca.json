@@ -1252,7 +1252,10 @@
     "victory": "Victòria",
     "waiting_previous_round": "A l'espera de la ronda anterior",
     "weapon": "Arma",
-    "col_department": "Departament"
+    "col_department": "Departament",
+    "col_handedness": "Lateralitat",
+    "handedness_left": "Esquerrà",
+    "handedness_right": "Dretà"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -1502,7 +1505,8 @@
     "bpf_import_error": "Error en la importació .bpf",
     "col_region": "Regió",
     "col_department": "Departament",
-    "deleted": "{{name}} eliminat"
+    "deleted": "{{name}} eliminat",
+    "col_handedness": "Lateralitat"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
@@ -1703,6 +1707,7 @@
     "club_ph": "Club / associació",
     "create": "+ Crea",
     "no_team": "Cap equip: creeu-ne un a dalt.",
+    "no_pool_match": "Cap combat: feu clic a «Genera la poule» a la pestanya Equips.",
     "complete": "✓ Complet",
     "reserve_short": "Res.",
     "no_fencer": "Cap tirador",
@@ -1834,7 +1839,13 @@
     "update_n_one": "Actualitza {{count}} classificació",
     "update_n_other": "Actualitza {{count}} classificacions",
     "import_n_one": "Importa {{count}} tirador",
-    "import_n_other": "Importa {{count}} tiradors"
+    "import_n_other": "Importa {{count}} tiradors",
+    "referees_found": "àrbitres trobats",
+    "list_choice": "Llista mostrada",
+    "referee_level": "Nivell",
+    "import_referees_n_one": "Importa {{count}} àrbitre",
+    "import_referees_n_other": "Importa {{count}} àrbitres",
+    "import_fencers_referees": "Importa {{fencers}} tirador(s) i {{referees}} àrbitre(s)"
   },
   "editFencer": {
     "title": "Edita el tirador",
@@ -2960,5 +2971,48 @@
     "import": "Importació en curs…",
     "export": "Exportació en curs…",
     "sync": "Sincronització en curs…"
+  },
+  "eventDay": {
+    "button": "Jornades",
+    "button_title": "Agrupar les proves d'una mateixa sala: pistes i àrbitres compartits",
+    "title": "Jornades multiprova",
+    "new_day": "Nova jornada",
+    "name": "Nom",
+    "date": "Data",
+    "strips": "Pistes de la sala",
+    "create": "Crear",
+    "save": "Desar",
+    "delete_confirm": "Suprimir la jornada «{{name}}»? Les proves es conserven.",
+    "empty": "Cap jornada",
+    "select_hint": "Seleccioneu o creeu una jornada.",
+    "competitions": "Proves",
+    "competitions_hint": "Marqueu les proves de la jornada. Els àrbitres de la jornada s'hi copien segons la seva arma.",
+    "other_day": "jornada {{name}}",
+    "referees": "Àrbitres de la jornada",
+    "referees_hint": "Introduïts un sol cop, copiats a cada prova de la seva arma. Cap arma marcada = totes les armes.",
+    "referee": "Àrbitre",
+    "first_name": "Nom",
+    "last_name": "Cognom",
+    "club": "Club",
+    "weapons": "Armes",
+    "weapons_all": "totes les armes",
+    "status": "Estat",
+    "free": "Lliure",
+    "strip": "Pista {{n}}",
+    "pool": "Poule {{n}}",
+    "match": "Assalt {{n}}",
+    "add_referee": "Afegir",
+    "referee_delete_confirm": "Treure «{{name}}» de la jornada? Les seves fitxes a les proves es conserven.",
+    "sync": "Copiar a les proves",
+    "sync_title": "Crear o actualitzar les fitxes d'àrbitre de cada prova segons l'arma",
+    "sync_done": "{{added}} àrbitre(s) afegit(s), {{updated}} actualitzat(s)",
+    "refresh": "Actualitzar",
+    "conflicts": "Conflictes a la jornada",
+    "no_conflicts": "Cap conflicte.",
+    "conflict_multi_competition": "{{name}} està ocupat en diverses proves",
+    "conflict_multi_strip": "{{name}} està ocupat en diverses pistes",
+    "conflict_weapon": "{{name}} arbitra una prova fora de les seves armes",
+    "busy_elsewhere": "Ocupat en una altra prova: {{where}}",
+    "busy_elsewhere_title": "Àrbitre ocupat en una altra prova de la jornada"
   }
 }

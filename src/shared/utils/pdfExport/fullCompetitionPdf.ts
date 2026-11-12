@@ -128,6 +128,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
           logoBase64: logo,
           competitionName: competitionTitle,
           signatures: poolSignatures?.[pool.id],
+          ocrMarks: false,
         },
         undefined
       )
@@ -266,6 +267,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
           title: `${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })} — ${competitionTitle}`,
           logoBase64: logo,
           competitionName: competitionTitle,
+          ocrMarks: false,
         },
         poolTemplate
       )

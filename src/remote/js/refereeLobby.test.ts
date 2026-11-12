@@ -102,6 +102,63 @@ describe('refereeLobby.js', () => {
   });
 });
 
+describe('refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)', () => {
+  it('fromLobby : ?lobby=1 uniquement', () => {
+    expect(L.fromLobby('?lobby=1')).toBe(true);
+    expect(L.fromLobby('')).toBe(false);
+    expect(L.fromLobby('?demo=1')).toBe(false);
+  });
+
+  it('pickMatch : en cours prioritaire, sinon premier à jouer, sinon null', () => {
+    const a = { id: 'a', status: 'not_started' };
+    const b = { id: 'b', status: 'in_progress' };
+    expect(L.pickMatch([a, b])).toBe(b);
+    expect(L.pickMatch([a])).toBe(a);
+    expect(L.pickMatch([{ id: 'c', status: 'finished' }])).toBeNull();
+    expect(L.pickMatch(undefined)).toBeNull();
+  });
+
+  function lobbyWin() {
+    const replaceState = vi.fn();
+    return {
+      replaceState,
+      win: {
+        location: { href: 'http://h:8066/arene3/arbitre?lobby=1' },
+        history: { replaceState },
+        setTimeout: (fn: () => void) => fn(),
+      },
+    };
+  }
+
+  it('autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1', async () => {
+    const { win, replaceState } = lobbyWin();
+    const app: Record<string, unknown> = { currentMatch: null, allMatches: undefined };
+    const select = vi.fn();
+    let calls = 0;
+    const getApp = () => {
+      if (++calls === 2) app.allMatches = [{ id: 'm1', status: 'not_started' }];
+      app.selectMatchFromNextScreen = select;
+      return app;
+    };
+    expect(await L.autoOpen(win, getApp)).toBe(true);
+    expect(select).toHaveBeenCalledWith('m1');
+    expect(replaceState).toHaveBeenCalledWith(null, '', '/arene3/arbitre');
+  });
+
+  it('autoOpen : match déjà ouvert ou liste vide → rien', async () => {
+    const select = vi.fn();
+    const busy = { currentMatch: { id: 'x' }, allMatches: [], selectMatchFromNextScreen: select };
+    expect(await L.autoOpen(lobbyWin().win, () => busy)).toBe(false);
+    const empty = { currentMatch: null, allMatches: [], selectMatchFromNextScreen: select };
+    expect(await L.autoOpen(lobbyWin().win, () => empty)).toBe(false);
+    expect(select).not.toHaveBeenCalled();
+  });
+
+  it('autoOpen : liste jamais chargée → abandon après les essais', async () => {
+    expect(await L.autoOpen(lobbyWin().win, () => null, 3)).toBe(false);
+  });
+});
+
 describe('referee.html et trainingLobby.html (#1500)', () => {
   const dir = path.join(__dirname, '..');
   const referee =
@@ -117,7 +174,7 @@ describe('referee.html et trainingLobby.html (#1500)', () => {
 
   it('page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js', () => {
     expect(lobby).toContain('/api/training/lobby');
-    expect(lobby).toContain("'/arene' + encodeURIComponent(a.number) + '/arbitre'");
+    expect(lobby).toContain("'/arene' + encodeURIComponent(a.number) + '/arbitre?lobby=1'");
     expect(lobby).toContain('traininglobby.occupied');
     expect(lobby).toContain('<script src="/i18n.js"></script>');
     expect(lobby).not.toMatch(/innerHTML/);
