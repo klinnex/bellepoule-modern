@@ -287,6 +287,11 @@ For remote scoring functionality, you need additional devices:
 - Make the AppImage executable: `chmod +x BellePoule.Modern.AppImage`
 - Check file permissions with `ls -la`
 
+**Ubuntu 24.04+ : "FATAL ... SUID sandbox helper binary"** (`npm start` ou binaire Electron)
+
+- Cause : restriction AppArmor des user namespaces, sandbox Chromium indisponible.
+- Solutions, risques compris (profil AppArmor dédié, setuid `chrome-sandbox`, `--no-sandbox`) : [docs/SECURITE_ELECTRON.md](docs/SECURITE_ELECTRON.md#sandbox-chromium-sous-linux-ubuntu-2404-1715).
+
 **"Missing dependencies"**
 
 - Install required packages:
