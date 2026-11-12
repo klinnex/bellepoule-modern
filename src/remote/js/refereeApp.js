@@ -1191,6 +1191,7 @@ class RefereeApp extends RefereeAppBase {
       // Fusionner dans this.matches pour que selectMatch() fonctionne
       BPRefereeLists.mergeMatches(this.matches, pending);
       this.allMatches = pending;
+      this.matchesLoaded = true; // liste réellement chargée (ouverture auto depuis le lobby, #1500)
       // Remettre la recherche à zéro
       const searchInput = document.getElementById('match-search');
       if (searchInput) searchInput.value = '';

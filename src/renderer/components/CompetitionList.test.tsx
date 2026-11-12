@@ -42,21 +42,18 @@ describe('CompetitionList (export accueil)', () => {
       color: '#3B5BDB',
     }) as unknown as Competition;
 
-  it('bouton Exporter ouvre le choix de compétition puis appelle onExport avec l’identifiant', () => {
-    const onExport = vi.fn();
+  it('pas de bouton Exporter global : export par carte uniquement (#1651)', () => {
     render(
       <CompetitionList
-        competitions={[comp('c1', 'Alpha'), comp('c2', 'Beta')]}
+        competitions={[comp('c1', 'Alpha')]}
         isLoading={false}
         onSelect={() => {}}
         onDelete={() => {}}
         onNewCompetition={() => {}}
-        onExport={onExport}
+        onExport={() => {}}
       />
     );
-    fireEvent.click(screen.getByText('competitionList.export'));
-    fireEvent.click(screen.getByRole('button', { name: 'Beta' }));
-    expect(onExport).toHaveBeenCalledWith('c2');
+    expect(screen.queryByText('competitionList.export')).toBeNull();
   });
 
   it('pas de bouton Exporter sans compétition', () => {

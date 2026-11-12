@@ -54,7 +54,6 @@ import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { restartGuidedTour } from './guidedTourFlags';
 import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
-import { CompetitionExportPicker } from './CompetitionExportPicker';
 import { EventDayModal } from './EventDayModal';
 import { Button } from './common/Button';
 import { Icon } from './common/Icon';
@@ -86,7 +85,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
-  const [showExportPicker, setShowExportPicker] = React.useState(false);
   const [showEventDays, setShowEventDays] = React.useState(false);
 
   const handleDelete = async (competition: Competition) => {
@@ -431,18 +429,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               {t('eventDay.button')}
             </Button>
           )}
-          {onExport && competitions.length > 0 && (
-            <Button
-              type="button"
-              size="lg"
-              className="btn-icon-label"
-              onClick={() => setShowExportPicker(true)}
-              title={t('competitionList.export_title')}
-            >
-              <Download size={18} />
-              {t('competitionList.export')}
-            </Button>
-          )}
           {onOpenFile && (
             <Button
               size="lg"
@@ -634,17 +620,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
       {showEventDays && (
         <EventDayModal competitions={competitions} onClose={() => setShowEventDays(false)} />
       )}
-      {showExportPicker && onExport && (
-        <CompetitionExportPicker
-          competitions={competitions}
-          onPick={id => {
-            setShowExportPicker(false);
-            onExport(id);
-          }}
-          onClose={() => setShowExportPicker(false)}
-        />
-      )}
-
       {totalItems > pageSize && (
         <div
           className="pagination-bar"

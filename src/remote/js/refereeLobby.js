@@ -96,7 +96,8 @@
       function check() {
         var a = app && app();
         if (a && a.currentMatch) return resolve(false); // déjà sur un match
-        if (a && a.allMatches) {
+        // allMatches vaut [] avant le premier chargement : attendre la vraie liste (#1500)
+        if (a && a.matchesLoaded && a.allMatches) {
           var m = pickMatch(a.allMatches);
           if (m) a.selectMatchFromNextScreen(m.id);
           return resolve(!!m);

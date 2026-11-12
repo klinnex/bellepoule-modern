@@ -1075,7 +1075,7 @@ select:focus {
   font-size: 0.8125rem;
   font-family: var(--font-sans);
   transition: all var(--duration-fast) ease;
-  margin: 0 auto 0 1rem;
+  margin: 0 -0.5rem 0 1rem; /* aide raccourcis collée à droite de la recherche (#1651) */
   min-width: 180px;
 }
 

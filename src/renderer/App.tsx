@@ -62,6 +62,7 @@ import { ipcErrorText } from './services/ipcError';
 import { Button } from './components/common/Button';
 import { Tooltip } from './components/Tooltip';
 import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
+import { saveActiveSection } from './components/settingsModal.helpers';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 
@@ -1109,8 +1110,9 @@ const AppContent: React.FC = () => {
                 setShowCommandPalette(false);
                 setShowNewCompetitionModal(true);
               }}
-              onOpenSettings={() => {
+              onOpenSettings={section => {
                 setShowCommandPalette(false);
+                if (section) saveActiveSection(section);
                 setShowSettingsModal(true);
               }}
               onRunCommand={handleRunCommand}
