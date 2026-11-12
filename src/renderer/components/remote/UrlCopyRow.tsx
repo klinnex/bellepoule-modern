@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Ligne « URL + copier + QR code » de la saisie distante (#1414)
+ * BellePoule Modern - Ligne « Copier URL + QR code » de la saisie distante (#1414)
  * Licensed under GPL-3.0
  */
 import { TipButton } from '../Tooltip';
@@ -21,14 +21,13 @@ export const UrlCopyRow: React.FC<Props> = ({ url, id, copiedIndex, onCopy, onQr
   const { t } = useTranslation();
   return (
     <div className="arena-url-row">
-      <span className="arena-url-label">URL</span>
-      <code className="arena-url-value">{url}</code>
-      <button className="btn-copy" onClick={() => onCopy(url, id)} title={t('rsm.copy_url')}>
-        {copiedIndex === id ? t('rsm.copied_short') : <Icon icon={ClipboardList} />}
-      </button>
-      <TipButton className="btn-qr" onClick={onQr} tip={t('rsm.qr_code')}>
-        <Icon icon={Smartphone} />
+      <TipButton className="btn-copy btn-wide" onClick={() => onCopy(url, id)} tip={url}>
+        <Icon icon={ClipboardList} />
+        {copiedIndex === id ? t('rsm.copied_short') : t('rsm.copy_url_short')}
       </TipButton>
+      <button className="btn-qr btn-wide" onClick={onQr} title={url}>
+        <Icon icon={Smartphone} /> {t('rsm.qr_code')}
+      </button>
     </div>
   );
 };
