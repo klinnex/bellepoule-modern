@@ -26,7 +26,6 @@ import type {
   DayRefereeInput,
   DayRefereeStatus,
   DaySyncResult,
-  DayStripStatus,
   EventDay,
 } from './eventDay';
 
@@ -1249,13 +1248,9 @@ export interface EventDayAPI {
   syncReferees: (dayId: string) => Promise<DaySyncResult>;
   /** Statut commun des arbitres + conflits sur toute la journée */
   getOverview: (dayId: string) => Promise<EventDayOverview>;
-  /** Arbitres de l'épreuve occupés dans une autre épreuve de la journée (clé = id arbitre) */
   getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
-  /** État d'occupation de chaque piste numérotée de la journée */
-  getStripOccupation: (dayId: string) => Promise<DayStripStatus[]>;
+  getStripOccupation: (dayId: string) => Promise<import('./eventDay').DayStripStatus[]>;
 }
-
-export type { DayStripStatus };
 
 export interface EventDayOverview {
   statuses: DayRefereeStatus[];

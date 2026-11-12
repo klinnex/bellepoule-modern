@@ -52,7 +52,7 @@
         gap: 0.2rem;
       }
       .strip-card.busy {
-        border-color: #d97706;
+        border-color: var(--color-warning);
         background: rgba(217, 119, 6, 0.12);
       }
       .strip-card .strip-num {
@@ -65,7 +65,7 @@
         color: var(--slate-400);
       }
       .strip-card.busy .strip-status {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
       }
       .competitions-list {
         display: flex;
@@ -156,11 +156,13 @@
             root.innerHTML = '<div class="no-day">Aucune journée multi-épreuves configurée pour ce serveur.</div>';
             return;
           }
-          const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const competitionsHtml = renderCompetitions(data.competitions);
+          const stripsHtml = renderStrips(data.strips);
           root.innerHTML = '<header><h1>' + esc(data.day.name) + '</h1><p>' + esc(data.day.date) + '</p></header>'
-            + renderCompetitions(data.competitions)
-            + renderStrips(data.strips)
-            + '<p class="refresh-time">Actualisé à ' + now + '</p>';
+            + competitionsHtml
+            + stripsHtml
+            + '<p class="refresh-time">Actualisé à ' + esc(now) + '</p>';
         } catch (_e) {
           root.innerHTML = '<div class="no-day">Erreur de chargement.</div>';
         }
