@@ -109,7 +109,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
     <>
       <Confetti active={showConfetti} />
       <div
-        className={`comp-header${expanded ? '' : ' comp-header-compact'}`}
+        className={`comp-header${expanded ? '' : ' comp-header-compact'}${showActionsMenu ? ' comp-header-menu-open' : ''}`}
         style={{ '--comp-color': competition.color } as React.CSSProperties}
       >
         <div className="comp-header-bg" />
