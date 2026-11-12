@@ -45,8 +45,8 @@ export interface ArenaBroadcastContext {
 /** Clone l'update sans les photos base64 (sans muter l'état partagé de l'arène). */
 export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
   const stripFencer = <T extends { photo?: string } | null | undefined>(f: T): T => {
-    if (!f || !(f as any).photo) return f;
-    const { photo: _photo, ...rest } = f as any;
+    if (!f || !f.photo) return f;
+    const { photo: _photo, ...rest } = f;
     return rest as T;
   };
   const stripMatch = (m: ArenaUpdate['match']): ArenaUpdate['match'] =>

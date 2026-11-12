@@ -52,7 +52,7 @@ export function startServer(ctx: LifecycleContext): Promise<void> {
   logger.info(LogCategory.NETWORK, `[RemoteScoreServer] URL réseau: ${ctx.getServerUrl()}`);
 
   return new Promise((resolve, reject) => {
-    ctx.server.once('error', (err: any) => {
+    ctx.server.once('error', (err: NodeJS.ErrnoException) => {
       logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       if (err.code === 'EADDRINUSE') {
         logger.error(
@@ -82,7 +82,7 @@ export function startServer(ctx: LifecycleContext): Promise<void> {
         `[RemoteScoreServer] Les arbitres peuvent se connecter sur: ${url}`
       );
       // Switch from one-shot 'once' error handler to persistent one for runtime errors
-      ctx.server.on('error', (err: any) => {
+      ctx.server.on('error', (err: NodeJS.ErrnoException) => {
         logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       });
       resolve();
@@ -116,7 +116,7 @@ export function stopServer(ctx: LifecycleContext): void {
   ctx.io?.disconnectSockets?.(true);
   if (ctx.server) {
     ctx.server.close();
-    (ctx.server as any).closeAllConnections?.();
+    (ctx.server as { closeAllConnections?: () => void }).closeAllConnections?.();
     logger.info(LogCategory.NETWORK, 'Remote score server stopped');
   }
 }
