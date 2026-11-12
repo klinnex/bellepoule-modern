@@ -13,6 +13,7 @@ import {
   parseXMLFile,
   parseSimpleTXTFile,
   ImportResult,
+  ImportedReferee,
   importRankingFromFFF,
   RankingImportResult,
   resolveFencerFileFormat,
@@ -26,6 +27,8 @@ interface ImportModalProps {
   fencers: Fencer[];
   onImport: (fencers: Partial<Fencer>[]) => void;
   onImportRanking?: (result: RankingImportResult) => void;
+  /** Arbitres du bloc <Arbitres> d'un XML (#1504) */
+  onImportReferees?: (referees: ImportedReferee[]) => void;
   onClose: () => void;
 }
 
@@ -36,12 +39,16 @@ const ImportModal: React.FC<ImportModalProps> = ({
   fencers,
   onImport,
   onImportRanking,
+  onImportReferees,
   onClose,
 }) => {
   const { t } = useTranslation();
   const [result, setResult] = useState<ImportResult | null>(null);
   const [rankingResult, setRankingResult] = useState<RankingImportResult | null>(null);
   const [selectedFencers, setSelectedFencers] = useState<Set<number>>(new Set());
+  const [selectedReferees, setSelectedReferees] = useState<Set<number>>(new Set());
+  // Liste affichée : tireurs ou arbitres du XML (#1504)
+  const [view, setView] = useState<'fencers' | 'referees'>('fencers');
   const isRankingImport = format === 'ranking';
 
   React.useEffect(() => {
@@ -66,27 +73,45 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
       setResult(parseResult);
       setSelectedFencers(new Set(parseResult.fencers.map((_, i) => i)));
+      const refs = parseResult.referees ?? [];
+      setSelectedReferees(onImportReferees ? new Set(refs.map((_, i) => i)) : new Set());
+      setView(parseResult.fencers.length === 0 && refs.length > 0 ? 'referees' : 'fencers');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [format, content, isRankingImport]);
 
+  const referees = result?.referees ?? [];
+  const showReferees = view === 'referees' && referees.length > 0;
+  const listLength = showReferees ? referees.length : (result?.fencers.length ?? 0);
+  const selected = showReferees ? selectedReferees : selectedFencers;
+  const setSelected = showReferees ? setSelectedReferees : setSelectedFencers;
+  const canSelect = !showReferees || !!onImportReferees;
+
   const toggleFencer = (index: number) => {
-    const newSelected = new Set(selectedFencers);
+    if (!canSelect) return;
+    const newSelected = new Set(selected);
     if (newSelected.has(index)) {
       newSelected.delete(index);
     } else {
       newSelected.add(index);
     }
-    setSelectedFencers(newSelected);
+    setSelected(newSelected);
   };
 
   const toggleAll = () => {
-    if (result) {
-      if (selectedFencers.size === result.fencers.length) {
-        setSelectedFencers(new Set());
-      } else {
-        setSelectedFencers(new Set(result.fencers.map((_, i) => i)));
-      }
+    if (selected.size === listLength) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(Array.from({ length: listLength }, (_, i) => i)));
     }
+  };
+
+  const importLabel = () => {
+    const nf = selectedFencers.size;
+    const nr = selectedReferees.size;
+    if (nr === 0) return t('importModal.import_n', { count: nf });
+    if (nf === 0) return t('importModal.import_referees_n', { count: nr });
+    return t('importModal.import_fencers_referees', { fencers: nf, referees: nr });
   };
 
   const handleImport = () => {
@@ -95,7 +120,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
       onClose();
     } else if (result) {
       const fencersToImport = result.fencers.filter((_, i) => selectedFencers.has(i));
-      onImport(fencersToImport);
+      if (fencersToImport.length > 0) onImport(fencersToImport);
+      const refereesToImport = referees.filter((_, i) => selectedReferees.has(i));
+      if (refereesToImport.length > 0) onImportReferees?.(refereesToImport);
       onClose();
     }
   };
@@ -117,12 +144,12 @@ const ImportModal: React.FC<ImportModalProps> = ({
             disabled={
               isRankingImport
                 ? !rankingResult || rankingResult.updated === 0
-                : selectedFencers.size === 0
+                : selectedFencers.size === 0 && selectedReferees.size === 0
             }
           >
             {isRankingImport
               ? t('importModal.update_n', { count: rankingResult?.updated || 0 })
-              : t('importModal.import_n', { count: selectedFencers.size })}
+              : importLabel()}
           </Button>
         </>
       }
@@ -288,7 +315,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         </div>
       )}
 
-      {!isRankingImport && result && result.fencers.length > 0 ? (
+      {!isRankingImport && result && (result.fencers.length > 0 || referees.length > 0) ? (
         <>
           <div
             style={{
@@ -298,25 +325,61 @@ const ImportModal: React.FC<ImportModalProps> = ({
               marginBottom: '0.5rem',
             }}
           >
-            <span>
-              <strong>{result.fencers.length}</strong> {t('importModal.found')}
-            </span>
-            <button
-              onClick={toggleAll}
-              style={{
-                padding: '0.25rem 0.75rem',
-                fontSize: '0.875rem',
-                color: 'var(--color-text)',
-                background: 'var(--color-border)',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              {selectedFencers.size === result.fencers.length
-                ? t('importModal.deselect_all')
-                : t('importModal.select_all')}
-            </button>
+            {result.referees ? (
+              <span
+                role="tablist"
+                aria-label={t('importModal.list_choice')}
+                style={{ display: 'flex', gap: '0.25rem' }}
+              >
+                {(['fencers', 'referees'] as const).map(v => {
+                  const active = (v === 'referees') === showReferees;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      disabled={v === 'referees' && referees.length === 0}
+                      onClick={() => setView(v)}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        fontSize: '0.875rem',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        background: active ? 'var(--color-primary)' : 'transparent',
+                        color: active ? '#FFFFFF' : 'var(--color-text)',
+                      }}
+                    >
+                      <strong>{v === 'fencers' ? result.fencers.length : referees.length}</strong>{' '}
+                      {t(v === 'fencers' ? 'importModal.found' : 'importModal.referees_found')}
+                    </button>
+                  );
+                })}
+              </span>
+            ) : (
+              <span>
+                <strong>{result.fencers.length}</strong> {t('importModal.found')}
+              </span>
+            )}
+            {canSelect && (
+              <button
+                onClick={toggleAll}
+                style={{
+                  padding: '0.25rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--color-text)',
+                  background: 'var(--color-border)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                {selected.size === listLength
+                  ? t('importModal.deselect_all')
+                  : t('importModal.select_all')}
+              </button>
+            )}
           </div>
 
           <div
@@ -327,50 +390,99 @@ const ImportModal: React.FC<ImportModalProps> = ({
               overflow: 'auto',
             }}
           >
-            <table style={TABLE}>
-              <thead style={STICKY_HEAD}>
-                <tr>
-                  <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
-                  <th style={TD_LEFT}>{t('importModal.last_name')}</th>
-                  <th style={TD_LEFT}>{t('importModal.first_name')}</th>
-                  <th style={TD_CENTER}>{t('importModal.sex')}</th>
-                  <th style={TD_LEFT}>{t('importModal.club')}</th>
-                  <th style={TD_CENTER}>{t('importModal.ranking')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.fencers.map((fencer, index) => (
-                  <tr
-                    key={index}
-                    onClick={() => toggleFencer(index)}
-                    style={{
-                      cursor: 'pointer',
-                      background: selectedFencers.has(index)
-                        ? 'var(--color-primary)'
-                        : 'transparent',
-                      color: selectedFencers.has(index) ? '#FFFFFF' : 'var(--color-text)',
-                      borderBottom: '1px solid var(--color-border)',
-                    }}
-                  >
-                    <td style={TD_CENTER}>
-                      <input
-                        type="checkbox"
-                        checked={selectedFencers.has(index)}
-                        onChange={e => {
-                          e.stopPropagation();
-                          toggleFencer(index);
-                        }}
-                      />
-                    </td>
-                    <td style={TD}>{fencer.lastName}</td>
-                    <td style={TD}>{fencer.firstName}</td>
-                    <td style={TD_CENTER}>{fencer.gender}</td>
-                    <td style={TD}>{fencer.club || '-'}</td>
-                    <td style={TD_CENTER}>{fencer.ranking || '-'}</td>
+            {showReferees ? (
+              <table style={TABLE}>
+                <thead style={STICKY_HEAD}>
+                  <tr>
+                    {canSelect && (
+                      <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
+                    )}
+                    <th style={TD_LEFT}>{t('importModal.last_name')}</th>
+                    <th style={TD_LEFT}>{t('importModal.first_name')}</th>
+                    <th style={TD_CENTER}>{t('importModal.sex')}</th>
+                    <th style={TD_LEFT}>{t('importModal.club')}</th>
+                    <th style={TD_LEFT}>{t('importModal.referee_level')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {referees.map((referee, index) => (
+                    <tr
+                      key={index}
+                      onClick={() => toggleFencer(index)}
+                      style={{
+                        cursor: canSelect ? 'pointer' : 'default',
+                        background: selected.has(index) ? 'var(--color-primary)' : 'transparent',
+                        color: selected.has(index) ? '#FFFFFF' : 'var(--color-text)',
+                        borderBottom: '1px solid var(--color-border)',
+                      }}
+                    >
+                      {canSelect && (
+                        <td style={TD_CENTER}>
+                          <input
+                            type="checkbox"
+                            checked={selected.has(index)}
+                            onChange={e => {
+                              e.stopPropagation();
+                              toggleFencer(index);
+                            }}
+                          />
+                        </td>
+                      )}
+                      <td style={TD}>{referee.lastName}</td>
+                      <td style={TD}>{referee.firstName}</td>
+                      <td style={TD_CENTER}>{referee.gender}</td>
+                      <td style={TD}>{referee.club || '-'}</td>
+                      <td style={TD}>{referee.category || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table style={TABLE}>
+                <thead style={STICKY_HEAD}>
+                  <tr>
+                    <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
+                    <th style={TD_LEFT}>{t('importModal.last_name')}</th>
+                    <th style={TD_LEFT}>{t('importModal.first_name')}</th>
+                    <th style={TD_CENTER}>{t('importModal.sex')}</th>
+                    <th style={TD_LEFT}>{t('importModal.club')}</th>
+                    <th style={TD_CENTER}>{t('importModal.ranking')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.fencers.map((fencer, index) => (
+                    <tr
+                      key={index}
+                      onClick={() => toggleFencer(index)}
+                      style={{
+                        cursor: 'pointer',
+                        background: selectedFencers.has(index)
+                          ? 'var(--color-primary)'
+                          : 'transparent',
+                        color: selectedFencers.has(index) ? '#FFFFFF' : 'var(--color-text)',
+                        borderBottom: '1px solid var(--color-border)',
+                      }}
+                    >
+                      <td style={TD_CENTER}>
+                        <input
+                          type="checkbox"
+                          checked={selectedFencers.has(index)}
+                          onChange={e => {
+                            e.stopPropagation();
+                            toggleFencer(index);
+                          }}
+                        />
+                      </td>
+                      <td style={TD}>{fencer.lastName}</td>
+                      <td style={TD}>{fencer.firstName}</td>
+                      <td style={TD_CENTER}>{fencer.gender}</td>
+                      <td style={TD}>{fencer.club || '-'}</td>
+                      <td style={TD_CENTER}>{fencer.ranking || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </>
       ) : !isRankingImport && result ? (
