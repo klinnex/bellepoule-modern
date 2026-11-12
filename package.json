@@ -45,6 +45,7 @@
     "analyze": "webpack --config webpack.renderer.config.js --env analyze",
     "docs:api": "typedoc",
     "docs:screenshots": "node scripts/capture-screenshots.js",
+    "cyrano:sim": "node scripts/cyrano-simulator.js",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
   "keywords": [

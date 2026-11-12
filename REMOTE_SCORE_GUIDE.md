@@ -206,3 +206,5 @@ Détails : [docs/SECURITE_SAISIE_DISTANTE.md](docs/SECURITE_SAISIE_DISTANTE.md).
 | Bouton N absent | Carton noir désactivé | Activer `blackCardEnabled` dans les paramètres |
 
 Voir aussi [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
+Appareils de piste Cyrano (UDP 50100) : [docs/CYRANO.md](docs/CYRANO.md).

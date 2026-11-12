@@ -278,6 +278,8 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 | `/kiosk` | Affichage public (TV) : tableau, poules, classement. |
 | `/lobby` | Salle d'attente (page d'accueil `/`). |
 
+Appareils de piste (Favero, SG…) via le protocole Cyrano : voir [CYRANO.md](CYRANO.md).
+
 ---
 
 ## 7. Protocole (référence technique)
