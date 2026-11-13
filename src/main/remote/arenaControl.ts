@@ -260,7 +260,12 @@ export function handleArenaControl(
         ctx.arenaOvertimeType.set(data.arenaId, data.overtimeType);
       }
       if (data.scoreA !== undefined && data.scoreB !== undefined) {
-        ctx.updateArenaScore(data.arenaId, data.scoreA, data.scoreB);
+        ctx.updateArenaScore(
+          data.arenaId,
+          data.scoreA,
+          data.scoreB,
+          'source' in source ? 'device' : 'referee'
+        );
       }
       // Mettre à jour aussi les cartons si fournis
       if (data.cardsA !== undefined || data.cardsB !== undefined) {

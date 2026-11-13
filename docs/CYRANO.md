@@ -45,14 +45,16 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 |---|---|
 | `INFO` en `F` / `H` / `P` | match démarré sur l'arène ; score et cartons (jaune, rouges) appliqués s'ils changent ; chrono diffusé (`F` en marche, `H` / `P` arrêté) |
 | `INFO` en `W` sans le match de l'arène | `DISP` du match courant (appareil redémarré ou reconnecté) |
-| `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré, journalisé |
-| `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
+| `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match |
+| `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
 | `NEXT` | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux) |
 | Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
 | Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
 
-Limites : égalité avec priorité et abandon / exclusion sont acquittés mais seul le score est
-enregistré (vainqueur non transmis) ; numéro de match toujours `1` dans le `DISP`.
+Le `DISP` porte la phase, la poule (numéro de la poule) ou le tableau (`A16`, `A8`…) et le numéro
+du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage seul (noms et score),
+INFO ignorés, END → `NAK`, NEXT sans effet. Journal des scores : auteur `device` pour les saisies
+et fins de match venues de l'appareil (libellé « Appareil de piste »).
 
 ### Supervision
 

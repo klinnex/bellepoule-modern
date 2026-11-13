@@ -100,12 +100,17 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 
 // Cyrano scoring machine integration (#1720)
 const cyranoServer = new CyranoServer();
-const pisteHub = new PisteHub(cyranoServer, () => {
-  for (const { server } of remoteServers.values()) {
-    if (server.hasSession()) return server;
-  }
-  return null;
-});
+const pisteHub = new PisteHub(
+  cyranoServer,
+  () => {
+    for (const { server } of remoteServers.values()) {
+      if (server.hasSession()) return server;
+    }
+    return null;
+  },
+  // Numéros de poule / de match du DISP lus en base
+  { coordsSource: db }
+);
 
 registerRemoteServerHandlers({
   db,

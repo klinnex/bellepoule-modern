@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Auto",
     "cyrano_international": "International",
     "sec_display": "Thème & fond d’écran",
-    "sec_screens": "Écrans connectés"
+    "sec_screens": "Écrans connectés",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "L’appareil affiche {{device}}, pas le match de l’arène : saisies ignorées. Vérifier le match sur l’appareil (NEXT) ou sur la tablette."
   },
   "comparison": {
     "title": "Comparaison Head-to-Head",
@@ -2118,7 +2120,8 @@
     "h_referee": "Arbitre",
     "entries_one": "{{count}} entrée",
     "entries_other": "{{count}} entrées",
-    "total": " ({{n}} au total)"
+    "total": " ({{n}} au total)",
+    "author_device": "Appareil de piste"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

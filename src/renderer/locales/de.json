@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Automatisch",
     "cyrano_international": "International",
     "sec_display": "Design & Hintergrund",
-    "sec_screens": "Verbundene Bildschirme"
+    "sec_screens": "Verbundene Bildschirme",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "Das Gerät zeigt {{device}}, nicht das Gefecht der Bahn: Eingaben werden ignoriert. Gefecht am Gerät (NEXT) oder am Tablet prüfen."
   },
   "comparison": {
     "title": "Direkter Vergleich",
@@ -2118,7 +2120,8 @@
     "h_referee": "Kampfrichter",
     "entries_one": "{{count}} Eintrag",
     "entries_other": "{{count}} Einträge",
-    "total": " ({{n}} insgesamt)"
+    "total": " ({{n}} insgesamt)",
+    "author_device": "Trefferanzeige"
   },
   "errorBoundary": {
     "title": "Ein Fehler ist aufgetreten",

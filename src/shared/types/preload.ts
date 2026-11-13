@@ -1369,6 +1369,8 @@ export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
   status: 'online' | 'stale' | 'offline' | 'never';
   lastSeen: number | null;
   detectedProtocol: 'EFP1' | 'EFP1.1' | null;
+  /** BAD MATCH : l'appareil affiche d'autres tireurs que le match de l'arène (#1720) */
+  alert?: { kind: 'bad_match'; since: number; device: string } | null;
 }
 
 export interface CyranoStatusDTO {

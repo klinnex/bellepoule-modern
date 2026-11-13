@@ -151,6 +151,11 @@ export interface ArenaMatch {
   /** Temps de combat réel (chrono en marche, hors repos) remonté par la tablette (#1817) */
   fightSeconds?: number;
   referee?: { id: string; name: string }; // Arbitre assigné au match
+  /**
+   * Fin validée sur l'appareil de piste (Cyrano, #1720) : présent si le match a été clos par
+   * l'appareil ; `winner` force le vainqueur (égalité avec priorité, abandon, exclusion).
+   */
+  deviceEnd?: { winner?: 'A' | 'B'; reason?: 'priority' | 'abandon' | 'exclusion' };
 }
 
 export interface ArenaUpdate {

@@ -244,11 +244,12 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     scoreA: finishedMatch.scoreA,
     scoreB: finishedMatch.scoreB,
     winner:
-      finishedMatch.scoreA > finishedMatch.scoreB
+      finishedMatch.deviceEnd?.winner ??
+      (finishedMatch.scoreA > finishedMatch.scoreB
         ? 'A'
         : finishedMatch.scoreB > finishedMatch.scoreA
           ? 'B'
-          : null,
+          : null),
     duration: finishedMatch.duration ?? null,
     timestamp: new Date().toISOString(),
     // Compatibilité Slack/Discord : champ text en clair
@@ -272,29 +273,34 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       const effectiveDbId = dbMatch ? finalMatchId : compositeId;
 
       if (effectiveDbMatch && effectiveDbId) {
+        // Fin validée sur l'appareil de piste (#1720) : priorité, abandon, exclusion
+        const deviceEnd = finishedMatch.deviceEnd;
         let winner: 'A' | 'B' | null =
-          finishedMatch.scoreA > finishedMatch.scoreB
+          deviceEnd?.winner ??
+          (finishedMatch.scoreA > finishedMatch.scoreB
             ? 'A'
             : finishedMatch.scoreB > finishedMatch.scoreA
               ? 'B'
-              : null;
+              : null);
         if (!winner) {
           const mem = ctx.sessionMatchScores.get(finishedMatch.id);
           if (isVictory(mem?.scoreA)) winner = 'A';
           else if (isVictory(mem?.scoreB)) winner = 'B';
         }
+        const out = (side: 'A' | 'B', reason: 'abandon' | 'exclusion') =>
+          deviceEnd?.reason === reason && !!winner && winner !== side;
         const scoreAObj = {
           value: finishedMatch.scoreA,
           isVictory: winner === 'A',
-          isAbstention: false,
-          isExclusion: false,
+          isAbstention: out('A', 'abandon'),
+          isExclusion: out('A', 'exclusion'),
           isForfait: false,
         };
         const scoreBObj = {
           value: finishedMatch.scoreB,
           isVictory: winner === 'B',
-          isAbstention: false,
-          isExclusion: false,
+          isAbstention: out('B', 'abandon'),
+          isExclusion: out('B', 'exclusion'),
           isForfait: false,
         };
         ctx.db.updateMatch(effectiveDbId, {
@@ -310,7 +316,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           previousScoreB: effectiveDbMatch.scoreB ?? null,
           newScoreA: scoreAObj,
           newScoreB: scoreBObj,
-          changedBy: 'referee',
+          changedBy: deviceEnd ? 'device' : 'referee',
           reason: 'arena_finish',
           poolId: finishedMatch.poolId,
         });
@@ -328,11 +334,12 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
   if (mainWindow && !ctx.isTrainingMode) {
     // Dériver le vainqueur depuis la DB pour gérer le cas tirage au sort (scores égaux)
     let winnerForRenderer: 'A' | 'B' | null =
-      finishedMatch.scoreA > finishedMatch.scoreB
+      finishedMatch.deviceEnd?.winner ??
+      (finishedMatch.scoreA > finishedMatch.scoreB
         ? 'A'
         : finishedMatch.scoreB > finishedMatch.scoreA
           ? 'B'
-          : null;
+          : null);
     if (!winnerForRenderer) {
       try {
         const dbM = ctx.db.getMatch(finishedMatch.id);

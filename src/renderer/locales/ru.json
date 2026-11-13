@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Авто",
     "cyrano_international": "Международный",
     "sec_display": "Тема и фон",
-    "sec_screens": "Подключённые экраны"
+    "sec_screens": "Подключённые экраны",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "Аппарат показывает {{device}}, а не бой дорожки: данные игнорируются. Проверьте бой на аппарате (NEXT) или на планшете."
   },
   "comparison": {
     "title": "Сравнение очных встреч",
@@ -2118,7 +2120,8 @@
     "h_referee": "Судья",
     "entries_one": "Записей: {{count}}",
     "entries_other": "Записей: {{count}}",
-    "total": " (всего {{n}})"
+    "total": " (всего {{n}})",
+    "author_device": "Аппарат фиксации уколов"
   },
   "errorBoundary": {
     "title": "Произошла ошибка",

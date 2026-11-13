@@ -5,6 +5,8 @@
  * chemin que la tablette (`arena_control`, pseudo-socket `cyrano:<piste>`).
  * Sens BellePoule → appareil : DISP au changement de match, après une correction de
  * score faite sur la tablette, et quand l'appareil au repos n'affiche pas le bon match.
+ * Sabre laser et armes personnalisées : affichage seul (décision n°5) — noms et score
+ * envoyés, commandes de l'appareil ignorées.
  * Licensed under GPL-3.0
  */
 
@@ -14,6 +16,7 @@ import type { ArenaMatch, ArenaUpdate } from '../../shared/types/remote';
 import { CyranoServer, type CyranoPisteStatus } from './server';
 import type { CyranoMessage } from './codec';
 import { validateCyranoEnd } from './endValidation';
+import { resolveCyranoCoords, type MatchCoordsSource } from './matchCoords';
 import { buildDisp, EMPTY_DISP, type CyranoDispFencer, type CyranoDispMatch } from './disp';
 import { pickCyranoNat, type CyranoNameLength, type CyranoNatSource } from './names';
 import {
@@ -23,12 +26,44 @@ import {
   parseCyranoStopwatch,
   type CyranoSides,
 } from './deviceState';
+import { toCyranoWeapon } from './disp';
 import { logger, LogCategory } from '../../shared/services/logger';
 
 export interface PisteHubOptions {
   nameLength?: CyranoNameLength;
   natSource?: CyranoNatSource;
   international?: boolean;
+}
+
+/** Alerte en cours sur une piste, affichée dans le panneau Cyrano. */
+export interface PisteAlert {
+  kind: 'bad_match';
+  since: number;
+  /** Noms affichés par l'appareil (droite – gauche) */
+  device: string;
+}
+
+/** Issue d'une fin de match acceptée, rapportée aux tireurs A / B de l'arène. */
+export function cyranoEndOutcome(
+  msg: CyranoMessage,
+  sides: CyranoSides
+): NonNullable<ArenaMatch['deviceEnd']> {
+  const out = (s?: string) => s === 'A' || s === 'E';
+  const outA = out(sides.A.status);
+  const outB = out(sides.B.status);
+  if (outA !== outB) {
+    const loser = outA ? sides.A : sides.B;
+    return { winner: outA ? 'B' : 'A', reason: loser.status === 'A' ? 'abandon' : 'exclusion' };
+  }
+  if (outA || sides.A.score !== sides.B.score) return {};
+  // Égalité : statut V / D de l'appareil, sinon priorité (côté appareil → tireur)
+  if (sides.A.status === 'V' || sides.B.status === 'D') return { winner: 'A', reason: 'priority' };
+  if (sides.B.status === 'V' || sides.A.status === 'D') return { winner: 'B', reason: 'priority' };
+  if (msg.priority === 'R' || msg.priority === 'L') {
+    const aHasPriority = (msg.priority === 'R') === sides.aOnRight;
+    return { winner: aHasPriority ? 'A' : 'B', reason: 'priority' };
+  }
+  return {};
 }
 
 /** Dernier état connu de l'appareil (DISP envoyé ou INFO reçu) : évite les échos. */
@@ -52,14 +87,19 @@ export class PisteHub {
   private applied = new Map<string, string>();
   /** Match dont la fin a été acquittée, par piste : un END répété reçoit à nouveau ACK. */
   private acked = new Map<string, string>();
+  /** Alertes en cours (BAD MATCH), par piste. */
+  private alerts = new Map<string, PisteAlert>();
+  /** Base : numéros de poule et de match pour le DISP. */
+  private readonly coordsSource?: MatchCoordsSource;
 
   constructor(
     cyrano: CyranoServer,
     getRemote: () => RemoteScoreServer | null,
-    options: PisteHubOptions = {}
+    options: PisteHubOptions & { coordsSource?: MatchCoordsSource } = {}
   ) {
     this.cyrano = cyrano;
     this.getRemote = getRemote;
+    this.coordsSource = options.coordsSource;
     this.opts = {
       nameLength: options.nameLength ?? 10,
       natSource: options.natSource ?? 'auto',
@@ -69,6 +109,31 @@ export class PisteHub {
 
   setOptions(opts: PisteHubOptions): void {
     this.opts = { ...this.opts, ...opts };
+  }
+
+  /** Alertes en cours, par piste (panneau Cyrano). */
+  getAlerts(): Record<string, PisteAlert> {
+    return Object.fromEntries(this.alerts);
+  }
+
+  private setBadMatch(piste: string, msg: CyranoMessage, arenaId: string): void {
+    if (!this.alerts.has(piste)) {
+      logger.warn(
+        LogCategory.NETWORK,
+        `Cyrano: piste ${piste} — tireurs de l'appareil ≠ match de l'arène ${arenaId} (BAD MATCH)`
+      );
+    }
+    this.alerts.set(piste, {
+      kind: 'bad_match',
+      since: this.alerts.get(piste)?.since ?? Date.now(),
+      device: `${msg.right?.name ?? '?'} – ${msg.left?.name ?? '?'}`,
+    });
+  }
+
+  /** Sabre laser / armes personnalisées : affichage seul, pas de télécommande (décision n°5). */
+  private displayOnly(remote: RemoteScoreServer): boolean {
+    const weapon = remote.getSessionWeapon();
+    return !!weapon && !toCyranoWeapon(weapon);
   }
 
   /** Branche les écouteurs sur le CyranoServer. */
@@ -114,10 +179,28 @@ export class PisteHub {
   clearDispCache(piste: string): void {
     this.device.delete(piste);
     this.applied.delete(piste);
+    this.alerts.delete(piste);
   }
 
-  private sendMatch(piste: string, match: ArenaMatch, scoreA: number, scoreB: number): void {
+  private sendMatch(
+    piste: string,
+    match: ArenaMatch,
+    scoreA: number,
+    scoreB: number,
+    deferIfNoSession = true
+  ): void {
     this.device.set(piste, { matchId: match.id, scoreA, scoreB });
+    this.alerts.delete(piste);
+    // Démarrage de séance : les matchs sont assignés avant que la session existe (arme,
+    // compétition inconnues) → DISP construit juste après, dans la même tâche
+    if (deferIfNoSession && !this.getRemote()?.getSession()) {
+      queueMicrotask(() => {
+        const view = this.device.get(piste);
+        if (view?.matchId !== match.id) return;
+        this.sendMatch(piste, match, view.scoreA ?? scoreA, view.scoreB ?? scoreB, false);
+      });
+      return;
+    }
     this.cyrano.sendDisp(piste, this.buildDispFor(match, scoreA, scoreB));
     logger.info(LogCategory.NETWORK, `Cyrano: DISP → ${piste} (match ${match.id})`);
   }
@@ -132,8 +215,13 @@ export class PisteHub {
     if (!arena || !match) return;
 
     const sides = mapCyranoSides(msg, match);
+    const displayOnly = this.displayOnly(remote);
 
     if (msg.state === 'E') {
+      if (displayOnly) {
+        this.cyrano.sendNak(piste.piste);
+        return;
+      }
       this.handleEnd(piste, msg, sides, remote, arenaId, match, arena.status);
       return;
     }
@@ -144,13 +232,12 @@ export class PisteHub {
       if (!sides) this.sendMatch(piste.piste, match, match.scoreA, match.scoreB);
       return;
     }
+    if (displayOnly) return;
     if (!sides) {
-      logger.warn(
-        LogCategory.NETWORK,
-        `Cyrano: piste ${piste.piste} — tireurs de l'appareil ≠ match de l'arène ${arenaId} (BAD MATCH), INFO ignoré`
-      );
+      this.setBadMatch(piste.piste, msg, arenaId);
       return;
     }
+    this.alerts.delete(piste.piste);
     this.applyDeviceState(piste, msg, sides, remote, arenaId, match, arena.status);
   };
 
@@ -218,6 +305,7 @@ export class PisteHub {
       return;
     }
     if (!sides) {
+      this.setBadMatch(piste.piste, msg, arenaId);
       this.cyrano.sendNak(piste.piste);
       logger.warn(LogCategory.NETWORK, `Cyrano: NAK → ${piste.piste} (BAD MATCH)`);
       return;
@@ -239,6 +327,8 @@ export class PisteHub {
       match,
       arenaStatus
     );
+    // Vainqueur imposé par l'appareil (priorité, abandon, exclusion) ; marque la fin « appareil »
+    match.deviceEnd = cyranoEndOutcome(msg, sides);
     this.cyrano.sendAck(piste.piste);
     logger.info(LogCategory.NETWORK, `Cyrano: ACK → ${piste.piste}`);
     this.acked.set(piste.piste, match.id);
@@ -257,6 +347,7 @@ export class PisteHub {
     const arenaId = `arena${piste.arena}`;
     const arena = remote.getArena(arenaId);
     const match = arena?.currentMatch;
+    if (this.displayOnly(remote)) return; // affichage seul : pas de télécommande
     if (arena && match && !isFinished(match, arena.status)) {
       logger.info(
         LogCategory.NETWORK,
@@ -293,30 +384,22 @@ export class PisteHub {
       score: scoreB,
     };
 
-    const { phase, poulTab, matchNum } = coordsFromMatch(match);
+    const remote = this.getRemote();
+    const { phase, poulTab, matchNum } = resolveCyranoCoords(
+      match,
+      remote?.getSession()?.competitionId,
+      this.coordsSource
+    );
     const dispMatch: CyranoDispMatch = {
       phase,
       poulTab,
       match: matchNum,
       // Arme de la séance ; Laser / CUSTOM → champ vide (affichage seul)
-      weapon: this.getRemote()?.getSessionWeapon() ?? '',
+      weapon: remote?.getSessionWeapon() ?? '',
       right,
       left,
       referee: match.referee ? { id: match.referee.id, name: match.referee.name } : undefined,
     };
     return buildDisp(dispMatch, { nameLength: this.opts.nameLength });
   }
-}
-
-/** Coordonnées Cyrano (phase, poulTab, matchNum) dérivées de l'ArenaMatch. */
-function coordsFromMatch(match: ArenaMatch): {
-  phase: number;
-  poulTab: string;
-  matchNum: number;
-} {
-  if (match.isTableau) {
-    return { phase: 2, poulTab: 'A', matchNum: 1 };
-  }
-  const poolNum = match.poolId ? parseInt(match.poolId.replace(/.*-/, ''), 10) || 1 : 1;
-  return { phase: 1, poulTab: String(poolNum), matchNum: 1 };
 }

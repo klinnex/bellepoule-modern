@@ -26,6 +26,11 @@ vi.mock('socket.io', () => ({
     return { on: vi.fn(), emit: vi.fn(), to: vi.fn().mockReturnThis() };
   }),
 }));
+// Notification du renderer (BrowserWindow absent en test)
+vi.mock('../ipc/dbHandlers', async importOriginal => ({
+  ...(await importOriginal<typeof import('../ipc/dbHandlers')>()),
+  emitCompetitionEvent: vi.fn(),
+}));
 vi.mock('http', () => ({
   createServer: vi
     .fn()
@@ -87,6 +92,7 @@ const mockDb = {
 };
 
 const DEVICE_IP = '10.0.0.1';
+const lastCall = (fn: { mock: { calls: any[][] } }) => fn.mock.calls[fn.mock.calls.length - 1];
 
 interface Side {
   id: string;
@@ -147,7 +153,13 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     vi.spyOn(remote as any, 'loadSessionReferees').mockReturnValue([]);
     cyrano = new CyranoServer();
     cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, port: 50101, arena: 1 }]);
-    hub = new PisteHub(cyrano, () => remote);
+    // Base : poule n°2, numéro de match lu par id
+    hub = new PisteHub(cyrano, () => remote, {
+      coordsSource: {
+        getMatch: id => ({ number: Number(id.slice(1, 2)) || undefined }),
+        getCompetitionPools: () => [{ id: POOL, name: 'Poule 2' }],
+      },
+    });
     hub.attach();
     disps = [];
     acks = 0;
@@ -176,11 +188,14 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     ] as any);
   });
 
-  it('DISP du match chargé : Id tronqués à 8 caractères, arme de la séance', () => {
+  it('DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match', () => {
     expect(arena().currentMatch?.fencerA.id).toBe(ID.ef);
     expect(lastDisp()).toMatchObject({
       command: 'DISP',
       weapon: 'E',
+      phase: '1',
+      poulTab: '2',
+      match: '1',
       right: { id: short(ID.ef), score: 0 },
       left: { id: short(ID.ab), score: 0 },
     });
@@ -335,5 +350,80 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     hub.clearDispCache('1');
     device(info('W', null, null));
     expect(lastDisp().weapon).toBeUndefined();
+  });
+  const finishedWith = () => lastCall(mockDb.updateMatch)?.[1];
+
+  it('END à égalité avec priorité : vainqueur = tireur prioritaire, inversion comprise', () => {
+    // A (EF) à droite, priorité à droite → A
+    device(
+      info('E', { id: short(ID.ef), score: 4 }, { id: short(ID.ab), score: 4 }, { priority: 'R' })
+    );
+    expect(acks).toBe(1);
+    expect(finishedWith()).toMatchObject({
+      scoreA: { value: 4, isVictory: true },
+      scoreB: { value: 4, isVictory: false },
+    });
+  });
+
+  it('END à égalité, A à gauche après inversion, priorité à droite → B', () => {
+    device(
+      info('E', { id: short(ID.ab), score: 2 }, { id: short(ID.ef), score: 2 }, { priority: 'R' })
+    );
+    expect(finishedWith()).toMatchObject({
+      scoreA: { value: 2, isVictory: false },
+      scoreB: { value: 2, isVictory: true },
+    });
+  });
+
+  it('END sur abandon : l’adversaire gagne même mené au score, abandon marqué', () => {
+    device(info('E', { id: short(ID.ef), score: 3, status: 'A' }, { id: short(ID.ab), score: 1 }));
+    expect(acks).toBe(1);
+    expect(finishedWith()).toMatchObject({
+      scoreA: { value: 3, isVictory: false, isAbstention: true },
+      scoreB: { value: 1, isVictory: true, isAbstention: false },
+    });
+  });
+
+  it('END sur exclusion : exclusion marquée sur le tireur exclu', () => {
+    device(info('E', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 4, status: 'E' }));
+    expect(finishedWith()).toMatchObject({
+      scoreA: { value: 2, isVictory: true },
+      scoreB: { value: 4, isVictory: false, isExclusion: true },
+    });
+  });
+
+  it('journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette', () => {
+    device(info('H', { id: short(ID.ef), score: 1 }, { id: short(ID.ab), score: 0 }));
+    expect(lastCall(mockDb.logScoreChange)?.[0]).toMatchObject({ changedBy: 'device' });
+    (remote as any).handleArenaControl(
+      { id: 'tablet-socket', emit: vi.fn() },
+      { arenaId: 'arena1', action: 'update_score', scoreA: 2, scoreB: 0, cardsA: [], cardsB: [] }
+    );
+    expect(lastCall(mockDb.logScoreChange)?.[0]).toMatchObject({ changedBy: 'referee' });
+    device(info('E', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 0 }));
+    expect(lastCall(mockDb.logScoreChange)?.[0]).toMatchObject({
+      changedBy: 'device',
+      reason: 'arena_finish',
+    });
+  });
+
+  it('BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match', () => {
+    device(info('H', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
+    expect(hub.getAlerts()['1']).toMatchObject({ kind: 'bad_match', device: 'X – X' });
+    device(info('H', { id: short(ID.ef) }, { id: short(ID.ab) }));
+    expect(hub.getAlerts()['1']).toBeUndefined();
+  });
+
+  it('sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet', () => {
+    vi.spyOn(remote, 'getSessionWeapon').mockReturnValue('L');
+    device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 0 }));
+    expect(arena().currentMatch).toMatchObject({ scoreA: 0, scoreB: 0 });
+    device(info('E', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 0 }));
+    expect(naks).toBe(1);
+    expect(arena().status).not.toBe('finished');
+    disps = [];
+    device('|EFP1.1|NEXT|1||%|');
+    expect(disps).toHaveLength(0);
+    expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
   });
 });

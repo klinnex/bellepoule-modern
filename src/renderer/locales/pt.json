@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Automático",
     "cyrano_international": "Internacional",
     "sec_display": "Tema e fundo de ecrã",
-    "sec_screens": "Ecrãs ligados"
+    "sec_screens": "Ecrãs ligados",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "O aparelho mostra {{device}}, não o combate da pista: entradas ignoradas. Verificar o combate no aparelho (NEXT) ou no tablet."
   },
   "comparison": {
     "title": "Comparação frente a frente",
@@ -2118,7 +2120,8 @@
     "h_referee": "Árbitro",
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entradas",
-    "total": " ({{n}} no total)"
+    "total": " ({{n}} no total)",
+    "author_device": "Aparelho de sinalização"
   },
   "errorBoundary": {
     "title": "Ocorreu um erro",
