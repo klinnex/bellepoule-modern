@@ -13,6 +13,10 @@ export const remoteApi = {
   stopServer: (competitionId: string) => ipcRenderer.invoke('remote:stopServer', competitionId),
   getServerInfo: (competitionId: string) =>
     ipcRenderer.invoke('remote:getServerInfo', competitionId),
+  reloadServer: (
+    competitionId: string,
+    options?: { port?: number; host?: string; useHttps?: boolean }
+  ) => ipcRenderer.invoke('remote:reloadServer', competitionId, options),
   startSession: (
     competitionId: string,
     strips: number,
@@ -104,8 +108,6 @@ export const remoteApi = {
   setTtsConfig: (config: unknown) => ipcRenderer.invoke('remote:setTtsConfig', config),
   setWallpaper: (competitionId: string, wallpaper: string | null) =>
     ipcRenderer.invoke('remote:setWallpaper', competitionId, wallpaper),
-  changePort: (competitionId: string, newPort: number) =>
-    ipcRenderer.invoke('remote:changePort', competitionId, newPort),
   acknowledgeDTCall: (competitionId: string, arenaId: string) =>
     ipcRenderer.invoke('remote:acknowledgeDTCall', competitionId, arenaId),
   requestMatchSignature: (competitionId: string, arenaId: string, request: unknown) =>

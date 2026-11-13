@@ -1025,7 +1025,8 @@
     "hint_network": "réseau indisponible : vérifiez la connexion Wi-Fi/Internet, puis réessayez.",
     "hint_invalid_format": "fichier illisible ou au mauvais format : vérifiez le type de fichier, ou réexportez-le depuis sa source.",
     "hint_db_locked": "base de données occupée : patientez quelques secondes, puis réessayez.",
-    "hint_unknown": "cause inconnue : réessayez ; si l'erreur persiste, redémarrez l'application et consultez les journaux."
+    "hint_unknown": "cause inconnue : réessayez ; si l'erreur persiste, redémarrez l'application et consultez les journaux.",
+    "port_invalid": "Port invalide (1–65535)"
   },
   "properties": {
     "one_round": "1 tour",
@@ -1284,6 +1285,7 @@
     "section_network": "Réseau",
     "port_invalid": "Port invalide (1–65535)",
     "enable_https": "Activer HTTPS (connexion chiffrée)",
+    "https_short": "HTTPS",
     "https_hint": "Certificat auto-signé — les tablettes devront accepter l'avertissement de sécurité du navigateur une seule fois.",
     "http_warning": "Réseau non chiffré : mots de passe et sessions lisibles par tout appareil du Wi-Fi.",
     "start": "Démarrer la saisie distante",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Empreinte cert. SHA-256 :",
     "http_warning_active": "Réseau non chiffré (HTTP) : mots de passe et sessions lisibles sur le Wi-Fi. Activez HTTPS en redémarrant le serveur.",
     "port": "Port :",
-    "restart_port_title": "Redémarrer le serveur sur ce port",
+    "reload_title": "Recharger le serveur : applique interface, port, HTTPS et pistes sans perdre la session",
     "reload": "Recharger",
+    "reload_done": "Serveur rechargé : {{url}}",
+    "reload_failed": "Échec du rechargement du serveur",
     "show_photos_long": "Afficher les photos des combattants avant le combat",
     "card_announce_long": "Carton avancé (afficher bandeau + raison sur les écrans)",
     "display_theme": "Thème de l'affichage :",

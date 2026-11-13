@@ -1025,7 +1025,8 @@
     "hint_network": "rouedad ebet : gwiriekait ar c'hevreadenn Wi-Fi/Internet, ha klaskit en-dro.",
     "hint_invalid_format": "restr diläenn pe stumm fall : gwiriekait seurt ar restr, pe ezporzhit anezhañ en-dro adalek e vammenn.",
     "hint_db_locked": "diaz-roadennoù ac'hubet : gortozit un nebeut eilennoù, ha klaskit en-dro.",
-    "hint_unknown": "abeg dianav : klaskit en-dro ; ma padfe ar fazi, adloc'hit an arload ha sellit ouzh ar marilhoù."
+    "hint_unknown": "abeg dianav : klaskit en-dro ; ma padfe ar fazi, adloc'hit an arload ha sellit ouzh ar marilhoù.",
+    "port_invalid": "Porzh direizh (1–65535)"
   },
   "properties": {
     "one_round": "1 dro",
@@ -1284,6 +1285,7 @@
     "section_network": "Rouedad",
     "port_invalid": "Porzh direizh (1–65535)",
     "enable_https": "Gweredekaat HTTPS (kevreadenn enrineget)",
+    "https_short": "HTTPS",
     "https_hint": "Testeni sinet gant e-unan — an tablezennoù a rankay asantiñ ur wech hepken da evezhiadenn surentez ar merdeer.",
     "http_warning": "Rouedad dienrineget : gerioù-tremen ha dalc'hoù lennus gant forzh peseurt trevnad er Wi-Fi.",
     "start": "Loc'hañ an enankañ a-bell",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Roudenn testeni SHA-256 :",
     "http_warning_active": "Rouedad dienrineget (HTTP) : gerioù-tremen ha dalc'hoù lennus er Wi-Fi. Gweredekait HTTPS en ur adloc'hañ ar servijer.",
     "port": "Porzh :",
-    "restart_port_title": "Adloc'hañ ar servijer war ar porzh-mañ",
+    "reload_title": "Adkargañ ar servijer : arloañ etrefas, porzh, HTTPS ha leurennoù hep koll an dalc'h",
     "reload": "Adkargañ",
+    "reload_done": "Servijer adkarget : {{url}}",
+    "reload_failed": "Adkargañ ar servijer c'hwitet",
     "show_photos_long": "Diskouez luc'hskeudennoù ar c'hlezeidi a-raok an emgann",
     "card_announce_long": "Kartenn araokaet (diskouez banniel + abeg war ar skrammoù)",
     "display_theme": "Neuz an diskwel :",

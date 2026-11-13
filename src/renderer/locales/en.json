@@ -1025,7 +1025,8 @@
     "hint_network": "network unavailable: check your Wi-Fi/Internet connection, then try again.",
     "hint_invalid_format": "unreadable or wrong-format file: check the file type, or export it again from its source.",
     "hint_db_locked": "database busy: wait a few seconds, then try again.",
-    "hint_unknown": "unknown cause: try again; if the error persists, restart the application and check the logs."
+    "hint_unknown": "unknown cause: try again; if the error persists, restart the application and check the logs.",
+    "port_invalid": "Invalid port (1–65535)"
   },
   "properties": {
     "one_round": "1 round",
@@ -1284,6 +1285,7 @@
     "section_network": "Network",
     "port_invalid": "Invalid port (1–65535)",
     "enable_https": "Enable HTTPS (encrypted connection)",
+    "https_short": "HTTPS",
     "https_hint": "Self-signed certificate — tablets will have to accept the browser security warning once.",
     "http_warning": "Unencrypted network: passwords and sessions readable by any device on the Wi-Fi.",
     "start": "Start remote scoring",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Cert. SHA-256 fingerprint:",
     "http_warning_active": "Unencrypted network (HTTP): passwords and sessions readable on the Wi-Fi. Enable HTTPS by restarting the server.",
     "port": "Port:",
-    "restart_port_title": "Restart the server on this port",
+    "reload_title": "Reload the server: applies interface, port, HTTPS and strips without losing the session",
     "reload": "Reload",
+    "reload_done": "Server reloaded: {{url}}",
+    "reload_failed": "Server reload failed",
     "show_photos_long": "Show fencer photos before the bout",
     "card_announce_long": "Advanced card (show banner + reason on screens)",
     "display_theme": "Display theme:",

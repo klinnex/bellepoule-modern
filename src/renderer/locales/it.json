@@ -1025,7 +1025,8 @@
     "hint_network": "rete non disponibile: verifica la connessione Wi-Fi/Internet, poi riprova.",
     "hint_invalid_format": "file illeggibile o in formato errato: verifica il tipo di file o riesportalo dalla sorgente.",
     "hint_db_locked": "database occupato: attendi qualche secondo, poi riprova.",
-    "hint_unknown": "causa sconosciuta: riprova; se l'errore persiste, riavvia l'applicazione e controlla i log."
+    "hint_unknown": "causa sconosciuta: riprova; se l'errore persiste, riavvia l'applicazione e controlla i log.",
+    "port_invalid": "Porta non valida (1–65535)"
   },
   "properties": {
     "one_round": "1 turno",
@@ -1284,6 +1285,7 @@
     "section_network": "Rete",
     "port_invalid": "Porta non valida (1–65535)",
     "enable_https": "Attiva HTTPS (connessione cifrata)",
+    "https_short": "HTTPS",
     "https_hint": "Certificato autofirmato — i tablet dovranno accettare una sola volta l'avviso di sicurezza del browser.",
     "http_warning": "Rete non cifrata: password e sessioni leggibili da qualsiasi dispositivo del Wi-Fi.",
     "start": "Avvia l'inserimento remoto",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Impronta cert. SHA-256:",
     "http_warning_active": "Rete non cifrata (HTTP): password e sessioni leggibili sul Wi-Fi. Attiva HTTPS riavviando il server.",
     "port": "Porta:",
-    "restart_port_title": "Riavvia il server su questa porta",
+    "reload_title": "Ricarica il server: applica interfaccia, porta, HTTPS e pedane senza perdere la sessione",
     "reload": "Ricarica",
+    "reload_done": "Server ricaricato: {{url}}",
+    "reload_failed": "Ricaricamento del server non riuscito",
     "show_photos_long": "Mostra le foto degli schermidori prima dell'incontro",
     "card_announce_long": "Cartellino avanzato (mostra banner + motivo sugli schermi)",
     "display_theme": "Tema dello schermo:",

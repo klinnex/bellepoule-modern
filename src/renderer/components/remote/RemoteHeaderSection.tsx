@@ -21,7 +21,12 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
     remotePort,
     handlePortChange,
     isLoading,
-    handleChangePort,
+    handleReloadServer,
+    networkInterfaces,
+    selectedInterface,
+    setSelectedInterface,
+    useHttps,
+    setUseHttps,
     handleStopRemote,
   } = ctx;
 
@@ -57,6 +62,22 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                   )
                 )}
                 <div style={RSM_STYLES.portActiveRow}>
+                  <select
+                    aria-label={t('rsm.section_network')}
+                    value={selectedInterface}
+                    onChange={e => {
+                      setSelectedInterface(e.target.value);
+                      localStorage.setItem('bellepoule-remote-interface', e.target.value);
+                    }}
+                    disabled={isLoading}
+                    style={RSM_STYLES.interfaceActiveSelect}
+                  >
+                    {networkInterfaces.map(iface => (
+                      <option key={iface.address} value={iface.address}>
+                        {iface.name}
+                      </option>
+                    ))}
+                  </select>
                   <label
                     htmlFor={`remote-port-active-${competition.id}`}
                     style={RSM_STYLES.portActiveLabel}
@@ -73,11 +94,23 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                     style={RSM_STYLES.portActiveInput}
                     disabled={isLoading}
                   />
+                  <label style={RSM_STYLES.portActiveLabel}>
+                    <input
+                      type="checkbox"
+                      checked={useHttps}
+                      onChange={e => {
+                        setUseHttps(e.target.checked);
+                        localStorage.setItem('bellepoule-remote-https', String(e.target.checked));
+                      }}
+                      disabled={isLoading}
+                    />{' '}
+                    {t('rsm.https_short')}
+                  </label>
                   <button
                     className="btn-secondary"
-                    onClick={handleChangePort}
+                    onClick={handleReloadServer}
                     disabled={isLoading}
-                    title={t('rsm.restart_port_title')}
+                    title={t('rsm.reload_title')}
                     style={RSM_STYLES.portActiveBtn}
                   >
                     {t('rsm.reload')}
