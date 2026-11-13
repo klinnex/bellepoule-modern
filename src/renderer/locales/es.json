@@ -1264,7 +1264,20 @@
     "col_handedness": "Lateralidad",
     "handedness_left": "Zurdo",
     "handedness_right": "Diestro",
-    "touches_received": "Recibidos"
+    "touches_received": "Recibidos",
+    "charts": "Gráficos",
+    "club_details": "Detalle por club",
+    "club_summary": "Resumen por club",
+    "no_club": "Sin club",
+    "points_given": "Puntos marcados",
+    "points_received": "Puntos recibidos",
+    "touches_given_title": "Tocados dados",
+    "touches_per_match": "Tocados por asalto",
+    "touches_received_title": "Tocados recibidos",
+    "victories_defeats": "V / D",
+    "zone_a_label": "Mano + empuñadura del sable",
+    "zone_b_label": "Brazo o pierna",
+    "zone_c_label": "Tronco o cabeza"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",

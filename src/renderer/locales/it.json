@@ -1264,7 +1264,20 @@
     "col_handedness": "Lateralità",
     "handedness_left": "Mancino",
     "handedness_right": "Destrimane",
-    "touches_received": "Ricevute"
+    "touches_received": "Ricevute",
+    "charts": "Grafici",
+    "club_details": "Dettaglio per club",
+    "club_summary": "Riepilogo per club",
+    "no_club": "Senza club",
+    "points_given": "Punti segnati",
+    "points_received": "Punti ricevuti",
+    "touches_given_title": "Stoccate date",
+    "touches_per_match": "Stoccate per assalto",
+    "touches_received_title": "Stoccate ricevute",
+    "victories_defeats": "V / S",
+    "zone_a_label": "Mano + impugnatura della sciabola",
+    "zone_b_label": "Braccio o gamba",
+    "zone_c_label": "Tronco o testa"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",

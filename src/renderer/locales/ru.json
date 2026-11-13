@@ -1264,7 +1264,20 @@
     "col_handedness": "Ведущая рука",
     "handedness_left": "Левша",
     "handedness_right": "Правша",
-    "touches_received": "Получено"
+    "touches_received": "Получено",
+    "charts": "Графики",
+    "club_details": "Подробно по клубам",
+    "club_summary": "Итоги по клубам",
+    "no_club": "Без клуба",
+    "points_given": "Набранные очки",
+    "points_received": "Полученные очки",
+    "touches_given_title": "Нанесённые уколы",
+    "touches_per_match": "Уколы за бой",
+    "touches_received_title": "Полученные уколы",
+    "victories_defeats": "П / П",
+    "zone_a_label": "Кисть + рукоять сабли",
+    "zone_b_label": "Рука или нога",
+    "zone_c_label": "Туловище или голова"
   },
   "rsm": {
     "strip_plan": "План дорожек",

@@ -1264,7 +1264,20 @@
     "col_handedness": "慣用手",
     "handedness_left": "左手",
     "handedness_right": "右手",
-    "touches_received": "被擊中"
+    "touches_received": "被擊中",
+    "charts": "圖表",
+    "club_details": "按會詳情",
+    "club_summary": "按會總結",
+    "no_club": "無會籍",
+    "points_given": "得分",
+    "points_received": "失分",
+    "touches_given_title": "擊中對手",
+    "touches_per_match": "每場擊中",
+    "touches_received_title": "被擊中",
+    "victories_defeats": "勝 / 負",
+    "zone_a_label": "手 + 劍柄",
+    "zone_b_label": "手臂或腿",
+    "zone_c_label": "軀幹或頭部"
   },
   "rsm": {
     "strip_plan": "劍道圖",

@@ -1264,7 +1264,20 @@
     "col_handedness": "Handedness",
     "handedness_left": "Left-handed",
     "handedness_right": "Right-handed",
-    "touches_received": "Received"
+    "touches_received": "Received",
+    "charts": "Charts",
+    "club_details": "Details by club",
+    "club_summary": "Summary by club",
+    "no_club": "No club",
+    "points_given": "Points scored",
+    "points_received": "Points received",
+    "touches_given_title": "Touches given",
+    "touches_per_match": "Touches per match",
+    "touches_received_title": "Touches received",
+    "victories_defeats": "W / L",
+    "zone_a_label": "Hand + sabre hilt",
+    "zone_b_label": "Arm or leg",
+    "zone_c_label": "Torso or head"
   },
   "rsm": {
     "strip_plan": "Strip map",
