@@ -98,9 +98,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
+| Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 8 | 148 |
+| `src/database/` | 9 | 149 |
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **364** | **2767** |
+| **Total** | **366** | **2774** |
 
-Unitaires : 354 fichiers, 2728 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 356 fichiers, 2735 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1946,6 +1946,19 @@ Unitaires : 354 fichiers, 2728 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/features/rapieres/rapieresClassicOrder.test.ts</code> — 6 tests</summary>
+
+- **ordre classique des rapières (#1816)**
+  - poule de %i : chaque paire une seule fois _(each)_
+  - nombre de tours par taille
+  - pas de table hors 10 à 15
+  - applyClassicOrder renumérote, garde les ids et donne les vagues des tours
+  - ordre standard conservé si la poule ne suit pas la table
+  - poule sans table inchangée
+
+</details>
+
+<details>
 <summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 10 tests</summary>
 
 - **rapieresImport (#1211)**
@@ -2212,6 +2225,14 @@ Unitaires : 354 fichiers, 2728 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - n'agit pas sur une épreuve hors journée
   - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
   - délie les fiches quand on supprime arbitre, rattachement ou journée
+
+</details>
+
+<details>
+<summary><code>src/database/repos/refereeRepo.test.ts</code> — 1 test</summary>
+
+- **RefereeRepo.getMatchesWithReferees**
+  - ne plante pas et renvoie poules + tableau de la compétition
 
 </details>
 
