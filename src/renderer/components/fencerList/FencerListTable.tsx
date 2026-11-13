@@ -131,6 +131,7 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
                       style={{
                         cursor: 'grab',
                         userSelect: 'none',
+                        whiteSpace: 'nowrap', // libellé + flèche de tri sur une ligne (#1504)
                         opacity: dragCol === col.id ? 0.4 : 1,
                         borderLeft:
                           dragOverCol === col.id && dragCol !== col.id
@@ -177,6 +178,7 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
                           width: col.width,
                           cursor: 'grab',
                           userSelect: 'none',
+                          whiteSpace: 'nowrap', // libellé + flèche de tri sur une ligne (#1504)
                           opacity: dragCol === col.id ? 0.4 : 1,
                           borderLeft:
                             dragOverCol === col.id && dragCol !== col.id

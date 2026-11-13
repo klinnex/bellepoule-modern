@@ -893,10 +893,15 @@ body {
   text-overflow: ellipsis;
   flex-shrink: 0;
 }
+.theme-dark .pool-prep-club-pill {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-light);
+}
 .pool-prep-club-pill.conflict {
   border-color: var(--color-warning);
   color: var(--color-warning);
-  background: rgba(217, 119, 6, 0.22); /* surbrillance orange (#1440) */
+  background: rgba(217, 119, 6, 0.22); /* après .theme-dark : orange aussi en sombre (#1440) */
 }
 .pool-prep-ranking,
 .pool-prep-strength {
@@ -904,11 +909,6 @@ body {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
-}
-.theme-dark .pool-prep-club-pill {
-  background: var(--color-bg);
-  border-color: var(--color-border);
-  color: var(--color-text-light);
 }
 
 /* Action buttons */

@@ -1381,6 +1381,11 @@
 }
 
 .nat-list {
+  position: absolute; /* surimpression : n'étire pas la carte (#1504) */
+  z-index: 50;
+  width: max-content;
+  box-shadow: var(--shadow-lg);
+  background: var(--color-surface);
   max-height: 200px;
   overflow-y: auto;
   list-style: none;

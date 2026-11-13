@@ -48,6 +48,12 @@
       set('refereeFeatureEnabled', data.refereeFeatureEnabled);
     }
 
+    // Gaucher contre droitier : A rouge (#1439) ; position = inversion XOR gaucher
+    if (data.leftHanded !== undefined && !!data.leftHanded !== !!st.leftHanded) {
+      set('leftHanded', !!data.leftHanded);
+      if (data.swapped === undefined) ops.push({ op: 'updateMatchDisplay' });
+    }
+
     // État d'inversion synchronisé avec le serveur
     if (data.swapped !== undefined) {
       set('inversionEnabled', data.swapped);
@@ -80,18 +86,19 @@
       }
     }
 
-    // Scores (respecte l'inversion)
+    // Scores (respecte l'inversion et le gaucher)
+    const aLeft = !!st.inversionEnabled !== !!st.leftHanded;
     if (data.scoreA !== undefined) {
       ops.push({
         op: 'score',
-        id: st.inversionEnabled ? 'score-a' : 'score-b',
+        id: aLeft ? 'score-a' : 'score-b',
         value: data.scoreA,
       });
     }
     if (data.scoreB !== undefined) {
       ops.push({
         op: 'score',
-        id: st.inversionEnabled ? 'score-b' : 'score-a',
+        id: aLeft ? 'score-b' : 'score-a',
         value: data.scoreB,
       });
     }

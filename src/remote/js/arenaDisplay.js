@@ -21,6 +21,7 @@ class ArenaDisplay {
     this.overtimeType = null;
     this.waitingOvertime = false;
     this.inversionEnabled = localStorage.getItem('inversionEnabled') === 'true';
+    this.leftHanded = false; // gaucher (A) contre droitier : A rouge (#1439)
     this.showPhotos = false;
     this.refereeFeatureEnabled = false;
     this.theme = localStorage.getItem('displayTheme') || 'dark';
@@ -198,7 +199,7 @@ class ArenaDisplay {
 
   applyPriorityFrame(side) {
     this._prioSide = side; // côté logique, repeint si l'inversion change
-    window.BPPriorityDraw.paintPriorityFrame(document, side, this.inversionEnabled);
+    window.BPPriorityDraw.paintPriorityFrame(document, side, this.aOnLeft());
   }
 
   showCoinFlipAnimation(winner, fencerA, fencerB) {
@@ -277,6 +278,7 @@ class ArenaDisplay {
         matchStatus: this.matchStatus,
         showPhotos: this.showPhotos,
         inversionEnabled: this.inversionEnabled,
+        leftHanded: this.leftHanded,
       },
       data
     );
@@ -319,8 +321,19 @@ class ArenaDisplay {
     BPArenaRender.updateStatusBadge(document, window.T, this.matchStatus);
   }
 
+  /** Tireur A à gauche : inversion de vue XOR gaucher (#1439) */
+  aOnLeft() {
+    return !!this.inversionEnabled !== !!this.leftHanded;
+  }
+
   updateMatchDisplay() {
-    BPArenaRender.updateMatchDisplay(document, this.currentMatch, this.inversionEnabled);
+    BPArenaRender.updateMatchDisplay(
+      document,
+      this.currentMatch,
+      this.aOnLeft(),
+      this.inversionEnabled
+    );
+    if (this._prioSide) this.applyPriorityFrame(this._prioSide);
   }
 
   applyInversionColors() {
@@ -329,13 +342,7 @@ class ArenaDisplay {
   }
 
   updateCardsDisplay() {
-    BPArenaRender.updateCardsDisplay(
-      document,
-      escHtml,
-      this.cardsA,
-      this.cardsB,
-      this.inversionEnabled
-    );
+    BPArenaRender.updateCardsDisplay(document, escHtml, this.cardsA, this.cardsB, this.aOnLeft());
   }
 
   updateTimerDisplay(timerStatus) {
@@ -389,7 +396,7 @@ class ArenaDisplay {
   }
 
   updatePhotoIntro() {
-    BPArenaPanels.updatePhotoIntro(document, this.currentMatch, this.inversionEnabled);
+    BPArenaPanels.updatePhotoIntro(document, this.currentMatch, this.aOnLeft());
   }
 
   setFencerPhoto(side, photo) {

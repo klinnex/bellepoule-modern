@@ -110,6 +110,53 @@ describe('Toast d’annulation (#1535)', () => {
     expect(onUndo).toHaveBeenCalledOnce();
     expect(screen.queryByText('Supprimé')).toBeNull();
   });
+
+  it('Ctrl+Z annule la dernière action et ferme son toast, une seule fois', () => {
+    const onUndo = vi.fn();
+    const local = vi.fn();
+    document.addEventListener('keydown', local);
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>;
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(local).not.toHaveBeenCalled(); // historique local non déclenché en plus
+    expect(screen.queryByText('Supprimé')).toBeNull();
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(local).toHaveBeenCalledOnce(); // plus de toast : Ctrl+Z laissé aux autres
+    document.removeEventListener('keydown', local);
+  });
+
+  it('Ctrl+Z dans un champ de saisie : annulation native, toast conservé', () => {
+    const onUndo = vi.fn();
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return (
+        <>
+          <input aria-label="champ" />
+          <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>
+        </>
+      );
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    act(() => {
+      fireEvent.keyDown(screen.getByLabelText('champ'), { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).not.toHaveBeenCalled();
+  });
 });
 
 describe('Toast d’erreur actionnable (#1535)', () => {

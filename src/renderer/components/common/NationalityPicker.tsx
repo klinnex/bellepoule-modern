@@ -79,7 +79,7 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
   };
 
   return (
-    <div>
+    <div className="relative">
       <div className="u-row">
         <Flag code={value} />
         <input

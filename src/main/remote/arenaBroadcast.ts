@@ -61,20 +61,14 @@ export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
 }
 
 /**
- * Gaucher contre droitier, armes olympiques (#1439) : à chaque nouveau match, bascule
- * `arena.swapped` pour placer le gaucher à gauche (rouge). Bascule relative (XOR) :
- * l'inversion manuelle de l'écran est conservée.
+ * Gaucher contre droitier, armes olympiques (#1439) : le gaucher (A, premier appelé)
+ * devient rouge et le droitier vert. Couleur réelle, indépendante de l'inversion de vue.
  */
-export function applyLeftHandedSwap(
-  arena: Arena,
-  match: ArenaUpdate['match'],
+export function arenaLeftHanded(
+  match: ArenaUpdate['match'] | null | undefined,
   weapon: string | null | undefined
-): void {
-  if (!match?.id || arena.leftHandedMatchId === match.id) return;
-  const want = needsLeftHandedSwap(weapon, match.fencerA, match.fencerB);
-  if (want !== (arena.leftHandedSwap ?? false)) arena.swapped = !(arena.swapped ?? false);
-  arena.leftHandedSwap = want;
-  arena.leftHandedMatchId = match.id;
+): boolean {
+  return !!match && needsLeftHandedSwap(weapon, match.fencerA, match.fencerB);
 }
 
 export function broadcastArenaUpdate(
@@ -83,12 +77,14 @@ export function broadcastArenaUpdate(
   update: ArenaUpdate
 ): void {
   const arena = ctx.getArena(arenaId);
-  if (arena) applyLeftHandedSwap(arena, update.match, ctx.sessionWeapon);
+  if (arena && update.match !== undefined)
+    arena.leftHanded = arenaLeftHanded(update.match, ctx.sessionWeapon);
   const override = ctx.arenaThemeOverrides.get(arenaId);
   const isPoolMatch = !!arena?.currentMatch?.poolId;
   const updateWithPhotos: ArenaUpdate = {
     ...update,
     swapped: arena?.swapped ?? false,
+    leftHanded: arena?.leftHanded ?? false,
     showPhotos: ctx.sessionShowPhotos,
     cardAnnounce: ctx.sessionCardAnnounce,
     theme: override?.theme ?? ctx.sessionTheme,

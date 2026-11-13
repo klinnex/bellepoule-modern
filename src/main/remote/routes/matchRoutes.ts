@@ -607,11 +607,14 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         // via Socket.IO en temps réel ; on les accepte sans traitement supplémentaire.
         results.push({ id: action.id, success: true });
       } catch (err) {
+        // Match disparu (entraînement terminé, session relancée) : action inapplicable,
+        // retirée de la file pour ne pas bloquer la tablette sur « Échec » (#1500)
+        const gone = err instanceof Error && err.message === 'Match non trouvé';
         logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur sync action', undefined, [
           action.id,
           err,
         ]);
-        results.push({ id: action.id, success: false });
+        results.push({ id: action.id, success: gone });
       }
     }
     res.json({ results });

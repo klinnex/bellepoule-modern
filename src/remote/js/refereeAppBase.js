@@ -60,6 +60,7 @@ class RefereeAppBase {
     this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
     this.refereesList = []; // Liste des arbitres de la compétition
     this.swapped = false;
+    this.leftyRed = false;
     this.weapon = null; // arme de la session (/api/session)
     this.pausedForModal = false;
     this.trainingCustomRules = null; // { matchDurationSeconds, allowedZones, disableSuddenDeath }
@@ -195,6 +196,9 @@ class RefereeAppBase {
     const online = this._online !== false;
     const state = OfflineQueueInline.badgeState(online, !!this._syncFailed);
     el.className = 'sync-badge ' + state;
+    // Badge = file des scores hors-ligne ; le point de connexion couvre déjà le temps réel.
+    // En ligne sans rien à envoyer : masqué, pour n'afficher qu'un seul état (#1500)
+    el.hidden = state === 'online' && !this._syncing && !(pending > 0);
     if (state === 'offline') {
       el.textContent =
         pending > 0
@@ -699,8 +703,10 @@ class RefereeAppBase {
     this.isResting = false;
     this.overtimeType = null;
     this.actionHistory = [];
-    // Gaucher contre droitier : gaucher à gauche en rouge (#1439)
-    this.swapped = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
+    // Gaucher contre droitier : le gaucher devient rouge (à gauche), le droitier vert (#1439).
+    // Couleur réelle, pas seulement l'inversion de vue : le bouton ⇄ reste inactif.
+    this.swapped = false;
+    this.leftyRed = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
     this.stopTimer();
     const timerRestored = this.restoreTimerState(match);
     const undoBtn = document.getElementById('btn-undo');

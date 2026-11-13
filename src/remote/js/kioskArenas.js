@@ -87,8 +87,10 @@
           score: m.scoreB ?? '—',
           scoreId: `sb-${aid}`,
         };
-        const left = arena.swapped ? sideA : sideB;
-        const right = arena.swapped ? sideB : sideA;
+        // Gaucher (A) contre droitier : A rouge (#1439) → position XOR, couleurs = inversion
+        const aLeft = !!arena.swapped !== !!arena.leftHanded;
+        const left = aLeft ? sideA : sideB;
+        const right = aLeft ? sideB : sideA;
         const leftColor = arena.swapped ? 'green' : 'red';
         const rightColor = arena.swapped ? 'red' : 'green';
 

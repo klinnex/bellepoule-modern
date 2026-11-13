@@ -25,6 +25,7 @@ class PublicDisplay {
     this.refereeSelected = false;
     // Clé localStorage indépendante des autres écrans
     this.inversionEnabled = localStorage.getItem('publicInversionEnabled') === 'true';
+    this.leftHanded = false;
     this.showPhotos = false;
 
     this.init();
@@ -189,7 +190,7 @@ class PublicDisplay {
 
   applyPriorityFrame(side) {
     this._prioSide = side; // côté logique, repeint si l'inversion change
-    window.BPPriorityDraw.paintPriorityFrame(document, side, this.inversionEnabled);
+    window.BPPriorityDraw.paintPriorityFrame(document, side, this.aOnLeft());
   }
 
   showCoinFlipAnimation(winner, fencerA, fencerB) {
@@ -202,8 +203,8 @@ class PublicDisplay {
     const result = document.getElementById('coin-result');
     if (!overlay || !coin || !nameGreen || !nameRed || !result) return;
 
-    const fA = this.inversionEnabled ? fencerB : fencerA;
-    const fB = this.inversionEnabled ? fencerA : fencerB;
+    const fA = this.aOnLeft() ? fencerB : fencerA;
+    const fB = this.aOnLeft() ? fencerA : fencerB;
     const nameA = fA ? `${fA.lastName || ''} ${fA.firstName || ''}`.trim() || 'VERT' : 'VERT';
     const nameB = fB ? `${fB.lastName || ''} ${fB.firstName || ''}`.trim() || 'ROUGE' : 'ROUGE';
     nameGreen.textContent = nameA;
@@ -216,7 +217,7 @@ class PublicDisplay {
 
     overlay.classList.remove('hidden');
 
-    const visualWinner = this.inversionEnabled ? (winner === 'A' ? 'B' : 'A') : winner;
+    const visualWinner = this.aOnLeft() ? (winner === 'A' ? 'B' : 'A') : winner;
     const finalDeg = visualWinner === 'A' ? 3600 : 3780;
 
     requestAnimationFrame(() => {
@@ -305,6 +306,12 @@ class PublicDisplay {
     }
 
     // L'inversion public est locale — on ignore data.swapped
+    // Gaucher (A) contre droitier : A rouge (#1439)
+    if (data.leftHanded !== undefined && !!data.leftHanded !== this.leftHanded) {
+      this.leftHanded = !!data.leftHanded;
+      this.updateMatchDisplay();
+      this.updateCardsDisplay();
+    }
 
     if (data.status) {
       this.matchStatus = data.status;
@@ -333,12 +340,10 @@ class PublicDisplay {
     }
 
     if (data.scoreA !== undefined) {
-      document.getElementById(this.inversionEnabled ? 'score-a' : 'score-b').textContent =
-        data.scoreA;
+      document.getElementById(this.aOnLeft() ? 'score-a' : 'score-b').textContent = data.scoreA;
     }
     if (data.scoreB !== undefined) {
-      document.getElementById(this.inversionEnabled ? 'score-b' : 'score-a').textContent =
-        data.scoreB;
+      document.getElementById(this.aOnLeft() ? 'score-b' : 'score-a').textContent = data.scoreB;
     }
 
     if (data.cardsA) {
@@ -393,8 +398,8 @@ class PublicDisplay {
 
     const fA = this.currentMatch.fencerA || {};
     const fB = this.currentMatch.fencerB || {};
-    const left = this.inversionEnabled ? fA : fB;
-    const right = this.inversionEnabled ? fB : fA;
+    const left = this.aOnLeft() ? fA : fB;
+    const right = this.aOnLeft() ? fB : fA;
 
     document.getElementById('fencer-a-name').textContent =
       `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
@@ -408,10 +413,15 @@ class PublicDisplay {
     const sB = this.currentMatch.scoreB;
     const valA = (typeof sA === 'object' ? (sA?.value ?? 0) : sA) ?? 0;
     const valB = (typeof sB === 'object' ? (sB?.value ?? 0) : sB) ?? 0;
-    document.getElementById('score-a').textContent = this.inversionEnabled ? valA : valB;
-    document.getElementById('score-b').textContent = this.inversionEnabled ? valB : valA;
+    document.getElementById('score-a').textContent = this.aOnLeft() ? valA : valB;
+    document.getElementById('score-b').textContent = this.aOnLeft() ? valB : valA;
 
     this.applyInversionColors();
+  }
+
+  /** Tireur A à gauche : inversion locale XOR gaucher (#1439) */
+  aOnLeft() {
+    return !!this.inversionEnabled !== !!this.leftHanded;
   }
 
   applyInversionColors() {
@@ -446,10 +456,10 @@ class PublicDisplay {
         .join('');
 
     document.getElementById('fencer-a-cards').innerHTML = renderCards(
-      this.inversionEnabled ? this.cardsA : this.cardsB
+      this.aOnLeft() ? this.cardsA : this.cardsB
     );
     document.getElementById('fencer-b-cards').innerHTML = renderCards(
-      this.inversionEnabled ? this.cardsB : this.cardsA
+      this.aOnLeft() ? this.cardsB : this.cardsA
     );
   }
 

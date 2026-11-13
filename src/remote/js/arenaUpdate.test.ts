@@ -23,6 +23,14 @@ const sets = (ops: Op[]) =>
   Object.fromEntries(ops.filter(o => o.op === 'set').map(o => [o.key as string, o.value]));
 
 describe('arenaUpdate.js planArenaUpdate', () => {
+  it('gaucher (#1439) : A rouge à gauche, scores placés en conséquence', () => {
+    const ops = A.planArenaUpdate(base, { leftHanded: true, scoreA: 4, scoreB: 2 });
+    expect(sets(ops).leftHanded).toBe(true);
+    expect(names(ops)).toContain('updateMatchDisplay');
+    expect(ops).toContainEqual({ op: 'score', id: 'score-a', value: 4 });
+    expect(ops).toContainEqual({ op: 'score', id: 'score-b', value: 2 });
+  });
+
   it('message vide : bannières et visibilité seulement', () => {
     expect(names(A.planArenaUpdate(base, {}))).toEqual([
       'updateWaitingOvertimeBanner',
