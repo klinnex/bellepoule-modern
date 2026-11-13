@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Fencer, Pool, PoolSnapshot, Referee } from '../../shared/types';
 import type { SqlExecutor } from './sqlExecutor';
 import type { DatabaseManager } from '../index';
-import { parseFencerRow, parsePoolRefereeIds } from './rowMappers';
+import { parseFencerRow, parsePoolRefereeIds, type SqlRow } from './rowMappers';
 import { logger, LogCategory } from '../../shared/services/logger';
 
 /** Poules : composition, arbitres, instantanés (#1242) */
@@ -15,7 +15,7 @@ export class PoolRepo {
   public getPoolFencers(poolId: string): Fencer[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         'SELECT f.* FROM fencers f INNER JOIN pool_fencers pf ON f.id = pf.fencer_id WHERE pf.pool_id = ? ORDER BY pf.position',
         [poolId]
       )
@@ -204,7 +204,7 @@ export class PoolRepo {
   public getPoolsByPhase(phaseId: string): Pool[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         'SELECT id, phase_id, number, is_complete, has_error, referee_id, referee_ids, created_at, updated_at FROM pools WHERE phase_id = ? ORDER BY number',
         [phaseId]
       )

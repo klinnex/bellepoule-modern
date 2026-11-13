@@ -229,7 +229,7 @@ Database (src/database/)
 - Strict mode enabled (no implicit any, strict null checks)
 - Path aliases: `@shared/*`, `@main/*`, `@renderer/*`, `@database/*`
 - Target: ES2020, Module: commonjs, JSX: react-jsx
-- TypeScript 6.0; bundled by Webpack 5 (ts-loader) into `./dist/main`, `./dist/renderer`, `./dist/remote`
+- TypeScript 7.0 for `type-check` (`typescript7` alias), TypeScript 6.0 API for tooling (ts-loader, typescript-eslint, scripts); bundled by Webpack 5 (ts-loader) into `./dist/main`, `./dist/renderer`, `./dist/remote`
 
 ## Testing
 
@@ -277,7 +277,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
 - Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 45; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
+- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
 
 ## Git Conventions
 

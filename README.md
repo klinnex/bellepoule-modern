@@ -300,7 +300,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 - **Electron 45** (Node 24) : application de bureau multi-plateforme
 - **React 19.3** + **Zustand 5** : interface et état
-- **TypeScript 6.0** (strict) + **Webpack 5**
+- **TypeScript 7.0** (type-check natif, strict) + 6.0 pour l'outillage + **Webpack 5**
 - **SQLite** via **better-sqlite3 13**
 - **Express 5** + **Socket.IO 4.8** : serveur temps réel des tablettes
 - **jsPDF 4** : génération PDF
