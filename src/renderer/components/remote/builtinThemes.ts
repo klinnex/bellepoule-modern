@@ -16,6 +16,18 @@ import {
 
 export const BUILTIN_THEME_PREFIX = 'builtin:';
 
+/** Section du sélecteur « Thème global » : un type d'écran, ou « Toutes sources » (#1795) */
+export type GlobalThemeSection = ThemeTargetType | 'all';
+
+/** Types d'écran couverts par « Toutes sources » */
+export const THEME_SECTIONS: readonly ThemeTargetType[] = [
+  'arena',
+  'kiosk',
+  'public',
+  'referee',
+  'pool',
+];
+
 const ARENA_PRESETS = ['dark', 'light', 'neon'] as const;
 
 const SECTION_DEFAULTS: Record<ThemeTargetType, Record<string, string>> = {
@@ -352,14 +364,14 @@ type Translate = (key: string) => string;
 
 /** Options prédéfinies affichées pour une section */
 export function getBuiltinThemeOptions(
-  section: ThemeTargetType,
+  section: GlobalThemeSection,
   t: Translate
 ): { id: string; label: string }[] {
   const decorative = Object.keys(DECORATIVE_THEMES).map(k => ({
     id: `${BUILTIN_THEME_PREFIX}${k}`,
     label: t(`rsm.theme_${k}`),
   }));
-  if (section === 'arena') {
+  if (section === 'arena' || section === 'all') {
     return [
       ...ARENA_PRESETS.map(p => ({
         id: `${BUILTIN_THEME_PREFIX}${p}`,
@@ -407,4 +419,32 @@ export function resolveBuiltinTheme(
       variables: { ...SECTION_DEFAULTS[section] },
     },
   };
+}
+
+/** Application d'un thème à un type d'écran : préréglage piste ou thème custom */
+export type ThemeApplication =
+  | { section: ThemeTargetType; preset: DisplayTheme; theme?: undefined }
+  | { section: ThemeTargetType; preset?: undefined; theme: CustomTheme };
+
+/**
+ * « Toutes sources » (#1795) : écrans concernés par le thème choisi.
+ * Préréglage piste → piste seule ; décoratif → chaque écran (variables propres) ;
+ * thème sauvegardé → son type d'écran.
+ */
+export function resolveAllSourcesTheme(
+  id: string,
+  savedThemes: CustomTheme[],
+  t: Translate
+): ThemeApplication[] {
+  if (isBuiltinThemeId(id)) {
+    const out: ThemeApplication[] = [];
+    for (const section of THEME_SECTIONS) {
+      const r = resolveBuiltinTheme(section, id, t);
+      if (r?.preset) out.push({ section, preset: r.preset });
+      else if (r?.theme) out.push({ section, theme: r.theme });
+    }
+    return out;
+  }
+  const saved = savedThemes.find(x => x.id === id);
+  return saved ? [{ section: saved.targetType ?? 'arena', theme: saved }] : [];
 }

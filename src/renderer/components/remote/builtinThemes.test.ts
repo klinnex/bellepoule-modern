@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getBuiltinThemeOptions, resolveBuiltinTheme } from './builtinThemes';
+import {
+  getBuiltinThemeOptions,
+  resolveAllSourcesTheme,
+  resolveBuiltinTheme,
+  THEME_SECTIONS,
+} from './builtinThemes';
 
 const t = (k: string) => k;
 
@@ -62,5 +67,27 @@ describe('builtinThemes', () => {
 
   it('clé héritée de Object.prototype → null', () => {
     expect(resolveBuiltinTheme('pool', 'builtin:toString', t)).toBeNull();
+  });
+});
+
+describe('Toutes sources (#1795)', () => {
+  const t = (k: string) => k;
+  it('liste préréglages piste et décoratifs', () => {
+    const ids = getBuiltinThemeOptions('all', t).map(o => o.id);
+    expect(ids).toContain('builtin:dark');
+    expect(ids).toContain('builtin:steampunk');
+  });
+  it('décoratif → tous les écrans, préréglage → piste seule', () => {
+    expect(resolveAllSourcesTheme('builtin:steampunk', [], t).map(a => a.section)).toEqual([
+      ...THEME_SECTIONS,
+    ]);
+    expect(resolveAllSourcesTheme('builtin:neon', [], t)).toEqual([
+      { section: 'arena', preset: 'neon' },
+    ]);
+  });
+  it('thème sauvegardé → son type d’écran', () => {
+    const saved = { id: 'c1', name: 'X', targetType: 'pool' as const, variables: {} };
+    expect(resolveAllSourcesTheme('c1', [saved], t)).toEqual([{ section: 'pool', theme: saved }]);
+    expect(resolveAllSourcesTheme('inconnu', [saved], t)).toEqual([]);
   });
 });
