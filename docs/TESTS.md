@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 54 | 701 |
+| `src/shared/utils/` | 54 | 702 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -106,13 +106,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 28 | 137 |
 | `src/renderer/components/` | 90 | 451 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 369 |
+| `src/remote/` | 56 | 370 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **363** | **2761** |
+| **Total** | **363** | **2763** |
 
-Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 353 fichiers, 2724 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -696,7 +696,7 @@ Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 47 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 48 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -720,6 +720,7 @@ Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - includes pool phase when pools provided
   - inclut les exempts du 1er tour dans leurs cases (#1328)
   - includes elimination bracket when tableauMatches provided
+  - publie les arbitres des poules et du tableau (#1328)
   - maps ABANDONED to A
   - maps EXCLUDED to X
   - maps FORFAIT to F
@@ -5571,11 +5572,12 @@ Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - désactivé par défaut, bascule mémorisée, stockage cassé toléré
   - beep : false sans WebAudio, true avec
   - le bouton #btn-sound reflète l état (aria-pressed)
-- **bouton Annuler la touche temporaire**
-  - visible puis masqué après le délai, clic = annulation
-  - minuteurs par défaut : setTimeout appelé sans this détourné (navigateur, #1716)
-  - afterScore ne lève pas avec les minuteurs natifs (+1 opérant, #1716)
-  - icône SVG devant le libellé quand /js/icons.js est chargé
+- **« Annuler la touche » retiré (#1808)**
+  - afterScore ne crée plus de bouton temporaire (doublon du bouton Annuler)
+- **menu d options sur téléphone (#1808)**
+  - ouvre/ferme le menu, ferme au clic extérieur et sur Échap
+  - sans les éléments : aucun effet
+  - referee.html : options regroupées, menu visible uniquement sur téléphone
 - **referee.html (#1539)**
   - +1/+3/+5 ont un aria-label traduit (deux côtés)
   - charge le module sans script inline et branche afterScore
@@ -5601,7 +5603,7 @@ Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeLobby.test.ts</code> — 15 tests</summary>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 16 tests</summary>
 
 - **refereeLobby.js**
   - arenaFromPath : /areneN/arbitre et /arenaN
@@ -5618,6 +5620,8 @@ Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1
   - autoOpen : match déjà ouvert ou liste vide → rien
   - autoOpen : liste jamais chargée → abandon après les essais
+- **refereeLobby.js : bouton Lobby (#1808)**
+  - remplace « Retour » (masqué) avec le même style
 - **referee.html et trainingLobby.html (#1500)**
   - referee.html charge le module et lance install
   - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
