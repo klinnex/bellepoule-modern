@@ -1260,7 +1260,20 @@
     "col_handedness": "Händigkeit",
     "handedness_left": "Linkshänder",
     "handedness_right": "Rechtshänder",
-    "touches_received": "Erhalten"
+    "touches_received": "Erhalten",
+    "charts": "Diagramme",
+    "club_details": "Details nach Verein",
+    "club_summary": "Zusammenfassung nach Verein",
+    "no_club": "Ohne Verein",
+    "points_given": "Erzielte Punkte",
+    "points_received": "Erhaltene Punkte",
+    "touches_given_title": "Gegebene Treffer",
+    "touches_per_match": "Treffer pro Gefecht",
+    "touches_received_title": "Erhaltene Treffer",
+    "victories_defeats": "S / N",
+    "zone_a_label": "Hand + Säbelgriff",
+    "zone_b_label": "Arm oder Bein",
+    "zone_c_label": "Rumpf oder Kopf"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
