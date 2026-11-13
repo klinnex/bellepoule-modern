@@ -239,5 +239,6 @@ export async function exportPostTournamentPDF(
 
   if (!result || result.canceled || !result.filePath) return;
 
-  await window.electronAPI.file.printHtmlToPDF(html, result.filePath);
+  const res = await window.electronAPI.file.printHtmlToPDF(html, result.filePath);
+  if (res && !res.success) throw new Error(res.error ?? 'PDF export failed');
 }
