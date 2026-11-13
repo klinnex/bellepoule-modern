@@ -12,7 +12,7 @@
 | Node.js | **22.x** | Utilisé par la CI (`actions/setup-node`, `node-version: '22'`). Requis par better-sqlite3 13. |
 | npm | ≥ 10 | Lockfile v3. |
 | Electron | **45.0.0** | Chromium + Node 24 embarqués. |
-| TypeScript | **6.0.3** | TS 7 bloqué par typescript-eslint (`<6.1`). `strict: true`, cible ES2020, modules CommonJS, `jsx: react-jsx`. |
+| TypeScript | **7.0.2** (type-check) + **6.0.3** (outillage) | `npm run type-check` = TS 7 natif (paquet `typescript7`). TS 7 n'expose pas l'API JS : ts-loader, typescript-eslint (`<6.1`) et les scripts d'analyse gardent `typescript` 6.0.3. Sans `baseUrl` (chemins `./src/*`). `strict: true`, cible ES2020, modules CommonJS, `jsx: react-jsx`. |
 | OS supportés (build) | Windows x64, macOS x64/arm64, Linux x64 | electron-builder. |
 
 `postinstall` : `electron-rebuild -f -w better-sqlite3` (recompile le module natif pour
