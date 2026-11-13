@@ -43,6 +43,15 @@ describe('computeMatchProgress', () => {
     ] as unknown as TableauMatch[];
     expect(computeMatchProgress([], matches)).toEqual({ done: 1, total: 2, label: 'tableau' });
   });
+
+  it('tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)', () => {
+    const matches = [
+      { id: 'bye', fencerA: {}, fencerB: null, winner: {} },
+      { id: 'a', fencerA: {}, fencerB: {}, winner: {} },
+      { id: 'b', fencerA: {}, fencerB: {}, winner: {} },
+    ] as unknown as TableauMatch[];
+    expect(computeMatchProgress([], matches)).toEqual({ done: 2, total: 2, label: 'tableau' });
+  });
 });
 
 describe('computeEffectiveTableauRanking', () => {
