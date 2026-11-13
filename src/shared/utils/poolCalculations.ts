@@ -562,6 +562,8 @@ export function distributeFencersToPoolsSerpentine(
   }
   const pools: Fencer[][] = Array.from({ length: poolCount }, () => []);
   const indexes = createPoolIndexes(pools);
+  // Quota par valeur (BellePoule) : un club de N tireurs tolère ⌈N/poules⌉ tireurs par poule
+  const quotas = createQuotas(fencers, poolCount);
 
   // Trier les tireurs par classement (meilleur classement = premier, non-classés = derniers)
   const pending = [...fencers].sort((a, b) => (a.ranking ?? 99999) - (b.ranking ?? 99999));
@@ -575,7 +577,7 @@ export function distributeFencersToPoolsSerpentine(
 
   const firstFree = (limit: number, criteria: SeparationCriterionKey[]): number => {
     for (let i = 0; i < limit; i++) {
-      if (!hasConflictWith(pending[i], indexes[poolIndex], criteria)) return i;
+      if (!hasConflictWith(pending[i], indexes[poolIndex], criteria, quotas)) return i;
     }
     return -1;
   };
@@ -584,9 +586,11 @@ export function distributeFencersToPoolsSerpentine(
     const pool = pools[poolIndex];
 
     let chosen = 0;
+    // Têtes de poule (premier chapeau) jamais déplacées (BellePoule)
+    const isHead = placed < poolCount;
     // Critères sous le classement : recherche dans le chapeau courant seulement
     let inPot = -1;
-    if (belowRanking.length > 0) {
+    if (!isHead && belowRanking.length > 0) {
       const potSize = Math.min(pending.length, poolCount - (placed % poolCount));
       for (let take = belowRanking.length; take >= 1 && inPot < 0; take--) {
         inPot = firstFree(potSize, [...separation, ...belowRanking.slice(0, take)]);
@@ -595,7 +599,7 @@ export function distributeFencersToPoolsSerpentine(
     }
     if (inPot >= 0) {
       chosen = inPot;
-    } else if (separation.length > 0) {
+    } else if (!isHead && separation.length > 0) {
       // Relâchement progressif : d'abord tous les critères, puis en retirant le moins
       // prioritaire (dernier) jusqu'à ne garder que le plus prioritaire (premier).
       // Garantit que le critère 1 n'est jamais sacrifié si une solution existe.
@@ -603,7 +607,7 @@ export function distributeFencersToPoolsSerpentine(
       for (let take = separation.length; take >= 1 && !found; take--) {
         const activeSub = separation.slice(0, take);
         for (let i = 0; i < pending.length; i++) {
-          if (!hasConflictWith(pending[i], indexes[poolIndex], activeSub)) {
+          if (!hasConflictWith(pending[i], indexes[poolIndex], activeSub, quotas)) {
             chosen = i;
             found = true;
             break;
@@ -628,7 +632,7 @@ export function distributeFencersToPoolsSerpentine(
   }
 
   // Rééquilibrer les poules pour assurer un nombre égal (ou presque égal) de tireurs
-  rebalancePools(pools, [...separation, ...belowRanking], indexes);
+  rebalancePools(pools, [...separation, ...belowRanking], indexes, quotas);
 
   // Tirage au sort des positions dans la poule (FIE §3)
   for (const pool of pools) {
@@ -644,12 +648,12 @@ export function distributeFencersToPoolsSerpentine(
 /**
  * Index multiensemble (valeur → occurrences) des clubs/régions/nations d'une poule,
  * pour vérifier les conflits en O(1) au lieu de scanner la poule à chaque test.
- * Les nations conservent les valeurs vides/undefined (égalité brute, cf. rééquilibrage).
+ * Valeurs vides ignorées : pas de conflit entre tireurs sans club/région/nation.
  */
 interface PoolConflictIndex {
   clubs: Map<string, number>;
   regions: Map<string, number>;
-  nations: Map<string | undefined, number>;
+  nations: Map<string, number>;
 }
 
 function indexAdd<K>(map: Map<K, number>, key: K): void {
@@ -666,13 +670,30 @@ function indexRemove<K>(map: Map<K, number>, key: K): void {
 function indexAddFencer(index: PoolConflictIndex, fencer: Fencer): void {
   if (fencer.club) indexAdd(index.clubs, fencer.club);
   if (fencer.region) indexAdd(index.regions, fencer.region);
-  indexAdd(index.nations, fencer.nationality);
+  if (fencer.nationality) indexAdd(index.nations, fencer.nationality);
 }
 
 function indexRemoveFencer(index: PoolConflictIndex, fencer: Fencer): void {
   if (fencer.club) indexRemove(index.clubs, fencer.club);
   if (fencer.region) indexRemove(index.regions, fencer.region);
-  indexRemove(index.nations, fencer.nationality);
+  if (fencer.nationality) indexRemove(index.nations, fencer.nationality);
+}
+
+/** Occupation maximale tolérée par poule pour chaque valeur : ⌈effectif / nb poules⌉ */
+function createQuotas(fencers: Fencer[], poolCount: number): PoolConflictIndex {
+  const totals = createPoolIndexes([fencers])[0];
+  const toQuota = <K>(m: Map<K, number>) => {
+    m.forEach((n, k) => m.set(k, Math.ceil(n / poolCount)));
+  };
+  toQuota(totals.clubs);
+  toQuota(totals.regions);
+  toQuota(totals.nations);
+  return totals;
+}
+
+/** Quota maximal d'une valeur par poule (club/région/nation), cf. NeoSwapper de BellePoule */
+export function separationQuota(total: number, poolCount: number): number {
+  return poolCount > 0 ? Math.max(1, Math.ceil(total / poolCount)) : total;
 }
 
 function createPoolIndexes(pools: Fencer[][]): PoolConflictIndex[] {
@@ -689,17 +710,20 @@ function createPoolIndexes(pools: Fencer[][]): PoolConflictIndex[] {
 function hasConflictWith(
   fencer: Fencer,
   index: PoolConflictIndex,
-  separation: SeparationCriterionKey[]
+  separation: SeparationCriterionKey[],
+  quotas?: PoolConflictIndex
 ): boolean {
   if (separation.length === 0) return false;
+  const full = <K>(m: Map<K, number>, q: Map<K, number> | undefined, k: K) =>
+    (m.get(k) ?? 0) >= (q?.get(k) ?? 1);
   return separation.some(key => {
     switch (key) {
       case 'byClub':
-        return !!fencer.club && index.clubs.has(fencer.club);
+        return !!fencer.club && full(index.clubs, quotas?.clubs, fencer.club);
       case 'byRegion':
-        return !!fencer.region && index.regions.has(fencer.region);
+        return !!fencer.region && full(index.regions, quotas?.regions, fencer.region);
       case 'byNation':
-        return index.nations.has(fencer.nationality);
+        return !!fencer.nationality && full(index.nations, quotas?.nations, fencer.nationality);
     }
   });
 }
@@ -711,7 +735,8 @@ function hasConflictWith(
 function rebalancePools(
   pools: Fencer[][],
   separation: SeparationCriterionKey[],
-  indexes: PoolConflictIndex[] = createPoolIndexes(pools)
+  indexes: PoolConflictIndex[] = createPoolIndexes(pools),
+  quotas?: PoolConflictIndex
 ): void {
   const poolCount = pools.length;
   if (poolCount === 0) return;
@@ -754,8 +779,7 @@ function rebalancePools(
           const fencer = source.pool[i];
 
           // Vérifier que le déplacement ne crée pas de conflit sur les critères actifs
-          // (nation : égalité brute, y compris valeurs vides — comportement historique)
-          const wouldCreateConflict = hasConflictWith(fencer, targetIndex, separation);
+          const wouldCreateConflict = hasConflictWith(fencer, targetIndex, separation, quotas);
 
           if (!wouldCreateConflict) {
             // Déplacer le tireur

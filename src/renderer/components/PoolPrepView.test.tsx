@@ -189,11 +189,20 @@ describe('PoolPrepView – brouillon de préparation (#1649)', () => {
 
 describe('PoolPrepView — pastille du critère prioritaire (#1440)', () => {
   it('club en priorité 1 : pastille club, orange si doublon dans la poule', () => {
-    // f1 et f4 : Club1 (doublon), f2 : Club2, f3 : Club0
+    // 2 poules : f1 et f4 (Club1) ensemble → au-delà du quota ⌈2/2⌉ = 1
+    const base = [1, 2, 3, 4].map(fencer);
+    const pools = [pool([base[0], base[3]]), { ...pool([base[1], base[2]]), id: 'p2', number: 2 }];
+    const { container } = render(view(base, pools));
+    const pills = [...container.querySelectorAll('.pool-prep-club-pill')];
+    expect(pills.map(p => p.textContent)).toEqual(['Club1', 'Club1', 'Club2', 'Club0']);
+    expect(pills.filter(p => p.classList.contains('conflict'))).toHaveLength(2);
+  });
+
+  it('doublon inévitable (quota BellePoule) : pas d’alerte', () => {
+    // 1 poule : Club1 ×2 ≤ ⌈2/1⌉
     const base = [1, 2, 3, 4].map(fencer);
     const { container } = render(view(base, [pool(base)]));
     const pills = [...container.querySelectorAll('.pool-prep-club-pill')];
-    expect(pills.map(p => p.textContent)).toEqual(['Club1', 'Club2', 'Club0', 'Club1']);
-    expect(pills.filter(p => p.classList.contains('conflict'))).toHaveLength(2);
+    expect(pills.filter(p => p.classList.contains('conflict'))).toHaveLength(0);
   });
 });
