@@ -88,6 +88,9 @@ export function handleArenaControl(
     return;
   }
 
+  // Appareil de piste Cyrano (pseudo-socket `cyrano:<piste>`, #1720) : tablettes en miroir
+  const source = socket.id?.startsWith('cyrano:') ? { source: 'device' as const } : {};
+
   switch (data.action) {
     case 'select_match':
       // Sélection d'un match par l'arbitre (depuis sa tablette)
@@ -242,7 +245,8 @@ export function handleArenaControl(
     case 'update_score': {
       const debounceKey = `${socket.id}:${data.arenaId}`;
       const lastUpdate = ctx.scoreUpdateDebounce.get(debounceKey) ?? 0;
-      if (Date.now() - lastUpdate < ctx.SCORE_UPDATE_DEBOUNCE_MS) break;
+      // Anti-rebond des tablettes ; l'appareil n'envoie que des changements (PisteHub)
+      if (!('source' in source) && Date.now() - lastUpdate < ctx.SCORE_UPDATE_DEBOUNCE_MS) break;
       ctx.scoreUpdateDebounce.set(debounceKey, Date.now());
       // Supprimer la mort subite si désactivée en entraînement
       const effectiveSuddenDeath =
@@ -290,6 +294,7 @@ export function handleArenaControl(
           overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
           waitingOvertime: ctx.arenaWaitingOvertime.get(data.arenaId) ?? false,
           status: arena.status,
+          ...source,
         });
       }
       break;
@@ -404,6 +409,7 @@ export function handleArenaControl(
         overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
         waitingOvertime: ctx.arenaWaitingOvertime.get(data.arenaId) ?? false,
         status: arena.status,
+        ...source,
       });
       break;
     }

@@ -142,4 +142,33 @@ describe('leftHandedSwap (#1439)', () => {
     expect(U.leftHandedSwap('L', { fencerA: L, fencerB: R })).toBe(false);
     expect(U.leftHandedSwap('E', null)).toBe(false);
   });
+  it('planDeviceMirror : seulement les mises à jour de l’appareil pour le match ouvert (#1720)', () => {
+    const s = { currentMatchId: 'm1' };
+    const dev = {
+      source: 'device',
+      match: { id: 'm1' },
+      status: 'in_progress',
+      scoreA: 2,
+      scoreB: { value: 1 },
+      cardsA: ['yellow'],
+      cardsB: [],
+      time: 177,
+    };
+    expect(U.planDeviceMirror(s, dev)).toEqual({
+      inProgress: true,
+      scoreA: 2,
+      scoreB: 1,
+      cardsA: ['yellow'],
+      cardsB: [],
+      time: 177,
+    });
+    expect(U.planDeviceMirror(s, { ...dev, source: undefined })).toBeNull();
+    expect(U.planDeviceMirror(s, { ...dev, match: { id: 'm2' } })).toBeNull();
+    expect(U.planDeviceMirror({}, dev)).toBeNull();
+    expect(
+      U.planDeviceMirror(s, { source: 'device', match: { id: 'm1' }, status: 'ready' })
+    ).toEqual({
+      inProgress: false,
+    });
+  });
 });

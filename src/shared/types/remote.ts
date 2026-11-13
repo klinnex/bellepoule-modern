@@ -163,6 +163,8 @@ export interface ArenaUpdate {
   fencerA?: Fencer;
   fencerB?: Fencer;
   timerStatus?: 'running' | 'paused' | 'reset';
+  /** Mise à jour venue de l'appareil de piste (mode appareil maître, #1720) : tablettes en miroir */
+  source?: 'device';
   cardsA?: string[];
   cardsB?: string[];
   suddenDeath?: boolean;

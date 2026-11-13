@@ -2,7 +2,8 @@
 /**
  * Simulateur d'appareil de piste Cyrano (EFP1 / EFP1.1) pour le développement (#1720).
  * Se comporte comme un appareil : répond aux HELLO par un INFO complet, installe les DISP
- * en attente, envoie NEXT / PREV / INFO, passe en W à la réception d'un ACK.
+ * en attente (match en cours : DISP des mêmes tireurs = correction des scores),
+ * envoie NEXT / PREV / INFO, passe en W à la réception d'un ACK.
  *
  *   node scripts/cyrano-simulator.js [--server 127.0.0.1] [--server-port 50100]
  *                                    [--port 50101] [--piste 1] [--protocol EFP1.1]
@@ -98,6 +99,18 @@ function installDisp({ g, r, l }) {
   process.stdout.write(s.right.id ? `  match ${s.right.name} – ${s.left.name}\n` : '  aucun match disponible\n');
 }
 
+// Match en cours : un DISP des mêmes tireurs corrige les scores (correction depuis la tablette)
+function applyCorrection({ r, l }) {
+  const same = [r, l].every(z => [s.right, s.left].some(x => x.id && x.id === z[0]));
+  if (!same) return process.stdout.write('  DISP ignoré (match en cours)\n');
+  for (const z of [r, l]) {
+    const f = [s.right, s.left].find(x => x.id === z[0]);
+    if (z[3] !== undefined && z[3] !== '') f.score = Number(z[3]) || 0;
+  }
+  process.stdout.write(`  scores corrigés : ${s.right.score} – ${s.left.score}\n`);
+  sendInfo();
+}
+
 sock.on('message', buf => {
   const raw = buf.toString('latin1');
   process.stdout.write(`← ${raw}\n`);
@@ -109,6 +122,7 @@ sock.on('message', buf => {
       return sendInfo();
     case 'DISP':
       if (s.state === 'W') installDisp(m);
+      else applyCorrection(m);
       return undefined;
     case 'ACK':
       if (s.state !== 'W') {
