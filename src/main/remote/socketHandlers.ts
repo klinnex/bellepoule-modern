@@ -10,6 +10,7 @@ import { createCard, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { normalizeIp, isLoopbackAddress } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { recordRemoteEvent } from './remoteEvents';
 
 type S = RemoteScoreServer;
 
@@ -443,6 +444,20 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
 
     socket.on('disconnect', () => {
       logger.info(LogCategory.NETWORK, 'Client disconnected:', socket.id);
+      const gone = ctx.connectedClients.get(socket.id);
+      // Perte de connexion d'une tablette arbitre : suivi dans l'onglet Organisation (#1817)
+      if (gone?.clientType === 'referee' && gone.arenaId) {
+        // Seulement en plein match : fermer la tablette entre deux matchs n'est pas une perte
+        const arena = ctx.getArena(gone.arenaId);
+        if (arena?.status === 'in_progress')
+          recordRemoteEvent(ctx, {
+            type: 'disconnect',
+            arenaId: gone.arenaId,
+            matchId: arena.currentMatch?.id ?? null,
+            refereeId: arena.currentMatch?.referee?.id ?? null,
+            detail: null,
+          });
+      }
       ctx.connectedClients.delete(socket.id);
       ctx.broadcastClientList();
       ctx.handleDisconnect(socket);

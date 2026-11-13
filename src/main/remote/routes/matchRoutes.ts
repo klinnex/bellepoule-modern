@@ -16,6 +16,7 @@ import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
+import { recordRemoteEvent } from '../remoteEvents';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -249,7 +250,9 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         cardsB,
         winner: winnerOverride,
         blackCardFencer,
+        fightSeconds: rawFight,
       } = req.body;
+      const fightSeconds = Number(rawFight);
 
       const scoreA = Number(rawA);
       const scoreB = Number(rawB);
@@ -354,6 +357,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           if (arena.currentMatch && arena.currentMatch.id === matchId) {
             arena.currentMatch.scoreA = scoreA;
             arena.currentMatch.scoreB = scoreB;
+            if (Number.isFinite(fightSeconds) && fightSeconds > 0 && fightSeconds < 6 * 3600)
+              arena.currentMatch.fightSeconds = Math.round(fightSeconds);
             arenaToFinish = arenaId;
             break;
           }
@@ -464,6 +469,13 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               const arena = Array.from(ctx.arenas.values()).find(
                 (a: any) => a.currentMatch?.id === matchId
               );
+              recordRemoteEvent(ctx, {
+                type: 'dt_call',
+                arenaId: arena?.id ?? null,
+                matchId,
+                refereeId: arena?.currentMatch?.referee?.id ?? matchObj?.referee?.id ?? null,
+                detail: 'black_card',
+              });
               mainWin.webContents.send('remote:dt_call', {
                 arenaId: arena?.id ?? `match-${matchId}`,
                 arenaNumber: arena?.number ?? null,
@@ -601,6 +613,13 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               timestamp: new Date(),
               refereeId: 'offline-sync',
             });
+            recordRemoteEvent(ctx, {
+              type: 'offline_sync',
+              arenaId: null,
+              matchId: p.matchId,
+              refereeId: null,
+              detail: null,
+            });
           }
         }
         // Les autres types d'actions (score_update, card, arena_exit) sont déjà broadcast
@@ -610,6 +629,13 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         // Match disparu (entraînement terminé, session relancée) : action inapplicable,
         // retirée de la file pour ne pas bloquer la tablette sur « Échec » (#1500)
         const gone = err instanceof Error && err.message === 'Match non trouvé';
+        recordRemoteEvent(ctx, {
+          type: 'sync_error',
+          arenaId: null,
+          matchId: (action.payload as { matchId?: string } | undefined)?.matchId ?? null,
+          refereeId: null,
+          detail: err instanceof Error ? err.message.slice(0, 200) : null,
+        });
         logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur sync action', undefined, [
           action.id,
           err,

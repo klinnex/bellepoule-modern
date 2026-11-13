@@ -18,6 +18,7 @@ import { PoolRepo } from './repos/poolRepo';
 import { RefereeRepo } from './repos/refereeRepo';
 import { EventDayRepo } from './repos/eventDayRepo';
 import { TeamRepo } from './repos/teamRepo';
+import { OrganisationRepo } from './repos/organisationRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -51,6 +52,7 @@ export class DatabaseManager {
   private readonly pools = new PoolRepo(this.sql, this);
   private readonly referees = new RefereeRepo(this.sql);
   private readonly teams = new TeamRepo(this.sql);
+  private readonly organisation = new OrganisationRepo(this.sql);
   /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
   public readonly eventDays = new EventDayRepo(this.sql);
 
@@ -656,6 +658,24 @@ export class DatabaseManager {
     ...args: Parameters<RefereeRepo['getRefereeStats']>
   ): ReturnType<RefereeRepo['getRefereeStats']> {
     return this.referees.getRefereeStats(...args);
+  }
+
+  public logRemoteEvent(
+    ...args: Parameters<OrganisationRepo['logRemoteEvent']>
+  ): ReturnType<OrganisationRepo['logRemoteEvent']> {
+    return this.organisation.logRemoteEvent(...args);
+  }
+
+  public getRemoteEvents(
+    ...args: Parameters<OrganisationRepo['getRemoteEvents']>
+  ): ReturnType<OrganisationRepo['getRemoteEvents']> {
+    return this.organisation.getRemoteEvents(...args);
+  }
+
+  public getMatchTimings(
+    ...args: Parameters<OrganisationRepo['getMatchTimings']>
+  ): ReturnType<OrganisationRepo['getMatchTimings']> {
+    return this.organisation.getMatchTimings(...args);
   }
 
   public addRefereeComment(

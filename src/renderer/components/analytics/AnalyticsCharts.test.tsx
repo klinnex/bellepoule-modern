@@ -3,7 +3,15 @@ import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { TranslationProvider } from '../../contexts/TranslationContext';
 import { AnalyticsCharts } from './AnalyticsCharts';
-import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
+import {
+  Competition,
+  Fencer,
+  FencerCompetitionStats,
+  FencerStatus,
+  Match,
+  MatchStatus,
+  Weapon,
+} from '../../../shared/types';
 
 const stat = (id: string, given: number[], received: number[]): FencerCompetitionStats =>
   ({
@@ -73,5 +81,55 @@ describe('AnalyticsCharts — zones données / reçues', () => {
     );
     expect(labels).toEqual(['A=1 B=1 C=0', 'A=0 B=1 C=1']);
     expect(container.textContent).toContain('Jedi');
+  });
+});
+
+describe('AnalyticsCharts — armes olympiques (#1817)', () => {
+  const foil = { id: 'c', title: 'T', weapon: Weapon.FOIL } as Competition;
+  const fencer = (id: string, ranking: number, status = FencerStatus.CHECKED_IN) =>
+    ({ id, ranking, status, lastName: id.toUpperCase(), firstName: 'X' }) as unknown as Fencer;
+  const m = (id: string, a: string, b: string, sa: number, sb: number) =>
+    ({
+      id,
+      number: 1,
+      fencerA: { id: a },
+      fencerB: { id: b },
+      scoreA: { value: sa, isVictory: sa > sb },
+      scoreB: { value: sb, isVictory: sb > sa },
+      status: MatchStatus.FINISHED,
+      updatedAt: new Date(`2026-11-13T09:0${id.slice(1)}:00Z`),
+    }) as unknown as Match;
+
+  it('Global en tête, indice moyen, KPI du tireur sélectionné à la place du classement', () => {
+    const stats = [stat('a', [0, 0, 0], [0, 0, 0]), stat('b', [0, 0, 0], [0, 0, 0])];
+    const { container, getByTestId, queryByTestId } = render(
+      <TranslationProvider>
+        <AnalyticsCharts
+          competition={foil}
+          stats={[...stats, stat('z', [0, 0, 0], [0, 0, 0])]}
+          fencers={[fencer('a', 2), fencer('b', 1), fencer('z', 3, FencerStatus.NOT_CHECKED_IN)]}
+          poolMatches={[m('m1', 'a', 'b', 5, 2), m('m2', 'b', 'a', 5, 4)]}
+          poolRanks={new Map([['a', 1]])}
+        />
+      </TranslationProvider>
+    );
+    const select = container.querySelector('select')!;
+    expect(select.options[0].value).toBe('');
+    expect(select.options[0].textContent).toBe('Global');
+    // absent (non pointé) exclu de la liste
+    expect([...select.options].map(o => o.value)).not.toContain('fencer:z');
+    expect(container.textContent).toContain('Indice moyen');
+    expect(container.textContent).toContain('+1.00');
+    expect(queryByTestId('fencer-kpis')).toBeNull();
+
+    fireEvent.change(select, { target: { value: 'fencer:a' } });
+    expect(container.textContent).not.toContain('Indice moyen');
+    const kpis = getByTestId('fencer-kpis');
+    // entrée 2e → 1er après poules : progression
+    expect(kpis.querySelector('.kpi-delta--up')).not.toBeNull();
+    expect([...kpis.querySelectorAll('.kpi-sequence__item')].map(e => e.textContent)).toEqual([
+      'V',
+      'D',
+    ]);
   });
 });

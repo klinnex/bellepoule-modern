@@ -9,6 +9,30 @@
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 // escHtml : helper partagé (/common.js)
 class RefereeAppBase {
+  // ── Temps de combat réel (#1817) : chrono en marche hors repos, cumulé sur les
+  //    périodes (le chrono repart de 3:00 après un repos). Remonté au serveur à la fin.
+  _fightReset() {
+    this._fightMs = 0;
+    this._fightSince = null;
+  }
+
+  _fightResume() {
+    if (this.isResting || this.matchStatus !== 'in_progress') return;
+    this._fightSince = Date.now();
+  }
+
+  _fightPause() {
+    if (this._fightSince == null) return;
+    this._fightMs = (this._fightMs || 0) + (Date.now() - this._fightSince);
+    this._fightSince = null;
+  }
+
+  /** Secondes de combat cumulées (0 si inconnu : le serveur retombe sur l'horloge murale). */
+  fightSeconds() {
+    const running = this._fightSince == null ? 0 : Date.now() - this._fightSince;
+    return Math.round(((this._fightMs || 0) + running) / 1000);
+  }
+
   constructor(slotArenaId) {
     this.socket = bpSocket();
     this.baseArenaId = this.getArenaId();
@@ -1155,6 +1179,7 @@ class RefereeAppBase {
           cardsB: this.cardsB,
           winner: ef === 'A' ? 'B' : 'A',
           blackCardFencer: ef,
+          fightSeconds: this.fightSeconds(),
         }),
       });
     } catch (e) {
@@ -1167,6 +1192,7 @@ class RefereeAppBase {
     this.socket.emit('arena_control', {
       arenaId: this.arenaId,
       action: 'finish',
+      fightSeconds: this.fightSeconds(),
     });
 
     setTimeout(() => {

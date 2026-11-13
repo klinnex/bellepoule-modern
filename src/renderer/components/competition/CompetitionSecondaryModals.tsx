@@ -4,8 +4,8 @@
  * Licensed under GPL-3.0
  */
 import React, { Suspense } from 'react';
-import type { Competition, Fencer, Pool } from '../../../shared/types';
-import type { TableauMatch } from '../tableau/tableauTypes';
+import type { Competition, Fencer, Pool, PoolRanking } from '../../../shared/types';
+import type { FinalResult, TableauMatch } from '../tableau/tableauTypes';
 import type { usePoolManagement } from '../../hooks/usePoolManagement';
 import { QRCodeShare } from '../QRCodeShare';
 import KioskScoreEntry from './KioskScoreEntry';
@@ -32,6 +32,8 @@ interface CompetitionSecondaryModalsProps {
   fencers: Fencer[];
   pools: Pool[];
   tableauMatches: TableauMatch[];
+  overallRanking?: PoolRanking[];
+  finalResults?: FinalResult[];
   poolMaxScore: number;
   allPoolsComplete: boolean;
   updateScore: ReturnType<typeof usePoolManagement>['updateScore'];
@@ -45,6 +47,8 @@ const CompetitionSecondaryModals: React.FC<CompetitionSecondaryModalsProps> = ({
   fencers,
   pools,
   tableauMatches,
+  overallRanking,
+  finalResults,
   poolMaxScore,
   allPoolsComplete,
   updateScore,
@@ -72,6 +76,9 @@ const CompetitionSecondaryModals: React.FC<CompetitionSecondaryModalsProps> = ({
             pools={pools}
             matches={pools.flatMap(p => p.matches ?? [])}
             fencers={fencers}
+            tableauMatches={tableauMatches}
+            overallRanking={overallRanking}
+            finalResults={finalResults}
             onClose={() => modals.setShowAnalytics(false)}
           />
         </Suspense>

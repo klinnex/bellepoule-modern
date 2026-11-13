@@ -13,10 +13,21 @@ import {
   Pool,
   Match,
   MatchStatus,
+  MatchTiming,
+  RemoteEvent,
   FencerCompetitionStats,
+  PoolRanking,
 } from '../../shared/types';
 import { FencerStatsTable } from '../../features/analytics/components/FencerStatsTable';
 import { AnalyticsCharts } from './analytics/AnalyticsCharts';
+import { OrganisationPanel } from './analytics/OrganisationPanel';
+import { ColumnsMenu, useColumnVisibility, type ColumnDef } from './analytics/ColumnsMenu';
+import {
+  averageMatchSeconds,
+  organisationKpis,
+  type KpiTableauMatch,
+  type LiveArena,
+} from '../../features/analytics/services/competitionKpis';
 import { exportPostTournamentPDF } from '../../shared/utils/postTournamentReport';
 import { FileText, Hourglass, Square } from 'lucide-react';
 import { Icon } from './common/Icon';
@@ -67,6 +78,12 @@ export interface AnalyticsDashboardProps {
   pools: Pool[];
   matches: Match[];
   fencers: Fencer[];
+  /** Matchs du tableau (KPI par tireur, organisation) — #1817 */
+  tableauMatches?: KpiTableauMatch[];
+  /** Classement général après poules */
+  overallRanking?: PoolRanking[];
+  /** Classement final après tableaux */
+  finalResults?: Array<{ rank: number; fencer: { id: string } }>;
   className?: string;
   onClose?: () => void;
 }
@@ -85,17 +102,15 @@ function filterMatchesByTimeframe(matchList: Match[], timeframe: string): Match[
   });
 }
 
-function calculateAverageMatchDuration(matches: Match[]): number {
-  if (matches.length === 0) return 0;
-
-  const durations = matches
-    .map(match => {
-      if (!match.createdAt || !match.updatedAt) return 0;
-      return new Date(match.updatedAt).getTime() - new Date(match.createdAt).getTime();
-    })
-    .filter(d => d > 0);
-
-  return durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
+/**
+ * Durée moyenne d'un match (ms) : temps de combat enregistré (repos exclus, #1817).
+ * L'ancien calcul (création → dernière mise à jour du match) mesurait le temps écoulé
+ * depuis la génération des poules, d'où des valeurs aberrantes.
+ */
+function calculateAverageMatchDuration(matches: Match[], timings: MatchTiming[]): number {
+  const ids = new Set(matches.map(m => m.id));
+  const own = timings.filter(t => ids.has(t.matchId));
+  return averageMatchSeconds(own.length ? own : timings) * 1000;
 }
 
 function calculateCurrentStreak(fencer: Fencer, matches: Match[]): number {
@@ -235,7 +250,8 @@ function calculateAnalytics(
   poolList: Pool[],
   matchList: Match[],
   fencerList: Fencer[],
-  timeframe: string
+  timeframe: string,
+  timings: MatchTiming[] = []
 ): AnalyticsData {
   const filteredMatches = filterMatchesByTimeframe(matchList, timeframe);
   const completedMatches = filteredMatches.filter(match => match.status === MatchStatus.FINISHED);
@@ -244,7 +260,7 @@ function calculateAnalytics(
     totalFencers: fencerList.length,
     completedMatches: completedMatches.length,
     totalMatches: filteredMatches.length,
-    averageMatchDuration: calculateAverageMatchDuration(completedMatches),
+    averageMatchDuration: calculateAverageMatchDuration(completedMatches, timings),
     fencerPerformance: calculateFencerPerformance(fencerList, completedMatches),
     weaponStats: calculateWeaponStats(completedMatches),
     poolProgress: calculatePoolProgress(poolList, filteredMatches),
@@ -279,14 +295,16 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   pools,
   matches,
   fencers,
+  tableauMatches = [],
+  overallRanking = [],
+  finalResults = [],
   className = '',
   onClose,
 }) => {
   const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const [activeTab, setActiveTab] = useState<
-    'performance' | 'stats' | 'charts' | 'journal' | 'referees'
-  >('performance');
+  type AnalyticsTab = 'performance' | 'stats' | 'charts' | 'organisation' | 'journal' | 'referees';
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>('performance');
   const [fencerStats, setFencerStats] = useState<FencerCompetitionStats[]>([]);
   const [refereeStats, setRefereeStats] = useState<
     Array<{
@@ -297,16 +315,32 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
       cardsYellow: number;
       cardsRed: number;
       cardsBlack: number;
+      dtCalls: number;
+      averageRestSeconds: number;
     }>
   >([]);
-  type AnalyticsTab = 'performance' | 'stats' | 'charts' | 'journal' | 'referees';
   const TABS: { id: AnalyticsTab; label: string }[] = [
     { id: 'performance', label: t('analytics.tab_performance') },
     { id: 'stats', label: t('analytics.tab_stats') },
     { id: 'charts', label: t('analytics.tab_charts') },
+    { id: 'organisation', label: t('analytics.tab_organisation') },
     { id: 'journal', label: t('analytics.tab_journal') },
     { id: 'referees', label: t('analytics.tab_referees') },
   ];
+  const refereeColumns: ColumnDef[] = [
+    { id: 'matches', label: t('analytics.matches') },
+    { id: 'duration', label: t('analytics.avg_duration_short') },
+    { id: 'rest', label: t('analytics.avg_rest') },
+    { id: 'dt', label: t('analytics.dt_calls') },
+    { id: 'yellow', label: t('stats.yellow_cards') },
+    { id: 'red', label: t('stats.red_cards') },
+    { id: 'black', label: t('analytics.black_cards') },
+  ];
+  const refCols = useColumnVisibility('bp-analytics-referee-columns', refereeColumns);
+  const [timings, setTimings] = useState<MatchTiming[]>([]);
+  const [remoteEvents, setRemoteEvents] = useState<RemoteEvent[]>([]);
+  const [liveArenas, setLiveArenas] = useState<LiveArena[]>([]);
+  const [now, setNow] = useState(() => Date.now());
   const [selectedTimeframe, setSelectedTimeframe] = useState<'live' | 'last30min' | 'all'>('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -325,6 +359,57 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     loadFencerStats();
   }, [loadFencerStats]);
 
+  // Horodatage des matchs, événements distants et pistes en direct (#1817)
+  const loadOrganisation = useCallback(async () => {
+    const api = window.electronAPI;
+    const [tm, ev, ar] = await Promise.all([
+      api?.db?.getMatchTimings?.(competition.id).catch(() => null),
+      api?.db?.getRemoteEvents?.(competition.id).catch(() => null),
+      api?.remote?.getArenas?.(competition.id).catch(() => null),
+    ]);
+    if (Array.isArray(tm)) setTimings(tm);
+    if (Array.isArray(ev)) setRemoteEvents(ev);
+    setLiveArenas(
+      (ar?.arenas ?? []).map(a => ({
+        number: a.number,
+        status: a.status,
+        matchId: a.currentMatch?.id ?? null,
+      }))
+    );
+    setNow(Date.now());
+  }, [competition.id]);
+
+  useEffect(() => {
+    void loadOrganisation();
+  }, [loadOrganisation, matches]);
+
+  useEffect(() => {
+    if (!autoRefresh || activeTab !== 'organisation') return;
+    const id = window.setInterval(() => void loadOrganisation(), 30_000);
+    return () => window.clearInterval(id);
+  }, [autoRefresh, activeTab, loadOrganisation]);
+
+  const orgKpis = useMemo(
+    () =>
+      organisationKpis({
+        pools,
+        tableauMatches,
+        timings,
+        events: remoteEvents,
+        arenas: liveArenas,
+        now,
+      }),
+    [pools, tableauMatches, timings, remoteEvents, liveArenas, now]
+  );
+  const poolRanks = useMemo(
+    () => new Map(overallRanking.map(r => [r.fencer.id, r.rank])),
+    [overallRanking]
+  );
+  const finalRanks = useMemo(
+    () => new Map(finalResults.map(r => [r.fencer.id, r.rank])),
+    [finalResults]
+  );
+
   const handleExportReport = async () => {
     setExporting(true);
     try {
@@ -341,11 +426,11 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
 
   const latest = useMemo(
     () => ({
-      data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe),
+      data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe, timings),
       at: new Date(),
       timeframe: selectedTimeframe,
     }),
-    [competition, pools, matches, fencers, selectedTimeframe]
+    [competition, pools, matches, fencers, selectedTimeframe, timings]
   );
   // Auto-refresh décoché en mode live : on fige le dernier instantané (#1293)
   const [snapshot, setSnapshot] = useState(latest);
@@ -424,6 +509,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                     setActiveTab(tab.id);
                     if (tab.id === 'charts') loadFencerStats();
                     if (tab.id === 'referees') loadRefereeStats();
+                    if (tab.id === 'organisation' || tab.id === 'charts') void loadOrganisation();
                   }}
                 >
                   <span className="settings-nav-label">{tab.label}</span>
@@ -438,7 +524,19 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
             >
               {activeTab === 'stats' && <FencerStatsTable competition={competition} />}
               {activeTab === 'charts' && (
-                <AnalyticsCharts competition={competition} stats={fencerStats} />
+                <AnalyticsCharts
+                  competition={competition}
+                  stats={fencerStats}
+                  fencers={fencers}
+                  poolMatches={matches}
+                  tableauMatches={tableauMatches}
+                  timings={timings}
+                  poolRanks={poolRanks}
+                  finalRanks={finalRanks}
+                />
+              )}
+              {activeTab === 'organisation' && (
+                <OrganisationPanel competitionId={competition.id} kpis={orgKpis} />
               )}
               {activeTab === 'journal' && (
                 <Suspense fallback={null}>
@@ -454,44 +552,93 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                     {t('analytics.no_referee')}
                   </div>
                 ) : (
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 border-b-2 border-gray-200">
-                        <th className="text-left px-3 py-2 font-semibold text-gray-500">
-                          {t('analytics.referee')}
-                        </th>
-                        <th className="text-right px-3 py-2 font-semibold text-gray-500">
-                          {t('analytics.matches')}
-                        </th>
-                        <th className="text-right px-3 py-2 font-semibold text-gray-500">
-                          {t('analytics.avg_duration_short')}
-                        </th>
-                        <th className="text-right px-3 py-2 font-semibold text-yellow-600">
-                          <Icon icon={Square} className="icon-fill icon-yellow" />
-                        </th>
-                        <th className="text-right px-3 py-2 font-semibold text-red-600">
-                          <Icon icon={Square} className="icon-fill icon-red" />
-                        </th>
-                        <th className="text-right px-3 py-2 font-semibold text-gray-800">
-                          <Icon icon={Square} className="icon-fill icon-black" />
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {refereeStats.map((r, i) => (
-                        <tr key={r.refereeId} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-3 py-2 font-medium text-gray-800">{r.refereeName}</td>
-                          <td className="px-3 py-2 text-right">{r.matchesCount}</td>
-                          <td className="px-3 py-2 text-right font-mono">
-                            {formatTime(r.averageDuration * 1000)}
-                          </td>
-                          <td className="px-3 py-2 text-right">{r.cardsYellow}</td>
-                          <td className="px-3 py-2 text-right">{r.cardsRed}</td>
-                          <td className="px-3 py-2 text-right">{r.cardsBlack}</td>
+                  <>
+                    <div className="flex justify-end mb-2">
+                      <ColumnsMenu
+                        columns={refereeColumns}
+                        isVisible={refCols.isVisible}
+                        onToggle={refCols.toggle}
+                      />
+                    </div>
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 border-b-2 border-gray-200">
+                          <th className="text-left px-3 py-2 font-semibold text-gray-500">
+                            {t('analytics.referee')}
+                          </th>
+                          {refCols.isVisible('matches') && (
+                            <th className="text-right px-3 py-2 font-semibold text-gray-500">
+                              {t('analytics.matches')}
+                            </th>
+                          )}
+                          {refCols.isVisible('duration') && (
+                            <th className="text-right px-3 py-2 font-semibold text-gray-500">
+                              {t('analytics.avg_duration_short')}
+                            </th>
+                          )}
+                          {refCols.isVisible('rest') && (
+                            <th className="text-right px-3 py-2 font-semibold text-gray-500">
+                              {t('analytics.avg_rest')}
+                            </th>
+                          )}
+                          {refCols.isVisible('dt') && (
+                            <th className="text-right px-3 py-2 font-semibold text-gray-500">
+                              {t('analytics.dt_calls')}
+                            </th>
+                          )}
+                          {refCols.isVisible('yellow') && (
+                            <th className="text-right px-3 py-2 font-semibold text-yellow-600">
+                              <Icon icon={Square} className="icon-fill icon-yellow" />
+                            </th>
+                          )}
+                          {refCols.isVisible('red') && (
+                            <th className="text-right px-3 py-2 font-semibold text-red-600">
+                              <Icon icon={Square} className="icon-fill icon-red" />
+                            </th>
+                          )}
+                          {refCols.isVisible('black') && (
+                            <th className="text-right px-3 py-2 font-semibold text-gray-800">
+                              <Icon icon={Square} className="icon-fill icon-black" />
+                            </th>
+                          )}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {refereeStats.map((r, i) => (
+                          <tr key={r.refereeId} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="px-3 py-2 font-medium text-gray-800">{r.refereeName}</td>
+                            {refCols.isVisible('matches') && (
+                              <td className="px-3 py-2 text-right">{r.matchesCount}</td>
+                            )}
+                            {refCols.isVisible('duration') && (
+                              <td className="px-3 py-2 text-right font-mono">
+                                {formatTime(r.averageDuration * 1000)}
+                              </td>
+                            )}
+                            {refCols.isVisible('rest') && (
+                              <td className="px-3 py-2 text-right font-mono">
+                                {r.averageRestSeconds
+                                  ? formatTime(r.averageRestSeconds * 1000)
+                                  : '—'}
+                              </td>
+                            )}
+                            {refCols.isVisible('dt') && (
+                              <td className="px-3 py-2 text-right">{r.dtCalls ?? 0}</td>
+                            )}
+                            {refCols.isVisible('yellow') && (
+                              <td className="px-3 py-2 text-right">{r.cardsYellow}</td>
+                            )}
+                            {refCols.isVisible('red') && (
+                              <td className="px-3 py-2 text-right">{r.cardsRed}</td>
+                            )}
+                            {refCols.isVisible('black') && (
+                              <td className="px-3 py-2 text-right">{r.cardsBlack}</td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
                 ))}
 
               {activeTab === 'performance' && (
@@ -556,7 +703,15 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="font-medium">{perf.averageScore.toFixed(1)}</div>
+                              <div
+                                className="font-medium"
+                                title={t('analytics.touches_per_match_title')}
+                              >
+                                {perf.averageScore.toFixed(1)}{' '}
+                                <span className="text-xs text-gray-500">
+                                  {t('analytics.touches_per_match')}
+                                </span>
+                              </div>
                               <div
                                 className={`text-xs px-2 py-1 rounded-full ${getFormColor(perf.recentForm)}`}
                               >

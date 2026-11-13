@@ -148,6 +148,8 @@ export interface ArenaMatch {
   startTime: Date | null;
   endTime: Date | null;
   duration?: number; // in seconds
+  /** Temps de combat réel (chrono en marche, hors repos) remonté par la tablette (#1817) */
+  fightSeconds?: number;
   referee?: { id: string; name: string }; // Arbitre assigné au match
 }
 
