@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 7 | 146 |
-| `src/main/` | 60 | 471 |
+| `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
 | `src/renderer/components/` | 87 | 440 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **356** | **2729** |
+| **Total** | **358** | **2737** |
 
-Unitaires : 346 fichiers, 2690 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 348 fichiers, 2698 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2536,12 +2536,18 @@ Unitaires : 346 fichiers, 2690 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/remoteServerHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/remoteServerHandlers.test.ts</code> — 8 tests</summary>
 
 - **registerRemoteServerHandlers (#1341)**
   - enregistre les canaux de cycle de vie du serveur
   - getServerInfo / stopServer : serveur absent
   - getNetworkInterfaces propose toujours 0.0.0.0
+  - **reloadServer (rechargement à chaud)**
+    - serveur absent
+    - port invalide refusé sans redémarrage
+    - port d’un autre serveur refusé
+    - change port et interface, met à jour le registre (même instance conservée)
+    - échec du redémarrage : registre inchangé
 
 </details>
 
@@ -2881,6 +2887,15 @@ Unitaires : 346 fichiers, 2690 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/lifecycleRestart.test.ts</code> — 2 tests</summary>
+
+- **restartServer (rechargement à chaud)**
+  - bascule sur le nouveau port et libère l’ancien
+  - port occupé : rejette et rétablit l’ancienne écoute
+
+</details>
+
+<details>
 <summary><code>src/main/remote/pageStore.test.ts</code> — 9 tests</summary>
 
 - **negotiateEncoding (#1151)**
@@ -2997,6 +3012,14 @@ Unitaires : 346 fichiers, 2690 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - piste occupée : 409 arena\_occupied pour un autre client
   - validation : piste inconnue 404, client invalide 400
   - release libère la piste (ou toutes sans numéro)
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.restart.test.ts</code> — 1 test</summary>
+
+- **RemoteScoreServer.restart**
+  - nouveau port, session et pistes conservées
 
 </details>
 
