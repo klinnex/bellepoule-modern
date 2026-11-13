@@ -7,6 +7,10 @@
  *
  *   node scripts/cyrano-simulator.js [--server 127.0.0.1] [--server-port 50100]
  *                                    [--port 50101] [--piste 1] [--protocol EFP1.1]
+ *                                    [--bind 127.0.0.2]
+ * --bind : adresse locale de l'appareil. Le logiciel identifie une piste par son IP :
+ *   plusieurs simulateurs sur un même poste → une adresse de bouclage chacun (Linux :
+ *   127.0.0.2, 127.0.0.3… sans configuration ; macOS : `sudo ifconfig lo0 alias 127.0.0.2`).
  *
  * Commandes (stdin) : next | prev | begin | end | go | halt | r+ | l+ | r- | l-
  *   | yr | yl | rr | rl (cartons) | pr | pl | pn (priorité) | ar | al (abandon)
@@ -26,6 +30,7 @@ const SERVER_PORT = Number(opt('server-port', 50100));
 const PORT = Number(opt('port', 50101));
 let protocol = opt('protocol', 'EFP1.1');
 const PISTE = opt('piste', '1');
+const BIND = opt('bind', undefined);
 
 const emptyFencer = () => ({
   id: '',
@@ -207,9 +212,9 @@ for (const side of ['r', 'l']) {
 }
 commands.pn = () => active() && ((s.priority = 'N'), sendInfo());
 
-sock.bind(PORT, () => {
+sock.bind(PORT, BIND, () => {
   process.stdout.write(
-    `Simulateur Cyrano ${protocol} — piste ${PISTE}, écoute UDP ${PORT}, logiciel ${SERVER}:${SERVER_PORT}\n` +
+    `Simulateur Cyrano ${protocol} — piste ${PISTE}, écoute UDP ${BIND ?? '*'}:${PORT}, logiciel ${SERVER}:${SERVER_PORT}\n` +
       `Commandes : ${Object.keys(commands).join(' ')}\n`
   );
   const rl = readline.createInterface({ input: process.stdin });

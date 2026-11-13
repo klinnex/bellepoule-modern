@@ -90,6 +90,16 @@ cours : un DISP des mêmes tireurs corrige les scores), passe en W à la récept
 
 Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur (`--port`).
 
+Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc
+une adresse de bouclage par simulateur (`--bind`). Sous Linux, toute la plage `127.0.0.0/8`
+répond sans configuration ; sous macOS : `sudo ifconfig lo0 alias 127.0.0.2`.
+
+```bash
+npm run cyrano:sim -- --piste 1 --bind 127.0.0.1 --port 50101
+npm run cyrano:sim -- --piste 2 --bind 127.0.0.2 --port 50102
+npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
+```
+
 ## 4. Décisions (#1720)
 
 | Sujet | Décision |
