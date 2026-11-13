@@ -30,12 +30,78 @@ export const THEME_SECTIONS: readonly ThemeTargetType[] = [
 
 const ARENA_PRESETS = ['dark', 'light', 'neon'] as const;
 
-const SECTION_DEFAULTS: Record<ThemeTargetType, Record<string, string>> = {
-  arena: DARK_DEFAULTS,
-  kiosk: KIOSK_DEFAULTS,
-  public: PUBLIC_DEFAULTS,
-  referee: REFEREE_DEFAULTS,
-  pool: POOL_DEFAULTS,
+/** Paresseux : ThemeEditor importe ce module (import circulaire) */
+function sectionDefaults(section: ThemeTargetType): Record<string, string> {
+  const map: Record<ThemeTargetType, Record<string, string>> = {
+    arena: DARK_DEFAULTS,
+    kiosk: KIOSK_DEFAULTS,
+    public: PUBLIC_DEFAULTS,
+    referee: REFEREE_DEFAULTS,
+    pool: POOL_DEFAULTS,
+  };
+  return map[section];
+}
+
+/** Variables des préréglages piste Clair/Néon (miroir de [data-theme] dans arena.html) */
+const ARENA_PRESET_VARS: Record<'light' | 'neon', Record<string, string>> = {
+  light: {
+    '--bg': 'linear-gradient(135deg, #e8edf5 0%, #c8d8f0 100%)',
+    '--text': '#1a2340',
+    '--header-bg': 'rgba(255, 255, 255, 0.75)',
+    '--match-bg': '#ffffff',
+    '--fencer-name-color': '#111827',
+    '--fencer-club-color': '#374151',
+    '--green-side-bg': 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+    '--green-side-border': '#059669',
+    '--red-side-bg': 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+    '--red-side-border': '#b91c1c',
+    '--score-bg': '#f1f5f9',
+    '--score-green': '#059669',
+    '--score-green-glow': 'rgba(5, 150, 105, 0.4), rgba(5, 150, 105, 0.15)',
+    '--score-red': '#dc2626',
+    '--score-red-glow': 'rgba(220, 38, 38, 0.4), rgba(220, 38, 38, 0.15)',
+    '--timer-bg': '#f8fafc',
+    '--timer-color': '#d97706',
+    '--timer-glow': 'rgba(217, 119, 6, 0.7), rgba(217, 119, 6, 0.3)',
+    '--timer-border': 'rgba(217, 119, 6, 0.3)',
+    '--timer-run-color': '#059669',
+    '--timer-run-glow': 'rgba(5, 150, 105, 0.8), rgba(5, 150, 105, 0.35)',
+    '--timer-run-border': 'rgba(5, 150, 105, 0.4)',
+    '--waiting-color': '#1a2340',
+    '--idle-number-color': 'rgba(26, 35, 64, 0.85)',
+    '--idle-label-color': 'rgba(26, 35, 64, 0.45)',
+    '--vs-color': '#dc2626',
+    '--vs-font-family': 'system-ui, sans-serif',
+  },
+  neon: {
+    '--bg': '#0a0a0a',
+    '--text': '#e0e0e0',
+    '--header-bg': 'rgba(0, 0, 0, 0.8)',
+    '--match-bg': '#111111',
+    '--fencer-name-color': '#f0f0f0',
+    '--fencer-club-color': '#a0a0a0',
+    '--green-side-bg': 'linear-gradient(135deg, #001a0d 0%, #002e15 100%)',
+    '--green-side-border': '#00ff88',
+    '--red-side-bg': 'linear-gradient(135deg, #1a0000 0%, #2e0000 100%)',
+    '--red-side-border': '#ff2244',
+    '--score-bg': '#050505',
+    '--score-green': '#00ff88',
+    '--score-green-glow': 'rgba(0, 255, 136, 0.9), rgba(0, 255, 136, 0.5)',
+    '--score-red': '#ff2244',
+    '--score-red-glow': 'rgba(255, 34, 68, 0.9), rgba(255, 34, 68, 0.5)',
+    '--timer-bg': '#030303',
+    '--timer-color': '#ff9900',
+    '--timer-glow': 'rgba(255, 153, 0, 0.95), rgba(255, 153, 0, 0.5)',
+    '--timer-border': 'rgba(255, 153, 0, 0.3)',
+    '--timer-run-color': '#00ff88',
+    '--timer-run-glow': 'rgba(0, 255, 136, 1), rgba(0, 255, 136, 0.6)',
+    '--timer-run-border': 'rgba(0, 255, 136, 0.6)',
+    '--waiting-color': '#e0e0e0',
+    '--idle-number-color': 'rgba(255, 255, 255, 0.9)',
+    '--idle-label-color': 'rgba(255, 255, 255, 0.35)',
+    '--vs-color': '#ff2244',
+    '--vs-font-family': 'system-ui, sans-serif',
+  },
 };
 
 /**
@@ -401,7 +467,7 @@ export function resolveBuiltinTheme(
         id,
         name: t(`rsm.theme_${key}`),
         targetType: section,
-        variables: { ...SECTION_DEFAULTS[section], ...DECORATIVE_THEMES[key][section] },
+        variables: { ...sectionDefaults(section), ...DECORATIVE_THEMES[key][section] },
       },
     };
   }
@@ -416,9 +482,27 @@ export function resolveBuiltinTheme(
       id,
       name: t('rsm.theme_default'),
       targetType: section,
-      variables: { ...SECTION_DEFAULTS[section] },
+      variables: { ...sectionDefaults(section) },
     },
   };
+}
+
+/**
+ * Thèmes prédéfinis explorables dans l'éditeur (lecture seule, duplicables) :
+ * variables complètes, y compris pour les préréglages piste Sombre/Clair/Néon.
+ */
+export function getEditorBuiltinThemes(section: ThemeTargetType, t: Translate): CustomTheme[] {
+  return getBuiltinThemeOptions(section, t).map(({ id, label }) => {
+    const key = id.slice(BUILTIN_THEME_PREFIX.length);
+    const base = sectionDefaults(section);
+    const variables =
+      key === 'light' || key === 'neon'
+        ? { ...base, ...ARENA_PRESET_VARS[key] }
+        : Object.prototype.hasOwnProperty.call(DECORATIVE_THEMES, key)
+          ? { ...base, ...DECORATIVE_THEMES[key][section] }
+          : { ...base };
+    return { id, name: label, targetType: section, variables };
+  });
 }
 
 /** Application d'un thème à un type d'écran : préréglage piste ou thème custom */

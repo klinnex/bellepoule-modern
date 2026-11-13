@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "Theme editor",
+    "builtin": "Built-in themes",
+    "readonly_hint": "Built-in theme: read-only. Duplicate it to edit.",
+    "duplicate": "Duplicate",
+    "copy_of": "{{name}} (copy)",
     "target": "Target:",
     "import_title": "Import a JSON theme",
     "import": "↑ Import",

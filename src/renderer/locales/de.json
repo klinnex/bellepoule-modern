@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "Themen-Editor",
+    "builtin": "Vordefinierte Themes",
+    "readonly_hint": "Vordefiniertes Theme: schreibgeschützt. Zum Bearbeiten duplizieren.",
+    "duplicate": "Duplizieren",
+    "copy_of": "{{name}} (Kopie)",
     "target": "Ziel:",
     "import_title": "JSON-Thema importieren",
     "import": "↑ Importieren",

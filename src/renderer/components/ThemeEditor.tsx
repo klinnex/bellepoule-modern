@@ -7,7 +7,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
+import { Copy } from 'lucide-react';
 import { RankMedal } from './common/RankMedal';
+import { getEditorBuiltinThemes, isBuiltinThemeId } from './remote/builtinThemes';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Valeurs par défaut (thème dark)
@@ -482,6 +484,13 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   }));
   const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
   const [activeGroup, setActiveGroup] = useState(0);
+  // Thème en cours d'édition (null = nouveau) ; un thème prédéfini est en lecture seule
+  const [editingId, setEditingId] = useState<string | null>(initialTheme?.id ?? null);
+  const readOnly = editingId !== null && isBuiltinThemeId(editingId);
+  const builtinThemes = React.useMemo(
+    () => getEditorBuiltinThemes(effectiveType, t),
+    [effectiveType, t]
+  );
 
   // Charger les thèmes depuis l'app (filtrés par type)
   useEffect(() => {
@@ -518,10 +527,12 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   }, []);
 
   const setVar = (key: string, value: string) => {
+    if (readOnly) return;
     setVars(prev => ({ ...prev, [key]: value }));
   };
 
   const handleOverlayToggle = (enabled: boolean) => {
+    if (readOnly) return;
     setOverlayMode(enabled);
     if (isKiosk) {
       if (enabled) {
@@ -578,7 +589,8 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
   // ── Sauvegarde dans l'app ──
   const handleSave = () => {
-    const id = initialTheme?.id ?? `custom-${Date.now()}`;
+    if (readOnly) return;
+    const id = editingId ?? `custom-${Date.now()}`;
     const theme: CustomTheme = {
       id,
       name: themeName.trim() || 'Sans nom',
@@ -589,6 +601,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
     window.electronAPI.themes
       .save(theme)
       .then(() => {
+        setEditingId(id);
         setSavedThemes(prev => {
           const idx = prev.findIndex(t => t.id === id);
           return idx >= 0 ? prev.map((t, i) => (i === idx ? theme : t)) : [...prev, theme];
@@ -602,20 +615,33 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
       .delete(id)
       .then(() => {
         setSavedThemes(prev => prev.filter(t => t.id !== id));
+        if (editingId === id) setEditingId(null);
       })
       .catch(() => {});
   };
 
   const handleLoadSaved = (theme: CustomTheme) => {
+    setEditingId(theme.id);
     setThemeName(theme.name);
     setVars({ ...activeDefaults, ...theme.variables });
     setOverlayMode(theme.overlayMode ?? false);
   };
 
+  /** Copie modifiable du thème affiché (base d'un nouveau thème) */
+  const handleDuplicate = (theme?: CustomTheme) => {
+    if (theme) {
+      setVars({ ...activeDefaults, ...theme.variables });
+      setOverlayMode(theme.overlayMode ?? false);
+    }
+    const name = theme?.name ?? themeName;
+    setThemeName(t('themeEditor.copy_of', { name: name.trim() || defaultName }));
+    setEditingId(null);
+  };
+
   // ── Import / Export (IPC Electron natif) ──
   const handleExport = async () => {
     const theme: CustomTheme = {
-      id: initialTheme?.id ?? `custom-${Date.now()}`,
+      id: editingId && !readOnly ? editingId : `custom-${Date.now()}`,
       name: themeName.trim() || 'Mon thème',
       targetType: effectiveType,
       variables: vars,
@@ -643,6 +669,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
         setImportError('Fichier invalide : propriété "variables" manquante');
         return;
       }
+      setEditingId(null);
       setThemeName(parsed.name ?? 'Thème importé');
       setVars({ ...activeDefaults, ...parsed.variables });
       setOverlayMode(parsed.overlayMode ?? false);
@@ -655,7 +682,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   // ── Application ──
   const handleApply = () => {
     const theme: CustomTheme = {
-      id: initialTheme?.id ?? `custom-${Date.now()}`,
+      id: editingId ?? `custom-${Date.now()}`,
       name: themeName.trim() || 'Mon thème',
       targetType: effectiveType,
       variables: vars,
@@ -722,10 +749,20 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
               <input
                 type="text"
                 value={themeName}
+                readOnly={readOnly}
                 onChange={e => setThemeName(e.target.value)}
                 className="is-ec082d"
               />
             </div>
+
+            {readOnly && (
+              <div className="theme-editor-readonly" role="status">
+                <span>{t('themeEditor.readonly_hint')}</span>
+                <button className="theme-editor-btn primary" onClick={() => handleDuplicate()}>
+                  {t('themeEditor.duplicate')}
+                </button>
+              </div>
+            )}
 
             {/* Onglets de groupes */}
             <div className="theme-editor-tabs">
@@ -741,7 +778,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
             </div>
 
             {/* Variables du groupe actif */}
-            <div className="theme-editor-vars">
+            <fieldset className="theme-editor-vars" disabled={readOnly}>
               {/* Contrôles image + overlay — Arrière-plans arène et kiosque */}
               {activeGroup === 0 && (
                 <div className="is-e23749">
@@ -797,6 +834,38 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   onChange={val => setVar(key, val)}
                 />
               ))}
+            </fieldset>
+
+            {/* Thèmes prédéfinis : lecture seule, duplicables */}
+            <div className="mt-4">
+              <div className="is-e8cb78">{t('themeEditor.builtin')}</div>
+              <div className="is-9400dc">
+                {builtinThemes.map(theme => (
+                  <div
+                    key={theme.id}
+                    className={`is-56f1de${editingId === theme.id ? ' theme-editor-item-active' : ''}`}
+                  >
+                    <span
+                      className="is-a4e5ce"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleLoadSaved(theme)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleLoadSaved(theme);
+                      }}
+                    >
+                      {theme.name}
+                    </span>
+                    <button
+                      onClick={() => handleDuplicate(theme)}
+                      className="theme-editor-dup-btn"
+                      title={t('themeEditor.duplicate')}
+                    >
+                      <Copy size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Thèmes sauvegardés */}
@@ -805,10 +874,20 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                 <div className="is-e8cb78">{t('themeEditor.saved')}</div>
                 <div className="is-9400dc">
                   {savedThemes.map(theme => (
-                    <div key={theme.id} className="is-56f1de">
+                    <div
+                      key={theme.id}
+                      className={`is-56f1de${editingId === theme.id ? ' theme-editor-item-active' : ''}`}
+                    >
                       <span className="is-a4e5ce" onClick={() => handleLoadSaved(theme)}>
                         {theme.name}
                       </span>
+                      <button
+                        onClick={() => handleDuplicate(theme)}
+                        className="theme-editor-dup-btn"
+                        title={t('themeEditor.duplicate')}
+                      >
+                        <Copy size={14} aria-hidden="true" />
+                      </button>
                       <button
                         onClick={() => handleDeleteSaved(theme.id)}
                         className="is-811a2b"
@@ -985,7 +1064,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
         {/* ── Pied de page ── */}
         <div className="theme-editor-footer">
-          <button className="theme-editor-btn secondary" onClick={handleSave}>
+          <button className="theme-editor-btn secondary" onClick={handleSave} disabled={readOnly}>
             {t('themeEditor.save')}
           </button>
           <div className="flex-1" />

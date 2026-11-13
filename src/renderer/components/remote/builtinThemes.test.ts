@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   getBuiltinThemeOptions,
+  getEditorBuiltinThemes,
   resolveAllSourcesTheme,
   resolveBuiltinTheme,
   THEME_SECTIONS,
@@ -89,5 +90,19 @@ describe('Toutes sources (#1795)', () => {
     const saved = { id: 'c1', name: 'X', targetType: 'pool' as const, variables: {} };
     expect(resolveAllSourcesTheme('c1', [saved], t)).toEqual([{ section: 'pool', theme: saved }]);
     expect(resolveAllSourcesTheme('inconnu', [saved], t)).toEqual([]);
+  });
+
+  it('éditeur : thèmes prédéfinis aux variables complètes', () => {
+    for (const s of THEME_SECTIONS) {
+      const list = getEditorBuiltinThemes(s, t);
+      expect(list.map(x => x.id)).toEqual(getBuiltinThemeOptions(s, t).map(o => o.id));
+      for (const th of list) {
+        expect(th.targetType).toBe(s);
+        expect(Object.keys(th.variables).length).toBeGreaterThan(0);
+      }
+    }
+    const neon = getEditorBuiltinThemes('arena', t).find(x => x.id === 'builtin:neon');
+    expect(neon?.variables['--score-green']).toBe('#00ff88');
+    expect(neon?.variables['--score-font-size']).toBeDefined();
   });
 });
