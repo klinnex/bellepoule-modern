@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * Module /js/refereeFeedback.js (#1539) : son optionnel, bouton Annuler temporaire,
+ * Module /js/refereeFeedback.js (#1539) : son optionnel, menu téléphone (#1808),
  * aria-label +1/+3/+5, portrait / paysage.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -75,75 +75,52 @@ describe('son optionnel', () => {
   });
 });
 
-describe('bouton Annuler la touche temporaire', () => {
-  it('visible puis masqué après le délai, clic = annulation', () => {
-    const timers: Array<{ f: () => void; ms: number }> = [];
-    const t = {
-      set: (f: () => void, ms: number) => timers.push({ f, ms }),
-      clear: () => undefined,
-    };
-    const undo = vi.fn();
-    const box = F.showUndoToast(document, (k: string) => `T:${k}`, undo, 5000, t);
-    expect(box.hidden).toBe(false);
-    expect(box.textContent).toBe('T:referee.undo_touch');
-    expect(timers[0].ms).toBe(5000);
-    timers[0].f();
-    expect(box.hidden).toBe(true);
-    F.showUndoToast(document, (k: string) => k, undo, 5000, t);
-    (document.querySelector('#undo-toast button') as HTMLButtonElement).click();
-    expect(undo).toHaveBeenCalledTimes(1);
-    expect(document.getElementById('undo-toast')!.hidden).toBe(true);
+describe('« Annuler la touche » retiré (#1808)', () => {
+  it('afterScore ne crée plus de bouton temporaire (doublon du bouton Annuler)', () => {
+    expect(() => F.afterScore({ undoLastAction: vi.fn() }, 1)).not.toThrow();
+    expect(document.getElementById('undo-toast')).toBeNull();
+    expect(F.showUndoToast).toBeUndefined();
+  });
+});
+
+describe('menu d options sur téléphone (#1808)', () => {
+  beforeEach(() => {
+    document.body.innerHTML =
+      '<button id="btn-header-menu" aria-expanded="false"></button>' +
+      '<div id="header-tools"><button id="btn-sound"></button></div><p id="out"></p>';
   });
 
-  it('minuteurs par défaut : setTimeout appelé sans this détourné (navigateur, #1716)', () => {
-    // Le navigateur lève « Illegal invocation » si setTimeout est appelé comme méthode d'un objet
-    const realSet = globalThis.setTimeout;
-    const realClear = globalThis.clearTimeout;
-    const calls: number[] = [];
-    function strictSet(this: unknown, _f: () => void, ms?: number) {
-      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
-      calls.push(ms ?? 0);
-      return 1;
-    }
-    function strictClear(this: unknown) {
-      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
-    }
-    globalThis.setTimeout = strictSet as unknown as typeof setTimeout;
-    globalThis.clearTimeout = strictClear as unknown as typeof clearTimeout;
-    try {
-      expect(() => F.showUndoToast(document, (k: string) => k, vi.fn(), 4000)).not.toThrow();
-      // second appel : clear du minuteur précédent puis nouveau set
-      expect(() => F.showUndoToast(document, (k: string) => k, vi.fn(), 4000)).not.toThrow();
-      expect(calls).toEqual([4000, 4000]);
-    } finally {
-      globalThis.setTimeout = realSet;
-      globalThis.clearTimeout = realClear;
-    }
+  it('ouvre/ferme le menu, ferme au clic extérieur et sur Échap', () => {
+    expect(F.initHeaderMenu(document)).toBe(true);
+    const btn = document.getElementById('btn-header-menu')!;
+    const tools = document.getElementById('header-tools')!;
+    btn.click();
+    expect(tools.classList.contains('open')).toBe(true);
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    (document.getElementById('btn-sound') as HTMLButtonElement).click();
+    expect(tools.classList.contains('open')).toBe(true); // clic dans le menu : reste ouvert
+    document.getElementById('out')!.click();
+    expect(tools.classList.contains('open')).toBe(false);
+    btn.click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('afterScore ne lève pas avec les minuteurs natifs (+1 opérant, #1716)', () => {
-    const realSet = globalThis.setTimeout;
-    function strictSet(this: unknown) {
-      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
-      return 1;
-    }
-    globalThis.setTimeout = strictSet as unknown as typeof setTimeout;
-    try {
-      expect(() => F.afterScore({ undoLastAction: vi.fn() }, 1)).not.toThrow();
-      expect(document.getElementById('undo-toast')!.hidden).toBe(false);
-    } finally {
-      globalThis.setTimeout = realSet;
-    }
+  it('sans les éléments : aucun effet', () => {
+    document.body.innerHTML = '';
+    expect(F.initHeaderMenu(document)).toBe(false);
   });
 
-  it('icône SVG devant le libellé quand /js/icons.js est chargé', () => {
-    (window as unknown as { bpIcon: (n: string) => string }).bpIcon = n =>
-      `<svg data-n="${n}"></svg>`;
-    const t = { set: () => 0, clear: () => undefined };
-    const box = F.showUndoToast(document, (k: string) => `T:${k}`, vi.fn(), 5000, t);
-    expect(box.querySelector('svg[data-n="undo"]')).not.toBeNull();
-    expect(box.textContent).toBe(' T:referee.undo_touch');
-    delete (window as unknown as { bpIcon?: unknown }).bpIcon;
+  it('referee.html : options regroupées, menu visible uniquement sur téléphone', () => {
+    expect(html).toMatch(
+      /<div class="header-tools" id="header-tools">\s*<button[^>]*id="btn-swap"[\s\S]*id="btn-colorblind"[\s\S]*id="btn-sound"[\s\S]*?<\/div>/
+    );
+    const i = html.indexOf('@media (max-width: 480px)');
+    expect(i).toBeGreaterThan(-1);
+    const block = html.slice(i, html.indexOf('\n      .swap-btn {', i));
+    expect(block).toContain('.header-menu-btn {');
+    expect(block).toContain('.header-tools.open {');
+    expect(block).toMatch(/\.vs-divider \{\s*grid-column: 1 \/ -1;/);
   });
 });
 
@@ -183,7 +160,7 @@ describe('referee.html (#1539)', () => {
         'score_plus_1',
         'score_plus_3',
         'score_plus_5',
-        'undo_touch',
+        'display_options',
         'sound_toggle',
       ]) {
         expect(src, `${f} ${k}`).toContain(`'referee.${k}'`);

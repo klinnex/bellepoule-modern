@@ -288,6 +288,50 @@ describe('exportResultsXMLFFE', () => {
     expect(xml).toContain('REF="2" Score="10" Statut="D"');
   });
 
+  it('publie les arbitres des poules et du tableau (#1328)', () => {
+    const referee = (id: string, ref: number) =>
+      ({ id, ref, lastName: `A${ref}`, firstName: 'X', gender: 'M', nationality: 'FRA' }) as never;
+    const f1 = makeFencer('f1', 1, { ref: 1 });
+    const f2 = makeFencer('f2', 2, { ref: 2 });
+    const pool = {
+      id: 'p1',
+      number: 1,
+      strip: 3,
+      fencers: [f1, f2],
+      matches: [],
+      referees: [{ id: 'r1' }],
+      ranking: [],
+    } as unknown as Pool;
+    const tableauMatches = [
+      {
+        round: 2,
+        fencerA: { ref: 1 },
+        fencerB: { ref: 2 },
+        scoreA: 15,
+        scoreB: 10,
+        isBye: false,
+        arena: 2,
+        referee: { id: 'r2' },
+        referees: [{ id: 'r2' }, { id: 'r1' }],
+      },
+    ];
+    const xml = exportResultsXMLFFE(
+      makeCompetition(),
+      [],
+      [],
+      [pool],
+      tableauMatches,
+      [],
+      [referee('r1', 7), referee('r2', 8)]
+    );
+    expect(xml).toContain('<Arbitre ID="7"');
+    expect(xml).toContain('<Poule ID="1" Piste="3">');
+    expect(xml).toContain('    <Arbitre REF="7"/>');
+    expect(xml).toContain('<Match ID="1" Piste="2">');
+    expect(xml.split('<Arbitre REF="8"/>')).toHaveLength(2); // r2 dédoublonné
+    expect(xml).toContain('      <Arbitre REF="7"/>\n     </Match>');
+  });
+
   it('maps ABANDONED to A', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ABANDONED });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);

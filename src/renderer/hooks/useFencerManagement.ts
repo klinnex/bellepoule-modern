@@ -174,6 +174,7 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
               label: t('fencerList.undo'),
               onClick: () => removed && restoreFencerRef.current(removed),
             },
+            undo: true, // Ctrl+Z (#1535)
           }
         );
       } catch (error) {

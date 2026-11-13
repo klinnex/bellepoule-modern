@@ -145,6 +145,7 @@ describe('deleteFencer', () => {
     });
     const options = showToast.mock.calls[showToast.mock.calls.length - 1][2];
     expect(options.action.label).toBe('fencerList.undo');
+    expect(options.undo).toBe(true); // Ctrl+Z
     await act(async () => {
       options.action.onClick();
     });
