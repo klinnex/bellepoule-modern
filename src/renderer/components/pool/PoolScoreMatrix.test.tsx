@@ -108,8 +108,9 @@ describe('PoolScoreMatrix', () => {
 
   it('rapières : cases de la vague en cours surlignées en violet (#1118)', () => {
     renderMatrix(match(MatchStatus.NOT_STARTED), { waveHighlightPairs: new Set(['1|2']) });
-    expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toContain(
-      '#7c3aed'
+    // jsdom 31 sérialise les couleurs en rgb() : comparaison sur la forme normalisée
+    expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toMatch(
+      /#7c3aed|rgb\(124, 58, 237\)/i
     );
   });
 });
