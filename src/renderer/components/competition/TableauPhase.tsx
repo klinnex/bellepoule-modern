@@ -7,7 +7,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { Referee } from '../../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { specialStatusPatch } from '../../../shared/utils/forfeit';
-import type { PoolRanking } from '../../../shared/types';
+import type { PoolRanking, Weapon } from '../../../shared/types';
 import type { Phase } from '../../hooks/useCompetitionSession';
 import type { useFencerManagement } from '../../hooks/useFencerManagement';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -20,6 +20,7 @@ const TableauView = React.lazy(() => import('../TableauView'));
 
 interface TableauPhaseProps {
   competitionId: string;
+  weapon?: Weapon;
   postPoolSplitCriteria: string | undefined;
   activeSplitGroup: string | null;
   splitGroups: string[];
@@ -47,6 +48,7 @@ interface TableauPhaseProps {
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
   competitionId,
+  weapon,
   postPoolSplitCriteria,
   activeSplitGroup,
   splitGroups,
@@ -134,6 +136,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         stripStart={remoteStripStart}
         readOnly={finalResults.length > 0}
         competitionId={competitionId}
+        weapon={weapon}
         maxRefereesPerMatch={maxRefereesPerMatch}
         autoFillReferees={autoFillReferees}
         tieBreakByVictory={tieBreakByVictory}

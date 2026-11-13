@@ -14,6 +14,7 @@ import type {
   MatchCreateData,
   MatchSnapshot,
   MatchTimingData,
+  SimulatedMatchEvents,
   MatchTouchData,
   MatchUpdateData,
   Pool,
@@ -233,6 +234,8 @@ export const dbApi = {
   saveCard: (card: MatchCardData) => ipcRenderer.invoke('db:saveCard', card),
   updateMatchTiming: (timing: MatchTimingData) =>
     ipcRenderer.invoke('db:updateMatchTiming', timing),
+  replaceSimulatedMatchEvents: (matchId: string, events: SimulatedMatchEvents | null) =>
+    ipcRenderer.invoke('db:replaceSimulatedMatchEvents', matchId, events),
   getFencerHistory: (fencerId: string) => {
     if (!fencerId || typeof fencerId !== 'string') {
       throw new Error('Fencer ID is required and must be a string');

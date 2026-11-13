@@ -5,7 +5,9 @@
 
 import { useMemo } from 'react';
 import { resolveInlineSubmit } from '../../../shared/utils/inlineScoreInput';
-import { MatchStatus } from '../../../shared/types';
+import { MatchStatus, Weapon } from '../../../shared/types';
+import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
+import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
 import { logger, LogCategory } from '@shared/services/logger';
 import { type SpecialStatus as PoolSpecialStatus } from '../../components/common/SpecialStatusPanel';
 import { autoAssignReferees } from '../../../shared/utils/refereeStats';
@@ -362,9 +364,29 @@ export function usePoolViewActions(ctx: Ctx) {
       }
     }
 
+    // Durée, touches par zone (Sabre Laser) et cartons simulés : alimentent l'analytique
+    const simulated = generated.flatMap(g => {
+      const m = pool.matches[g.index];
+      if (!m?.fencerA || !m?.fencerB) return [];
+      return [
+        {
+          matchId: m.id,
+          events: simulateMatchEvents({
+            matchId: m.id,
+            fencerAId: m.fencerA.id,
+            fencerBId: m.fencerB.id,
+            scoreA: g.a,
+            scoreB: g.b,
+            weapon: isLaserSabre ? Weapon.LASER : undefined,
+          }),
+        },
+      ];
+    });
+
     const applyGenerated = () => {
       for (const g of generated) onScoreUpdate(g.index, g.a, g.b, g.winner);
       setMatchesUpdateTrigger(prev => prev + 1);
+      void persistSimulatedEvents(simulated);
     };
     addAction({
       type: 'UPDATE_SCORE',
@@ -372,6 +394,7 @@ export function usePoolViewActions(ctx: Ctx) {
       undo: () => {
         for (const g of generated) onMatchReset?.(g.index);
         setMatchesUpdateTrigger(prev => prev + 1);
+        void persistSimulatedEvents(simulated.map(e => ({ matchId: e.matchId, events: null })));
       },
       redo: applyGenerated,
     });

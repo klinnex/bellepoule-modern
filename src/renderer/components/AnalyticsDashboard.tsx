@@ -298,7 +298,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
       cardsBlack: number;
     }>
   >([]);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<'live' | 'last30min' | 'all'>('live');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'live' | 'last30min' | 'all'>('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [exporting, setExporting] = useState(false);
 

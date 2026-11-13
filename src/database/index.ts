@@ -488,6 +488,12 @@ export class DatabaseManager {
     return this.matches.updateMatchTiming(...args);
   }
 
+  public replaceSimulatedMatchEvents(
+    ...args: Parameters<MatchRepo['replaceSimulatedMatchEvents']>
+  ): ReturnType<MatchRepo['replaceSimulatedMatchEvents']> {
+    return this.matches.replaceSimulatedMatchEvents(...args);
+  }
+
   public saveArenaExit(
     ...args: Parameters<MatchRepo['saveArenaExit']>
   ): ReturnType<MatchRepo['saveArenaExit']> {

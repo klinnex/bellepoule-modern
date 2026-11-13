@@ -367,7 +367,9 @@ export class MatchRepo {
     let poolIds: string[] = [];
     try {
       poolIds = this.sql
-        .queryAll<{ id: string }>(
+        .queryAll<{
+          id: string;
+        }>(
           'SELECT id FROM pools WHERE phase_id IN (SELECT id FROM phases WHERE competition_id = ?) ORDER BY number',
           [competitionId]
         )
@@ -382,7 +384,9 @@ export class MatchRepo {
     if (poolIds.length === 0) {
       try {
         poolIds = this.sql
-          .queryAll<{ id: string }>(
+          .queryAll<{
+            id: string;
+          }>(
             `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ?`,
             [competitionId]
           )
@@ -405,7 +409,9 @@ export class MatchRepo {
     let poolIds: string[];
     try {
       poolIds = this.sql
-        .queryAll<{ id: string }>(
+        .queryAll<{
+          id: string;
+        }>(
           `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.number`,
           [competitionId]
         )
@@ -449,9 +455,9 @@ export class MatchRepo {
     try {
       const compFencers = new Set(
         this.sql
-          .queryAll<{ id: string }>('SELECT id FROM fencers WHERE competition_id = ?', [
-            competitionId,
-          ])
+          .queryAll<{
+            id: string;
+          }>('SELECT id FROM fencers WHERE competition_id = ?', [competitionId])
           .map(r => r.id)
       );
       const matchRows = this.sql.queryAll<SqlRow>('SELECT * FROM matches WHERE status IN (?, ?)', [
@@ -622,6 +628,40 @@ export class MatchRepo {
       `UPDATE matches SET start_time = ?, end_time = ?, duration = ?, updated_at = ? WHERE id = ?`,
       [startTime, endTime, duration, new Date().toISOString(), matchId]
     );
+  }
+
+  /**
+   * Remplace les événements simulés d'un match (remplissage automatique) : touches, cartons,
+   * timing. `events = null` les efface (annulation). Retourne false si le match n'existe pas en base.
+   */
+  public replaceSimulatedMatchEvents(
+    matchId: string,
+    events: {
+      timing: { startTime: string | null; endTime: string | null; duration: number | null };
+      touches: Array<Parameters<MatchRepo['saveTouch']>[0]>;
+      cards: Array<Parameters<MatchRepo['saveCard']>[0]>;
+    } | null
+  ): boolean {
+    if (!this.sql.db) throw new Error('Database not open');
+    if (!this.sql.queryOne('SELECT id FROM matches WHERE id = ?', [matchId])) return false;
+    const like = `${matchId}-%-sim-%`;
+    this.sql.db.transaction(() => {
+      this.sql.run('DELETE FROM match_touches WHERE match_id = ? AND id LIKE ?', [matchId, like]);
+      this.sql.run('DELETE FROM match_cards WHERE match_id = ? AND id LIKE ?', [matchId, like]);
+      if (!events) {
+        this.updateMatchTiming(matchId, null, null, null);
+        return;
+      }
+      for (const t of events.touches) this.saveTouch({ ...t, matchId });
+      for (const c of events.cards) this.saveCard({ ...c, matchId });
+      this.updateMatchTiming(
+        matchId,
+        events.timing.startTime,
+        events.timing.endTime,
+        events.timing.duration
+      );
+    })();
+    return true;
   }
 
   public saveArenaExit(exit: {
