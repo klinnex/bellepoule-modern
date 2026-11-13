@@ -100,7 +100,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 7 | 146 |
+| `src/database/` | 8 | 148 |
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **360** | **2754** |
+| **Total** | **361** | **2756** |
 
-Unitaires : 350 fichiers, 2715 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 351 fichiers, 2717 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2221,6 +2221,15 @@ Unitaires : 350 fichiers, 2715 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - mappe les lignes en camelCase
   - ne requête pas sans identifiants de match
   - requête par lot avec placeholders
+
+</details>
+
+<details>
+<summary><code>src/database/repos/touchStats.test.ts</code> — 2 tests</summary>
+
+- **Touches données / reçues par zone**
+  - compte les touches reçues des adversaires, par zone, hors touches annulées
+  - replaceSimulatedMatchEvents remplace puis efface les seuls événements simulés
 
 </details>
 
