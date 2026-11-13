@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Button } from '../../../renderer/components/common/Button';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { FencerMatchRecord } from '../../../shared/types/preload';
@@ -207,24 +208,17 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
             {isLaser ? ` — ${t('stats.laser_only')}` : ''}
           </p>
           <div className="flex gap-2">
-            <button
-              onClick={exportCompetitionPdf}
-              disabled={exportingComp}
-              className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {exportingComp ? t('fencerStats.exporting') : t('stats.export_competition_pdf')}
-            </button>
-            <button
-              onClick={exportPdf}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
+            <Button size="sm" onClick={exportCompetitionPdf} loading={exportingComp}>
+              {t('stats.export_competition_pdf')}
+            </Button>
+            <Button variant="primary" size="sm" onClick={exportPdf}>
               {t('stats.export_pdf')}
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <table className="min-w-full divide-y divide-gray-100 text-sm">
             <thead className="bg-gray-50">
               <tr>
                 <Th k="fencerLastName" label={t('fencerStats.name')} />
@@ -261,7 +255,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                   onClick={() => setSelectedFencer(s)}
                   title={t('fencerStats.detail')}
                 >
-                  <td className="px-2 py-2 font-medium whitespace-nowrap underline decoration-dotted decoration-gray-400">
+                  <td className="px-2 py-2 font-medium whitespace-nowrap underline ">
                     {s.fencerLastName} {s.fencerFirstName}
                   </td>
                   <td className="px-2 py-2 text-gray-600">{s.fencerClub ?? '—'}</td>

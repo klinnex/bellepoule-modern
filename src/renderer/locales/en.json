@@ -2559,9 +2559,9 @@
   "analyticsCharts": {
     "no_data": "No data",
     "zones_title": "Touch zones — {{n}} fencers",
-    "zone_a": "Hand/Weapon",
-    "zone_b": "Arms/Legs",
-    "zone_c": "Head/Torso",
+    "zone_a": "Hand + sabre hilt",
+    "zone_b": "Arm or leg",
+    "zone_c": "Torso or head",
     "zone_line_one": "Zone {{zone}} · {{text}} · {{count}} pt",
     "zone_line_other": "Zone {{zone}} · {{text}} · {{count}} pts",
     "total_points": "Total points scored:",
