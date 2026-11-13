@@ -567,6 +567,7 @@ export function distributeFencersToPoolsSerpentine(
 
   // Trier les tireurs par classement (meilleur classement = premier, non-classés = derniers)
   const pending = [...fencers].sort((a, b) => (a.ranking ?? 99999) - (b.ranking ?? 99999));
+  const seedOrder = [...pending];
 
   // Distribution serpentine avec descente dans le classement (FIE §2) :
   // pour chaque slot, prendre le premier tireur sans conflit dans la poule cible.
@@ -634,6 +635,9 @@ export function distributeFencersToPoolsSerpentine(
   // Rééquilibrer les poules pour assurer un nombre égal (ou presque égal) de tireurs
   rebalancePools(pools, [...separation, ...belowRanking], indexes, quotas);
 
+  // Conflits restants : échanges au plus proche classement (NeoSwapper de BellePoule)
+  swapRemainingConflicts(pools, indexes, quotas, [...separation, ...belowRanking], seedOrder);
+
   // Tirage au sort des positions dans la poule (FIE §3)
   for (const pool of pools) {
     for (let i = pool.length - 1; i > 0; i--) {
@@ -643,6 +647,99 @@ export function distributeFencersToPoolsSerpentine(
   }
 
   return pools;
+}
+
+function criterionMap(index: PoolConflictIndex, key: SeparationCriterionKey) {
+  return key === 'byClub' ? index.clubs : key === 'byRegion' ? index.regions : index.nations;
+}
+
+function criterionValue(fencer: Fencer, key: SeparationCriterionKey): string | undefined {
+  const v =
+    key === 'byClub' ? fencer.club : key === 'byRegion' ? fencer.region : fencer.nationality;
+  return v || undefined;
+}
+
+/**
+ * Échanges à la BellePoule (NeoSwapper) : pour chaque critère par ordre de priorité,
+ * un tireur au-delà du quota de sa poule est échangé avec le tireur le plus proche au
+ * classement (alternance dessous/dessus) d'une autre poule, si l'échange respecte les quotas
+ * des critères de priorité supérieure ou égale. Les têtes de poule ne bougent jamais.
+ */
+function swapRemainingConflicts(
+  pools: Fencer[][],
+  indexes: PoolConflictIndex[],
+  quotas: PoolConflictIndex,
+  criteria: SeparationCriterionKey[],
+  seedOrder: Fencer[]
+): void {
+  const poolCount = pools.length;
+  if (criteria.length === 0 || poolCount < 2) return;
+  const seed = new Map(seedOrder.map((f, i) => [f.id, i]));
+  const heads = new Set(seedOrder.slice(0, poolCount).map(f => f.id));
+  const poolOf = new Map<string, number>();
+  pools.forEach((p, i) => p.forEach(f => poolOf.set(f.id, i)));
+
+  const quotaOf = (key: SeparationCriterionKey, v: string) => criterionMap(quotas, key).get(v) ?? 1;
+  /** f peut rejoindre la poule p (sans `leaving`) pour les critères 0..depth-1 */
+  const fits = (f: Fencer, p: number, leaving: Fencer, depth: number) =>
+    criteria.slice(0, depth).every(key => {
+      const v = criterionValue(f, key);
+      if (!v) return true;
+      const n =
+        (criterionMap(indexes[p], key).get(v) ?? 0) - (criterionValue(leaving, key) === v ? 1 : 0);
+      return n < quotaOf(key, v);
+    });
+
+  const findErrors = (depth: number): Fencer[] => {
+    const errors: Fencer[] = [];
+    pools.forEach((pool, p) => {
+      for (const key of criteria.slice(0, depth)) {
+        criterionMap(indexes[p], key).forEach((n, v) => {
+          const excess = n - quotaOf(key, v);
+          if (excess <= 0) return;
+          // Les moins bien classés de la valeur sont « en trop »
+          pool
+            .filter(f => criterionValue(f, key) === v && !heads.has(f.id))
+            .sort((a, b) => (seed.get(b.id) ?? 0) - (seed.get(a.id) ?? 0))
+            .slice(0, excess)
+            .forEach(f => errors.includes(f) || errors.push(f));
+        });
+      }
+    });
+    return errors.sort((a, b) => (seed.get(a.id) ?? 0) - (seed.get(b.id) ?? 0));
+  };
+
+  const trySwap = (e: Fencer, depth: number): boolean => {
+    const pe = poolOf.get(e.id)!;
+    const key = criteria[depth - 1];
+    const start = seed.get(e.id) ?? 0;
+    for (let d = 1; d < seedOrder.length; d++) {
+      for (const idx of [start + d, start - d]) {
+        const x = seedOrder[idx];
+        if (!x || heads.has(x.id)) continue;
+        const px = poolOf.get(x.id)!;
+        if (px === pe || criterionValue(x, key) === criterionValue(e, key)) continue;
+        if (!fits(e, px, x, depth) || !fits(x, pe, e, depth)) continue;
+        pools[pe][pools[pe].indexOf(e)] = x;
+        pools[px][pools[px].indexOf(x)] = e;
+        indexRemoveFencer(indexes[pe], e);
+        indexAddFencer(indexes[pe], x);
+        indexRemoveFencer(indexes[px], x);
+        indexAddFencer(indexes[px], e);
+        poolOf.set(e.id, px);
+        poolOf.set(x.id, pe);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (let depth = 1; depth <= criteria.length; depth++) {
+    // Chaque échange respecte les quotas des critères 0..depth-1 : borne de sécurité
+    for (let guard = 0; guard < seedOrder.length * 2; guard++) {
+      if (!findErrors(depth).some(e => trySwap(e, depth))) break;
+    }
+  }
 }
 
 /**

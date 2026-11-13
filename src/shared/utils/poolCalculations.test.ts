@@ -875,6 +875,24 @@ describe('distributeFencersToPoolsSerpentine — classement déplaçable', () =>
     pools.forEach(p => expect(p.filter(f => f.club === 'BIG').length).toBeLessThanOrEqual(2));
   });
 
+  it('classement en rang 1 : échanges au plus proche classement → quotas club respectés', () => {
+    // Chapeau 2 (f4 B, f5 C, f6 A) : la poule 1 (A) ne reçoit que f6 A → échange avec f5
+    const clubsOf = ['A', 'B', 'C', 'B', 'C', 'A', 'X', 'Y', 'Z'];
+    const fs = clubsOf.map((club, i) => ({
+      ...createMockFencer(`s${i + 1}`, i + 1, `S${i + 1}`),
+      ranking: i + 1,
+      club,
+    }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, [], ['byClub']);
+    const total = (c: string) => fs.filter(f => f.club === c).length;
+    pools.forEach(p =>
+      ['A', 'B', 'C'].forEach(c =>
+        expect(p.filter(f => f.club === c).length).toBeLessThanOrEqual(Math.ceil(total(c) / 3))
+      )
+    );
+    expect(['s1', 's2', 's3'].map(id => poolOf(pools, id))).toEqual([0, 1, 2]);
+  });
+
   it('têtes de poule jamais déplacées (premier chapeau)', () => {
     const fs = fencers.map(f => (f.id === 'f2' ? { ...f, club: 'A' } : f));
     const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byClub']);
