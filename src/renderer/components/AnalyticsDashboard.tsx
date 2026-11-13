@@ -32,6 +32,7 @@ import { exportPostTournamentPDF } from '../../shared/utils/postTournamentReport
 import { FileText, Hourglass, Square } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { Button } from './common/Button';
+import { useToast } from './Toast';
 const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
@@ -344,6 +345,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   const [selectedTimeframe, setSelectedTimeframe] = useState<'live' | 'last30min' | 'all'>('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const { showToast } = useToast();
 
   const loadFencerStats = useCallback(async () => {
     const data = await window.electronAPI?.db?.getCompetitionFencerStats?.(competition.id);
@@ -419,6 +421,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
       ]);
       const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
       await exportPostTournamentPDF(competition, fencerStats, matchesWithRefs, logo);
+    } catch (e) {
+      showToast(`${t('fencerList.export_error')} : ${e instanceof Error ? e.message : e}`, 'error');
     } finally {
       setExporting(false);
     }

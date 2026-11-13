@@ -136,19 +136,18 @@ export class RefereeRepo {
     return this.sql
       .queryAll<SqlRow>(
         `SELECT m.id AS match_id, m.number AS match_number,
-              p.name AS pool_name,
+              CASE WHEN p.id IS NULL THEN NULL ELSE 'Poule ' || p.number END AS pool_name,
               fa.last_name || ' ' || fa.first_name AS fencer_a_name,
               fb.last_name || ' ' || fb.first_name AS fencer_b_name,
               m.score_a, m.score_b, m.status,
               r.id AS referee_id, r.name AS referee_name
        FROM matches m
        LEFT JOIN pools p ON m.pool_id = p.id
-       LEFT JOIN phases ph ON p.phase_id = ph.id
        LEFT JOIN fencers fa ON m.fencer_a_id = fa.id
        LEFT JOIN fencers fb ON m.fencer_b_id = fb.id
        LEFT JOIN referees r ON m.referee_id = r.id
-       WHERE ph.competition_id = ? AND m.referee_id IS NOT NULL
-       ORDER BY p.name, m.number`,
+       WHERE fa.competition_id = ? AND m.referee_id IS NOT NULL
+       ORDER BY p.number, m.number`,
         [competitionId]
       )
       .map(row => {

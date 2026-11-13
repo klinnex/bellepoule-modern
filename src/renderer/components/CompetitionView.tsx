@@ -26,9 +26,15 @@ import {
   rapieresSemifinalists,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
+  applyClassicOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
 import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
+import RapieresMatchOrderDialog from '../../features/rapieres/RapieresMatchOrderDialog';
+import {
+  hasClassicOrder,
+  type RapieresMatchOrder,
+} from '../../features/rapieres/rapieresClassicOrder';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
 import { checkInStatusUpdate } from '../../shared/utils/forfeit';
@@ -67,6 +73,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     ...competitionCore,
     ...competitionSessionSync,
   });
+  // Rapières : choix de l'ordre des combats au lancement des poules (#1816)
+  const [matchOrderPrompt, setMatchOrderPrompt] = React.useState<
+    ((order: RapieresMatchOrder | null) => void) | null
+  >(null);
+  const askMatchOrder = () =>
+    new Promise<RapieresMatchOrder | null>(resolve => setMatchOrderPrompt(() => resolve));
+  const answerMatchOrder = (order: RapieresMatchOrder | null) => {
+    matchOrderPrompt?.(order);
+    setMatchOrderPrompt(null);
+  };
   const {
     competition,
     language,
@@ -380,8 +396,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             poolsLaunched={poolsLaunched || relaunchPending}
             draft={poolPrepDraft}
             onDraftChange={setPoolPrepDraft}
-            onPoolsConfirm={async confirmedPools => {
+            onPoolsConfirm={async preparedPools => {
               if (!(await confirmScoresLoss())) return;
+              let confirmedPools = preparedPools;
+              if (isRapieres && preparedPools.some(p => hasClassicOrder(p.fencers.length))) {
+                const order = await askMatchOrder();
+                if (!order) return;
+                if (order === 'classic') confirmedPools = preparedPools.map(applyClassicOrder);
+              }
               setPoolsLaunched(true);
               setRelaunchPending(false);
               setPoolPrepDraft(null);
@@ -695,6 +717,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           onImportRanking={handleImportRanking}
           onImportReferees={handleImportReferees}
           onClose={() => setImportData(null)}
+        />
+      )}
+
+      {matchOrderPrompt && (
+        <RapieresMatchOrderDialog
+          onChoose={answerMatchOrder}
+          onClose={() => answerMatchOrder(null)}
         />
       )}
 

@@ -6,6 +6,13 @@
 import { FencerMatchRecord } from '../types/preload';
 import { Competition, FencerCompetitionStats } from '../types';
 import { pdfLang, pdfT } from './pdfExport/core';
+import {
+  STATS_CHARTS_CSS,
+  clubSummaryHtml,
+  matchTouchesChartHtml,
+  zoneFiguresHtml,
+  type FencerResult,
+} from './pdfExport/statsCharts';
 
 function fmt(seconds: number): string {
   if (!seconds) return '—';
@@ -251,9 +258,52 @@ function fencerPageHtml(
         </div>
         ${laserBox}
       </div>
+      ${chartsHtml(fencer, matches, isLaser)}
       <div class="section-title">${pdfT('match_details', 'Détail des matchs')}</div>
       ${matches.length ? matchRows : `<p class="no-events">${pdfT('no_finished_match', 'Aucun match terminé enregistré.')}</p>`}
     </div>`;
+}
+
+/** Graphiques de la feuille combattant : les 2 corps (Sabre Laser) + touches par match. */
+function chartsHtml(
+  fencer: FencerCompetitionStats,
+  matches: FencerMatchRecord[],
+  isLaser: boolean
+): string {
+  const figures = isLaser
+    ? zoneFiguresHtml(
+        [fencer.touchesZoneA, fencer.touchesZoneB, fencer.touchesZoneC],
+        [fencer.receivedZoneA ?? 0, fencer.receivedZoneB ?? 0, fencer.receivedZoneC ?? 0]
+      )
+    : '';
+  const perMatch = matchTouchesChartHtml(
+    matches.map(rec => {
+      const o = matchOutcome(rec);
+      return {
+        label: rec.opponentLastName
+          ? `${rec.opponentLastName}${rec.opponentFirstName ? ' ' + rec.opponentFirstName : ''}`
+          : '—',
+        given: o.myScore ?? 0,
+        received: o.oppScore ?? 0,
+        isVictory: o.isVictory,
+      };
+    })
+  );
+  if (!figures && !perMatch) return '';
+  return `<div class="section-title">${pdfT('charts', 'Graphiques')}</div>${figures}${perMatch}`;
+}
+
+/** Victoires / défaites et touches données / reçues d'un tireur, depuis son historique. */
+export function fencerResult(matches: FencerMatchRecord[]): FencerResult {
+  const r: FencerResult = { victories: 0, defeats: 0, td: 0, tr: 0 };
+  for (const m of matches) {
+    const o = matchOutcome(m);
+    if (o.isVictory) r.victories++;
+    else r.defeats++;
+    r.td += o.myScore ?? 0;
+    r.tr += o.oppScore ?? 0;
+  }
+  return r;
 }
 
 function rankingPageHtml(
@@ -302,7 +352,7 @@ function rankingPageHtml(
 }
 
 function wrapHtml(body: string): string {
-  return `<!DOCTYPE html><html lang="${pdfLang()}"><head><meta charset="utf-8"><style>${CSS}</style></head><body>${body}</body></html>`;
+  return `<!DOCTYPE html><html lang="${pdfLang()}"><head><meta charset="utf-8"><style>${CSS}${STATS_CHARTS_CSS}</style></head><body>${body}</body></html>`;
 }
 
 function competitionDateStr(competition: Competition): string {
@@ -362,6 +412,13 @@ export async function exportCompetitionDetailPDF(
         competition.title,
         dateStr
       )
+    ),
+    clubSummaryHtml(
+      fencers,
+      new Map(fencers.map(f => [f.fencerId, fencerResult(histories.get(f.fencerId) ?? [])])),
+      isLaser,
+      competition.title,
+      dateStr
     ),
   ].join('');
 
