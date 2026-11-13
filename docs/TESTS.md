@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 53 | 697 |
+| `src/shared/utils/` | 54 | 701 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **358** | **2745** |
+| **Total** | **359** | **2749** |
 
-Unitaires : 348 fichiers, 2706 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1114,6 +1114,18 @@ Unitaires : 348 fichiers, 2706 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - should return true for valid complete score
   - should return false for null scores
   - should return false for invalid score
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/simulatedMatchEvents.test.ts</code> — 4 tests</summary>
+
+- **decomposeLaserScore**
+  - somme des zones = score
+- **simulateMatchEvents**
+  - Sabre Laser : touches par zone cohérentes avec le score
+  - arme classique : pas de zones, durée et horodatages dans le match
+  - cartons générés avec motif (rng forcé)
 
 </details>
 
