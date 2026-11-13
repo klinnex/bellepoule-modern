@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 7 | 146 |
-| `src/main/` | 59 | 470 |
+| `src/main/` | 60 | 471 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 87 | 438 |
+| `src/renderer/components/` | 87 | 440 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 367 |
+| `src/remote/` | 56 | 369 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **355** | **2724** |
+| **Total** | **356** | **2729** |
 
-Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 346 fichiers, 2690 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2744,12 +2744,11 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/arenaBroadcast.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/remote/arenaBroadcast.test.ts</code> — 3 tests</summary>
 
-- **applyLeftHandedSwap**
-  - gaucher A contre droitier B : bascule, une seule fois par match
-  - match suivant normal : retour au placement de l’appel
-  - inversion manuelle de l’écran conservée (XOR)
+- **arenaLeftHanded**
+  - gaucher A contre droitier B : A rouge
+  - droitier A ou deux gauchers : placement de l’appel (A vert)
   - arme non olympique ou pas de match : rien
 
 </details>
@@ -2957,6 +2956,15 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - refuse un champ texte de plus de 200 caractères sans le traiter
   - retire chevrons et caractères de contrôle, garde apostrophes et &
   - ignore les champs non textuels sans planter
+
+</details>
+
+<details>
+<summary><code>src/main/remote/sessionOps.test.ts</code> — 2 tests</summary>
+
+- **updateMatchScore**
+  - match d’entraînement sur une arène : score appliqué, pas d’erreur
+  - match introuvable partout : erreur « Match non trouvé »
 
 </details>
 
@@ -4186,7 +4194,7 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 11 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -4199,6 +4207,8 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - fournit un showToast no-op sans planter
 - **Toast d’annulation (#1535)**
   - le bouton Annuler appelle le callback et ferme le toast
+  - Ctrl+Z annule la dernière action et ferme son toast, une seule fois
+  - Ctrl+Z dans un champ de saisie : annulation native, toast conservé
 - **Toast d’erreur actionnable (#1535)**
   - affiche l’échec suivi de la cause et de l’étape suivante
 
@@ -5181,9 +5191,10 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/arenaUpdate.test.ts</code> — 9 tests</summary>
+<summary><code>src/remote/js/arenaUpdate.test.ts</code> — 10 tests</summary>
 
 - **arenaUpdate.js planArenaUpdate**
+  - gaucher (#1439) : A rouge à gauche, scores placés en conséquence
   - message vide : bannières et visibilité seulement
   - thème : appliqué si changé, ou personnalisé modifié
   - tireur prioritaire : cadre effacé si le nouveau match ne le contient pas
@@ -5225,7 +5236,7 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/kioskArenas.test.ts</code> — 9 tests</summary>
+<summary><code>src/remote/js/kioskArenas.test.ts</code> — 10 tests</summary>
 
 - **kioskArenas.js scores**
   - detectScoreChanges : changement, slash à +3, rien sans historique
@@ -5235,6 +5246,7 @@ Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - piste libre : en attente, aucun match
   - match en cours : B rouge à gauche, A vert à droite
   - inversion : permutation des côtés et des couleurs
+  - gaucher A contre droitier (#1439) : A rouge à gauche
   - assigné (pas en cours) et score absent
   - XSS : noms, clubs et identifiants échappés
   - kiosk.html charge le module et délègue
