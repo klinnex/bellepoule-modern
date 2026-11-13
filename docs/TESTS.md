@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 54 | 702 |
+| `src/shared/utils/` | 55 | 706 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **363** | **2763** |
+| **Total** | **364** | **2767** |
 
-Unitaires : 353 fichiers, 2724 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 354 fichiers, 2728 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -850,6 +850,18 @@ Unitaires : 353 fichiers, 2724 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - affiche le classement sans modèle
   - affiche le classement avec le modèle « ranking » (feuille vide avant)
   - masque la table si l’élément est masqué dans le modèle
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/statsCharts.test.ts</code> — 4 tests</summary>
+
+- **touchZoneFigure**
+  - mannequin SVG : zone la plus touchée en foncé, zone vide en gris
+- **statsCharts**
+  - les 2 corps : touches données puis reçues
+  - touches par match : une ligne par match joué, noms échappés
+  - résumé par club : tri alphabétique, « sans club » en dernier, totaux
 
 </details>
 
