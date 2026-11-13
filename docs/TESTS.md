@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 88 | 446 |
+| `src/renderer/components/` | 89 | 449 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 369 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **361** | **2756** |
+| **Total** | **362** | **2759** |
 
-Unitaires : 351 fichiers, 2717 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 352 fichiers, 2720 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4365,6 +4365,17 @@ Unitaires : 351 fichiers, 2717 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton désactivé + lame affichée pendant le téléchargement
   - erreur %s : message explicite (plus de clic muet) _(each)_
   - ses styles sont dans une feuille chargée (components.css)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/TouchZoneHeatmap.test.tsx</code> — 3 tests</summary>
+
+- **zoneShade**
+  - foncé = plus sollicitée, moyen = intermédiaire, clair = plus faible
+  - zone sans touche = none ; deux zones touchées = foncé / clair
+- **TouchZoneHeatmap**
+  - affiche les trois zones, dont C, avec leur classe de rang
 
 </details>
 
