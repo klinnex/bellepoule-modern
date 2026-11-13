@@ -2586,7 +2586,14 @@
     "csv_exits": "Sorties piste",
     "csv_matches": "Matchs joués",
     "csv_avg": "Durée moy. (s)",
-    "csv_early": "Fins anticipées"
+    "csv_early": "Fins anticipées",
+    "all_fencers": "Tous les tireurs",
+    "total_points_received": "Total points reçus :",
+    "pick_fencer_hint": "Sur l'ensemble des tireurs, touches données et reçues sont égales : choisissez un tireur pour les comparer.",
+    "filter_label": "Filtrer par club ou tireur",
+    "clubs": "Clubs",
+    "fencers": "Tireurs",
+    "zones_title_short": "Zones de touches"
   },
   "formulaTemplate": {
     "name_required": "Entrez un nom pour la formule.",

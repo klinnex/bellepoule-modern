@@ -2586,7 +2586,14 @@
     "csv_exits": "Strip exits",
     "csv_matches": "Bouts fenced",
     "csv_avg": "Avg. duration (s)",
-    "csv_early": "Early finishes"
+    "csv_early": "Early finishes",
+    "all_fencers": "All fencers",
+    "total_points_received": "Total points received:",
+    "pick_fencer_hint": "Across all fencers, touches given and received are equal: pick a fencer to compare them.",
+    "filter_label": "Filter by club or fencer",
+    "clubs": "Clubs",
+    "fencers": "Fencers",
+    "zones_title_short": "Touch zones"
   },
   "formulaTemplate": {
     "name_required": "Enter a name for the formula.",

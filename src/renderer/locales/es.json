@@ -2586,7 +2586,14 @@
     "csv_exits": "Salidas de pista",
     "csv_matches": "Combates disputados",
     "csv_avg": "Duración media (s)",
-    "csv_early": "Finales anticipados"
+    "csv_early": "Finales anticipados",
+    "all_fencers": "Todos los tiradores",
+    "total_points_received": "Total de puntos recibidos:",
+    "pick_fencer_hint": "En el conjunto de tiradores, tocados dados y recibidos son iguales: elija un tirador para compararlos.",
+    "filter_label": "Filtrar por club o tirador",
+    "clubs": "Clubes",
+    "fencers": "Tiradores",
+    "zones_title_short": "Zonas de tocado"
   },
   "formulaTemplate": {
     "name_required": "Introduzca un nombre para la fórmula.",

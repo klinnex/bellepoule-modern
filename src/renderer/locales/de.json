@@ -2586,7 +2586,14 @@
     "csv_exits": "Pistenaustritte",
     "csv_matches": "Gefochtene Gefechte",
     "csv_avg": "Durchschn. Dauer (s)",
-    "csv_early": "Vorzeitige Enden"
+    "csv_early": "Vorzeitige Enden",
+    "all_fencers": "Alle Fechter",
+    "total_points_received": "Erhaltene Punkte gesamt:",
+    "pick_fencer_hint": "Über alle Fechter sind gegebene und erhaltene Treffer gleich: Fechter wählen, um sie zu vergleichen.",
+    "filter_label": "Nach Verein oder Fechter filtern",
+    "clubs": "Vereine",
+    "fencers": "Fechter",
+    "zones_title_short": "Trefferzonen"
   },
   "formulaTemplate": {
     "name_required": "Geben Sie einen Namen für die Formel ein.",

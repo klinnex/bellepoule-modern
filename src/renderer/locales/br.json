@@ -2586,7 +2586,14 @@
     "csv_exits": "Ermaeziadennoù leurenn",
     "csv_matches": "Emgannoù c'hoariet",
     "csv_avg": "Padelezh keitat (s)",
-    "csv_early": "Echuoù abred"
+    "csv_early": "Echuoù abred",
+    "all_fencers": "An holl c'hlezeourien",
+    "total_points_received": "Hollad poentoù resevet :",
+    "pick_fencer_hint": "Evit an holl c'hlezeourien eo par an taolioù roet hag resevet : dibabit ur c'hlezeour evit o c'heñveriañ.",
+    "filter_label": "Silañ dre glub pe gleizeour",
+    "clubs": "Klubioù",
+    "fencers": "Kleizeourien",
+    "zones_title_short": "Takadoù taolioù"
   },
   "formulaTemplate": {
     "name_required": "Roit un anv d'ar formulenn.",
