@@ -102,10 +102,8 @@ export interface Arena {
   startTime: Date | null;
   settings: ArenaSettings;
   password?: string;
+  /** Inversion de vue (miroir de la piste) ; ne change pas les couleurs des tireurs */
   swapped?: boolean;
-  /** Inversion gaucher/droitier appliquée au match leftHandedMatchId (#1439) */
-  leftHandedSwap?: boolean;
-  leftHandedMatchId?: string;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
@@ -174,6 +172,8 @@ export interface ArenaUpdate {
   screenThemes?: Partial<Record<ThemeTargetType, CustomTheme>>;
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
+  /** Gaucher (A) contre droitier : A rouge, B vert (#1439) */
+  leftHanded?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée
   blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
