@@ -3,7 +3,7 @@ import { Fencer } from '../../shared/types';
 import { sanitizeText } from '../validation';
 import { FENCER_TEXT_FIELDS } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
-import { parseFencerRow } from './rowMappers';
+import { parseFencerRow, type SqlRow } from './rowMappers';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Tireurs : CRUD, photos, historique, statistiques, instantanés d'abandon (#1242) */
@@ -57,7 +57,7 @@ export class FencerRepo {
 
   public getFencer(id: string): Fencer | null {
     if (!this.sql.db) throw new Error('Database not open');
-    const row = this.sql.queryOne<any>('SELECT * FROM fencers WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM fencers WHERE id = ?', [id]);
     if (!row) return null;
     try {
       return parseFencerRow(row);
@@ -70,7 +70,9 @@ export class FencerRepo {
   public getFencersByCompetition(competitionId: string): Fencer[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>('SELECT * FROM fencers WHERE competition_id = ? ORDER BY ref', [competitionId])
+      .queryAll<SqlRow>('SELECT * FROM fencers WHERE competition_id = ? ORDER BY ref', [
+        competitionId,
+      ])
       .map(row => parseFencerRow(row));
   }
 
@@ -79,7 +81,7 @@ export class FencerRepo {
   ): { id: string; license: string | null; lastName: string; firstName: string; photo: string }[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         'SELECT id, license, last_name, first_name, photo FROM fencers WHERE competition_id = ? AND photo IS NOT NULL',
         [competitionId]
       )
@@ -293,7 +295,7 @@ export class FencerRepo {
     }>;
   } {
     if (!this.sql.db) throw new Error('Database not open');
-    const matchRows = this.sql.queryAll<any>(
+    const matchRows = this.sql.queryAll<SqlRow>(
       `SELECT m.id, m.number, m.fencer_a_id, m.fencer_b_id,
               m.score_a, m.score_b, m.status, m.start_time, m.end_time, m.duration,
               m.pool_id, m.table_id, m.round,
@@ -315,7 +317,7 @@ export class FencerRepo {
       const opponentFirstName =
         side === 'A' ? (row.opp_b_first as string | null) : (row.opp_a_first as string | null);
       const touches = this.sql
-        .queryAll<any>(
+        .queryAll<SqlRow>(
           `SELECT id, zone, points, timestamp, is_valid_in_sudden_death, is_reversed FROM match_touches WHERE match_id = ? AND fencer_id = ? ORDER BY timestamp ASC`,
           [row.id as string, fencerId]
         )
@@ -328,7 +330,7 @@ export class FencerRepo {
           isReversed: t.is_reversed === 1,
         }));
       const cards = this.sql
-        .queryAll<any>(
+        .queryAll<SqlRow>(
           `SELECT id, card_type, reason, card_group, timestamp, points_awarded, resulting_exclusion FROM match_cards WHERE match_id = ? AND fencer_id = ? ORDER BY timestamp ASC`,
           [row.id as string, fencerId]
         )
@@ -385,7 +387,7 @@ export class FencerRepo {
     matchesFinishedEarly: number;
   } {
     if (!this.sql.db) throw new Error('Database not open');
-    const fencerRow = this.sql.queryOne<any>(
+    const fencerRow = this.sql.queryOne<SqlRow>(
       'SELECT last_name, first_name, club, competition_id FROM fencers WHERE id = ?',
       [fencerId]
     );
@@ -410,7 +412,7 @@ export class FencerRepo {
       matchesFinishedEarly: 0,
     };
     this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT zone, SUM(points) AS pts, COUNT(*) AS cnt FROM match_touches WHERE fencer_id = ? AND is_reversed = 0 GROUP BY zone`,
         [fencerId]
       )
@@ -427,7 +429,7 @@ export class FencerRepo {
         }
       });
     this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT card_type, reason, COUNT(*) AS cnt FROM match_cards WHERE fencer_id = ? GROUP BY card_type, reason`,
         [fencerId]
       )
@@ -446,7 +448,7 @@ export class FencerRepo {
       [fencerId]
     );
     empty.arenaExits = exitRow?.cnt ?? 0;
-    const durRow = this.sql.queryOne<any>(
+    const durRow = this.sql.queryOne<SqlRow>(
       `SELECT COUNT(*) AS total, SUM(COALESCE(duration, 0)) AS total_dur, SUM(CASE WHEN duration IS NOT NULL AND duration < 180 THEN 1 ELSE 0 END) AS early FROM matches WHERE (fencer_a_id = ? OR fencer_b_id = ?) AND status = 'finished'`,
       [fencerId, fencerId]
     );
@@ -506,7 +508,7 @@ export class FencerRepo {
     createdAt: string;
   } | null {
     if (!this.sql.db) return null;
-    const row = this.sql.queryOne<any>(
+    const row = this.sql.queryOne<SqlRow>(
       'SELECT * FROM fencer_abandons WHERE fencer_id = ? ORDER BY created_at DESC LIMIT 1',
       [fencerId]
     );

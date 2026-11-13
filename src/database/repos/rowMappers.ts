@@ -18,7 +18,13 @@ import {
 import { safeJsonParse } from './dbUtils';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
-export function parseCompetitionRow(row: any): Competition {
+/** Ligne SQLite brute (colonnes snake_case) : chaque lecture est convertie explicitement (#1775) */
+export type SqlRow = Record<string, unknown>;
+
+/** Score sérialisé en JSON dans les journaux (audit, chronologie) */
+type LoggedScore = { value: number | null } | null;
+
+export function parseCompetitionRow(row: SqlRow): Competition {
   try {
     let settings: CompetitionSettings = {
       defaultPoolMaxScore: 5,
@@ -56,7 +62,7 @@ export function parseCompetitionRow(row: any): Competition {
       color: row.color as string,
       currentPhaseIndex: row.current_phase_index as number,
       isTeamEvent: row.is_team_event === 1,
-      status: row.status as any,
+      status: row.status as Competition['status'],
       settings,
       fencers: [],
       referees: [],
@@ -70,7 +76,7 @@ export function parseCompetitionRow(row: any): Competition {
   }
 }
 
-export function parseFencerRow(row: any): Fencer {
+export function parseFencerRow(row: SqlRow): Fencer {
   let poolStats = undefined;
   if (row.pool_stats) {
     try {
@@ -129,7 +135,7 @@ export function healMatchStatus(
   return rawStatus;
 }
 
-export function rowToReferee(row: any): Referee {
+export function rowToReferee(row: SqlRow): Referee {
   return {
     id: row.id as string,
     ref: row.ref as number,
@@ -161,7 +167,7 @@ export function parsePoolRefereeIds(row: {
   return row.referee_id ? [row.referee_id as string] : [];
 }
 
-export function parseAuditRow(r: any) {
+export function parseAuditRow(r: SqlRow) {
   return {
     id: r.id as string,
     matchId: r.match_id as string,
@@ -169,10 +175,10 @@ export function parseAuditRow(r: any) {
     poolId: r.pool_id as string | null,
     matchNumber: r.match_number != null ? Number(r.match_number) : null,
     poolNumber: r.pool_number != null ? Number(r.pool_number) : null,
-    previousScoreA: safeJsonParse<any>(r.previous_score_a, null, `audit ${r.id}`),
-    previousScoreB: safeJsonParse<any>(r.previous_score_b, null, `audit ${r.id}`),
-    newScoreA: safeJsonParse<any>(r.new_score_a, null, `audit ${r.id}`),
-    newScoreB: safeJsonParse<any>(r.new_score_b, null, `audit ${r.id}`),
+    previousScoreA: safeJsonParse<LoggedScore>(r.previous_score_a, null, `audit ${r.id}`),
+    previousScoreB: safeJsonParse<LoggedScore>(r.previous_score_b, null, `audit ${r.id}`),
+    newScoreA: safeJsonParse<LoggedScore>(r.new_score_a, null, `audit ${r.id}`),
+    newScoreB: safeJsonParse<LoggedScore>(r.new_score_b, null, `audit ${r.id}`),
     changedBy: r.changed_by as string,
     changedAt: r.changed_at as string,
     reason: r.reason as string | null,
@@ -187,7 +193,7 @@ export function parseAuditRow(r: any) {
 
 // ─── Match timeline (audit log) ──────────────────────────────────────────────
 
-export function parseTimelineRow(r: any): MatchEventEntry {
+export function parseTimelineRow(r: SqlRow): MatchEventEntry {
   return {
     id: r.id as string,
     matchId: r.match_id as string,
@@ -197,10 +203,10 @@ export function parseTimelineRow(r: any): MatchEventEntry {
     fencerLastName: (r.fencer_last_name as string) ?? null,
     fencerFirstName: (r.fencer_first_name as string) ?? null,
     fencerSide: (r.fencer_side as 'A' | 'B') ?? null,
-    previousScoreA: safeJsonParse<any>(r.prev_a, null, `event ${r.id}`),
-    previousScoreB: safeJsonParse<any>(r.prev_b, null, `event ${r.id}`),
-    newScoreA: safeJsonParse<any>(r.new_a, null, `event ${r.id}`),
-    newScoreB: safeJsonParse<any>(r.new_b, null, `event ${r.id}`),
+    previousScoreA: safeJsonParse<LoggedScore>(r.prev_a, null, `event ${r.id}`),
+    previousScoreB: safeJsonParse<LoggedScore>(r.prev_b, null, `event ${r.id}`),
+    newScoreA: safeJsonParse<LoggedScore>(r.new_a, null, `event ${r.id}`),
+    newScoreB: safeJsonParse<LoggedScore>(r.new_b, null, `event ${r.id}`),
     changedBy: (r.changed_by as string) ?? null,
     refereeName: (r.referee_name as string) ?? null,
     ipAddress: (r.ip_address as string) ?? null,

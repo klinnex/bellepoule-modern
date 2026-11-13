@@ -1,3 +1,4 @@
+import type { SqlRow } from './rowMappers';
 import { Card } from '../../shared/types';
 import type { SqlExecutor } from './sqlExecutor';
 
@@ -32,12 +33,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const teams = this.sql.queryAll<any>(
+    const teams = this.sql.queryAll<SqlRow>(
       'SELECT * FROM teams WHERE competition_id = ? ORDER BY name',
       [competitionId]
     );
     return teams.map(t => {
-      const fencers = this.sql.queryAll<any>(
+      const fencers = this.sql.queryAll<SqlRow>(
         `SELECT tf.fencer_id, tf.team_order, tf.is_reserve, f.last_name, f.first_name
          FROM team_fencers tf JOIN fencers f ON tf.fencer_id = f.id
          WHERE tf.team_id = ? ORDER BY tf.team_order`,
@@ -155,12 +156,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const matches = this.sql.queryAll<any>(
+    const matches = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_matches WHERE competition_id = ? AND table_id = ? ORDER BY round DESC, position',
       [competitionId, tableId]
     );
     return matches.map(m => {
-      const bouts = this.sql.queryAll<any>(
+      const bouts = this.sql.queryAll<SqlRow>(
         'SELECT * FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
         [m.id]
       );
@@ -214,12 +215,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const matches = this.sql.queryAll<any>(
+    const matches = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_matches WHERE competition_id = ? AND table_id IS NULL ORDER BY pool_number, created_at',
       [competitionId]
     );
     return matches.map(m => {
-      const bouts = this.sql.queryAll<any>(
+      const bouts = this.sql.queryAll<SqlRow>(
         'SELECT * FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
         [m.id]
       );
@@ -283,19 +284,21 @@ export class TeamRepo {
     );
     // Recompute match bouts score if bout finished
     if (status === 'finished') {
-      const bout = this.sql.queryOne<any>('SELECT match_id FROM team_bouts WHERE id = ?', [boutId]);
+      const bout = this.sql.queryOne<SqlRow>('SELECT match_id FROM team_bouts WHERE id = ?', [
+        boutId,
+      ]);
       if (bout) this.recomputeTeamMatchScore(bout.match_id as string);
     }
   }
 
   private recomputeTeamMatchScore(matchId: string): void {
-    const match = this.sql.queryOne<any>(
+    const match = this.sql.queryOne<SqlRow>(
       'SELECT team_a_id, team_b_id FROM team_matches WHERE id = ?',
       [matchId]
     );
     if (!match) return;
 
-    const allBouts = this.sql.queryAll<any>(
+    const allBouts = this.sql.queryAll<SqlRow>(
       'SELECT status, score_a, score_b FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
       [matchId]
     );
@@ -386,7 +389,7 @@ export class TeamRepo {
     createdAt: string;
   }> {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_match_cards WHERE match_id = ? ORDER BY created_at',
       [matchId]
     );
@@ -429,11 +432,11 @@ export class TeamRepo {
     }>;
   } | null {
     if (!this.sql.db) return null;
-    const m = this.sql.queryOne<any>('SELECT * FROM team_matches WHERE id = ?', [matchId]);
+    const m = this.sql.queryOne<SqlRow>('SELECT * FROM team_matches WHERE id = ?', [matchId]);
     if (!m) return null;
-    const teamA = this.sql.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_a_id]);
-    const teamB = this.sql.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_b_id]);
-    const bouts = this.sql.queryAll<any>(
+    const teamA = this.sql.queryOne<SqlRow>('SELECT name FROM teams WHERE id = ?', [m.team_a_id]);
+    const teamB = this.sql.queryOne<SqlRow>('SELECT name FROM teams WHERE id = ?', [m.team_b_id]);
+    const bouts = this.sql.queryAll<SqlRow>(
       `SELECT b.*, fa.last_name AS fa_last, fa.first_name AS fa_first, fb.last_name AS fb_last, fb.first_name AS fb_first
        FROM team_bouts b
        JOIN fencers fa ON b.fencer_a_id = fa.id

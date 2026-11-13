@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Competition, Phase, PhaseType } from '../../shared/types';
+import { Category, Competition, Gender, Phase, PhaseType, Weapon } from '../../shared/types';
 import { validateCompetitionData } from '../validation';
 import type { SqlExecutor } from './sqlExecutor';
-import { parseCompetitionRow } from './rowMappers';
+import { parseCompetitionRow, type SqlRow } from './rowMappers';
 
 /** Compétitions, phases et classement saisonnier Quest (#1242) */
 export class CompetitionRepo {
@@ -17,9 +17,9 @@ export class CompetitionRepo {
       ...comp,
       title: comp.title || 'Nouvelle compétition',
       date: comp.date || new Date(now),
-      weapon: comp.weapon || ('E' as any),
-      gender: comp.gender || ('M' as any),
-      category: comp.category || ('SEN' as any),
+      weapon: comp.weapon || Weapon.EPEE,
+      gender: comp.gender || Gender.MALE,
+      category: comp.category || Category.SENIOR,
     };
     validateCompetitionData(normalized);
     this.sql.run(
@@ -45,14 +45,14 @@ export class CompetitionRepo {
 
   public getCompetition(id: string): Competition | null {
     if (!this.sql.db) throw new Error('Database not open');
-    const row = this.sql.queryOne<any>('SELECT * FROM competitions WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM competitions WHERE id = ?', [id]);
     if (!row) return null;
     return parseCompetitionRow(row);
   }
 
   public getAllCompetitions(): Competition[] {
     if (!this.sql.db) throw new Error('Database not open');
-    const rows = this.sql.queryAll<any>('SELECT * FROM competitions ORDER BY date DESC');
+    const rows = this.sql.queryAll<SqlRow>('SELECT * FROM competitions ORDER BY date DESC');
     return rows.map(r => parseCompetitionRow(r));
   }
 
@@ -163,7 +163,7 @@ export class CompetitionRepo {
 
   public getPhase(id: string): Phase | null {
     if (!this.sql.db) return null;
-    const row = this.sql.queryOne<any>('SELECT * FROM phases WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM phases WHERE id = ?', [id]);
     if (!row) return null;
     return {
       id: row.id as string,
@@ -180,7 +180,7 @@ export class CompetitionRepo {
   public getPhasesByCompetition(competitionId: string): Phase[] {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>('SELECT * FROM phases WHERE competition_id = ? ORDER BY order_index ASC', [
+      .queryAll<SqlRow>('SELECT * FROM phases WHERE competition_id = ? ORDER BY order_index ASC', [
         competitionId,
       ])
       .map(
@@ -320,7 +320,7 @@ export class CompetitionRepo {
     ratio: number;
   }> {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT
          fencer_id, fencer_last_name, fencer_first_name, fencer_club,
          SUM(victories)        AS total_victories,
@@ -378,7 +378,7 @@ export class CompetitionRepo {
   }> {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT competition_id, competition_title, competition_date,
               COUNT(fencer_id) AS fencer_count, MAX(added_at) AS added_at
        FROM season_results

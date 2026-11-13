@@ -45,7 +45,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       }
 
       // Priorité : lire les poules depuis le session_state (elles ne sont pas dans les tables SQL)
-      const sessionState: SessionStateView | null = ctx.db.getSessionState(competitionId);
+      const sessionState = ctx.db.getSessionState(competitionId) as SessionStateView | null;
       const sessionPools = sessionState?.pools || [];
       if (sessionPools.length > 0) {
         const poolResults = sessionPools.map(pool => {
@@ -211,9 +211,9 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       const upcoming: Record<string, unknown>[] = [];
 
       // Priorité : session_state (pools du renderer avec leurs matchs)
-      const sessionState: SessionStateView | null = ctx.db.getSessionState(
+      const sessionState = ctx.db.getSessionState(
         ctx.session.competitionId
-      );
+      ) as SessionStateView | null;
       const sessionPools = sessionState?.pools || [];
 
       if (sessionPools.length > 0) {
@@ -348,9 +348,9 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       if (!ctx.session) return res.status(404).json({ error: 'no_session' });
 
       // Lire depuis la DB (inclut les matchs terminés) ; fallback sur sessionMatches (pending only)
-      const sessionState: SessionStateView | null = ctx.db.getSessionState(
+      const sessionState = ctx.db.getSessionState(
         ctx.session.competitionId
-      );
+      ) as SessionStateView | null;
       const dbTableauMatches = sessionState?.tableauMatches || [];
       const deMatches: TableauMatchView[] =
         dbTableauMatches.length > 0

@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Referee, RefereeComment } from '../../shared/types';
 import { safeJsonParse } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
-import { rowToReferee } from './rowMappers';
+import { rowToReferee, type SqlRow } from './rowMappers';
 
 /** Arbitres, statistiques d'arbitrage et commentaires des formateurs (#1242) */
 export class RefereeRepo {
@@ -64,14 +64,14 @@ export class RefereeRepo {
 
   public getReferee(id: string): Referee | null {
     if (!this.sql.db) return null;
-    const row = this.sql.queryOne<any>('SELECT * FROM referees WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM referees WHERE id = ?', [id]);
     return row ? rowToReferee(row) : null;
   }
 
   public getRefereesByCompetition(competitionId: string): Referee[] {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>('SELECT * FROM referees WHERE competition_id = ? ORDER BY ref ASC', [
+      .queryAll<SqlRow>('SELECT * FROM referees WHERE competition_id = ? ORDER BY ref ASC', [
         competitionId,
       ])
       .map(row => rowToReferee(row));
@@ -105,7 +105,7 @@ export class RefereeRepo {
     for (const [key, col] of Object.entries(fieldMap)) {
       if (key in updates) {
         setClauses.push(`${col} = ?`);
-        values.push((updates as any)[key]);
+        values.push((updates as Record<string, unknown>)[key]);
       }
     }
     if (setClauses.length > 0) {
@@ -134,7 +134,7 @@ export class RefereeRepo {
   }> {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT m.id AS match_id, m.number AS match_number,
               p.name AS pool_name,
               fa.last_name || ' ' || fa.first_name AS fencer_a_name,
@@ -152,8 +152,16 @@ export class RefereeRepo {
         [competitionId]
       )
       .map(row => {
-        const scoreARaw = safeJsonParse<any>(row.score_a, null, `match ${row.match_id} score_a`);
-        const scoreBRaw = safeJsonParse<any>(row.score_b, null, `match ${row.match_id} score_b`);
+        const scoreARaw = safeJsonParse<{ value?: number | null } | null>(
+          row.score_a,
+          null,
+          `match ${row.match_id} score_a`
+        );
+        const scoreBRaw = safeJsonParse<{ value?: number | null } | null>(
+          row.score_b,
+          null,
+          `match ${row.match_id} score_b`
+        );
         return {
           matchId: row.match_id as string,
           matchNumber: row.match_number as number,
@@ -179,7 +187,7 @@ export class RefereeRepo {
     cardsBlack: number;
   }> {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT r.id AS referee_id, r.name AS referee_name,
               COUNT(*) AS matches_count,
               AVG(CASE WHEN m.status = 'finished' AND m.duration IS NOT NULL THEN m.duration END) AS avg_duration,
@@ -240,19 +248,19 @@ export class RefereeRepo {
   /** Commentaires d'une compétition (ou d'un seul arbitre), du plus ancien au plus récent. */
   public getRefereeComments(competitionId: string, refereeId?: string): RefereeComment[] {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT * FROM referee_comments WHERE competition_id = ?${refereeId ? ' AND referee_id = ?' : ''}
        ORDER BY created_at ASC`,
       refereeId ? [competitionId, refereeId] : [competitionId]
     );
     return rows.map(r => ({
-      id: r.id,
-      competitionId: r.competition_id,
-      refereeId: r.referee_id,
-      author: r.author ?? null,
-      comment: r.comment,
-      matchLabel: r.match_label ?? null,
-      createdAt: r.created_at,
+      id: r.id as string,
+      competitionId: r.competition_id as string,
+      refereeId: r.referee_id as string,
+      author: (r.author as string | null) ?? null,
+      comment: r.comment as string,
+      matchLabel: (r.match_label as string | null) ?? null,
+      createdAt: r.created_at as string,
     }));
   }
 }
