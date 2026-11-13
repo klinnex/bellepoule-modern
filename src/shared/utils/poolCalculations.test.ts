@@ -858,8 +858,37 @@ describe('distributeFencersToPoolsSerpentine — classement déplaçable', () =>
   const poolOf = (pools: Fencer[][], id: string) => pools.findIndex(p => p.some(f => f.id === id));
 
   it('club avant classement : descente hors du chapeau pour éviter le conflit', () => {
-    const pools = distributeFencersToPoolsSerpentine(fencers, 3, ['byClub']);
+    // C : 3 tireurs / 3 poules → quota 1 par poule
+    const fs = fencers.map(f => (['f5', 'f6'].includes(f.id) ? { ...f, club: f.id } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byClub']);
     expect(poolOf(pools, 'f4')).not.toBe(poolOf(pools, 'f3'));
+    expect(poolOf(pools, 'f7')).not.toBe(poolOf(pools, 'f3'));
+  });
+
+  it('quota BellePoule : club plus nombreux que les poules → ⌈N/poules⌉ par poule toléré', () => {
+    const fs = Array.from({ length: 12 }, (_, i) => ({
+      ...createMockFencer(`q${i + 1}`, i + 1, `Q${i + 1}`),
+      ranking: i + 1,
+      club: i < 8 ? 'BIG' : `S${i}`,
+    }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 4, ['byClub']);
+    pools.forEach(p => expect(p.filter(f => f.club === 'BIG').length).toBeLessThanOrEqual(2));
+  });
+
+  it('têtes de poule jamais déplacées (premier chapeau)', () => {
+    const fs = fencers.map(f => (f.id === 'f2' ? { ...f, club: 'A' } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byClub']);
+    expect([0, 1, 2].map(i => poolOf(pools, `f${i + 1}`))).toEqual([0, 1, 2]);
+  });
+
+  it('nation vide : pas de conflit entre tireurs sans nationalité', () => {
+    const fs = fencers.map(f => ({ ...f, club: f.id, nationality: '' }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byNation']);
+    expect(pools.map(p => p.map(f => f.ranking).sort((x, y) => (x ?? 0) - (y ?? 0)))).toEqual([
+      [1, 6, 7],
+      [2, 5, 8],
+      [3, 4, 9],
+    ]);
   });
 
   it('club après classement : pas de descente hors du chapeau', () => {

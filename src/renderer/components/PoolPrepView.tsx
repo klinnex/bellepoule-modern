@@ -11,6 +11,7 @@ import {
   distributeFencersToPoolsSerpentine,
   distributeFencersGroupedByLevel,
   generatePoolMatchOrder,
+  separationQuota,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
 import {
@@ -142,11 +143,12 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   }
   const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>(() => {
     const defaults: SeparationCriterion[] = [
+      // Classement : rang 1 par défaut (BellePoule : serpentin puis échanges dans le chapeau),
+      // toujours actif, déplaçable ; critères placés après = échange dans le chapeau
+      { key: 'byRanking' as const, label: 'Classement', enabled: true },
       { key: 'byClub' as const, label: 'Club', enabled: !customDistribution },
       { key: 'byRegion' as const, label: 'Région', enabled: !customDistribution },
       { key: 'byNation' as const, label: 'Nation', enabled: false },
-      // Classement : toujours actif, déplaçable ; critères placés après = échange dans le chapeau
-      { key: 'byRanking' as const, label: 'Classement', enabled: true },
       ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
     ].filter(c => !separationKeys || separationKeys.includes(c.key));
     if (!initialDraft) return defaults;
@@ -511,18 +513,28 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     'rgba(22,163,74,0.10)',
   ];
 
-  /** Valeurs en double dans une poule (club, région…) → nombre d'occurrences */
+  const countBy = (list: Fencer[], pick: (f: Fencer) => string | undefined) => {
+    const counts = new Map<string, number>();
+    list.forEach(f => {
+      const v = pick(f)?.trim();
+      if (v) counts.set(v, (counts.get(v) || 0) + 1);
+    });
+    return counts;
+  };
+  const allPoolFencers = pools.flatMap(p => p.fencers);
+
+  /**
+   * Valeurs au-delà du quota dans une poule (club, région…) → nombre d'occurrences.
+   * Quota BellePoule : ⌈effectif de la valeur / nb poules⌉ (un gros club se répartit sans alerte).
+   */
   const getPoolConflicts = (
     pool: Pool,
     pick: (f: Fencer) => string | undefined
   ): Map<string, number> => {
-    const counts = new Map<string, number>();
-    pool.fencers.forEach(f => {
-      const v = pick(f)?.trim();
-      if (v) counts.set(v, (counts.get(v) || 0) + 1);
-    });
+    const counts = countBy(pool.fencers, pick);
+    const totals = countBy(allPoolFencers, pick);
     counts.forEach((n, v) => {
-      if (n < 2) counts.delete(v);
+      if (n <= separationQuota(totals.get(v) ?? n, pools.length)) counts.delete(v);
     });
     return counts;
   };

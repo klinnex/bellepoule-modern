@@ -96,10 +96,13 @@ export const usePoolManagement = ({
       }
 
       const poolCount = calculateOptimalPoolCount(checkedInFencers.length, 5, 7);
-      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, poolCount, [
-        'byClub',
-        'byRegion',
-      ]);
+      // Classement en rang 1 : club/région résolus par échanges dans le chapeau
+      const distribution = distributeFencersToPoolsSerpentine(
+        checkedInFencers,
+        poolCount,
+        [],
+        ['byClub', 'byRegion']
+      );
 
       const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
         const poolId = crypto.randomUUID();
