@@ -89,7 +89,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 |---|---:|---:|
 | `src/shared/utils/` | 55 | 706 |
 | `src/shared/services/` | 8 | 92 |
-| Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
+| Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 9 | 149 |
+| `src/database/` | 10 | 152 |
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 90 | 451 |
+| `src/renderer/components/` | 90 | 452 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 370 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **366** | **2774** |
+| **Total** | **368** | **2787** |
 
-Unitaires : 356 fichiers, 2735 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 358 fichiers, 2748 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1561,6 +1561,27 @@ Unitaires : 356 fichiers, 2735 tests. E2E : 10 fichiers, 39 tests (comptage stat
 
 </details>
 
+<details>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 9 tests</summary>
+
+- **normalizeFinishedMatches**
+  - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
+- **fencerIndexRanking**
+  - classe par TD − TR moyen
+- **fencerMatchKpis**
+  - écarts moyens, victoires serrées/dominantes et séries
+  - aucun match → zéros
+- **classement**
+  - rang d’entrée parmi les présents, non classés en fin
+  - progression : delta positif = places gagnées
+- **organisationKpis**
+  - avancement, poules en retard, anneau, débit, attente, pistes actives
+  - tout terminé → pas d’estimation
+- **averageMatchSeconds**
+  - temps de combat si connu, sinon début → fin
+
+</details>
+
 ### Feature `bracket` (`src/features/bracket/`)
 
 <details>
@@ -2225,6 +2246,16 @@ Unitaires : 356 fichiers, 2735 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - n'agit pas sur une épreuve hors journée
   - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
   - délie les fiches quand on supprime arbitre, rattachement ou journée
+
+</details>
+
+<details>
+<summary><code>src/database/repos/organisationRepo.test.ts</code> — 3 tests</summary>
+
+- **OrganisationRepo (#1817)**
+  - journalise et relit les événements par compétition
+  - renvoie l’horodatage des matchs de la compétition
+  - stats arbitres : appels DT et repos moyen entre affectations
 
 </details>
 
@@ -4403,11 +4434,13 @@ Unitaires : 356 fichiers, 2735 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 3 tests</summary>
 
 - **AnalyticsCharts — zones données / reçues**
   - affiche les mannequins des touches données et reçues, filtrables par tireur
   - filtre par club
+- **AnalyticsCharts — armes olympiques (#1817)**
+  - Global en tête, indice moyen, KPI du tireur sélectionné à la place du classement
 
 </details>
 
