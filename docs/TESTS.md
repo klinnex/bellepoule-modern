@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 59 | 470 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 86 | 435 |
+| `src/renderer/components/` | 87 | 438 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 367 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **354** | **2721** |
+| **Total** | **355** | **2724** |
 
-Unitaires : 344 fichiers, 2682 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 345 fichiers, 2685 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4633,6 +4633,16 @@ Unitaires : 344 fichiers, 2682 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **GregAutoPublishToggle**
   - affiche OFF puis bascule en ON au clic
   - affiche ON quand actif
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/RemoteFoldAll.test.tsx</code> — 3 tests</summary>
+
+- **RemoteFoldAllButton**
+  - tout replier puis tout déplier
+  - un volet replié : propose Tout déplier
+  - ne touche pas aux volets non listés
 
 </details>
 
