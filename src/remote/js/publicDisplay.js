@@ -340,12 +340,10 @@ class PublicDisplay {
     }
 
     if (data.scoreA !== undefined) {
-      document.getElementById(this.aOnLeft() ? 'score-a' : 'score-b').textContent =
-        data.scoreA;
+      document.getElementById(this.aOnLeft() ? 'score-a' : 'score-b').textContent = data.scoreA;
     }
     if (data.scoreB !== undefined) {
-      document.getElementById(this.aOnLeft() ? 'score-b' : 'score-a').textContent =
-        data.scoreB;
+      document.getElementById(this.aOnLeft() ? 'score-b' : 'score-a').textContent = data.scoreB;
     }
 
     if (data.cardsA) {

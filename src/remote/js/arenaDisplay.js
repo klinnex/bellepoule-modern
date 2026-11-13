@@ -342,13 +342,7 @@ class ArenaDisplay {
   }
 
   updateCardsDisplay() {
-    BPArenaRender.updateCardsDisplay(
-      document,
-      escHtml,
-      this.cardsA,
-      this.cardsB,
-      this.aOnLeft()
-    );
+    BPArenaRender.updateCardsDisplay(document, escHtml, this.cardsA, this.cardsB, this.aOnLeft());
   }
 
   updateTimerDisplay(timerStatus) {
