@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 53 | 690 |
+| `src/shared/utils/` | 53 | 693 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **358** | **2737** |
+| **Total** | **358** | **2740** |
 
-Unitaires : 348 fichiers, 2698 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -916,7 +916,7 @@ Unitaires : 348 fichiers, 2698 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 44 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 47 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -972,6 +972,10 @@ Unitaires : 348 fichiers, 2698 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **distributeFencersGroupedByLevel (rapières, #1441)**
   - regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)
   - séparation club : clubs alternés à niveau égal
+- **distributeFencersToPoolsSerpentine — classement déplaçable**
+  - club avant classement : descente hors du chapeau pour éviter le conflit
+  - club après classement : pas de descente hors du chapeau
+  - club après classement : échange dans le chapeau si possible
 
 </details>
 
