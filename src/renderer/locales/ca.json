@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nació",
     "prep_sep_title_on": "Prioritat {{n}} — activa (clic: activar / desactivar, arrossegar: reordenar)",
     "prep_sep_title_off": "Prioritat {{n}} — desactivada (clic: activar / desactivar, arrossegar: reordenar)",
+    "prep_sep_ranking": "Rànquing",
+    "prep_sep_title_ranking": "Prioritat {{n}} — rànquing (sempre actiu). Criteris posteriors: intercanvi només dins el bombo. Arrossegar per reordenar",
     "prep_skip_pools": "Anar a la classificació inicial",
     "prep_launch": "Llançar les poules",
     "prep_strip_duplicate": "Pista assignada a diverses poules",

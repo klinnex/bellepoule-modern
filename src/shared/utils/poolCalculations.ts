@@ -537,10 +537,16 @@ export function distributeFencersGroupedByLevel(
   return pools;
 }
 
+/**
+ * @param separation critères prioritaires sur le classement : descente libre dans le classement
+ * @param belowRanking critères moins prioritaires que le classement : échange limité au chapeau
+ *   courant (tireurs restants de la rangée serpentine), l'équilibre du classement est préservé
+ */
 export function distributeFencersToPoolsSerpentine(
   fencers: Fencer[],
   poolCount: number,
-  separation: SeparationCriterionKey[]
+  separation: SeparationCriterionKey[],
+  belowRanking: SeparationCriterionKey[] = []
 ): Fencer[][] {
   if (!Array.isArray(fencers))
     throw new TypeError('distributeFencersToPoolsSerpentine: fencers doit être un tableau');
@@ -565,12 +571,31 @@ export function distributeFencersToPoolsSerpentine(
   // Si impossible (tous en conflit), prendre le suivant naturel (FIE : "rester dans la poule initiale").
   let direction = 1;
   let poolIndex = 0;
+  let placed = 0;
+
+  const firstFree = (limit: number, criteria: SeparationCriterionKey[]): number => {
+    for (let i = 0; i < limit; i++) {
+      if (!hasConflictWith(pending[i], indexes[poolIndex], criteria)) return i;
+    }
+    return -1;
+  };
 
   while (pending.length > 0) {
     const pool = pools[poolIndex];
 
     let chosen = 0;
-    if (separation.length > 0) {
+    // Critères sous le classement : recherche dans le chapeau courant seulement
+    let inPot = -1;
+    if (belowRanking.length > 0) {
+      const potSize = Math.min(pending.length, poolCount - (placed % poolCount));
+      for (let take = belowRanking.length; take >= 1 && inPot < 0; take--) {
+        inPot = firstFree(potSize, [...separation, ...belowRanking.slice(0, take)]);
+      }
+      if (inPot < 0 && separation.length > 0) inPot = firstFree(potSize, separation);
+    }
+    if (inPot >= 0) {
+      chosen = inPot;
+    } else if (separation.length > 0) {
       // Relâchement progressif : d'abord tous les critères, puis en retirant le moins
       // prioritaire (dernier) jusqu'à ne garder que le plus prioritaire (premier).
       // Garantit que le critère 1 n'est jamais sacrifié si une solution existe.
@@ -590,6 +615,7 @@ export function distributeFencersToPoolsSerpentine(
     const picked = pending.splice(chosen, 1)[0];
     pool.push(picked);
     indexAddFencer(indexes[poolIndex], picked);
+    placed++;
 
     poolIndex += direction;
     if (poolIndex >= poolCount) {
@@ -602,7 +628,7 @@ export function distributeFencersToPoolsSerpentine(
   }
 
   // Rééquilibrer les poules pour assurer un nombre égal (ou presque égal) de tireurs
-  rebalancePools(pools, separation, indexes);
+  rebalancePools(pools, [...separation, ...belowRanking], indexes);
 
   // Tirage au sort des positions dans la poule (FIE §3)
   for (const pool of pools) {

@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nación",
     "prep_sep_title_on": "Prioridad {{n}} — activa (clic: activar / desactivar, arrastrar: reordenar)",
     "prep_sep_title_off": "Prioridad {{n}} — desactivada (clic: activar / desactivar, arrastrar: reordenar)",
+    "prep_sep_ranking": "Clasificación",
+    "prep_sep_title_ranking": "Prioridad {{n}} — clasificación (siempre activa). Criterios posteriores: intercambio solo dentro del bombo. Arrastrar para reordenar",
     "prep_skip_pools": "Ir a la clasificación inicial",
     "prep_launch": "Lanzar las poules",
     "prep_strip_duplicate": "Pista asignada a varias poules",

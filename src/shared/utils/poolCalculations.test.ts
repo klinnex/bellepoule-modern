@@ -18,6 +18,7 @@ import {
   isDnsRanking,
   isMatchVoidedByForfeit,
   distributeFencersGroupedByLevel,
+  distributeFencersToPoolsSerpentine,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Gender } from '../types';
 
@@ -843,5 +844,34 @@ describe('distributeFencersGroupedByLevel (rapières, #1441)', () => {
     const pools = distributeFencersGroupedByLevel(teams, 3, levelOf, true);
     expect(pools[0].map(f => f.club)).toEqual(['A', 'B', 'A']);
     expect(pools.flat()).toHaveLength(9);
+  });
+});
+
+describe('distributeFencersToPoolsSerpentine — classement déplaçable', () => {
+  // 3 poules, rangée 2 (rangs 4-6) toute du club C, comme le rang 3
+  const clubs = ['A', 'B', 'C', 'C', 'C', 'C', 'X', 'Y', 'Z'];
+  const fencers = clubs.map((club, i) => ({
+    ...createMockFencer(`f${i + 1}`, i + 1, `N${i + 1}`),
+    ranking: i + 1,
+    club,
+  }));
+  const poolOf = (pools: Fencer[][], id: string) => pools.findIndex(p => p.some(f => f.id === id));
+
+  it('club avant classement : descente hors du chapeau pour éviter le conflit', () => {
+    const pools = distributeFencersToPoolsSerpentine(fencers, 3, ['byClub']);
+    expect(poolOf(pools, 'f4')).not.toBe(poolOf(pools, 'f3'));
+  });
+
+  it('club après classement : pas de descente hors du chapeau', () => {
+    const pools = distributeFencersToPoolsSerpentine(fencers, 3, [], ['byClub']);
+    expect(poolOf(pools, 'f4')).toBe(poolOf(pools, 'f3'));
+    expect(pools.map(p => p.length)).toEqual([3, 3, 3]);
+  });
+
+  it('club après classement : échange dans le chapeau si possible', () => {
+    const fs = fencers.map(f => (f.id === 'f5' ? { ...f, club: 'W' } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, [], ['byClub']);
+    expect(poolOf(pools, 'f5')).toBe(poolOf(pools, 'f3'));
+    expect(poolOf(pools, 'f7')).not.toBe(poolOf(pools, 'f3'));
   });
 });

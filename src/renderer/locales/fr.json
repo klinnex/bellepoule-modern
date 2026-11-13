@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nation",
     "prep_sep_title_on": "Priorité {{n}} — active (clic : activer / désactiver, glisser : réordonner)",
     "prep_sep_title_off": "Priorité {{n}} — désactivée (clic : activer / désactiver, glisser : réordonner)",
+    "prep_sep_ranking": "Classement",
+    "prep_sep_title_ranking": "Priorité {{n}} — classement (toujours actif). Critères placés après : échange dans le chapeau seulement. Glisser pour réordonner",
     "prep_skip_pools": "Passer au classement initial",
     "prep_launch": "Lancer les poules",
     "prep_strip_duplicate": "Piste attribuée à plusieurs poules",

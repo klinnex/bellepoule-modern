@@ -69,7 +69,7 @@ interface PoolPrepViewProps {
   /** Rang de niveau (0 = plus faible) : ajoute le critère « Niveau » qui regroupe les mêmes niveaux (#1441) */
   levelRankOf?: (fencer: Fencer) => number;
   /** Critères proposés (défaut : club, région, nation [+ niveau]) — rapières : club + niveau */
-  separationKeys?: Array<SeparationCriterionKey | 'byLevel'>;
+  separationKeys?: Array<SeparationCriterionKey | 'byLevel' | 'byRanking'>;
   /** Affichage d'une ligne (rapières : nom d'équipe + bulle niveau) */
   fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
@@ -83,7 +83,7 @@ interface PoolPrepViewProps {
 export interface PoolPrepDraft {
   pools: Pool[];
   poolCount: number;
-  criteria: Array<{ key: SeparationCriterionKey | 'byLevel'; enabled: boolean }>;
+  criteria: Array<{ key: SeparationCriterionKey | 'byLevel' | 'byRanking'; enabled: boolean }>;
 }
 
 export interface PoolPrepLaunchAction {
@@ -136,7 +136,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [dropTarget, setDropTarget] = useState<{ poolIndex: number; index: number } | null>(null);
 
   interface SeparationCriterion {
-    key: SeparationCriterionKey | 'byLevel';
+    key: SeparationCriterionKey | 'byLevel' | 'byRanking';
     label: string;
     enabled: boolean;
   }
@@ -145,22 +145,35 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       { key: 'byClub' as const, label: 'Club', enabled: !customDistribution },
       { key: 'byRegion' as const, label: 'Région', enabled: !customDistribution },
       { key: 'byNation' as const, label: 'Nation', enabled: false },
+      // Classement : toujours actif, déplaçable ; critères placés après = échange dans le chapeau
+      { key: 'byRanking' as const, label: 'Classement', enabled: true },
       ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
     ].filter(c => !separationKeys || separationKeys.includes(c.key));
     if (!initialDraft) return defaults;
     // Ordre et activation repris du brouillon (#1649)
     const restored = initialDraft.criteria.flatMap(d => {
       const c = defaults.find(x => x.key === d.key);
-      return c ? [{ ...c, enabled: d.enabled }] : [];
+      return c ? [{ ...c, enabled: c.key === 'byRanking' || d.enabled }] : [];
     });
     return [...restored, ...defaults.filter(c => !restored.some(r => r.key === c.key))];
   });
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
+  const isSeparationKey = (k: SeparationCriterion['key']): k is SeparationCriterionKey =>
+    k in CRITERION_NOUN;
+
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
-    criteria
-      .filter(c => c.enabled && c.key !== 'byLevel')
-      .map(c => c.key as SeparationCriterionKey);
+    criteria.filter(c => c.enabled).flatMap(c => (isSeparationKey(c.key) ? [c.key] : []));
+
+  /** Critères actifs avant / après la pastille Classement */
+  const splitByRanking = (criteria: SeparationCriterion[]) => {
+    const r = criteria.findIndex(c => c.key === 'byRanking');
+    if (r < 0) return { above: getActiveCriteria(criteria), below: [] };
+    return {
+      above: getActiveCriteria(criteria.slice(0, r)),
+      below: getActiveCriteria(criteria.slice(r + 1)),
+    };
+  };
 
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
   const hasInitialized = useRef(initialDraft !== null);
@@ -243,7 +256,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             levelRankOf,
             getActiveCriteria(criteria).includes('byClub')
           )
-        : distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
+        : (() => {
+            const { above, below } = splitByRanking(criteria);
+            return distributeFencersToPoolsSerpentine(fencers, count, above, below);
+          })();
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
       const matchOrder = customMatchOrder
@@ -683,6 +699,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     }}
                     onDragEnd={() => setDragCriterionIdx(null)}
                     onClick={() => {
+                      if (criterion.key === 'byRanking') return;
                       const next = separationCriteria.map((c, i) =>
                         i === idx ? { ...c, enabled: !c.enabled } : c
                       );
@@ -692,7 +709,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''} is-4b8e01`}
                     aria-pressed={criterion.enabled}
                     title={t(
-                      criterion.enabled ? 'pools.prep_sep_title_on' : 'pools.prep_sep_title_off',
+                      criterion.key === 'byRanking'
+                        ? 'pools.prep_sep_title_ranking'
+                        : criterion.enabled
+                          ? 'pools.prep_sep_title_on'
+                          : 'pools.prep_sep_title_off',
                       { n: String(idx + 1) }
                     )}
                   >
@@ -703,7 +724,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     {t(
                       criterion.key === 'byLevel'
                         ? 'rapieres.level'
-                        : CRITERION_LABEL[criterion.key]
+                        : criterion.key === 'byRanking'
+                          ? 'pools.prep_sep_ranking'
+                          : CRITERION_LABEL[criterion.key]
                     )}
                   </button>
                 ))}

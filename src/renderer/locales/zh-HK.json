@@ -202,6 +202,8 @@
     "prep_sep_nation": "國家",
     "prep_sep_title_on": "優先 {{n}} — 已啟用（點擊：啟用 / 停用，拖曳：重新排序）",
     "prep_sep_title_off": "優先 {{n}} — 已停用（點擊：啟用 / 停用，拖曳：重新排序）",
+    "prep_sep_ranking": "排名",
+    "prep_sep_title_ranking": "優先 {{n}} — 排名（永遠啟用）。其後的準則：只在同一種子組內交換。拖曳以重新排序",
     "prep_skip_pools": "前往初始排名",
     "prep_launch": "開始分組賽",
     "prep_strip_duplicate": "劍道已分配給多個分組",

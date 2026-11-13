@@ -345,6 +345,8 @@
     "prep_sep_nation": "Nation",
     "prep_sep_title_on": "Priorität {{n}} — aktiv (Klick: ein/aus, Ziehen: neu ordnen)",
     "prep_sep_title_off": "Priorität {{n}} — inaktiv (Klick: ein/aus, Ziehen: neu ordnen)",
+    "prep_sep_ranking": "Rangliste",
+    "prep_sep_title_ranking": "Priorität {{n}} — Rangliste (immer aktiv). Kriterien danach: Tausch nur im Topf. Ziehen zum Neuordnen",
     "prep_skip_pools": "Zur Ausgangsrangliste",
     "prep_launch": "Pools starten",
     "prep_strip_duplicate": "Bahn mehreren Pools zugewiesen",

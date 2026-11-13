@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nation",
     "prep_sep_title_on": "Priority {{n}} — on (click: toggle, drag: reorder)",
     "prep_sep_title_off": "Priority {{n}} — off (click: toggle, drag: reorder)",
+    "prep_sep_ranking": "Ranking",
+    "prep_sep_title_ranking": "Priority {{n}} — ranking (always on). Criteria after it: swap within the pot only. Drag to reorder",
     "prep_skip_pools": "Go to initial ranking",
     "prep_launch": "Launch pools",
     "prep_strip_duplicate": "Strip assigned to several pools",
