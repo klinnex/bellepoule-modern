@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "Embanner neuzioù",
+    "builtin": "Temoù rakdermenet",
+    "readonly_hint": "Tem rakdermenet : lenn hepken. Eilit anezhañ evit e gemmañ.",
+    "duplicate": "Eilañ",
+    "copy_of": "{{name}} (eilad)",
     "target": "Pal :",
     "import_title": "Enporzhiañ un neuz JSON",
     "import": "↑ Enporzhiañ",

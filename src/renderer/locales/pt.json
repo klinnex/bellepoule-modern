@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "Editor de temas",
+    "builtin": "Temas predefinidos",
+    "readonly_hint": "Tema predefinido: só leitura. Duplique-o para o modificar.",
+    "duplicate": "Duplicar",
+    "copy_of": "{{name}} (cópia)",
     "target": "Destino:",
     "import_title": "Importar um tema JSON",
     "import": "↑ Importar",

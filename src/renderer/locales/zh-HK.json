@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "主題編輯器",
+    "builtin": "預設主題",
+    "readonly_hint": "預設主題：唯讀。請複製後再修改。",
+    "duplicate": "複製",
+    "copy_of": "{{name}}（副本）",
     "target": "目標：",
     "import_title": "匯入 JSON 主題",
     "import": "↑ 匯入",

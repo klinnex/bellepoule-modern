@@ -1707,6 +1707,10 @@
   },
   "themeEditor": {
     "title": "Editor de temes",
+    "builtin": "Temes predefinits",
+    "readonly_hint": "Tema predefinit: només lectura. Duplica'l per modificar-lo.",
+    "duplicate": "Duplicar",
+    "copy_of": "{{name}} (còpia)",
     "target": "Destinació:",
     "import_title": "Importa un tema JSON",
     "import": "↑ Importa",
