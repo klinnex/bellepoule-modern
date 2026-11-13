@@ -81,8 +81,12 @@ prochain match, sa piste et ses résultats.
    **MDP commun** peut s'appliquer à toutes les pistes.
 
 > HTTPS : à la première connexion, chaque appareil affiche un avertissement de
-> certificat. Accepter (comparer l'empreinte si besoin). Changer HTTPS impose un
-> redémarrage du serveur.
+> certificat. Accepter (comparer l'empreinte si besoin).
+
+5. **Recharger** (serveur actif, mode expert, en-tête) : applique interface, port,
+   HTTPS et pistes en attente **sans arrêter la session** (pistes, matchs, scores,
+   jetons arbitres conservés). Les appareils se reconnectent seuls si l'URL ne change
+   pas ; sinon rescanner les QR codes. Port occupé → ancienne écoute rétablie.
 
 ## 3. Pages disponibles
 

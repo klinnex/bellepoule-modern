@@ -1025,7 +1025,8 @@
     "hint_network": "Netzwerk nicht verfügbar: Prüfen Sie die WLAN-/Internetverbindung und versuchen Sie es erneut.",
     "hint_invalid_format": "Datei unlesbar oder falsches Format: Prüfen Sie den Dateityp oder exportieren Sie sie erneut aus der Quelle.",
     "hint_db_locked": "Datenbank ausgelastet: Warten Sie einige Sekunden und versuchen Sie es erneut.",
-    "hint_unknown": "Ursache unbekannt: Versuchen Sie es erneut; bleibt der Fehler bestehen, starten Sie die Anwendung neu und prüfen Sie die Protokolle."
+    "hint_unknown": "Ursache unbekannt: Versuchen Sie es erneut; bleibt der Fehler bestehen, starten Sie die Anwendung neu und prüfen Sie die Protokolle.",
+    "port_invalid": "Ungültiger Port (1–65535)"
   },
   "properties": {
     "one_round": "1 Runde",
@@ -1284,6 +1285,7 @@
     "section_network": "Netzwerk",
     "port_invalid": "Ungültiger Port (1–65535)",
     "enable_https": "HTTPS aktivieren (verschlüsselte Verbindung)",
+    "https_short": "HTTPS",
     "https_hint": "Selbstsigniertes Zertifikat — die Tablets müssen die Sicherheitswarnung des Browsers einmalig akzeptieren.",
     "http_warning": "Unverschlüsseltes Netzwerk: Passwörter und Sitzungen für jedes Gerät im WLAN lesbar.",
     "start": "Fernerfassung starten",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Zert.-Fingerabdruck SHA-256:",
     "http_warning_active": "Unverschlüsseltes Netzwerk (HTTP): Passwörter und Sitzungen im WLAN lesbar. Aktivieren Sie HTTPS durch einen Neustart des Servers.",
     "port": "Port:",
-    "restart_port_title": "Server auf diesem Port neu starten",
+    "reload_title": "Server neu laden: Schnittstelle, Port, HTTPS und Bahnen übernehmen, ohne die Sitzung zu verlieren",
     "reload": "Neu laden",
+    "reload_done": "Server neu geladen: {{url}}",
+    "reload_failed": "Neuladen des Servers fehlgeschlagen",
     "show_photos_long": "Fechterfotos vor dem Gefecht anzeigen",
     "card_announce_long": "Erweiterte Karte (Banner + Grund auf den Bildschirmen anzeigen)",
     "display_theme": "Anzeigethema:",

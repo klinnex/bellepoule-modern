@@ -422,6 +422,7 @@ export function useRemoteServerState(ctx: Ctx) {
     useHttps,
     setUseHttps,
     certFingerprint,
+    setCertFingerprint,
     remotePort,
     setRemotePort,
     networkInterfaces,

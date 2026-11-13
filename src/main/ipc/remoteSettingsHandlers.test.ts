@@ -21,7 +21,6 @@ describe('registerRemoteSettingsHandlers (#1341)', () => {
     for (const ch of [
       'remote:updateLogo',
       'remote:setWallpaper',
-      'remote:changePort',
       'remote:setRegistrationEnabled',
       'remote:setCheckinEnabled',
       'remote:setCheckinPassword',

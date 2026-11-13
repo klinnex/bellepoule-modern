@@ -1025,7 +1025,8 @@
     "hint_network": "red no disponible: compruebe la conexión Wi-Fi/Internet e inténtelo de nuevo.",
     "hint_invalid_format": "archivo ilegible o con formato incorrecto: compruebe el tipo de archivo o expórtelo de nuevo desde su origen.",
     "hint_db_locked": "base de datos ocupada: espere unos segundos e inténtelo de nuevo.",
-    "hint_unknown": "causa desconocida: inténtelo de nuevo; si el error persiste, reinicie la aplicación y consulte los registros."
+    "hint_unknown": "causa desconocida: inténtelo de nuevo; si el error persiste, reinicie la aplicación y consulte los registros.",
+    "port_invalid": "Puerto no válido (1–65535)"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -1284,6 +1285,7 @@
     "section_network": "Red",
     "port_invalid": "Puerto no válido (1–65535)",
     "enable_https": "Activar HTTPS (conexión cifrada)",
+    "https_short": "HTTPS",
     "https_hint": "Certificado autofirmado: las tabletas deberán aceptar una sola vez la advertencia de seguridad del navegador.",
     "http_warning": "Red sin cifrar: contraseñas y sesiones legibles por cualquier dispositivo de la Wi-Fi.",
     "start": "Iniciar la entrada remota",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Huella del cert. SHA-256:",
     "http_warning_active": "Red sin cifrar (HTTP): contraseñas y sesiones legibles en la Wi-Fi. Active HTTPS reiniciando el servidor.",
     "port": "Puerto:",
-    "restart_port_title": "Reiniciar el servidor en este puerto",
+    "reload_title": "Recargar el servidor: aplica interfaz, puerto, HTTPS y pistas sin perder la sesión",
     "reload": "Recargar",
+    "reload_done": "Servidor recargado: {{url}}",
+    "reload_failed": "Error al recargar el servidor",
     "show_photos_long": "Mostrar las fotos de los tiradores antes del combate",
     "card_announce_long": "Tarjeta avanzada (mostrar banda + motivo en las pantallas)",
     "display_theme": "Tema de visualización:",

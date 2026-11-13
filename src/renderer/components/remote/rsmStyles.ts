@@ -43,6 +43,7 @@ export const RSM_STYLES = {
   portHint: { fontSize: '0.8rem', opacity: 0.6 } satisfies React.CSSProperties,
   portActiveRow: {
     display: 'flex',
+    flexWrap: 'wrap' as const,
     alignItems: 'center',
     gap: '0.5rem',
     marginTop: '0.25rem',
@@ -52,6 +53,7 @@ export const RSM_STYLES = {
     fontSize: '0.875rem',
   } satisfies React.CSSProperties,
   portActiveInput: { width: '75px' } satisfies React.CSSProperties,
+  interfaceActiveSelect: { maxWidth: '220px', fontSize: '0.8rem' } satisfies React.CSSProperties,
   portActiveBtn: { fontSize: '0.8rem', padding: '0.2rem 0.5rem' } satisfies React.CSSProperties,
   pisteresumeSummary: {
     marginTop: '1rem',

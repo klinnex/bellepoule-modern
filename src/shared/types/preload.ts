@@ -473,6 +473,10 @@ export interface RemoteServerAPI {
   getServerInfo: (
     competitionId: string
   ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
+  reloadServer: (
+    competitionId: string,
+    options?: { port?: number; host?: string; useHttps?: boolean }
+  ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string; port?: number }>;
   getCertFingerprint: () => Promise<{ success: boolean; fingerprint?: string; error?: string }>;
   startSession: (
     competitionId: string,
@@ -592,10 +596,6 @@ export interface RemoteServerAPI {
     competitionId: string,
     wallpaper: string | null
   ) => Promise<{ success: boolean; error?: string }>;
-  changePort: (
-    competitionId: string,
-    newPort: number
-  ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
   acknowledgeDTCall: (
     competitionId: string,
     arenaId: string

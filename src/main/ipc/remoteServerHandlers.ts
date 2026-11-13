@@ -15,6 +15,13 @@ import { applyActiveWave } from '../remote/activeWave';
 import { setSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
+/** Paramètres réseau modifiables au rechargement (absents = valeur courante). */
+export interface RemoteReloadOptions {
+  port?: number;
+  host?: string;
+  useHttps?: boolean;
+}
+
 export interface RemoteServerHandlersContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
@@ -134,6 +141,81 @@ export function registerRemoteServerHandlers({
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
+
+  // Rechargement à chaud : port / interface / HTTPS changés sans perdre la session ni les pistes
+  const reloadServer = async (competitionId: string, options: RemoteReloadOptions = {}) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'remote_not_started' };
+
+      const host = options.host ?? entry.host;
+      const useHttps = options.useHttps ?? entry.useHttps;
+      const requested = options.port ?? entry.port;
+      if (!Number.isInteger(requested) || requested < 1 || requested > 65535) {
+        return { success: false, error: 'port_invalid' };
+      }
+      // Le port courant reste libre pour ce serveur ; un port d'un autre serveur est refusé
+      if (requested !== entry.port && usedPorts.has(requested)) {
+        return { success: false, error: 'port_in_use', port: requested };
+      }
+
+      let tlsOptions: { cert: string; key: string } | undefined;
+      let certFingerprint: string | undefined;
+      if (useHttps) {
+        try {
+          const bundle = await ensureCert(app.getPath('userData'));
+          tlsOptions = { cert: bundle.cert, key: bundle.key };
+          certFingerprint = bundle.fingerprint;
+        } catch (certError) {
+          logger.error(
+            LogCategory.NETWORK,
+            'Erreur génération certificat TLS:',
+            toError(certError)
+          );
+          return { success: false, error: 'tls_cert_failed' };
+        }
+      }
+
+      try {
+        await entry.server.restart(requested, host, tlsOptions);
+      } catch (restartError) {
+        logger.error(LogCategory.NETWORK, 'Error reloading remote server:', toError(restartError));
+        // Ancienne écoute rétablie par restart()
+        return {
+          success: false,
+          error:
+            (restartError as NodeJS.ErrnoException)?.code === 'EADDRINUSE'
+              ? 'port_in_use'
+              : toError(restartError).message,
+          port: requested,
+        };
+      }
+
+      usedPorts.delete(entry.port);
+      usedPorts.add(requested);
+      Object.assign(entry, { port: requested, host, useHttps, certFingerprint });
+
+      return {
+        success: true,
+        serverInfo: {
+          url: entry.server.getServerUrl(),
+          ip: entry.server.getLocalIPAddress(),
+          port: requested,
+          useHttps,
+          certFingerprint,
+        },
+      };
+    } catch (error) {
+      logger.error(LogCategory.NETWORK, 'Error reloading remote server:', toError(error));
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  };
+
+  ipcMain.handle(
+    'remote:reloadServer',
+    (_event, competitionId: string, options?: RemoteReloadOptions) =>
+      reloadServer(competitionId, options)
+  );
 
   ipcMain.handle('remote:getServerInfo', async (_event, competitionId: string) => {
     const entry = remoteServers.get(competitionId);

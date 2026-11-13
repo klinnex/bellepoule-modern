@@ -1025,7 +1025,8 @@
     "hint_network": "xarxa no disponible: comproveu la connexió Wi-Fi/Internet i torneu-ho a provar.",
     "hint_invalid_format": "fitxer il·legible o amb format incorrecte: comproveu el tipus de fitxer o exporteu-lo de nou des de l'origen.",
     "hint_db_locked": "base de dades ocupada: espereu uns segons i torneu-ho a provar.",
-    "hint_unknown": "causa desconeguda: torneu-ho a provar; si l'error persisteix, reinicieu l'aplicació i consulteu els registres."
+    "hint_unknown": "causa desconeguda: torneu-ho a provar; si l'error persisteix, reinicieu l'aplicació i consulteu els registres.",
+    "port_invalid": "Port no vàlid (1–65535)"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -1284,6 +1285,7 @@
     "section_network": "Xarxa",
     "port_invalid": "Port no vàlid (1–65535)",
     "enable_https": "Activa HTTPS (connexió xifrada)",
+    "https_short": "HTTPS",
     "https_hint": "Certificat autosignat: les tauletes hauran d'acceptar una sola vegada l'avís de seguretat del navegador.",
     "http_warning": "Xarxa sense xifrar: contrasenyes i sessions llegibles per qualsevol dispositiu de la wifi.",
     "start": "Inicia l'entrada remota",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Empremta del cert. SHA-256:",
     "http_warning_active": "Xarxa sense xifrar (HTTP): contrasenyes i sessions llegibles a la wifi. Activeu HTTPS reiniciant el servidor.",
     "port": "Port:",
-    "restart_port_title": "Reinicia el servidor en aquest port",
+    "reload_title": "Recarrega el servidor: aplica interfície, port, HTTPS i pistes sense perdre la sessió",
     "reload": "Recarrega",
+    "reload_done": "Servidor recarregat: {{url}}",
+    "reload_failed": "Error en recarregar el servidor",
     "show_photos_long": "Mostra les fotos dels tiradors abans del combat",
     "card_announce_long": "Targeta avançada (mostra bàner + motiu a les pantalles)",
     "display_theme": "Tema de visualització:",

@@ -1025,7 +1025,8 @@
     "hint_network": "rede indisponível: verifique a ligação Wi-Fi/Internet e tente novamente.",
     "hint_invalid_format": "ficheiro ilegível ou com formato incorreto: verifique o tipo de ficheiro ou exporte-o novamente a partir da origem.",
     "hint_db_locked": "base de dados ocupada: aguarde alguns segundos e tente novamente.",
-    "hint_unknown": "causa desconhecida: tente novamente; se o erro persistir, reinicie a aplicação e consulte os registos."
+    "hint_unknown": "causa desconhecida: tente novamente; se o erro persistir, reinicie a aplicação e consulte os registos.",
+    "port_invalid": "Porta inválida (1–65535)"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -1284,6 +1285,7 @@
     "section_network": "Rede",
     "port_invalid": "Porta inválida (1–65535)",
     "enable_https": "Ativar HTTPS (ligação cifrada)",
+    "https_short": "HTTPS",
     "https_hint": "Certificado autoassinado — os tablets terão de aceitar uma vez o aviso de segurança do navegador.",
     "http_warning": "Rede não cifrada: palavras-passe e sessões legíveis por qualquer dispositivo na rede Wi-Fi.",
     "start": "Iniciar a pontuação remota",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "Impressão digital SHA-256 do cert.:",
     "http_warning_active": "Rede não cifrada (HTTP): palavras-passe e sessões legíveis na rede Wi-Fi. Ative o HTTPS reiniciando o servidor.",
     "port": "Porta:",
-    "restart_port_title": "Reiniciar o servidor nesta porta",
+    "reload_title": "Recarregar o servidor: aplica interface, porta, HTTPS e pistas sem perder a sessão",
     "reload": "Recarregar",
+    "reload_done": "Servidor recarregado: {{url}}",
+    "reload_failed": "Falha ao recarregar o servidor",
     "show_photos_long": "Mostrar as fotos dos esgrimistas antes do combate",
     "card_announce_long": "Cartão avançado (mostrar faixa + motivo nos ecrãs)",
     "display_theme": "Tema de visualização:",

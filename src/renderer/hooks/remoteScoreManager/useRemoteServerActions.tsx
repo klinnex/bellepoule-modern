@@ -42,6 +42,10 @@ export function useRemoteServerActions(ctx: Ctx) {
     setIsLoading,
     remotePort,
     setServerUrl,
+    setCertFingerprint,
+    selectedInterface,
+    useHttps,
+    onServerStarted,
     onStopRemote,
     isRemoteActive,
     onStartRemote,
@@ -112,18 +116,31 @@ export function useRemoteServerActions(ctx: Ctx) {
     localStorage.setItem(`bellepoule-remote-port-${competition.id}`, String(port));
   };
 
-  const handleChangePort = async () => {
+  // Rechargement à chaud : interface / port / HTTPS (+ pistes en attente), session conservée
+  const handleReloadServer = async () => {
+    if (!Number.isInteger(remotePort) || remotePort < 1 || remotePort > 65535) {
+      showToast(t('rsm.port_invalid'), 'error');
+      return;
+    }
     setIsLoading(true);
     try {
-      const result = await window.electronAPI.remote.changePort(competition.id, remotePort);
+      if (hasPendingChanges) await handleSaveStripCount();
+      const result = await window.electronAPI.remote.reloadServer(competition.id, {
+        port: remotePort,
+        host: selectedInterface,
+        useHttps,
+      });
       if (result.success && result.serverInfo) {
         setServerUrl(result.serverInfo.url);
-        showToast(`Port changé : ${result.serverInfo.port}`, 'success');
+        setCertFingerprint(result.serverInfo.certFingerprint ?? null);
+        onServerStarted?.(result.serverInfo.url);
+        showToast(t('rsm.reload_done', { url: result.serverInfo.url }), 'success');
       } else {
-        showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
+        showToast(`${t('rsm.error')}: ${ipcErrorText(t, result)}`, 'error');
       }
     } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to change port', error as Error);
+      logger.error(LogCategory.UI, 'Failed to reload remote server', error as Error);
+      showToast(t('rsm.reload_failed'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -466,7 +483,7 @@ export function useRemoteServerActions(ctx: Ctx) {
 
   return {
     handlePortChange,
-    handleChangePort,
+    handleReloadServer,
     handleStopRemote,
     commonArenaPassword,
     setCommonArenaPassword,

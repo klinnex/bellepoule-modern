@@ -61,7 +61,7 @@ import {
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
-import { createHttpStack, startCleanupTimer, isAllowedOrigin } from './remote/serverSetup';
+import { createHttpListener, createHttpStack, startCleanupTimer, isAllowedOrigin } from './remote/serverSetup';
 import {
   buildPage,
   sendStored,
@@ -129,6 +129,7 @@ import {
 import {
   startServer,
   stopServer,
+  restartServer,
   notifyKioskData,
   launchCompetition,
   stopSession,
@@ -188,6 +189,7 @@ export class RemoteScoreServer {
   private port: number;
   private host: string;
   private useHttps: boolean = false;
+  private tlsOptions?: { cert: string; key: string };
   private db: DatabaseManager;
   private session: RemoteSession | null = null;
   private arenas: Map<string, Arena> = new Map();
@@ -649,6 +651,7 @@ export class RemoteScoreServer {
         'sessionMatchScores',
         'sessionMatches',
         'sessionPoolArenas',
+        'tlsOptions',
         'trainingCustomRules',
         'unsubscribeDb',
         'useHttps',
@@ -842,6 +845,7 @@ export class RemoteScoreServer {
     this.port = port;
     this.host = host;
     this.useHttps = !!tlsOptions;
+    this.tlsOptions = tlsOptions;
     const stack = createHttpStack(tlsOptions, () => this.sessionShowPhotos);
     this.app = stack.app;
     this.server = stack.server;
@@ -1595,17 +1599,6 @@ export class RemoteScoreServer {
     return resolveDeMatchReferee(this.refereeResolverCtx, m);
   }
 
-  private isDeMatchBlocked(matchId: string): boolean {
-    const sm = this.sessionMatches.find(m => m.id === matchId);
-    if (!sm?.round) return false;
-    return this.sessionMatches.some(m => {
-      if (m.poolId || m.round === undefined || m.round <= sm.round) return false;
-      const scoreUpdate = this.sessionMatchScores.get(m.id);
-      const effectiveStatus = scoreUpdate?.status ?? m.status;
-      return effectiveStatus !== MatchStatus.FINISHED && effectiveStatus !== 'finished';
-    });
-  }
-
   private peekNextMatch(arenaId: string): ArenaMatch | null {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
@@ -1758,6 +1751,11 @@ export class RemoteScoreServer {
 
   public start(): Promise<void> {
     return startServer(this.lifecycleCtx);
+  }
+
+  /** Rechargement à chaud (port / interface / HTTPS), session conservée (lifecycle.ts) */
+  public restart(port: number, host: string, tlsOptions?: { cert: string; key: string }) {
+    return restartServer(this.lifecycleCtx, { port, host, tlsOptions }, tls => createHttpListener(this.app, tls));
   }
 
   /** Signale aux kiosques que les données ont changé (regroupé sur 300 ms) */

@@ -1025,7 +1025,8 @@
     "hint_network": "網絡無法使用：請檢查 Wi-Fi／互聯網連線，然後重試。",
     "hint_invalid_format": "檔案無法讀取或格式錯誤：請檢查檔案類型，或從來源重新匯出。",
     "hint_db_locked": "資料庫忙碌中：請稍候數秒，然後重試。",
-    "hint_unknown": "原因不明：請重試；如問題持續，請重新啟動應用程式並查看記錄。"
+    "hint_unknown": "原因不明：請重試；如問題持續，請重新啟動應用程式並查看記錄。",
+    "port_invalid": "連接埠無效（1–65535）"
   },
   "properties": {
     "one_round": "1 輪",
@@ -1284,6 +1285,7 @@
     "section_network": "網絡",
     "port_invalid": "連接埠無效（1–65535）",
     "enable_https": "啟用 HTTPS（加密連線）",
+    "https_short": "HTTPS",
     "https_hint": "自簽憑證 — 平板電腦只需接受一次瀏覽器的安全警告。",
     "http_warning": "未加密網絡：Wi-Fi 上任何裝置都能讀取密碼及工作階段。",
     "start": "開始遙距計分",
@@ -1292,8 +1294,10 @@
     "cert_fingerprint": "憑證 SHA-256 指紋：",
     "http_warning_active": "未加密網絡（HTTP）：Wi-Fi 上可讀取密碼及工作階段。請重新啟動伺服器以啟用 HTTPS。",
     "port": "連接埠：",
-    "restart_port_title": "在此連接埠重新啟動伺服器",
+    "reload_title": "重新載入伺服器：套用介面、連接埠、HTTPS 及劍道，不會中斷場次",
     "reload": "重新載入",
+    "reload_done": "伺服器已重新載入：{{url}}",
+    "reload_failed": "重新載入伺服器失敗",
     "show_photos_long": "比賽前顯示劍手相片",
     "card_announce_long": "進階出牌（於螢幕顯示橫幅及原因）",
     "display_theme": "顯示主題：",
