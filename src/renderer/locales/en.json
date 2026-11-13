@@ -1351,6 +1351,7 @@
     "error": "Error",
     "set_pwd": "Set password",
     "global_theme": "Global theme",
+    "gt_all": "All sources",
     "gt_arena": "Strip display",
     "gt_kiosk": "Kiosk",
     "gt_public": "Public",

@@ -1351,6 +1351,7 @@
     "error": "Erreur",
     "set_pwd": "Définir le mot de passe",
     "global_theme": "Thème global",
+    "gt_all": "Toutes sources",
     "gt_arena": "Affichage piste",
     "gt_kiosk": "Kiosque",
     "gt_public": "Public",
