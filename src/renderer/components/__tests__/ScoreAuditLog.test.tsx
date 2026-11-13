@@ -42,6 +42,7 @@ describe('ScoreAuditLog — colonne Arbitre (#1031)', () => {
             entry('e2', 'm2'),
             entry('e3', 'c1-t3', { poolNumber: null, tableauRound: 2, tableauPosition: 0 }),
             entry('e4', 'm4'),
+            entry('e5', 'm2', { changedBy: 'device' }),
           ]),
       },
       onScoreIpConflict: () => () => {},
@@ -63,6 +64,8 @@ describe('ScoreAuditLog — colonne Arbitre (#1031)', () => {
     expect(screen.getByText('Petit / Leroy')).toBeInTheDocument();
     // Auteur technique « ui » jamais affiché comme arbitre
     expect(screen.queryByText('ui')).not.toBeInTheDocument();
+    // Saisie de l'appareil de piste (Cyrano, #1720) : libellé dédié, même si un arbitre est assigné
+    expect(screen.getByText('Appareil de piste')).toBeInTheDocument();
   });
 });
 

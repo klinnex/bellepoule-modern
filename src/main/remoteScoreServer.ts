@@ -1260,7 +1260,7 @@ export class RemoteScoreServer {
     this.arenaPhotoSentForMatch.clear();
   }
 
-  private handleArenaControl(...args: Tail<Parameters<typeof handleArenaControl>>): void {
+  public handleArenaControl(...args: Tail<Parameters<typeof handleArenaControl>>): void {
     return handleArenaControl(this.arenaControlCtx, ...args);
   }
 

@@ -107,7 +107,9 @@ export function updateArenaScore(
   ctx: ArenaOpsContext,
   arenaId: string,
   scoreA: number,
-  scoreB: number
+  scoreB: number,
+  /** Auteur dans le journal des scores : `device` pour l'appareil de piste (#1720) */
+  changedBy: 'referee' | 'device' = 'referee'
 ): void {
   const arena = ctx.arenas.get(arenaId);
   if (!arena || !arena.currentMatch) return;
@@ -139,7 +141,7 @@ export function updateArenaScore(
         previousScoreB: { value: previousScoreB },
         newScoreA: { value: scoreA },
         newScoreB: { value: scoreB },
-        changedBy: 'referee',
+        changedBy,
         reason: 'remote_entry',
       });
     }

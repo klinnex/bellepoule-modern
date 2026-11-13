@@ -4,7 +4,16 @@
  * Licensed under GPL-3.0
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Plus, Trash2, RefreshCw, Wifi, WifiOff, AlertCircle, Circle } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  AlertCircle,
+  AlertTriangle,
+  Circle,
+} from 'lucide-react';
 import { Icon } from '../common/Icon';
 import { Button } from '../common/Button';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -309,6 +318,14 @@ export const CyranoPanel: React.FC = () => {
                         <span className="cyrano-muted cyrano-small">
                           {st.detectedProtocol ?? ''}
                         </span>
+                        {st.alert?.kind === 'bad_match' && (
+                          <span
+                            className="cyrano-alert"
+                            title={t('rsm.cyrano_bad_match_hint', { device: st.alert.device })}
+                          >
+                            <Icon icon={AlertTriangle} /> {t('rsm.cyrano_bad_match')}
+                          </span>
+                        )}
                       </span>
                     ) : (
                       <span className="cyrano-dim cyrano-small">—</span>

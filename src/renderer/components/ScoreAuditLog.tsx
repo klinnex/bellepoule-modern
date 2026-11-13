@@ -56,12 +56,17 @@ function matchLabel(e: ScoreAuditEntry): string {
 
 type RefereeLookup = (e: ScoreAuditEntry) => string;
 
-/** Arbitre de l'entrée, sinon arbitre(s) assigné(s) au match, sinon auteur */
-function buildRefereeLookup(competitionId: string, options?: MatchAuditOption[]): RefereeLookup {
+/** Appareil de piste (Cyrano), sinon arbitre de l'entrée, sinon arbitre(s) du match, sinon auteur */
+function buildRefereeLookup(
+  competitionId: string,
+  options?: MatchAuditOption[],
+  deviceLabel = 'device'
+): RefereeLookup {
   const byId = new Map<string, string[]>();
   for (const o of options ?? []) if (o.referees.length) byId.set(o.id, o.referees);
   const prefix = `${competitionId}-`;
   return e => {
+    if (e.changedBy === 'device') return deviceLabel;
     if (e.refereeName) return e.refereeName;
     const assigned =
       byId.get(e.matchId) ??
@@ -107,8 +112,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   const [filterReferee, setFilterReferee] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('time');
   const refereeOf = useMemo(
-    () => buildRefereeLookup(competitionId, matchOptions),
-    [competitionId, matchOptions]
+    () => buildRefereeLookup(competitionId, matchOptions, t('scoreAudit.author_device')),
+    [competitionId, matchOptions, t]
   );
 
   const load = useCallback(async () => {

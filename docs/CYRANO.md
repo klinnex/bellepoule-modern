@@ -1,8 +1,9 @@
 # Appareils de piste — protocole Cyrano (EFP1 / EFP1.1)
 
-> État : **socle livré** (#1720, étape 1). Le codec, le serveur UDP, la supervision et le
-> simulateur existent ; le raccordement aux arènes (`/arene{N}`), la télécommande
-> (NEXT / PREV / END → ACK / NAK) et l'interface de configuration arrivent dans les étapes suivantes.
+> État (#1720) : codec, serveur UDP, supervision, simulateur, panneau de configuration et
+> raccordement aux arènes en **mode appareil maître** (score, cartons, chrono, NEXT,
+> END → ACK / NAK). Restent : PREV, modes « afficheur » et « manuel » par piste, bandeau
+> appareil dans la vue arbitre, cartons P, équipes.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -30,7 +31,30 @@ EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono 
 | `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
 | `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
 | `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**. |
+| `deviceState.ts` | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
+| `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
 | `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
+
+### 2 bis. Raccordement aux arènes — mode appareil maître
+
+Les entrées de l'appareil passent par le chemin de la tablette (`arena_control`, pseudo-socket
+`cyrano:<piste>`, sans anti-rebond) ; les mises à jour qui en résultent portent `source: 'device'`
+et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono).
+
+| Événement | Effet |
+|---|---|
+| `INFO` en `F` / `H` / `P` | match démarré sur l'arène ; score et cartons (jaune, rouges) appliqués s'ils changent ; chrono diffusé (`F` en marche, `H` / `P` arrêté) |
+| `INFO` en `W` sans le match de l'arène | `DISP` du match courant (appareil redémarré ou reconnecté) |
+| `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match |
+| `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
+| `NEXT` | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux) |
+| Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
+| Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
+
+Le `DISP` porte la phase, la poule (numéro de la poule) ou le tableau (`A16`, `A8`…) et le numéro
+du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage seul (noms et score),
+INFO ignorés, END → `NAK`, NEXT sans effet. Journal des scores : auteur `device` pour les saisies
+et fins de match venues de l'appareil (libellé « Appareil de piste »).
 
 ### Supervision
 
@@ -61,12 +85,34 @@ Le port UDP 50100 doit être ouvert **en entrée** sur le poste BellePoule :
 npm run cyrano:sim -- --server 127.0.0.1 --server-port 50100 --port 50101 --piste 1 --protocol EFP1.1
 ```
 
-Le simulateur répond aux HELLO par un INFO complet, installe les DISP en état W, passe en W à
-la réception d'un ACK. Commandes clavier : `next`, `prev`, `begin`, `go`, `halt`, `end`,
+Le simulateur répond aux HELLO par un INFO complet, installe les DISP en état W (match en
+cours : un DISP des mêmes tireurs corrige les scores), passe en W à la réception d'un ACK. Commandes clavier : `next`, `prev`, `begin`, `go`, `halt`, `end`,
 `r+` / `l+` / `r-` / `l-` (touches), `yr` / `yl` (jaune), `rr` / `rl` (rouge),
 `pr` / `pl` / `pn` (priorité), `ar` / `al` (abandon), `swap` (inversion), `reset`, `show`, `quit`.
 
 Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur (`--port`).
+
+### Télécommande web (plusieurs pistes)
+
+```bash
+npm run cyrano:remote          # 3 pistes par défaut, page http://127.0.0.1:5099
+npm run cyrano:remote -- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102 --server-port 50100
+```
+
+Une carte par piste : état de l'appareil, chrono, tireurs gauche (rouge) / droite (vert), boutons
+BEGIN, GO, HALT, END, NEXT, PREV, SWAP, RESET, touches ±1, cartons jaune / rouge, priorité,
+abandon, et journal des trames (HELLO masqués). Mêmes appareils simulés que la console
+(`scripts/lib/cyranoDevice.js`). Ne pas lancer en même temps un simulateur console sur les mêmes ports.
+
+Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc
+une adresse de bouclage par simulateur (`--bind`). Sous Linux, toute la plage `127.0.0.0/8`
+répond sans configuration ; sous macOS : `sudo ifconfig lo0 alias 127.0.0.2`.
+
+```bash
+npm run cyrano:sim -- --piste 1 --bind 127.0.0.1 --port 50101
+npm run cyrano:sim -- --piste 2 --bind 127.0.0.2 --port 50102
+npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
+```
 
 ## 4. Décisions (#1720)
 

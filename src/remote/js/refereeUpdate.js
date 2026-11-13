@@ -75,6 +75,28 @@
     return { action: 'none' };
   }
 
+  /**
+   * Mode appareil maître (Cyrano, #1720) : état à recopier depuis une mise à jour venue
+   * de l'appareil, pour le match ouvert sur la tablette ; null sinon.
+   * @returns {null | {inProgress: boolean, scoreA?: number, scoreB?: number,
+   *   cardsA?: string[], cardsB?: string[], time?: number}}
+   */
+  function planDeviceMirror(s, data) {
+    if (!data || data.source !== 'device') return null;
+    if (!data.match || !s.currentMatchId || data.match.id !== s.currentMatchId) return null;
+    const out = { inProgress: data.status === 'in_progress' };
+    if (data.scoreA !== undefined && data.scoreB !== undefined) {
+      out.scoreA = scoreValue(data.scoreA);
+      out.scoreB = scoreValue(data.scoreB);
+    }
+    if (Array.isArray(data.cardsA) && Array.isArray(data.cardsB)) {
+      out.cardsA = data.cardsA.slice();
+      out.cardsB = data.cardsB.slice();
+    }
+    if (typeof data.time === 'number' && data.time >= 0) out.time = data.time;
+    return out;
+  }
+
   /** Remplace le match de même id (tel quel) ou l'ajoute (mute la liste) */
   function replaceOrPush(matches, match) {
     const idx = matches.findIndex(m => m.id === match.id);
@@ -103,6 +125,7 @@
     leftHandedSwap,
     shouldReloadForRules,
     planStatusTransition,
+    planDeviceMirror,
     replaceOrPush,
     markReadyOrPush,
   };

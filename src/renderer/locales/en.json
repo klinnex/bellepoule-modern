@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Auto",
     "cyrano_international": "International",
     "sec_display": "Theme & wallpaper",
-    "sec_screens": "Connected screens"
+    "sec_screens": "Connected screens",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "The device shows {{device}}, not the arena's match: inputs ignored. Check the match on the device (NEXT) or on the tablet."
   },
   "comparison": {
     "title": "Head-to-head comparison",
@@ -2118,7 +2120,8 @@
     "h_referee": "Referee",
     "entries_one": "{{count}} entry",
     "entries_other": "{{count}} entries",
-    "total": " ({{n}} in total)"
+    "total": " ({{n}} in total)",
+    "author_device": "Scoring machine"
   },
   "errorBoundary": {
     "title": "An error occurred",

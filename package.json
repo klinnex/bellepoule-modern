@@ -47,6 +47,7 @@
     "docs:screenshots": "node scripts/capture-screenshots.js",
     "check:i18n-visual": "node scripts/capture-i18n.js",
     "cyrano:sim": "node scripts/cyrano-simulator.js",
+    "cyrano:remote": "node scripts/cyrano-remote.js",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
   "keywords": [

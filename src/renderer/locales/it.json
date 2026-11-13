@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Automatico",
     "cyrano_international": "Internazionale",
     "sec_display": "Tema e sfondo",
-    "sec_screens": "Schermi collegati"
+    "sec_screens": "Schermi collegati",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "L'apparecchio mostra {{device}}, non l'assalto della pedana: inserimenti ignorati. Verificare l'assalto sull'apparecchio (NEXT) o sul tablet."
   },
   "comparison": {
     "title": "Confronto testa a testa",
@@ -2118,7 +2120,8 @@
     "h_referee": "Arbitro",
     "entries_one": "{{count}} voce",
     "entries_other": "{{count}} voci",
-    "total": " ({{n}} in totale)"
+    "total": " ({{n}} in totale)",
+    "author_device": "Apparecchio di segnalazione"
   },
   "errorBoundary": {
     "title": "Si è verificato un errore",

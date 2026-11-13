@@ -48,11 +48,14 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
     cyranoServer.setPistes(pistes);
   });
 
-  ipcMain.handle('cyrano:getStatus', () => ({
-    running: cyranoServer.running,
-    port: cyranoServer.port,
-    pistes: cyranoServer.getStatuses(),
-  }));
+  ipcMain.handle('cyrano:getStatus', () => {
+    const alerts = pisteHub.getAlerts();
+    return {
+      running: cyranoServer.running,
+      port: cyranoServer.port,
+      pistes: cyranoServer.getStatuses().map(p => ({ ...p, alert: alerts[p.piste] ?? null })),
+    };
+  });
 
   ipcMain.handle('cyrano:getLog', () => cyranoServer.getLog());
 

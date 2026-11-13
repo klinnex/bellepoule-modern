@@ -1052,6 +1052,13 @@ class RefereeApp extends RefereeAppBase {
     }
     this.updateRefereeBar();
 
+    // Appareil de piste maître (Cyrano) : la tablette affiche son état en miroir
+    const mirror = BPRefereeUpdate.planDeviceMirror(
+      { currentMatchId: this.currentMatch?.id },
+      data
+    );
+    if (mirror) return this._applyDeviceMirror(mirror);
+
     // Transitions de statut (plan pur : /js/refereeUpdate.js)
     const plan = BPRefereeUpdate.planStatusTransition(
       { currentMatchId: this.currentMatch?.id, matchStatus: this.matchStatus },
@@ -1097,6 +1104,30 @@ class RefereeApp extends RefereeAppBase {
         this.showNotification(window.T('referee.next_available'));
         break;
       }
+    }
+  }
+
+  // Recopie l'état de l'appareil sans rediffuser (le chrono local reste arrêté)
+  _applyDeviceMirror(m) {
+    if (m.inProgress && this.matchStatus !== 'in_progress') {
+      this.matchStatus = 'in_progress';
+      this.updateMatchStatus();
+      this.updateControlButtons();
+    }
+    if (m.scoreA !== undefined) {
+      this.scoreA = m.scoreA;
+      this.scoreB = m.scoreB;
+      this.updateScores();
+    }
+    if (m.cardsA) {
+      this.cardsA = m.cardsA;
+      this.cardsB = m.cardsB;
+      this.updateCardsDisplay();
+    }
+    if (m.time !== undefined) {
+      if (this.timerRunning) this.stopTimer();
+      this._timerCs = Math.max(0, Math.round(m.time * 100));
+      this.updateTimerDisplay();
     }
   }
 

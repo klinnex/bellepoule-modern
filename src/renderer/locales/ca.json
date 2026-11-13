@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Automàtic",
     "cyrano_international": "Internacional",
     "sec_display": "Tema i fons de pantalla",
-    "sec_screens": "Pantalles connectades"
+    "sec_screens": "Pantalles connectades",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "L'aparell mostra {{device}}, no el combat de la pista: entrades ignorades. Comproveu el combat a l'aparell (NEXT) o a la tauleta."
   },
   "comparison": {
     "title": "Comparació cara a cara",
@@ -2118,7 +2120,8 @@
     "h_referee": "Àrbitre",
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entrades",
-    "total": " ({{n}} en total)"
+    "total": " ({{n}} en total)",
+    "author_device": "Aparell de senyalització"
   },
   "errorBoundary": {
     "title": "S'ha produït un error",

@@ -1463,7 +1463,9 @@
     "cyrano_auto": "Emgefreek",
     "cyrano_international": "Etrebroadel",
     "sec_display": "Tem & drekleur",
-    "sec_screens": "Skrammoù kevreet"
+    "sec_screens": "Skrammoù kevreet",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "Diskouez a ra an ardivink {{device}}, ket emgann ar bistenn : enankadurioù dilezet. Gwiriañ an emgann war an ardivink (NEXT) pe war an dablezenn."
   },
   "comparison": {
     "title": "Keñveriañ penn-ouzh-penn",
@@ -2118,7 +2120,8 @@
     "h_referee": "Arbitr",
     "entries_one": "{{count}} enankadur",
     "entries_other": "{{count}} enankadur",
-    "total": " ({{n}} en holl)"
+    "total": " ({{n}} en holl)",
+    "author_device": "Ardivink ar bistenn"
   },
   "errorBoundary": {
     "title": "Ur fazi a zo c'hoarvezet",

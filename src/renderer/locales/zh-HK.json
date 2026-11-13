@@ -1463,7 +1463,9 @@
     "cyrano_auto": "自動",
     "cyrano_international": "國際",
     "sec_display": "主題與背景",
-    "sec_screens": "已連線螢幕"
+    "sec_screens": "已連線螢幕",
+    "cyrano_bad_match": "BAD MATCH",
+    "cyrano_bad_match_hint": "計分器顯示 {{device}}，並非該劍道的比賽：輸入已忽略。請在計分器 (NEXT) 或平板上檢查比賽。"
   },
   "comparison": {
     "title": "對賽比較",
@@ -2118,7 +2120,8 @@
     "h_referee": "裁判",
     "entries_one": "{{count}} 項紀錄",
     "entries_other": "{{count}} 項紀錄",
-    "total": "（合共 {{n}}）"
+    "total": "（合共 {{n}}）",
+    "author_device": "計分器"
   },
   "errorBoundary": {
     "title": "發生錯誤",
