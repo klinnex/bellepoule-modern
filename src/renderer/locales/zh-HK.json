@@ -2586,7 +2586,14 @@
     "csv_exits": "出界次數",
     "csv_matches": "已比賽場次",
     "csv_avg": "平均時長（秒）",
-    "csv_early": "提前結束"
+    "csv_early": "提前結束",
+    "all_fencers": "所有劍手",
+    "total_points_received": "失分總計：",
+    "pick_fencer_hint": "所有劍手合計時，擊中與被擊中數目相同：請選擇劍手以作比較。",
+    "filter_label": "按會或劍手篩選",
+    "clubs": "劍擊會",
+    "fencers": "劍手",
+    "zones_title_short": "擊中區域"
   },
   "formulaTemplate": {
     "name_required": "請輸入賽制名稱。",

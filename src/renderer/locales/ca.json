@@ -2586,7 +2586,14 @@
     "csv_exits": "Sortides de pista",
     "csv_matches": "Combats disputats",
     "csv_avg": "Durada mitjana (s)",
-    "csv_early": "Finals anticipats"
+    "csv_early": "Finals anticipats",
+    "all_fencers": "Tots els tiradors",
+    "total_points_received": "Total de punts rebuts:",
+    "pick_fencer_hint": "En el conjunt de tiradors, tocs donats i rebuts són iguals: trieu un tirador per comparar-los.",
+    "filter_label": "Filtra per club o tirador",
+    "clubs": "Clubs",
+    "fencers": "Tiradors",
+    "zones_title_short": "Zones de tocs"
   },
   "formulaTemplate": {
     "name_required": "Introduïu un nom per a la fórmula.",

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
-import { TouchZoneHeatmap } from './TouchZoneHeatmap';
+import { TouchZoneHeatmap, type HeatmapVariant } from './TouchZoneHeatmap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ChartColumn, Download } from 'lucide-react';
 import { Icon } from '../common/Icon';
@@ -151,83 +151,118 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
   );
 };
 
-// ── Aggregated heatmap (moyenne sur tous les tireurs) ──────────────────────────
+// ── Zones de touches : données / reçues, tous les tireurs ou un tireur ─────────
 
-const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
+const ZONE_BARS = [
+  { zone: 'A', pts: 1, color: '#f59e0b', border: '#b45309', key: 'analyticsCharts.zone_a' },
+  { zone: 'B', pts: 3, color: '#10b981', border: '#047857', key: 'analyticsCharts.zone_b' },
+  { zone: 'C', pts: 5, color: '#8b5cf6', border: '#6d28d9', key: 'analyticsCharts.zone_c' },
+] as const;
+
+const ZoneBreakdown: React.FC<{
+  counts: [number, number, number];
+  variant: HeatmapVariant;
+  label: string;
+  totalLabel: string;
+}> = ({ counts, variant, label, totalLabel }) => {
   const { t } = useTranslation();
-  const totA = stats.reduce((s, x) => s + x.touchesZoneA, 0);
-  const totB = stats.reduce((s, x) => s + x.touchesZoneB, 0);
-  const totC = stats.reduce((s, x) => s + x.touchesZoneC, 0);
-  const totalPts = totA * 1 + totB * 3 + totC * 5;
-
+  const [a, b, c] = counts;
+  const total = a + b + c;
+  const totalPts = a + b * 3 + c * 5;
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-4">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        {t('analyticsCharts.zones_title', { n: stats.length })}
-      </div>
-      <div className="flex items-center gap-6">
-        <TouchZoneHeatmap zoneA={totA} zoneB={totB} zoneC={totC} />
-        <div className="space-y-3 flex-1">
-          {[
-            {
-              zone: 'A',
-              count: totA,
-              pts: 1,
-              color: '#f59e0b',
-              border: '#b45309',
-              text: t('analyticsCharts.zone_a'),
-            },
-            {
-              zone: 'B',
-              count: totB,
-              pts: 3,
-              color: '#10b981',
-              border: '#047857',
-              text: t('analyticsCharts.zone_b'),
-            },
-            {
-              zone: 'C',
-              count: totC,
-              pts: 5,
-              color: '#8b5cf6',
-              border: '#6d28d9',
-              text: t('analyticsCharts.zone_c'),
-            },
-          ].map(z => {
-            const total = totA + totB + totC;
-            const pct = total > 0 ? ((z.count / total) * 100).toFixed(1) : '0.0';
-            return (
-              <div key={z.zone}>
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>
-                    {t('analyticsCharts.zone_line', { zone: z.zone, text: z.text, count: z.pts })}
-                  </span>
-                  <span className="font-mono">
-                    {z.count} ({pct}%)
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-100 rounded overflow-hidden">
-                  <div
-                    className="h-full rounded transition-all duration-700"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: z.color,
-                      border: `1px solid ${z.border}`,
-                    }}
-                  />
-                </div>
+    <div className="flex items-center gap-6">
+      <TouchZoneHeatmap zoneA={a} zoneB={b} zoneC={c} label={label} variant={variant} />
+      <div className="space-y-3 flex-1">
+        {ZONE_BARS.map((z, i) => {
+          const pct = total > 0 ? ((counts[i] / total) * 100).toFixed(1) : '0.0';
+          return (
+            <div key={z.zone}>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>
+                  {t('analyticsCharts.zone_line', { zone: z.zone, text: t(z.key), count: z.pts })}
+                </span>
+                <span className="font-mono">
+                  {counts[i]} ({pct}%)
+                </span>
               </div>
-            );
-          })}
-          <div className="text-xs text-gray-400 mt-2">
-            {t('analyticsCharts.total_points')}{' '}
-            <span className="font-bold text-gray-700">{totalPts}</span>
-          </div>
+              <div className="w-full h-3 bg-gray-100 rounded overflow-hidden">
+                <div
+                  className="h-full rounded transition-all duration-700"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: z.color,
+                    border: `1px solid ${z.border}`,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        <div className="text-xs text-gray-400 mt-2">
+          {totalLabel} <span className="font-bold text-gray-700">{totalPts}</span>
         </div>
       </div>
     </div>
   );
 };
+
+const AggregateHeatmap: React.FC<{
+  stats: FencerCompetitionStats[];
+  title: string;
+  showHint: boolean;
+}> = ({ stats, title, showHint }) => {
+  const { t } = useTranslation();
+  const sum = (k: keyof FencerCompetitionStats) =>
+    stats.reduce((acc, x) => acc + (Number(x[k]) || 0), 0);
+  const given: [number, number, number] = [
+    sum('touchesZoneA'),
+    sum('touchesZoneB'),
+    sum('touchesZoneC'),
+  ];
+  const received: [number, number, number] = [
+    sum('receivedZoneA'),
+    sum('receivedZoneB'),
+    sum('receivedZoneC'),
+  ];
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-100 p-4">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        {title}
+      </div>
+      {showHint && (
+        <p className="text-xs text-gray-400 mb-3">{t('analyticsCharts.pick_fencer_hint')}</p>
+      )}
+      <div className="space-y-4">
+        <ZoneBreakdown
+          counts={given}
+          variant="given"
+          label={t('fencerDetail.touches_given')}
+          totalLabel={t('analyticsCharts.total_points')}
+        />
+        <ZoneBreakdown
+          counts={received}
+          variant="received"
+          label={t('fencerDetail.touches_received')}
+          totalLabel={t('analyticsCharts.total_points_received')}
+        />
+      </div>
+    </div>
+  );
+};
+
+/** Filtre de l'onglet Graphiques : '' = tous, 'club:<nom>' ou 'fencer:<id>' */
+export function filterStats(
+  stats: FencerCompetitionStats[],
+  filter: string
+): FencerCompetitionStats[] {
+  if (filter.startsWith('club:')) {
+    const club = filter.slice(5);
+    return stats.filter(s => (s.fencerClub ?? '') === club);
+  }
+  if (filter.startsWith('fencer:')) return stats.filter(s => s.fencerId === filter.slice(7));
+  return stats;
+}
 
 // ── Top tireurs bar chart ──────────────────────────────────────────────────────
 
@@ -390,16 +425,31 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
+export const AnalyticsCharts: React.FC<Props> = ({ competition, stats: allStats }) => {
   const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
   const isLaser = competition.weapon === Weapon.LASER;
 
+  const [filter, setFilter] = useState('');
+  const stats = filterStats(allStats, filter);
+  const clubs = [...new Set(allStats.map(s => s.fencerClub).filter((c): c is string => !!c))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const fencersSorted = [...allStats].sort(
+    (a, b) =>
+      a.fencerLastName.localeCompare(b.fencerLastName) ||
+      a.fencerFirstName.localeCompare(b.fencerFirstName)
+  );
+  const filterLabel = filter.startsWith('club:')
+    ? filter.slice(5)
+    : filter.startsWith('fencer:')
+      ? `${stats[0]?.fencerLastName ?? ''} ${stats[0]?.fencerFirstName ?? ''}`.trim()
+      : '';
   const totalWhite = stats.reduce((s, x) => s + x.whiteCards, 0);
   const totalYellow = stats.reduce((s, x) => s + x.yellowCards, 0);
   const totalRed = stats.reduce((s, x) => s + x.redCards, 0);
 
-  if (stats.length === 0) {
+  if (allStats.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
         <div className="text-4xl mb-3">
@@ -422,7 +472,32 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
   return (
     <div className="space-y-4">
       {/* Toolbar export */}
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center gap-3">
+        <select
+          className="form-select"
+          aria-label={t('analyticsCharts.filter_label')}
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+        >
+          <option value="">{t('analyticsCharts.all_fencers')}</option>
+          {clubs.length > 0 && (
+            <optgroup label={t('analyticsCharts.clubs')}>
+              {clubs.map(c => (
+                <option key={c} value={`club:${c}`}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <optgroup label={t('analyticsCharts.fencers')}>
+            {fencersSorted.map(s => (
+              <option key={s.fencerId} value={`fencer:${s.fencerId}`}>
+                {s.fencerLastName} {s.fencerFirstName}
+                {s.fencerClub ? ` (${s.fencerClub})` : ''}
+              </option>
+            ))}
+          </optgroup>
+        </select>
         <button
           onClick={handleExportCSV}
           disabled={exporting}
@@ -439,7 +514,17 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
       </div>
 
       {/* Zone heatmap — Laser Sabre only */}
-      {isLaser && <AggregateHeatmap stats={stats} />}
+      {isLaser && (
+        <AggregateHeatmap
+          stats={stats}
+          title={
+            filterLabel
+              ? `${t('analyticsCharts.zones_title_short')} — ${filterLabel}`
+              : t('analyticsCharts.zones_title', { n: stats.length })
+          }
+          showHint={!filter}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Donut cartons */}

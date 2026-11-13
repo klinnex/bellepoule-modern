@@ -2586,7 +2586,14 @@
     "csv_exits": "Uscite dalla pedana",
     "csv_matches": "Incontri disputati",
     "csv_avg": "Durata media (s)",
-    "csv_early": "Fini anticipate"
+    "csv_early": "Fini anticipate",
+    "all_fencers": "Tutti gli schermidori",
+    "total_points_received": "Totale punti ricevuti:",
+    "pick_fencer_hint": "Su tutti gli schermidori, stoccate date e ricevute si equivalgono: scegli uno schermidore per confrontarle.",
+    "filter_label": "Filtra per club o schermidore",
+    "clubs": "Club",
+    "fencers": "Schermidori",
+    "zones_title_short": "Zone di stoccata"
   },
   "formulaTemplate": {
     "name_required": "Inserisci un nome per la formula.",
