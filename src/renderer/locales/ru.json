@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Экспорт этого фехтовальщика (PDF)",
     "export_competition_pdf": "Экспорт соревнования в PDF",
     "no_data": "Для этого соревнования нет статистики.",
-    "laser_only": "Зоны попадания (A/B/C) доступны только в режиме лазерной сабли."
+    "laser_only": "Зоны попадания (A/B/C) доступны только в режиме лазерной сабли.",
+    "received_points": "Получ. очки"
   },
   "shortcuts": {
     "title": "Сочетания клавиш",
@@ -1258,7 +1259,8 @@
     "col_department": "Департамент",
     "col_handedness": "Ведущая рука",
     "handedness_left": "Левша",
-    "handedness_right": "Правша"
+    "handedness_right": "Правша",
+    "touches_received": "Получено"
   },
   "rsm": {
     "strip_plan": "План дорожек",
@@ -2378,7 +2380,10 @@
     "vs": "против",
     "no_event": "События не зарегистрированы",
     "reversed": "(отменено)",
-    "exclusion": " → Исключение"
+    "exclusion": " → Исключение",
+    "touches_given": "Нанесённые уколы",
+    "touches_received": "Полученные уколы",
+    "points_received": "Получено: {{n}} очк."
   },
   "tableauView": {
     "empty_title": "Таблица прямого выбывания",

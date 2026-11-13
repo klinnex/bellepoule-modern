@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Esporta questo schermidore (PDF)",
     "export_competition_pdf": "Esporta competizione PDF",
     "no_data": "Nessuna statistica disponibile per questa competizione.",
-    "laser_only": "Le zone di tocco (A/B/C) sono disponibili solo nella Sciabola Laser."
+    "laser_only": "Le zone di tocco (A/B/C) sono disponibili solo nella Sciabola Laser.",
+    "received_points": "Pt ricevuti"
   },
   "shortcuts": {
     "title": "Scorciatoie da tastiera",
@@ -1258,7 +1259,8 @@
     "col_department": "Dipartimento",
     "col_handedness": "Lateralità",
     "handedness_left": "Mancino",
-    "handedness_right": "Destrimane"
+    "handedness_right": "Destrimane",
+    "touches_received": "Ricevute"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Nessun evento registrato",
     "reversed": "(annullata)",
-    "exclusion": " → Esclusione"
+    "exclusion": " → Esclusione",
+    "touches_given": "Stoccate date",
+    "touches_received": "Stoccate ricevute",
+    "points_received": "Ricevute: {{n}} pt"
   },
   "tableauView": {
     "empty_title": "Tabellone a eliminazione diretta",

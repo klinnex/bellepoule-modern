@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Ezporzhiañ treuzour (PDF)",
     "export_competition_pdf": "PDF kenstrivadeg",
     "no_data": "Stadegoù ebet evit ar genstrivadeg-mañ.",
-    "laser_only": "Zonennoù taolioù (A/B/C) hepken el l'izili Sabre Laser."
+    "laser_only": "Zonennoù taolioù (A/B/C) hepken el l'izili Sabre Laser.",
+    "received_points": "Pt resevet"
   },
   "shortcuts": {
     "title": "Birvikerezh Klavier",
@@ -1258,7 +1259,8 @@
     "col_department": "Departamant",
     "col_handedness": "Dorn",
     "handedness_left": "Dorn kleiz",
-    "handedness_right": "Dorn dehou"
+    "handedness_right": "Dorn dehou",
+    "touches_received": "Resevet"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Darvoud enrollet ebet",
     "reversed": "(nullet)",
-    "exclusion": " → Skarzhadur"
+    "exclusion": " → Skarzhadur",
+    "touches_given": "Taolioù roet",
+    "touches_received": "Taolioù resevet",
+    "points_received": "Resevet : {{n}} pt"
   },
   "tableauView": {
     "empty_title": "Taolenn dilamañ war-eeun",

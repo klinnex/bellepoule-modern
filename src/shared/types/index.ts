@@ -362,6 +362,11 @@ export interface FencerCompetitionStats {
   touchesZoneB: number;
   touchesZoneC: number;
   totalTouchPoints: number;
+  // Touches reçues (portées par les adversaires), mêmes zones
+  receivedZoneA: number;
+  receivedZoneB: number;
+  receivedZoneC: number;
+  receivedTouchPoints: number;
   // Cartons
   whiteCards: number;
   yellowCards: number;

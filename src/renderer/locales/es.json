@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Exportar combatiente (PDF)",
     "export_competition_pdf": "Exportar competición PDF",
     "no_data": "No hay estadísticas disponibles para esta competición.",
-    "laser_only": "Las zonas de toque (A/B/C) sólo están disponibles en modo Sable Láser."
+    "laser_only": "Las zonas de toque (A/B/C) sólo están disponibles en modo Sable Láser.",
+    "received_points": "Pts recibidos"
   },
   "shortcuts": {
     "title": "Atajos de Teclado",
@@ -1258,7 +1259,8 @@
     "col_department": "Departamento",
     "col_handedness": "Lateralidad",
     "handedness_left": "Zurdo",
-    "handedness_right": "Diestro"
+    "handedness_right": "Diestro",
+    "touches_received": "Recibidos"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Ningún evento registrado",
     "reversed": "(anulada)",
-    "exclusion": " → Exclusión"
+    "exclusion": " → Exclusión",
+    "touches_given": "Tocados dados",
+    "touches_received": "Tocados recibidos",
+    "points_received": "Recibidos: {{n}} pts"
   },
   "tableauView": {
     "empty_title": "Cuadro de eliminación directa",

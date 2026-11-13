@@ -1,36 +1,65 @@
 /**
  * BellePoule Modern - Heatmap des zones de touche (Laser Sabre)
+ * Zones FFE : A = main/arme (1 pt), B = bras/jambes (3 pts), C = tête/torse (5 pts).
+ * `variant="given"` (bleu) : touches portées ; `variant="received"` (rouge) : touches reçues.
  * Licensed under GPL-3.0
  */
 
 import React from 'react';
 import { translateStatic } from '../../contexts/TranslationContext';
 
+export type HeatmapVariant = 'given' | 'received';
+
 interface Props {
   zoneA: number;
   zoneB: number;
   zoneC: number;
   label?: string;
+  variant?: HeatmapVariant;
 }
 
-function intensity(count: number, max: number): string {
-  if (max === 0 || count === 0) return 'rgba(59,130,246,0.08)';
-  const ratio = count / max;
-  const alpha = 0.15 + ratio * 0.75;
-  return `rgba(59,130,246,${alpha.toFixed(2)})`;
-}
+const PALETTE: Record<
+  HeatmapVariant,
+  { rgb: string; strokes: [string, string, string]; legend: [string, string, string] }
+> = {
+  given: {
+    rgb: '59,130,246',
+    strokes: ['#93c5fd', '#3b82f6', '#1d4ed8'],
+    legend: ['bg-blue-100 text-blue-800', 'bg-blue-200 text-blue-900', 'bg-blue-400 text-white'],
+  },
+  received: {
+    rgb: '239,68,68',
+    strokes: ['#fca5a5', '#ef4444', '#b91c1c'],
+    legend: ['bg-red-100 text-red-800', 'bg-red-200 text-red-900', 'bg-red-400 text-white'],
+  },
+};
 
-function stroke(count: number, max: number): string {
-  if (max === 0 || count === 0) return '#93c5fd';
-  const ratio = count / max;
-  if (ratio > 0.6) return '#1d4ed8';
-  if (ratio > 0.3) return '#3b82f6';
-  return '#93c5fd';
-}
-
-export const TouchZoneHeatmap: React.FC<Props> = ({ zoneA, zoneB, zoneC, label }) => {
+export const TouchZoneHeatmap: React.FC<Props> = ({
+  zoneA,
+  zoneB,
+  zoneC,
+  label,
+  variant = 'given',
+}) => {
+  const palette = PALETTE[variant];
   const max = Math.max(zoneA, zoneB, zoneC, 1);
   const total = zoneA + zoneB + zoneC;
+
+  const fill = (count: number) => {
+    if (count === 0) return `rgba(${palette.rgb},0.08)`;
+    return `rgba(${palette.rgb},${(0.15 + (count / max) * 0.75).toFixed(2)})`;
+  };
+  const stroke = (count: number) => {
+    const ratio = count / max;
+    if (ratio > 0.6) return palette.strokes[2];
+    if (ratio > 0.3) return palette.strokes[1];
+    return palette.strokes[0];
+  };
+  const zone = (count: number) => ({
+    fill: fill(count),
+    stroke: stroke(count),
+    strokeWidth: 1.5,
+  });
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -40,79 +69,35 @@ export const TouchZoneHeatmap: React.FC<Props> = ({ zoneA, zoneB, zoneC, label }
         width="60"
         height="120"
         xmlns="http://www.w3.org/2000/svg"
-        aria-label={`Heatmap: Zone A=${zoneA} B=${zoneB} C=${zoneC}`}
+        role="img"
+        aria-label={`${label ? label + ' — ' : ''}A=${zoneA} B=${zoneB} C=${zoneC}`}
       >
-        {/* Tête */}
-        <ellipse cx="30" cy="10" rx="9" ry="9" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1" />
+        {/* Zone C — tête et torse (5 pts) */}
+        <ellipse cx="30" cy="10" rx="9" ry="9" {...zone(zoneC)} />
+        <rect x="18" y="22" width="24" height="56" rx="4" {...zone(zoneC)} />
 
-        {/* Zone C — jambes (5 pts) */}
-        <rect
-          x="18"
-          y="80"
-          width="11"
-          height="36"
-          rx="4"
-          fill={intensity(zoneC, max)}
-          stroke={stroke(zoneC, max)}
-          strokeWidth="1.5"
-        />
-        <rect
-          x="31"
-          y="80"
-          width="11"
-          height="36"
-          rx="4"
-          fill={intensity(zoneC, max)}
-          stroke={stroke(zoneC, max)}
-          strokeWidth="1.5"
-        />
+        {/* Zone B — bras et jambes (3 pts) */}
+        <rect x="6" y="24" width="10" height="34" rx="4" {...zone(zoneB)} />
+        <rect x="44" y="24" width="10" height="34" rx="4" {...zone(zoneB)} />
+        <rect x="18" y="80" width="11" height="36" rx="4" {...zone(zoneB)} />
+        <rect x="31" y="80" width="11" height="36" rx="4" {...zone(zoneB)} />
 
-        {/* Zone B — bras (3 pts) */}
-        <rect
-          x="6"
-          y="30"
-          width="10"
-          height="30"
-          rx="4"
-          fill={intensity(zoneB, max)}
-          stroke={stroke(zoneB, max)}
-          strokeWidth="1.5"
-        />
-        <rect
-          x="44"
-          y="30"
-          width="10"
-          height="30"
-          rx="4"
-          fill={intensity(zoneB, max)}
-          stroke={stroke(zoneB, max)}
-          strokeWidth="1.5"
-        />
-
-        {/* Zone A — torse (1 pt) */}
-        <rect
-          x="18"
-          y="22"
-          width="24"
-          height="56"
-          rx="4"
-          fill={intensity(zoneA, max)}
-          stroke={stroke(zoneA, max)}
-          strokeWidth="1.5"
-        />
+        {/* Zone A — mains / arme (1 pt) */}
+        <circle cx="11" cy="64" r="5" {...zone(zoneA)} />
+        <circle cx="49" cy="64" r="5" {...zone(zoneA)} />
       </svg>
 
       {/* Légende */}
       <div className="grid grid-cols-3 gap-1 w-full text-center">
         {[
-          { zone: 'A', count: zoneA, pts: '1pt', color: 'bg-blue-100 text-blue-800' },
-          { zone: 'B', count: zoneB, pts: '3pts', color: 'bg-blue-200 text-blue-900' },
-          { zone: 'C', count: zoneC, pts: '5pts', color: 'bg-blue-400 text-white' },
-        ].map(({ zone, count, pts, color }) => (
-          <div key={zone} className={`rounded px-1 py-0.5 ${color}`}>
+          { zone: 'A', count: zoneA, pts: '1pt' },
+          { zone: 'B', count: zoneB, pts: '3pts' },
+          { zone: 'C', count: zoneC, pts: '5pts' },
+        ].map(({ zone: z, count, pts }, i) => (
+          <div key={z} className={`rounded px-1 py-0.5 ${palette.legend[i]}`}>
             <div className="text-xs font-bold">{count}</div>
             <div className="text-[10px] leading-tight">
-              {zone} · {pts}
+              {z} · {pts}
             </div>
           </div>
         ))}

@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Export this fencer (PDF)",
     "export_competition_pdf": "Competition PDF export",
     "no_data": "No statistics available for this competition.",
-    "laser_only": "Touch zones (A/B/C) are only available in Laser Sabre mode."
+    "laser_only": "Touch zones (A/B/C) are only available in Laser Sabre mode.",
+    "received_points": "Pts received"
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",
@@ -1258,7 +1259,8 @@
     "col_department": "Department",
     "col_handedness": "Handedness",
     "handedness_left": "Left-handed",
-    "handedness_right": "Right-handed"
+    "handedness_right": "Right-handed",
+    "touches_received": "Received"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "No events recorded",
     "reversed": "(cancelled)",
-    "exclusion": " → Exclusion"
+    "exclusion": " → Exclusion",
+    "touches_given": "Touches given",
+    "touches_received": "Touches received",
+    "points_received": "Received: {{n}} pts"
   },
   "tableauView": {
     "empty_title": "Direct elimination bracket",

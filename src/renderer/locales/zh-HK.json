@@ -561,7 +561,8 @@
     "export_fencer_pdf": "匯出選手（PDF）",
     "export_competition_pdf": "賽事完整 PDF",
     "no_data": "此賽事暫無統計數據。",
-    "laser_only": "觸擊區域（A/B/C）僅適用於雷射佩劍模式。"
+    "laser_only": "觸擊區域（A/B/C）僅適用於雷射佩劍模式。",
+    "received_points": "失分"
   },
   "shortcuts": {
     "title": "鍵盤快捷鍵",
@@ -1258,7 +1259,8 @@
     "col_department": "省份",
     "col_handedness": "慣用手",
     "handedness_left": "左手",
-    "handedness_right": "右手"
+    "handedness_right": "右手",
+    "touches_received": "被擊中"
   },
   "rsm": {
     "strip_plan": "劍道圖",
@@ -2378,7 +2380,10 @@
     "vs": "對",
     "no_event": "未有事件紀錄",
     "reversed": "（已取消）",
-    "exclusion": " → 取消資格"
+    "exclusion": " → 取消資格",
+    "touches_given": "擊中對手",
+    "touches_received": "被擊中",
+    "points_received": "被擊中：{{n}} 分"
   },
   "tableauView": {
     "empty_title": "直接淘汰賽表",

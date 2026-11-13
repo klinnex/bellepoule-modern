@@ -586,7 +586,8 @@
     "yellow_cards": "Gelbe Karten",
     "zone_a": "Zone A (1 Pt.)",
     "zone_b": "Zone B (3 Pt.)",
-    "zone_c": "Zone C (5 Pt.)"
+    "zone_c": "Zone C (5 Pt.)",
+    "received_points": "Erh. Pkt."
   },
   "status": {
     "abandoned": "Medizinisch",
@@ -1258,7 +1259,8 @@
     "col_department": "Departement",
     "col_handedness": "Händigkeit",
     "handedness_left": "Linkshänder",
-    "handedness_right": "Rechtshänder"
+    "handedness_right": "Rechtshänder",
+    "touches_received": "Erhalten"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Keine Ereignisse erfasst",
     "reversed": "(annulliert)",
-    "exclusion": " → Ausschluss"
+    "exclusion": " → Ausschluss",
+    "touches_given": "Gegebene Treffer",
+    "touches_received": "Erhaltene Treffer",
+    "points_received": "Erhalten: {{n}} Pkt."
   },
   "tableauView": {
     "empty_title": "KO-Tableau",

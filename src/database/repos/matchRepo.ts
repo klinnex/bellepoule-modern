@@ -645,7 +645,7 @@ export class MatchRepo {
     if (!this.sql.db) throw new Error('Database not open');
     if (!this.sql.queryOne('SELECT id FROM matches WHERE id = ?', [matchId])) return false;
     const like = `${matchId}-%-sim-%`;
-    this.sql.db.transaction(() => {
+    this.sql.transaction(() => {
       this.sql.run('DELETE FROM match_touches WHERE match_id = ? AND id LIKE ?', [matchId, like]);
       this.sql.run('DELETE FROM match_cards WHERE match_id = ? AND id LIKE ?', [matchId, like]);
       if (!events) {
@@ -660,7 +660,7 @@ export class MatchRepo {
         events.timing.endTime,
         events.timing.duration
       );
-    })();
+    });
     return true;
   }
 

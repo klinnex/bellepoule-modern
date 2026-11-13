@@ -144,6 +144,7 @@ function fencerPageHtml(
       <div class="label">${pdfT('laser_touches', 'Touches Laser')}</div>
       <div class="value">${fencer.totalTouchPoints} pts</div>
       <div class="sub">A: ${fencer.touchesZoneA} · B: ${fencer.touchesZoneB} · C: ${fencer.touchesZoneC}</div>
+      <div class="sub">${pdfT('touches_received', 'Reçues')} : ${fencer.receivedTouchPoints ?? 0} pts (A: ${fencer.receivedZoneA ?? 0} · B: ${fencer.receivedZoneB ?? 0} · C: ${fencer.receivedZoneC ?? 0})</div>
     </div>`
     : `
     <div class="summary-box">

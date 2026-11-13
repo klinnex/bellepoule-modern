@@ -200,6 +200,9 @@ export const FencerDetailModal: React.FC<Props> = ({ fencer, competition, onClos
               <div className="text-xs text-gray-400">
                 A:{fencer.touchesZoneA} B:{fencer.touchesZoneB} C:{fencer.touchesZoneC}
               </div>
+              <div className="text-xs text-red-600 mt-1">
+                {t('fencerDetail.points_received', { n: fencer.receivedTouchPoints ?? 0 })}
+              </div>
             </div>
           ) : null}
         </div>
@@ -210,11 +213,19 @@ export const FencerDetailModal: React.FC<Props> = ({ fencer, competition, onClos
             <div className="text-xs font-semibold text-gray-600 mb-2">
               {t('fencerDetail.touch_split')}
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-10">
               <TouchZoneHeatmap
+                label={t('fencerDetail.touches_given')}
                 zoneA={fencer.touchesZoneA}
                 zoneB={fencer.touchesZoneB}
                 zoneC={fencer.touchesZoneC}
+              />
+              <TouchZoneHeatmap
+                label={t('fencerDetail.touches_received')}
+                variant="received"
+                zoneA={fencer.receivedZoneA ?? 0}
+                zoneB={fencer.receivedZoneB ?? 0}
+                zoneC={fencer.receivedZoneC ?? 0}
               />
             </div>
           </div>

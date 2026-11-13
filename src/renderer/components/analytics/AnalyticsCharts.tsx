@@ -328,7 +328,18 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     t('ranking.name'),
     t('analyticsCharts.csv_first_name'),
     t('ranking.club'),
-    ...(isLaser ? ['A', 'B', 'C', t('analyticsCharts.csv_total_points')] : []),
+    ...(isLaser
+      ? [
+          'A',
+          'B',
+          'C',
+          t('analyticsCharts.csv_total_points'),
+          `${t('stats.received_points')} A`,
+          `${t('stats.received_points')} B`,
+          `${t('stats.received_points')} C`,
+          t('stats.received_points'),
+        ]
+      : []),
     t('analyticsCharts.csv_white'),
     t('analyticsCharts.csv_yellow'),
     t('analyticsCharts.csv_red'),
@@ -342,7 +353,18 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     s.fencerLastName,
     s.fencerFirstName,
     s.fencerClub ?? '',
-    ...(isLaser ? [s.touchesZoneA, s.touchesZoneB, s.touchesZoneC, s.totalTouchPoints] : []),
+    ...(isLaser
+      ? [
+          s.touchesZoneA,
+          s.touchesZoneB,
+          s.touchesZoneC,
+          s.totalTouchPoints,
+          s.receivedZoneA ?? 0,
+          s.receivedZoneB ?? 0,
+          s.receivedZoneC ?? 0,
+          s.receivedTouchPoints ?? 0,
+        ]
+      : []),
     s.whiteCards,
     s.yellowCards,
     s.redCards,
