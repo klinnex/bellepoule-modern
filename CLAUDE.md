@@ -86,6 +86,7 @@ npm run docs:api        # TypeDoc API docs
 npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run cyrano:sim      # Simulateur d'appareil de piste Cyrano (docs/CYRANO.md)
+npm run cyrano:remote   # Télécommande web des appareils Cyrano simulés, plusieurs pistes (http://127.0.0.1:5099)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode
 ```

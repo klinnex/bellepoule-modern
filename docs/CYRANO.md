@@ -90,6 +90,18 @@ cours : un DISP des mêmes tireurs corrige les scores), passe en W à la récept
 
 Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur (`--port`).
 
+### Télécommande web (plusieurs pistes)
+
+```bash
+npm run cyrano:remote          # 3 pistes par défaut, page http://127.0.0.1:5099
+npm run cyrano:remote -- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102 --server-port 50100
+```
+
+Une carte par piste : état de l'appareil, chrono, tireurs gauche (rouge) / droite (vert), boutons
+BEGIN, GO, HALT, END, NEXT, PREV, SWAP, RESET, touches ±1, cartons jaune / rouge, priorité,
+abandon, et journal des trames (HELLO masqués). Mêmes appareils simulés que la console
+(`scripts/lib/cyranoDevice.js`). Ne pas lancer en même temps un simulateur console sur les mêmes ports.
+
 Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc
 une adresse de bouclage par simulateur (`--bind`). Sous Linux, toute la plage `127.0.0.0/8`
 répond sans configuration ; sous macOS : `sudo ifconfig lo0 alias 127.0.0.2`.
