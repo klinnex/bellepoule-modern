@@ -13,6 +13,7 @@ const save = vi.fn(() => Promise.resolve());
 beforeEach(() => {
   save.mockClear();
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+    constructor(_cb: ResizeObserverCallback) {}
     observe() {}
     disconnect() {}
   };
