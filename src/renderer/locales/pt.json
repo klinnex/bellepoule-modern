@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Exportar este esgrimista (PDF)",
     "export_competition_pdf": "Exportação PDF da competição",
     "no_data": "Sem estatísticas disponíveis para esta competição.",
-    "laser_only": "As zonas de toque (A/B/C) só estão disponíveis no modo Sabre Laser."
+    "laser_only": "As zonas de toque (A/B/C) só estão disponíveis no modo Sabre Laser.",
+    "received_points": "Pts recebidos"
   },
   "shortcuts": {
     "title": "Atalhos de teclado",
@@ -1258,7 +1259,8 @@
     "col_department": "Departamento",
     "col_handedness": "Lateralidade",
     "handedness_left": "Canhoto",
-    "handedness_right": "Destro"
+    "handedness_right": "Destro",
+    "touches_received": "Recebidos"
   },
   "rsm": {
     "strip_plan": "Plano das pistas",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Nenhum evento registado",
     "reversed": "(anulado)",
-    "exclusion": " → Exclusão"
+    "exclusion": " → Exclusão",
+    "touches_given": "Toques dados",
+    "touches_received": "Toques recebidos",
+    "points_received": "Recebidos: {{n}} pts"
   },
   "tableauView": {
     "empty_title": "Quadro de eliminação direta",

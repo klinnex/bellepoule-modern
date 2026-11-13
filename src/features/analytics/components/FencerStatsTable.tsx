@@ -116,7 +116,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       <tr>
         <td>${s.fencerLastName} ${s.fencerFirstName}</td>
         <td>${s.fencerClub ?? '—'}</td>
-        ${isLaser ? `<td>${s.touchesZoneA}</td><td>${s.touchesZoneB}</td><td>${s.touchesZoneC}</td><td>${s.totalTouchPoints}</td>` : ''}
+        ${isLaser ? `<td>${s.touchesZoneA}</td><td>${s.touchesZoneB}</td><td>${s.touchesZoneC}</td><td>${s.totalTouchPoints}</td><td>${s.receivedTouchPoints ?? 0}</td>` : ''}
         <td>${s.whiteCards}</td>
         <td>${s.yellowCards}</td>
         <td>${s.redCards}</td>
@@ -128,7 +128,9 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       )
       .join('');
 
-    const laserHeaders = isLaser ? `<th>Zone A</th><th>Zone B</th><th>Zone C</th><th>Pts</th>` : '';
+    const laserHeaders = isLaser
+      ? `<th>Zone A</th><th>Zone B</th><th>Zone C</th><th>Pts</th><th>${t('stats.received_points')}</th>`
+      : '';
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
       <style>
@@ -233,6 +235,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                     <Th k="touchesZoneB" label={t('stats.zone_b')} />
                     <Th k="touchesZoneC" label={t('stats.zone_c')} />
                     <Th k="totalTouchPoints" label={t('stats.total_points')} />
+                    <Th k="receivedTouchPoints" label={t('stats.received_points')} />
                   </>
                 )}
                 <Th
@@ -268,6 +271,9 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                       <td className="px-2 py-2 text-center">{s.touchesZoneB}</td>
                       <td className="px-2 py-2 text-center">{s.touchesZoneC}</td>
                       <td className="px-2 py-2 text-center font-semibold">{s.totalTouchPoints}</td>
+                      <td className="px-2 py-2 text-center text-red-600">
+                        {s.receivedTouchPoints ?? 0}
+                      </td>
                     </>
                   )}
                   <td className="px-2 py-2 text-center">{s.whiteCards || '—'}</td>

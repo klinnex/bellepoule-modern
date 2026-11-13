@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Exporter ce combattant (PDF)",
     "export_competition_pdf": "Export compétition PDF",
     "no_data": "Aucune statistique disponible pour cette compétition.",
-    "laser_only": "Les zones de touches (A/B/C) sont disponibles uniquement en Sabre Laser."
+    "laser_only": "Les zones de touches (A/B/C) sont disponibles uniquement en Sabre Laser.",
+    "received_points": "Pts reçus"
   },
   "shortcuts": {
     "title": "Raccourcis Clavier",
@@ -1258,7 +1259,8 @@
     "col_department": "Département",
     "col_handedness": "Latéralité",
     "handedness_left": "Gaucher",
-    "handedness_right": "Droitier"
+    "handedness_right": "Droitier",
+    "touches_received": "Reçues"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Aucun événement enregistré",
     "reversed": "(annulée)",
-    "exclusion": " → Exclusion"
+    "exclusion": " → Exclusion",
+    "touches_given": "Touches données",
+    "touches_received": "Touches reçues",
+    "points_received": "Reçus : {{n}} pts"
   },
   "tableauView": {
     "empty_title": "Tableau à élimination directe",

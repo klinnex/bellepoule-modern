@@ -376,6 +376,10 @@ export class FencerRepo {
     touchesZoneB: number;
     touchesZoneC: number;
     totalTouchPoints: number;
+    receivedZoneA: number;
+    receivedZoneB: number;
+    receivedZoneC: number;
+    receivedTouchPoints: number;
     whiteCards: number;
     yellowCards: number;
     redCards: number;
@@ -401,6 +405,10 @@ export class FencerRepo {
       touchesZoneB: 0,
       touchesZoneC: 0,
       totalTouchPoints: 0,
+      receivedZoneA: 0,
+      receivedZoneB: 0,
+      receivedZoneC: 0,
+      receivedTouchPoints: 0,
       whiteCards: 0,
       yellowCards: 0,
       redCards: 0,
@@ -427,6 +435,23 @@ export class FencerRepo {
           empty.touchesZoneC = r.cnt as number;
           empty.totalTouchPoints += r.pts as number;
         }
+      });
+    // Touches reçues : portées par l'adversaire dans les matchs du tireur
+    this.sql
+      .queryAll<SqlRow>(
+        `SELECT mt.zone, SUM(mt.points) AS pts, COUNT(*) AS cnt FROM match_touches mt
+         JOIN matches m ON mt.match_id = m.id
+         WHERE (m.fencer_a_id = ? OR m.fencer_b_id = ?) AND mt.fencer_id != ? AND mt.is_reversed = 0
+         GROUP BY mt.zone`,
+        [fencerId, fencerId, fencerId]
+      )
+      .forEach(r => {
+        const key = ({ A: 'receivedZoneA', B: 'receivedZoneB', C: 'receivedZoneC' } as const)[
+          r.zone as 'A' | 'B' | 'C'
+        ];
+        if (!key) return;
+        empty[key] = r.cnt as number;
+        empty.receivedTouchPoints += r.pts as number;
       });
     this.sql
       .queryAll<SqlRow>(

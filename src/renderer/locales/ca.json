@@ -561,7 +561,8 @@
     "export_fencer_pdf": "Exportar tirador (PDF)",
     "export_competition_pdf": "Exportar competició PDF",
     "no_data": "No hi ha estadístiques disponibles per a aquesta competició.",
-    "laser_only": "Les zones de toc (A/B/C) només estan disponibles en mode Sabre Làser."
+    "laser_only": "Les zones de toc (A/B/C) només estan disponibles en mode Sabre Làser.",
+    "received_points": "Pts rebuts"
   },
   "shortcuts": {
     "title": "Dreceres de Teclat",
@@ -1258,7 +1259,8 @@
     "col_department": "Departament",
     "col_handedness": "Lateralitat",
     "handedness_left": "Esquerrà",
-    "handedness_right": "Dretà"
+    "handedness_right": "Dretà",
+    "touches_received": "Rebuts"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -2378,7 +2380,10 @@
     "vs": "vs",
     "no_event": "Cap esdeveniment registrat",
     "reversed": "(anul·lada)",
-    "exclusion": " → Exclusió"
+    "exclusion": " → Exclusió",
+    "touches_given": "Tocs donats",
+    "touches_received": "Tocs rebuts",
+    "points_received": "Rebuts: {{n}} pts"
   },
   "tableauView": {
     "empty_title": "Quadre d'eliminació directa",
