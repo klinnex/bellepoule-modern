@@ -292,7 +292,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
       <div className="card">
         <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
         {isLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
-        <div className="card-header pv-header">
+        <div className={`card-header pv-header${(cardScale ?? 1) >= 1.3 ? ' is-nowrap' : ''}`}>
           <div className="pv-header-left">
             <span>{t('poolView.pool_n', { n: pool.number })}</span>
             <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>

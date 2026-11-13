@@ -640,6 +640,29 @@ button.pv-pill {
   }
 }
 
+/* Cartes Large/XL (#1823) : boutons sur une seule ligne, barre de progression réduite */
+.pv-header.is-nowrap {
+  flex-wrap: nowrap;
+}
+
+.pv-header.is-nowrap .pv-header-left {
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
+  gap: var(--space-2);
+}
+
+.pv-header.is-nowrap .pv-toolbar {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  width: auto;
+  justify-content: flex-end;
+}
+
+.pv-header.is-nowrap .pv-progress-track {
+  width: 48px;
+}
+
 /* Tablette / petite fenêtre : boutons icône à la taille tactile minimale */
 @media (max-width: 768px) {
   .pv-icon-btn {
