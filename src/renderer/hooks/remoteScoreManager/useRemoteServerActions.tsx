@@ -8,7 +8,7 @@ import { useStateGroup } from '../useStateGroup';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { FencerStatus } from '../../../shared/types';
-import type { CustomTheme } from '../../../shared/types/remote';
+import type { CustomTheme, ThemeTargetType } from '../../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import ArenaQrCodesModal from '../../components/ArenaQrCodesModal';
 import { ipcErrorText } from '../../services/ipcError';
@@ -19,7 +19,7 @@ import { useStripPlanSync } from '../useStripAvailability';
 import { MAX_STRIP, stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../../components/common/Button';
 import { RemoteScoreManagerProps } from '../../components/remote/remoteScoreManagerShared';
-import { resolveBuiltinTheme } from '../../components/remote/builtinThemes';
+import { resolveAllSourcesTheme, resolveBuiltinTheme } from '../../components/remote/builtinThemes';
 import { useRemoteServerState } from './useRemoteServerState';
 
 type Ctx = RemoteScoreManagerProps & ReturnType<typeof useRemoteServerState>;
@@ -288,18 +288,18 @@ export function useRemoteServerActions(ctx: Ctx) {
 
   // Appliquer un thème à toutes les pistes pour un type d'écran (ou au kiosque)
   const applyThemeToAllScreens = useCallback(
-    async (section: typeof globalThemeSection, theme: CustomTheme) => {
+    async (section: ThemeTargetType, theme: CustomTheme, quiet = false) => {
       if (section === 'arena') {
         // Une surcharge par piste : l'id 'all' n'est pas reconnu côté serveur
         const count = session ? session.strips.length : effectiveCommitted;
         for (const i of stripNumbers(effectiveCommittedStart, count)) {
           await handleArenaThemeChange(`arena${i}`, 'custom', theme);
         }
-        showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
+        if (!quiet) showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
       } else if (section === 'kiosk') {
         const result = await applyKioskCustomTheme(theme);
-        if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
-        else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
+        if (!result?.success) showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
+        else if (!quiet) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
       } else {
         // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
         const count = session ? session.strips.length : effectiveCommitted;
@@ -311,7 +311,9 @@ export function useRemoteServerActions(ctx: Ctx) {
             theme
           );
         }
-        showToast(`Thème "${theme.name}" appliqué (${section}) à toutes les pistes`, 'success');
+        if (!quiet) {
+          showToast(`Thème "${theme.name}" appliqué (${section}) à toutes les pistes`, 'success');
+        }
       }
     },
     [
@@ -328,6 +330,24 @@ export function useRemoteServerActions(ctx: Ctx) {
 
   // Appliquer un thème sauvegardé globalement (toutes les arènes, un type d'écran)
   const handleGlobalThemeApply = useCallback(async () => {
+    // « Toutes sources » (#1795) : chaque écran concerné par le thème choisi
+    if (globalThemeSection === 'all') {
+      const apps = resolveAllSourcesTheme(globalThemeId, savedThemes, t);
+      if (apps.length === 0) return;
+      const count = session ? session.strips.length : effectiveCommitted;
+      for (const app of apps) {
+        if (app.preset) {
+          for (const i of stripNumbers(effectiveCommittedStart, count)) {
+            await handleArenaThemeChange(`arena${i}`, app.preset);
+          }
+        } else {
+          await applyThemeToAllScreens(app.section, app.theme, true);
+        }
+      }
+      showToast(t('rsm.custom_theme_applied'), 'success');
+      setGlobalThemeId('');
+      return;
+    }
     const builtin = resolveBuiltinTheme(globalThemeSection, globalThemeId, t);
     if (builtin?.preset) {
       const count = session ? session.strips.length : effectiveCommitted;

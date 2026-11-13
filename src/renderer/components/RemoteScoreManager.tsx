@@ -122,6 +122,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
   const ctx = { ...props, ...remoteServerState, ...remoteServerActions };
   // Générateur de thème global (toutes les pistes, type d'écran choisi : public, arbitre…)
   const [globalThemeEditorOpen, setGlobalThemeEditorOpen] = React.useState(false);
+  // Éditeur : « Toutes sources » → affichage piste (#1795)
+  const editorSection = globalThemeSection === 'all' ? 'arena' : globalThemeSection;
   // Volets dépliables par section (état replié mémorisé localement)
   const { fold, collapsed, setAll } = useRemoteFolds();
 
@@ -374,7 +376,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
             {/* ── Thème global : générateur + bibliothèque (toutes les pistes) ── */}
             {(() => {
               const filteredForSection = savedThemes.filter(
-                t => (t.targetType ?? 'arena') === globalThemeSection
+                t =>
+                  globalThemeSection === 'all' || (t.targetType ?? 'arena') === globalThemeSection
               );
               return (
                 <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
@@ -405,6 +408,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                         fontSize: '0.85rem',
                       }}
                     >
+                      <option value="all">{t('rsm.gt_all')}</option>
                       <option value="arena">{t('rsm.gt_arena')}</option>
                       <option value="kiosk">{t('rsm.gt_kiosk')}</option>
                       <option value="public">{t('rsm.gt_public')}</option>
@@ -437,7 +441,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                         <optgroup label={t('rsm.gt_saved')}>
                           {filteredForSection.map(th => (
                             <option key={th.id} value={th.id}>
-                              {th.name}
+                              {globalThemeSection === 'all'
+                                ? `${th.name} (${t(`rsm.gt_${th.targetType ?? 'arena'}`)})`
+                                : th.name}
                             </option>
                           ))}
                         </optgroup>
@@ -627,12 +633,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
       {globalThemeEditorOpen && (
         <ThemeEditor
           targetArenaId={globalThemeSection === 'kiosk' ? 'kiosk' : 'all'}
-          targetType={globalThemeSection}
+          targetType={editorSection}
           initialTheme={globalThemeSection === 'kiosk' ? kioskTheme : undefined}
           onApply={async (_arenaId, theme) => {
             setGlobalThemeEditorOpen(false);
             refreshSavedThemes();
-            await applyThemeToAllScreens(globalThemeSection, theme);
+            await applyThemeToAllScreens(editorSection, theme);
           }}
           onClose={() => {
             setGlobalThemeEditorOpen(false);
