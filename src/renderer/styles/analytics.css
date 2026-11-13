@@ -1,0 +1,165 @@
+/*
+ * BellePoule Modern - Fenêtre analytique (AnalyticsDashboard) et mannequin des zones
+ * de touche Sabre Laser (TouchZoneHeatmap)
+ * Une teinte par zone (A ambre, B vert, C violet) ; foncé = zone la plus sollicitée,
+ * moyen = intermédiaire, clair = la plus faible, gris = aucune touche.
+ * Les teintes reprennent HUES de TouchZoneHeatmap.tsx.
+ * Licensed under GPL-3.0
+ */
+
+.touch-zones {
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+}
+.touch-zones--given {
+  border-color: #93c5fd;
+}
+.touch-zones--received {
+  border-color: #fca5a5;
+}
+.touch-zones__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+.touch-zones--given .touch-zones__label {
+  color: #1d4ed8;
+}
+.touch-zones--received .touch-zones__label {
+  color: #b91c1c;
+}
+.touch-zones__legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  width: 100%;
+  text-align: center;
+}
+.touch-zones__total {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.zone-legend {
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+.zone-legend__count {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.zone-legend__name {
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+/* Zone A — main + manche du sabre (ambre) */
+.zone-legend--a-dark {
+  background-color: #b45309;
+  color: #ffffff;
+}
+.zone-legend--a-medium {
+  background-color: #f59e0b;
+  color: #451a03;
+}
+.zone-legend--a-light {
+  background-color: #fde68a;
+  color: #78350f;
+}
+
+/* Zone B — bras ou jambe (vert) */
+.zone-legend--b-dark {
+  background-color: #047857;
+  color: #ffffff;
+}
+.zone-legend--b-medium {
+  background-color: #10b981;
+  color: #022c22;
+}
+.zone-legend--b-light {
+  background-color: #a7f3d0;
+  color: #064e3b;
+}
+
+/* Zone C — tronc ou tête (violet) */
+.zone-legend--c-dark {
+  background-color: #6d28d9;
+  color: #ffffff;
+}
+.zone-legend--c-medium {
+  background-color: #8b5cf6;
+  color: #ffffff;
+}
+.zone-legend--c-light {
+  background-color: #ddd6fe;
+  color: #4c1d95;
+}
+
+/* ── Fenêtre analytique : même structure que Propriétés / Paramètres ── */
+.analytics-dashboard {
+  width: 95%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.analytics-dashboard .modal-header {
+  gap: 1rem;
+}
+.analytics-dashboard__subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #6b7280);
+}
+.analytics-dashboard__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.analytics-dashboard__toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.analytics-dashboard__toolbar .analytics-dashboard__spacer {
+  flex: 1;
+}
+.analytics-dashboard .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.analytics-dashboard .settings-nav {
+  flex-basis: 170px;
+}
+.analytics-fencer-detail {
+  max-width: 820px;
+}
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.analytics-section {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.analytics-section--zones .flex {
+  flex-wrap: wrap;
+}

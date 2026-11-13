@@ -2559,9 +2559,9 @@
   "analyticsCharts": {
     "no_data": "Aucune donnée",
     "zones_title": "Zones de touches — {{n}} tireurs",
-    "zone_a": "Main/Arme",
-    "zone_b": "Bras/Jambes",
-    "zone_c": "Tête/Torse",
+    "zone_a": "Main + manche du sabre",
+    "zone_b": "Bras ou jambe",
+    "zone_c": "Tronc ou tête",
     "zone_line_one": "Zone {{zone}} · {{text}} · {{count}} pt",
     "zone_line_other": "Zone {{zone}} · {{text}} · {{count}} pts",
     "total_points": "Total points marqués :",
