@@ -501,6 +501,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         {currentPhase === 'tableau' && (
           <TableauPhase
             competitionId={competition.id}
+            weapon={competition.weapon}
             postPoolSplitCriteria={postPoolSplitCriteria}
             activeSplitGroup={activeSplitGroup}
             splitGroups={splitGroups}

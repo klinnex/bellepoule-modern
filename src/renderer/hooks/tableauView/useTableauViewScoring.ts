@@ -34,6 +34,8 @@ import {
   buildCombinedResults,
 } from '../../components/tableau/tableauCalculations';
 import { autoAssignReferees } from '../../../shared/utils/refereeStats';
+import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
+import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
 import { TableauViewProps } from '../../components/tableau/tableauViewShared';
 import { useTableauViewState } from './useTableauViewState';
 
@@ -76,6 +78,8 @@ export function useTableauViewScoring(ctx: Ctx) {
     tieBreakByVictory,
     editingConsolationId,
     undo,
+    competitionId,
+    weapon,
   } = ctx;
 
   useEffect(() => {
@@ -261,6 +265,38 @@ export function useTableauViewScoring(ctx: Ctx) {
       });
     };
 
+    // Durée, touches par zone (Sabre Laser) et cartons simulés des matchs remplis (tableau principal,
+    // id DB composite) : alimentent l'analytique
+    const persistSimulated = (list: TableauMatch[]) => {
+      if (!competitionId) return;
+      const entries = list
+        .filter(
+          m =>
+            m.winner &&
+            !m.isBye &&
+            m.fencerA &&
+            m.fencerB &&
+            m.scoreA != null &&
+            m.scoreB != null &&
+            !alreadyDone.has(m.id)
+        )
+        .map(m => {
+          const dbId = `${competitionId}-${m.id}`;
+          return {
+            matchId: dbId,
+            events: simulateMatchEvents({
+              matchId: dbId,
+              fencerAId: m.fencerA!.id,
+              fencerBId: m.fencerB!.id,
+              scoreA: m.scoreA!,
+              scoreB: m.scoreB!,
+              weapon,
+            }),
+          };
+        });
+      void persistSimulatedEvents(entries);
+    };
+
     // Toutes les places : barrages + tableau principal + tous les brackets de consolation.
     // La complétion est détectée par l'effet playAllPositions (matches + brackets).
     if (playAllPositions) {
@@ -275,6 +311,7 @@ export function useTableauViewScoring(ctx: Ctx) {
         updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
       );
       onMatchesChange(withAutoReferees(updatedMatches));
+      persistSimulated(updatedMatches);
       showToast(t('plural.scores_generated', { count: filledCount }), 'success');
       return;
     }
@@ -286,6 +323,7 @@ export function useTableauViewScoring(ctx: Ctx) {
     // Créer une copie profonde pour forcer React à re-renderer
     const matchesCopy = updatedMatches.map(m => ({ ...m }));
     onMatchesChange(matchesCopy);
+    persistSimulated(updatedMatches);
     showToast(t('plural.scores_generated', { count: filledCount }), 'success');
 
     // Vérifier si le tableau est complet

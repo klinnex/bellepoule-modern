@@ -287,6 +287,11 @@ export function registerDbHandlers({
     return db.updateMatchTiming(timing.matchId, timing.startTime, timing.endTime, timing.duration);
   });
 
+  ipcMain.handle('db:replaceSimulatedMatchEvents', async (_, matchId, events) => {
+    if (typeof matchId !== 'string' || !matchId) return false;
+    return db.replaceSimulatedMatchEvents(matchId, events ?? null);
+  });
+
   ipcMain.handle('db:getFencerHistory', async (_, fencerId) => {
     return db.getFencerHistory(fencerId);
   });

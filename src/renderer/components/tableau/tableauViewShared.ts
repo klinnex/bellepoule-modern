@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 import React from 'react';
-import { Fencer, PoolRanking } from '../../../shared/types';
+import { Fencer, PoolRanking, Weapon } from '../../../shared/types';
 import { TableauMatch, FinalResult, ConsolationBracket } from './tableauTypes';
 
 export interface BracketMatch {
@@ -40,6 +40,8 @@ export interface TableauViewProps {
   ) => void;
   onMatchRefereeChange?: (matchId: string, refereeId: string | null) => void;
   competitionId?: string;
+  /** Arme : zones de touches simulées (Sabre Laser) au remplissage automatique */
+  weapon?: Weapon;
   consolationBrackets?: ConsolationBracket[];
   onConsolationBracketsChange?: (brackets: ConsolationBracket[]) => void;
   readOnly?: boolean;

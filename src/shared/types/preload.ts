@@ -132,44 +132,20 @@ export interface MatchUpdateData {
 // Fighter Statistics Types
 // ============================================================================
 
-export interface MatchTouchData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  zone: string; // TargetZone: A | B | C
-  points: number;
-  timestamp: string; // ISO 8601
-  isValidInSuddenDeath?: boolean;
-  isReversed?: boolean;
-}
-
-export interface MatchCardData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  cardType: string; // 'yellow' | 'red' | 'black'
-  reason: string; // CardReason
-  cardGroup: number; // 1–4
-  timestamp: string; // ISO 8601
-  pointsAwarded: number;
-  resultingExclusion?: boolean;
-}
-
-export interface MatchTimingData {
-  matchId: string;
-  startTime: string | null; // ISO 8601
-  endTime: string | null; // ISO 8601
-  duration: number | null; // secondes
-}
-
-export interface ArenaExitData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  exitType: 'arena_exit' | 'arena_exit_voluntary';
-  timestamp: string; // ISO 8601
-  pointsAwarded: number;
-}
+export type {
+  MatchTouchData,
+  MatchCardData,
+  MatchTimingData,
+  SimulatedMatchEvents,
+  ArenaExitData,
+} from './matchEvents';
+import type {
+  MatchTouchData,
+  MatchCardData,
+  MatchTimingData,
+  SimulatedMatchEvents,
+  ArenaExitData,
+} from './matchEvents';
 
 export type { FencerCompetitionStats };
 
@@ -845,6 +821,11 @@ export interface DatabaseAPI {
   saveTouch: (touch: MatchTouchData) => Promise<void>;
   saveCard: (card: MatchCardData) => Promise<void>;
   updateMatchTiming: (timing: MatchTimingData) => Promise<void>;
+  /** Remplissage automatique : remplace touches/cartons/timing simulés (null = effacer). false si match absent */
+  replaceSimulatedMatchEvents: (
+    matchId: string,
+    events: SimulatedMatchEvents | null
+  ) => Promise<boolean>;
   getFencerHistory: (fencerId: string) => Promise<FencerHistory>;
   saveArenaExit: (exit: ArenaExitData) => Promise<void>;
   getFencerCompetitionStats: (fencerId: string) => Promise<FencerCompetitionStats>;
