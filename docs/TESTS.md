@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 89 | 449 |
+| `src/renderer/components/` | 90 | 451 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 369 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **362** | **2759** |
+| **Total** | **363** | **2761** |
 
-Unitaires : 352 fichiers, 2720 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 353 fichiers, 2722 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4365,6 +4365,15 @@ Unitaires : 352 fichiers, 2720 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton désactivé + lame affichée pendant le téléchargement
   - erreur %s : message explicite (plus de clic muet) _(each)_
   - ses styles sont dans une feuille chargée (components.css)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 2 tests</summary>
+
+- **AnalyticsCharts — zones données / reçues**
+  - affiche les mannequins des touches données et reçues, filtrables par tireur
+  - filtre par club
 
 </details>
 
