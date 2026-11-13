@@ -18,6 +18,7 @@ import {
   RapieresTeamInfo,
 } from './rapieres.types';
 import { rapieresTeamCategory, rapieresTeamGender } from './rapieresAge';
+import { classicMatchOrder, classicWaves } from './rapieresClassicOrder';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
 
@@ -159,8 +160,67 @@ export function waveMatchOrder(poolFencers: Fencer[]): [number, number][] {
   ]);
 }
 
+/**
+ * Vagues de l'ordre classique (#1816) : appliquées quand les matchs de la poule suivent
+ * exactement la table classique de sa taille (numéros de match), null sinon.
+ */
+function classicPoolWaves(pool: Pool): Map<string, number> | null {
+  const waves = classicWaves(pool.fencers.length);
+  if (!waves) return null;
+  const flat = waves.flatMap((pairs, w) => pairs.map(pair => ({ pair, wave: w + 1 })));
+  const matches = pool.matches
+    .filter(m => m.fencerA && m.fencerB)
+    .sort((a, b) => a.number - b.number);
+  if (matches.length !== flat.length) return null;
+  const index = new Map(pool.fencers.map((f, i) => [f.id, i + 1]));
+  const result = new Map<string, number>();
+  for (let i = 0; i < matches.length; i++) {
+    const a = index.get(matches[i].fencerA!.id);
+    const b = index.get(matches[i].fencerB!.id);
+    const [x, y] = flat[i].pair;
+    if (!((a === x && b === y) || (a === y && b === x))) return null;
+    result.set(matches[i].id, flat[i].wave);
+  }
+  return result;
+}
+
+/**
+ * Ordre classique (#1816) : matchs renumérotés et orientés selon la table de la taille de
+ * poule (ids conservés, scores suivant l'orientation). Poule sans table : inchangée.
+ */
+export function applyClassicOrder(pool: Pool): Pool {
+  const order = classicMatchOrder(pool.fencers.length);
+  if (!order) return pool;
+  const byPair = new Map(
+    pool.matches
+      .filter(m => m.fencerA && m.fencerB)
+      .map(m => [pairKey(m.fencerA!.id, m.fencerB!.id), m])
+  );
+  const matches = order.map(([a, b], i) => {
+    const fencerA = pool.fencers[a - 1];
+    const fencerB = pool.fencers[b - 1];
+    const match = byPair.get(pairKey(fencerA.id, fencerB.id));
+    if (!match) return null;
+    const swapped = match.fencerA!.id !== fencerA.id;
+    return swapped
+      ? {
+          ...match,
+          number: i + 1,
+          fencerA,
+          fencerB,
+          scoreA: match.scoreB,
+          scoreB: match.scoreA,
+        }
+      : { ...match, number: i + 1 };
+  });
+  if (matches.some(m => !m)) return pool;
+  return { ...pool, matches: matches as Pool['matches'] };
+}
+
 /** Vague de chaque match d'une poule (id du match → numéro de vague) */
 export function poolMatchWaves(pool: Pool): Map<string, number> {
+  const classic = classicPoolWaves(pool);
+  if (classic) return classic;
   const waveOf = new Map(
     scheduleWaves(pool.fencers.map(f => f.id)).map(b => [pairKey(b.teamAId, b.teamBId), b.wave])
   );

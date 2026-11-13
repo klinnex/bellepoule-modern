@@ -51,6 +51,8 @@ export function useRapieresViewProps(teams: Record<string, RapieresTeamInfo>, t:
           };
         },
         customMatchOrder: waveMatchOrder,
+        /** Numéro de couleur = numéro de l'équipe dans la liste d'appel (#1816) */
+        positionOf: (f: Fencer) => f.ref,
       },
     };
   }, [teams, t]);
