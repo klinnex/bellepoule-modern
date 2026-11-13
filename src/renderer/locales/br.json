@@ -202,6 +202,8 @@
     "prep_sep_nation": "Broad",
     "prep_sep_title_on": "Tevet {{n}} — gweredekaet (klik : gweredekaat / diweredekaat, riklañ : adurzhiañ)",
     "prep_sep_title_off": "Tevet {{n}} — diweredekaet (klik : gweredekaat / diweredekaat, riklañ : adurzhiañ)",
+    "prep_sep_ranking": "Renkadur",
+    "prep_sep_title_ranking": "Tevet {{n}} — renkadur (bepred gweredekaet). Dezverkoù war-lerc'h : eskemm er c'hapell hepken. Riklañ evit adurzhiañ",
     "prep_skip_pools": "Mont d’ar renkadur kentañ",
     "prep_launch": "Loc'hañ ar poulloù",
     "prep_strip_duplicate": "Leurenn roet da veur a boull",

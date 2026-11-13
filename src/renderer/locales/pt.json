@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nação",
     "prep_sep_title_on": "Prioridade {{n}} — ativa (clique: alternar, arraste: reordenar)",
     "prep_sep_title_off": "Prioridade {{n}} — inativa (clique: alternar, arraste: reordenar)",
+    "prep_sep_ranking": "Ranking",
+    "prep_sep_title_ranking": "Prioridade {{n}} — ranking (sempre ativo). Critérios seguintes: troca apenas no pote. Arraste para reordenar",
     "prep_skip_pools": "Ir para a classificação inicial",
     "prep_launch": "Lançar as poules",
     "prep_strip_duplicate": "Pista atribuída a várias poules",

@@ -202,6 +202,8 @@
     "prep_sep_nation": "Nazione",
     "prep_sep_title_on": "Priorità {{n}} — attiva (clic: attiva / disattiva, trascina: riordina)",
     "prep_sep_title_off": "Priorità {{n}} — disattivata (clic: attiva / disattiva, trascina: riordina)",
+    "prep_sep_ranking": "Classifica",
+    "prep_sep_title_ranking": "Priorità {{n}} — classifica (sempre attiva). Criteri successivi: scambio solo nell'urna. Trascina per riordinare",
     "prep_skip_pools": "Passa alla classifica iniziale",
     "prep_launch": "Avvia i gironi",
     "prep_strip_duplicate": "Pedana assegnata a più gironi",
