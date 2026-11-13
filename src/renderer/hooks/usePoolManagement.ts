@@ -594,9 +594,11 @@ export const usePoolManagement = ({
             if (pool.matches[matchIdx].id === matchId) {
               matchFound = true;
               const match = pool.matches[matchIdx];
-              // Pour le tirage au sort : scores égaux mais vainqueur explicite
+              // Le vainqueur transmis par le serveur fait foi, comme au tableau : tirage au sort
+              // (scores égaux), mais aussi abandon / exclusion signalés par l'appareil de piste
+              // (#1720), où le perdant peut mener au score
               const winner =
-                scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : (winnerOverride ?? null);
+                winnerOverride ?? (scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null);
 
               const updatedPool = { ...pool };
               const updatedMatches = [...pool.matches];
