@@ -1260,7 +1260,20 @@
     "col_handedness": "Dorn",
     "handedness_left": "Dorn kleiz",
     "handedness_right": "Dorn dehou",
-    "touches_received": "Resevet"
+    "touches_received": "Resevet",
+    "charts": "Grafikoù",
+    "club_details": "Munudoù dre glub",
+    "club_summary": "Diverradenn dre glub",
+    "no_club": "Hep klub",
+    "points_given": "Poentoù merket",
+    "points_received": "Poentoù resevet",
+    "touches_given_title": "Taolioù roet",
+    "touches_per_match": "Taolioù dre emgann",
+    "touches_received_title": "Taolioù resevet",
+    "victories_defeats": "T / K",
+    "zone_a_label": "Dorn + dornell ar sabrenn",
+    "zone_b_label": "Brec'h pe gar",
+    "zone_c_label": "Kof pe penn"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",

@@ -1260,7 +1260,20 @@
     "col_handedness": "Latéralité",
     "handedness_left": "Gaucher",
     "handedness_right": "Droitier",
-    "touches_received": "Reçues"
+    "touches_received": "Reçues",
+    "charts": "Graphiques",
+    "club_details": "Détail par club",
+    "club_summary": "Résumé par club",
+    "no_club": "Sans club",
+    "points_given": "Points marqués",
+    "points_received": "Points reçus",
+    "touches_given_title": "Touches données",
+    "touches_per_match": "Touches par match",
+    "touches_received_title": "Touches reçues",
+    "victories_defeats": "V / D",
+    "zone_a_label": "Main + manche du sabre",
+    "zone_b_label": "Bras ou jambe",
+    "zone_c_label": "Tronc ou tête"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",

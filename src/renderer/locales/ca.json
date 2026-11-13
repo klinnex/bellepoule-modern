@@ -1260,7 +1260,20 @@
     "col_handedness": "Lateralitat",
     "handedness_left": "Esquerrà",
     "handedness_right": "Dretà",
-    "touches_received": "Rebuts"
+    "touches_received": "Rebuts",
+    "charts": "Gràfics",
+    "club_details": "Detall per club",
+    "club_summary": "Resum per club",
+    "no_club": "Sense club",
+    "points_given": "Punts marcats",
+    "points_received": "Punts rebuts",
+    "touches_given_title": "Tocs donats",
+    "touches_per_match": "Tocs per combat",
+    "touches_received_title": "Tocs rebuts",
+    "victories_defeats": "V / D",
+    "zone_a_label": "Mà + empunyadura del sabre",
+    "zone_b_label": "Braç o cama",
+    "zone_c_label": "Tronc o cap"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
