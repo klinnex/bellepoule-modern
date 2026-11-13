@@ -415,12 +415,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   const handleExportReport = async () => {
     setExporting(true);
     try {
-      const [fencerStats, matchesWithRefs] = await Promise.all([
-        window.electronAPI.db.getCompetitionFencerStats(competition.id),
-        window.electronAPI.db.getMatchesWithReferees(competition.id),
-      ]);
-      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-      await exportPostTournamentPDF(competition, fencerStats, matchesWithRefs, logo);
+      const source = { matches, tableauMatches, fencers, overallRanking, finalResults };
+      await exportPostTournamentPDF(competition, source);
     } catch (e) {
       showToast(`${t('fencerList.export_error')} : ${e instanceof Error ? e.message : e}`, 'error');
     } finally {
