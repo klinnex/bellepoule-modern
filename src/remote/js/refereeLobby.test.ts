@@ -168,6 +168,34 @@ describe('refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#
   });
 });
 
+describe('refereeLobby.js : bouton Lobby (#1808)', () => {
+  it('remplace « Retour » (masqué) avec le même style', () => {
+    const row = { insertBefore: vi.fn() };
+    const back = {
+      className: 'inl-fc7f64',
+      hidden: false,
+      style: {} as Record<string, string>,
+      parentNode: row,
+    };
+    const created = { style: {}, className: '', addEventListener: vi.fn() } as Record<
+      string,
+      unknown
+    >;
+    const doc = {
+      getElementById: (id: string) => (id === 'btn-back-to-list' ? back : null),
+      createElement: () => created,
+    };
+    const onClick = vi.fn();
+    expect(L.addButton(doc, onClick)).toBe(created);
+    expect(created.className).toBe('inl-fc7f64');
+    expect(created.id).toBe('btn-lobby');
+    expect(back.hidden).toBe(true);
+    expect(back.style.display).toBe('none');
+    expect(row.insertBefore).toHaveBeenCalledWith(created, back);
+    expect(created.addEventListener).toHaveBeenCalledWith('click', onClick);
+  });
+});
+
 describe('referee.html et trainingLobby.html (#1500)', () => {
   const dir = path.join(__dirname, '..');
   const referee =

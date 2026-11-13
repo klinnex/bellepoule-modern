@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { Competition, Fencer, Pool, PoolRanking, FencerStatus } from '../../shared/types';
+import { Competition, Fencer, Pool, PoolRanking, FencerStatus, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { FinalResult } from '../components/tableau/tableauTypes';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
@@ -81,9 +81,17 @@ interface UseExportProps {
   tableauMatches?: TableauMatchForXML[];
   /** Tireurs courants : statut / carton noir à jour pour le classement du XML (#1418) */
   fencers?: Fencer[];
+  /** Arbitres courants : liste + affectations publiées sur GREG (#1328) */
+  referees?: Referee[];
 }
 
-export const useExport = ({ competition, showToast, tableauMatches, fencers }: UseExportProps) => {
+export const useExport = ({
+  competition,
+  showToast,
+  tableauMatches,
+  fencers,
+  referees,
+}: UseExportProps) => {
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
 
   // Helper pour télécharger un fichier
@@ -367,7 +375,8 @@ export const useExport = ({ competition, showToast, tableauMatches, fencers }: U
           finalResults,
           pools,
           tableauMatches,
-          fencers
+          fencers,
+          referees
         );
         // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
         if (
@@ -416,7 +425,7 @@ export const useExport = ({ competition, showToast, tableauMatches, fencers }: U
         );
       }
     },
-    [competition, downloadFile, showToast, tableauMatches, fencers]
+    [competition, downloadFile, showToast, tableauMatches, fencers, referees]
   );
 
   // Export statistiques détaillées CSV

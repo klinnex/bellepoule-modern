@@ -1,0 +1,112 @@
+/**
+ * BellePoule Modern - Arbitre : vue téléphone (#1808), chargée après le <style> de referee.html.
+ * Menu d'options (inversion, daltonisme, son) replié sur téléphone, VS au-dessus, chrono et sorties compacts.
+ * Licensed under GPL-3.0
+ */
+
+.header {
+  position: relative;
+  z-index: 55; /* menu téléphone au-dessus du bandeau de synchro (sticky, 50) */
+}
+.header-tools {
+  display: contents;
+}
+.header-menu-btn {
+  display: none;
+}
+
+/* Vue téléphone (#1808) : titre réduit, options dans un menu, VS au-dessus, chrono et sorties compacts */
+@media (max-width: 480px) {
+  .header {
+    padding: 0.5rem 0.75rem;
+  }
+  .header h1 {
+    font-size: 0.95rem;
+    gap: 0.3rem;
+    white-space: nowrap;
+  }
+  .connection-status {
+    gap: 0.35rem;
+    font-size: 0.75rem;
+  }
+  .header-menu-btn {
+    display: inline-block;
+  }
+  .header-tools {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0.5rem;
+    z-index: 60;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    border-radius: 0.6rem;
+    background: var(--ref-header-bg);
+    box-shadow: var(--shadow-lg);
+  }
+  .header-tools.open {
+    display: flex;
+  }
+  .header-tools .swap-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .main-container {
+    padding: 0.5rem;
+  }
+  .fencers-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+  .card-buttons {
+    gap: 0.25rem;
+  }
+  .card-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.5rem 0;
+  }
+  .vs-divider {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .fencers-container .fencer-box {
+    grid-row: 2;
+  }
+  .timer-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .timer-display {
+    font-size: 2.6rem;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.6rem;
+    margin-bottom: 0.25rem;
+    max-width: 100%;
+  }
+  .rest-btn {
+    order: 2;
+    margin-bottom: 0;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+  }
+  .timer-hint {
+    display: none;
+  }
+  .btn-arena-exit-red,
+  .btn-arena-exit-green {
+    font-size: 0.68rem;
+    padding: 0.4rem 0.25rem;
+    min-height: 44px;
+  }
+  .control-buttons-extra .btn-undo {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.25rem;
+  }
+}

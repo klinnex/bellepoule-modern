@@ -11,6 +11,7 @@ import {
   FencerStatus,
   MatchStatus,
   MatchEventEntry,
+  Referee,
 } from '../types';
 import { getActiveLocale } from './localeFormat';
 import { applyBlackCardRanking } from './blackCardRanking';
@@ -246,6 +247,11 @@ export interface TableauMatchForXML {
   scoreA: number | null;
   scoreB: number | null;
   isBye: boolean;
+  /** Piste du match (#1328) */
+  arena?: number | null;
+  /** Arbitre principal + arbitres multiples (#1328 : publiés sur GREG) */
+  referee?: { id: string } | null;
+  referees?: Array<{ id: string }>;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -299,7 +305,8 @@ export function exportResultsXMLFFE(
   finalResults: any[],
   pools?: Pool[],
   tableauMatches?: TableauMatchForXML[],
-  fencers?: Fencer[]
+  fencers?: Fencer[],
+  referees?: Referee[]
 ): string {
   // Carton noir (#1418) : rang NULL (attribut vide), les suivants remontent, ex aequo départagés
   // par le rang de poules. `fencers` (liste courante) rafraîchit statut / motif des instantanés.
@@ -323,6 +330,22 @@ export function exportResultsXMLFFE(
   )) {
     finalRankMap.set(r.fencer.id, r.rank);
   }
+
+  // Arbitres (#1328) : liste courante prioritaire sur l'instantané de la compétition
+  const allReferees = new Map<string, Referee>();
+  for (const a of [...(competition.referees ?? []), ...(referees ?? [])]) allReferees.set(a.id, a);
+  const refereeRefs = (list: Array<{ id: string } | null | undefined>): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const r of list) {
+      const ref = r ? allReferees.get(r.id)?.ref : undefined;
+      if (r && ref != null && !seen.has(r.id)) {
+        seen.add(r.id);
+        out.push(`<Arbitre REF="${ref}"/>`);
+      }
+    }
+    return out;
+  };
 
   const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
   const settings = competition.settings;
@@ -388,7 +411,7 @@ export function exportResultsXMLFFE(
   lines.push(' <Equipes/>');
 
   lines.push(' <Arbitres>');
-  for (const a of competition.referees || []) {
+  for (const a of allReferees.values()) {
     lines.push(
       `  <Arbitre` +
         ` ID="${a.ref}"` +
@@ -429,7 +452,9 @@ export function exportResultsXMLFFE(
       }
     }
     for (const pool of pools) {
-      lines.push(`   <Poule ID="${pool.number}">`);
+      lines.push(
+        `   <Poule ID="${pool.number}"${pool.strip != null ? ` Piste="${pool.strip}"` : ''}>`
+      );
       pool.fencers.forEach((f, idx) => {
         const pr = pool.ranking.find(r => r.fencer.id === f.id);
         lines.push(
@@ -438,6 +463,7 @@ export function exportResultsXMLFFE(
             ` TD="${pr?.touchesScored ?? 0}" TR="${pr?.touchesReceived ?? 0}" RangPoule="${pr?.rank ?? ''}"/>`
         );
       });
+      for (const a of refereeRefs(pool.referees ?? [])) lines.push(`    ${a}`);
       let matchId = 1;
       for (const match of pool.matches) {
         if (!match.fencerA || !match.fencerB || match.status !== MatchStatus.FINISHED) continue;
@@ -468,6 +494,7 @@ export function exportResultsXMLFFE(
         lines.push(
           `     <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`
         );
+        for (const a of refereeRefs([match.referee])) lines.push(`     ${a}`);
         lines.push(`    </Match>`);
       }
       lines.push(`   </Poule>`);
@@ -504,13 +531,15 @@ export function exportResultsXMLFFE(
         }
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
-        lines.push(`     <Match ID="${idx + 1}">`);
+        const piste = m.arena != null ? ` Piste="${m.arena}"` : '';
+        lines.push(`     <Match ID="${idx + 1}"${piste}>`);
         lines.push(
           `      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`
         );
         lines.push(
           `      <Tireur REF="${m.fencerB.ref}" Score="${m.scoreB ?? 0}" Statut="${stB}"/>`
         );
+        for (const a of refereeRefs([m.referee, ...(m.referees ?? [])])) lines.push(`      ${a}`);
         lines.push(`     </Match>`);
       });
       lines.push(`    </Tableau>`);

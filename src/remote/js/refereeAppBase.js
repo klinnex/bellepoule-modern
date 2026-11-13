@@ -1201,7 +1201,7 @@ class RefereeAppBase {
       waitingCoinFlip: this.waitingCoinFlip,
     };
     this.actionHistory.push(snapshot);
-    if (this.actionHistory.length > 10) this.actionHistory.shift();
+    if (this.actionHistory.length > 20) this.actionHistory.shift(); // 20 dernières actions (#1808)
     document.getElementById('btn-undo').disabled = false;
   }
 

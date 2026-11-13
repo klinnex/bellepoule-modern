@@ -1,7 +1,7 @@
 /**
  * BellePoule Modern - Arbitre : lien avec le lobby du mode entraînement (#1500).
- * Hors entraînement : aucun effet. En entraînement : occupe la piste, ajoute le bouton « Lobby »
- * (à l'opposé de « Retour »), signale l'activité, libère la piste au retour lobby, à la
+ * Hors entraînement : aucun effet. En entraînement : occupe la piste, remplace « Retour » par « Lobby »
+ * (même style, #1808), signale l'activité, libère la piste au retour lobby, à la
  * fermeture de la page et après 3 minutes d'inactivité (retour forcé vers le lobby).
  * Script classique : window.BPRefereeLobby. Servi en /js (CSP 'self').
  * Licensed under GPL-3.0
@@ -109,18 +109,21 @@
     });
   }
 
-  /** Insère le bouton « Lobby » à gauche, « Retour » restant à droite */
+  /**
+   * Entraînement (#1808) : « Lobby » prend la place de « Retour » (masqué) avec le même style
+   */
   function addButton(doc, onClick) {
     var back = doc.getElementById('btn-back-to-list');
     if (!back || !back.parentNode || doc.getElementById('btn-lobby')) return null;
     var row = back.parentNode;
-    row.style.justifyContent = 'space-between';
     var btn = doc.createElement('button');
     btn.id = 'btn-lobby';
     btn.type = 'button';
-    btn.setAttribute('style', back.getAttribute('style') || '');
-    btn.textContent = root.T ? root.T('referee.lobby') : '← Lobby';
-    btn.title = root.T ? root.T('referee.lobby_title') : 'Lobby';
+    btn.className = back.className;
+    back.hidden = true;
+    back.style.display = 'none';
+    btn.textContent = root && root.T ? root.T('referee.lobby') : '← Lobby';
+    btn.title = root && root.T ? root.T('referee.lobby_title') : 'Lobby';
     btn.addEventListener('click', onClick);
     row.insertBefore(btn, back);
     return btn;
@@ -204,6 +207,7 @@
 
   var api = {
     arenaFromPath: arenaFromPath,
+    addButton: addButton,
     autoOpen: autoOpen,
     fromLobby: fromLobby,
     pickMatch: pickMatch,

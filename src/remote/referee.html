@@ -1421,7 +1421,7 @@
         font-size: 1.2rem;
         padding: 0.9rem 2rem;
       }
-    </style>
+    </style><link rel="stylesheet" href="/refereePhone.css" />
   </head>
   <body>
     <div class="header">
@@ -1430,8 +1430,9 @@
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
+        <button type="button" id="btn-header-menu" class="swap-btn header-menu-btn" aria-expanded="false" aria-controls="header-tools" aria-label="Options d'affichage" data-i18n-aria-label="referee.display_options" data-i18n-title="referee.display_options" title="Options d'affichage"><span data-icon="settings"></span></button><div class="header-tools" id="header-tools">
         <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button></div>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1472,7 +1473,6 @@
           <button aria-label="Retour à la liste des matchs" data-i18n-aria-label="referee.back_title"
             id="btn-back-to-list"
             data-click="reloadIfIdle"
-           
             title="Retour à la liste des matchs"
             data-i18n="referee.back" data-i18n-title="referee.back_title"
            class="inl-fc7f64">← Retour</button>

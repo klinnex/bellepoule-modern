@@ -283,6 +283,7 @@ export function useCompetitionCore(ctx: Ctx) {
     showToast,
     tableauMatches,
     fencers,
+    referees,
   });
   const { exportPoolsPDF, printPoolsPDF, exportResultsXML } = exports;
 

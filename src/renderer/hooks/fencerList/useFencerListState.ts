@@ -401,6 +401,7 @@ export function useFencerListState(ctx: Ctx) {
     showToast(t('fencerList.status_changed', { name }), 'info', {
       duration: 5000,
       action: { label: t('fencerList.undo'), onClick: () => onSetFencerStatus(id, previous) },
+      undo: true, // Ctrl+Z (#1535)
     });
   };
 

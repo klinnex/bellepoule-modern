@@ -1,7 +1,8 @@
 /**
- * BellePoule Modern - Arbitre : retour sonore optionnel et bouton « Annuler la touche » temporaire (#1539)
- * - Son : désactivé par défaut, activable par #btn-sound (préférence locale `bp_ref_sound`)
- * - Après une touche : bouton d'annulation visible quelques secondes (#undo-toast)
+ * BellePoule Modern - Arbitre : retour sonore optionnel (#1539) et menu d'options sur téléphone (#1808)
+ * - Son : bip court à chaque touche, désactivé par défaut, activable par #btn-sound
+ *   (préférence locale `bp_ref_sound`). Distinct de la voix (#btn-tts-toggle, annonces du chrono).
+ * - Le bouton « Annuler la touche » temporaire est retiré (#1808) : doublon du bouton « Annuler »
  * Servi en /js/refereeFeedback.js (CSP 'self').
  * Licensed under GPL-3.0
  */
@@ -9,7 +10,6 @@
   'use strict';
 
   const SOUND_KEY = 'bp_ref_sound';
-  const UNDO_MS = 5000;
   const BEEP_HZ = { 1: 660, 3: 880, 5: 1100 };
 
   function readSound(storage) {
@@ -49,57 +49,8 @@
     }
   }
 
-  /**
-   * Affiche le bouton d'annulation pour `ms` millisecondes ; un nouvel appel remplace le précédent.
-   * @param {Document} doc
-   * @param {(k:string)=>string} T traduction
-   * @param {() => void} onUndo
-   */
-  function showUndoToast(doc, T, onUndo, ms, timers) {
-    // Fonctions fléchées : setTimeout natif exige this === window (sinon « Illegal invocation », #1716)
-    const t = timers || {
-      set: (fn, delay) => setTimeout(fn, delay),
-      clear: id => clearTimeout(id),
-    };
-    let box = doc.getElementById('undo-toast');
-    if (!box) {
-      box = doc.createElement('div');
-      box.id = 'undo-toast';
-      box.className = 'undo-toast';
-      box.setAttribute('role', 'group');
-      const btn = doc.createElement('button');
-      btn.type = 'button';
-      btn.className = 'control-btn btn-undo undo-toast-btn';
-      box.appendChild(btn);
-      doc.body.appendChild(box);
-    }
-    const btn = box.firstChild;
-    const win = doc.defaultView;
-    const icon = win && typeof win.bpIcon === 'function' ? win.bpIcon : () => '';
-    const svg = icon('undo');
-    btn.textContent = '';
-    btn.insertAdjacentHTML('beforeend', svg);
-    btn.appendChild(doc.createTextNode((svg ? ' ' : '') + T('referee.undo_touch')));
-    btn.onclick = () => {
-      hideUndoToast(doc, t);
-      onUndo();
-    };
-    box.hidden = false;
-    if (box._timer) t.clear(box._timer);
-    box._timer = t.set(() => hideUndoToast(doc, t), ms || UNDO_MS);
-    return box;
-  }
-
-  function hideUndoToast(doc, timers) {
-    const box = doc.getElementById('undo-toast');
-    if (!box) return;
-    if (box._timer && timers) timers.clear(box._timer);
-    box._timer = null;
-    box.hidden = true;
-  }
-
   /** À appeler après l'enregistrement d'une touche */
-  function afterScore(app, points) {
+  function afterScore(_app, points) {
     const w = root;
     if (!w || !w.document) return;
     let storage = null;
@@ -109,11 +60,34 @@
       storage = null;
     }
     if (readSound(storage)) beep(w, points);
-    showUndoToast(
-      w.document,
-      k => (w.T ? w.T(k) : k),
-      () => app.undoLastAction()
-    );
+  }
+
+  /**
+   * Vue téléphone (#1808) : #btn-header-menu ouvre/ferme #header-tools (inversion, daltonisme, son).
+   * Hors téléphone, le CSS affiche les options en ligne et masque ce bouton.
+   */
+  function initHeaderMenu(doc) {
+    const btn = doc.getElementById('btn-header-menu');
+    const tools = doc.getElementById('header-tools');
+    if (!btn || !tools) return false;
+    const setOpen = open => {
+      tools.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      setOpen(!tools.classList.contains('open'));
+    });
+    doc.addEventListener('click', e => {
+      if (tools.classList.contains('open') && !tools.contains(e.target)) setOpen(false);
+    });
+    doc.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && tools.classList.contains('open')) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    return true;
   }
 
   function paintSoundButton(btn, on) {
@@ -127,15 +101,7 @@
     const w = win || (typeof window !== 'undefined' ? window : null);
     if (!w || !w.document) return null;
     const doc = w.document;
-    if (!doc.querySelector('style[data-bp="ref-feedback"]')) {
-      const st = doc.createElement('style');
-      st.setAttribute('data-bp', 'ref-feedback');
-      st.textContent =
-        '.undo-toast{position:fixed;left:0;right:0;bottom:1rem;z-index:50;display:flex;justify-content:center;pointer-events:none}' +
-        '.undo-toast[hidden]{display:none}' +
-        '.undo-toast-btn{pointer-events:auto;min-height:56px;padding:0.75rem 2rem;box-shadow:var(--shadow-lg)}';
-      doc.head.appendChild(st);
-    }
+    initHeaderMenu(doc);
     let storage = null;
     try {
       storage = w.localStorage;
@@ -156,12 +122,10 @@
     readSound,
     writeSound,
     beep,
-    showUndoToast,
-    hideUndoToast,
     afterScore,
+    initHeaderMenu,
     init,
     SOUND_KEY,
-    UNDO_MS,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPRefereeFeedback = api;
