@@ -25,6 +25,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { filterCompetitions } from './competitionListSearch';
+import { SearchDialogButton, SearchDialogButtonHandle } from './common/SearchDialogButton';
 import {
   PINNED_KEY,
   RECENT_KEY,
@@ -94,7 +95,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     if (ok) onDelete(competition.id);
   };
   const [query, setQuery] = React.useState('');
-  const searchRef = React.useRef<HTMLInputElement>(null);
+  const searchRef = React.useRef<SearchDialogButtonHandle>(null);
   const [filters, setFilters] = React.useState(emptyFilters);
   const [sort, setSort] = React.useState<CompetitionSort>(readSort);
   const visibleCompetitions = React.useMemo(
@@ -158,14 +159,14 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     endIndex,
   } = usePagination(visibleCompetitions, { defaultPageSize: 20 });
 
-  // Raccourci « / » : place le curseur dans la recherche (hors champs de saisie)
+  // Raccourci « / » : ouvre la boîte de recherche (hors champs de saisie)
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       e.preventDefault();
-      searchRef.current?.focus();
+      searchRef.current?.open();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -446,15 +447,22 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
       </div>
 
       <div className="competition-search">
-        <input
+        <SearchDialogButton
           ref={searchRef}
-          type="search"
-          className="form-input competition-search-input"
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={setQuery}
           placeholder={t('competitionList.search_placeholder')}
-          aria-label={t('competitionList.search_aria')}
-        />
+          ariaLabel={t('competitionList.search_aria')}
+        >
+          {query && (
+            <p className="competition-search-count" aria-live="polite">
+              {t('competitionList.search_count', {
+                shown: visibleCompetitions.length,
+                total: competitions.length,
+              })}
+            </p>
+          )}
+        </SearchDialogButton>
         <select
           className="form-select competition-sort"
           value={sort}

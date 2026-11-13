@@ -20,6 +20,7 @@ import {
   Sparkles,
   PlayCircle,
   HelpCircle,
+  Search,
 } from 'lucide-react';
 import { Competition, PhaseType, Weapon } from '../shared/types';
 import { restartGuidedTour } from './components/guidedTourFlags';
@@ -631,14 +632,15 @@ const AppContent: React.FC = () => {
           </div>
           {/* Ctrl+K hint — clickable (inutile tant qu'il n'y a rien à chercher) */}
           {!isEmptyHome && (
-            <button
-              className="header-search-hint"
-              onClick={() => setShowCommandPalette(true)}
-              title={t('app.palette_title')}
-            >
-              <span>{t('app.search')}</span>
-              <kbd>Ctrl K</kbd>
-            </button>
+            <Tooltip content={t('actions.search')} position="bottom">
+              <Button
+                variant="secondary"
+                icon={<Search size={15} aria-hidden="true" />}
+                onClick={() => setShowCommandPalette(true)}
+                aria-label={t('app.palette_title')}
+                aria-keyshortcuts="Control+K"
+              />
+            </Tooltip>
           )}
           <Tooltip content={t('shortcuts.show_help')} position="bottom">
             <Button
@@ -701,7 +703,6 @@ const AppContent: React.FC = () => {
                   const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length];
                   changeTheme(next);
                 }}
-
                 aria-label={`Thème : ${theme}`}
               >
                 <ThemeIcon theme={theme} />

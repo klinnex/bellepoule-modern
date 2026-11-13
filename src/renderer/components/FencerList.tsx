@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { Funnel, QrCode, Search, Trash2 } from 'lucide-react';
+import { Funnel, QrCode, Trash2 } from 'lucide-react';
+import { SearchDialogButton } from './common/SearchDialogButton';
 import { Icon } from './common/Icon';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import EditFencerModal from './EditFencerModal';
@@ -390,28 +391,11 @@ const FencerListComponent: React.FC<FencerListProps> = (props: FencerListProps) 
       )}
 
       {fencers.length > 0 && (
-        <div className="is-022f27">
-          <span
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              fontSize: '0.875rem',
-              color: 'var(--text-muted, var(--color-text-light))',
-              pointerEvents: 'none',
-              userSelect: 'none',
-            }}
-          >
-            <Icon icon={Search} />
-          </span>
-          <input
-            type="text"
-            className="form-input"
-            style={{ width: '100%', paddingLeft: '2.25rem', boxSizing: 'border-box' }}
-            placeholder={t('fencerList.search_placeholder')}
+        <div className="fencer-search-bar">
+          <SearchDialogButton
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
+            placeholder={t('fencerList.search_placeholder')}
           />
         </div>
       )}

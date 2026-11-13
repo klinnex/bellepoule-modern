@@ -51,6 +51,7 @@ describe('FencerList', () => {
 
   it('filtre via la recherche (debounce)', async () => {
     setup();
+    fireEvent.click(screen.getByRole('button', { name: 'actions.search' }));
     fireEvent.change(screen.getByPlaceholderText('fencerList.search_placeholder'), {
       target: { value: 'martin' },
     });

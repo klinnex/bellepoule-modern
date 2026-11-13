@@ -10,11 +10,6 @@
   margin-bottom: var(--space-4);
 }
 
-.competition-search-input {
-  flex: 1;
-  max-width: 28rem;
-}
-
 .competition-search-count {
   font-size: var(--fs-sm);
   color: var(--color-text-light);
@@ -118,4 +113,45 @@
 .competition-recent-date {
   font-size: var(--fs-sm);
   color: var(--color-text-light);
+}
+
+/* Recherche compacte : loupe + boîte de dialogue */
+.search-dialog-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search-dialog-btn.is-active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.search-dialog-term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+  font-size: var(--fs-sm);
+}
+
+.search-dialog-term button {
+  background: none;
+  border: 0;
+  padding: 0.125rem;
+  cursor: pointer;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-dialog-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fencer-search-bar {
+  margin-bottom: 1rem;
 }
