@@ -26,7 +26,17 @@ const Harness: React.FC = () => {
 };
 
 describe('RemoteFoldAllButton', () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('bellepoule_remote_collapsed_sections', '[]');
+  });
+
+  it('volets repliés par défaut sans état mémorisé', () => {
+    localStorage.clear();
+    render(<Harness />);
+    expect(screen.queryAllByText(/^body-/)).toHaveLength(0);
+    expect(screen.getByText('rsm.expand_all')).toBeTruthy();
+  });
 
   it('tout replier puis tout déplier', () => {
     render(<Harness />);

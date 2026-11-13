@@ -1,4 +1,4 @@
-// Volets dépliables de la page de saisie distante (état replié mémorisé localement)
+// Volets dépliables de la page de saisie distante (repliés par défaut, état mémorisé localement)
 import React, { useCallback, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Icon } from '../common/Icon';
@@ -33,6 +33,8 @@ const SECTION_LABEL_KEYS: Record<RemoteSectionId, string> = {
   screens: 'rsm.sec_screens',
 };
 
+const ALL_SECTIONS = Object.keys(SECTION_LABEL_KEYS) as RemoteSectionId[];
+
 function persist(next: RemoteSectionId[]) {
   try {
     localStorage.setItem(REMOTE_FOLDS_STORAGE_KEY, JSON.stringify(next));
@@ -44,12 +46,14 @@ function persist(next: RemoteSectionId[]) {
 function readCollapsed(): RemoteSectionId[] {
   try {
     const raw = localStorage.getItem(REMOTE_FOLDS_STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    // Aucun état mémorisé : tous les volets repliés par défaut
+    if (raw === null) return [...ALL_SECTIONS];
+    const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed)
       ? (parsed.filter(v => typeof v === 'string') as RemoteSectionId[])
       : [];
   } catch {
-    return [];
+    return [...ALL_SECTIONS];
   }
 }
 
