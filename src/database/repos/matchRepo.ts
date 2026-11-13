@@ -28,6 +28,23 @@ function storedValue(score: StoredScore): number | null {
   return null;
 }
 
+/**
+ * Marques d'abandon, d'exclusion et de forfait déjà en base, reportées sur un score réenregistré
+ * qui ne les transporte pas (le tableau du renderer n'envoie que `value` et `isVictory`) :
+ * seulement si la valeur et le vainqueur sont inchangés, et sans écraser un `false` explicite.
+ */
+function keepScoreMarks(prev: StoredScore, next: StoredScore): StoredScore {
+  if (!prev || typeof prev !== 'object' || !next || typeof next !== 'object') return next;
+  const p = prev as Record<string, unknown>;
+  const n = next as Record<string, unknown>;
+  if (storedValue(p) !== storedValue(n) || !!p.isVictory !== !!n.isVictory) return next;
+  const marks: Record<string, true> = {};
+  for (const key of ['isAbstention', 'isExclusion', 'isForfait']) {
+    if (p[key] === true && !(key in n)) marks[key] = true;
+  }
+  return Object.keys(marks).length ? { ...n, ...marks } : next;
+}
+
 type ScoreAuditEntry = ReturnType<typeof parseAuditRow>;
 type BracketNodeRow = SqlRow & { isBye: boolean; isThirdPlace: boolean };
 
@@ -123,14 +140,16 @@ export class MatchRepo {
             reason: 'tableau_entry',
           });
         }
+        const scoreA = keepScoreMarks(prev?.a, m.scoreA);
+        const scoreB = keepScoreMarks(prev?.b, m.scoreB);
         stmt.run(
           dbId,
           parseInt(m.matchId.replace('-', '')) || 0,
           competitionId,
           m.fencerAId ?? null,
           m.fencerBId ?? null,
-          m.scoreA != null ? JSON.stringify(m.scoreA) : null,
-          m.scoreB != null ? JSON.stringify(m.scoreB) : null,
+          scoreA != null ? JSON.stringify(scoreA) : null,
+          scoreB != null ? JSON.stringify(scoreB) : null,
           m.maxScore ?? 15,
           m.status ?? 'not_started',
           m.round,

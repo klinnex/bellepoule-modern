@@ -554,13 +554,22 @@ describe('DatabaseManager', () => {
 describe('DatabaseManager — historique tableau (#927)', () => {
   let manager: DatabaseManager;
   let auditRuns: unknown[][];
+  let upsertRuns: unknown[][];
 
   const setup = async (existingRows: any[]) => {
     auditRuns = [];
+    upsertRuns = [];
     mockDb = {
       pragma: vi.fn(),
       exec: vi.fn(),
       prepare: vi.fn().mockImplementation((sql: string) => {
+        if (sql.includes('ON CONFLICT(id) DO UPDATE')) {
+          return makeStmt({
+            run: vi.fn().mockImplementation((...args: unknown[]) => {
+              upsertRuns.push(args);
+            }),
+          });
+        }
         if (sql.includes('INSERT INTO score_audit_log')) {
           return makeStmt({
             run: vi.fn().mockImplementation((...args: unknown[]) => {
@@ -620,6 +629,51 @@ describe('DatabaseManager — historique tableau (#927)', () => {
     await setup([]);
     manager.upsertMultipleTableauMatches('c1', [match(null, null)]);
     expect(auditRuns).toHaveLength(0);
+  });
+
+  // Colonnes de l'upsert : id, number, table_id, fencer_a, fencer_b, score_a, score_b, …
+  const storedScores = () => [5, 6].map(i => JSON.parse(upsertRuns[0][i] as string));
+
+  it('conserve la marque d’abandon déjà en base quand le renderer réenregistre le match', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true, isAbstention: false }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isAbstention: true }),
+      },
+    ]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 10)]);
+    expect(storedScores()).toEqual([
+      { value: 15, isVictory: true },
+      { value: 10, isVictory: false, isAbstention: true },
+    ]);
+  });
+
+  it('abandonne les marques si le score ou le vainqueur change', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isExclusion: true }),
+      },
+    ]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 12)]);
+    expect(storedScores()[1]).toEqual({ value: 12, isVictory: false });
+  });
+
+  it('respecte une marque explicitement remise à false', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isAbstention: true }),
+      },
+    ]);
+    const m = match(15, 10);
+    manager.upsertMultipleTableauMatches('c1', [
+      { ...m, scoreB: { ...m.scoreB!, isAbstention: false } },
+    ]);
+    expect(storedScores()[1]).toEqual({ value: 10, isVictory: false, isAbstention: false });
   });
 });
 
