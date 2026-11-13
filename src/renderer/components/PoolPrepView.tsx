@@ -73,6 +73,8 @@ interface PoolPrepViewProps {
   separationKeys?: Array<SeparationCriterionKey | 'byLevel' | 'byRanking'>;
   /** Affichage d'une ligne (rapières : nom d'équipe + bulle niveau) */
   fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
+  /** Numéro affiché devant le tireur (défaut : position dans la poule) — rapières : n° d'appel (#1816) */
+  positionOf?: (fencer: Fencer) => number | string | undefined;
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
   /** Brouillon conservé hors de la vue : modifications gardées au retour vers l'appel (#1649) */
@@ -120,6 +122,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   separationKeys,
   fencerDisplay,
   customMatchOrder,
+  positionOf,
   draft,
   onDraftChange,
 }) => {
@@ -964,7 +967,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex ? ' drop-before' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex + 1 && fencerIndex === pool.fencers.length - 1 ? ' drop-after' : ''}`}
                       >
                         <span className="pool-prep-drag-handle">⠿</span>
-                        <span className="pool-prep-position">{fencerIndex + 1}</span>
+                        <span className="pool-prep-position">
+                          {positionOf?.(fencer) ?? fencerIndex + 1}
+                        </span>
                         <span className="is-b2764b">
                           {display
                             ? display.label
