@@ -129,9 +129,12 @@ export async function startTrainingSession(
   return ctx.session;
 }
 
+/** Préfixe des identifiants de matchs d'entraînement (reconnus par updateMatchScore, #1500) */
+export const TRAINING_MATCH_PREFIX = 'training-';
+
 export function createTrainingMatch(): ArenaMatch {
   return {
-    id: `training-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `${TRAINING_MATCH_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     poolId: '__training__',
     fencerA: { id: 'training-A', firstName: '', lastName: 'Tireur A', club: '', ref: 0 } as Fencer,
     fencerB: { id: 'training-B', firstName: '', lastName: 'Tireur B', club: '', ref: 0 } as Fencer,

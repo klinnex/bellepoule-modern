@@ -138,6 +138,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                 <button
                   type="button"
                   className="comp-header-remote-btn"
+                  data-tour="open-remote"
                   onClick={onOpenRemote}
                   aria-current={currentPhase === 'remote' ? 'page' : undefined}
                 >

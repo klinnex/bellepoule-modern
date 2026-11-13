@@ -359,6 +359,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               {/* Même sélecteur de nationalité que l'ajout d'un tireur (#1504) */}
               <div aria-label={t('refereeManager.ph_nationality')}>
                 <NationalityPicker
+                  floating
                   value={newReferee.nationality || 'FRA'}
                   onChange={code => setNewReferee({ ...newReferee, nationality: code })}
                 />

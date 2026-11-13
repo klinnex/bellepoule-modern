@@ -8,6 +8,7 @@ import type { ArenaMatch, RemoteScoreUpdate, RemoteSession } from '../../shared/
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
+import { TRAINING_MATCH_PREFIX } from './trainingSession';
 
 type S = RemoteScoreServer;
 
@@ -132,7 +133,10 @@ export async function updateMatchScore(
   } else {
     // Match en mémoire uniquement (poule non persistée) : mettre à jour via Socket.IO
     const inMemory = ctx.sessionMatches.find(m => m.id === matchId);
-    if (!inMemory) {
+    // Match d'entraînement (lobby) : hors session, seule l'arène compte. Sans ce cas, la
+    // sauvegarde échouait, partait en file hors-ligne et affichait « Échec – Réessayer » (#1500)
+    const isTraining = matchId.startsWith(TRAINING_MATCH_PREFIX);
+    if (!inMemory && !isTraining) {
       throw new Error('Match non trouvé');
     }
     // Synchroniser les scores dans l'arène en mémoire
@@ -142,6 +146,7 @@ export async function updateMatchScore(
         break;
       }
     }
+    if (isTraining) return;
     // Stocker dans sessionMatchScores pour cohérence
     ctx.sessionMatchScores.set(matchId, {
       scoreA,

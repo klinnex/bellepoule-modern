@@ -12,11 +12,17 @@ import { Button } from './Button';
 interface NationalityPickerProps {
   value: string;
   onChange: (code: string) => void;
+  /** Liste ouverte par-dessus le contenu au lieu de l'étirer (#1504) */
+  floating?: boolean;
 }
 
 const TYPEAHEAD_RESET_MS = 700;
 
-const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }) => {
+const NationalityPicker: React.FC<NationalityPickerProps> = ({
+  value,
+  onChange,
+  floating = false,
+}) => {
   const { t, language } = useTranslation();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -79,7 +85,7 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
   };
 
   return (
-    <div>
+    <div className={floating ? 'nat-picker--floating' : undefined}>
       <div className="u-row">
         <Flag code={value} />
         <input
@@ -92,7 +98,6 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
         />
         <Button
           type="button"
-
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={t('addFencer.nationality_list')}

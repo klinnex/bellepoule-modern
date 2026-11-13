@@ -66,6 +66,18 @@ describe('arenaRender.js', () => {
     expect(() => R.updateMatchDisplay(document, null, true)).not.toThrow();
   });
 
+  it('gaucher contre droitier : A à gauche ET en rouge (#1439)', () => {
+    const m = { fencerA: { lastName: 'Gaucher' }, fencerB: { lastName: 'Droitier' } };
+    R.updateMatchDisplay(document, m, true, true);
+    expect($('fencer-a-name').textContent).toBe('Gaucher');
+    expect($('fencer-a-display').className).toBe('fencer-display red-side');
+    expect($('color-badge-b').className).toBe('color-badge green');
+    // + inversion manuelle : A à droite, toujours rouge
+    R.updateMatchDisplay(document, m, false, true);
+    expect($('fencer-b-name').textContent).toBe('Gaucher');
+    expect($('fencer-b-display').className).toBe('fencer-display red-side');
+  });
+
   it('cardsHtml : valeurs inconnues ignorées, lettres, échappement', () => {
     const esc2 = (s: string) => `[${s}]`;
     expect(R.cardsHtml(['white', 'yellow', 'red', 'black', 'p-red', 'bogus'], esc2)).toBe(

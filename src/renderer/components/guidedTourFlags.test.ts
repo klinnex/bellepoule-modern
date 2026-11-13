@@ -2,6 +2,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   TOUR_STORAGE_KEY,
+  TOUR_STEP_HALOS,
+  TOUR_STEP_PHASE,
   TOUR_STEPS,
   TourState,
   currentTourStep,
@@ -75,5 +77,10 @@ describe('guidedTour', () => {
     expect(readTourFlag()).toBeNull();
     writeTourFlag(null);
     expect(localStorage.getItem(TOUR_STORAGE_KEY)).toBeNull();
+  });
+
+  it("étape poules : pas d'onglet Appel pulsé ; étape distante : bouton d'en-tête pulsé (#1305)", () => {
+    expect(TOUR_STEP_PHASE.pools).toBeNull();
+    expect(TOUR_STEP_HALOS.remote.map(h => h.selector)).toContain('[data-tour="open-remote"]');
   });
 });

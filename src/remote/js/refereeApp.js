@@ -143,12 +143,13 @@ class RefereeApp extends RefereeAppBase {
   applySwapState() {
     const boxA = document.getElementById('fencer-a-box');
     const boxB = document.getElementById('fencer-b-box');
-    if (boxA) boxA.className = `fencer-box ${this.swapped ? 'green-side' : 'red-side'}`;
-    if (boxB) boxB.className = `fencer-box ${this.swapped ? 'red-side' : 'green-side'}`;
+    const leftRed = this._leftIsRed(); // #1439
+    if (boxA) boxA.className = `fencer-box ${leftRed ? 'red-side' : 'green-side'}`;
+    if (boxB) boxB.className = `fencer-box ${leftRed ? 'green-side' : 'red-side'}`;
     const scoreA = document.getElementById('score-a');
     const scoreB = document.getElementById('score-b');
-    if (scoreA) scoreA.className = `score-display ${this.swapped ? 'green-score' : 'red-score'}`;
-    if (scoreB) scoreB.className = `score-display ${this.swapped ? 'red-score' : 'green-score'}`;
+    if (scoreA) scoreA.className = `score-display ${leftRed ? 'red-score' : 'green-score'}`;
+    if (scoreB) scoreB.className = `score-display ${leftRed ? 'green-score' : 'red-score'}`;
 
     if (this.currentMatch) {
       const left = this.swapped ? this.currentMatch.fencerA : this.currentMatch.fencerB;
@@ -177,7 +178,10 @@ class RefereeApp extends RefereeAppBase {
       }
     }
 
-    document.getElementById('btn-swap')?.classList.toggle('active', this.swapped);
+    // Bouton actif = inversion manuelle seulement (le placement gaucher n'est pas une inversion)
+    document
+      .getElementById('btn-swap')
+      ?.classList.toggle('active', this.swapped !== !!this.leftHanded);
     if (this._prioSide) this.applyPriorityFrame(this._prioSide); // cadre doré suit l'inversion (#1442)
     this.updateScores();
     this.updateCardsDisplay();

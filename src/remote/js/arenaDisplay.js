@@ -320,11 +320,16 @@ class ArenaDisplay {
   }
 
   updateMatchDisplay() {
-    BPArenaRender.updateMatchDisplay(document, this.currentMatch, this.inversionEnabled);
+    BPArenaRender.updateMatchDisplay(
+      document,
+      this.currentMatch,
+      this.inversionEnabled,
+      this.leftHanded
+    );
   }
 
   applyInversionColors() {
-    BPArenaRender.applyInversionColors(document, this.inversionEnabled);
+    BPArenaRender.applyInversionColors(document, this.inversionEnabled, this.leftHanded);
     window.BPPriorityDraw.refreshFrame(this); // #1442
   }
 

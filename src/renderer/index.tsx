@@ -17,6 +17,7 @@ import './styles/phase-stepper.css';
 import './styles/operation-progress.css';
 import './styles/buttons.css';
 import './styles/rank-medal.css';
+import './styles/nationality-picker.css';
 import './styles/competition-list.css';
 import './styles/tokens.css';
 import './styles/theme.css';

@@ -164,6 +164,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           scoreB: arena.currentMatch?.scoreB,
           status: arena.status,
           swapped: arena.swapped ?? false,
+          leftHanded: arena.leftHandedSwap ?? false,
           showPhotos: ctx.sessionShowPhotos,
           cardAnnounce: ctx.sessionCardAnnounce,
           theme: override?.theme ?? ctx.sessionTheme,

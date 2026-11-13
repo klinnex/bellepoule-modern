@@ -63,6 +63,17 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
 
 const MAX_TOASTS = 3;
 
+/** Champ de saisie : Ctrl+Z y garde l'annulation native */
+function isTextEntry(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLInputElement &&
+      !['checkbox', 'radio', 'button', 'submit', 'range', 'color'].includes(target.type))
+  );
+}
+
 const ToastItemComponent: React.FC<{
   toast: ToastItem;
   onRemove: (id: number) => void;
@@ -225,15 +236,42 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     []
   );
 
+  // Dernière action annulable encore affichée : Ctrl+Z l'annule comme le bouton « Annuler » (#1535)
+  const lastUndo = useRef<{ id: number; onUndo: () => void } | null>(null);
+
   const showUndoToast = useCallback(
-    (message: string, onUndo: () => void, options?: ToastOptions) =>
+    (message: string, onUndo: () => void, options?: ToastOptions) => {
       showToast(message, 'info', {
         duration: UNDO_TOAST_DURATION,
         ...options,
         action: { label: translateStatic('actions.undo'), onClick: onUndo },
-      }),
+      });
+      lastUndo.current = { id: toastId, onUndo };
+    },
     [showToast]
   );
+
+  const toastsRef = useRef(toasts);
+  useEffect(() => {
+    toastsRef.current = toasts;
+  }, [toasts]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') {
+        return;
+      }
+      if (isTextEntry(e.target)) return; // annulation native du champ de saisie
+      const undo = lastUndo.current;
+      if (!undo || !toastsRef.current.some(t => t.id === undo.id)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation(); // pas de double annulation par un autre raccourci
+      lastUndo.current = null;
+      setToasts(prev => prev.filter(t => t.id !== undo.id));
+      undo.onUndo();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
 
   const showActionableError = useCallback(
     (baseKey: string, error: unknown) => {
