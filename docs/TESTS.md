@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 10 | 152 |
+| `src/database/` | 10 | 155 |
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 90 | 452 |
+| `src/renderer/components/` | 90 | 453 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 370 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **369** | **2789** |
+| **Total** | **369** | **2793** |
 
-Unitaires : 359 fichiers, 2750 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2187,7 +2187,7 @@ Unitaires : 359 fichiers, 2750 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 36 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 39 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -2235,6 +2235,9 @@ Unitaires : 359 fichiers, 2750 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - journalise une nouvelle saisie de score tableau
   - ne journalise pas si le score est inchangé
   - ne journalise pas un match sans score
+  - conserve la marque d’abandon déjà en base quand le renderer réenregistre le match
+  - abandonne les marques si le score ou le vainqueur change
+  - respecte une marque explicitement remise à false
 - **safeJsonParse (#1007)**
   - parse un JSON valide
   - retourne le repli sur JSON corrompu sans lever
@@ -4566,12 +4569,13 @@ Unitaires : 359 fichiers, 2750 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 6 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 7 tests</summary>
 
 - **computeMatchProgress**
   - renvoie null sans poule ni tableau
   - compte les matchs de poule terminés
   - retombe sur le tableau quand il n’y a pas de poule
+  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
 - **computeEffectiveTableauRanking**
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
