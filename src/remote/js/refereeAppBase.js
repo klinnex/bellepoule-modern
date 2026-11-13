@@ -196,6 +196,9 @@ class RefereeAppBase {
     const online = this._online !== false;
     const state = OfflineQueueInline.badgeState(online, !!this._syncFailed);
     el.className = 'sync-badge ' + state;
+    // Badge = file des scores hors-ligne ; le point de connexion couvre déjà le temps réel.
+    // En ligne sans rien à envoyer : masqué, pour n'afficher qu'un seul état (#1500)
+    el.hidden = state === 'online' && !this._syncing && !(pending > 0);
     if (state === 'offline') {
       el.textContent =
         pending > 0

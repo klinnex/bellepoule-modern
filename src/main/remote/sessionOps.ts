@@ -133,6 +133,15 @@ export async function updateMatchScore(
     // Match en mémoire uniquement (poule non persistée) : mettre à jour via Socket.IO
     const inMemory = ctx.sessionMatches.find(m => m.id === matchId);
     if (!inMemory) {
+      // Match d'entraînement (lobby) : seulement porté par l'arène, pas de liste de session.
+      // Sans ce cas, la tablette mettait le score en file hors-ligne et affichait
+      // « Échec – Réessayer » en permanence (#1500).
+      for (const [arenaId, arena] of ctx.arenas) {
+        if (arena.currentMatch?.id === matchId) {
+          ctx.updateArenaScore(arenaId, update.scoreA, update.scoreB);
+          return;
+        }
+      }
       throw new Error('Match non trouvé');
     }
     // Synchroniser les scores dans l'arène en mémoire
