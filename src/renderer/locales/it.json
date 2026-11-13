@@ -1411,6 +1411,8 @@
     "mode_basic": "Base",
     "mode_expert": "Esperto",
     "mode_tabs_label": "Modalità di visualizzazione dell'inserimento remoto",
+    "expand_all": "Espandi tutto",
+    "collapse_all": "Comprimi tutto",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "In corso",
     "cyrano_stopped": "Fermato",

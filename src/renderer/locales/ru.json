@@ -1411,6 +1411,8 @@
     "mode_basic": "Базовый",
     "mode_expert": "Эксперт",
     "mode_tabs_label": "Режим отображения удалённого ввода",
+    "expand_all": "Развернуть все",
+    "collapse_all": "Свернуть все",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "Работает",
     "cyrano_stopped": "Остановлен",

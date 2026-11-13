@@ -1411,6 +1411,8 @@
     "mode_basic": "基本",
     "mode_expert": "專家",
     "mode_tabs_label": "遠端記分顯示模式",
+    "expand_all": "全部展開",
+    "collapse_all": "全部收合",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "運行中",
     "cyrano_stopped": "已停止",

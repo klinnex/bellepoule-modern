@@ -27,7 +27,19 @@ import { useRemoteServerState } from '../hooks/remoteScoreManager/useRemoteServe
 import { RemoteArenaGrid } from './remote/RemoteArenaGrid';
 import { RemoteHeaderSection } from './remote/RemoteHeaderSection';
 import { CyranoPanel } from './remote/CyranoPanel';
-import { useRemoteFolds } from './remote/RemoteFold';
+import { useRemoteFolds, RemoteFoldAllButton, type RemoteSectionId } from './remote/RemoteFold';
+
+/** Volets affichés selon le mode (même conditions que le rendu ci-dessous) */
+function visibleSections(isExpert: boolean, trainerEnabled: boolean): RemoteSectionId[] {
+  const ids: RemoteSectionId[] = ['strips', 'kiosk'];
+  if (isExpert) ids.push('orgNote');
+  ids.push('globalTheme');
+  if (isExpert) ids.push('displayOptions', 'overlay', 'checkin');
+  if (trainerEnabled) ids.push('trainer');
+  if (isExpert) ids.push('lobby', 'cyrano');
+  ids.push('screens');
+  return ids;
+}
 
 const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScoreManagerProps) => {
   const remoteServerState = useRemoteServerState({ ...props });
@@ -111,7 +123,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
   // Générateur de thème global (toutes les pistes, type d'écran choisi : public, arbitre…)
   const [globalThemeEditorOpen, setGlobalThemeEditorOpen] = React.useState(false);
   // Volets dépliables par section (état replié mémorisé localement)
-  const { fold } = useRemoteFolds();
+  const { fold, collapsed, setAll } = useRemoteFolds();
 
   // Tous les hooks ont été appelés — retour null si l'onglet n'est pas visible
   if (!isVisible) return null;
@@ -233,7 +245,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
 
   return (
     <div className="remote-score-manager">
-      <RemoteViewModeTabs mode={mode} onChange={setMode} />
+      <div className="rsm-mode-bar">
+        <RemoteViewModeTabs mode={mode} onChange={setMode} />
+        <RemoteFoldAllButton
+          ids={visibleSections(isExpert, trainerEnabled)}
+          collapsed={collapsed}
+          onSetAll={setAll}
+        />
+      </div>
       <RemoteHeaderSection ctx={ctx} />
 
       <div className="arena-urls-section">

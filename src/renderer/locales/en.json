@@ -1411,6 +1411,8 @@
     "mode_basic": "Basic",
     "mode_expert": "Expert",
     "mode_tabs_label": "Remote scoring display mode",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "Running",
     "cyrano_stopped": "Stopped",
