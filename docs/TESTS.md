@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 62 | 479 |
+| `src/main/` | 65 | 511 |
 | `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 90 | 453 |
+| `src/renderer/hooks/` | 28 | 139 |
+| `src/renderer/components/` | 91 | 454 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 370 |
+| `src/remote/` | 56 | 371 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **369** | **2793** |
+| **Total** | **373** | **2829** |
 
-Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2482,6 +2482,59 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/deviceState.test.ts</code> — 6 tests</summary>
+
+- **deviceState (#1720)**
+  - Id UUID : le préfixe de 8 caractères qui circule dans les trames
+  - resolveCyranoSide : Id tronqué ou complet ; inconnu ou ambigu → null
+  - mapCyranoSides : droite/gauche → A/B, inversion comprise
+  - cyranoCards : jaune puis rouges
+  - parseCyranoStopwatch : m:ss et m:ss.cc
+  - isActiveCyranoState : F, H, P
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/matchCoords.test.ts</code> — 4 tests</summary>
+
+- **resolveCyranoCoords (#1720)**
+  - poule : numéro de la poule (pas le dernier segment de son UUID) et numéro du match
+  - tableau : A\<taille\> et position + 1, depuis l’id \`\<taille\>-\<position\>\`
+  - tableau : tour et position lus en base (id composite) si l’id ne les porte pas
+  - base indisponible : valeurs par défaut, sans exception
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 22 tests</summary>
+
+- **PisteHub — mode appareil maître (#1720)**
+  - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
+  - INFO actif : score et cartons de l’appareil appliqués à l’arène malgré la troncature des Id
+  - inversion droite/gauche : A à gauche de l’appareil, résultats non intervertis
+  - chrono : F → update\_timer (en marche), H → pause\_timer, diffusés avec source device
+  - appareil au repos sans le match (redémarrage, reconnexion) → DISP renvoyé
+  - INFO au repos (W) : scores ignorés
+  - END valide : ACK, résultat de l’appareil enregistré, pas de DISP du match terminé
+  - END envoyé directement (score dans la même trame, sans INFO préalable) : score final retenu
+  - END invalide (égalité sans priorité) → NAK, match non clos
+  - END ou INFO d’un autre match (BAD MATCH) → NAK, arène inchangée
+  - NEXT pendant un match non terminé : refusé, DISP du match courant renvoyé
+  - NEXT après ACK : match suivant chargé et envoyé
+  - correction de score depuis la tablette → DISP avec les scores corrigés
+  - mises à jour de la tablette : jamais marquées source device
+  - sabre laser : champ arme vide dans le DISP
+  - END à égalité avec priorité : vainqueur = tireur prioritaire, inversion comprise
+  - END à égalité, A à gauche après inversion, priorité à droite → B
+  - END sur abandon : l’adversaire gagne même mené au score, abandon marqué
+  - END sur exclusion : exclusion marquée sur le tireur exclu
+  - journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette
+  - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
+  - sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet
+
+</details>
+
+<details>
 <summary><code>src/main/cyrano/server.test.ts</code> — 6 tests</summary>
 
 - **CyranoServer**
@@ -3782,7 +3835,7 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 9 tests</summary>
 
 - **generatePools**
   - refuse moins de 4 tireurs
@@ -3796,6 +3849,9 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - retourne un classement (tableau)
 - **handleBlackCardCancelled**
   - réintègre le combattant, rouvre le match du carton et rend ses résultats aux adversaires
+- **updateMatchFromRemote**
+  - vainqueur transmis par le serveur prioritaire, même si le perdant mène (abandon, #1720)
+  - sans vainqueur transmis : vainqueur au score
 
 </details>
 
@@ -4792,6 +4848,14 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 1 test</summary>
+
+- **CyranoPanel — alerte BAD MATCH (#1720)**
+  - signale la piste dont l’appareil affiche un autre match
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/remote/DisplayOptionsPanel.test.tsx</code> — 2 tests</summary>
 
 - **DisplayOptionsPanel**
@@ -5763,7 +5827,7 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 11 tests</summary>
 
 - **refereeUpdate.js**
   - scoreValue : nombre, objet, absent
@@ -5777,6 +5841,7 @@ Unitaires : 359 fichiers, 2754 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **leftHandedSwap (#1439)**
   - gaucher A contre droitier B, arme olympique : inversion
   - B gaucher, deux gauchers, Laser, sans match : pas d’inversion
+  - planDeviceMirror : seulement les mises à jour de l’appareil pour le match ouvert (#1720)
 
 </details>
 
