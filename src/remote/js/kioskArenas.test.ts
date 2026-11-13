@@ -84,6 +84,13 @@ describe('kioskArenas.js gabarit', () => {
     expect(html.indexOf('id="sa-1"')).toBeLessThan(html.indexOf('id="sb-1"'));
   });
 
+  it('gaucher A contre droitier (#1439) : A rouge à gauche', () => {
+    const html = K.renderArenasHtml([arena('1', 7, 3, { leftHanded: true })], ctx);
+    expect(html.indexOf('Dupont Ann')).toBeLessThan(html.indexOf('Martin Bob'));
+    expect(html).toContain('score-red" id="sa-1">7');
+    expect(html).toContain('score-green" id="sb-1">3');
+  });
+
   it('assigné (pas en cours) et score absent', () => {
     const html = K.renderArenasHtml([arena('1', undefined, undefined, { status: 'ready' })], ctx);
     expect(html).toContain('[kiosk.status_assigned]');

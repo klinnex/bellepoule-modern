@@ -55,8 +55,12 @@
       scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green');
   }
 
-  /** Noms, clubs et scores ; sans inversion, tireur B à gauche (rouge) */
-  function updateMatchDisplay(doc, match, inv) {
+  /**
+   * Noms, clubs et scores ; sans inversion, tireur B à gauche (rouge).
+   * `inv` = tireur A à gauche ; `colorInv` = gauche en vert (défaut `inv`). Gaucher (A rouge,
+   * #1439) : A à gauche en rouge → inv vrai, colorInv faux.
+   */
+  function updateMatchDisplay(doc, match, inv, colorInv = inv) {
     if (!match) return;
     const fA = match.fencerA || {};
     const fB = match.fencerB || {};
@@ -70,7 +74,7 @@
     const valB = scoreValue(match.scoreB);
     doc.getElementById('score-a').textContent = inv ? valA : valB;
     doc.getElementById('score-b').textContent = inv ? valB : valA;
-    applyInversionColors(doc, inv);
+    applyInversionColors(doc, colorInv);
   }
 
   /** HTML des pastilles de cartons (valeurs connues seulement, échappées) */

@@ -136,8 +136,16 @@ class RefereeApp extends RefereeAppBase {
     this.applySwapState();
   }
 
+  /**
+   * Tireur A affiché à gauche ? Inversion de vue (bouton ⇄) XOR gaucher en rouge (#1439).
+   * Les couleurs des cases suivent seulement l'inversion de vue : gauche = rouge sans inversion.
+   */
+  _aOnLeft() {
+    return this.swapped !== !!this.leftyRed;
+  }
+
   _effectiveFencer(configFencer) {
-    return this.swapped ? configFencer : configFencer === 'A' ? 'B' : 'A';
+    return this._aOnLeft() ? configFencer : configFencer === 'A' ? 'B' : 'A';
   }
 
   applySwapState() {
@@ -151,8 +159,9 @@ class RefereeApp extends RefereeAppBase {
     if (scoreB) scoreB.className = `score-display ${this.swapped ? 'red-score' : 'green-score'}`;
 
     if (this.currentMatch) {
-      const left = this.swapped ? this.currentMatch.fencerA : this.currentMatch.fencerB;
-      const right = this.swapped ? this.currentMatch.fencerB : this.currentMatch.fencerA;
+      const aLeft = this._aOnLeft();
+      const left = aLeft ? this.currentMatch.fencerA : this.currentMatch.fencerB;
+      const right = aLeft ? this.currentMatch.fencerB : this.currentMatch.fencerA;
       const leftName = `${left?.lastName || ''} ${left?.firstName || ''}`.trim();
       const rightName = `${right?.lastName || ''} ${right?.firstName || ''}`.trim();
       const nameElA = document.getElementById('fencer-a-name');
@@ -192,8 +201,8 @@ class RefereeApp extends RefereeAppBase {
       scoreAEl.classList.add('not-started');
       scoreBEl.classList.add('not-started');
     } else {
-      scoreAEl.textContent = this.swapped ? this.scoreA : this.scoreB;
-      scoreBEl.textContent = this.swapped ? this.scoreB : this.scoreA;
+      scoreAEl.textContent = this._aOnLeft() ? this.scoreA : this.scoreB;
+      scoreBEl.textContent = this._aOnLeft() ? this.scoreB : this.scoreA;
       scoreAEl.classList.remove('not-started');
       scoreBEl.classList.remove('not-started');
     }
@@ -210,10 +219,10 @@ class RefereeApp extends RefereeAppBase {
         .join('');
 
     document.getElementById('fencer-a-cards').innerHTML = renderCards(
-      this.swapped ? this.cardsA : this.cardsB
+      this._aOnLeft() ? this.cardsA : this.cardsB
     );
     document.getElementById('fencer-b-cards').innerHTML = renderCards(
-      this.swapped ? this.cardsB : this.cardsA
+      this._aOnLeft() ? this.cardsB : this.cardsA
     );
   }
 
@@ -469,7 +478,7 @@ class RefereeApp extends RefereeAppBase {
 
   applyPriorityFrame(side) {
     this._prioSide = side; // côté logique, repeint si l'inversion change
-    window.BPPriorityDraw.paintPriorityFrame(document, side, this.swapped);
+    window.BPPriorityDraw.paintPriorityFrame(document, side, this._aOnLeft());
   }
 
   // Attente du tirage au sort : l'arbitre peut corriger le score avant de le lancer (#1136)
@@ -720,7 +729,7 @@ class RefereeApp extends RefereeAppBase {
       this.pausedForModal = true;
     }
 
-    document.getElementById('final-score-display').textContent = this.swapped
+    document.getElementById('final-score-display').textContent = this._aOnLeft()
       ? `${this.scoreA} - ${this.scoreB}`
       : `${this.scoreB} - ${this.scoreA}`;
     document.getElementById('finish-modal').classList.add('active');

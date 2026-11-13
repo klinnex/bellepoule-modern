@@ -17,6 +17,8 @@ export interface ToastOptions {
   duration?: number;
   persistent?: boolean;
   action?: { label: string; onClick: () => void };
+  /** Interne : action d'annulation (Ctrl+Z) */
+  undo?: boolean;
 }
 
 interface ToastItem {
@@ -27,6 +29,8 @@ interface ToastItem {
   duration: number;
   persistent: boolean;
   action?: { label: string; onClick: () => void };
+  /** Action « Annuler » : déclenchable aussi par Ctrl+Z / Cmd+Z (#1535) */
+  undo?: boolean;
   createdAt: number;
 }
 
@@ -62,6 +66,25 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
 };
 
 const MAX_TOASTS = 3;
+
+/** Ctrl+Z (Windows/Linux) ou Cmd+Z (macOS), sans Maj ni Alt */
+export function isUndoShortcut(
+  e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>
+): boolean {
+  return (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z';
+}
+
+/** Champ de saisie : Ctrl+Z y garde son sens natif (annuler la frappe) */
+function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el || typeof el.tagName !== 'string') return false;
+  return (
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT' ||
+    el.isContentEditable
+  );
+}
 
 const ToastItemComponent: React.FC<{
   toast: ToastItem;
@@ -215,6 +238,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         duration,
         persistent: options?.persistent ?? false,
         action: options?.action,
+        undo: options?.undo,
         createdAt: Date.now(),
       };
       setToasts(prev => {
@@ -231,6 +255,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         duration: UNDO_TOAST_DURATION,
         ...options,
         action: { label: translateStatic('actions.undo'), onClick: onUndo },
+        undo: true,
       }),
     [showToast]
   );
@@ -246,6 +271,25 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  // Ctrl+Z / Cmd+Z : annule la dernière action encore proposée par un toast « Annuler » (#1535).
+  // Phase de capture : prioritaire sur les historiques locaux (ex. grille de poule), pour ne
+  // pas annuler deux fois la même action. Hors champ de saisie (Ctrl+Z natif du texte).
+  const toastsRef = useRef(toasts);
+  toastsRef.current = toasts;
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!isUndoShortcut(e) || isEditableTarget(e.target)) return;
+      const last = [...toastsRef.current].reverse().find(t => t.undo && t.action);
+      if (!last?.action) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      last.action.onClick();
+      removeToast(last.id);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [removeToast]);
 
   return (
     <ToastContext.Provider value={{ showToast, showUndoToast, showActionableError }}>

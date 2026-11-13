@@ -27,7 +27,7 @@ export const COLUMNS = [
   { id: 'region' as SortableCol, labelKey: 'fencerList.col_region', width: '110px' },
   { id: 'department' as SortableCol, labelKey: 'fencerList.col_department', width: '140px' },
   { id: 'handedness' as SortableCol, labelKey: 'fencerList.col_handedness', width: '100px' },
-  { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '110px' },
+  { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '130px' },
   { id: 'status' as SortableCol, labelKey: 'fencerList.col_status', width: '90px' },
 ];
 
