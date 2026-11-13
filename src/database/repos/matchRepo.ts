@@ -369,7 +369,10 @@ export class MatchRepo {
       poolIds = this.sql
         .queryAll<{
           id: string;
-        }>('SELECT id FROM pools WHERE phase_id IN (SELECT id FROM phases WHERE competition_id = ?) ORDER BY number', [competitionId])
+        }>(
+          'SELECT id FROM pools WHERE phase_id IN (SELECT id FROM phases WHERE competition_id = ?) ORDER BY number',
+          [competitionId]
+        )
         .map(r => r.id);
     } catch (e) {
       logger.warn(
@@ -383,7 +386,10 @@ export class MatchRepo {
         poolIds = this.sql
           .queryAll<{
             id: string;
-          }>(`SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ?`, [competitionId])
+          }>(
+            `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ?`,
+            [competitionId]
+          )
           .map(r => r.id);
       } catch (e) {
         logger.warn(LogCategory.DATABASE, '[Database] Alternative approach also failed:', e);
@@ -405,7 +411,10 @@ export class MatchRepo {
       poolIds = this.sql
         .queryAll<{
           id: string;
-        }>(`SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.number`, [competitionId])
+        }>(
+          `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.number`,
+          [competitionId]
+        )
         .map(r => r.id);
     } catch (e) {
       logger.warn(LogCategory.DATABASE, '[Database] Error getting pools via pool_fencers:', e);
