@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 87 | 441 |
+| `src/renderer/components/` | 88 | 446 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 369 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **359** | **2749** |
+| **Total** | **360** | **2754** |
 
-Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 350 fichiers, 2715 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4324,6 +4324,16 @@ Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/__tests__/ThemeEditor.test.tsx</code> — 3 tests</summary>
+
+- **ThemeEditor – thèmes prédéfinis**
+  - liste les thèmes prédéfinis de la section
+  - thème prédéfini chargé en lecture seule
+  - dupliquer → copie modifiable sauvegardée sous un nouvel id
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/__tests__/UpdateMenuButton.test.tsx</code> — 6 tests</summary>
 
 - **UpdateMenuButton — bouton clignotant de l’en-tête**
@@ -4691,9 +4701,10 @@ Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/RemoteFoldAll.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/remote/RemoteFoldAll.test.tsx</code> — 4 tests</summary>
 
 - **RemoteFoldAllButton**
+  - volets repliés par défaut sans état mémorisé
   - tout replier puis tout déplier
   - un volet replié : propose Tout déplier
   - ne touche pas aux volets non listés
@@ -4735,7 +4746,7 @@ Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 10 tests</summary>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 11 tests</summary>
 
 - **builtinThemes**
   - liste jamais vide pour chaque section
@@ -4749,6 +4760,7 @@ Unitaires : 349 fichiers, 2710 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - liste préréglages piste et décoratifs
   - décoratif → tous les écrans, préréglage → piste seule
   - thème sauvegardé → son type d’écran
+  - éditeur : thèmes prédéfinis aux variables complètes
 
 </details>
 
