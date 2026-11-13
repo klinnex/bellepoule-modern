@@ -18,6 +18,9 @@ import { useToast } from '../../components/Toast';
 import { useDebounce } from '../useDebounce';
 import { SortableCol, COLUMNS, FencerListProps } from '../../components/fencerListShared';
 
+/** Colonnes masquées de la liste d'appel (#1504) */
+const HIDDEN_COLS_KEY = 'bellepoule-fencer-hidden-cols';
+
 type Ctx = FencerListProps;
 
 /** Liste d'appel : tri, colonnes, filtrage, imports/exports et actions sur les tireurs (extrait de FencerListComponent, #1599) */
@@ -65,10 +68,29 @@ export function useFencerListState(ctx: Ctx) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => {
+    if (hiddenColumns) return new Set(hiddenColumns);
+    // Choix des colonnes mémorisé entre deux visites de l'onglet Appel (#1504)
+    try {
+      const saved = localStorage.getItem(HIDDEN_COLS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return new Set(parsed.filter(id => typeof id === 'string'));
+      }
+    } catch {
+      /* stockage indisponible */
+    }
     // Nationalité, région, département, latéralité : affichables, masquées par défaut (#1415, #1504)
-    () => new Set(hiddenColumns ?? ['nationality', 'region', 'department', 'handedness'])
-  );
+    return new Set(['nationality', 'region', 'department', 'handedness']);
+  });
+  useEffect(() => {
+    if (hiddenColumns) return; // vue spécialisée (rapières) : colonnes imposées, non mémorisées
+    try {
+      localStorage.setItem(HIDDEN_COLS_KEY, JSON.stringify([...hiddenCols]));
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [hiddenCols, hiddenColumns]);
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
       const saved = localStorage.getItem('bellepoule-fencer-col-order');

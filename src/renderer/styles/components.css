@@ -1380,7 +1380,21 @@
   vertical-align: middle;
 }
 
+/* Liste en surimpression : n'étire pas la carte ni les champs voisins (#1504) */
+.nat-picker {
+  position: relative;
+}
+
 .nat-list {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 50;
+  min-width: 100%;
+  width: max-content;
+  max-width: 320px;
+  box-shadow: var(--shadow-lg);
+  background: var(--color-surface);
   max-height: 200px;
   overflow-y: auto;
   list-style: none;
