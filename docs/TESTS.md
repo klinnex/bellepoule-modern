@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 53 | 693 |
+| `src/shared/utils/` | 53 | 696 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 62 | 479 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 28 | 137 |
-| `src/renderer/components/` | 87 | 440 |
+| `src/renderer/components/` | 87 | 441 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 56 | 369 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **358** | **2740** |
+| **Total** | **358** | **2744** |
 
-Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 348 fichiers, 2705 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -916,7 +916,7 @@ Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 47 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 50 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -974,6 +974,9 @@ Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - séparation club : clubs alternés à niveau égal
 - **distributeFencersToPoolsSerpentine — classement déplaçable**
   - club avant classement : descente hors du chapeau pour éviter le conflit
+  - quota BellePoule : club plus nombreux que les poules → ⌈N/poules⌉ par poule toléré
+  - têtes de poule jamais déplacées (premier chapeau)
+  - nation vide : pas de conflit entre tireurs sans nationalité
   - club après classement : pas de descente hors du chapeau
   - club après classement : échange dans le chapeau si possible
 
@@ -4119,7 +4122,7 @@ Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 8 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 9 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
@@ -4132,6 +4135,7 @@ Unitaires : 348 fichiers, 2701 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - modification manuelle → brouillon transmis
 - **PoolPrepView — pastille du critère prioritaire (#1440)**
   - club en priorité 1 : pastille club, orange si doublon dans la poule
+  - doublon inévitable (quota BellePoule) : pas d’alerte
 
 </details>
 
