@@ -35,8 +35,10 @@ export function computeMatchProgress(
     return { done, total, label: 'poules' };
   }
   if (tableauMatches.length > 0) {
-    const total = tableauMatches.filter(m => m.fencerA && m.fencerB).length;
-    const done = tableauMatches.filter(m => m.winner !== null).length;
+    // Exempts (un seul tireur) : vainqueur désigné d'office, hors du décompte
+    const played = tableauMatches.filter(m => m.fencerA && m.fencerB);
+    const total = played.length;
+    const done = played.filter(m => m.winner !== null).length;
     return { done, total, label: 'tableau' };
   }
   return null;
