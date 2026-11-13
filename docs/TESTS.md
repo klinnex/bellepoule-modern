@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 55 | 706 |
+| `src/shared/utils/` | 56 | 708 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **368** | **2787** |
+| **Total** | **369** | **2789** |
 
-Unitaires : 358 fichiers, 2748 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 359 fichiers, 2750 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1037,6 +1037,15 @@ Unitaires : 358 fichiers, 2748 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - attribue les pistes dans l’ordre des poules
   - respecte les pistes imposées et saute les pistes prises
   - ignore les poules au-delà du nombre de pistes
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/postTournamentReport.test.ts</code> — 2 tests</summary>
+
+- **rapport post-tournoi**
+  - buildReportExtras : classement final prioritaire + décompte poules/tableau
+  - liste tous les tireurs (pas de top 5), par club, échappe le HTML
 
 </details>
 
