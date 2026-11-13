@@ -910,6 +910,12 @@ body {
   border-color: var(--color-border);
   color: var(--color-text-light);
 }
+/* Conflit visible aussi en sombre : la règle ci-dessus écrasait l'orange (#1440) */
+.theme-dark .pool-prep-club-pill.conflict {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  background: rgba(217, 119, 6, 0.22);
+}
 
 /* Action buttons */
 .pool-prep-btn-move {
