@@ -1,8 +1,9 @@
 # Appareils de piste — protocole Cyrano (EFP1 / EFP1.1)
 
-> État : **socle livré** (#1720, étape 1). Le codec, le serveur UDP, la supervision et le
-> simulateur existent ; le raccordement aux arènes (`/arene{N}`), la télécommande
-> (NEXT / PREV / END → ACK / NAK) et l'interface de configuration arrivent dans les étapes suivantes.
+> État : **appareil maître raccordé** (#1720). Le codec, le serveur UDP, la supervision, le
+> simulateur et le raccordement aux arènes (`/arene{N}`) existent : score, cartons, chrono,
+> NEXT et END → ACK / NAK. Restent à faire : PREV, modes afficheur et manuel, bandeau
+> appareil sur la vue arbitre, interface de configuration des pistes (voir § 5).
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -30,6 +31,9 @@ EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono 
 | `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
 | `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
 | `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**. |
+| `mapping.ts` | Correspondance trame ↔ arène : `fencersOfMatch` (Id tronqués à 8 caractères, côtés A/B quel que soit le côté physique, `null` = BAD MATCH), `parseCyranoTime` (`m:ss` / `m:ss.cc` → secondes), `mergeDeviceCards` (compteurs jaune / rouge ; blancs et noirs de la tablette conservés). |
+| `pisteHub.ts` | `PisteHub` : relie `CyranoServer` aux arènes (§ 4 bis). Rappel `onArenaUpdate` branché sur `cyranoHook`. |
+| `../remote/deviceState.ts` | `applyDeviceArenaState` (score via `updateArenaScore` pour l'audit, cartons et chrono diffusés à l'arène) et `clearArenaEvents` (remise à zéro entre deux matchs). |
 | `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
 
 ### Supervision
@@ -77,6 +81,32 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
 | Correction de score en mode maître | **Arbitre et DT** depuis la tablette ; la correction est renvoyée à l'appareil par un DISP avec scores. |
 | Sabre laser et armes personnalisées | **Affichage seul** : DISP noms + score, champ arme vide, pas de télécommande. |
 
+## 4 bis. Raccordement aux arènes (mode appareil maître)
+
+L'Id d'un tireur est limité à **8 caractères** dans les trames, alors que les Id BellePoule sont
+des UUID de 36 caractères : toute correspondance se fait par préfixe (`cyranoFencerId`).
+
+| Trame de l'appareil | Effet côté BellePoule |
+|---|---|
+| `INFO` F / H / P | Score, cartons jaunes et rouges, chrono (`time`) appliqués à l'arène. F démarre le match si besoin ; H et P mettent le chrono en pause. |
+| `INFO` W | Si l'appareil n'affiche pas le match de l'arène, DISP renvoyé (au plus toutes les 5 s). |
+| `INFO` E | Validation (§ 1) ; ACK après application du score final, puis fin de match et remise à zéro des événements. NAK avec motif sinon. Un END répété après ACK reçoit un ACK sans second enregistrement. |
+| `NEXT` | Charge le match suivant. **Refusé pendant un assaut** : le match en cours est renvoyé en DISP. |
+| Trame dont les Id ne sont pas ceux du match | **BAD MATCH** : INFO ignoré (journal) ; END → NAK. |
+
+Sens inverse : tout changement de match ou de score côté logiciel (tablette, DT, API) envoie un
+DISP. Une modification venue de l'appareil ne renvoie **jamais** de DISP (pas d'écho).
+Le DISP porte l'arme de la séance (`E`, `F`, `S`) ; sabre laser et armes personnalisées :
+affichage seul, INFO et NEXT ignorés, END → NAK.
+
+Limites connues :
+
+- En cas d'égalité avec priorité, d'abandon ou d'exclusion, l'ACK part et le score est enregistré,
+  mais le vainqueur n'est pas transmis à `matchFinish`.
+- Le numéro de match vaut toujours `1` dans le DISP.
+- Les cartons sont reconstruits à partir des compteurs de l'appareil : un jaune ou un rouge saisi
+  sur la tablette peut être écrasé par la valeur de l'appareil.
+
 ## 5. Suite prévue (#1720)
 
 1. Socle arènes : source d'entrée et numéro de séquence (`ArenaInputGate`), validation unifiée.
@@ -89,8 +119,8 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
    - **Reprise de l'état des arènes** au redémarrage (`saveArenaState` est écrit mais jamais relu).
    - **Chrono tenu côté serveur** en individuel, alimenté par la source maîtresse (appareil ou
      tablette) : référence pour la tablette en miroir.
-2. Pilote Cyrano en lecture (mode afficheur), supervision dans l'interface.
-3. Télécommande : NEXT / PREV via `arenaQueue`, END → ACK / NAK → `matchFinish`, alerte BAD MATCH.
+2. Mode afficheur (noms seuls) et mode manuel par piste ; supervision dans l'interface.
+3. Télécommande (reste) : PREV, alerte BAD MATCH visible dans l'interface.
    - PREV suppose une fonction « match précédent », absente de `arenaQueue` aujourd'hui ;
      fenêtre de correction bornée (cf. Engarde : refus au-delà de 3 min ou si le match est verrouillé).
 4. Interface : table des pistes enregistrée en base, profils constructeur, format des noms.
@@ -99,7 +129,7 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
    - Ajout de pistes en lot, import / export de la liste, mur de pistes (mini-vues en grille).
    - Écoute limitée à l'interface réseau choisie ; journal des trames exportable et rejouable
      dans le simulateur.
-5. Vue arbitre : bandeau appareil, choix de match → DISP.
+5. Vue arbitre : bandeau appareil (état, chrono, liaison), bascule en manuel. Le choix de match depuis la tablette envoie déjà un DISP.
 6. Cartons P, équipes (`Type=T`, relais, remplaçant).
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;

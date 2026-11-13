@@ -105,6 +105,11 @@ import {
 import type { DemoPlayer } from './remote/demoMode';
 import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
+  applyDeviceArenaState,
+  clearArenaEvents,
+  type DeviceStateContext,
+} from './remote/deviceState';
+import {
   peekNextMatch,
   loadNextMatch,
   updateMatchArena,
@@ -685,6 +690,25 @@ export class RemoteScoreServer {
   private _accessGuardsCtx?: AccessGuardsContext;
 
   /** Contexte de arenaOps.ts (#1240) */
+  /** Contexte de deviceState.ts : état remonté par un appareil Cyrano (#1720) */
+  private get deviceStateCtx(): DeviceStateContext {
+    return (this._deviceStateCtx ??= liveContext<DeviceStateContext>(
+      this,
+      [
+        'arenaCards',
+        'arenaEventTimes',
+        'arenaExits',
+        'arenaOvertimeType',
+        'arenaSuddenDeath',
+        'arenaTouches',
+        'arenaWaitingOvertime',
+        'arenas',
+      ],
+      ['broadcastArenaUpdate', 'updateArenaScore']
+    ));
+  }
+  private _deviceStateCtx?: DeviceStateContext;
+
   private get arenaOpsCtx(): ArenaOpsContext {
     return (this._arenaOpsCtx ??= liveContext<ArenaOpsContext>(
       this,
@@ -1526,6 +1550,16 @@ export class RemoteScoreServer {
 
   public updateArenaScore(...args: Tail<Parameters<typeof updateArenaScore>>): void {
     return updateArenaScore(this.arenaOpsCtx, ...args);
+  }
+
+  /** État saisi sur un appareil de piste Cyrano : score, cartons, chrono (#1720) */
+  public applyDeviceArenaState(...args: Tail<Parameters<typeof applyDeviceArenaState>>): void {
+    return applyDeviceArenaState(this.deviceStateCtx, ...args);
+  }
+
+  /** Remise à zéro des événements du match (cartons, touches, sorties) (#1720) */
+  public clearArenaEvents(...args: Tail<Parameters<typeof clearArenaEvents>>): void {
+    return clearArenaEvents(this.deviceStateCtx, ...args);
   }
 
   private getScoreLimit(...args: Tail<Parameters<typeof getScoreLimit>>): number {
