@@ -6,10 +6,11 @@
 export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau' | 'edit';
 
 /** Phase de navigation à mettre en évidence pour chaque étape */
-export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
+export const TOUR_STEP_PHASE: Record<TourStepId, string | null> = {
   fencers: 'checkin',
   checkin: 'checkin',
-  pools: 'checkin',
+  // Étape 4 : le bouton « Générer les poules » pulse déjà, l'onglet Appel n'a plus à pulser (#1305)
+  pools: null,
   remote: 'remote',
   scores: 'pools',
   tableau: 'tableau',
@@ -93,7 +94,8 @@ export const TOUR_STEP_HALOS: Record<TourHaloKey, TourHalo[]> = {
   ],
   pools: [{ selector: '[data-tour="generate-pools"]', green: true }],
   // Bouton de démarrage de la saisie distante pulsé (#1305)
-  remote: [{ selector: '[data-tour="start-remote"]' }],
+  // Bouton « Saisie distante / Piste » de la barre de compétition + « Démarrer » (#1305)
+  remote: [{ selector: '[data-tour="open-remote"]' }, { selector: '[data-tour="start-remote"]' }],
   scores: [{ selector: '[data-tour="pool-cell"]', first: true }],
   tableau: [{ selector: '[data-tour="view-ranking"]' }, { selector: '[data-tour="go-tableau"]' }],
   edit: [
