@@ -1412,6 +1412,8 @@
     "mode_basic": "Basique",
     "mode_expert": "Expert",
     "mode_tabs_label": "Mode d'affichage de la saisie distante",
+    "expand_all": "Tout déplier",
+    "collapse_all": "Tout replier",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "En cours",
     "cyrano_stopped": "Arrêté",

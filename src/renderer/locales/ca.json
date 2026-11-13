@@ -1412,6 +1412,8 @@
     "mode_basic": "Bàsic",
     "mode_expert": "Expert",
     "mode_tabs_label": "Mode de visualització de l'entrada remota",
+    "expand_all": "Desplega-ho tot",
+    "collapse_all": "Plega-ho tot",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "En curs",
     "cyrano_stopped": "Aturat",

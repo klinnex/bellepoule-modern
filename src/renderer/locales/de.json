@@ -1412,6 +1412,8 @@
     "mode_basic": "Basis",
     "mode_expert": "Experte",
     "mode_tabs_label": "Anzeigemodus der Fernerfassung",
+    "expand_all": "Alle aufklappen",
+    "collapse_all": "Alle zuklappen",
     "cyrano_card": "Cyrano EFP1 / EFP1.1",
     "cyrano_running": "Läuft",
     "cyrano_stopped": "Gestoppt",
