@@ -138,7 +138,6 @@ import {
   broadcastArenaUpdate,
   persistArenaState,
   type ArenaBroadcastContext,
-  arenaLeftHanded,
 } from './remote/arenaBroadcast';
 import {
   assignMatchToArena,
@@ -382,7 +381,6 @@ export class RemoteScoreServer {
         'sessionShowPhotos',
         'sessionTableTimerSeconds',
         'sessionTheme',
-        'sessionWeapon',
         'socketsPerIp',
         'teamArenaState',
         'trainingCustomRules',
@@ -948,15 +946,9 @@ export class RemoteScoreServer {
   private isTokenValid = isTokenValid;
 
   /** Version d'une arène sans secret, seule forme autorisée vers les clients HTTP/Socket.IO. */
-  private toPublicArena(
-    arena: Arena
-  ): Omit<Arena, 'password'> & { hasPassword: boolean; leftHanded: boolean } {
+  private toPublicArena(arena: Arena): Omit<Arena, 'password'> & { hasPassword: boolean } {
     const { password, ...rest } = arena;
-    return {
-      ...rest,
-      hasPassword: !!password,
-      leftHanded: arenaLeftHanded(arena.currentMatch, this.sessionWeapon),
-    };
+    return { ...rest, hasPassword: !!password };
   }
 
   private checkArenaAuth(arenaId: string, cookieHeader: string | undefined): boolean {

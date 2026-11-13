@@ -104,6 +104,8 @@ export interface Arena {
   password?: string;
   /** Inversion de vue (miroir de la piste) ; ne change pas les couleurs des tireurs */
   swapped?: boolean;
+  /** Match en cours : gaucher (A) contre droitier → A rouge (#1439) */
+  leftHanded?: boolean;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';

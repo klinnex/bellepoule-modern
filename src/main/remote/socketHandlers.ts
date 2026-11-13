@@ -8,7 +8,6 @@ import { CardReason } from '../../shared/types';
 import { relayCumul, relayWinnerSide } from '../../features/teams/utils/teamRelayLive';
 import { createCard, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { normalizeIp, isLoopbackAddress } from './network';
-import { arenaLeftHanded } from './arenaBroadcast';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 
@@ -45,7 +44,6 @@ export interface SocketHandlersContext {
   readonly sessionCardAnnounce: S['sessionCardAnnounce'];
   readonly sessionPoolTimerSeconds: S['sessionPoolTimerSeconds'];
   readonly sessionRefereeFeatureEnabled: S['sessionRefereeFeatureEnabled'];
-  readonly sessionWeapon: S['sessionWeapon'];
   readonly sessionRestSeconds: S['sessionRestSeconds'];
   readonly sessionShowPhotos: S['sessionShowPhotos'];
   readonly sessionTableTimerSeconds: S['sessionTableTimerSeconds'];
@@ -166,7 +164,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           scoreB: arena.currentMatch?.scoreB,
           status: arena.status,
           swapped: arena.swapped ?? false,
-          leftHanded: arenaLeftHanded(arena.currentMatch, ctx.sessionWeapon),
+          leftHanded: arena.leftHanded ?? false,
           showPhotos: ctx.sessionShowPhotos,
           cardAnnounce: ctx.sessionCardAnnounce,
           theme: override?.theme ?? ctx.sessionTheme,
