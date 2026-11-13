@@ -115,9 +115,9 @@ describe('menu d options sur téléphone (#1808)', () => {
     expect(html).toMatch(
       /<div class="header-tools" id="header-tools">\s*<button[^>]*id="btn-swap"[\s\S]*id="btn-colorblind"[\s\S]*id="btn-sound"[\s\S]*?<\/div>/
     );
-    const i = html.indexOf('@media (max-width: 480px)');
-    expect(i).toBeGreaterThan(-1);
-    const block = html.slice(i, html.indexOf('\n      .swap-btn {', i));
+    expect(html).toContain('<link rel="stylesheet" href="/refereePhone.css" />');
+    const css = fs.readFileSync(path.join(__dirname, '..', 'refereePhone.css'), 'utf8');
+    const block = css.slice(css.indexOf('@media (max-width: 480px)'));
     expect(block).toContain('.header-menu-btn {');
     expect(block).toContain('.header-tools.open {');
     expect(block).toMatch(/\.vs-divider \{\s*grid-column: 1 \/ -1;/);

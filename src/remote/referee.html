@@ -58,17 +58,6 @@
         backdrop-filter: blur(10px);
       }
 
-      .header {
-        position: relative;
-        z-index: 55; /* menu téléphone au-dessus du bandeau de synchro (sticky, 50) */
-      }
-      .header-tools {
-        display: contents;
-      }
-      .header-menu-btn {
-        display: none;
-      }
-
       .header h1 {
         font-size: 1.2rem;
         display: flex;
@@ -1118,102 +1107,6 @@
         }
       }
 
-      /* Vue téléphone (#1808) : titre réduit, options dans un menu, VS au-dessus, chrono et sorties compacts */
-      @media (max-width: 480px) {
-        .header {
-          padding: 0.5rem 0.75rem;
-        }
-        .header h1 {
-          font-size: 0.95rem;
-          gap: 0.3rem;
-          white-space: nowrap;
-        }
-        .connection-status {
-          gap: 0.35rem;
-          font-size: 0.75rem;
-        }
-        .header-menu-btn {
-          display: inline-block;
-        }
-        .header-tools {
-          display: none;
-          position: absolute;
-          top: 100%;
-          right: 0.5rem;
-          z-index: 60;
-          flex-direction: column;
-          gap: 0.4rem;
-          padding: 0.5rem;
-          border-radius: 0.6rem;
-          background: var(--ref-header-bg);
-          box-shadow: var(--shadow-lg);
-        }
-        .header-tools.open {
-          display: flex;
-        }
-        .header-tools .swap-btn {
-          min-width: 44px;
-          min-height: 44px;
-        }
-        .main-container {
-          padding: 0.5rem;
-        }
-        .fencers-container {
-          grid-template-columns: 1fr 1fr;
-          gap: 0.35rem;
-        }
-        .card-buttons {
-          gap: 0.25rem;
-        }
-        .card-btn {
-          flex: 1 1 0;
-          min-width: 0;
-          padding: 0.5rem 0;
-        }
-        .vs-divider {
-          grid-column: 1 / -1;
-          grid-row: 1;
-          text-align: center;
-          font-size: 1rem;
-          line-height: 1;
-        }
-        .fencers-container .fencer-box {
-          grid-row: 2;
-        }
-        .timer-row {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.35rem;
-        }
-        .timer-display {
-          font-size: 2.6rem;
-          letter-spacing: 0.04em;
-          padding: 0.35rem 0.6rem;
-          margin-bottom: 0.25rem;
-          max-width: 100%;
-        }
-        .rest-btn {
-          order: 2;
-          margin-bottom: 0;
-          padding: 0.4rem 0.9rem;
-          font-size: 0.85rem;
-        }
-        .timer-hint {
-          display: none;
-        }
-        .btn-arena-exit-red,
-        .btn-arena-exit-green {
-          font-size: 0.68rem;
-          padding: 0.4rem 0.25rem;
-          min-height: 44px;
-        }
-        .control-buttons-extra .btn-undo {
-          font-size: 0.8rem;
-          padding: 0.4rem 0.25rem;
-        }
-      }
-
       .swap-btn {
         background: var(--tw-gray-700);
         color: var(--tw-gray-200);
@@ -1528,7 +1421,7 @@
         font-size: 1.2rem;
         padding: 0.9rem 2rem;
       }
-    </style>
+    </style><link rel="stylesheet" href="/refereePhone.css" />
   </head>
   <body>
     <div class="header">
@@ -1537,11 +1430,9 @@
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
-        <button type="button" id="btn-header-menu" class="swap-btn header-menu-btn" aria-expanded="false" aria-controls="header-tools" aria-label="Options d'affichage" data-i18n-aria-label="referee.display_options" data-i18n-title="referee.display_options" title="Options d'affichage"><span data-icon="settings"></span></button>
-        <div class="header-tools" id="header-tools">
+        <button type="button" id="btn-header-menu" class="swap-btn header-menu-btn" aria-expanded="false" aria-controls="header-tools" aria-label="Options d'affichage" data-i18n-aria-label="referee.display_options" data-i18n-title="referee.display_options" title="Options d'affichage"><span data-icon="settings"></span></button><div class="header-tools" id="header-tools">
         <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button>
-        </div>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)"><span data-icon="eye"></span></button><button type="button" id="btn-sound" class="swap-btn" aria-pressed="false" aria-label="Retour sonore" data-i18n-aria-label="referee.sound_toggle" data-i18n-title="referee.sound_toggle" title="Retour sonore"><span data-icon="volume-off"></span></button></div>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1582,7 +1473,6 @@
           <button aria-label="Retour à la liste des matchs" data-i18n-aria-label="referee.back_title"
             id="btn-back-to-list"
             data-click="reloadIfIdle"
-           
             title="Retour à la liste des matchs"
             data-i18n="referee.back" data-i18n-title="referee.back_title"
            class="inl-fc7f64">← Retour</button>
