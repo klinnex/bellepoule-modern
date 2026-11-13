@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useGregAutoPublish } from '../../hooks/useGregAutoPublish';
 
 interface Props {
   on: boolean;
@@ -25,6 +26,15 @@ const GregAutoPublishToggle: React.FC<Props> = ({ on, onChange }) => {
       </button>
     </div>
   );
+};
+
+/** Bouton + minuteur : `publish` est appelé tout de suite puis toutes les 15 s tant que ON. */
+export const GregAutoPublish: React.FC<{ publish: () => void; competitionId?: string }> = ({
+  publish,
+  competitionId,
+}) => {
+  const [on, setOn] = useGregAutoPublish(publish, competitionId);
+  return <GregAutoPublishToggle on={on} onChange={setOn} />;
 };
 
 export default GregAutoPublishToggle;

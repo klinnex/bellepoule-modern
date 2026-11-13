@@ -110,34 +110,6 @@ describe('Toast d’annulation (#1535)', () => {
     expect(onUndo).toHaveBeenCalledOnce();
     expect(screen.queryByText('Supprimé')).toBeNull();
   });
-
-  it('Ctrl+Z annule la dernière action (une seule fois), pas dans un champ de saisie', () => {
-    const onUndo = vi.fn();
-    const U: React.FC = () => {
-      const { showUndoToast } = useToast();
-      return (
-        <>
-          <button onClick={() => showUndoToast('Retiré', onUndo)}>undo-go</button>
-          <input aria-label="champ" />
-        </>
-      );
-    };
-    renderWithProvider(<U />);
-    act(() => {
-      fireEvent.click(screen.getByText('undo-go'));
-    });
-    fireEvent.keyDown(screen.getByLabelText('champ'), { key: 'z', ctrlKey: true });
-    expect(onUndo).not.toHaveBeenCalled();
-    act(() => {
-      fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
-    });
-    expect(onUndo).toHaveBeenCalledOnce();
-    expect(screen.queryByText('Retiré')).toBeNull();
-    act(() => {
-      fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
-    });
-    expect(onUndo).toHaveBeenCalledOnce();
-  });
 });
 
 describe('Toast d’erreur actionnable (#1535)', () => {

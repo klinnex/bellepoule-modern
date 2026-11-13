@@ -3,8 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import GregAutoPublishToggle from './remote/GregAutoPublishToggle';
-import { useGregAutoPublish } from '../hooks/useGregAutoPublish';
+import { GregAutoPublish } from './remote/GregAutoPublishToggle';
 import React, { Suspense } from 'react';
 import { Fencer, FencerStatus, Gender } from '../../shared/types';
 import FencerList from './FencerList';
@@ -222,12 +221,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     updateScore,
     handleGoToRanking,
   } = { ...props, ...competitionCore, ...competitionSessionSync, ...competitionPhaseFlow };
-
-  // Minuteur monté au niveau de la vue : la publication continue hors de l'onglet (#1328)
-  const [gregAutoOn, setGregAutoOn] = useGregAutoPublish(
-    () => void exportResultsXML(overallRanking, finalResults, pools, 'greg-auto'),
-    competition.id
-  );
 
   return (
     <div style={CV_STYLES.root}>
@@ -553,7 +546,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           />
         )}
         {currentPhase === 'remote' && (
-          <GregAutoPublishToggle on={gregAutoOn} onChange={setGregAutoOn} />
+          <GregAutoPublish
+            competitionId={competition.id}
+            publish={() => void exportResultsXML(overallRanking, finalResults, pools, 'greg-auto')}
+          />
         )}
         <Suspense fallback={null}>
           <RemoteScoreManager

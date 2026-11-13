@@ -89,10 +89,8 @@
         };
         const left = arena.swapped ? sideA : sideB;
         const right = arena.swapped ? sideB : sideA;
-        // Couleur du tireur placé à gauche ; gaucher contre droitier : A porte le rouge (#1439)
-        const leftRed = arena.swapped ? !!arena.leftHanded : !arena.leftHanded;
-        const leftColor = leftRed ? 'red' : 'green';
-        const rightColor = leftRed ? 'green' : 'red';
+        const leftColor = arena.swapped ? 'green' : 'red';
+        const rightColor = arena.swapped ? 'red' : 'green';
 
         return `<div class="arena-card ${isActive ? 'match-active' : ''}">
             <div class="arena-card-header">

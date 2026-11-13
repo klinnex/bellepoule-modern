@@ -62,8 +62,7 @@ export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
 
 /**
  * Gaucher contre droitier, armes olympiques (#1439) : à chaque nouveau match, bascule
- * `arena.swapped` pour placer le gaucher à gauche, et `leftHandedSwap` lui donne le rouge
- * (couleurs réellement inversées, diffusées en `leftHanded`). Bascule relative (XOR) :
+ * `arena.swapped` pour placer le gaucher à gauche (rouge). Bascule relative (XOR) :
  * l'inversion manuelle de l'écran est conservée.
  */
 export function applyLeftHandedSwap(
@@ -90,7 +89,6 @@ export function broadcastArenaUpdate(
   const updateWithPhotos: ArenaUpdate = {
     ...update,
     swapped: arena?.swapped ?? false,
-    leftHanded: arena?.leftHandedSwap ?? false,
     showPhotos: ctx.sessionShowPhotos,
     cardAnnounce: ctx.sessionCardAnnounce,
     theme: override?.theme ?? ctx.sessionTheme,

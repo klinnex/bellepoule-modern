@@ -282,7 +282,6 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       suddenDeath: ctx.arenaSuddenDeath.get(arenaId) ?? false,
       waitingOvertime: ctx.arenaWaitingOvertime.get(arenaId) ?? false,
       swapped: arena.swapped ?? false,
-      leftHanded: arena.leftHandedSwap ?? false,
       timestamp: new Date().toISOString(),
     });
   });

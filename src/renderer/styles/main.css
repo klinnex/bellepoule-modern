@@ -905,7 +905,7 @@ body {
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
-.theme-dark .pool-prep-club-pill:not(.conflict) /* orange visible en sombre (#1440) */ {
+.theme-dark .pool-prep-club-pill {
   background: var(--color-bg);
   border-color: var(--color-border);
   color: var(--color-text-light);

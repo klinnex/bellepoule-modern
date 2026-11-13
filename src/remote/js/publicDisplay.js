@@ -24,8 +24,7 @@ class PublicDisplay {
     this.overtimeType = null;
     this.refereeSelected = false;
     // Clé localStorage indépendante des autres écrans
-    this._localInversion = localStorage.getItem('publicInversionEnabled') === 'true';
-    this.leftHanded = false; // gaucher contre droitier : A à gauche en rouge (#1439)
+    this.inversionEnabled = localStorage.getItem('publicInversionEnabled') === 'true';
     this.showPhotos = false;
 
     this.init();
@@ -67,10 +66,10 @@ class PublicDisplay {
 
   setupInversionToggle() {
     const checkbox = document.getElementById('inversion-checkbox');
-    checkbox.checked = this._localInversion;
+    checkbox.checked = this.inversionEnabled;
     checkbox.addEventListener('change', () => {
-      this._localInversion = checkbox.checked;
-      localStorage.setItem('publicInversionEnabled', this._localInversion);
+      this.inversionEnabled = checkbox.checked;
+      localStorage.setItem('publicInversionEnabled', this.inversionEnabled);
       this.applyInversionColors();
       if (this._prioSide) this.applyPriorityFrame(this._prioSide); // #1442
       if (this.currentMatch) this.updateMatchDisplay();
@@ -305,14 +304,7 @@ class PublicDisplay {
       this.showPhotos = data.showPhotos;
     }
 
-    // L'inversion public est locale — on ignore data.swapped ; seul le placement gaucher compte (#1439)
-    if (data.leftHanded !== undefined && data.leftHanded !== this.leftHanded) {
-      this.leftHanded = data.leftHanded;
-      if (this.currentMatch) this.updateMatchDisplay();
-      this.applyInversionColors();
-      if (this._prioSide) this.applyPriorityFrame(this._prioSide);
-      this.updateCardsDisplay();
-    }
+    // L'inversion public est locale — on ignore data.swapped
 
     if (data.status) {
       this.matchStatus = data.status;
@@ -422,34 +414,23 @@ class PublicDisplay {
     this.applyInversionColors();
   }
 
-  /** Tireur A à gauche : inversion locale, basculée par le placement gaucher (#1439) */
-  get inversionEnabled() {
-    return this._localInversion !== !!this.leftHanded;
-  }
-
-  /** Fixe le placement effectif voulu (A à gauche) en ajustant l'inversion locale */
-  set inversionEnabled(value) {
-    this._localInversion = !!value !== !!this.leftHanded;
-  }
-
   applyInversionColors() {
-    // Couleur du côté gauche = celle du tireur qui s'y trouve (A rouge si gaucher, #1439)
-    const leftRed = this.inversionEnabled ? !!this.leftHanded : !this.leftHanded;
+    const inv = this.inversionEnabled;
     const dispA = document.getElementById('fencer-a-display');
     const dispB = document.getElementById('fencer-b-display');
-    if (dispA) dispA.className = `fencer-display ${leftRed ? 'red-side' : 'green-side'}`;
-    if (dispB) dispB.className = `fencer-display ${leftRed ? 'green-side' : 'red-side'}`;
+    if (dispA) dispA.className = `fencer-display ${inv ? 'green-side' : 'red-side'}`;
+    if (dispB) dispB.className = `fencer-display ${inv ? 'red-side' : 'green-side'}`;
     const badgeA = document.getElementById('color-badge-a');
     const badgeB = document.getElementById('color-badge-b');
-    if (badgeA) badgeA.className = `color-badge ${leftRed ? 'red' : 'green'}`;
-    if (badgeB) badgeB.className = `color-badge ${leftRed ? 'green' : 'red'}`;
+    if (badgeA) badgeA.className = `color-badge ${inv ? 'green' : 'red'}`;
+    if (badgeB) badgeB.className = `color-badge ${inv ? 'red' : 'green'}`;
     const scoreA = document.getElementById('score-a');
     const scoreB = document.getElementById('score-b');
     if (scoreA) {
-      scoreA.className = scoreA.className.replace(/\b(green|red)\b/, leftRed ? 'red' : 'green');
+      scoreA.className = scoreA.className.replace(/\b(green|red)\b/, inv ? 'green' : 'red');
     }
     if (scoreB) {
-      scoreB.className = scoreB.className.replace(/\b(green|red)\b/, leftRed ? 'green' : 'red');
+      scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green');
     }
     window.BPPriorityDraw.refreshFrame(this); // className réécrit : le cadre doré reste sur le désigné (#1442)
   }

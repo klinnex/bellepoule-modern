@@ -174,8 +174,6 @@ export interface ArenaUpdate {
   screenThemes?: Partial<Record<ThemeTargetType, CustomTheme>>;
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
-  /** Gaucher contre droitier (#1439) : le tireur A porte le rouge (couleurs inversées) */
-  leftHanded?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée
   blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition

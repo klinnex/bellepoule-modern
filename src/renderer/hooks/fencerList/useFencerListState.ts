@@ -20,9 +20,6 @@ import { SortableCol, COLUMNS, FencerListProps } from '../../components/fencerLi
 
 type Ctx = FencerListProps;
 
-/** Colonnes masquées de la liste d'appel (#1504) */
-const HIDDEN_COLS_KEY = 'bellepoule-fencer-hidden-cols';
-
 /** Liste d'appel : tri, colonnes, filtrage, imports/exports et actions sur les tireurs (extrait de FencerListComponent, #1599) */
 export function useFencerListState(ctx: Ctx) {
   const {
@@ -70,17 +67,7 @@ export function useFencerListState(ctx: Ctx) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(
     // Nationalité, région, département, latéralité : affichables, masquées par défaut (#1415, #1504)
-    // Choix mémorisé : retrouvé en revenant sur l'onglet Appel (#1504)
-    () => {
-      if (hiddenColumns) return new Set(hiddenColumns);
-      try {
-        const saved = localStorage.getItem(HIDDEN_COLS_KEY);
-        if (saved) return new Set(JSON.parse(saved) as string[]);
-      } catch {
-        /* stockage indisponible ou illisible : valeurs par défaut */
-      }
-      return new Set(['nationality', 'region', 'department', 'handedness']);
-    }
+    () => new Set(hiddenColumns ?? ['nationality', 'region', 'department', 'handedness'])
   );
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
@@ -153,15 +140,6 @@ export function useFencerListState(ctx: Ctx) {
   useEffect(() => {
     localStorage.setItem('bellepoule-fencer-col-order', JSON.stringify(colOrder));
   }, [colOrder]);
-
-  useEffect(() => {
-    if (hiddenColumns) return;
-    try {
-      localStorage.setItem(HIDDEN_COLS_KEY, JSON.stringify([...hiddenCols]));
-    } catch {
-      /* stockage indisponible : choix gardé pour la session */
-    }
-  }, [hiddenCols, hiddenColumns]);
 
   const handleColDragStart = (id: SortableCol) => setDragCol(id);
   const handleColDragOver = (e: React.DragEvent, id: SortableCol) => {

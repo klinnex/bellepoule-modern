@@ -60,7 +60,6 @@ class RefereeAppBase {
     this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
     this.refereesList = []; // Liste des arbitres de la compétition
     this.swapped = false;
-    this.leftHanded = false; // gaucher contre droitier : A porte le rouge (#1439)
     this.weapon = null; // arme de la session (/api/session)
     this.pausedForModal = false;
     this.trainingCustomRules = null; // { matchDurationSeconds, allowedZones, disableSuddenDeath }
@@ -177,11 +176,6 @@ class RefereeAppBase {
       if (btn) btn.style.display = this.blackCardEnabled ? '' : 'none';
     });
     if (!this.blackCardEnabled && this._pendingBlackCardFencer) this.cancelBlackCard();
-  }
-
-  /** Couleur du côté gauche = celle du tireur qui s'y trouve (A rouge si gaucher, #1439) */
-  _leftIsRed() {
-    return this.swapped ? !!this.leftHanded : !this.leftHanded;
   }
 
   updateConnectionUI(online) {
@@ -705,9 +699,8 @@ class RefereeAppBase {
     this.isResting = false;
     this.overtimeType = null;
     this.actionHistory = [];
-    // Gaucher contre droitier : gaucher à gauche ET en rouge, couleurs réellement inversées (#1439)
-    this.leftHanded = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
-    this.swapped = this.leftHanded;
+    // Gaucher contre droitier : gaucher à gauche en rouge (#1439)
+    this.swapped = !!globalThis.BPRefereeUpdate?.leftHandedSwap(this.weapon, match);
     this.stopTimer();
     const timerRestored = this.restoreTimerState(match);
     const undoBtn = document.getElementById('btn-undo');
@@ -1313,7 +1306,8 @@ class RefereeAppBase {
       isVoluntary: false,
     });
     // label = couleur affichée pour le tireur qui a quitté la piste
-    const exitColor = (fencer === 'A') === this._leftIsRed() ? 'Rouge' : 'Vert';
+    const exitColor =
+      fencer === 'A' ? (this.swapped ? 'Vert' : 'Rouge') : this.swapped ? 'Rouge' : 'Vert';
     this.showNotification(window.T('referee.arena_exit_notif', { label: exitColor, points }));
     if (this.cardAnnounceEnabled) {
       const nameEl = document.getElementById(`fencer-${fencer.toLowerCase()}-name`);

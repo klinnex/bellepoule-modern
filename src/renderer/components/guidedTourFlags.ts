@@ -5,12 +5,11 @@
 
 export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau' | 'edit';
 
-/** Phase de navigation à mettre en évidence pour chaque étape (null = aucun onglet) */
-export const TOUR_STEP_PHASE: Record<TourStepId, string | null> = {
+/** Phase de navigation à mettre en évidence pour chaque étape */
+export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
   fencers: 'checkin',
   checkin: 'checkin',
-  // Le bouton « Préparer les poules » porte déjà le halo : plus d'onglet Appel pulsé (#1305)
-  pools: null,
+  pools: 'checkin',
   remote: 'remote',
   scores: 'pools',
   tableau: 'tableau',
@@ -94,7 +93,7 @@ export const TOUR_STEP_HALOS: Record<TourHaloKey, TourHalo[]> = {
   ],
   pools: [{ selector: '[data-tour="generate-pools"]', green: true }],
   // Bouton de démarrage de la saisie distante pulsé (#1305)
-  remote: [{ selector: '[data-tour="start-remote"]' }, { selector: '[data-tour="open-remote"]' }],
+  remote: [{ selector: '[data-tour="start-remote"]' }],
   scores: [{ selector: '[data-tour="pool-cell"]', first: true }],
   tableau: [{ selector: '[data-tour="view-ranking"]' }, { selector: '[data-tour="go-tableau"]' }],
   edit: [

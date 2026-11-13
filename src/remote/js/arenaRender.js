@@ -35,12 +35,7 @@
     return `${f.lastName || ''} ${f.firstName || ''}`.trim() || '-';
   }
 
-  /**
-   * inv : tireur A à gauche. aRed : A porte le rouge (gaucher contre droitier, #1439).
-   * Couleur du côté gauche = couleur du tireur qui s'y trouve.
-   */
-  function applyInversionColors(doc, inv, aRed) {
-    const leftRed = inv ? !!aRed : !aRed;
+  function applyInversionColors(doc, inv) {
     const setClass = (id, cls) => {
       const el = doc.getElementById(id);
       if (!el) return;
@@ -48,20 +43,20 @@
       const gold = el.classList && el.classList.contains('priority-gold');
       el.className = gold ? `${cls} priority-gold` : cls;
     };
-    setClass('fencer-a-display', `fencer-display ${leftRed ? 'red-side' : 'green-side'}`);
-    setClass('fencer-b-display', `fencer-display ${leftRed ? 'green-side' : 'red-side'}`);
-    setClass('color-badge-a', `color-badge ${leftRed ? 'red' : 'green'}`);
-    setClass('color-badge-b', `color-badge ${leftRed ? 'green' : 'red'}`);
+    setClass('fencer-a-display', `fencer-display ${inv ? 'green-side' : 'red-side'}`);
+    setClass('fencer-b-display', `fencer-display ${inv ? 'red-side' : 'green-side'}`);
+    setClass('color-badge-a', `color-badge ${inv ? 'green' : 'red'}`);
+    setClass('color-badge-b', `color-badge ${inv ? 'red' : 'green'}`);
     const scoreA = doc.getElementById('score-a');
     const scoreB = doc.getElementById('score-b');
     if (scoreA)
-      scoreA.className = scoreA.className.replace(/\b(green|red)\b/, leftRed ? 'red' : 'green');
+      scoreA.className = scoreA.className.replace(/\b(green|red)\b/, inv ? 'green' : 'red');
     if (scoreB)
-      scoreB.className = scoreB.className.replace(/\b(green|red)\b/, leftRed ? 'green' : 'red');
+      scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green');
   }
 
   /** Noms, clubs et scores ; sans inversion, tireur B à gauche (rouge) */
-  function updateMatchDisplay(doc, match, inv, aRed) {
+  function updateMatchDisplay(doc, match, inv) {
     if (!match) return;
     const fA = match.fencerA || {};
     const fB = match.fencerB || {};
@@ -75,7 +70,7 @@
     const valB = scoreValue(match.scoreB);
     doc.getElementById('score-a').textContent = inv ? valA : valB;
     doc.getElementById('score-b').textContent = inv ? valB : valA;
-    applyInversionColors(doc, inv, aRed);
+    applyInversionColors(doc, inv);
   }
 
   /** HTML des pastilles de cartons (valeurs connues seulement, échappées) */

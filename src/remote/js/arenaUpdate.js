@@ -48,9 +48,6 @@
       set('refereeFeatureEnabled', data.refereeFeatureEnabled);
     }
 
-    // Gaucher contre droitier : A porte le rouge (#1439)
-    if (data.leftHanded !== undefined) set('leftHanded', data.leftHanded);
-
     // État d'inversion synchronisé avec le serveur
     if (data.swapped !== undefined) {
       set('inversionEnabled', data.swapped);
