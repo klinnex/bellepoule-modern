@@ -674,4 +674,26 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_referees_day_referee ON referees(day_referee_id)`);
     },
   },
+  {
+    version: 23,
+    description:
+      'Table remote_events : appels DT, déconnexions et resynchros des tablettes (#1817)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS remote_events (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          arena_id TEXT,
+          match_id TEXT,
+          referee_id TEXT,
+          detail TEXT,
+          created_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_remote_events_comp ON remote_events(competition_id, type)`
+      );
+    },
+  },
 ];

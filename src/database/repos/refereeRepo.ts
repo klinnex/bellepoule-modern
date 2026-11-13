@@ -184,8 +184,43 @@ export class RefereeRepo {
     cardsYellow: number;
     cardsRed: number;
     cardsBlack: number;
+    dtCalls: number;
+    averageRestSeconds: number;
   }> {
     if (!this.sql.db) return [];
+    const dtRows = this.sql.queryAll<SqlRow>(
+      `SELECT referee_id, COUNT(*) AS cnt FROM remote_events
+       WHERE competition_id = ? AND type = 'dt_call' AND referee_id IS NOT NULL GROUP BY referee_id`,
+      [competitionId]
+    );
+    const dtCalls = new Map(dtRows.map(r => [r.referee_id as string, r.cnt as number]));
+    // Repos entre deux affectations : fin d'un match → début du suivant, même arbitre (#1817)
+    const timed = this.sql.queryAll<SqlRow>(
+      `SELECT m.referee_id, m.start_time, m.end_time FROM matches m
+       JOIN referees r ON r.id = m.referee_id
+       WHERE r.competition_id = ? AND m.start_time IS NOT NULL AND m.end_time IS NOT NULL
+       ORDER BY m.referee_id, m.start_time`,
+      [competitionId]
+    );
+    const rest = new Map<string, number>();
+    {
+      const gaps = new Map<string, number[]>();
+      let prev: SqlRow | null = null;
+      for (const row of timed) {
+        if (prev && prev.referee_id === row.referee_id) {
+          const gap =
+            (Date.parse(row.start_time as string) - Date.parse(prev.end_time as string)) / 1000;
+          if (Number.isFinite(gap) && gap >= 0) {
+            const list = gaps.get(row.referee_id as string) ?? [];
+            list.push(gap);
+            gaps.set(row.referee_id as string, list);
+          }
+        }
+        prev = row;
+      }
+      for (const [id, list] of gaps)
+        rest.set(id, Math.round(list.reduce((a, b) => a + b, 0) / list.length));
+    }
     const rows = this.sql.queryAll<SqlRow>(
       `SELECT r.id AS referee_id, r.name AS referee_name,
               COUNT(*) AS matches_count,
@@ -213,6 +248,8 @@ export class RefereeRepo {
       cardsYellow: (row.cards_yellow as number) ?? 0,
       cardsRed: (row.cards_red as number) ?? 0,
       cardsBlack: (row.cards_black as number) ?? 0,
+      dtCalls: dtCalls.get(row.referee_id as string) ?? 0,
+      averageRestSeconds: rest.get(row.referee_id as string) ?? 0,
     }));
   }
 

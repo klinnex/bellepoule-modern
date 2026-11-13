@@ -17,6 +17,8 @@ import {
   CompetitionSettings,
   Phase,
   FencerCompetitionStats,
+  RemoteEvent,
+  MatchTiming,
 } from '../types';
 import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
 import type {
@@ -783,8 +785,12 @@ export interface DatabaseAPI {
       cardsYellow: number;
       cardsRed: number;
       cardsBlack: number;
+      dtCalls: number;
+      averageRestSeconds: number;
     }>
   >;
+  getRemoteEvents: (competitionId: string) => Promise<RemoteEvent[]>;
+  getMatchTimings: (competitionId: string) => Promise<MatchTiming[]>;
 
   // Touch / Card read
   getTouches: (matchId: string) => Promise<

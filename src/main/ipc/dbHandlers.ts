@@ -265,6 +265,12 @@ export function registerDbHandlers({
   ipcMain.handle('db:getRefereeStats', async (_, competitionId) => {
     return db.getRefereeStats(competitionId);
   });
+  ipcMain.handle('db:getRemoteEvents', async (_, competitionId) => {
+    return db.getRemoteEvents(competitionId);
+  });
+  ipcMain.handle('db:getMatchTimings', async (_, competitionId) => {
+    return db.getMatchTimings(competitionId);
+  });
 
   // Touch / Card read handlers
   ipcMain.handle('db:getTouches', async (_, matchId) => {

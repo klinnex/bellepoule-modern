@@ -381,6 +381,36 @@ export interface FencerCompetitionStats {
   matchesFinishedEarly: number; // durée < 180s (avant le temps réglementaire)
 }
 
+/** Événement des saisies distantes journalisé pour l'onglet Organisation (#1817) */
+export type RemoteEventType = 'dt_call' | 'disconnect' | 'offline_sync' | 'sync_error';
+
+export interface RemoteEvent {
+  id: string;
+  competitionId: string;
+  type: RemoteEventType;
+  arenaId: string | null;
+  matchId: string | null;
+  refereeId: string | null;
+  detail: string | null;
+  createdAt: string;
+}
+
+/** Horodatage d'un match (DB) pour les KPI d'organisation (#1817) */
+export interface MatchTiming {
+  matchId: string;
+  poolId: string | null;
+  tableId: string | null;
+  fencerAId: string | null;
+  fencerBId: string | null;
+  status: string;
+  strip: number | null;
+  refereeId: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  /** Secondes de combat (chrono) si remontées par la tablette, sinon début → fin */
+  duration: number | null;
+}
+
 // ============================================================================
 // Pool Phase (Tour de poules)
 // ============================================================================

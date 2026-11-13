@@ -198,6 +198,10 @@ export const dbApi = {
     ipcRenderer.invoke('db:getMatchesWithReferees', competitionId),
   getRefereeStats: (competitionId: string) =>
     ipcRenderer.invoke('db:getRefereeStats', competitionId),
+  getRemoteEvents: (competitionId: string) =>
+    ipcRenderer.invoke('db:getRemoteEvents', competitionId),
+  getMatchTimings: (competitionId: string) =>
+    ipcRenderer.invoke('db:getMatchTimings', competitionId),
 
   // Touch / Card read
   getTouches: (matchId: string) => ipcRenderer.invoke('db:getTouches', matchId),

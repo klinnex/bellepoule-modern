@@ -3,18 +3,42 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState } from 'react';
-import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
+import React, { useMemo, useState } from 'react';
+import {
+  Competition,
+  Fencer,
+  FencerCompetitionStats,
+  FencerStatus,
+  Match,
+  MatchTiming,
+  Weapon,
+} from '../../../shared/types';
 import { TouchZoneHeatmap, type HeatmapVariant } from './TouchZoneHeatmap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ChartColumn, Download } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import {
+  fencerIndexRanking,
+  normalizeFinishedMatches,
+  type KpiMatch,
+  type KpiTableauMatch,
+} from '../../../features/analytics/services/competitionKpis';
+import { FencerKpiPanel } from './FencerKpiPanel';
 
 type TFn = ReturnType<typeof useTranslation>['t'];
 
 interface Props {
   competition: Competition;
   stats: FencerCompetitionStats[];
+  /** Données pour l'indice moyen et les KPI par tireur (#1817) */
+  fencers?: Fencer[];
+  poolMatches?: Match[];
+  tableauMatches?: KpiTableauMatch[];
+  timings?: MatchTiming[];
+  /** Rang après poules (classement général) */
+  poolRanks?: Map<string, number>;
+  /** Rang final après tableaux */
+  finalRanks?: Map<string, number>;
 }
 
 // ── Mini bar chart horizontal ──────────────────────────────────────────────────
@@ -68,7 +92,7 @@ interface DonutSlice {
   label: string;
 }
 
-const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({
+export const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({
   slices,
   title,
   centerLabel,
@@ -299,6 +323,63 @@ const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: bool
   );
 };
 
+// ── Indice moyen (TD − TR par match), armes olympiques (#1817) ─────────────────
+
+const IndexChart: React.FC<{
+  matches: KpiMatch[];
+  names: Map<string, string>;
+  restrictTo: Set<string> | null;
+}> = ({ matches, names, restrictTo }) => {
+  const { t } = useTranslation();
+  const rows = fencerIndexRanking(matches)
+    .filter(r => !restrictTo || restrictTo.has(r.fencerId))
+    .slice(0, 8);
+  if (rows.length === 0) return null;
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.averageIndex)), 1);
+  return (
+    <div className="bg-white rounded-lg border border-gray-100 p-4">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        {t('analyticsCharts.index_title')}
+      </div>
+      <p className="text-xs text-gray-400 mb-3">{t('analyticsCharts.index_hint')}</p>
+      <div className="space-y-2">
+        {rows.map((r, i) => {
+          const pos = r.averageIndex >= 0;
+          return (
+            <div key={r.fencerId} className="flex items-center gap-2">
+              <div className="w-24 text-right text-xs text-gray-600 truncate flex-shrink-0">
+                {i + 1}. {names.get(r.fencerId) ?? '?'}
+              </div>
+              <div className="idx-bar">
+                <progress
+                  className="idx-bar__neg"
+                  max={maxAbs}
+                  value={pos ? 0 : Math.abs(r.averageIndex)}
+                  aria-hidden="true"
+                />
+                <progress
+                  className="idx-bar__pos"
+                  max={maxAbs}
+                  value={pos ? r.averageIndex : 0}
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="w-20 text-xs font-mono text-gray-700 flex-shrink-0">
+                {pos ? '+' : ''}
+                {r.averageIndex.toFixed(2)}
+                <span className="text-gray-400 ml-1">
+                  ({r.matches}
+                  {t('analyticsCharts.m')})
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ── Durée moyenne par tireur (histogram) ──────────────────────────────────────
 
 const DurationChart: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
@@ -378,7 +459,7 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     t('analyticsCharts.csv_white'),
     t('analyticsCharts.csv_yellow'),
     t('analyticsCharts.csv_red'),
-    t('analyticsCharts.csv_exits'),
+    ...(isLaser ? [t('analyticsCharts.csv_exits')] : []),
     t('analyticsCharts.csv_matches'),
     t('analyticsCharts.csv_avg'),
     t('analyticsCharts.csv_early'),
@@ -403,7 +484,7 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     s.whiteCards,
     s.yellowCards,
     s.redCards,
-    s.arenaExits,
+    ...(isLaser ? [s.arenaExits] : []),
     s.matchesPlayed,
     s.averageDurationSeconds,
     s.matchesFinishedEarly,
@@ -425,21 +506,46 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export const AnalyticsCharts: React.FC<Props> = ({ competition, stats: allStats }) => {
+export const AnalyticsCharts: React.FC<Props> = ({
+  competition,
+  stats: allStats,
+  fencers = [],
+  poolMatches = [],
+  tableauMatches = [],
+  timings = [],
+  poolRanks,
+  finalRanks,
+}) => {
   const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
   const isLaser = competition.weapon === Weapon.LASER;
+  const isOlympic = !isLaser && competition.weapon !== Weapon.CUSTOM;
 
   const [filter, setFilter] = useState('');
   const stats = filterStats(allStats, filter);
+  const selectedFencerId = filter.startsWith('fencer:') ? filter.slice(7) : null;
   const clubs = [...new Set(allStats.map(s => s.fencerClub).filter((c): c is string => !!c))].sort(
     (a, b) => a.localeCompare(b)
   );
-  const fencersSorted = [...allStats].sort(
-    (a, b) =>
-      a.fencerLastName.localeCompare(b.fencerLastName) ||
-      a.fencerFirstName.localeCompare(b.fencerFirstName)
+  const kpiMatches = useMemo(
+    () => normalizeFinishedMatches(poolMatches, tableauMatches, timings),
+    [poolMatches, tableauMatches, timings]
   );
+  const names = useMemo(
+    () => new Map(allStats.map(s => [s.fencerId, s.fencerLastName])),
+    [allStats]
+  );
+  // Tireurs présents uniquement (pointés) dans la liste de sélection
+  const absent = new Set(
+    fencers.filter(f => f.status === FencerStatus.NOT_CHECKED_IN).map(f => f.id)
+  );
+  const fencersSorted = [...allStats]
+    .filter(s => !absent.has(s.fencerId))
+    .sort(
+      (a, b) =>
+        a.fencerLastName.localeCompare(b.fencerLastName) ||
+        a.fencerFirstName.localeCompare(b.fencerFirstName)
+    );
   const filterLabel = filter.startsWith('club:')
     ? filter.slice(5)
     : filter.startsWith('fencer:')
@@ -479,7 +585,7 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats: allStats 
           value={filter}
           onChange={e => setFilter(e.target.value)}
         >
-          <option value="">{t('analyticsCharts.all_fencers')}</option>
+          <option value="">{t('analyticsCharts.global')}</option>
           {clubs.length > 0 && (
             <optgroup label={t('analyticsCharts.clubs')}>
               {clubs.map(c => (
@@ -542,8 +648,24 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats: allStats 
         <DurationChart stats={stats} />
       </div>
 
-      {/* Top fencers */}
-      <TopFencersChart stats={stats} isLaser={isLaser} />
+      {/* KPI du tireur sélectionné (#1817) : remplace le classement « Top tireurs » */}
+      {selectedFencerId ? (
+        <FencerKpiPanel
+          fencerId={selectedFencerId}
+          matches={kpiMatches}
+          fencers={fencers}
+          poolRank={poolRanks?.get(selectedFencerId) ?? null}
+          finalRank={finalRanks?.get(selectedFencerId) ?? null}
+        />
+      ) : isOlympic ? (
+        <IndexChart
+          matches={kpiMatches}
+          names={names}
+          restrictTo={filter ? new Set(stats.map(s => s.fencerId)) : null}
+        />
+      ) : (
+        <TopFencersChart stats={stats} isLaser={isLaser} />
+      )}
 
       {/* Cards by reason */}
       <CardsByReason stats={stats} />

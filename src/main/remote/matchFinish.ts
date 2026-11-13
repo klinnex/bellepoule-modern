@@ -64,7 +64,11 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
 
   if (arena.startTime) {
     const wallMs = new Date().getTime() - arena.startTime.getTime();
-    arena.currentMatch.duration = Math.floor(wallMs / 1000);
+    // Durée = temps de combat cumulé (périodes, chrono remis à 3:00 après repos) si la
+    // tablette l'a remonté ; sinon horloge murale début → fin (#1817)
+    const fight = arena.currentMatch.fightSeconds;
+    arena.currentMatch.duration =
+      fight && fight > 0 ? Math.min(fight, Math.floor(wallMs / 1000)) : Math.floor(wallMs / 1000);
     // Durées réelles pour l'estimation de fin de phase (#1077)
     ctx.recentMatchDurationsMs.push(wallMs);
     if (ctx.recentMatchDurationsMs.length > 50) ctx.recentMatchDurationsMs.shift();

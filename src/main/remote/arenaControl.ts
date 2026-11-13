@@ -9,6 +9,7 @@ import { sanitizeAnnouncement } from './announcement';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
+import { recordRemoteEvent } from './remoteEvents';
 
 type S = RemoteScoreServer;
 
@@ -70,6 +71,7 @@ export function handleArenaControl(
     isVoluntary?: boolean;
     matchId?: string;
     refereeId?: string;
+    fightSeconds?: number;
     announcement?: {
       fencer: 'A' | 'B';
       fencerName: string;
@@ -136,6 +138,13 @@ export function handleArenaControl(
       ctx.arenaSuddenDeath.set(data.arenaId, false);
       ctx.arenaOvertimeType.set(data.arenaId, null);
       ctx.arenaWaitingOvertime.set(data.arenaId, false);
+      if (
+        arena.currentMatch &&
+        typeof data.fightSeconds === 'number' &&
+        data.fightSeconds > 0 &&
+        data.fightSeconds < 6 * 3600
+      )
+        arena.currentMatch.fightSeconds = Math.round(data.fightSeconds);
       ctx.finishArenaMatch(data.arenaId);
       ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
       ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -194,6 +203,13 @@ export function handleArenaControl(
       }
       break;
     case 'dt_call': {
+      recordRemoteEvent(ctx, {
+        type: 'dt_call',
+        arenaId: data.arenaId,
+        matchId: arena.currentMatch?.id ?? null,
+        refereeId: arena.currentMatch?.referee?.id ?? null,
+        detail: null,
+      });
       const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('remote:dt_call', {

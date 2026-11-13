@@ -248,6 +248,7 @@ class RefereeApp extends RefereeAppBase {
     if (this.timerRunning) return;
 
     this.timerRunning = true;
+    this._fightResume();
     this.updateBackButton();
     this.updateTimerDisplay();
     this.broadcastTimerUpdate();
@@ -347,6 +348,7 @@ class RefereeApp extends RefereeAppBase {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+    this._fightPause();
     this.timerRunning = false;
     this.updateBackButton();
     this.updateRestButton();
@@ -565,13 +567,18 @@ class RefereeApp extends RefereeAppBase {
           scoreA: this.scoreA,
           scoreB: this.scoreB,
           winner,
+          fightSeconds: this.fightSeconds(),
           cardsA: this.cardsA,
           cardsB: this.cardsB,
         }),
       });
 
       this.updateControlButtons();
-      this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'finish' });
+      this.socket.emit('arena_control', {
+        arenaId: this.arenaId,
+        action: 'finish',
+        fightSeconds: this.fightSeconds(),
+      });
 
       setTimeout(() => {
         this.currentMatch = null;
@@ -705,6 +712,7 @@ class RefereeApp extends RefereeAppBase {
 
     if (navigator.vibrate) navigator.vibrate([30, 20, 30, 20, 80]);
     this.matchStatus = 'in_progress';
+    this._fightReset();
     this.startTimer();
     this.updateScores();
     this.updateMatchStatus();
@@ -764,6 +772,7 @@ class RefereeApp extends RefereeAppBase {
           cardsA: this.cardsA,
           cardsB: this.cardsB,
           winner: this.scoreA === this.scoreB ? this.priorityWinnerSide() : undefined, // prioritaire gagne (#1442)
+          fightSeconds: this.fightSeconds(),
         }),
       });
       const result = await resp.json().catch(() => ({}));
@@ -774,6 +783,7 @@ class RefereeApp extends RefereeAppBase {
       this.socket.emit('arena_control', {
         arenaId: this.arenaId,
         action: 'finish',
+        fightSeconds: this.fightSeconds(),
       });
 
       this.showNotification(window.T('referee.match_saved'));
