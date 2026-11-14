@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 56 | 708 |
+| `src/shared/utils/` | 57 | 713 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 65 | 511 |
+| `src/main/` | 65 | 518 |
 | `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 28 | 139 |
-| `src/renderer/components/` | 91 | 454 |
+| `src/renderer/hooks/` | 29 | 142 |
+| `src/renderer/components/` | 94 | 470 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 371 |
+| `src/remote/` | 56 | 372 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **373** | **2829** |
+| **Total** | **378** | **2861** |
 
-Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 368 fichiers, 2822 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -387,6 +387,18 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - n’est pas complet en dessous du maxScore
 - **getDefaultZones**
   - retourne 3 zones avec des points décroissants
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/defaultMaxScores.test.ts</code> — 5 tests</summary>
+
+- **getDefaultMaxScores (#1826)**
+  - olympique senior : 5 / 15
+  - M9 : 3 / 6
+  - M11 et M13 : 4 / 8
+  - vétérans : 5 / 10
+  - hors olympique : comportement historique
 
 </details>
 
@@ -2506,7 +2518,7 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 22 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 26 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2531,13 +2543,19 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette
   - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
   - sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet
+  - **actions de secours depuis le poste (#1829)**
+    - ACK forcé envoyé à la piste
+    - NEXT du poste : mêmes garde-fous que la touche de l’appareil
+    - resynchronisation : match de l’arène renvoyé, alerte levée
+    - piste inconnue : refus
 
 </details>
 
 <details>
-<summary><code>src/main/cyrano/server.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/cyrano/server.test.ts</code> — 7 tests</summary>
 
 - **CyranoServer**
+  - interface d’écoute : adresse IP ou vide, refus sinon (#1829)
   - start(port) écoute sur le port demandé, sans piste configurée
   - HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés
   - ignore les IP non déclarées et les trames illisibles
@@ -3183,7 +3201,7 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 105 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 107 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -3241,6 +3259,9 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - poule assignée piste 3 → match sur arena3, pas arena1
     - piste au-delà du nombre configuré → arènes étendues
     - sans piste → ordre des poules sur pistes libres
+  - **plusieurs poules sur la même piste (#1826)**
+    - poule suivante affichée en entier quand la première est terminée
+    - poule en file jouée depuis la liste : son entrée de file n’est pas rejouée
   - **réassignation manuelle de piste (#1037)**
     - match réassigné en tête de liste de la piste cible, retiré de la piste source
     - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
@@ -3618,6 +3639,16 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - charge depuis electronAPI et termine le chargement
 - **setters de modals**
   - basculent les drapeaux d’affichage
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useAutoFitHeight.test.ts</code> — 3 tests</summary>
+
+- **fitHeightToContent (#1826)**
+  - agrandit quand le contenu déborde
+  - ne touche pas une modale sans débordement
+  - plafonne à 90 % de la fenêtre
 
 </details>
 
@@ -4825,11 +4856,12 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 15 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
   - Imprimer : envoie les réglages choisis puis ferme et mémorise (sans pages)
+  - échelle : saisie libre, validée à la sortie du champ (#1826)
   - plage invalide ou hors document : impression bloquée
   - échec d’impression : message affiché, boîte conservée
   - Enregistrer en PDF : titre du document proposé
@@ -4848,10 +4880,24 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/print/printAdvised.test.ts</code> — 4 tests</summary>
+
+- **impression : plages, échelle, mise à l’échelle conseillée (#1826)**
+  - expandPageRanges
+  - parseScale
+  - feuilles de poule et style conseillé
+  - findAdvisedScale : plus grande échelle qui tient
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 3 tests</summary>
 
 - **CyranoPanel — alerte BAD MATCH (#1720)**
   - signale la piste dont l’appareil affiche un autre match
+- **CyranoPanel — secours et journal (#1829)**
+  - actions de secours envoyées pour la piste
+  - journal affiché à la demande ; interfaces proposées
 
 </details>
 
@@ -4938,6 +4984,17 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/remote/cyranoSettings.test.ts</code> — 4 tests</summary>
+
+- **réglages Cyrano (#1829)**
+  - démarrage automatique désactivé par défaut
+  - démarrage automatique : port, interface, pistes complètes et options
+  - démarrage automatique sans piste : rien
+  - journal exportable : une trame par ligne
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 4 tests</summary>
 
 - **OrgNotePanel**
@@ -4973,11 +5030,12 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 15 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
-  - saisir un score appelle setEditScoreA
+  - saisir un score à droite appelle setEditScoreA (premier appelé à droite, #1826)
+  - gaucher contre droitier : le gaucher reste à gauche (#1826)
   - Valider déclenche onSubmit
   - saisie complète au clavier : score A, Tab, score B, Entrée valide (#1542)
   - bouton Médical : croix rouge médicale (#1256)
@@ -5038,6 +5096,17 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - états initiaux
   - loadDESignatures associe signature au bon côté
   - retourne undefined sans lignes ou en cas d erreur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/tableauScoreSides.test.ts</code> — 4 tests</summary>
+
+- **tableauLeftSide (#1826)**
+  - droitiers : le second appelé à gauche
+  - deux gauchers : le second appelé à gauche
+  - gaucher contre droitier : le gaucher à gauche
+  - tireur absent : second appelé à gauche
 
 </details>
 
@@ -5669,7 +5738,7 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeControls.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/refereeControls.test.ts</code> — 11 tests</summary>
 
 - **refereeControls.js controlButtonsState**
   - tirage du prioritaire : tout verrouillé
@@ -5681,6 +5750,7 @@ Unitaires : 363 fichiers, 2790 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **refereeControls.js chrono et repos**
   - timerClasses
   - scoreButtonsLocked
+  - cardButtonsLocked : chrono en marche (#1826)
   - canStartRest : toutes les conditions requises
   - referee.html charge le module et délègue
 
