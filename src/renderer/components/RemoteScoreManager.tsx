@@ -301,11 +301,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                 </label>
               </div>
             </div>
-            <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
-              <span className="arena-url-label">{t('rsm.common_pwd')}</span>
+            {/* MDP Pistes : carte fine dédiée, marges haute/basse identiques */}
+            <div className="rsm-pwd-card">
+              <span className="rsm-pwd-label">{t('rsm.common_pwd')}</span>
               <input
                 type="password"
-                className="arena-password-input"
+                className="arena-password-input rsm-pwd-input"
                 placeholder={t('rsm.common_pwd_placeholder')}
                 value={commonArenaPassword}
                 onChange={e => setCommonArenaPassword(e.target.value)}
@@ -592,12 +593,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
             </div>
           )}
         {isExpert && fold('cyrano')(<CyranoPanel />)}
-      </div>
 
-      {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
-      {fold('screens')(
-        <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
-      )}
+        {/* ── Section : Écrans connectés (+ modale kiosk) — dans le même conteneur que les autres volets ── */}
+        {fold('screens')(
+          <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
+        )}
+      </div>
 
       {themeEditorTarget && (
         <ThemeEditor

@@ -1347,7 +1347,7 @@
     "org_note_show": "Show",
     "hide": "✕ Hide",
     "org_note_visible": "● Note visible on the kiosk",
-    "common_pwd": "Shared password",
+    "common_pwd": "Strips password",
     "common_pwd_placeholder": "All strips · 8 chars min. (empty = open access)",
     "apply_all_strips": "Apply to all strips",
     "screen_display": "Display",
