@@ -39,6 +39,16 @@ describe('CyranoServer', () => {
     while (cleanup.length) await cleanup.pop()!();
   });
 
+  it('interface d’écoute : adresse IP ou vide, refus sinon (#1829)', () => {
+    const server = new CyranoServer();
+    expect(server.setHost('192.168.1.10')).toBe(true);
+    expect(server.host).toBe('192.168.1.10');
+    expect(server.setHost('pas-une-ip')).toBe(false);
+    expect(server.host).toBe('192.168.1.10');
+    expect(server.setHost('')).toBe(true);
+    expect(server.host).toBeUndefined();
+  });
+
   it('start(port) écoute sur le port demandé, sans piste configurée', async () => {
     const probe = dgram.createSocket('udp4');
     await new Promise<void>(r => probe.bind(0, '127.0.0.1', () => r()));

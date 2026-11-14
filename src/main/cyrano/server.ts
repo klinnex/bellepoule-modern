@@ -18,6 +18,7 @@ import {
   type CyranoMessage,
   type CyranoProtocol,
 } from './codec';
+import { isIP } from 'net';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export type CyranoProtocolSetting = CyranoProtocol | 'auto';
@@ -162,6 +163,21 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
 
   get running(): boolean {
     return this.socket !== null;
+  }
+
+  /**
+   * Interface d'écoute (#1829) : adresse IP locale, ou vide = toutes les interfaces.
+   * Prise en compte au prochain démarrage. Valeur non IP refusée.
+   */
+  setHost(host: string | undefined): boolean {
+    const h = (host ?? '').trim();
+    if (h && !isIP(h)) return false;
+    this.opts.host = h || undefined;
+    return true;
+  }
+
+  get host(): string | undefined {
+    return this.opts.host;
   }
 
   setCompe(compe: string): void {

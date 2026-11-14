@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "restr diläenn pe stumm fall : gwiriekait seurt ar restr, pe ezporzhit anezhañ en-dro adalek e vammenn.",
     "hint_db_locked": "diaz-roadennoù ac'hubet : gortozit un nebeut eilennoù, ha klaskit en-dro.",
     "hint_unknown": "abeg dianav : klaskit en-dro ; ma padfe ar fazi, adloc'hit an arload ha sellit ouzh ar marilhoù.",
-    "port_invalid": "Porzh direizh (1–65535)"
+    "port_invalid": "Porzh direizh (1–65535)",
+    "invalid_host": "Etrefas selaou direizh"
   },
   "properties": {
     "one_round": "1 dro",
@@ -1465,7 +1466,20 @@
     "sec_display": "Tem & drekleur",
     "sec_screens": "Skrammoù kevreet",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "Diskouez a ra an ardivink {{device}}, ket emgann ar bistenn : enankadurioù dilezet. Gwiriañ an emgann war an ardivink (NEXT) pe war an dablezenn."
+    "cyrano_bad_match_hint": "Diskouez a ra an ardivink {{device}}, ket emgann ar bistenn : enankadurioù dilezet. Gwiriañ an emgann war an ardivink (NEXT) pe war an dablezenn.",
+    "cyrano_interface": "Etrefas selaou",
+    "cyrano_interface_all": "An holl etrefasoù",
+    "cyrano_autostart": "Loc'hañ gant ar skoriñ a-bell",
+    "cyrano_actions": "Sikour",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Anaout dre heg dibenn an emgann stanket war an ardivink",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Emgann war-lerc'h, evel bouton NEXT an ardivink",
+    "cyrano_action_resync": "Kempredañ",
+    "cyrano_action_resync_title": "Ankouaat ar stad anavezet hag adkas emgann al leurenn d'an ardivink",
+    "cyrano_log": "Marilh ar frammoù",
+    "cyrano_log_export": "Ezporzhiañ ar marilh",
+    "cyrano_log_empty": "Framm ebet."
   },
   "comparison": {
     "title": "Keñveriañ penn-ouzh-penn",

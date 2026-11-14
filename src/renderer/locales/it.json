@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "file illeggibile o in formato errato: verifica il tipo di file o riesportalo dalla sorgente.",
     "hint_db_locked": "database occupato: attendi qualche secondo, poi riprova.",
     "hint_unknown": "causa sconosciuta: riprova; se l'errore persiste, riavvia l'applicazione e controlla i log.",
-    "port_invalid": "Porta non valida (1–65535)"
+    "port_invalid": "Porta non valida (1–65535)",
+    "invalid_host": "Interfaccia di ascolto non valida"
   },
   "properties": {
     "one_round": "1 turno",
@@ -1465,7 +1466,20 @@
     "sec_display": "Tema e sfondo",
     "sec_screens": "Schermi collegati",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "L'apparecchio mostra {{device}}, non l'assalto della pedana: inserimenti ignorati. Verificare l'assalto sull'apparecchio (NEXT) o sul tablet."
+    "cyrano_bad_match_hint": "L'apparecchio mostra {{device}}, non l'assalto della pedana: inserimenti ignorati. Verificare l'assalto sull'apparecchio (NEXT) o sul tablet.",
+    "cyrano_interface": "Interfaccia di ascolto",
+    "cyrano_interface_all": "Tutte le interfacce",
+    "cyrano_autostart": "Avvia con il punteggio remoto",
+    "cyrano_actions": "Emergenza",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Forza la conferma della fine assalto bloccata sull'apparecchio",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Assalto successivo, come il tasto NEXT dell'apparecchio",
+    "cyrano_action_resync": "Risincronizza",
+    "cyrano_action_resync_title": "Dimentica lo stato noto e reinvia l'assalto della pedana all'apparecchio",
+    "cyrano_log": "Registro dei frame",
+    "cyrano_log_export": "Esporta il registro",
+    "cyrano_log_empty": "Nessun frame."
   },
   "comparison": {
     "title": "Confronto testa a testa",

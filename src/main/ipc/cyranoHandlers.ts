@@ -2,13 +2,18 @@
  * BellePoule Modern - Handlers IPC Cyrano (#1720)
  * Configuration et supervision du serveur UDP Cyrano et du PisteHub.
  * Canaux : cyrano:start, cyrano:stop, cyrano:isRunning, cyrano:setPistes,
- *          cyrano:getStatus, cyrano:getLog, cyrano:setOptions
+ *          cyrano:getStatus, cyrano:getLog, cyrano:setOptions, cyrano:pisteAction (#1829)
  * Licensed under GPL-3.0
  */
 
 import { ipcMain } from 'electron';
 import { CyranoServer, type CyranoPisteConfig } from '../cyrano/server';
-import { PisteHub, type PisteHubOptions } from '../cyrano/pisteHub';
+import {
+  PISTE_ACTIONS,
+  PisteHub,
+  type PisteAction,
+  type PisteHubOptions,
+} from '../cyrano/pisteHub';
 
 export interface CyranoHandlersContext {
   cyranoServer: CyranoServer;
@@ -26,6 +31,10 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
     ): Promise<{ success: boolean; port?: number; error?: string }> => {
       if (cyranoServer.running) return { success: true, port: cyranoServer.port };
       if (options?.compe) cyranoServer.setCompe(options.compe);
+      // Interface d'écoute choisie (#1829) ; vide = toutes les interfaces
+      if (options && 'host' in options && !cyranoServer.setHost(options.host)) {
+        return { success: false, error: 'invalid_host' };
+      }
       try {
         const port = await cyranoServer.start(options?.port);
         pisteHub.attach();
@@ -58,6 +67,11 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
   });
 
   ipcMain.handle('cyrano:getLog', () => cyranoServer.getLog());
+
+  ipcMain.handle('cyrano:pisteAction', (_, piste: unknown, action: unknown): boolean => {
+    if (typeof piste !== 'string' || !PISTE_ACTIONS.includes(action as PisteAction)) return false;
+    return pisteHub.pisteAction(piste, action as PisteAction);
+  });
 
   ipcMain.handle('cyrano:setOptions', (_, opts: PisteHubOptions): void => {
     pisteHub.setOptions(opts);

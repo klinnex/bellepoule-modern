@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "Datei unlesbar oder falsches Format: Prüfen Sie den Dateityp oder exportieren Sie sie erneut aus der Quelle.",
     "hint_db_locked": "Datenbank ausgelastet: Warten Sie einige Sekunden und versuchen Sie es erneut.",
     "hint_unknown": "Ursache unbekannt: Versuchen Sie es erneut; bleibt der Fehler bestehen, starten Sie die Anwendung neu und prüfen Sie die Protokolle.",
-    "port_invalid": "Ungültiger Port (1–65535)"
+    "port_invalid": "Ungültiger Port (1–65535)",
+    "invalid_host": "Ungültige Empfangsschnittstelle"
   },
   "properties": {
     "one_round": "1 Runde",
@@ -1465,7 +1466,20 @@
     "sec_display": "Design & Hintergrund",
     "sec_screens": "Verbundene Bildschirme",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "Das Gerät zeigt {{device}}, nicht das Gefecht der Bahn: Eingaben werden ignoriert. Gefecht am Gerät (NEXT) oder am Tablet prüfen."
+    "cyrano_bad_match_hint": "Das Gerät zeigt {{device}}, nicht das Gefecht der Bahn: Eingaben werden ignoriert. Gefecht am Gerät (NEXT) oder am Tablet prüfen.",
+    "cyrano_interface": "Empfangsschnittstelle",
+    "cyrano_interface_all": "Alle Schnittstellen",
+    "cyrano_autostart": "Mit Fernwertung starten",
+    "cyrano_actions": "Notfall",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Am Gerät hängendes Gefechtsende erzwungen bestätigen",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Nächstes Gefecht, wie die NEXT-Taste des Geräts",
+    "cyrano_action_resync": "Neu synchronisieren",
+    "cyrano_action_resync_title": "Bekannten Zustand verwerfen und das Gefecht der Bahn erneut an das Gerät senden",
+    "cyrano_log": "Telegrammprotokoll",
+    "cyrano_log_export": "Protokoll exportieren",
+    "cyrano_log_empty": "Keine Telegramme."
   },
   "comparison": {
     "title": "Direkter Vergleich",

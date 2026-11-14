@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "檔案無法讀取或格式錯誤：請檢查檔案類型，或從來源重新匯出。",
     "hint_db_locked": "資料庫忙碌中：請稍候數秒，然後重試。",
     "hint_unknown": "原因不明：請重試；如問題持續，請重新啟動應用程式並查看記錄。",
-    "port_invalid": "連接埠無效（1–65535）"
+    "port_invalid": "連接埠無效（1–65535）",
+    "invalid_host": "監聽介面無效"
   },
   "properties": {
     "one_round": "1 輪",
@@ -1465,7 +1466,20 @@
     "sec_display": "主題與背景",
     "sec_screens": "已連線螢幕",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "計分器顯示 {{device}}，並非該劍道的比賽：輸入已忽略。請在計分器 (NEXT) 或平板上檢查比賽。"
+    "cyrano_bad_match_hint": "計分器顯示 {{device}}，並非該劍道的比賽：輸入已忽略。請在計分器 (NEXT) 或平板上檢查比賽。",
+    "cyrano_interface": "監聽介面",
+    "cyrano_interface_all": "所有介面",
+    "cyrano_autostart": "隨遙距計分啟動",
+    "cyrano_actions": "後備",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "強制確認卡在裝置上的比賽結束",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "下一場比賽，如同裝置的 NEXT 鍵",
+    "cyrano_action_resync": "重新同步",
+    "cyrano_action_resync_title": "清除已知狀態並重新傳送該劍道的比賽至裝置",
+    "cyrano_log": "訊框記錄",
+    "cyrano_log_export": "匯出記錄",
+    "cyrano_log_empty": "沒有訊框。"
   },
   "comparison": {
     "title": "對賽比較",

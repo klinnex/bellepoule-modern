@@ -426,4 +426,34 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     expect(disps).toHaveLength(0);
     expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
   });
+
+  describe('actions de secours depuis le poste (#1829)', () => {
+    it('ACK forcé envoyé à la piste', () => {
+      expect(hub.pisteAction('1', 'ack')).toBe(true);
+      expect(acks).toBe(1);
+    });
+
+    it('NEXT du poste : mêmes garde-fous que la touche de l’appareil', () => {
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 0 }));
+      hub.pisteAction('1', 'next');
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
+      hub.pisteAction('1', 'next');
+      expect(arena().currentMatch?.id).toBe(pm(2, ID.de, ID.bc).id);
+    });
+
+    it('resynchronisation : match de l’arène renvoyé, alerte levée', () => {
+      device(info('H', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
+      expect(hub.getAlerts()['1']).toBeDefined();
+      disps = [];
+      expect(hub.pisteAction('1', 'resync')).toBe(true);
+      expect(hub.getAlerts()['1']).toBeUndefined();
+      expect(lastDisp()).toMatchObject({ right: { id: short(ID.ef) }, left: { id: short(ID.ab) } });
+    });
+
+    it('piste inconnue : refus', () => {
+      expect(hub.pisteAction('9', 'ack')).toBe(false);
+      expect(acks).toBe(0);
+    });
+  });
 });

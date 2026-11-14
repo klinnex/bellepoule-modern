@@ -23,6 +23,7 @@ import {
   RemoteSession,
   deMatchesKey,
 } from '../../components/remote/remoteScoreManagerShared';
+import { autoStartCyrano } from '../../components/remote/cyranoSettings';
 
 type Ctx = RemoteScoreManagerProps;
 
@@ -397,6 +398,8 @@ export function useRemoteServerState(ctx: Ctx) {
       );
       if (result.success && result.session) {
         setSession(result.session);
+        // Appareils de piste Cyrano : démarrage automatique avec la séance (#1829)
+        void autoStartCyrano();
         if (kioskPreset !== 'default') {
           window.electronAPI.remote
             .updateKioskTheme(competition.id, { '--k-preset': kioskPreset })

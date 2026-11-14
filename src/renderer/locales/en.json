@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "unreadable or wrong-format file: check the file type, or export it again from its source.",
     "hint_db_locked": "database busy: wait a few seconds, then try again.",
     "hint_unknown": "unknown cause: try again; if the error persists, restart the application and check the logs.",
-    "port_invalid": "Invalid port (1–65535)"
+    "port_invalid": "Invalid port (1–65535)",
+    "invalid_host": "Invalid listening interface"
   },
   "properties": {
     "one_round": "1 round",
@@ -1465,7 +1466,20 @@
     "sec_display": "Theme & wallpaper",
     "sec_screens": "Connected screens",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "The device shows {{device}}, not the arena's match: inputs ignored. Check the match on the device (NEXT) or on the tablet."
+    "cyrano_bad_match_hint": "The device shows {{device}}, not the arena's match: inputs ignored. Check the match on the device (NEXT) or on the tablet.",
+    "cyrano_interface": "Listening interface",
+    "cyrano_interface_all": "All interfaces",
+    "cyrano_autostart": "Start with remote scoring",
+    "cyrano_actions": "Fallback",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Force-acknowledge the bout end stuck on the device",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Next bout, like the device's NEXT key",
+    "cyrano_action_resync": "Resync",
+    "cyrano_action_resync_title": "Forget the known state and resend the strip's bout to the device",
+    "cyrano_log": "Frame log",
+    "cyrano_log_export": "Export log",
+    "cyrano_log_empty": "No frames."
   },
   "comparison": {
     "title": "Head-to-head comparison",
