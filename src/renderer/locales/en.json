@@ -2654,6 +2654,7 @@
     "gap_losses": "Losses",
     "close_wins": "Close wins (≤ {{n}})",
     "dominant_wins": "Dominant wins",
+    "normal_wins": "Normal wins",
     "kpi_streaks": "Streaks",
     "best_win_streak": "Longest winning streak",
     "best_loss_streak": "Longest losing streak",

@@ -77,11 +77,13 @@ export const FencerKpiPanel: React.FC<{
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">{t('analyticsCharts.gap_wins')}</span>
-              <span className="font-mono">{k.wins ? k.averageWinGap.toFixed(1) : '—'}</span>
+              <span className="font-mono">{k.wins ? `+${k.averageWinGap.toFixed(1)}` : '—'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">{t('analyticsCharts.gap_losses')}</span>
-              <span className="font-mono">{k.losses ? k.averageLossGap.toFixed(1) : '—'}</span>
+              <span className="font-mono">
+                {k.losses ? `−${k.averageLossGap.toFixed(1)}` : '—'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">
@@ -92,6 +94,10 @@ export const FencerKpiPanel: React.FC<{
             <div className="flex justify-between">
               <span className="text-gray-600">{t('analyticsCharts.dominant_wins')}</span>
               <span className="font-mono">{k.dominantWins}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">{t('analyticsCharts.normal_wins')}</span>
+              <span className="font-mono">{k.normalWins}</span>
             </div>
           </div>
         )}

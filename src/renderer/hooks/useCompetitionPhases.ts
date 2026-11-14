@@ -208,24 +208,24 @@ export function useCompetitionPhases({
       disabled: isResultsLocked,
       title: undefined as string | undefined,
     },
-    ...(auditLogEnabled
-      ? [
-          {
-            id: 'logs',
-            label: t('phases.logs'),
-            icon: PHASE_ICONS.logs,
-            disabled: false,
-            title: undefined as string | undefined,
-            isSupplementary: true,
-          },
-        ]
-      : []),
     ...(refereeFeatureEnabled
       ? [
           {
             id: 'referees',
             label: t('phases.referees') || 'Arbitres',
             icon: PHASE_ICONS.referees,
+            disabled: false,
+            title: undefined as string | undefined,
+            isSupplementary: true,
+          },
+        ]
+      : []),
+    ...(auditLogEnabled
+      ? [
+          {
+            id: 'logs',
+            label: t('phases.logs'),
+            icon: PHASE_ICONS.logs,
             disabled: false,
             title: undefined as string | undefined,
             isSupplementary: true,

@@ -128,7 +128,14 @@ describe('fencerMatchKpis', () => {
       km('a', 'f', 4, 5), // D (1)
       km('a', 'g', 2, 5), // D (3)
     ]);
-    expect(k).toMatchObject({ played: 6, wins: 3, losses: 3, closeWins: 2, dominantWins: 1 });
+    expect(k).toMatchObject({
+      played: 6,
+      wins: 3,
+      losses: 3,
+      closeWins: 2,
+      dominantWins: 1,
+      normalWins: 0,
+    });
     expect(k.averageGap).toBeCloseTo(15 / 6);
     expect(k.averageWinGap).toBeCloseTo(8 / 3);
     expect(k.bestWinStreak).toBe(2);

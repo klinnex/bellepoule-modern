@@ -781,10 +781,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
         className="modal properties-modal"
         onClick={e => e.stopPropagation()}
         style={{
-          maxWidth: weapon === Weapon.CUSTOM ? '92vw' : '800px',
-          width: weapon === Weapon.CUSTOM ? '1100px' : undefined,
-          // Format à la carte : plus de hauteur pour que l'onglet Formule tienne (#1826)
-          maxHeight: weapon === Weapon.CUSTOM ? '96vh' : undefined,
+          maxWidth: weapon === Weapon.CUSTOM ? '96vw' : '800px',
+          // Format à la carte : plus large pour que la simulation ne soit pas coupée (#1826)
+          width: weapon === Weapon.CUSTOM ? '1280px' : undefined,
         }}
         role="dialog"
         aria-modal="true"
