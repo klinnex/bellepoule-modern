@@ -1,9 +1,10 @@
 # Appareils de piste — protocole Cyrano (EFP1 / EFP1.1)
 
-> État (#1720) : codec, serveur UDP, supervision, simulateur, panneau de configuration et
-> raccordement aux arènes en **mode appareil maître** (score, cartons, chrono, NEXT,
-> END → ACK / NAK). Restent : PREV, modes « afficheur » et « manuel » par piste, bandeau
-> appareil dans la vue arbitre, cartons P, équipes.
+> État (#1720, #1829) : codec, serveur UDP, supervision, simulateur, panneau de configuration,
+> raccordement aux arènes, **modes par piste** (appareil maître, afficheur, manuel), bascule en
+> manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage.
+> Restent : PREV, bandeau appareil dans la vue arbitre, pistes en base, profils constructeur,
+> cartons P, équipes.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -60,6 +61,7 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 
 | Réglage / action | Effet |
 |---|---|
+| Mode de la piste | `maître` (défaut), `afficheur` ou `manuel` (voir § 2 ter) ; changement pris en compte immédiatement |
 | Interface d'écoute | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage |
 | Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
 | Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
@@ -67,8 +69,31 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 | Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
 | Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
 
-Réglages mémorisés dans le navigateur de l'application (`localStorage`) : table des pistes,
-port, interface, options de noms, démarrage automatique.
+Réglages mémorisés dans le navigateur de l'application (`localStorage`) : table des pistes
+(mode compris), port, interface, options de noms, démarrage automatique.
+
+### 2 ter. Modes par piste (#1829)
+
+| Mode | Sortie vers l'appareil | Entrées de l'appareil | Commandes du poste |
+|---|---|---|---|
+| `master` (défaut) | DISP, ACK / NAK | INFO, END, NEXT appliqués à l'arène | ACK, NEXT, resynchronisation |
+| `display` (afficheur) | DISP | INFO ignorés ; END → NAK ; NEXT sans effet | ACK, resynchronisation (pas NEXT) |
+| `manual` | aucune trame | tout ignoré ; END → NAK | ACK seulement |
+
+- **Sabre laser et armes personnalisées** : toujours `display` (décision n°5), quel que soit le mode réglé.
+- **Appareil hors ligne** (statut `offline`) : la piste bascule en `manual` pour la suite (plus de DISP
+  envoyé à un appareil muet). **Au retour en ligne**, le DISP du match courant est renvoyé.
+- **Changement de mode** depuis le panneau : un passage en `manual` coupe les trames, un retour en
+  `master` ou `display` renvoie le DISP du match courant.
+- **BAD MATCH** : première alerte sur une piste → notification native au DT (un clic ramène la
+  fenêtre au premier plan), libellée dans la langue de l'interface. Les alertes suivantes sur la même
+  piste ne notifient pas à nouveau ; l'alerte est levée au prochain DISP correct.
+
+### 2 quater. Reprise de l'état des arènes (#1829)
+
+`persistArenaState` sauvegarde chaque arène. Au démarrage de la séance de saisie distante, une
+arène sauvegardée **en cours** reprend son match et son score, si ce match n'est pas terminé en base ;
+la file DE sauvegardée est rétablie. Le chrono n'est pas restauré.
 
 ### Supervision
 
@@ -161,6 +186,9 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
      dans le simulateur.
 5. Vue arbitre : bandeau appareil, choix de match → DISP.
 6. Cartons P, équipes (`Type=T`, relais, remplaçant).
+
+Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
+PREV, bandeau arbitre, table des pistes en base, profils constructeur et les extensions restent ouverts.
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).

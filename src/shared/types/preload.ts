@@ -1363,6 +1363,8 @@ export interface CyranoPisteConfigDTO {
   port?: number;
   arena?: number;
   protocol?: 'EFP1' | 'EFP1.1' | 'auto';
+  /** Mode de la piste (#1829) : appareil maître, afficheur, ou manuel. Défaut : maître */
+  mode?: 'master' | 'display' | 'manual';
 }
 
 export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
@@ -1370,7 +1372,7 @@ export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
   lastSeen: number | null;
   detectedProtocol: 'EFP1' | 'EFP1.1' | null;
   /** BAD MATCH : l'appareil affiche d'autres tireurs que le match de l'arène (#1720) */
-  alert?: { kind: 'bad_match'; since: number; device: string } | null;
+  alert?: { kind: 'bad_match'; since: number; arena: string; device: string } | null;
 }
 
 export interface CyranoStatusDTO {

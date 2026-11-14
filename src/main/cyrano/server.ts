@@ -23,6 +23,15 @@ import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export type CyranoProtocolSetting = CyranoProtocol | 'auto';
 
+/**
+ * Mode d'une piste (#1829) :
+ * - `master` : appareil maître (score, cartons, chrono viennent de l'appareil) ;
+ * - `display` : appareil afficheur (reçoit les DISP, ses commandes sont ignorées) ;
+ * - `manual` : piste hors appareil (aucune trame envoyée, entrées ignorées).
+ */
+export type CyranoPisteMode = 'master' | 'display' | 'manual';
+export const CYRANO_PISTE_MODES: readonly CyranoPisteMode[] = ['master', 'display', 'manual'];
+
 export interface CyranoPisteConfig {
   /** Identifiant de piste Cyrano (8 caractères max : « 1 », « podium », « rouge »…) */
   piste: string;
@@ -34,11 +43,15 @@ export interface CyranoPisteConfig {
   arena?: number;
   /** Version du protocole : imposée, ou `auto` (celle de la dernière trame reçue) */
   protocol?: CyranoProtocolSetting;
+  /** Mode de la piste ; `master` par défaut */
+  mode?: CyranoPisteMode;
 }
 
 export type CyranoLinkStatus = 'online' | 'stale' | 'offline' | 'never';
 
 export interface CyranoPisteStatus extends CyranoPisteConfig {
+  /** Mode effectif de la piste (toujours renseigné dans la table) */
+  mode: CyranoPisteMode;
   status: CyranoLinkStatus;
   lastSeen: number | null;
   /** Version détectée dans la dernière trame reçue */
@@ -199,6 +212,9 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
         port: cfg.port ?? CYRANO_DEFAULT_PORT,
         arena: cfg.arena,
         protocol: cfg.protocol ?? 'auto',
+        mode: CYRANO_PISTE_MODES.includes(cfg.mode as CyranoPisteMode)
+          ? (cfg.mode as CyranoPisteMode)
+          : 'master',
         key,
         status: old?.status ?? 'never',
         lastSeen: old?.lastSeen ?? null,
@@ -217,12 +233,17 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
     return [...this.log];
   }
 
+  /** Statuts rafraîchis avant lecture : une piste hors ligne bascule aussitôt (#1829). */
   findPiste(piste: string): CyranoPisteStatus | undefined {
-    return [...this.pistes.values()].find(p => p.piste === piste);
+    this.refreshStatuses();
+    const entry = [...this.pistes.values()].find(p => p.piste === piste);
+    return entry ? this.view(entry) : undefined;
   }
 
   findByArena(arena: number): CyranoPisteStatus | undefined {
-    return [...this.pistes.values()].find(p => p.arena === arena);
+    this.refreshStatuses();
+    const entry = [...this.pistes.values()].find(p => p.arena === arena);
+    return entry ? this.view(entry) : undefined;
   }
 
   /** Envoie un match à afficher. Sans tireurs : DISP « vide » (aucun match disponible). */
