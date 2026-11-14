@@ -285,7 +285,7 @@ export const useExport = ({
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await exportMultiplePoolsToPDF(
           pools,
-          `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
+          `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
           competition.title,
@@ -311,7 +311,7 @@ export const useExport = ({
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await printMultiplePoolsHTML(
           pools,
-          `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
+          `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
           competition.title,

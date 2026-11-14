@@ -458,7 +458,7 @@ select:focus {
 
 .competition-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, 400px); /* largeur fixe des cartes (#1826) */
   gap: 1rem;
 }
 
