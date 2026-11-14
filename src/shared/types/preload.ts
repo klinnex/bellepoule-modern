@@ -1400,15 +1400,11 @@ export interface CyranoAPI {
 }
 
 /** Trame du journal Cyrano (#1829) */
-export interface CyranoFrameLogDTO {
-  ts: number;
-  dir: 'in' | 'out';
-  ip: string;
-  port: number;
+export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; port: number } & {
   piste: string | null;
   raw: string;
   rejected?: 'unknown_ip' | 'malformed';
-}
+};
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;

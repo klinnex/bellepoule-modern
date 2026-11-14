@@ -821,14 +821,18 @@ describe('RemoteScoreServer', () => {
       expect(matchesOf('arena1')).toEqual(['p2-m1', 'p2-m2', 'p2-m3']);
     });
 
-    it('la poule en file devient active : son entrée de file est consommée', () => {
+    it('poule en file jouée depuis la liste : son entrée de file n’est pas rejouée', () => {
       const scores = (server as any).sessionMatchScores;
       scores.set('p1-m1', { status: 'finished' });
       scores.set('p1-m2', { status: 'finished' });
       server.loadNextMatch('arena1');
       expect((server as any).arenas.get('arena1').currentMatch.id).toBe('p2-m1');
-      expect((server as any).arenaMatchQueue.get('arena1')).toEqual([]);
       expect(matchesOf('arena1')).toEqual(['p2-m1', 'p2-m2', 'p2-m3']);
+      // Arbitre : p2-m3 joué en premier depuis la liste, puis p2-m1 et p2-m2
+      (server as any).arenaMatchQueue.set('arena1', [{ id: 'p2-m3', poolId: 'p2' }]);
+      for (const id of ['p2-m1', 'p2-m2', 'p2-m3']) scores.set(id, { status: 'finished' });
+      server.loadNextMatch('arena1');
+      expect((server as any).arenas.get('arena1').currentMatch).toBeNull();
     });
   });
 

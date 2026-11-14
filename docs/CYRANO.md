@@ -10,30 +10,30 @@ Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.
 
 ## 1. Protocole en bref
 
-| Élément                 | Valeur                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| Transport               | UDP, port **50100** (paramétrable ; certains appareils utilisent 50101)                             |
-| Adressage               | IP fixes, table « IP ↔ piste » côté logiciel                                                        |
-| Trame                   | `\|EFP1.1\|COM\|piste\|compé\|…\|%\|<tireur droit>\|%\|<tireur gauche>\|%\|` (~210 caractères max.) |
-| Logiciel → appareil     | `HELLO` (toutes les 15 s), `DISP` (match à afficher), `ACK` / `NAK` (fin acceptée / refusée)        |
-| Appareil → logiciel     | `INFO` (partiel, complet, incomplet ; chrono au plus 1×/s), `NEXT`, `PREV`                          |
-| États appareil          | `F` assaut, `H` halte, `P` pause, `E` fin en attente d'ACK, `W` attente                             |
-| Inversion droite/gauche | faite par l'appareil, qui échange les zones : le logiciel suit l'**Id** du tireur, jamais le nom    |
-| Fin de match valide     | scores différents, ou égalité avec priorité, ou abandon / exclusion d'un tireur                     |
+| Élément | Valeur |
+|---|---|
+| Transport | UDP, port **50100** (paramétrable ; certains appareils utilisent 50101) |
+| Adressage | IP fixes, table « IP ↔ piste » côté logiciel |
+| Trame | `\|EFP1.1\|COM\|piste\|compé\|…\|%\|<tireur droit>\|%\|<tireur gauche>\|%\|` (~210 caractères max.) |
+| Logiciel → appareil | `HELLO` (toutes les 15 s), `DISP` (match à afficher), `ACK` / `NAK` (fin acceptée / refusée) |
+| Appareil → logiciel | `INFO` (partiel, complet, incomplet ; chrono au plus 1×/s), `NEXT`, `PREV` |
+| États appareil | `F` assaut, `H` halte, `P` pause, `E` fin en attente d'ACK, `W` attente |
+| Inversion droite/gauche | faite par l'appareil, qui échange les zones : le logiciel suit l'**Id** du tireur, jamais le nom |
+| Fin de match valide | scores différents, ou égalité avec priorité, ou abandon / exclusion d'un tireur |
 
 EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono au centième.
 
 ## 2. Code (`src/main/cyrano/`)
 
-| Fichier            | Rôle                                                                                                                                                                                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `codec.ts`         | `parseCyrano(raw)` / `buildCyrano(msg)` : 3 zones, champs de fin omis, `\|` et `%` retirés des valeurs (pas d'échappement dans le protocole), troncature aux longueurs maximales de la spécification, carton P omis en EFP1.                                                                                                          |
-| `names.ts`         | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`.                                                                                                                      |
-| `disp.ts`          | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ».                                                                                                                              |
-| `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**.                                                                                                                                  |
-| `deviceState.ts`   | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes.                     |
-| `pisteHub.ts`      | `PisteHub` : raccordement aux arènes (voir § 2 bis).                                                                                                                                                                                                                                                                                  |
-| `server.ts`        | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
+| Fichier | Rôle |
+|---|---|
+| `codec.ts` | `parseCyrano(raw)` / `buildCyrano(msg)` : 3 zones, champs de fin omis, `\|` et `%` retirés des valeurs (pas d'échappement dans le protocole), troncature aux longueurs maximales de la spécification, carton P omis en EFP1. |
+| `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
+| `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
+| `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**. |
+| `deviceState.ts` | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
+| `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
+| `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
 
 ### 2 bis. Raccordement aux arènes — mode appareil maître
 
@@ -41,15 +41,15 @@ Les entrées de l'appareil passent par le chemin de la tablette (`arena_control`
 `cyrano:<piste>`, sans anti-rebond) ; les mises à jour qui en résultent portent `source: 'device'`
 et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono).
 
-| Événement                                             | Effet                                                                                                                                                                                                                                                                                                               |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `INFO` en `F` / `H` / `P`                             | match démarré sur l'arène ; score et cartons (jaune, rouges) appliqués s'ils changent ; chrono diffusé (`F` en marche, `H` / `P` arrêté)                                                                                                                                                                            |
-| `INFO` en `W` sans le match de l'arène                | `DISP` du match courant (appareil redémarré ou reconnecté)                                                                                                                                                                                                                                                          |
-| `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match                                                                                                                                                                                                    |
-| `INFO` en `E`                                         | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
-| `NEXT`                                                | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux)                                                                                                                                                                                   |
-| Changement de match (file, vue arbitre, DT)           | `DISP` ; jamais de `DISP` d'un match terminé                                                                                                                                                                                                                                                                        |
-| Correction de score sur la tablette                   | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil)                                                                                                                                                                                                                                    |
+| Événement | Effet |
+|---|---|
+| `INFO` en `F` / `H` / `P` | match démarré sur l'arène ; score et cartons (jaune, rouges) appliqués s'ils changent ; chrono diffusé (`F` en marche, `H` / `P` arrêté) |
+| `INFO` en `W` sans le match de l'arène | `DISP` du match courant (appareil redémarré ou reconnecté) |
+| `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match |
+| `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
+| `NEXT` | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux) |
+| Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
+| Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
 
 Le `DISP` porte la phase, la poule (numéro de la poule) ou le tableau (`A16`, `A8`…) et le numéro
 du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage seul (noms et score),
@@ -58,25 +58,25 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 
 ### Panneau Cyrano (saisie distante)
 
-| Réglage / action                 | Effet                                                                                                                |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Interface d'écoute               | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage                                          |
-| Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée                              |
-| Secours `ACK`                    | ACK forcé : débloque un appareil resté en attente d'acquittement                                                     |
-| Secours `NEXT`                   | même effet que la touche NEXT de l'appareil (mêmes garde-fous)                                                       |
-| Secours « Resynchroniser »       | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide)                                |
-| Journal des trames               | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
+| Réglage / action | Effet |
+|---|---|
+| Interface d'écoute | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage |
+| Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
+| Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
+| Secours `NEXT` | même effet que la touche NEXT de l'appareil (mêmes garde-fous) |
+| Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
+| Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
 
 Réglages mémorisés dans le navigateur de l'application (`localStorage`) : table des pistes,
 port, interface, options de noms, démarrage automatique.
 
 ### Supervision
 
-| Statut    | Condition                                                                 |
-| --------- | ------------------------------------------------------------------------- |
-| `never`   | aucune trame reçue depuis la déclaration                                  |
-| `online`  | dernière trame < 20 s (l'appareil répond à chaque HELLO)                  |
-| `stale`   | entre 20 s et 40 s                                                        |
+| Statut | Condition |
+|---|---|
+| `never` | aucune trame reçue depuis la déclaration |
+| `online` | dernière trame < 20 s (l'appareil répond à chaque HELLO) |
+| `stale` | entre 20 s et 40 s |
 | `offline` | > 40 s (délai au-delà duquel l'appareil se considère lui-même déconnecté) |
 
 ### Sécurité réseau
@@ -130,12 +130,12 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 
 ## 4. Décisions (#1720)
 
-| Sujet                                     | Décision                                                                                                                                                                              |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sujet | Décision |
+|---|---|
 | Mode par défaut d'une piste avec appareil | **Appareil maître** : score, cartons et chrono viennent de l'appareil ; tablette en miroir ; END sur l'appareil → ACK / NAK. Modes « afficheur » et « manuel » disponibles par piste. |
-| Champ « nation » (3 caractères)           | **Réglage par compétition** : pays, club ou ligue ; `auto` = pays si compétition internationale, club sinon (`pickCyranoNat`).                                                        |
-| Correction de score en mode maître        | **Arbitre et DT** depuis la tablette ; la correction est renvoyée à l'appareil par un DISP avec scores.                                                                               |
-| Sabre laser et armes personnalisées       | **Affichage seul** : DISP noms + score, champ arme vide, pas de télécommande.                                                                                                         |
+| Champ « nation » (3 caractères) | **Réglage par compétition** : pays, club ou ligue ; `auto` = pays si compétition internationale, club sinon (`pickCyranoNat`). |
+| Correction de score en mode maître | **Arbitre et DT** depuis la tablette ; la correction est renvoyée à l'appareil par un DISP avec scores. |
+| Sabre laser et armes personnalisées | **Affichage seul** : DISP noms + score, champ arme vide, pas de télécommande. |
 
 ## 5. Suite prévue (#1720)
 
