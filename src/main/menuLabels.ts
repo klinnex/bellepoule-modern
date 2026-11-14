@@ -849,6 +849,45 @@ export function getL(): Record<string, string> {
   return MENU_LABELS[(uiLanguage in MENU_LABELS ? uiLanguage : 'fr') as MenuLang];
 }
 
+/** Notification native d'alerte BAD MATCH d'un appareil de piste (#1829). `{piste}`, `{arena}`. */
+const CYRANO_BAD_MATCH_LABELS: Record<MenuLang, { title: string; body: string }> = {
+  fr: {
+    title: 'Cyrano : BAD MATCH',
+    body: "Piste {piste} : l'appareil n'affiche pas le match de l'arène {arena}.",
+  },
+  en: {
+    title: 'Cyrano: BAD MATCH',
+    body: 'Strip {piste}: the device does not show the match of arena {arena}.',
+  },
+  de: {
+    title: 'Cyrano: BAD MATCH',
+    body: 'Bahn {piste}: Das Gerät zeigt nicht das Gefecht der Arena {arena} an.',
+  },
+  pt: {
+    title: 'Cyrano: BAD MATCH',
+    body: 'Pista {piste}: o aparelho não mostra o assalto da arena {arena}.',
+  },
+  it: {
+    title: 'Cyrano: BAD MATCH',
+    body: "Pedana {piste}: l'apparecchio non mostra l'assalto dell'arena {arena}.",
+  },
+  ru: {
+    title: 'Cyrano: BAD MATCH',
+    body: 'Дорожка {piste}: прибор не показывает бой арены {arena}.',
+  },
+  'zh-HK': {
+    title: 'Cyrano：BAD MATCH',
+    body: '場地 {piste}：裝置未顯示場地 {arena} 的比賽。',
+  },
+};
+
+/** Libellés de la notification BAD MATCH, dans la langue de l'interface. */
+export function getCyranoBadMatchLabels(): { title: string; body: string } {
+  return CYRANO_BAD_MATCH_LABELS[
+    (uiLanguage in CYRANO_BAD_MATCH_LABELS ? uiLanguage : 'fr') as MenuLang
+  ];
+}
+
 /** Remplace les `{nom}` d'un libellé. */
 export function fmt(template: string, vars: Record<string, string | number | undefined>): string {
   return template.replace(/\{(\w+)\}/g, (m, k: string) =>

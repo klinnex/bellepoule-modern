@@ -55,6 +55,7 @@ const EMPTY_ROW: CyranoPisteConfigDTO = {
   port: DEFAULT_PORT,
   arena: undefined,
   protocol: 'auto',
+  mode: 'master',
 };
 
 export const CyranoPanel: React.FC = () => {
@@ -311,6 +312,7 @@ export const CyranoPanel: React.FC = () => {
               <th>{t('rsm.cyrano_port_dev')}</th>
               <th>{t('rsm.cyrano_arena')}</th>
               <th>{t('rsm.cyrano_protocol')}</th>
+              <th>{t('rsm.cyrano_mode')}</th>
               <th>{t('rsm.cyrano_status')}</th>
               <th>{t('rsm.cyrano_actions')}</th>
               <th />
@@ -319,7 +321,7 @@ export const CyranoPanel: React.FC = () => {
           <tbody>
             {pistes.length === 0 && (
               <tr>
-                <td colSpan={8} className="cyrano-empty">
+                <td colSpan={9} className="cyrano-empty">
                   {t('rsm.cyrano_no_pistes')}
                 </td>
               </tr>
@@ -381,6 +383,18 @@ export const CyranoPanel: React.FC = () => {
                       <option value="auto">{t('rsm.cyrano_auto')}</option>
                       <option value="EFP1">{'EFP1'}</option>
                       <option value="EFP1.1">{'EFP1.1'}</option>
+                    </select>
+                  </td>
+                  <td>
+                    {/* Mode de la piste (#1829) : maître, afficheur ou manuel */}
+                    <select
+                      className="form-input cyrano-input"
+                      value={row.mode ?? 'master'}
+                      onChange={e => updateRow(i, 'mode', e.target.value)}
+                    >
+                      <option value="master">{t('rsm.cyrano_mode_master')}</option>
+                      <option value="display">{t('rsm.cyrano_mode_display')}</option>
+                      <option value="manual">{t('rsm.cyrano_mode_manual')}</option>
                     </select>
                   </td>
                   <td>

@@ -142,16 +142,33 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
   let acks: number;
   let naks: number;
   let updates: ArenaUpdate[];
+  // Horloge de la supervision (#1829) : contrôlée par les tests de bascule hors ligne
+  let clock = 1_000_000;
 
   const arena = () => remote.getArena('arena1')!;
+  const setMode = (mode: 'master' | 'display' | 'manual') => {
+    cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, port: 50101, arena: 1, mode }]);
+    hub.syncPisteModes();
+  };
+  const updateScore = (scoreA: number, scoreB: number) =>
+    remote.handleArenaControl(
+      { id: 'tablet', emit: () => true } as any,
+      {
+        arenaId: 'arena1',
+        action: 'update_score',
+        scoreA,
+        scoreB,
+      } as any
+    );
   const device = (frame: string) => cyrano.handle(frame, DEVICE_IP, 50101);
   const lastDisp = () => disps[disps.length - 1];
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    clock = 1_000_000;
     remote = new RemoteScoreServer(mockDb as any, 8066);
     vi.spyOn(remote as any, 'loadSessionReferees').mockReturnValue([]);
-    cyrano = new CyranoServer();
+    cyrano = new CyranoServer({ now: () => clock });
     cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, port: 50101, arena: 1 }]);
     // Base : poule n°2, numéro de match lu par id
     hub = new PisteHub(cyrano, () => remote, {
@@ -454,6 +471,137 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     it('piste inconnue : refus', () => {
       expect(hub.pisteAction('9', 'ack')).toBe(false);
       expect(acks).toBe(0);
+    });
+  });
+
+  describe('modes par piste (#1829)', () => {
+    it('afficheur : DISP reçu, INFO ignorés, END refusé (NAK), NEXT sans effet', () => {
+      setMode('display');
+      disps = [];
+      device(info('F', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().currentMatch?.scoreA).toBe(0);
+      device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
+      expect(naks).toBe(1);
+      expect(acks).toBe(0);
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      device(buildCyrano({ protocol: 'EFP1.1', command: 'NEXT', piste: '1', compe: '' } as any));
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      // Les mises à jour de la tablette sont encore affichées sur l'appareil
+      updateScore(4, 0);
+      expect(lastDisp()).toMatchObject({ right: { score: 4 }, left: { score: 0 } });
+    });
+
+    it('manuel : aucun DISP envoyé, INFO ignorés, END refusé, resynchronisation refusée', () => {
+      setMode('manual');
+      disps = [];
+      updateScore(2, 1);
+      expect(disps).toHaveLength(0);
+      device(info('F', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().currentMatch?.scoreA).toBe(2);
+      device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
+      expect(naks).toBe(1);
+      expect(acks).toBe(0);
+      expect(hub.pisteAction('1', 'resync')).toBe(false);
+      expect(hub.pisteAction('1', 'next')).toBe(false);
+      // L'ACK forcé reste disponible depuis le poste
+      expect(hub.pisteAction('1', 'ack')).toBe(true);
+      expect(acks).toBe(1);
+    });
+
+    it('retour de manuel vers maître : DISP du match courant renvoyé', () => {
+      setMode('manual');
+      disps = [];
+      setMode('master');
+      expect(lastDisp()).toMatchObject({
+        right: { id: short(ID.ef) },
+        left: { id: short(ID.ab) },
+      });
+    });
+
+    it('appareil hors ligne : bascule en manuel (plus de DISP), retour en ligne : DISP renvoyé', () => {
+      device(info('W', null, null)); // appareil connu et en ligne
+      clock += 60_000;
+      cyrano.getStatuses(); // supervision : hors ligne
+      disps = [];
+      updateScore(3, 0);
+      expect(disps).toHaveLength(0);
+      device(info('W', null, null)); // reconnexion
+      expect(lastDisp()).toMatchObject({
+        right: { id: short(ID.ef), score: 3 },
+        left: { id: short(ID.ab), score: 0 },
+      });
+    });
+
+    it('BAD MATCH : notification au DT à la première alerte seulement', () => {
+      const onAlert = vi.fn();
+      hub.detach();
+      hub = new PisteHub(cyrano, () => remote, { onAlert });
+      hub.attach();
+      device(info('H', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
+      device(info('H', { id: short(ID.de), score: 2 }, { id: short(ID.bc), score: 0 }));
+      expect(onAlert).toHaveBeenCalledTimes(1);
+      expect(onAlert).toHaveBeenCalledWith('1', expect.objectContaining({ arena: 'arena1' }));
+    });
+
+    it('reprise : match en cours sauvegardé repris avec son score au redémarrage de la séance', async () => {
+      const saved = { ...pm(2, ID.de, ID.bc), scoreA: 3, scoreB: 1, status: 'in_progress' };
+      mockDb.getArenaState.mockReturnValue({
+        arenaId: 'arena1',
+        competitionId: 'comp-1',
+        currentMatch: saved,
+        matchQueue: [],
+        settings: null,
+        status: 'in_progress',
+        updatedAt: '',
+      });
+      try {
+        remote.stopSession();
+        await remote.startSession('comp-1', 1, [
+          { __poolFencers: true, poolId: POOL, poolNumber: 1, strip: 1, fencers: [] },
+          pm(1, ID.ef, ID.ab),
+          pm(2, ID.de, ID.bc),
+          pm(3, ID.ef, ID.de),
+        ] as any);
+        expect(arena().currentMatch?.id).toBe(saved.id);
+        expect(arena().currentMatch?.scoreA).toBe(3);
+        expect(arena().status).toBe('in_progress');
+      } finally {
+        mockDb.getArenaState.mockReturnValue(null);
+      }
+    });
+
+    it('reprise : match déjà terminé en base non repris', async () => {
+      const saved = { ...pm(2, ID.de, ID.bc), scoreA: 3, scoreB: 1, status: 'in_progress' };
+      mockDb.getArenaState.mockReturnValue({
+        arenaId: 'arena1',
+        competitionId: 'comp-1',
+        currentMatch: saved,
+        matchQueue: [],
+        settings: null,
+        status: 'in_progress',
+        updatedAt: '',
+      });
+      mockDb.getMatch.mockReturnValueOnce({ id: saved.id, status: 'finished' } as any);
+      try {
+        remote.stopSession();
+        await remote.startSession('comp-1', 1, [
+          { __poolFencers: true, poolId: POOL, poolNumber: 1, strip: 1, fencers: [] },
+          pm(1, ID.ef, ID.ab),
+          pm(2, ID.de, ID.bc),
+          pm(3, ID.ef, ID.de),
+        ] as any);
+        // Match écarté : affectation par défaut (premier match à jouer)
+        expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      } finally {
+        mockDb.getArenaState.mockReturnValue(null);
+      }
+    });
+
+    it('mode hors liste : repli sur maître', () => {
+      cyrano.setPistes([
+        { piste: '1', ip: DEVICE_IP, port: 50101, arena: 1, mode: 'bogus' as any },
+      ]);
+      expect(cyrano.findPiste('1')?.mode).toBe('master');
     });
   });
 });

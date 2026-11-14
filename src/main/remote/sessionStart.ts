@@ -428,5 +428,36 @@ export async function startSession(
     `[RemoteScoreServer] Session créée avec ${assignedMatchCount} matchs assignés`
   );
 
+  restoreArenaStates(ctx, competitionId);
+
   return ctx.session;
+}
+
+/**
+ * Reprise de l'état des arènes (#1829) : `persistArenaState` sauvegarde chaque arène ; au
+ * redémarrage, une arène qui était en cours reprend son match et son score, tant que ce match
+ * n'est pas terminé en base. La file DE sauvegardée est rétablie. Le match repris remplace
+ * l'affectation faite par défaut : le match écarté reste « à jouer » et reste sélectionnable.
+ */
+function restoreArenaStates(ctx: SessionStartContext, competitionId: string): void {
+  for (const arenaId of ctx.arenas.keys()) {
+    const saved = ctx.db.getArenaState(arenaId);
+    if (!saved || saved.competitionId !== competitionId || saved.status !== 'in_progress') continue;
+    const match = saved.currentMatch as ArenaMatch | null;
+    if (!match?.id || !match.fencerA || !match.fencerB) continue;
+    const dbMatch = ctx.db.getMatch(match.id) as { status?: string } | null | undefined;
+    if (dbMatch?.status === 'finished') continue;
+
+    const arena = ctx.arenas.get(arenaId);
+    if (!arena) continue;
+    arena.currentMatch = { ...match, status: 'in_progress' };
+    arena.status = 'in_progress';
+    if (Array.isArray(saved.matchQueue) && saved.matchQueue.length > 0) {
+      ctx.arenaMatchQueue.set(arenaId, saved.matchQueue as ArenaMatch[]);
+    }
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Arène ${arenaId} reprise : match ${match.id} en cours (${match.scoreA}-${match.scoreB})`
+    );
+  }
 }

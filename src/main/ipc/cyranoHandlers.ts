@@ -55,6 +55,8 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
   ipcMain.handle('cyrano:setPistes', (_, pistes: CyranoPisteConfig[]): void => {
     if (!Array.isArray(pistes)) return;
     cyranoServer.setPistes(pistes);
+    // Changement de mode d'une piste : DISP renvoyé (#1829)
+    pisteHub.syncPisteModes();
   });
 
   ipcMain.handle('cyrano:getStatus', () => {

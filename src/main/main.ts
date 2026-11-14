@@ -3,13 +3,13 @@
  * Licensed under GPL-3.0
  */
 
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Notification } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
-import { fmt, getL, setUiLanguage } from './menuLabels';
+import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
@@ -108,8 +108,25 @@ const pisteHub = new PisteHub(
     }
     return null;
   },
-  // Numéros de poule / de match du DISP lus en base
-  { coordsSource: db }
+  {
+    // Numéros de poule / de match du DISP lus en base
+    coordsSource: db,
+    // BAD MATCH : notification native au DT (#1829), un clic ramène la fenêtre au premier plan
+    onAlert: (piste, alert) => {
+      if (!Notification.isSupported()) return;
+      const labels = getCyranoBadMatchLabels();
+      const arena = alert.arena.replace(/^arena/, '');
+      const notification = new Notification({
+        title: labels.title,
+        body: fmt(labels.body, { piste, arena }),
+      });
+      notification.on('click', () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      });
+      notification.show();
+    },
+  }
 );
 
 registerRemoteServerHandlers({
