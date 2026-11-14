@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 65 | 518 |
+| `src/main/` | 65 | 526 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 94 | 470 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **378** | **2861** |
+| **Total** | **378** | **2869** |
 
-Unitaires : 368 fichiers, 2822 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 368 fichiers, 2830 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2518,7 +2518,7 @@ Unitaires : 368 fichiers, 2822 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 26 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 34 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2548,6 +2548,15 @@ Unitaires : 368 fichiers, 2822 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - NEXT du poste : mêmes garde-fous que la touche de l’appareil
     - resynchronisation : match de l’arène renvoyé, alerte levée
     - piste inconnue : refus
+  - **modes par piste (#1829)**
+    - afficheur : DISP reçu, INFO ignorés, END refusé (NAK), NEXT sans effet
+    - manuel : aucun DISP envoyé, INFO ignorés, END refusé, resynchronisation refusée
+    - retour de manuel vers maître : DISP du match courant renvoyé
+    - appareil hors ligne : bascule en manuel (plus de DISP), retour en ligne : DISP renvoyé
+    - BAD MATCH : notification au DT à la première alerte seulement
+    - reprise : match en cours sauvegardé repris avec son score au redémarrage de la séance
+    - reprise : match déjà terminé en base non repris
+    - mode hors liste : repli sur maître
 
 </details>
 
