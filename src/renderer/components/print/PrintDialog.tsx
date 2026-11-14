@@ -10,7 +10,18 @@ import Modal from '../common/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PrintDialogSettings } from '../../../shared/types/preload';
 import { loadPdfJs, type PdfDocument, type PdfLoadingTask } from './pdfjsLoader';
-import { isValidPageRanges, loadSettings, pageRangesBeyond, saveSettings } from './printSettings';
+import {
+  expandPageRanges,
+  findAdvisedScale,
+  isPoolSheetHtml,
+  isValidPageRanges,
+  loadSettings,
+  pageRangesBeyond,
+  parseScale,
+  saveSettings,
+  sheetCount,
+  withAdvisedStyle,
+} from './printSettings';
 import { Button } from '../common/Button';
 
 export interface PrintDialogResult {
@@ -43,7 +54,7 @@ const destroyTask = (task: PdfLoadingTask | null) => {
   }
 };
 
-const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
+const PrintDialog: React.FC<PrintDialogProps> = ({ html: sourceHtml, onDone }) => {
   const { t } = useTranslation();
   const api = window.electronAPI.printDialog;
   const [settings, setSettings] = useState<PrintDialogSettings>(loadSettings);
@@ -54,6 +65,12 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
   const [zoom, setZoom] = useState(100);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Mise à l'échelle conseillée (feuilles de poule) : matchs agrandis et contrastés (#1826)
+  const [advised, setAdvised] = useState(false);
+  const [advising, setAdvising] = useState(false);
+  const html = advised ? withAdvisedStyle(sourceHtml) : sourceHtml;
+  // Échelle saisie librement, validée à la sortie du champ (#1826)
+  const [scaleText, setScaleText] = useState(() => String(settings.scale));
   const pagesRef = useRef<HTMLDivElement>(null);
   const docRef = useRef<PdfDocument | null>(null);
   const taskRef = useRef<PdfLoadingTask | null>(null);
@@ -205,7 +222,96 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
     }
   };
 
-  const handlePrint = () => run(() => api.execute(html, settings));
+  /**
+   * Pages choisies : on imprime les pages de l'aperçu (PDF exact) plutôt que de confier la
+   * plage à l'imprimante, qui échoue sur les documents de plusieurs feuilles (#1826).
+   */
+  const selectedPagesHtml = async (): Promise<{ html: string; landscape: boolean } | undefined> => {
+    const doc = docRef.current;
+    const pages = doc ? expandPageRanges(settings.pages, doc.numPages) : [];
+    if (!doc || pages.length === 0) return undefined;
+    const images: string[] = [];
+    let landscape = false;
+    for (const n of pages) {
+      const page = await doc.getPage(n);
+      const base = page.getViewport({ scale: 1 });
+      landscape = base.width > base.height;
+      const viewport = page.getViewport({ scale: 200 / 72 }); // ≈ 200 dpi
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('canvas');
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      images.push(`<div class="p"><img src="${canvas.toDataURL('image/png')}" alt=""></div>`);
+    }
+    return {
+      landscape,
+      html: `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@page { margin: 0; }
+html, body { margin: 0; padding: 0; }
+.p { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; break-after: page; }
+.p:last-child { break-after: auto; }
+.p img { max-width: 100%; max-height: 100%; }
+</style></head><body>${images.join('')}</body></html>`,
+    };
+  };
+
+  const handlePrint = () =>
+    run(async () => {
+      const selection = await selectedPagesHtml();
+      if (!selection) return api.execute(html, settings);
+      return api.execute(selection.html, {
+        ...settings,
+        pages: '',
+        scale: 100,
+        margins: 'none',
+        orientation:
+          settings.orientation === 'auto'
+            ? selection.landscape
+              ? 'landscape'
+              : 'portrait'
+            : settings.orientation,
+      });
+    });
+
+  const commitScale = () => {
+    const value = parseScale(scaleText);
+    if (value === undefined) {
+      setScaleText(String(settings.scale));
+      return;
+    }
+    setScaleText(String(value));
+    update('scale', value);
+  };
+
+  /** Plus grande échelle qui tient chaque feuille de poule sur une page (#1826) */
+  const handleAdvisedScale = async () => {
+    setAdvising(true);
+    setError('');
+    try {
+      const target = withAdvisedStyle(sourceHtml);
+      const lib = await loadPdfJs();
+      const countPages = async (scale: number) => {
+        const res = await api.render(target, { ...settings, scale });
+        if (!res.success || !res.data) throw new Error(res.error || 'render_failed');
+        const task = lib.getDocument({ data: res.data, isEvalSupported: false });
+        try {
+          return (await task.promise).numPages;
+        } finally {
+          destroyTask(task);
+        }
+      };
+      const scale = await findAdvisedScale(countPages, sheetCount(sourceHtml));
+      setAdvised(true);
+      setScaleText(String(scale));
+      update('scale', scale);
+    } catch {
+      setError(t('print.preview_failed'));
+    } finally {
+      setAdvising(false);
+    }
+  };
   const handleSavePdf = () => run(() => api.savePdf(html, settings, documentTitle(html)));
   // Boîte du système : elle gère elle-même annulation et réglages
   const handleSystem = () => run(() => api.systemDialog(html));
@@ -384,12 +490,28 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
               min={10}
               max={200}
               step={5}
-              value={settings.scale}
-              onChange={e =>
-                update('scale', Math.min(200, Math.max(10, Number(e.target.value) || 100)))
-              }
+              value={scaleText}
+              onFocus={e => e.currentTarget.select()}
+              onChange={e => setScaleText(e.target.value)}
+              onBlur={commitScale}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  commitScale();
+                }
+              }}
             />
           </label>
+          {isPoolSheetHtml(sourceHtml) && (
+            <Button
+              type="button"
+              onClick={handleAdvisedScale}
+              disabled={busy || advising}
+              title={t('print.advised_scale_title')}
+            >
+              {t('print.advised_scale')}
+            </Button>
+          )}
           <p className="print-dialog__hint">{t('print.driver_hint')}</p>
           {error && (
             <p className="print-dialog__error" role="alert">

@@ -226,8 +226,11 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
       }
   }
 
-  // Vérifier la file d'attente DE avant de marquer l'arène comme vide
-  const deQueue = ctx.arenaMatchQueue.get(arenaId) || [];
+  // Vérifier la file d'attente DE avant de marquer l'arène comme vide.
+  // Entrée d'une poule en file déjà jouée (l'arbitre a choisi ses matchs dans la liste) : retirée (#1826)
+  const deQueue = (ctx.arenaMatchQueue.get(arenaId) || []).filter(
+    m => !m.poolId || ctx.sessionMatchScores.get(m.id)?.status !== MatchStatus.FINISHED
+  );
   if (deQueue.length > 0) {
     const nextDeMatch = deQueue[0];
 

@@ -68,8 +68,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // Si l'arène a un pool associé, retourner les matchs NON TERMINÉS du pool.
       // On exclut les matchs finis pour que, en fin de poule, le fallthrough
       // atteigne la file d'attente DE (Tier 3) au lieu de bloquer dessus.
-      const currentPoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
-      if (arena && currentPoolId && ctx.sessionMatches.length > 0) {
+      // Poule de la piste, puis poules en file sur la même piste : quand la première poule
+      // est terminée, la suivante s'affiche en entier, pas seulement son premier match (#1826)
+      const homePoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
+      const candidatePools = [
+        ...(homePoolId ? [homePoolId] : []),
+        ...(ctx.arenaMatchQueue.get(arenaId) || [])
+          .filter(m => !!m.poolId && !m.isTableau && !ctx.poolMatchArenaOverrides.has(m.id))
+          .map(m => m.poolId as string),
+      ].filter((id, i, all) => all.indexOf(id) === i);
+      for (const currentPoolId of candidatePools) {
+        if (!arena || ctx.sessionMatches.length === 0) break;
         const taken = matchesTakenBySiblings(ctx.arenas, arenaId, id => ctx.isArenaMatchOpened(id));
         const rawPoolMatches = ctx.sessionMatches
           .filter((m: any) => {

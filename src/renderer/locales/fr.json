@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "fichier illisible ou au mauvais format : vérifiez le type de fichier, ou réexportez-le depuis sa source.",
     "hint_db_locked": "base de données occupée : patientez quelques secondes, puis réessayez.",
     "hint_unknown": "cause inconnue : réessayez ; si l'erreur persiste, redémarrez l'application et consultez les journaux.",
-    "port_invalid": "Port invalide (1–65535)"
+    "port_invalid": "Port invalide (1–65535)",
+    "invalid_host": "Interface d'écoute invalide"
   },
   "properties": {
     "one_round": "1 tour",
@@ -1465,7 +1466,20 @@
     "sec_display": "Thème & fond d’écran",
     "sec_screens": "Écrans connectés",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "L’appareil affiche {{device}}, pas le match de l’arène : saisies ignorées. Vérifier le match sur l’appareil (NEXT) ou sur la tablette."
+    "cyrano_bad_match_hint": "L’appareil affiche {{device}}, pas le match de l’arène : saisies ignorées. Vérifier le match sur l’appareil (NEXT) ou sur la tablette.",
+    "cyrano_interface": "Interface d'écoute",
+    "cyrano_interface_all": "Toutes les interfaces",
+    "cyrano_autostart": "Démarrer avec la saisie distante",
+    "cyrano_actions": "Secours",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Acquitter de force la fin de match bloquée sur l'appareil",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Match suivant, comme la touche NEXT de l'appareil",
+    "cyrano_action_resync": "Resynchroniser",
+    "cyrano_action_resync_title": "Effacer l'état connu et renvoyer le match de la piste à l'appareil",
+    "cyrano_log": "Journal des trames",
+    "cyrano_log_export": "Exporter le journal",
+    "cyrano_log_empty": "Aucune trame."
   },
   "comparison": {
     "title": "Comparaison Head-to-Head",
@@ -2950,7 +2964,9 @@
     "assign_strip": "Assigner une piste",
     "referee": "Arbitre : {{list}}",
     "referees": "Arbitres : {{list}}",
-    "enter_score": "Saisir score"
+    "enter_score": "Saisir score",
+    "strip_label": "Piste",
+    "referee_label": "Arbitre"
   },
   "seedingTable": {
     "title": "Classement après poules"
@@ -3035,7 +3051,9 @@
     "print": "Imprimer",
     "save_pdf": "Enregistrer en PDF",
     "system_dialog": "Boîte de dialogue système…",
-    "failed": "Échec de l'impression"
+    "failed": "Échec de l'impression",
+    "advised_scale": "Mise à l'échelle conseillée",
+    "advised_scale_title": "Ajuste l'échelle pour tenir chaque poule (grille et matchs) sur une page, agrandit et contraste la liste des matchs"
   },
   "tour": {
     "title": "Première compétition",

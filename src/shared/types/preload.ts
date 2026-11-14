@@ -1389,13 +1389,22 @@ export interface CyranoAPI {
   isRunning: () => Promise<boolean>;
   setPistes: (pistes: CyranoPisteConfigDTO[]) => Promise<void>;
   getStatus: () => Promise<CyranoStatusDTO>;
-  getLog: () => Promise<unknown[]>;
+  getLog: () => Promise<CyranoFrameLogDTO[]>;
   setOptions: (options: {
     nameLength?: 10 | 12 | 15 | 20;
     natSource?: 'country' | 'club' | 'region' | 'auto';
     international?: boolean;
   }) => Promise<void>;
+  /** Actions de secours par piste (#1829) */
+  pisteAction: (piste: string, action: 'ack' | 'next' | 'resync') => Promise<boolean>;
 }
+
+/** Trame du journal Cyrano (#1829) */
+export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; port: number } & {
+  piste: string | null;
+  raw: string;
+  rejected?: 'unknown_ip' | 'malformed';
+};
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;

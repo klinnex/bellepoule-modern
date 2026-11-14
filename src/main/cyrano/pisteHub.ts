@@ -35,6 +35,10 @@ export interface PisteHubOptions {
   international?: boolean;
 }
 
+/** Actions de secours lancées depuis le panneau Cyrano (#1829). */
+export type PisteAction = 'ack' | 'next' | 'resync';
+export const PISTE_ACTIONS: readonly PisteAction[] = ['ack', 'next', 'resync'];
+
 /** Alerte en cours sur une piste, affichée dans le panneau Cyrano. */
 export interface PisteAlert {
   kind: 'bad_match';
@@ -174,6 +178,41 @@ export class PisteHub {
     if (view?.matchId === match.id && view.scoreA === scoreA && view.scoreB === scoreB) return;
     this.sendMatch(piste.piste, match, scoreA, scoreB);
   };
+
+  /**
+   * Actions de secours depuis le poste (#1829), par piste :
+   * - `ack` : ACK forcé (l'appareil reste bloqué en attente d'acquittement) ;
+   * - `next` : même effet que la touche NEXT de l'appareil (mêmes garde-fous) ;
+   * - `resync` : oubli de l'état connu puis renvoi du match de l'arène (ou affichage vide).
+   */
+  pisteAction(piste: string, action: PisteAction): boolean {
+    const status = this.cyrano.findPiste(piste);
+    if (!status) return false;
+    logger.info(LogCategory.NETWORK, `Cyrano: action de secours « ${action} » sur piste ${piste}`);
+    switch (action) {
+      case 'ack':
+        return this.cyrano.sendAck(piste);
+      case 'next':
+        if (!status.arena) return false;
+        this.handleNext(status, { protocol: 'EFP1.1', command: 'NEXT', piste, compe: '' });
+        return true;
+      case 'resync': {
+        this.clearDispCache(piste);
+        const remote = this.getRemote();
+        const arena = status.arena ? remote?.getArena(`arena${status.arena}`) : undefined;
+        const match = arena?.currentMatch;
+        if (arena && match && !isFinished(match, arena.status)) {
+          this.sendMatch(piste, match, match.scoreA, match.scoreB);
+        } else {
+          this.device.set(piste, { matchId: null });
+          this.cyrano.sendDisp(piste, EMPTY_DISP);
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
 
   /** Réinitialise l'état connu d'une piste. */
   clearDispCache(piste: string): void {

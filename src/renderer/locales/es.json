@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "archivo ilegible o con formato incorrecto: compruebe el tipo de archivo o expórtelo de nuevo desde su origen.",
     "hint_db_locked": "base de datos ocupada: espere unos segundos e inténtelo de nuevo.",
     "hint_unknown": "causa desconocida: inténtelo de nuevo; si el error persiste, reinicie la aplicación y consulte los registros.",
-    "port_invalid": "Puerto no válido (1–65535)"
+    "port_invalid": "Puerto no válido (1–65535)",
+    "invalid_host": "Interfaz de escucha no válida"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -1465,7 +1466,20 @@
     "sec_display": "Tema y fondo de pantalla",
     "sec_screens": "Pantallas conectadas",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "El aparato muestra {{device}}, no el combate de la pista: entradas ignoradas. Comprobar el combate en el aparato (NEXT) o en la tableta."
+    "cyrano_bad_match_hint": "El aparato muestra {{device}}, no el combate de la pista: entradas ignoradas. Comprobar el combate en el aparato (NEXT) o en la tableta.",
+    "cyrano_interface": "Interfaz de escucha",
+    "cyrano_interface_all": "Todas las interfaces",
+    "cyrano_autostart": "Iniciar con la puntuación remota",
+    "cyrano_actions": "Emergencia",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Forzar el acuse del final de asalto bloqueado en el aparato",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Asalto siguiente, como la tecla NEXT del aparato",
+    "cyrano_action_resync": "Resincronizar",
+    "cyrano_action_resync_title": "Olvidar el estado conocido y reenviar el asalto de la pista al aparato",
+    "cyrano_log": "Registro de tramas",
+    "cyrano_log_export": "Exportar el registro",
+    "cyrano_log_empty": "Ninguna trama."
   },
   "comparison": {
     "title": "Comparación cara a cara",
@@ -2950,7 +2964,9 @@
     "assign_strip": "Asignar una pista",
     "referee": "Árbitro: {{list}}",
     "referees": "Árbitros: {{list}}",
-    "enter_score": "Introducir marcador"
+    "enter_score": "Introducir marcador",
+    "strip_label": "Pista",
+    "referee_label": "Árbitro"
   },
   "seedingTable": {
     "title": "Clasificación tras las poules"
@@ -3035,7 +3051,9 @@
     "print": "Imprimir",
     "save_pdf": "Guardar como PDF",
     "system_dialog": "Diálogo del sistema…",
-    "failed": "Error de impresión"
+    "failed": "Error de impresión",
+    "advised_scale": "Escala recomendada",
+    "advised_scale_title": "Ajusta la escala para que cada poule (tabla y asaltos) quepa en una página, con una lista de asaltos más grande y contrastada"
   },
   "tour": {
     "title": "Primera competición",

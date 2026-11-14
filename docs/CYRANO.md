@@ -56,6 +56,20 @@ du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage se
 INFO ignorés, END → `NAK`, NEXT sans effet. Journal des scores : auteur `device` pour les saisies
 et fins de match venues de l'appareil (libellé « Appareil de piste »).
 
+### Panneau Cyrano (saisie distante)
+
+| Réglage / action | Effet |
+|---|---|
+| Interface d'écoute | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage |
+| Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
+| Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
+| Secours `NEXT` | même effet que la touche NEXT de l'appareil (mêmes garde-fous) |
+| Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
+| Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
+
+Réglages mémorisés dans le navigateur de l'application (`localStorage`) : table des pistes,
+port, interface, options de noms, démarrage automatique.
+
 ### Supervision
 
 | Statut | Condition |

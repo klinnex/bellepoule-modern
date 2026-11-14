@@ -17,42 +17,30 @@ import {
 import { Icon } from '../common/Icon';
 import { Button } from '../common/Button';
 import { useTranslation } from '../../hooks/useTranslation';
-import type { CyranoPisteConfigDTO, CyranoPisteStatusDTO } from '../../../shared/types/preload';
+import type {
+  CyranoFrameLogDTO,
+  CyranoPisteConfigDTO,
+  CyranoPisteStatusDTO,
+} from '../../../shared/types/preload';
+import {
+  DEFAULT_PORT,
+  formatCyranoLog,
+  readAutoStart,
+  readHost,
+  readOptions,
+  readPistes,
+  readPort,
+  startCyranoFromSaved,
+  writeAutoStart,
+  writeHost,
+  writeOptions,
+  writePistes,
+  writePort,
+  type CyranoOptions,
+} from './cyranoSettings';
 
-const PISTES_KEY = 'bellepoule-cyrano-pistes';
-const PORT_KEY = 'bellepoule-cyrano-port';
-const DEFAULT_PORT = 50100;
 const POLL_MS = 5000;
-
-function readPistes(): CyranoPisteConfigDTO[] {
-  try {
-    const raw = localStorage.getItem(PISTES_KEY);
-    return raw ? (JSON.parse(raw) as CyranoPisteConfigDTO[]) : [];
-  } catch {
-    return [];
-  }
-}
-function writePistes(p: CyranoPisteConfigDTO[]): void {
-  try {
-    localStorage.setItem(PISTES_KEY, JSON.stringify(p));
-  } catch {
-    /* noop */
-  }
-}
-function readPort(): number {
-  try {
-    return parseInt(localStorage.getItem(PORT_KEY) ?? '', 10) || DEFAULT_PORT;
-  } catch {
-    return DEFAULT_PORT;
-  }
-}
-function writePort(p: number): void {
-  try {
-    localStorage.setItem(PORT_KEY, String(p));
-  } catch {
-    /* noop */
-  }
-}
+const LOG_LINES = 200;
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   online: <Wifi size={14} className="cyrano-st cyrano-st--online" />,
@@ -75,22 +63,72 @@ export const CyranoPanel: React.FC = () => {
   const [udpPort, setUdpPort] = useState<number>(readPort);
   const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>(readPistes);
   const [statuses, setStatuses] = useState<CyranoPisteStatusDTO[]>([]);
-  const [nameLength, setNameLength] = useState<10 | 12 | 15 | 20>(10);
-  const [natSource, setNatSource] = useState<'auto' | 'country' | 'club' | 'region'>('auto');
-  const [international, setInternational] = useState(false);
+  const [options, setOptionsState] = useState<CyranoOptions>(readOptions);
+  const { nameLength, natSource, international } = options;
+  const [host, setHost] = useState<string>(readHost);
+  const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
+  const [autoStart, setAutoStart] = useState<boolean>(readAutoStart);
+  const [showLog, setShowLog] = useState(false);
+  const [log, setLog] = useState<CyranoFrameLogDTO[]>([]);
   const [startError, setStartError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const showLogRef = useRef(showLog);
+  useEffect(() => {
+    showLogRef.current = showLog;
+  }, [showLog]);
   const refreshStatus = useCallback(async () => {
     if (!window.electronAPI?.cyrano) return;
     const s = await window.electronAPI.cyrano.getStatus();
     setRunning(s.running);
     setStatuses(s.pistes);
+    if (showLogRef.current) setLog((await window.electronAPI.cyrano.getLog?.()) ?? []);
   }, []);
 
   useEffect(() => {
     void refreshStatus();
   }, [refreshStatus]);
+
+  // Interfaces réseau locales : choix de l'interface d'écoute (#1829)
+  useEffect(() => {
+    window.electronAPI?.remote
+      ?.getNetworkInterfaces?.()
+      .then(res => {
+        if (res?.success && res.interfaces) setInterfaces(res.interfaces);
+      })
+      .catch(() => {});
+  }, []);
+
+  const updateOptions = (patch: Partial<CyranoOptions>) => {
+    const next = { ...options, ...patch };
+    setOptionsState(next);
+    writeOptions(next);
+    if (running) void window.electronAPI?.cyrano?.setOptions(patch);
+  };
+
+  const toggleLog = async () => {
+    const next = !showLog;
+    setShowLog(next);
+    if (next && window.electronAPI?.cyrano) setLog(await window.electronAPI.cyrano.getLog());
+  };
+
+  const exportLog = async () => {
+    const entries = (await window.electronAPI?.cyrano?.getLog()) ?? log;
+    const blob = new Blob([formatCyranoLog(entries) + '\n'], {
+      type: 'text/plain;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cyrano-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.log`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const pisteAction = async (piste: string, action: 'ack' | 'next' | 'resync') => {
+    await window.electronAPI?.cyrano?.pisteAction(piste, action);
+    void refreshStatus();
+  };
 
   useEffect(() => {
     if (!running) {
@@ -115,13 +153,9 @@ export const CyranoPanel: React.FC = () => {
     }
     setStartError(null);
     try {
-      const res = await window.electronAPI.cyrano.start({ port: udpPort });
-      if (res.success) {
-        await window.electronAPI.cyrano.setPistes(pistes.filter(p => p.piste && p.ip));
-        await window.electronAPI.cyrano.setOptions({ nameLength, natSource, international });
-      } else {
-        setStartError(res.error ?? 'start_failed');
-      }
+      // Réglages déjà mémorisés à chaque modification : même démarrage que l'automatique
+      const res = await startCyranoFromSaved();
+      if (!res.success) setStartError(res.error ?? 'start_failed');
     } catch (err) {
       setStartError(err instanceof Error ? err.message : String(err));
     }
@@ -230,6 +264,43 @@ export const CyranoPanel: React.FC = () => {
         </div>
       )}
 
+      {/* ── Interface d'écoute + démarrage automatique (#1829) ── */}
+      <div className="cyrano-options">
+        <label className="cyrano-option">
+          {t('rsm.cyrano_interface')}
+          <select
+            className="form-input cyrano-input"
+            value={host}
+            disabled={running}
+            onChange={e => {
+              setHost(e.target.value);
+              writeHost(e.target.value);
+            }}
+          >
+            <option value="">{t('rsm.cyrano_interface_all')}</option>
+            {host && !interfaces.some(i => i.address === host) && (
+              <option value={host}>{host}</option>
+            )}
+            {interfaces.map(i => (
+              <option key={`${i.name}-${i.address}`} value={i.address}>
+                {i.address} ({i.name})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="cyrano-option">
+          <input
+            type="checkbox"
+            checked={autoStart}
+            onChange={e => {
+              setAutoStart(e.target.checked);
+              writeAutoStart(e.target.checked);
+            }}
+          />
+          {t('rsm.cyrano_autostart')}
+        </label>
+      </div>
+
       {/* ── Table des pistes ── */}
       <div className="cyrano-table-wrap">
         <table className="cyrano-table">
@@ -241,13 +312,14 @@ export const CyranoPanel: React.FC = () => {
               <th>{t('rsm.cyrano_arena')}</th>
               <th>{t('rsm.cyrano_protocol')}</th>
               <th>{t('rsm.cyrano_status')}</th>
+              <th>{t('rsm.cyrano_actions')}</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {pistes.length === 0 && (
               <tr>
-                <td colSpan={7} className="cyrano-empty">
+                <td colSpan={8} className="cyrano-empty">
                   {t('rsm.cyrano_no_pistes')}
                 </td>
               </tr>
@@ -332,6 +404,25 @@ export const CyranoPanel: React.FC = () => {
                     )}
                   </td>
                   <td>
+                    {/* Actions de secours (#1829) : serveur démarré, piste déclarée */}
+                    {running && st && (
+                      <span className="cyrano-inline">
+                        {(['ack', 'next', 'resync'] as const).map(action => (
+                          <Button
+                            key={action}
+                            size="sm"
+                            title={t(`rsm.cyrano_action_${action}_title`)}
+                            onClick={() => {
+                              void pisteAction(st.piste, action);
+                            }}
+                          >
+                            {t(`rsm.cyrano_action_${action}`)}
+                          </Button>
+                        ))}
+                      </span>
+                    )}
+                  </td>
+                  <td>
                     <button
                       className="btn-copy"
                       onClick={() => removeRow(i)}
@@ -360,9 +451,7 @@ export const CyranoPanel: React.FC = () => {
             className="form-input cyrano-input"
             value={nameLength}
             onChange={e => {
-              const v = parseInt(e.target.value, 10) as 10 | 12 | 15 | 20;
-              setNameLength(v);
-              if (running) void window.electronAPI?.cyrano?.setOptions({ nameLength: v });
+              updateOptions({ nameLength: parseInt(e.target.value, 10) as 10 | 12 | 15 | 20 });
             }}
           >
             {([10, 12, 15, 20] as const).map(n => (
@@ -378,9 +467,7 @@ export const CyranoPanel: React.FC = () => {
             className="form-input cyrano-input"
             value={natSource}
             onChange={e => {
-              const v = e.target.value as typeof natSource;
-              setNatSource(v);
-              if (running) void window.electronAPI?.cyrano?.setOptions({ natSource: v });
+              updateOptions({ natSource: e.target.value as typeof natSource });
             }}
           >
             <option value="auto">{t('rsm.cyrano_auto')}</option>
@@ -394,14 +481,38 @@ export const CyranoPanel: React.FC = () => {
             type="checkbox"
             checked={international}
             onChange={e => {
-              setInternational(e.target.checked);
-              if (running)
-                void window.electronAPI?.cyrano?.setOptions({ international: e.target.checked });
+              updateOptions({ international: e.target.checked });
             }}
           />
           {t('rsm.cyrano_international')}
         </label>
       </div>
+
+      {/* ── Journal des trames (#1829) ── */}
+      <div className="cyrano-options">
+        <Button
+          size="sm"
+          aria-expanded={showLog}
+          onClick={() => {
+            void toggleLog();
+          }}
+        >
+          {t('rsm.cyrano_log')}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => {
+            void exportLog();
+          }}
+        >
+          {t('rsm.cyrano_log_export')}
+        </Button>
+      </div>
+      {showLog && (
+        <pre className="cyrano-log" aria-label={t('rsm.cyrano_log')}>
+          {log.length === 0 ? t('rsm.cyrano_log_empty') : formatCyranoLog(log.slice(-LOG_LINES))}
+        </pre>
+      )}
     </div>
   );
 };

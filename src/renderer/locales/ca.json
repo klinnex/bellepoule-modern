@@ -1034,7 +1034,8 @@
     "hint_invalid_format": "fitxer il·legible o amb format incorrecte: comproveu el tipus de fitxer o exporteu-lo de nou des de l'origen.",
     "hint_db_locked": "base de dades ocupada: espereu uns segons i torneu-ho a provar.",
     "hint_unknown": "causa desconeguda: torneu-ho a provar; si l'error persisteix, reinicieu l'aplicació i consulteu els registres.",
-    "port_invalid": "Port no vàlid (1–65535)"
+    "port_invalid": "Port no vàlid (1–65535)",
+    "invalid_host": "Interfície d'escolta no vàlida"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -1465,7 +1466,20 @@
     "sec_display": "Tema i fons de pantalla",
     "sec_screens": "Pantalles connectades",
     "cyrano_bad_match": "BAD MATCH",
-    "cyrano_bad_match_hint": "L'aparell mostra {{device}}, no el combat de la pista: entrades ignorades. Comproveu el combat a l'aparell (NEXT) o a la tauleta."
+    "cyrano_bad_match_hint": "L'aparell mostra {{device}}, no el combat de la pista: entrades ignorades. Comproveu el combat a l'aparell (NEXT) o a la tauleta.",
+    "cyrano_interface": "Interfície d'escolta",
+    "cyrano_interface_all": "Totes les interfícies",
+    "cyrano_autostart": "Iniciar amb la puntuació remota",
+    "cyrano_actions": "Emergència",
+    "cyrano_action_ack": "ACK",
+    "cyrano_action_ack_title": "Forçar l'acceptació del final de combat bloquejat a l'aparell",
+    "cyrano_action_next": "NEXT",
+    "cyrano_action_next_title": "Combat següent, com la tecla NEXT de l'aparell",
+    "cyrano_action_resync": "Resincronitzar",
+    "cyrano_action_resync_title": "Oblidar l'estat conegut i reenviar el combat de la pista a l'aparell",
+    "cyrano_log": "Registre de trames",
+    "cyrano_log_export": "Exportar el registre",
+    "cyrano_log_empty": "Cap trama."
   },
   "comparison": {
     "title": "Comparació cara a cara",
@@ -2950,7 +2964,9 @@
     "assign_strip": "Assignar una pista",
     "referee": "Àrbitre: {{list}}",
     "referees": "Àrbitres: {{list}}",
-    "enter_score": "Introduir marcador"
+    "enter_score": "Introduir marcador",
+    "strip_label": "Pista",
+    "referee_label": "Àrbitre"
   },
   "seedingTable": {
     "title": "Classificació després de les poules"
@@ -3035,7 +3051,9 @@
     "print": "Imprimeix",
     "save_pdf": "Desa com a PDF",
     "system_dialog": "Diàleg del sistema…",
-    "failed": "Error d'impressió"
+    "failed": "Error d'impressió",
+    "advised_scale": "Escala recomanada",
+    "advised_scale_title": "Ajusta l'escala perquè cada poule (graella i combats) càpiga en una pàgina, amb una llista de combats més gran i contrastada"
   },
   "tour": {
     "title": "Primera competició",

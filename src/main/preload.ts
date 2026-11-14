@@ -363,6 +363,8 @@ const electronApi = {
     getStatus: () => ipcRenderer.invoke('cyrano:getStatus'),
     getLog: () => ipcRenderer.invoke('cyrano:getLog'),
     setOptions: (options: unknown) => ipcRenderer.invoke('cyrano:setOptions', options),
+    pisteAction: (piste: string, action: string) =>
+      ipcRenderer.invoke('cyrano:pisteAction', piste, action),
   },
 
   // Language injected before renderer loads (avoids race with localStorage read)
