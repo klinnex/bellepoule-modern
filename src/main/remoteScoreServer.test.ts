@@ -769,6 +769,69 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('plusieurs poules sur la même piste (#1826)', () => {
+    const f = (id: string) => ({ id, firstName: id, lastName: id });
+    const pm = (poolId: string, n: number) => ({
+      id: `${poolId}-m${n}`,
+      poolId,
+      number: n,
+      fencerA: f(`${poolId}a${n}`),
+      fencerB: f(`${poolId}b${n}`),
+      status: 'not_started',
+    });
+    const marker = (poolId: string, poolNumber: number, strip: number) => ({
+      __poolFencers: true,
+      poolId,
+      poolNumber,
+      strip,
+      fencers: [],
+    });
+    function matchesOf(arenaId: string): string[] {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const handler = stack.find(
+        (l: any) => l?.route?.path === '/api/arenas/:arenaId/matches' && l.route.methods?.get
+      ).route.stack[0].handle;
+      const res = makeRes();
+      handler(makeReq({ params: { arenaId } }), res, vi.fn());
+      return res.json.mock.calls[0][0].matches.map((m: any) => m.id);
+    }
+
+    beforeEach(async () => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(2);
+      (mockDb as any).getMatchesByPool = vi.fn().mockReturnValue([]);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([]);
+      await server.startSession('comp-1', 1, [
+        marker('p1', 1, 1),
+        pm('p1', 1),
+        pm('p1', 2),
+        marker('p2', 2, 1),
+        pm('p2', 1),
+        pm('p2', 2),
+        pm('p2', 3),
+      ]);
+    });
+
+    it('poule suivante affichée en entier quand la première est terminée', () => {
+      expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+      const scores = (server as any).sessionMatchScores;
+      scores.set('p1-m1', { status: 'finished' });
+      scores.set('p1-m2', { status: 'finished' });
+      expect(matchesOf('arena1')).toEqual(['p2-m1', 'p2-m2', 'p2-m3']);
+    });
+
+    it('la poule en file devient active : son entrée de file est consommée', () => {
+      const scores = (server as any).sessionMatchScores;
+      scores.set('p1-m1', { status: 'finished' });
+      scores.set('p1-m2', { status: 'finished' });
+      server.loadNextMatch('arena1');
+      expect((server as any).arenas.get('arena1').currentMatch.id).toBe('p2-m1');
+      expect((server as any).arenaMatchQueue.get('arena1')).toEqual([]);
+      expect(matchesOf('arena1')).toEqual(['p2-m1', 'p2-m2', 'p2-m3']);
+    });
+  });
+
   describe('réassignation manuelle de piste (#1037)', () => {
     const f = (id: string) => ({ id, firstName: id, lastName: id });
     const pm = (poolId: string, n: number) => ({

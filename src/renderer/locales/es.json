@@ -2950,7 +2950,9 @@
     "assign_strip": "Asignar una pista",
     "referee": "Árbitro: {{list}}",
     "referees": "Árbitros: {{list}}",
-    "enter_score": "Introducir marcador"
+    "enter_score": "Introducir marcador",
+    "strip_label": "Pista",
+    "referee_label": "Árbitro"
   },
   "seedingTable": {
     "title": "Clasificación tras las poules"
@@ -3035,7 +3037,9 @@
     "print": "Imprimir",
     "save_pdf": "Guardar como PDF",
     "system_dialog": "Diálogo del sistema…",
-    "failed": "Error de impresión"
+    "failed": "Error de impresión",
+    "advised_scale": "Escala recomendada",
+    "advised_scale_title": "Ajusta la escala para que cada poule (tabla y asaltos) quepa en una página, con una lista de asaltos más grande y contrastada"
   },
   "tour": {
     "title": "Primera competición",

@@ -185,6 +185,19 @@
   transition: opacity var(--duration-fast) ease;
 }
 
+/* Boutons Piste / Arbitre répartis sur toute la largeur de la carte (#1826) */
+.match-badges.match-badges--assign {
+  left: 16px;
+  right: 4px;
+}
+.match-badges--assign .match-badge-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .match-card:hover .match-badges,
 .match-card:focus-within .match-badges {
   opacity: 1;

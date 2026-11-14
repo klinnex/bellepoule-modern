@@ -250,6 +250,7 @@ class RefereeApp extends RefereeAppBase {
     this.timerRunning = true;
     this._fightResume();
     this.updateBackButton();
+    this.updateCardButtons();
     this.updateTimerDisplay();
     this.broadcastTimerUpdate();
 
@@ -341,6 +342,8 @@ class RefereeApp extends RefereeAppBase {
     this.stopTimer();
     this.updateTimerDisplay();
     this.broadcastTimerUpdate();
+    // Arrêt sur touche (#1713) : le bouton doit passer à « Reprendre » (#1826)
+    if (document.getElementById('btn-start')) this.updateControlButtons();
   }
 
   stopTimer() {
@@ -352,6 +355,7 @@ class RefereeApp extends RefereeAppBase {
     this.timerRunning = false;
     this.updateBackButton();
     this.updateRestButton();
+    this.updateCardButtons();
   }
 
   resetTimer() {
@@ -971,7 +975,16 @@ class RefereeApp extends RefereeAppBase {
 
   updateScoreButtons() {
     const locked = BPRefereeControls.scoreButtonsLocked(this.matchStatus);
-    document.querySelectorAll('.score-btn, .card-btn').forEach(btn => {
+    document.querySelectorAll('.score-btn').forEach(btn => {
+      btn.disabled = locked;
+    });
+    this.updateCardButtons();
+  }
+
+  // Pas de carton chrono en marche ; actifs à l'arrêt et à 00:00 (#1826)
+  updateCardButtons() {
+    const locked = BPRefereeControls.cardButtonsLocked(this.matchStatus, this.timerRunning);
+    document.querySelectorAll('.card-btn').forEach(btn => {
       btn.disabled = locked;
     });
   }

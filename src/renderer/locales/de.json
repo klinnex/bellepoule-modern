@@ -2950,7 +2950,9 @@
     "assign_strip": "Bahn zuweisen",
     "referee": "Kampfrichter: {{list}}",
     "referees": "Kampfrichter: {{list}}",
-    "enter_score": "Ergebnis eingeben"
+    "enter_score": "Ergebnis eingeben",
+    "strip_label": "Bahn",
+    "referee_label": "Kampfrichter"
   },
   "seedingTable": {
     "title": "Rangliste nach den Pools"
@@ -3035,7 +3037,9 @@
     "print": "Drucken",
     "save_pdf": "Als PDF speichern",
     "system_dialog": "Systemdialog…",
-    "failed": "Drucken fehlgeschlagen"
+    "failed": "Drucken fehlgeschlagen",
+    "advised_scale": "Empfohlene Skalierung",
+    "advised_scale_title": "Passt jede Runde (Tabelle und Gefechte) auf eine Seite an, mit größerer, kontrastreicherer Gefechtsliste"
   },
   "tour": {
     "title": "Erstes Turnier",

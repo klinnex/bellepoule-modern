@@ -879,6 +879,8 @@ class RefereeAppBase {
       return;
     }
     if (this.matchStatus === 'finished') return;
+    // Pas de carton chrono en marche (#1826)
+    if (this.timerRunning) return;
 
     this.pushHistory('card');
     if (navigator.vibrate) navigator.vibrate(BPRefereeCards.cardVibration(cardType));

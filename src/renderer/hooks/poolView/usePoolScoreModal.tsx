@@ -28,6 +28,7 @@ import {
 } from '../../components/poolView.styles';
 import TiebreakerAnimation from '../../components/TiebreakerAnimation';
 import { Button } from '../../components/common/Button';
+import { useAutoFitHeight } from '../useAutoFitHeight';
 
 type Ctx = PoolViewProps &
   ReturnType<typeof usePoolViewState> &
@@ -73,6 +74,9 @@ export function usePoolScoreModal(ctx: Ctx) {
     handleScoreSubmit,
   } = ctx;
 
+  // Agrandissement automatique quand le contenu s'allonge (égalité, statut spécial, #1826)
+  useAutoFitHeight(modalRef, editingMatch !== null);
+
   // Render Score Modal
   const renderScoreModal = () => {
     if (editingMatch === null) return null;
@@ -94,39 +98,6 @@ export function usePoolScoreModal(ctx: Ctx) {
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
           <div className="modal-body is-a48125">
-            {/* Égalité olympique / rapières : tirage du prioritaire (#1442) */}
-            {tieByVictory && !isLaserSabre && (
-              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                {editScoreA !== '' &&
-                  editScoreB !== '' &&
-                  (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
-                  !!pool.matches[editingMatch]?.fencerA &&
-                  !!pool.matches[editingMatch]?.fencerB && (
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <Button
-                        type="button"
-                        variant="warning"
-                        onClick={() => setShowPriorityDraw(true)}
-                      >
-                        <Icon icon={Coins} /> {t('poolView.priority_draw')}
-                      </Button>
-                      {priorityPick && (
-                        <span className="text-muted">
-                          {t('poolView.priority_holder', {
-                            name: (() => {
-                              const f =
-                                priorityPick === 'A'
-                                  ? pool.matches[editingMatch]?.fencerA
-                                  : pool.matches[editingMatch]?.fencerB;
-                              return f ? `${f.lastName} ${f.firstName}`.trim() : '';
-                            })(),
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  )}
-              </div>
-            )}
             {showPriorityDraw &&
               pool.matches[editingMatch]?.fencerA &&
               pool.matches[editingMatch]?.fencerB && (
@@ -180,6 +151,7 @@ export function usePoolScoreModal(ctx: Ctx) {
                 min="0"
                 max={maxScore || match?.maxScore || undefined}
                 autoFocus
+                data-autofocus
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -265,6 +237,39 @@ export function usePoolScoreModal(ctx: Ctx) {
               <p className="text-sm text-muted is-b92227">{t('poolView.tie_hint')}</p>
             )}
 
+            {/* Égalité olympique / rapières : tirage du prioritaire (#1442), sous les scores comme au tableau (#1826) */}
+            {tieByVictory && !isLaserSabre && (
+              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                {editScoreA !== '' &&
+                  editScoreB !== '' &&
+                  (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
+                  !!pool.matches[editingMatch]?.fencerA &&
+                  !!pool.matches[editingMatch]?.fencerB && (
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <Button
+                        type="button"
+                        variant="warning"
+                        onClick={() => setShowPriorityDraw(true)}
+                      >
+                        <Icon icon={Coins} /> {t('poolView.priority_draw')}
+                      </Button>
+                      {priorityPick && (
+                        <span className="text-muted">
+                          {t('poolView.priority_holder', {
+                            name: (() => {
+                              const f =
+                                priorityPick === 'A'
+                                  ? pool.matches[editingMatch]?.fencerA
+                                  : pool.matches[editingMatch]?.fencerB;
+                              return f ? `${f.lastName} ${f.firstName}`.trim() : '';
+                            })(),
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
             {/* Choix du tireur concerné : même affichage que le tableau, sans pop-up (#1418) */}
             {pendingSpecialStatus !== null && (
               <SpecialStatusPanel

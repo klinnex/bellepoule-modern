@@ -2950,7 +2950,9 @@
     "assign_strip": "Assigner une piste",
     "referee": "Arbitre : {{list}}",
     "referees": "Arbitres : {{list}}",
-    "enter_score": "Saisir score"
+    "enter_score": "Saisir score",
+    "strip_label": "Piste",
+    "referee_label": "Arbitre"
   },
   "seedingTable": {
     "title": "Classement après poules"
@@ -3035,7 +3037,9 @@
     "print": "Imprimer",
     "save_pdf": "Enregistrer en PDF",
     "system_dialog": "Boîte de dialogue système…",
-    "failed": "Échec de l'impression"
+    "failed": "Échec de l'impression",
+    "advised_scale": "Mise à l'échelle conseillée",
+    "advised_scale_title": "Ajuste l'échelle pour tenir chaque poule (grille et matchs) sur une page, agrandit et contraste la liste des matchs"
   },
   "tour": {
     "title": "Première compétition",

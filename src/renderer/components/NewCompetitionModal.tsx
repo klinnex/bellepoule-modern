@@ -19,6 +19,7 @@ import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSetti
 import { FormulaBuilder } from './formula/FormulaBuilder';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { Button } from './common/Button';
+import { getDefaultMaxScores, isOlympicWeapon } from '../../shared/utils/defaultMaxScores';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
@@ -94,7 +95,25 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
               randomScore: false,
               ...teamSettings,
             }
-          : undefined;
+          : isOlympicWeapon(weapon)
+            ? (() => {
+                // Scores par défaut selon la catégorie (#1826)
+                const scores = getDefaultMaxScores(weapon, category);
+                return {
+                  defaultPoolMaxScore: scores.pool,
+                  defaultTableMaxScore: scores.table,
+                  defaultPoolTimerSeconds: 180,
+                  defaultTableTimerSeconds: 180,
+                  poolRounds: 1,
+                  hasDirectElimination: true,
+                  thirdPlaceMatch: false,
+                  manualRanking: false,
+                  defaultRanking: 9999,
+                  randomScore: false,
+                  minTeamSize: 3,
+                };
+              })()
+            : undefined;
 
     onCreate({
       title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,

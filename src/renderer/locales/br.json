@@ -2950,7 +2950,9 @@
     "assign_strip": "Lakaat ul leurenn",
     "referee": "Arbitr : {{list}}",
     "referees": "Arbitred : {{list}}",
-    "enter_score": "Enrollañ ar skor"
+    "enter_score": "Enrollañ ar skor",
+    "strip_label": "Leurenn",
+    "referee_label": "Arbitr"
   },
   "seedingTable": {
     "title": "Renkadur goude ar poulennoù"
@@ -3035,7 +3037,9 @@
     "print": "Moulañ",
     "save_pdf": "Enrollañ evel PDF",
     "system_dialog": "Kendivizad ar reizhiad…",
-    "failed": "C'hwitet eo ar moulañ"
+    "failed": "C'hwitet eo ar moulañ",
+    "advised_scale": "Skeul erbedet",
+    "advised_scale_title": "Lakaat pep poull (kael hag emgannoù) war ur bajenn, gant ur roll emgannoù brasoc'h ha sklaeroc'h"
   },
   "tour": {
     "title": "Kentañ kevezadenn",

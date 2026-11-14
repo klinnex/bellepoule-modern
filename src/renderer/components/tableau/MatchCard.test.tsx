@@ -54,7 +54,7 @@ describe('MatchCard clavier', () => {
 
   it("Entrée sur le bouton piste n'ouvre pas la saisie", () => {
     const { onMatchClick } = setup();
-    fireEvent.keyDown(screen.getByText('+P'), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByText('Piste'), { key: 'Enter' });
     expect(onMatchClick).not.toHaveBeenCalled();
   });
 

@@ -11,6 +11,7 @@ import {
   CV_DATA_INIT,
 } from '../../components/competition/competitionViewState';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
 import { Fencer, FencerStatus, Weapon } from '../../../shared/types';
 import { TableauMatch, ConsolationBracket } from '../../components/tableau/tableauTypes';
 import { useToast } from '../../components/Toast';
@@ -54,8 +55,9 @@ export function useCompetitionCore(ctx: Ctx) {
   const hasDirectElimination = effectiveSettings?.hasDirectElimination ?? true;
   const thirdPlaceMatch = effectiveSettings?.thirdPlaceMatch ?? false;
   const playAllPositions = competition.settings?.playAllPositions ?? false;
-  const poolMaxScore = effectiveSettings?.defaultPoolMaxScore ?? 21;
-  const tableMaxScore = effectiveSettings?.defaultTableMaxScore ?? 0;
+  const defaultScores = getDefaultMaxScores(competition.weapon, competition.category);
+  const poolMaxScore = effectiveSettings?.defaultPoolMaxScore ?? defaultScores.pool;
+  const tableMaxScore = effectiveSettings?.defaultTableMaxScore ?? defaultScores.table;
   const isLaserSabre = competition.weapon === Weapon.LASER;
   const expertMode = competition.settings?.expertMode ?? true; // actif par défaut (#1501)
   // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement

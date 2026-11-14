@@ -12,6 +12,8 @@ type S = RemoteScoreServer;
 
 /** État et services du serveur utilisés par ce module. */
 export interface ArenaOpsContext {
+  readonly arenaMatchQueue: S['arenaMatchQueue'];
+  readonly poolMatchArenaOverrides: S['poolMatchArenaOverrides'];
   readonly arenaOvertimeType: S['arenaOvertimeType'];
   readonly arenaRefereeSelected: S['arenaRefereeSelected'];
   readonly arenaSuddenDeath: S['arenaSuddenDeath'];
@@ -63,7 +65,18 @@ export function assignMatchToArena(
 
   arena.currentMatch = match;
   arena.status = 'ready';
-  if (match.poolId && !ctx.isGuestMatch(arenaId, match)) arena.activePoolId = match.poolId;
+  if (match.poolId && !ctx.isGuestMatch(arenaId, match)) {
+    arena.activePoolId = match.poolId;
+    // Poule en file sur la piste devenue active : son entrée de file est consommée,
+    // quel que soit le match choisi par l'arbitre (#1826)
+    const queue = ctx.arenaMatchQueue.get(arenaId);
+    if (queue?.length) {
+      const kept = queue.filter(
+        m => m.poolId !== match.poolId || ctx.poolMatchArenaOverrides.has(m.id)
+      );
+      if (kept.length !== queue.length) ctx.arenaMatchQueue.set(arenaId, kept);
+    }
+  }
 
   ctx.updateArena(arenaId, {
     status: 'ready',

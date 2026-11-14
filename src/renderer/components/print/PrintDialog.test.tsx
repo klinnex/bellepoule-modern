@@ -83,15 +83,31 @@ describe('PrintDialog (#1214)', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('print.print'));
     });
+    // Plage : pages de l'aperçu imprimées telles quelles, sans plage confiée à l'imprimante (#1826)
     expect(api.execute).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ printer: 'HP', copies: 3, pages: '1-2' })
+      expect.stringContaining('<img src="data:image/png'),
+      expect.objectContaining({ printer: 'HP', copies: 3, pages: '', scale: 100 })
     );
+    expect(api.execute.mock.calls[0][0].match(/<img /g)).toHaveLength(2);
     await waitFor(() => expect(onDone).toHaveBeenCalledWith({ success: true }));
     expect(JSON.parse(localStorage.getItem(PRINT_SETTINGS_KEY)!)).toMatchObject({
       copies: 3,
       pages: '',
     });
+  });
+
+  it('échelle : saisie libre, validée à la sortie du champ (#1826)', async () => {
+    await open();
+    const scale = screen.getByLabelText('print.scale') as HTMLInputElement;
+    fireEvent.change(scale, { target: { value: '' } });
+    fireEvent.change(scale, { target: { value: '8' } });
+    expect(scale.value).toBe('8');
+    fireEvent.change(scale, { target: { value: '85' } });
+    fireEvent.blur(scale);
+    expect(scale.value).toBe('85');
+    fireEvent.change(scale, { target: { value: '5' } });
+    fireEvent.blur(scale);
+    expect(scale.value).toBe('10');
   });
 
   it('plage invalide ou hors document : impression bloquée', async () => {

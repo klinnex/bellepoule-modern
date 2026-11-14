@@ -2950,7 +2950,9 @@
     "assign_strip": "Assign a strip",
     "referee": "Referee: {{list}}",
     "referees": "Referees: {{list}}",
-    "enter_score": "Enter score"
+    "enter_score": "Enter score",
+    "strip_label": "Strip",
+    "referee_label": "Referee"
   },
   "seedingTable": {
     "title": "Ranking after pools"
@@ -3035,7 +3037,9 @@
     "print": "Print",
     "save_pdf": "Save as PDF",
     "system_dialog": "System dialog…",
-    "failed": "Printing failed"
+    "failed": "Printing failed",
+    "advised_scale": "Recommended scaling",
+    "advised_scale_title": "Fits each pool (grid and bouts) on one page, with a larger, higher-contrast bout list"
   },
   "tour": {
     "title": "First competition",

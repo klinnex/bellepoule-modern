@@ -25,7 +25,8 @@ import {
   CustomScoringConfig,
   Match,
   MatchStatus,
-  FencerStatus, Fencer,
+  FencerStatus,
+  Fencer,
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import {
@@ -35,7 +36,13 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type { BlackCardRecord, RendererMatch, SessionMatch, SessionScore, TeamArenaState } from './remote/types';
+import type {
+  BlackCardRecord,
+  RendererMatch,
+  SessionMatch,
+  SessionScore,
+  TeamArenaState,
+} from './remote/types';
 import type { PhaseEtaSummary } from './remote/routes/context';
 import {
   LoginGuard,
@@ -61,7 +68,12 @@ import {
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
-import { createHttpListener, createHttpStack, startCleanupTimer, isAllowedOrigin } from './remote/serverSetup';
+import {
+  createHttpListener,
+  createHttpStack,
+  startCleanupTimer,
+  isAllowedOrigin,
+} from './remote/serverSetup';
 import {
   buildPage,
   sendStored,
@@ -215,7 +227,10 @@ export class RemoteScoreServer {
   private arenaMatchQueue: Map<string, ArenaMatch[]> = new Map(); // File d'attente DE par arène
   private poolMatchArenaOverrides: Map<string, string> = new Map(); // matchId → arenaId (réassignation piste poule)
   private poolFencersCache: Map<string, Fencer[]> = new Map(); // Tireurs par poolId (depuis le renderer)
-  private sessionMatchScores: Map<string, { scoreA: SessionScore; scoreB: SessionScore; status: string }> = new Map(); // Scores en mémoire
+  private sessionMatchScores: Map<
+    string,
+    { scoreA: SessionScore; scoreB: SessionScore; status: string }
+  > = new Map(); // Scores en mémoire
   private sessionShowPhotos: boolean = false; // Afficher les photos des combattants avant le combat
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
@@ -689,12 +704,14 @@ export class RemoteScoreServer {
     return (this._arenaOpsCtx ??= liveContext<ArenaOpsContext>(
       this,
       [
+        'arenaMatchQueue',
         'arenaOvertimeType',
         'arenaRefereeSelected',
         'arenaSuddenDeath',
         'arenas',
         'db',
         'io',
+        'poolMatchArenaOverrides',
         'session',
         'sessionMatches',
         'sessionPoolMaxScore',
@@ -1603,9 +1620,15 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string): void { return loadNextMatch(this.arenaQueueCtx, arenaId); }
-  public hasSession(): boolean { return this.session !== null; }
-  public getSessionWeapon(): string | null { return this.sessionWeapon; }
+  public loadNextMatch(arenaId: string): void {
+    return loadNextMatch(this.arenaQueueCtx, arenaId);
+  }
+  public hasSession(): boolean {
+    return this.session !== null;
+  }
+  public getSessionWeapon(): string | null {
+    return this.sessionWeapon;
+  }
 
   private buildDashboardSnapshot(
     ...args: Tail<Parameters<typeof buildDashboardSnapshot>>
@@ -1755,7 +1778,9 @@ export class RemoteScoreServer {
 
   /** Rechargement à chaud (port / interface / HTTPS), session conservée (lifecycle.ts) */
   public restart(port: number, host: string, tlsOptions?: { cert: string; key: string }) {
-    return restartServer(this.lifecycleCtx, { port, host, tlsOptions }, tls => createHttpListener(this.app, tls));
+    return restartServer(this.lifecycleCtx, { port, host, tlsOptions }, tls =>
+      createHttpListener(this.app, tls)
+    );
   }
 
   /** Signale aux kiosques que les données ont changé (regroupé sur 300 ms) */

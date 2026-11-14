@@ -2950,7 +2950,9 @@
     "assign_strip": "指派劍道",
     "referee": "裁判：{{list}}",
     "referees": "裁判：{{list}}",
-    "enter_score": "輸入比分"
+    "enter_score": "輸入比分",
+    "strip_label": "劍道",
+    "referee_label": "裁判"
   },
   "seedingTable": {
     "title": "小組賽後排名"
@@ -3035,7 +3037,9 @@
     "print": "列印",
     "save_pdf": "儲存為 PDF",
     "system_dialog": "系統對話框…",
-    "failed": "列印失敗"
+    "failed": "列印失敗",
+    "advised_scale": "建議縮放",
+    "advised_scale_title": "調整縮放，使每個小組（表格及比賽）可列印於一頁，並放大及加強比賽列表對比"
   },
   "tour": {
     "title": "首次比賽",

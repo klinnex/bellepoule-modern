@@ -15,6 +15,8 @@ import TiebreakerAnimation from '../TiebreakerAnimation';
 import { Button } from '../common/Button';
 import { Ban, ClipboardList, Coins, Pause } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import { useAutoFitHeight } from '../../hooks/useAutoFitHeight';
+import { tableauLeftSide, type TableauSide } from './tableauScoreSides';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -64,6 +66,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   const { t } = useTranslation();
   // Focus piégé + Échap sur l'overlay (le ref du dialogue reste réservé au redimensionnement)
   const trapRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  // Agrandissement automatique quand le contenu s'allonge (égalité, statut spécial, #1826)
+  useAutoFitHeight(modalRef, true);
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
     null
   );
@@ -71,6 +75,73 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
+
+  // Position sur la piste : second appelé à gauche, gaucher à gauche face à un droitier (#1826)
+  const leftKey = tableauLeftSide(match);
+  const sideOf = (key: TableauSide) => ({
+    key,
+    fencer: key === 'A' ? match.fencerA : match.fencerB,
+    score: key === 'A' ? editScoreA : editScoreB,
+    setScore: key === 'A' ? setEditScoreA : setEditScoreB,
+    victory: key === 'A' ? victoryA : victoryB,
+  });
+  const left = sideOf(leftKey);
+  const right = sideOf(leftKey === 'A' ? 'B' : 'A');
+  const limit = isUnlimitedScore ? 999 : maxScore;
+
+  const renderVictory = (side: ReturnType<typeof sideOf>) => (
+    <button
+      type="button"
+      className={`score-victory-btn${side.victory ? ' is-active' : ''}`}
+      aria-pressed={side.victory}
+      aria-label={`V · ${side.fencer?.lastName ?? ''}`}
+      disabled={!side.fencer}
+      onClick={() => onVictoryChange?.(side.victory ? null : side.key)}
+    >
+      V
+    </button>
+  );
+
+  const renderScoreInput = (side: ReturnType<typeof sideOf>, isLeft: boolean) => {
+    const over = (parseInt(side.score, 10) || 0) > limit;
+    return (
+      <input
+        type="number"
+        className="form-input"
+        aria-label={side.fencer?.lastName ?? undefined}
+        style={{
+          width: '120px',
+          textAlign: 'center',
+          fontSize: '3rem',
+          padding: '0.75rem',
+          borderColor: over ? '#ef4444' : undefined,
+          borderWidth: over ? '2px' : undefined,
+        }}
+        value={side.score}
+        onChange={e => side.setScore(e.target.value)}
+        min="0"
+        max={isUnlimitedScore ? undefined : maxScore}
+        autoFocus={isLeft}
+        data-autofocus={isLeft ? '' : undefined}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onSubmit();
+          } else if (e.key === 'Tab' && e.shiftKey !== isLeft) {
+            e.preventDefault();
+            const inputs = e.currentTarget
+              .closest('.modal-body')
+              ?.querySelectorAll<HTMLInputElement>('input[type="number"]');
+            const target = inputs?.[isLeft ? 1 : 0];
+            if (target) {
+              target.focus();
+              target.select();
+            }
+          }
+        }}
+      />
+    );
+  };
 
   // Égalité saisie (scores renseignés des deux côtés) : Sabre Laser uniquement
   const hasBothScores = editScoreA !== '' && editScoreB !== '';
@@ -97,135 +168,36 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           </h3>
         </div>
         <div className="modal-body is-a48125">
-          {/* Ligne unique avec les deux tireurs côte à côte */}
+          {/* Ligne unique : position réelle sur la piste (#1826) */}
           <div className="is-cef216">
-            {/* Tireur A */}
+            {/* Tireur gauche */}
             <div className="is-b3689a">
-              <div className="is-29ee32">{match.fencerA?.lastName}</div>
+              <div className="is-29ee32">{left.fencer?.lastName}</div>
               <div className="is-bd17c2">
-                {match.fencerA?.firstName} {match.fencerA?.club && `(${match.fencerA.club})`}
+                {left.fencer?.firstName} {left.fencer?.club && `(${left.fencer.club})`}
               </div>
             </div>
 
-            {/* Bouton Victoire A : comme en poules (#1442) */}
-            {tieBreakByVictory && (
-              <button
-                type="button"
-                className={`score-victory-btn${victoryA ? ' is-active' : ''}`}
-                aria-pressed={victoryA}
-                aria-label={`V · ${match.fencerA?.lastName ?? ''}`}
-                disabled={!match.fencerA}
-                onClick={() => onVictoryChange?.(victoryA ? null : 'A')}
-              >
-                V
-              </button>
-            )}
+            {/* Bouton Victoire gauche : comme en poules (#1442) */}
+            {tieBreakByVictory && renderVictory(left)}
 
-            {/* Input Score A */}
-            <input
-              type="number"
-              className="form-input"
-              style={{
-                width: '120px',
-                textAlign: 'center',
-                fontSize: '3rem',
-                padding: '0.75rem',
-                borderColor:
-                  (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore)
-                    ? '#ef4444'
-                    : undefined,
-                borderWidth:
-                  (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore)
-                    ? '2px'
-                    : undefined,
-              }}
-              value={editScoreA}
-              onChange={e => setEditScoreA(e.target.value)}
-              min="0"
-              max={isUnlimitedScore ? undefined : maxScore}
-              autoFocus
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onSubmit();
-                } else if (e.key === 'Tab' && !e.shiftKey) {
-                  e.preventDefault();
-                  const modalBody = e.currentTarget.closest('.modal-body');
-                  if (modalBody) {
-                    const inputs = modalBody.querySelectorAll('input[type="number"]');
-                    if (inputs.length > 1) {
-                      const nextInput = inputs[1] as HTMLInputElement;
-                      nextInput.focus();
-                      nextInput.select();
-                    }
-                  }
-                }
-              }}
-            />
+            {/* Score gauche : focus par défaut (#1826) */}
+            {renderScoreInput(left, true)}
 
             {/* Séparateur */}
             <span className="is-42b7f2">:</span>
 
-            {/* Input Score B */}
-            <input
-              type="number"
-              className="form-input"
-              style={{
-                width: '120px',
-                textAlign: 'center',
-                fontSize: '3rem',
-                padding: '0.75rem',
-                borderColor:
-                  (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore)
-                    ? '#ef4444'
-                    : undefined,
-                borderWidth:
-                  (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore)
-                    ? '2px'
-                    : undefined,
-              }}
-              value={editScoreB}
-              onChange={e => setEditScoreB(e.target.value)}
-              min="0"
-              max={isUnlimitedScore ? undefined : maxScore}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onSubmit();
-                } else if (e.key === 'Tab' && e.shiftKey) {
-                  e.preventDefault();
-                  const modalBody = e.currentTarget.closest('.modal-body');
-                  if (modalBody) {
-                    const inputs = modalBody.querySelectorAll('input[type="number"]');
-                    if (inputs.length > 0) {
-                      const prevInput = inputs[0] as HTMLInputElement;
-                      prevInput.focus();
-                      prevInput.select();
-                    }
-                  }
-                }
-              }}
-            />
+            {/* Score droite */}
+            {renderScoreInput(right, false)}
 
-            {/* Bouton Victoire B : comme en poules (#1442) */}
-            {tieBreakByVictory && (
-              <button
-                type="button"
-                className={`score-victory-btn${victoryB ? ' is-active' : ''}`}
-                aria-pressed={victoryB}
-                aria-label={`V · ${match.fencerB?.lastName ?? ''}`}
-                disabled={!match.fencerB}
-                onClick={() => onVictoryChange?.(victoryB ? null : 'B')}
-              >
-                V
-              </button>
-            )}
+            {/* Bouton Victoire droite */}
+            {tieBreakByVictory && renderVictory(right)}
 
-            {/* Tireur B */}
+            {/* Tireur droite */}
             <div className="is-d0c392">
-              <div className="is-0b536f">{match.fencerB?.lastName}</div>
+              <div className="is-0b536f">{right.fencer?.lastName}</div>
               <div className="is-2415dc">
-                {match.fencerB?.firstName} {match.fencerB?.club && `(${match.fencerB.club})`}
+                {right.fencer?.firstName} {right.fencer?.club && `(${right.fencer.club})`}
               </div>
             </div>
           </div>
@@ -285,8 +257,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             <SpecialStatusPanel
               status={pendingStatus}
               fencers={[
-                match.fencerA ? { id: match.fencerA.id, name: fencerName(match.fencerA) } : null,
-                match.fencerB ? { id: match.fencerB.id, name: fencerName(match.fencerB) } : null,
+                left.fencer ? { id: left.fencer.id, name: fencerName(left.fencer) } : null,
+                right.fencer ? { id: right.fencer.id, name: fencerName(right.fencer) } : null,
               ]}
               onConfirm={(id, blackCard) => onSpecialStatus(pendingStatus, id, blackCard)}
               onCancel={() => setPendingStatus(null)}

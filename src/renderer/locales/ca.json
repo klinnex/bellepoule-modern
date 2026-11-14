@@ -2950,7 +2950,9 @@
     "assign_strip": "Assignar una pista",
     "referee": "Àrbitre: {{list}}",
     "referees": "Àrbitres: {{list}}",
-    "enter_score": "Introduir marcador"
+    "enter_score": "Introduir marcador",
+    "strip_label": "Pista",
+    "referee_label": "Àrbitre"
   },
   "seedingTable": {
     "title": "Classificació després de les poules"
@@ -3035,7 +3037,9 @@
     "print": "Imprimeix",
     "save_pdf": "Desa com a PDF",
     "system_dialog": "Diàleg del sistema…",
-    "failed": "Error d'impressió"
+    "failed": "Error d'impressió",
+    "advised_scale": "Escala recomanada",
+    "advised_scale_title": "Ajusta l'escala perquè cada poule (graella i combats) càpiga en una pàgina, amb una llista de combats més gran i contrastada"
   },
   "tour": {
     "title": "Primera competició",

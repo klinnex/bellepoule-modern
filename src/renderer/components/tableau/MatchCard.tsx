@@ -138,7 +138,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
       {/* Arena + Referee badges */}
       {showAssignBadges && (
-        <div className="match-badges">
+        <div className="match-badges match-badges--assign">
           {onArenaClick && (
             <button
               className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}${arenaUnavailable ? ' is-unavailable' : ''}`}
@@ -150,7 +150,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   : translateStatic('matchCard.assign_strip')
               }
             >
-              {match.arena ? `P${match.arena}` : '+P'}
+              {match.arena
+                ? translateStatic('matchCard.strip_n', { n: match.arena })
+                : translateStatic('matchCard.strip_label')}
             </button>
           )}
           {onRefereeClick && (
@@ -167,11 +169,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   : translateStatic('poolView.assign_referee')
               }
             >
+              {/* Nom des arbitres sélectionnés (#1826) */}
               {matchReferees.length > 0
-                ? matchReferees
-                    .map(r => `${r.lastName.charAt(0)}${r.firstName.charAt(0)}`)
-                    .join('/')
-                : '+A'}
+                ? matchReferees.map(r => r.lastName).join(' / ')
+                : translateStatic('matchCard.referee_label')}
             </button>
           )}
         </div>

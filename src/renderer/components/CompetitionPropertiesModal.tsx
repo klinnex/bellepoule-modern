@@ -35,6 +35,7 @@ import {
 } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 import { Button } from './common/Button';
+import { getDefaultMaxScores } from '../../shared/utils/defaultMaxScores';
 
 interface CompetitionPropertiesModalProps {
   competition: Competition;
@@ -66,9 +67,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [hasDirectElimination, setHasDirectElimination] = useState(
     competition.settings?.hasDirectElimination ?? true
   );
-  const [poolMaxScore, setPoolMaxScore] = useState(competition.settings?.defaultPoolMaxScore ?? 21);
+  const defaultScores = getDefaultMaxScores(competition.weapon, competition.category);
+  const [poolMaxScore, setPoolMaxScore] = useState(
+    competition.settings?.defaultPoolMaxScore ?? defaultScores.pool
+  );
   const [tableMaxScore, setTableMaxScore] = useState(
-    competition.settings?.defaultTableMaxScore ?? 21
+    competition.settings?.defaultTableMaxScore ?? (defaultScores.table || 21)
   );
   const [thirdPlaceMatch, setThirdPlaceMatch] = useState(
     competition.settings?.thirdPlaceMatch ?? false

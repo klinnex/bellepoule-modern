@@ -2950,7 +2950,9 @@
     "assign_strip": "Assegna una pedana",
     "referee": "Arbitro: {{list}}",
     "referees": "Arbitri: {{list}}",
-    "enter_score": "Inserisci punteggio"
+    "enter_score": "Inserisci punteggio",
+    "strip_label": "Pedana",
+    "referee_label": "Arbitro"
   },
   "seedingTable": {
     "title": "Classifica dopo i gironi"
@@ -3035,7 +3037,9 @@
     "print": "Stampa",
     "save_pdf": "Salva come PDF",
     "system_dialog": "Finestra di dialogo di sistema…",
-    "failed": "Stampa non riuscita"
+    "failed": "Stampa non riuscita",
+    "advised_scale": "Scala consigliata",
+    "advised_scale_title": "Adatta la scala per far stare ogni girone (griglia e assalti) in una pagina, con elenco assalti più grande e contrastato"
   },
   "tour": {
     "title": "Prima competizione",

@@ -47,11 +47,20 @@ describe('TableauScoreModal', () => {
     expect(screen.getByText(/Martin/)).toBeInTheDocument();
   });
 
-  it('saisir un score appelle setEditScoreA', () => {
+  it('saisir un score à droite appelle setEditScoreA (premier appelé à droite, #1826)', () => {
     const { props, utils } = setup();
     const inputs = utils.baseElement.querySelectorAll('input[type="number"]');
-    fireEvent.change(inputs[0], { target: { value: '15' } });
+    fireEvent.change(inputs[1], { target: { value: '15' } });
     expect(props.setEditScoreA).toHaveBeenCalledWith('15');
+  });
+
+  it('gaucher contre droitier : le gaucher reste à gauche (#1826)', () => {
+    const { props, utils } = setup({
+      match: { ...match, fencerA: { ...match.fencerA, handedness: 'L' } },
+    } as never);
+    const inputs = utils.baseElement.querySelectorAll('input[type="number"]');
+    fireEvent.change(inputs[0], { target: { value: '7' } });
+    expect(props.setEditScoreA).toHaveBeenCalledWith('7');
   });
 
   it('Valider déclenche onSubmit', () => {
@@ -74,8 +83,9 @@ describe('TableauScoreModal', () => {
     expect(a).toHaveFocus();
     fireEvent.keyDown(a, { key: 'Tab' });
     fireEvent.keyDown(b, { key: 'Enter' });
-    expect(props.setEditScoreA).toHaveBeenCalledWith('15');
-    expect(props.setEditScoreB).toHaveBeenCalledWith('12');
+    // Gauche = second appelé (B), droite = premier appelé (A) (#1826)
+    expect(props.setEditScoreB).toHaveBeenCalledWith('15');
+    expect(props.setEditScoreA).toHaveBeenCalledWith('12');
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
 

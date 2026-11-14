@@ -100,6 +100,11 @@
     return matchStatus === 'not_started' || matchStatus === 'finished';
   }
 
+  /** Cartons : verrouillés comme les scores, et pendant que le chrono tourne (#1826) */
+  function cardButtonsLocked(matchStatus, timerRunning) {
+    return scoreButtonsLocked(matchStatus) || !!timerRunning;
+  }
+
   /** Le repos (escrime moderne) n'est possible qu'à 0 s, chrono arrêté, match en cours */
   function canStartRest(s) {
     return (
@@ -113,7 +118,13 @@
     );
   }
 
-  const api = { controlButtonsState, timerClasses, scoreButtonsLocked, canStartRest };
+  const api = {
+    controlButtonsState,
+    timerClasses,
+    scoreButtonsLocked,
+    cardButtonsLocked,
+    canStartRest,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPRefereeControls = api;
 })(typeof window !== 'undefined' ? window : undefined);

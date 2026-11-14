@@ -27,6 +27,25 @@ import {
 type Ctx = RemoteScoreManagerProps;
 
 /** État du serveur de saisie distante : session, réseau, pistes, thèmes et synchronisation (extrait de RemoteScoreManager, #1599) */
+
+const DISPLAY_FLAG_PREFIX = 'bellepoule-remote-';
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeFlag(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
 export function useRemoteServerState(ctx: Ctx) {
   const {
     competition,
@@ -86,9 +105,9 @@ export function useRemoteServerState(ctx: Ctx) {
     qrDataUrl,
     setQrDataUrl,
     showPhotos,
-    setShowPhotos,
+    setShowPhotos: setShowPhotosState,
     cardAnnounce,
-    setCardAnnounce,
+    setCardAnnounce: setCardAnnounceState,
   } = useStateGroup({
     pendingStart: null as number | null,
     committedStart: null as number | null,
@@ -99,9 +118,18 @@ export function useRemoteServerState(ctx: Ctx) {
     arenaPasswords: {} as Record<string, string>,
     checkinPassword: '',
     qrDataUrl: null as string | null,
-    showPhotos: false,
-    cardAnnounce: false,
+    // Options d'affichage mémorisées par compétition : conservées en changeant d'onglet (#1826)
+    showPhotos: readFlag(`${DISPLAY_FLAG_PREFIX}show-photos-${competition.id}`),
+    cardAnnounce: readFlag(`${DISPLAY_FLAG_PREFIX}card-announce-${competition.id}`),
   });
+  const setShowPhotos = (value: boolean) => {
+    setShowPhotosState(value);
+    writeFlag(`${DISPLAY_FLAG_PREFIX}show-photos-${competition.id}`, value);
+  };
+  const setCardAnnounce = (value: boolean) => {
+    setCardAnnounceState(value);
+    writeFlag(`${DISPLAY_FLAG_PREFIX}card-announce-${competition.id}`, value);
+  };
   // Thèmes, kiosque et éditeur de thème : état et actions (#1241)
   const {
     displayTheme,
