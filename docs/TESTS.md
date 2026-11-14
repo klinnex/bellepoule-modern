@@ -106,13 +106,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 94 | 470 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 56 | 372 |
+| `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **378** | **2869** |
+| **Total** | **379** | **2872** |
 
-Unitaires : 368 fichiers, 2830 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 369 fichiers, 2833 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5847,6 +5847,16 @@ Unitaires : 368 fichiers, 2830 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **referee.html et trainingLobby.html (#1500)**
   - referee.html charge le module et lance install
   - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLobbyFinish.test.ts</code> — 3 tests</summary>
+
+- **retour lobby après match (#1826)**
+  - onMatchFinished hors entraînement : sans effet, ne lève pas
+  - refereeApp.js appelle le hook dans les deux chemins de fin de match
+  - la remise à zéro de piste (scores et chrono) est envoyée à l’arène
 
 </details>
 
