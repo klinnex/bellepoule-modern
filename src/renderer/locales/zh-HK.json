@@ -2654,6 +2654,7 @@
     "gap_losses": "負",
     "close_wins": "險勝（≤ {{n}}）",
     "dominant_wins": "大勝",
+    "normal_wins": "一般勝利",
     "kpi_streaks": "連續紀錄",
     "best_win_streak": "最長連勝",
     "best_loss_streak": "最長連敗",

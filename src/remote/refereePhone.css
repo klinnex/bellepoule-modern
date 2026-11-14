@@ -4,6 +4,14 @@
  * Licensed under GPL-3.0
  */
 
+/* Pas de sélection de texte ni de menu contextuel sur les boutons et le chrono (#1808) */
+button,
+.timer-display {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .header {
   position: relative;
   z-index: 55; /* menu téléphone au-dessus du bandeau de synchro (sticky, 50) */
@@ -84,7 +92,8 @@
     gap: 0.35rem;
   }
   .timer-display {
-    font-size: 2.6rem;
+    /* Chrono agrandi : le bas de la carte arbitre rejoint le bas de l'écran (#1808) */
+    font-size: clamp(2.6rem, 8.5vh, 5.5rem);
     letter-spacing: 0.04em;
     padding: 0.35rem 0.6rem;
     margin-bottom: 0.25rem;

@@ -607,36 +607,39 @@ class RefereeAppBase {
   setupTimerInteractions() {
     const timerDisplay = document.getElementById('timer-display');
 
-    // Click simple : démarre le match si pas encore commencé, sinon play/pause
-    timerDisplay.addEventListener('click', e => {
+    // Appui long (800 ms) : reset. Géré en pointer events : un appui annulé par le
+    // navigateur (sélection de texte, menu contextuel, glissement) ne reset jamais (#1808).
+    const LONG_PRESS_MS = 800;
+    let longPressFired = false;
+    const cancelPress = () => {
       if (this.longPressTimer) {
         clearTimeout(this.longPressTimer);
         this.longPressTimer = null;
+      }
+    };
+
+    timerDisplay.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      cancelPress();
+      longPressFired = false;
+      this.longPressTimer = setTimeout(() => {
+        this.longPressTimer = null;
+        longPressFired = true;
+        this.resetTimer();
+      }, LONG_PRESS_MS);
+    });
+    timerDisplay.addEventListener('pointerup', cancelPress);
+    timerDisplay.addEventListener('pointercancel', cancelPress);
+    timerDisplay.addEventListener('pointerleave', cancelPress);
+    timerDisplay.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Tap simple : démarre le match si pas encore commencé, sinon play/pause
+    timerDisplay.addEventListener('click', () => {
+      if (longPressFired) {
+        longPressFired = false;
         return;
       }
       this.handleStartPauseClick();
-    });
-
-    // Appui long : reset
-    timerDisplay.addEventListener('mousedown', e => {
-      this.longPressTimer = setTimeout(() => {
-        this.resetTimer();
-        this.longPressTimer = null;
-      }, 800);
-    });
-
-    timerDisplay.addEventListener('mouseup', e => {
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
-    });
-
-    timerDisplay.addEventListener('mouseleave', e => {
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
     });
 
     // Touch events pour mobile

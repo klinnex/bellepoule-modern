@@ -2654,6 +2654,7 @@
     "gap_losses": "Défaites",
     "close_wins": "Victoires serrées (≤ {{n}})",
     "dominant_wins": "Victoires dominantes",
+    "normal_wins": "Victoires normales",
     "kpi_streaks": "Séries",
     "best_win_streak": "Meilleure série de victoires",
     "best_loss_streak": "Plus longue série de défaites",

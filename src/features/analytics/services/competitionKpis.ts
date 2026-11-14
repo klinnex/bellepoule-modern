@@ -130,6 +130,8 @@ export interface FencerMatchKpis {
   closeWins: number;
   /** Victoires dominantes : écart ≥ 3 et ≥ la moitié des touches du vainqueur */
   dominantWins: number;
+  /** Victoires normales : ni serrées ni dominantes (#1817) */
+  normalWins: number;
   bestWinStreak: number;
   bestLossStreak: number;
   current: { kind: 'W' | 'L'; length: number } | null;
@@ -147,6 +149,7 @@ export function fencerMatchKpis(fencerId: string, matches: KpiMatch[]): FencerMa
   let lossGap = 0;
   let closeWins = 0;
   let dominantWins = 0;
+  let normalWins = 0;
   for (const m of own) {
     const { td, tr, won } = sideOf(m, fencerId);
     const gap = Math.abs(td - tr);
@@ -156,6 +159,7 @@ export function fencerMatchKpis(fencerId: string, matches: KpiMatch[]): FencerMa
       winGap += gap;
       if (gap <= CLOSE_GAP) closeWins++;
       else if (gap >= 3 && gap * 2 >= td) dominantWins++;
+      else normalWins++;
     } else lossGap += gap;
   }
   let bestWinStreak = 0;
@@ -177,6 +181,7 @@ export function fencerMatchKpis(fencerId: string, matches: KpiMatch[]): FencerMa
     averageLossGap: losses ? lossGap / losses : 0,
     closeWins,
     dominantWins,
+    normalWins,
     bestWinStreak,
     bestLossStreak,
     current: sequence.length ? { kind: sequence[sequence.length - 1], length: run } : null,
@@ -268,7 +273,8 @@ export interface OrganisationKpis {
   recentIssues: RemoteEvent[];
 }
 
-const LATE_GAP_PERCENT = 20;
+/** Poule en retard : au moins 2 matchs de retard sur la médiane des poules (#1817) */
+const LATE_GAP_MATCHES = 2;
 
 export function organisationKpis(input: {
   pools: Pool[];
@@ -301,13 +307,13 @@ export function organisationKpis(input: {
       late: false,
     };
   });
-  // Poule en retard : avancement inférieur de 20 points à la médiane des poules
+  // Poule en retard : au moins 2 matchs joués de moins que la médiane des poules
   const open = poolRows.filter(p => p.total > 0);
   if (open.length > 1) {
-    const sorted = open.map(p => p.percent).sort((a, b) => a - b);
+    const sorted = open.map(p => p.done).sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-    for (const p of open) p.late = p.done < p.total && p.percent < median - LATE_GAP_PERCENT;
+    for (const p of open) p.late = p.done < p.total && median - p.done >= LATE_GAP_MATCHES;
   }
 
   const playableTableau = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB);

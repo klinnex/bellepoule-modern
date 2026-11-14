@@ -2654,6 +2654,7 @@
     "gap_losses": "Kolloù",
     "close_wins": "Trec’hioù tost (≤ {{n}})",
     "dominant_wins": "Trec’hioù splann",
+    "normal_wins": "Trec’hioù normal",
     "kpi_streaks": "Heuliadoù",
     "best_win_streak": "Heuliad trec’hioù hirañ",
     "best_loss_streak": "Heuliad kolloù hirañ",

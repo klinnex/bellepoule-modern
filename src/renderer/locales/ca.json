@@ -2654,6 +2654,7 @@
     "gap_losses": "Derrotes",
     "close_wins": "Victòries ajustades (≤ {{n}})",
     "dominant_wins": "Victòries dominants",
+    "normal_wins": "Victòries normals",
     "kpi_streaks": "Ratxes",
     "best_win_streak": "Millor ratxa de victòries",
     "best_loss_streak": "Pitjor ratxa de derrotes",
