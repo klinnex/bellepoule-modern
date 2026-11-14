@@ -13,6 +13,8 @@
   var IDLE_MS = 3 * 60 * 1000;
   var TOUCH_EVERY_MS = 30 * 1000;
   var CLIENT_KEY = 'bp_training_client';
+  /** Retour lobby armé par install() ; appelé par l'arbitre après l'enregistrement d'un match (#1826) */
+  var finishHook = null;
 
   /** Identifiant propre à l'onglet (sessionStorage), conservé au rechargement */
   function clientId(storage, rand) {
@@ -130,6 +132,33 @@
   }
 
   /**
+   * Entraînement (#1826) : piste rendue libre → scores et chrono remis à zéro, côté tablette
+   * (stockage local du chrono effacé) et côté arène (serveur). Un match déjà terminé
+   * a été enregistré par la tablette : seul le chrono local est remis à zéro.
+   */
+  function resetTrack(a) {
+    if (!a) return;
+    try {
+      if (a.timerRunning) a.stopTimer();
+      var finished = a.matchStatus === 'finished';
+      if (a.socket && a.arenaId && !finished) {
+        a.socket.emit('arena_control', { arenaId: a.arenaId, action: 'reset_scores' });
+      }
+      a._clearActiveMatch();
+      if (a.socket && a.arenaId) {
+        a.socket.emit('arena_control', {
+          arenaId: a.arenaId,
+          action: 'reset_timer',
+          timerStatus: 'reset',
+          time: a.defaultTimerSeconds,
+        });
+      }
+    } catch (_) {
+      /* application indisponible : la piste est libérée quand même */
+    }
+  }
+
+  /**
    * Démarre le lien lobby. `app()` renvoie l'instance RefereeApp (chrono en cours = actif).
    * Résout `false` hors mode entraînement.
    */
@@ -162,9 +191,11 @@
       post(win, '/api/training/lobby/release', body, beacon);
     }
     function goLobby() {
+      resetTrack(app && app());
       release(false);
       win.location.href = LOBBY_URL;
     }
+    finishHook = goLobby;
 
     addButton(doc, goLobby);
     if (fromLobby(win.location.search)) autoOpen(win, app);
@@ -206,6 +237,10 @@
   }
 
   var api = {
+    /** Match enregistré en entraînement : retour au lobby (#1826). Sans effet hors entraînement. */
+    onMatchFinished: function () {
+      if (finishHook) finishHook();
+    },
     arenaFromPath: arenaFromPath,
     addButton: addButton,
     autoOpen: autoOpen,

@@ -245,7 +245,15 @@ export function usePoolScoreModal(ctx: Ctx) {
                   (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
                   !!pool.matches[editingMatch]?.fencerA &&
                   !!pool.matches[editingMatch]?.fencerB && (
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'center',
+                        justifyContent: 'center', // bouton centré dans la carte (#1826)
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <Button
                         type="button"
                         variant="warning"

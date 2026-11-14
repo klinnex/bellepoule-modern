@@ -583,6 +583,7 @@ class RefereeApp extends RefereeAppBase {
         action: 'finish',
         fightSeconds: this.fightSeconds(),
       });
+      window.BPRefereeLobby?.onMatchFinished?.(); // entraînement : retour au lobby (#1826)
 
       setTimeout(() => {
         this.currentMatch = null;
@@ -795,6 +796,8 @@ class RefereeApp extends RefereeAppBase {
       // Signature requise sur tablette après un match du tableau
       if (result.requireSignature && finishedMatch.fencerA?.id && finishedMatch.fencerB?.id) {
         this.openMatchSignature(finishedMatch, this.scoreA, this.scoreB, result.winner);
+      } else {
+        window.BPRefereeLobby?.onMatchFinished?.(); // entraînement : retour au lobby (#1826)
       }
 
       // Afficher l'écran des prochains matchs
