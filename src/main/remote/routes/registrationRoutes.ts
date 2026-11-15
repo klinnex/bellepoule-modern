@@ -43,8 +43,94 @@ export interface RegistrationRouteContext extends RouteContext {
 /** Longueur max d'un champ texte de l'inscription distante. */
 const MAX_REGISTER_FIELD_LENGTH = 200;
 
+/** Licence normalisée : sans espaces ni tirets, en majuscules. */
+const normLicense = (s: string): string => s.replace(/[\s-]/g, '').toUpperCase();
+
+/** Jours (UTC et local) d'une date stockée, au format AAAA-MM-JJ. */
+function birthDays(d: Date | string | undefined): string[] {
+  if (!d) return [];
+  const date = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(date.getTime())) return [];
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const local = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return [date.toISOString().slice(0, 10), local];
+}
+
+/**
+ * Pointage autonome d'un tireur (#1858) : n° de licence + date de naissance, deux données
+ * que seul le tireur (ou son entourage) connaît ensemble. Tentatives limitées par IP.
+ */
+function registerSelfCheckinRoutes(ctx: RegistrationRouteContext): void {
+  ctx.app.get('/competition/:competitionId/checkin', (req, res) => {
+    // Identifiant réinjecté côté client : format strict (anti-XSS réfléchie, #997)
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(req.params.competitionId)) {
+      return res.status(400).send('Identifiant invalide');
+    }
+    ctx.sendHtmlFromMemory('selfcheckin.html', res);
+  });
+
+  ctx.app.post('/api/competitions/:competitionId/self-checkin', async (req, res) => {
+    const ip = ctx.getClientIp(req);
+    const limited = ctx.checkLoginAllowed(ip, 'selfcheckin');
+    if (limited) return ctx.sendLoginLimited(res, limited);
+    const { license, birthDate } = (req.body ?? {}) as { license?: unknown; birthDate?: unknown };
+    if (
+      typeof license !== 'string' ||
+      typeof birthDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(birthDate) ||
+      normLicense(license).length === 0 ||
+      license.length > 40
+    ) {
+      return res.status(400).json({ error: 'invalid_input' });
+    }
+    const competitionId = ctx.session?.competitionId;
+    if (!competitionId || competitionId !== req.params.competitionId) {
+      return res.status(404).json({ error: 'competition_not_active' });
+    }
+    const wanted = normLicense(license);
+    const fencer = ctx.db
+      .getFencersByCompetition(competitionId)
+      .find(
+        f =>
+          !!f.license &&
+          normLicense(f.license) === wanted &&
+          birthDays(f.birthDate).includes(birthDate)
+      );
+    if (!fencer) {
+      // Réponse identique licence inconnue / date fausse : rien n'est divulgué
+      await ctx.recordLoginFailure(ip, 'selfcheckin');
+      return res.status(401).json({ error: 'no_match' });
+    }
+    ctx.recordLoginSuccess(ip);
+    const who = { lastName: fencer.lastName, firstName: fencer.firstName };
+    if (fencer.status === FencerStatus.CHECKED_IN) {
+      return res.json({ success: true, already: true, ...who });
+    }
+    // Ne jamais écraser un statut sportif (éliminé, exclu, forfait…)
+    if (fencer.status !== FencerStatus.NOT_CHECKED_IN) {
+      return res.status(409).json({ error: 'status_locked' });
+    }
+    try {
+      ctx.db.updateFencer(fencer.id, { status: FencerStatus.CHECKED_IN });
+    } catch (err) {
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur auto-pointage:', toError(err));
+      return res.status(500).json({ error: 'update_failed' });
+    }
+    const mainWin = getSharedMainWindow();
+    if (mainWin && !mainWin.isDestroyed?.()) {
+      mainWin.webContents.send('remote:checkin_updated', {
+        kind: 'fencer',
+        id: fencer.id,
+        present: true,
+      });
+    }
+    res.json({ success: true, already: false, ...who });
+  });
+}
+
 /** Inscription, appel et espace formateur. */
 export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void {
+  registerSelfCheckinRoutes(ctx);
   ctx.app.get('/api/register/status', (_req, res) => {
     res.json({ open: ctx.registrationEnabled });
   });

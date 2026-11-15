@@ -2891,7 +2891,10 @@
     "checkin_desc": "C'hoarierien « {{title}} » a skan evit en em enrollañ o-unan.",
     "checkin_info": "Diskouezit ar c'hod QR-mañ e toull-dor ar sal evit ma kadarnfe ar c'hoarierien emaint eno.",
     "tab_results": "Disoc'hoù",
-    "tab_checkin": "Enrolladur"
+    "tab_checkin": "Enrolladur",
+    "print": "Moullañ ar c'hod QR",
+    "print_error": "Moullañ c'hwitet",
+    "copy_error": "N'haller ket eilañ: diuzit an URL hag eilit anezhañ gant an dorn."
   },
   "kioskEntry": {
     "quit": "✕ Kuitaat ar mod kiosk",

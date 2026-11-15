@@ -52,6 +52,15 @@ describe('isPermissionAllowed', () => {
     expect(isPermissionAllowed('geolocation', 'file:///app/index.html', app)).toBe(false);
     expect(isPermissionAllowed('microphone', 'file:///app/index.html', app)).toBe(false);
   });
+  it('écriture presse-papier depuis l’app uniquement, jamais la lecture (#1858)', () => {
+    expect(isPermissionAllowed('clipboard-sanitized-write', 'file:///app/index.html', app)).toBe(
+      true
+    );
+    expect(isPermissionAllowed('clipboard-sanitized-write', 'https://evil.example/', app)).toBe(
+      false
+    );
+    expect(isPermissionAllowed('clipboard-read', 'file:///app/index.html', app)).toBe(false);
+  });
 });
 
 describe('configuration Electron (#1148)', () => {

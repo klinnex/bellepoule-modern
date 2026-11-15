@@ -2891,7 +2891,10 @@
     "checkin_desc": "「{{title}}」的劍手掃描即可自行報到。",
     "checkin_info": "在場館入口展示此二維碼，讓劍手確認出席。",
     "tab_results": "結果",
-    "tab_checkin": "報到"
+    "tab_checkin": "報到",
+    "print": "列印 QR 碼",
+    "print_error": "列印失敗",
+    "copy_error": "無法複製：請選取網址並手動複製。"
   },
   "kioskEntry": {
     "quit": "✕ 離開資訊站模式",

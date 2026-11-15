@@ -106,7 +106,8 @@ prochain match, sa piste et ses résultats.
 | `/appel` (`/checkin`) | Pointage tireurs/arbitres | mot de passe d'appel obligatoire |
 | `/formateur` | Commentaires des formateurs sur les arbitres | mot de passe formateur (option `trainerCommentsEnabled`) |
 | `/inscription` (`/register`) | Pré-inscription tireur | selon ouverture |
-| `/competition/:id/results` | Résultats publics | libre |
+| `/competition/:id/results` | Résultats publics : classement final, tableau (finale en haut), poules ; liste des tireurs pour la fiche individuelle | libre |
+| `/competition/:id/checkin` | Pointage autonome du tireur (QR « Partager ») : n° de licence + date de naissance | libre ; échecs limités par IP (blocage progressif, comme les mots de passe) |
 
 Alias anglais : `/arena{N}`, `/arena{N}/referee`, `/arena{N}/public`, ...
 
@@ -177,6 +178,7 @@ Détails : [docs/SECURITE_SAISIE_DISTANTE.md](docs/SECURITE_SAISIE_DISTANTE.md).
 | GET | `/api/bracket`, `/api/competitions/:id/results-data` | Tableau, résultats |
 | GET | `/api/referees/rotation-report` | Rapport de rotation des arbitres |
 | GET/POST | `/api/checkin/*`, `/api/trainer/*`, `/api/register*` | Appel, formateurs, inscription |
+| POST | `/api/competitions/:id/self-checkin` | Pointage autonome (`{ license, birthDate: 'AAAA-MM-JJ' }`), tireur non pointé seulement |
 
 ### Socket.IO
 

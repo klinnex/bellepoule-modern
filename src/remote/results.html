@@ -30,6 +30,19 @@
       .loading { text-align: center; padding: 3rem; color: var(--slate-400); }
       .empty { text-align: center; color: var(--slate-400); padding: 2rem; }
       .error { background: var(--tw-red-950); color: var(--red-200); padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+      .toolbar { display: flex; justify-content: flex-start; margin-bottom: 0.5rem; }
+      .toolbar select { max-width: 100%; min-width: 16rem; padding: 0.5rem 0.75rem; border-radius: 8px;
+        background: var(--slate-800); color: var(--slate-100); border: 1px solid var(--slate-700); font-size: 0.9rem; }
+      .section-title { color: var(--slate-50); font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+      .round-title { background: var(--slate-700); }
+      .win { color: var(--tw-green-400); font-weight: 700; }
+      .score { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .fencer-card { background: var(--slate-800); border: 2px solid var(--blue-500); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+      .fencer-card h2 { font-size: 1.15rem; color: var(--slate-50); }
+      .fencer-card .stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0.75rem 0; font-size: 0.9rem; }
+      .fencer-card .stats b { color: var(--slate-50); }
+      .fencer-card a { color: var(--blue-400); }
+      .hl td { background: rgba(59,130,246,0.18) !important; }
       .refresh { position: fixed; bottom: 1rem; right: 1rem; background: var(--blue-500); color: white;
         border: none; border-radius: 50%; width: 3rem; height: 3rem; font-size: 1.2rem;
         cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
@@ -63,45 +76,290 @@
           }
         }
 
-        function render(data) {
-          const dateStr = data.competition.date
-            ? new Date(data.competition.date).toLocaleDateString(document.documentElement.lang || undefined, {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })
-            : '';
+        let selectedId = '';
+        let lastData = null;
+        const fullName = f =>
+          f ? esc(String(f.lastName || '').toUpperCase()) + ' ' + esc(f.firstName || '') : '';
+
+        function roundLabel(round) {
+          if (round === 2) return tk('results.round_final');
+          if (round === 3) return tk('results.round_third');
+          if (round === 4) return tk('results.round_semis');
+          if (round === 8) return tk('results.round_quarters');
+          return tk('results.round_n', { n: round });
+        }
+
+        // Participants : poules, tableau et classement final (#1858)
+        function participants(data) {
+          const map = new Map();
+          const add = f => {
+            if (f && f.id && !map.has(f.id)) map.set(f.id, f);
+          };
+          (data.pools || []).forEach(p => p.rankings.forEach(add));
+          (data.tableau || []).forEach(r =>
+            r.matches.forEach(m => (add(m.fencerA), add(m.fencerB)))
+          );
+          (data.finalResults || []).forEach(r => add(r.fencer));
+          return Array.from(map.values()).sort(
+            (a, b) =>
+              String(a.lastName).localeCompare(String(b.lastName)) ||
+              String(a.firstName).localeCompare(String(b.firstName))
+          );
+        }
+
+        function fencerCard(data, f) {
+          let html = '<section class="fencer-card"><h2>' + fullName(f) + '</h2>';
+          if (f.club) html += '<p class="club">' + esc(f.club) + '</p>';
+          const stats = [];
+          const fin = (data.finalResults || []).find(r => r.fencer && r.fencer.id === f.id);
+          if (fin) stats.push(esc(tk('results.final_rank')) + ' : <b>' + esc(fin.rank) + '</b>');
+          const ovIdx = (data.overallRanking || []).findIndex(r => r.id === f.id);
+          if (ovIdx >= 0)
+            stats.push(esc(tk('results.pool_rank')) + ' : <b>' + esc(ovIdx + 1) + '</b>');
+          for (const p of data.pools || []) {
+            const i = p.rankings.findIndex(r => r.id === f.id);
+            if (i < 0) continue;
+            const r = p.rankings[i];
+            stats.push(
+              esc(p.name) +
+                ' : <b>' +
+                esc(i + 1) +
+                '<sup>e</sup></b> — ' +
+                esc(tk('results.col_victories')) +
+                ' ' +
+                esc(r.victories) +
+                ', ' +
+                esc(tk('results.col_td')) +
+                ' ' +
+                esc(r.touchesFor) +
+                ', ' +
+                esc(tk('results.col_tr')) +
+                ' ' +
+                esc(r.touchesAgainst) +
+                ', ' +
+                esc(tk('results.col_index')) +
+                ' ' +
+                esc(r.index >= 0 ? '+' + r.index : r.index)
+            );
+          }
+          html +=
+            '<div class="stats">' + stats.map(x => '<span>' + x + '</span>').join('') + '</div>';
+          const rows = [];
+          for (const r of data.tableau || []) {
+            for (const m of r.matches) {
+              const isA = m.fencerA && m.fencerA.id === f.id;
+              const isB = m.fencerB && m.fencerB.id === f.id;
+              if (!isA && !isB) continue;
+              const opp = isA ? m.fencerB : m.fencerA;
+              const my = isA ? m.scoreA : m.scoreB;
+              const their = isA ? m.scoreB : m.scoreA;
+              const res = !m.finished
+                ? esc(tk('results.match_pending'))
+                : m.winnerId === f.id
+                  ? '<span class="win">' + esc(tk('results.match_won')) + '</span>'
+                  : esc(tk('results.match_lost'));
+              rows.push(
+                '<tr><td>' +
+                  esc(roundLabel(r.round)) +
+                  '</td><td>' +
+                  fullName(opp) +
+                  '</td>' +
+                  '<td class="score">' +
+                  (m.finished ? esc(my ?? '') + ' – ' + esc(their ?? '') : '') +
+                  '</td>' +
+                  '<td>' +
+                  res +
+                  '</td></tr>'
+              );
+            }
+          }
+          if (rows.length) html += '<table><tbody>' + rows.join('') + '</tbody></table>';
+          html +=
+            '<p><a href="/tireur/' +
+            encodeURIComponent(f.id) +
+            '">' +
+            esc(tk('results.fencer_follow')) +
+            '</a></p></section>';
+          return html;
+        }
+
+        function tableauHtml(data) {
+          if (!data.tableau || data.tableau.length === 0) return '';
+          let html = '<h2 class="section-title">' + esc(tk('results.tableau_title')) + '</h2>';
+          for (const r of data.tableau) {
+            html +=
+              '<div class="pool"><div class="pool-title round-title">' +
+              esc(roundLabel(r.round)) +
+              '</div><table><tbody>';
+            for (const m of r.matches) {
+              const cls = id => (m.finished && m.winnerId === id ? 'win' : '');
+              const hl =
+                selectedId &&
+                ((m.fencerA && m.fencerA.id === selectedId) ||
+                  (m.fencerB && m.fencerB.id === selectedId));
+              html +=
+                '<tr' +
+                (hl ? ' class="hl"' : '') +
+                '><td class="' +
+                cls(m.fencerA && m.fencerA.id) +
+                '">' +
+                fullName(m.fencerA) +
+                '</td>' +
+                '<td class="score">' +
+                (m.finished
+                  ? esc(m.scoreA ?? '') + ' – ' + esc(m.scoreB ?? '')
+                  : esc(tk('results.match_pending'))) +
+                '</td>' +
+                '<td class="' +
+                cls(m.fencerB && m.fencerB.id) +
+                '">' +
+                fullName(m.fencerB) +
+                '</td></tr>';
+            }
+            html += '</tbody></table></div>';
+          }
+          return html;
+        }
+
+        function finalHtml(data) {
+          if (!data.finalResults || data.finalResults.length === 0) return '';
           let html =
-            '<header><h1>' + esc(data.competition.title) + '</h1>' +
-            (dateStr ? '<p>' + esc(dateStr) + '</p>' : '') + '</header>';
+            '<h2 class="section-title">' +
+            esc(tk('results.final_title')) +
+            '</h2><div class="pool"><table><tbody>';
+          for (const r of data.finalResults) {
+            const hl = selectedId && r.fencer && r.fencer.id === selectedId;
+            html +=
+              '<tr' +
+              (hl ? ' class="hl"' : '') +
+              '><td class="rank">' +
+              esc(r.rank) +
+              '</td><td><span class="name">' +
+              fullName(r.fencer) +
+              '</span>' +
+              (r.fencer && r.fencer.club
+                ? ' <span class="club">(' + esc(r.fencer.club) + ')</span>'
+                : '') +
+              '</td></tr>';
+          }
+          return html + '</tbody></table></div>';
+        }
+
+        function render(data) {
+          lastData = data;
+          const dateStr = data.competition.date
+            ? new Date(data.competition.date).toLocaleDateString(
+                document.documentElement.lang || undefined,
+                {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )
+            : '';
+          const people = participants(data);
+          if (selectedId && !people.some(p => p.id === selectedId)) selectedId = '';
+          let html =
+            '<div class="toolbar"><select id="fencer-select" aria-label="' +
+            esc(tk('results.select_fencer')) +
+            '">' +
+            '<option value="">' +
+            esc(tk('results.select_fencer')) +
+            '</option>' +
+            people
+              .map(
+                p =>
+                  '<option value="' +
+                  esc(p.id) +
+                  '"' +
+                  (p.id === selectedId ? ' selected' : '') +
+                  '>' +
+                  fullName(p) +
+                  '</option>'
+              )
+              .join('') +
+            '</select></div>' +
+            '<header><h1>' +
+            esc(data.competition.title) +
+            '</h1>' +
+            (dateStr ? '<p>' + esc(dateStr) + '</p>' : '') +
+            '</header>';
+          const sel = people.find(p => p.id === selectedId);
+          if (sel) html += fencerCard(data, sel);
+          // Le plus récent en haut : classement final, tableau (finale d'abord), puis poules (#1858)
+          html += finalHtml(data) + tableauHtml(data);
           if (!data.pools || data.pools.length === 0) {
-            html += '<p class="empty">' + esc(tk('results.no_pools')) + '</p>';
+            if (!data.tableau || data.tableau.length === 0)
+              html += '<p class="empty">' + esc(tk('results.no_pools')) + '</p>';
           } else {
+            if (data.tableau && data.tableau.length)
+              html += '<h2 class="section-title">' + esc(tk('results.pools_title')) + '</h2>';
             for (const pool of data.pools) {
               html +=
-                '<div class="pool"><div class="pool-title">' + esc(pool.name) + '</div><table>' +
-                '<thead><tr><th class="rank">#</th><th>' + esc(tk('results.col_fencer')) + '</th>' +
-                '<th class="num">' + esc(tk('results.col_victories')) + '</th>' +
-                '<th class="num">' + esc(tk('results.col_td')) + '</th>' +
-                '<th class="num">' + esc(tk('results.col_tr')) + '</th>' +
-                '<th class="num">' + esc(tk('results.col_index')) + '</th></tr></thead><tbody>';
+                '<div class="pool"><div class="pool-title">' +
+                esc(pool.name) +
+                '</div><table>' +
+                '<thead><tr><th class="rank">#</th><th>' +
+                esc(tk('results.col_fencer')) +
+                '</th>' +
+                '<th class="num">' +
+                esc(tk('results.col_victories')) +
+                '</th>' +
+                '<th class="num">' +
+                esc(tk('results.col_td')) +
+                '</th>' +
+                '<th class="num">' +
+                esc(tk('results.col_tr')) +
+                '</th>' +
+                '<th class="num">' +
+                esc(tk('results.col_index')) +
+                '</th></tr></thead><tbody>';
               pool.rankings.forEach((f, i) => {
                 const ind = f.index >= 0 ? '+' + f.index : '' + f.index;
                 const cls = f.index > 0 ? 'pos' : f.index < 0 ? 'neg' : '';
                 html +=
-                  '<tr><td class="rank">' + (i + 1) + '</td>' +
-                  '<td><span class="name">' + esc(f.lastName.toUpperCase()) + ' ' + esc(f.firstName) + '</span>' +
-                  (f.club ? ' <span class="club">(' + esc(f.club) + ')</span>' : '') + '</td>' +
-                  '<td class="num">' + esc(f.victories) + '</td>' +
-                  '<td class="num">' + esc(f.touchesFor) + '</td>' +
-                  '<td class="num">' + esc(f.touchesAgainst) + '</td>' +
-                  '<td class="num ' + cls + '">' + esc(ind) + '</td></tr>';
+                  '<tr' +
+                  (selectedId && f.id === selectedId ? ' class="hl"' : '') +
+                  '><td class="rank">' +
+                  (i + 1) +
+                  '</td>' +
+                  '<td><span class="name">' +
+                  esc(f.lastName.toUpperCase()) +
+                  ' ' +
+                  esc(f.firstName) +
+                  '</span>' +
+                  (f.club ? ' <span class="club">(' + esc(f.club) + ')</span>' : '') +
+                  '</td>' +
+                  '<td class="num">' +
+                  esc(f.victories) +
+                  '</td>' +
+                  '<td class="num">' +
+                  esc(f.touchesFor) +
+                  '</td>' +
+                  '<td class="num">' +
+                  esc(f.touchesAgainst) +
+                  '</td>' +
+                  '<td class="num ' +
+                  cls +
+                  '">' +
+                  esc(ind) +
+                  '</td></tr>';
               });
               html += '</tbody></table></div>';
             }
           }
           document.getElementById('app').innerHTML = html;
         }
+
+        // Sélection d'un tireur : délégation (le select est recréé à chaque rendu)
+        document.getElementById('app').addEventListener('change', e => {
+          if (e.target && e.target.id === 'fencer-select') {
+            selectedId = e.target.value;
+            if (lastData) render(lastData);
+            const s = document.getElementById('fencer-select');
+            if (s) s.focus();
+          }
+        });
 
         // Polling suspendu onglet masqué, backoff 30 s -> 2 min après erreur (#1345)
         let poll = null;

@@ -2889,9 +2889,12 @@
     "results_info": "Spectators can follow the results in real time.",
     "checkin_title": "Check-in QR code",
     "checkin_desc": "Fencers of “{{title}}” scan to check themselves in.",
-    "checkin_info": "Display this QR code at the venue entrance so fencers can confirm their presence.",
+    "checkin_info": "Display this QR code at the venue entrance: each fencer confirms attendance with their licence number and date of birth.",
     "tab_results": "Results",
-    "tab_checkin": "Check-in"
+    "tab_checkin": "Check-in",
+    "print": "Print QR code",
+    "print_error": "Printing failed",
+    "copy_error": "Copy failed: select the URL and copy it manually."
   },
   "kioskEntry": {
     "quit": "✕ Exit kiosk mode",

@@ -25,6 +25,7 @@ export const REMOTE_HTML_FILES = [
   'overlay-config.html',
   'register.html',
   'checkin.html',
+  'selfcheckin.html',
   'trainer.html',
   'matchs.html',
   'results.html',

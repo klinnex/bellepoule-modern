@@ -7,6 +7,7 @@ import { FencerStatus, MatchStatus } from '../../../shared/types';
 import type { RouteContext } from './context';
 import {
   scoreValue,
+  type FencerView,
   type RankingRowView,
   type SessionStateView,
   type TableauMatchView,
@@ -33,6 +34,42 @@ const poolNumberOf = (m: { poolNumber?: unknown; poolId?: string }): number =>
     ? m.poolNumber
     : parseInt(String(m.poolId || '').replace(/\D/g, '') || '0', 10);
 
+/** Tireur réduit exposé par la page publique des résultats */
+const publicFencer = (f: FencerView | null | undefined) =>
+  f?.id
+    ? { id: f.id, lastName: f.lastName ?? '', firstName: f.firstName ?? '', club: f.club ?? '' }
+    : null;
+
+/**
+ * Tours du tableau pour la page publique des résultats (#1858) : exempts exclus,
+ * du plus récent (finale) au premier tour.
+ */
+export function publicTableauRounds(matches: TableauMatchView[] | undefined) {
+  const byRound = new Map<number, ReturnType<typeof toMatch>[]>();
+  function toMatch(m: TableauMatchView) {
+    const finished = m.status === MatchStatus.FINISHED || m.status === 'finished' || !!m.winner;
+    return {
+      id: m.id,
+      position: m.position,
+      fencerA: publicFencer(m.fencerA),
+      fencerB: publicFencer(m.fencerB),
+      scoreA: scoreValue(m.scoreA),
+      scoreB: scoreValue(m.scoreB),
+      winnerId: m.winner?.id ?? null,
+      finished,
+    };
+  }
+  for (const m of matches ?? []) {
+    if (m.isBye || !m.fencerA?.id || !m.fencerB?.id) continue;
+    const round = m.round || 1;
+    if (!byRound.has(round)) byRound.set(round, []);
+    byRound.get(round)!.push(toMatch(m));
+  }
+  return Array.from(byRound.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([round, list]) => ({ round, matches: list.sort((a, b) => a.position - b.position) }));
+}
+
 /** Résultats, tableau, historique d'entraînement et journal des matchs. */
 export function registerResultsRoutes(ctx: RouteContext): void {
   // API : données de résultats d'une compétition (classements de poules)
@@ -47,7 +84,8 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       // Priorité : lire les poules depuis le session_state (elles ne sont pas dans les tables SQL)
       const sessionState = ctx.db.getSessionState(competitionId) as SessionStateView | null;
       const sessionPools = sessionState?.pools || [];
-      if (sessionPools.length > 0) {
+      // Tableau seul (sans poules) : session_state également prioritaire (#1858)
+      if (sessionPools.length > 0 || (sessionState?.tableauMatches?.length ?? 0) > 0) {
         const poolResults = sessionPools.map(pool => {
           const rankings = (pool.ranking || []).map(r => ({
             id: r.fencer?.id ?? '',
@@ -108,6 +146,10 @@ export function registerResultsRoutes(ctx: RouteContext): void {
           },
           pools: poolResults,
           overallRanking,
+          tableau: publicTableauRounds(sessionState?.tableauMatches),
+          finalResults: (sessionState?.finalResults || [])
+            .filter(r => !!r?.fencer?.id && typeof r.rank === 'number')
+            .map(r => ({ rank: r.rank as number, fencer: publicFencer(r.fencer) })),
         });
       }
 
