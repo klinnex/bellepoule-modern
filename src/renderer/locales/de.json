@@ -1017,6 +1017,7 @@
     "remote_not_started": "Der Fernserver ist für diesen Wettbewerb nicht gestartet",
     "remote_already_started": "Der Server ist für diesen Wettbewerb bereits gestartet",
     "training_not_started": "Trainingsserver nicht gestartet",
+    "invalid_theme": "Ungültiges Design",
     "training_already_started": "Trainingsserver bereits gestartet",
     "tls_cert_failed": "TLS-Zertifikat konnte nicht erstellt werden",
     "updater_unavailable": "Automatisches Update nicht verfügbar",

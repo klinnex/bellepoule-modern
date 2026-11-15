@@ -1017,6 +1017,7 @@
     "remote_not_started": "此比賽的遠端伺服器未啟動",
     "remote_already_started": "此比賽的伺服器已啟動",
     "training_not_started": "訓練伺服器未啟動",
+    "invalid_theme": "無效的主題",
     "training_already_started": "訓練伺服器已啟動",
     "tls_cert_failed": "無法產生 TLS 憑證",
     "updater_unavailable": "自動更新無法使用",

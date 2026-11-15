@@ -1017,6 +1017,7 @@
     "remote_not_started": "Le serveur distant n'est pas démarré pour cette compétition",
     "remote_already_started": "Le serveur est déjà démarré pour cette compétition",
     "training_not_started": "Serveur entraînement non démarré",
+    "invalid_theme": "Thème invalide",
     "training_already_started": "Serveur entraînement déjà démarré",
     "tls_cert_failed": "Impossible de générer le certificat TLS",
     "updater_unavailable": "Mise à jour automatique indisponible",
