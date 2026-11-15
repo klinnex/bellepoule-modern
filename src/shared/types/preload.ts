@@ -33,6 +33,8 @@ import type {
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
+export type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
+import type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
 
 // Config TTS (minuteur vocal) des tablettes d'arbitrage, réglée dans les paramètres globaux
 export interface TtsConfig {
@@ -1198,25 +1200,6 @@ export interface CryptoAPI {
   unprotect: (ciphertext: string) => Promise<string | null>;
 }
 
-export interface TrainingCustomRules {
-  matchDurationSeconds: number;
-  allowedZones: string[];
-  disableSuddenDeath: boolean;
-  /** Mode démo : matchs aléatoires joués automatiquement */
-  demo?: boolean;
-}
-
-export interface TrainingMatchRecord {
-  id: string;
-  arenaId: string;
-  arenaNumber: number;
-  weapon: string;
-  scoreA: number;
-  scoreB: number;
-  durationSec: number;
-  finishedAt: string;
-}
-
 /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
 export interface EventDayAPI {
   list: () => Promise<EventDay[]>;
@@ -1249,17 +1232,7 @@ export interface TrainingAPI {
     port?: number,
     host?: string,
     useHttps?: boolean
-  ) => Promise<{
-    success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
-    error?: string;
-  }>;
+  ) => Promise<{ success: boolean; serverInfo?: TrainingServerInfo; error?: string }>;
   stopServer: () => Promise<{ success: boolean; error?: string }>;
   startSession: (
     strips: number,
@@ -1267,18 +1240,13 @@ export interface TrainingAPI {
     customRules?: TrainingCustomRules
   ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
+  setTheme: (theme: string) => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
   getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
   getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;
   getServerInfo: () => Promise<{
     success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
+    serverInfo?: TrainingServerInfo;
     error?: string;
   }>;
   /** Démo autonome : ouvre les écrans arène / tablette arbitre / kiosque du serveur d'entraînement */

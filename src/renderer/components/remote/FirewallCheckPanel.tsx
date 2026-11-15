@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import type { FirewallDiagnosis } from '../../../shared/types/remote';
-import { RSM_STYLES } from './rsmStyles';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
@@ -39,31 +38,27 @@ export function FirewallCheckPanel({ t, port }: { t: Translate; port: number }) 
   };
 
   return (
-    <div style={RSM_STYLES.fwWrap}>
+    <div className="fw-check">
       <button className="btn-secondary" onClick={runCheck} disabled={checking}>
         {checking ? t('rsm.fw_checking') : t('rsm.fw_button')}
       </button>
       {result && result.supported && (
-        <div role="status" aria-live="polite" style={RSM_STYLES.fwStatus}>
+        <div role="status" aria-live="polite" className="fw-check__result">
           <strong>{t('rsm.fw_title')}</strong>
-          <ul style={RSM_STYLES.fwList}>
+          <ul className="fw-check__list">
             {result.findings.map((f, i) => (
               <li
                 key={`${f.code}-${i}`}
-                style={
-                  f.level === 'ok'
-                    ? RSM_STYLES.fwOk
-                    : f.level === 'warning'
-                      ? RSM_STYLES.fwWarning
-                      : RSM_STYLES.fwError
+                className={
+                  f.level === 'ok' ? 'fw-ok' : f.level === 'warning' ? 'fw-warning' : 'fw-error'
                 }
               >
                 {t(`rsm.fw_${f.code}`, f.params)}
               </li>
             ))}
           </ul>
-          {result.detail && <p style={RSM_STYLES.fwDetail}>{result.detail}</p>}
-          <p style={RSM_STYLES.fwNote}>{t('rsm.fw_note')}</p>
+          {result.detail && <p className="fw-check__detail">{result.detail}</p>}
+          <p className="fw-check__note">{t('rsm.fw_note')}</p>
         </div>
       )}
     </div>

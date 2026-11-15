@@ -1017,6 +1017,7 @@
     "remote_not_started": "N'eo ket loc'het ar servijer a-bell evit ar genstrivadeg-mañ",
     "remote_already_started": "Loc'het eo ar servijer evit ar genstrivadeg-mañ dija",
     "training_not_started": "N'eo ket loc'het servijer an embregerezh",
+    "invalid_theme": "Tema direizh",
     "training_already_started": "Loc'het eo servijer an embregerezh dija",
     "tls_cert_failed": "N'haller ket krouiñ an testeni TLS",
     "updater_unavailable": "Hizivadur emgefreek dihegerz",

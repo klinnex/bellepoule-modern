@@ -73,7 +73,10 @@ export const FencerKpiPanel: React.FC<{
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">{t('analyticsCharts.gap_all')}</span>
-              <span className="font-mono font-bold">{k.averageGap.toFixed(1)}</span>
+              <span className="font-mono font-bold">
+                {k.averageSignedGap > 0 ? '+' : k.averageSignedGap < 0 ? '−' : ''}
+                {Math.abs(k.averageSignedGap).toFixed(1)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">{t('analyticsCharts.gap_wins')}</span>

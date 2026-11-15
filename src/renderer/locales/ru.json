@@ -1017,6 +1017,7 @@
     "remote_not_started": "Удалённый сервер для этого соревнования не запущен",
     "remote_already_started": "Сервер для этого соревнования уже запущен",
     "training_not_started": "Сервер тренировки не запущен",
+    "invalid_theme": "Недопустимая тема",
     "training_already_started": "Сервер тренировки уже запущен",
     "tls_cert_failed": "Не удалось создать сертификат TLS",
     "updater_unavailable": "Автоматическое обновление недоступно",

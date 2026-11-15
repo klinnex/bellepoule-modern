@@ -1017,6 +1017,7 @@
     "remote_not_started": "El servidor remoto no está iniciado para esta competición",
     "remote_already_started": "El servidor ya está iniciado para esta competición",
     "training_not_started": "Servidor de entrenamiento no iniciado",
+    "invalid_theme": "Tema no válido",
     "training_already_started": "Servidor de entrenamiento ya iniciado",
     "tls_cert_failed": "No se pudo generar el certificado TLS",
     "updater_unavailable": "Actualización automática no disponible",

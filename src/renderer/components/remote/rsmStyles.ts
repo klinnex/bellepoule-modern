@@ -79,17 +79,4 @@ export const RSM_STYLES = {
     textAlign: 'center' as const,
   } satisfies React.CSSProperties,
   kioskCard: { marginTop: '1rem' } satisfies React.CSSProperties,
-  fwWrap: { marginTop: '0.5rem' } satisfies React.CSSProperties,
-  fwStatus: { marginTop: '0.5rem', fontSize: '0.85rem' } satisfies React.CSSProperties,
-  fwList: { margin: '0.25rem 0', paddingLeft: '1.2rem' } satisfies React.CSSProperties,
-  fwOk: { color: '#15803d' } satisfies React.CSSProperties,
-  fwWarning: { color: '#b45309' } satisfies React.CSSProperties,
-  fwError: { color: '#b91c1c' } satisfies React.CSSProperties,
-  fwNote: { color: '#94a3b8', margin: 0 } satisfies React.CSSProperties,
-  fwDetail: {
-    color: '#94a3b8',
-    fontFamily: 'monospace',
-    fontSize: '0.75rem',
-    wordBreak: 'break-all' as const,
-  } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;

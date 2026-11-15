@@ -78,7 +78,9 @@ body {
 .main {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  /* clip (et non hidden) : hidden reste défilable par le focus programmatique
+     (cellule de saisie) → l'en-tête et la barre de phases remontaient hors écran */
+  overflow: clip;
 }
 
 .sidebar {

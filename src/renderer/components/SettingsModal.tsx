@@ -358,7 +358,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
               <p style={HINT}>{t('settings.simplified_hint')}</p>
               <label className="u-row cursor-pointer">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="pool-input-mode"
                   checked={simplifiedInputMode}
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
@@ -370,7 +371,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
               <p style={HINT}>{t('settings.chained_hint')}</p>
               <label className="u-row cursor-pointer">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="pool-input-mode"
                   checked={chainedInputMode}
                   onChange={e => handleChainedInputModeChange(e.target.checked)}
                 />
