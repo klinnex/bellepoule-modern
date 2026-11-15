@@ -42,6 +42,7 @@ import {
 } from './cyranoSettings';
 
 import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
+import { CYRANO_PROFILES, buildBatch, exportPistes, parsePistesImport } from './cyranoPisteTools';
 
 const POLL_MS = 5000;
 const LOG_LINES = 200;
@@ -92,6 +93,11 @@ export const CyranoPanel: React.FC = () => {
   const [host, setHost] = useState<string>(readHost);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
   const [autoStart, setAutoStart] = useState<boolean>(readAutoStart);
+  // Outils de la table : profil constructeur, lot, import / export (#1829)
+  const [profileId, setProfileId] = useState<string>(CYRANO_PROFILES[0].id);
+  const [batchFrom, setBatchFrom] = useState<number>(1);
+  const [batchCount, setBatchCount] = useState<number>(4);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [log, setLog] = useState<CyranoFrameLogDTO[]>([]);
   const [startError, setStartError] = useState<string | null>(null);
@@ -200,6 +206,7 @@ export const CyranoPanel: React.FC = () => {
     }
   };
 
+  const importInputRef = useRef<HTMLInputElement>(null);
   const addRow = () => {
     void applyPistes([...pistes, { ...EMPTY_ROW }]);
   };
@@ -477,6 +484,86 @@ export const CyranoPanel: React.FC = () => {
           <Button size="sm" onClick={addRow}>
             <Icon icon={Plus} /> {t('rsm.cyrano_add_piste')}
           </Button>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_profile')}
+            <select value={profileId} onChange={e => setProfileId(e.target.value)}>
+              {CYRANO_PROFILES.map(pr => (
+                <option key={pr.id} value={pr.id}>
+                  {t(`rsm.cyrano_profile_${pr.id}`)} ({pr.port})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_batch_from')}
+            <input
+              type="number"
+              min={1}
+              value={batchFrom}
+              onChange={e => setBatchFrom(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            />
+          </label>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_batch_count')}
+            <input
+              type="number"
+              min={1}
+              max={64}
+              value={batchCount}
+              onChange={e => setBatchCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            />
+          </label>
+          <Button
+            size="sm"
+            onClick={() => {
+              const profile = CYRANO_PROFILES.find(pr => pr.id === profileId) ?? CYRANO_PROFILES[0];
+              void applyPistes([...pistes, ...buildBatch(profile, batchFrom, batchCount, pistes)]);
+            }}
+          >
+            {t('rsm.cyrano_batch_add')}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              const blob = new Blob([exportPistes(pistes)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'cyrano-pistes.json';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            {t('rsm.cyrano_export')}
+          </Button>
+          <label className="cyrano-option">
+            <Button size="sm" onClick={() => importInputRef.current?.click()}>
+              {t('rsm.cyrano_import')}
+            </Button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={async e => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                const res = parsePistesImport(await file.text());
+                if (!res.ok) {
+                  setImportMsg(
+                    t('rsm.cyrano_import_error', { reason: t(`rsm.cyrano_import_${res.error}`) })
+                  );
+                  return;
+                }
+                setImportMsg(
+                  t('rsm.cyrano_import_done', { n: res.pistes.length, rejected: res.rejected })
+                );
+                void applyPistes(res.pistes);
+              }}
+            />
+          </label>
+          {importMsg && <span className="cyrano-import-msg">{importMsg}</span>}
         </div>
       </div>
 
