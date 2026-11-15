@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
-| `src/main/` | 69 | 575 |
+| `src/main/` | 69 | 577 |
 | `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 29 | 142 |
+| `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 97 | 490 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **387** | **2950** |
+| **Total** | **387** | **2954** |
 
-Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 377 fichiers, 2915 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2536,7 +2536,7 @@ Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 42 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 44 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2557,6 +2557,8 @@ Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - END à égalité avec priorité : vainqueur = tireur prioritaire, inversion comprise
   - END à égalité, A à gauche après inversion, priorité à droite → B
   - END sur abandon : l’adversaire gagne même mené au score, abandon marqué
+  - END sur exclusion (statut E) : tireur exclu comme pour un carton noir, annulable (#1829)
+  - END sur abandon : aucune exclusion automatique, le DT est sollicité
   - END sur exclusion : exclusion marquée sur le tireur exclu
   - journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette
   - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
@@ -3976,7 +3978,7 @@ Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 11 tests</summary>
 
 - **generatePools**
   - refuse moins de 4 tireurs
@@ -3992,6 +3994,8 @@ Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - réintègre le combattant, rouvre le match du carton et rend ses résultats aux adversaires
 - **updateMatchFromRemote**
   - vainqueur transmis par le serveur prioritaire, même si le perdant mène (abandon, #1720)
+  - abandon signalé par l’appareil : marque du perdant conservée (#1829)
+  - exclusion signalée par l’appareil : marque du perdant, pas celle du vainqueur (#1829)
   - sans vainqueur transmis : vainqueur au score
 
 </details>
