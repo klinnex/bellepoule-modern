@@ -7,7 +7,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Fencer } from '../../../shared/types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { ChartColumn, ClipboardList, LayoutGrid, Triangle, Trophy, Undo2 } from 'lucide-react';
+import {
+  ChartColumn,
+  ClipboardList,
+  LayoutGrid,
+  Printer,
+  Triangle,
+  Trophy,
+  Undo2,
+} from 'lucide-react';
 import { Icon } from '../common/Icon';
 
 interface TableauToolbarProps {
@@ -127,6 +135,15 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
           )}
         </button>
 
+        <button
+          onClick={onPrintClick}
+          className="tt-toggle"
+          title={t('tableauToolbar.print')}
+          aria-label={t('tableauToolbar.print')}
+        >
+          <Icon icon={Printer} />
+        </button>
+
         {/* FAB */}
         <div className="tableau-fab-wrapper" ref={fabRef}>
           <button
@@ -167,9 +184,6 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
 
               <div className="tableau-fab-divider" />
               <span className="tableau-fab-section-label">{t('tableauToolbar.export')}</span>
-              <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
-                {t('tableauToolbar.print')}
-              </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
                 {t('tableauToolbar.export_pdf')}
               </button>

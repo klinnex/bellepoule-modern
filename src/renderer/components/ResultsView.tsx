@@ -19,7 +19,7 @@ import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
 import BookSectionsModal from './BookSectionsModal';
 import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
-import { Medal, Trophy, Upload } from 'lucide-react';
+import { Medal, Printer, Trophy, Upload } from 'lucide-react';
 import { RankMedal } from './common/RankMedal';
 import { Icon } from './common/Icon';
 
@@ -776,8 +776,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
-        <button onClick={printResults} style={RV_STYLES.btnPrint}>
-          {t('resultsView.print')}
+        <button
+          onClick={printResults}
+          style={RV_STYLES.btnPrint}
+          title={t('resultsView.print')}
+          aria-label={t('resultsView.print')}
+        >
+          <Icon icon={Printer} />
         </button>
         <button
           onClick={() => {
