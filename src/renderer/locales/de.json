@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Am Gerät hängendes Gefechtsende erzwungen bestätigen",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Nächstes Gefecht, wie die NEXT-Taste des Geräts",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Vorheriges Match zur Korrektur zurückholen (innerhalb von 3 Min. nach Ende)",
     "cyrano_action_resync": "Neu synchronisieren",
     "cyrano_action_resync_title": "Bekannten Zustand verwerfen und das Gefecht der Bahn erneut an das Gerät senden",
     "cyrano_log": "Telegrammprotokoll",

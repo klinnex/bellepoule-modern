@@ -36,8 +36,8 @@ export interface PisteHubOptions {
 }
 
 /** Actions de secours lancées depuis le panneau Cyrano (#1829). */
-export type PisteAction = 'ack' | 'next' | 'resync';
-export const PISTE_ACTIONS: readonly PisteAction[] = ['ack', 'next', 'resync'];
+export type PisteAction = 'ack' | 'next' | 'prev' | 'resync';
+export const PISTE_ACTIONS: readonly PisteAction[] = ['ack', 'next', 'prev', 'resync'];
 
 /** Alerte en cours sur une piste, affichée dans le panneau Cyrano et notifiée au DT. */
 export interface PisteAlert {
@@ -280,6 +280,11 @@ export class PisteHub {
         if (!status.arena || mode !== 'master') return false;
         this.handleNext(status, { protocol: 'EFP1.1', command: 'NEXT', piste, compe: '' });
         return true;
+      case 'prev':
+        // PREV : seulement en appareil maître, arène liée (rappel borné par la fenêtre de correction)
+        if (!status.arena || mode !== 'master') return false;
+        this.handlePrev(status);
+        return true;
       case 'resync':
         if (mode === 'manual') return false;
         this.clearDispCache(piste);
@@ -456,6 +461,17 @@ export class PisteHub {
     this.acked.set(piste.piste, match.id);
     this.applied.delete(piste.piste);
     remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'finish' });
+  }
+
+  /** PREV (#1829) : rappel du dernier match terminé de l'arène pour correction. */
+  private handlePrev(piste: CyranoPisteStatus): void {
+    if (!piste.arena) return;
+    const remote = this.getRemote();
+    if (!remote) return;
+    const arenaId = `arena${piste.arena}`;
+    this.device.delete(piste.piste);
+    remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'prev' });
+    logger.info(LogCategory.NETWORK, `Cyrano: PREV sur piste ${piste.piste} → arène ${arenaId}`);
   }
 
   /**

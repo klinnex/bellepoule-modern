@@ -1366,7 +1366,7 @@ export interface CyranoAPI {
     international?: boolean;
   }) => Promise<void>;
   /** Actions de secours par piste (#1829) */
-  pisteAction: (piste: string, action: 'ack' | 'next' | 'resync') => Promise<boolean>;
+  pisteAction: (piste: string, action: 'ack' | 'next' | 'prev' | 'resync') => Promise<boolean>;
 }
 
 /** Trame du journal Cyrano (#1829) */
