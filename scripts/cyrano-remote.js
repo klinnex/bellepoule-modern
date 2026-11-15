@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Télécommande web des appareils Cyrano simulés (#1720) : plusieurs pistes sur une page,
- * boutons façon télécommande (BEGIN, GO, HALT, END, NEXT, touches, cartons, priorité…),
- * état de l'appareil et journal des trames en direct.
+ * boutons calqués sur la télécommande WSG des SG31 / SG32 (chrono, PAUSE, périodes, arme,
+ * score, cartons, priorité, bloc PC), état de l'appareil et journal des trames en direct.
  *
  *   npm run cyrano:remote [-- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102,3@127.0.0.3:50103]
  *                         [--server 127.0.0.1] [--server-port 50100] [--ui-port 5099]
@@ -46,20 +46,21 @@ const PAGE = `<!doctype html>
 <title>Télécommande Cyrano</title>
 <style>
   :root { --bg:#0f1720; --card:#1a2430; --line:#2c3a4a; --text:#e6edf3; --muted:#8b9bb0;
-    --red:#e5484d; --green:#30a46c; --yellow:#f5d90a; --accent:#3e8ef7; }
+    --red:#e5484d; --green:#30a46c; --yellow:#f5d90a; --accent:#3e8ef7; --frame:#c9a83a; }
   * { box-sizing: border-box; }
   body { margin:0; padding:16px; background:var(--bg); color:var(--text);
     font:14px/1.4 system-ui, sans-serif; }
   h1 { font-size:18px; margin:0 0 12px; }
   h1 small { color:var(--muted); font-weight:400; }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(460px, 1fr)); }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
-  .head { display:flex; align-items:center; gap:10px; }
+  .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .head .title { font-weight:700; font-size:16px; }
   .badge { padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600; background:var(--line); }
-  .badge.F { background:var(--green); } .badge.H, .badge.P { background:#b8860b; }
+  .badge.F { background:var(--green); } .badge.H { background:#b8860b; } .badge.P { background:#6e56cf; }
   .badge.E { background:var(--red); } .badge.W { background:var(--line); }
-  .watch { margin-left:auto; font:700 26px ui-monospace, monospace; }
+  .watch { margin-left:auto; text-align:right; font:700 26px ui-monospace, monospace; }
+  .watch small { display:block; font:12px system-ui, sans-serif; color:var(--muted); }
   .meta { color:var(--muted); font-size:12px; margin:4px 0 10px; }
   .fencers { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:start; }
   .fencer { border-radius:8px; padding:8px; text-align:center; }
@@ -68,48 +69,75 @@ const PAGE = `<!doctype html>
   .side { font-size:11px; color:var(--muted); text-transform:uppercase; }
   .name { font-weight:700; min-height:20px; }
   .score { font:800 44px ui-monospace, monospace; }
-  .marks { min-height:22px; display:flex; gap:4px; justify-content:center; }
+  .marks { min-height:22px; display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
   .mark { width:16px; height:22px; border-radius:3px; }
   .mark.y { background:var(--yellow); } .mark.r { background:var(--red); }
-  .mark.prio { width:auto; height:auto; padding:0 6px; background:var(--accent); font-size:12px; border-radius:4px; }
-  .mark.ab { width:auto; height:auto; padding:0 6px; background:#555; font-size:12px; border-radius:4px; }
-  .btns { display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; margin-top:8px; }
+  .mark.t { width:auto; height:auto; padding:0 6px; font-size:12px; border-radius:4px; background:#555; }
+  .mark.prio { background:var(--accent); }
+  .btns { display:grid; grid-template-columns:repeat(2, 1fr); gap:4px; margin-top:8px; }
   .center { display:flex; flex-direction:column; gap:6px; padding-top:22px; }
+  .group { border:1px solid var(--frame); border-radius:8px; padding:8px; margin-top:10px; }
+  .group > b { display:block; font-size:11px; letter-spacing:.08em; color:var(--frame); text-transform:uppercase; margin-bottom:6px; }
+  .keys { display:grid; grid-template-columns:repeat(auto-fit, minmax(92px, 1fr)); gap:4px; }
   button { background:#24313f; color:var(--text); border:1px solid var(--line); border-radius:6px;
-    padding:8px 6px; font:600 13px system-ui, sans-serif; cursor:pointer; }
+    padding:7px 6px; font:600 12.5px system-ui, sans-serif; cursor:pointer; }
   button:hover:not(:disabled) { border-color:var(--accent); }
   button:active:not(:disabled) { transform:translateY(1px); }
   button:disabled { opacity:.35; cursor:not-allowed; }
-  button.main { background:var(--accent); border-color:var(--accent); }
-  button.end { background:var(--red); border-color:var(--red); }
-  button.go { background:var(--green); border-color:var(--green); }
-  .row { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
-  .row button { flex:1; }
+  button.y { color:var(--yellow); } button.r { color:#ff8a80; } button.g { color:#5fd197; }
+  button.main { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.end { background:var(--red); border-color:var(--red); color:#fff; }
+  button.go { background:var(--green); border-color:var(--green); color:#fff; }
+  button.raz { background:transparent; color:var(--muted); border-style:dashed; }
   .log { margin-top:10px; height:150px; overflow:auto; background:#0b1118; border-radius:6px;
     padding:6px; font:11px/1.35 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }
   .log .in { color:#7cc4ff; } .log .out { color:#9be9a8; } .log .note { color:var(--yellow); }
-  .help { color:var(--muted); font-size:12px; margin-top:12px; }
+  .help { color:var(--muted); font-size:12px; margin-top:12px; max-width:110ch; }
 </style>
 </head>
 <body>
 <h1>Télécommande Cyrano <small id="srv"></small></h1>
 <div class="grid" id="grid"></div>
-<p class="help">Un appareil passe en assaut avec <b>BEGIN</b>, le chrono démarre avec <b>GO</b>.
-<b>END</b> demande la validation (ACK ou NAK) ; <b>NEXT</b> réclame le match suivant (au repos uniquement).
-Gauche = rouge, droite = vert, comme sur l'appareil ; <b>SWAP</b> inverse les côtés.</p>
+<p class="help">Boutons calqués sur la télécommande WSG (SG31 / SG32). Couleur du libellé = touche de mode
+à maintenir sur la vraie télécommande : <span style="color:var(--yellow)">jaune</span>,
+<span style="color:#ff8a80">rouge</span>, <span style="color:#5fd197">vert</span> (bloc PC).
+Déroulé : <b>NEXT</b> → <b>BEGIN</b> → <b>STOP/GO</b>… → <b>VALIDATE</b> (ACK ou NAK).
+Fin de période : <b>PAUSE</b> (minute de repos, puis période suivante) ou <b>RESET</b> (temps de la période).
+Gauche = rouge, droite = vert, comme sur l'appareil. Un bouton grisé donne la raison au survol.</p>
 <script>
-const STATES = { W: 'attente', H: 'halte', F: 'assaut', P: 'pause', E: 'fin — attente ACK' };
+const STATES = { W: 'attente', H: 'halte', F: 'assaut', P: 'minute de repos', E: 'fin — attente ACK' };
+const WEAPONS = { E: 'épée', F: 'fleuret', S: 'sabre' };
 const cards = new Map();
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 function send(piste, c) { fetch('/cmd?piste=' + encodeURIComponent(piste) + '&c=' + encodeURIComponent(c), { method: 'POST' }); }
-function button(piste, label, c, cls) { const b = el('button', cls, label); b.dataset.cmd = c; b.onclick = () => send(piste, c); return b; }
+function button(piste, label, c, cls) {
+  const b = el('button', cls, label);
+  b.dataset.cmd = c;
+  b.onclick = () => {
+    if (c === 'raz' && !confirm('Remise à zéro complète de l’appareil (tireurs, scores, cartons, chrono) ?')) return;
+    send(piste, c);
+  };
+  return b;
+}
+function group(title, ...buttons) {
+  const g = el('div', 'group');
+  const keys = el('div', 'keys');
+  keys.append(...buttons);
+  g.append(el('b', '', title), keys);
+  return g;
+}
 
-function fencerBox(piste, side) {
-  const box = el('div', 'fencer ' + (side === 'l' ? 'left' : 'right'));
-  box.append(el('div', 'side', side === 'l' ? 'gauche' : 'droite'), el('div', 'name'), el('div', 'score', '0'), el('div', 'marks'));
+function fencerBox(piste, s) {
+  const box = el('div', 'fencer ' + (s === 'l' ? 'left' : 'right'));
+  box.append(el('div', 'side', s === 'l' ? 'gauche' : 'droite'), el('div', 'name'), el('div', 'score', '0'), el('div', 'marks'));
   const btns = el('div', 'btns');
-  btns.append(button(piste, '+1', side + '+', 'main'), button(piste, '−1', side + '-'), button(piste, 'Jaune', 'y' + side),
-    button(piste, 'Rouge', 'r' + side), button(piste, 'Priorité', 'p' + side), button(piste, 'Abandon', 'a' + side));
+  btns.append(
+    button(piste, '∧ +1', s + '+', 'main'), button(piste, '∨ −1', s + '-'),
+    button(piste, '∧ jaune', 'y' + s, 'y'), button(piste, '∨ jaune', 'y' + s + '-', 'y'),
+    button(piste, '∧ rouge', 'r' + s, 'r'), button(piste, '∨ rouge', 'r' + s + '-', 'r'),
+    button(piste, 'ABANDON', 'a' + s, 'y'), button(piste, 'EXPULSION', 'e' + s, 'r'),
+    button(piste, 'RESERVE', 'res' + s, 'y'), button(piste, 'Médical +1', 'm' + s, 'r'),
+    button(piste, 'Prio. imposée', 'p' + s));
   box.append(btns);
   return box;
 }
@@ -122,12 +150,21 @@ function createCard(snap) {
   const meta = el('div', 'meta');
   const fencers = el('div', 'fencers');
   const center = el('div', 'center');
-  center.append(button(p, 'BEGIN', 'begin', 'main'), button(p, 'GO', 'go', 'go'), button(p, 'HALT', 'halt'), button(p, 'END', 'end', 'end'));
+  center.append(button(p, 'STOP/GO', 'stopgo', 'go'), button(p, '⟷', 'swap'), button(p, '0:0', 'zero'),
+    button(p, 'CARDS RESET', 'cards0', 'y'), button(p, '⚄ Priorité', 'prio'), button(p, 'P RESET', 'pn', 'y'));
   fencers.append(fencerBox(p, 'l'), center, fencerBox(p, 'r'));
-  const row = el('div', 'row');
-  row.append(button(p, 'NEXT', 'next'), button(p, 'PREV', 'prev'), button(p, 'SWAP', 'swap'), button(p, 'Sans prio', 'pn'), button(p, 'RESET', 'reset'));
+  const chrono = group('Chrono',
+    button(p, 'PAUSE', 'pause'), button(p, 'RESET', 'reset'), button(p, 'STOP/GO', 'stopgo', 'go'),
+    button(p, 'ROUND ∨', 'round-'), button(p, 'ROUND ∧', 'round+'),
+    button(p, 'CLOCK ∨ (−1 s)', 'clock-', 'y'), button(p, 'CLOCK ∧ (+1 s)', 'clock+', 'y'),
+    button(p, 'RESET ∨ (−1 min)', 'init-', 'r'), button(p, 'RESET ∧ (+1 min)', 'init+', 'r'));
+  const weapon = group('Arme',
+    button(p, 'Arme (cycle)', 'weapon'), button(p, 'Épée', 'epee', 'y'), button(p, 'Fleuret', 'foil', 'y'), button(p, 'Sabre', 'sabre', 'y'));
+  const pc = group('PC',
+    button(p, 'PREVIOUS', 'prev', 'g'), button(p, 'BEGIN', 'begin', 'g'), button(p, 'NEXT', 'next', 'g'),
+    button(p, 'VALIDATE', 'end', 'end'), button(p, 'RAZ appareil', 'raz', 'raz'));
   const log = el('div', 'log');
-  card.append(head, meta, fencers, row, log);
+  card.append(head, meta, fencers, pc, chrono, weapon, log);
   document.getElementById('grid').append(card);
   const c = { card, head, meta, fencers, log };
   cards.set(p, c);
@@ -141,8 +178,11 @@ function renderFencer(box, f, isPrio) {
   marks.replaceChildren();
   if (f.y) marks.append(el('span', 'mark y'));
   for (let i = 0; i < f.r; i++) marks.append(el('span', 'mark r'));
-  if (isPrio) marks.append(el('span', 'mark prio', 'P'));
-  if (f.status === 'A') marks.append(el('span', 'mark ab', 'abandon'));
+  if (isPrio) marks.append(el('span', 'mark t prio', 'P'));
+  if (f.status === 'A') marks.append(el('span', 'mark t', 'abandon'));
+  if (f.status === 'E') marks.append(el('span', 'mark t', 'exclu'));
+  if (f.reserve === 'R') marks.append(el('span', 'mark t', 'réserve'));
+  if (f.medical) marks.append(el('span', 'mark t', 'médical ' + f.medical));
 }
 
 function render(snap) {
@@ -150,23 +190,19 @@ function render(snap) {
   const badge = c.head.querySelector('.badge');
   badge.className = 'badge ' + snap.state;
   badge.textContent = snap.state + ' · ' + (STATES[snap.state] || '');
-  c.head.querySelector('.watch').textContent = snap.stopwatch;
   const g = snap.general;
-  c.meta.textContent = (g.phase ? 'Phase ' + g.phase + ' · Poule/Tableau ' + g.poulTab + ' · Match ' + g.match + ' · Arme ' + (g.weapon || '—') + ' · ' : '')
-    + snap.protocol + ' · ' + snap.bind + ':' + snap.port;
+  const watch = c.head.querySelector('.watch');
+  watch.textContent = snap.stopwatch;
+  watch.append(el('small', '', 'période ' + (g.round || '—') + ' · durée ' + snap.period));
+  c.meta.textContent = (g.phase ? 'Phase ' + g.phase + ' · Poule/Tableau ' + g.poulTab + ' · Match ' + g.match + ' · ' : '')
+    + 'Arme ' + (WEAPONS[g.weapon] || '—') + ' · ' + snap.protocol + ' · ' + snap.bind + ':' + snap.port;
   const [left, , right] = c.fencers.children;
   renderFencer(left, snap.left, snap.priority === 'L');
   renderFencer(right, snap.right, snap.priority === 'R');
-  const active = snap.state !== 'W';
   for (const b of c.card.querySelectorAll('button')) {
-    const cmd = b.dataset.cmd;
-    let ok = true;
-    if (cmd === 'next' || cmd === 'prev') ok = !active;
-    else if (cmd === 'begin') ok = !active && !!snap.right.id;
-    else if (cmd === 'go') ok = snap.state === 'H' || snap.state === 'P';
-    else if (cmd === 'halt') ok = snap.state === 'F';
-    else if (cmd === 'end' || cmd === 'pn' || /^[rlyrpa][+\\-rl]$/.test(cmd)) ok = active;
-    b.disabled = !ok;
+    const why = snap.blocked[b.dataset.cmd] || '';
+    b.disabled = !!why;
+    b.title = why;
   }
 }
 
