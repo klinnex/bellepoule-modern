@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 65 | 526 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
-| `src/renderer/components/` | 94 | 473 |
+| `src/renderer/components/` | 95 | 478 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **379** | **2875** |
+| **Total** | **380** | **2880** |
 
-Unitaires : 369 fichiers, 2836 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 370 fichiers, 2841 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4803,6 +4803,18 @@ Unitaires : 369 fichiers, 2836 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolStripButton**
   - propose uniquement les pistes de l’intervalle et applique le choix
   - permet de retirer la piste (automatique)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/poolChainedInput.test.ts</code> — 5 tests</summary>
+
+- **nextChainedPair**
+  - parcourt la ligne 1 de gauche à droite, puis la ligne 2 au-dessus de la diagonale
+  - visite chaque match une seule fois (pas de case miroir)
+  - saute les cases non jouables
+  - renvoie null en fin de poule
+  - reprend depuis une case de la moitié inférieure sans revenir en arrière
 
 </details>
 

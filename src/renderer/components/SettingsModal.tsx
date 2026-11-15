@@ -62,6 +62,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
     handleQuickMouseScoringChange,
     simplifiedInputMode,
     handleSimplifiedInputModeChange,
+    chainedInputMode,
+    handleChainedInputModeChange,
     auditLogEnabled,
     handleAuditLogChange,
     confettiDisabled,
@@ -361,6 +363,18 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
                 <span style={TOGGLE_LABEL}>{t('settings.simplified_enable')}</span>
+              </label>
+            </div>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.chained_title')}</label>
+              <p style={HINT}>{t('settings.chained_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={chainedInputMode}
+                  onChange={e => handleChainedInputModeChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.chained_enable')}</span>
               </label>
             </div>
           </>
