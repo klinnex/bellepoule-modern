@@ -11,6 +11,7 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
+import { exportResultsToFFF } from '../../shared/utils/fencerExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
 import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
@@ -450,6 +451,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export XML réussi !', 'success');
   };
 
+  // Export FFF des résultats finaux (fin de compétition)
+  const exportFFF = () => {
+    const content = exportResultsToFFF(
+      resultsToDisplay.map(r => ({ rank: r.rank, fencer: r.fencer }))
+    );
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.fff`;
+    link.click();
+    showToast('Export FFF réussi !', 'success');
+  };
+
   const exportFullPDF = async (sectionOrder?: BookSectionKind[]) => {
     setIsExportingFull(true);
     try {
@@ -842,6 +856,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 }}
               >
                 {t('results.export_xml_ffe')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportFFF();
+                }}
+              >
+                {t('results.export_fff')}
               </button>
               <button
                 role="menuitem"

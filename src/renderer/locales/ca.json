@@ -246,6 +246,7 @@
     "exporting": "Generant…",
     "export_csv": "CSV",
     "export_xml_ffe": "XML (FFE)",
+    "export_fff": "Resultats FFF (.fff)",
     "export_pdf_ranking": "PDF classificació",
     "export_pdf_full_signed": "PDF complet amb signatures",
     "book_sections_title": "Contingut del dossier",
