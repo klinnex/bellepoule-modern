@@ -24,6 +24,7 @@ import { OrganisationPanel } from './analytics/OrganisationPanel';
 import { ColumnsMenu, useColumnVisibility, type ColumnDef } from './analytics/ColumnsMenu';
 import {
   averageMatchSeconds,
+  markLatePools,
   organisationKpis,
   type KpiTableauMatch,
   type LiveArena,
@@ -72,6 +73,10 @@ interface PoolProgress {
   completionPercentage: number;
   averageTimeRemaining: number;
   projectedFinishTime: Date;
+  /** Poule en retard (#1817) */
+  late: boolean;
+  done: number;
+  total: number;
 }
 
 export interface AnalyticsDashboardProps {
@@ -229,7 +234,7 @@ function calculateWeaponStats(matches: Match[]): WeaponStats {
 }
 
 function calculatePoolProgress(pools: Pool[], matches: Match[]): PoolProgress[] {
-  return pools.map(pool => {
+  const rows: PoolProgress[] = pools.map(pool => {
     const poolMatches = matches.filter(m => (pool.matches ?? []).some(pm => pm.id === m.id));
 
     const completed = poolMatches.filter(m => m.status === MatchStatus.FINISHED).length;
@@ -242,8 +247,13 @@ function calculatePoolProgress(pools: Pool[], matches: Match[]): PoolProgress[] 
       completionPercentage,
       averageTimeRemaining: 0,
       projectedFinishTime: new Date(),
+      late: false,
+      done: completed,
+      total: poolMatches.length,
     };
   });
+  markLatePools(rows);
+  return rows;
 }
 
 function calculateAnalytics(
@@ -325,8 +335,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     { id: 'stats', label: t('analytics.tab_stats') },
     { id: 'charts', label: t('analytics.tab_charts') },
     { id: 'organisation', label: t('analytics.tab_organisation') },
-    { id: 'journal', label: t('analytics.tab_journal') },
     { id: 'referees', label: t('analytics.tab_referees') },
+    { id: 'journal', label: t('analytics.tab_journal') },
   ];
   const refereeColumns: ColumnDef[] = [
     { id: 'matches', label: t('analytics.matches') },
@@ -728,10 +738,18 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                       <h3 className="text-lg font-semibold mb-4">{t('analytics.pool_progress')}</h3>
                       <div className="space-y-3">
                         {analyticsData.poolProgress.map(pool => (
-                          <div key={pool.poolId} className="p-3 bg-white rounded">
+                          <div
+                            key={pool.poolId}
+                            className={`p-3 rounded ${pool.late ? 'perf-pool--late' : 'bg-white'}`}
+                          >
                             <div className="flex justify-between items-center mb-2">
                               <span className="font-medium">
                                 {t('analytics.pool_n', { n: pool.poolNumber })}
+                                {pool.late && (
+                                  <span className="ml-2 text-xs font-semibold text-red-600">
+                                    {t('organisation.late')}
+                                  </span>
+                                )}
                               </span>
                               <span className="text-sm text-gray-600">
                                 {pool.completionPercentage.toFixed(1)}%

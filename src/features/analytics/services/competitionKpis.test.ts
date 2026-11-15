@@ -138,6 +138,8 @@ describe('fencerMatchKpis', () => {
     });
     expect(k.averageGap).toBeCloseTo(15 / 6);
     expect(k.averageWinGap).toBeCloseTo(8 / 3);
+    // Écart signé : (somme victoires 8 − somme défaites 7) / 6 matchs
+    expect(k.averageSignedGap).toBeCloseTo(1 / 6);
     expect(k.bestWinStreak).toBe(2);
     expect(k.bestLossStreak).toBe(2);
     expect(k.current).toEqual({ kind: 'L', length: 2 });
@@ -145,7 +147,12 @@ describe('fencerMatchKpis', () => {
   });
 
   it('aucun match → zéros', () => {
-    expect(fencerMatchKpis('z', [])).toMatchObject({ played: 0, averageGap: 0, current: null });
+    expect(fencerMatchKpis('z', [])).toMatchObject({
+      played: 0,
+      averageGap: 0,
+      averageSignedGap: 0,
+      current: null,
+    });
   });
 });
 
