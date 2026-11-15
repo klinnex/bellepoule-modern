@@ -3,9 +3,11 @@
 > État (#1720, #1829) : codec, serveur UDP, supervision, simulateur, panneau de configuration,
 > raccordement aux arènes, **modes par piste** (appareil maître, afficheur, manuel), bascule en
 > manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage.
-> PREV : touche PREVIOUS de l'appareil reliée au rappel du match précédent (fenêtre de 3 min).
-> Restent : bouton PREV de la tablette, bandeau appareil dans la vue arbitre, pistes en base, profils constructeur,
-> cartons P, équipes.
+> PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
+> dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
+> import / export de la liste.
+> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, validation
+> de fin unifiée, test de bout en bout en CI.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -75,6 +77,7 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 | Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
 | Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
 | Secours `NEXT` | même effet que la touche NEXT de l'appareil (mêmes garde-fous) |
+| Secours `PREV` | même effet que la touche PREVIOUS de l'appareil : rappel du dernier match terminé (§ 2 bis) |
 | Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
 | Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
 
@@ -223,7 +226,8 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 6. Cartons P, équipes (`Type=T`, relais, remplaçant).
 
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
-PREV livré (appareil ; pas encore de bouton sur la tablette) ; bandeau arbitre, table des pistes en base, profils constructeur et les extensions restent ouverts.
+PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
+base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).

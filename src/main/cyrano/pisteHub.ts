@@ -36,8 +36,8 @@ export interface PisteHubOptions {
 }
 
 /** Actions de secours lancées depuis le panneau Cyrano (#1829). */
-export type PisteAction = 'ack' | 'next' | 'resync';
-export const PISTE_ACTIONS: readonly PisteAction[] = ['ack', 'next', 'resync'];
+export type PisteAction = 'ack' | 'next' | 'prev' | 'resync';
+export const PISTE_ACTIONS: readonly PisteAction[] = ['ack', 'next', 'prev', 'resync'];
 
 /** Alerte en cours sur une piste, affichée dans le panneau Cyrano et notifiée au DT. */
 export interface PisteAlert {
@@ -189,6 +189,7 @@ export class PisteHub {
    * (l'appareil redémarré ou reconnecté reprend l'affichage sans intervention).
    */
   private handleStatus = (piste: CyranoPisteStatus): void => {
+    this.syncArenaLink(piste);
     if (piste.status === 'offline') {
       this.offline.add(piste.piste);
       logger.warn(
@@ -216,7 +217,20 @@ export class PisteHub {
       const previous = this.modes.get(status.piste);
       this.modes.set(status.piste, mode);
       if (previous !== undefined && previous !== mode) this.resendMatch(status.piste);
+      this.syncArenaLink(status);
     }
+  }
+
+  /** Bandeau appareil côté arbitre : mode et liaison de la piste reliée à l'arène (#1829). */
+  private syncArenaLink(piste: CyranoPisteStatus): void {
+    if (!piste.arena) return;
+    this.getRemote()?.updateArena(`arena${piste.arena}`, {
+      cyrano: {
+        piste: piste.piste,
+        mode: this.modeOf(piste),
+        online: piste.status === 'online',
+      },
+    });
   }
 
   /** DISP du match courant de l'arène (ou affichage vide) ; sans effet en manuel. */
@@ -283,6 +297,11 @@ export class PisteHub {
         // Même garde-fous que la touche de l'appareil : seulement en appareil maître
         if (!status.arena || mode !== 'master') return false;
         this.handleNext(status, { protocol: 'EFP1.1', command: 'NEXT', piste, compe: '' });
+        return true;
+      case 'prev':
+        // PREV : seulement en appareil maître, arène liée (rappel borné par la fenêtre de correction)
+        if (!status.arena || mode !== 'master') return false;
+        this.handlePrev(status);
         return true;
       case 'resync':
         if (mode === 'manual') return false;
@@ -492,12 +511,13 @@ export class PisteHub {
   };
 
   /**
-   * PREV (touche PREVIOUS de l'appareil) : rappel du dernier match terminé de l'arène pour
+   * PREV (touche PREVIOUS de l'appareil, ou bouton de secours du poste) : rappel du dernier
+   * match terminé de l'arène pour
    * correction (fenêtre bornée, `recallPrevMatch`). Le DISP du match rappelé part par
    * `onArenaUpdate`, avec ses scores et cartons. Refus (combat en cours, rien à rappeler,
    * fenêtre dépassée) : l'appareil retrouve le match courant.
    */
-  private handlePrev = (piste: CyranoPisteStatus, _msg: CyranoMessage): void => {
+  private handlePrev = (piste: CyranoPisteStatus, _msg?: CyranoMessage): void => {
     if (!piste.arena) return;
     const remote = this.getRemote();
     if (!remote) return;

@@ -366,6 +366,9 @@ const electronApi = {
     setOptions: (options: unknown) => ipcRenderer.invoke('cyrano:setOptions', options),
     pisteAction: (piste: string, action: string) =>
       ipcRenderer.invoke('cyrano:pisteAction', piste, action),
+    loadPistes: (competitionId: string) => ipcRenderer.invoke('cyrano:loadPistes', competitionId),
+    savePistes: (competitionId: string, pistes: unknown[]) =>
+      ipcRenderer.invoke('cyrano:savePistes', competitionId, pistes),
   },
 
   // Language injected before renderer loads (avoids race with localStorage read)

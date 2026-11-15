@@ -4,18 +4,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { CyranoPanel } from './CyranoPanel';
+import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
 
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 
 describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem(
-      'bellepoule-cyrano-pistes',
-      JSON.stringify([{ piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' }])
-    );
+    useCompetitionStore.setState({ currentCompetition: { id: 'c1' } } as never);
     (window as any).electronAPI = {
       cyrano: {
+        loadPistes: vi.fn().mockResolvedValue([
+          { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
+        ]),
+        savePistes: vi.fn().mockResolvedValue(true),
         getStatus: vi.fn().mockResolvedValue({
           running: true,
           port: 50100,
@@ -50,12 +52,13 @@ describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
 describe('CyranoPanel — secours et journal (#1829)', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem(
-      'bellepoule-cyrano-pistes',
-      JSON.stringify([{ piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' }])
-    );
+    useCompetitionStore.setState({ currentCompetition: { id: 'c1' } } as never);
     (window as unknown as { electronAPI: unknown }).electronAPI = {
       cyrano: {
+        loadPistes: vi.fn().mockResolvedValue([
+          { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
+        ]),
+        savePistes: vi.fn().mockResolvedValue(true),
         getStatus: vi.fn().mockResolvedValue({
           running: true,
           port: 50100,

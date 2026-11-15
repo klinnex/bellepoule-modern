@@ -28,16 +28,21 @@ import {
   readAutoStart,
   readHost,
   readOptions,
-  readPistes,
+  clearLegacyPistes,
+  loadPistesFor,
+  readLegacyPistes,
   readPort,
+  savePistesFor,
   startCyranoFromSaved,
   writeAutoStart,
   writeHost,
   writeOptions,
-  writePistes,
   writePort,
   type CyranoOptions,
 } from './cyranoSettings';
+
+import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
+import { CYRANO_PROFILES, buildBatch, exportPistes, parsePistesImport } from './cyranoPisteTools';
 
 const POLL_MS = 5000;
 const LOG_LINES = 200;
@@ -62,13 +67,37 @@ export const CyranoPanel: React.FC = () => {
   const { t } = useTranslation();
   const [running, setRunning] = useState(false);
   const [udpPort, setUdpPort] = useState<number>(readPort);
-  const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>(readPistes);
+  // Table des pistes : en base, par compétition (#1829)
+  const competitionId = useCompetitionStore(s => s.currentCompetition?.id ?? null);
+  const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      let list = await loadPistesFor(competitionId);
+      const legacy = readLegacyPistes();
+      if (list.length === 0 && legacy.length > 0 && competitionId) {
+        // Migration unique depuis le localStorage
+        await savePistesFor(competitionId, legacy);
+        clearLegacyPistes();
+        list = legacy;
+      }
+      if (alive) setPistes(list);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [competitionId]);
   const [statuses, setStatuses] = useState<CyranoPisteStatusDTO[]>([]);
   const [options, setOptionsState] = useState<CyranoOptions>(readOptions);
   const { nameLength, natSource, international } = options;
   const [host, setHost] = useState<string>(readHost);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
   const [autoStart, setAutoStart] = useState<boolean>(readAutoStart);
+  // Outils de la table : profil constructeur, lot, import / export (#1829)
+  const [profileId, setProfileId] = useState<string>(CYRANO_PROFILES[0].id);
+  const [batchFrom, setBatchFrom] = useState<number>(1);
+  const [batchCount, setBatchCount] = useState<number>(4);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [log, setLog] = useState<CyranoFrameLogDTO[]>([]);
   const [startError, setStartError] = useState<string | null>(null);
@@ -126,7 +155,7 @@ export const CyranoPanel: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const pisteAction = async (piste: string, action: 'ack' | 'next' | 'resync') => {
+  const pisteAction = async (piste: string, action: 'ack' | 'next' | 'prev' | 'resync') => {
     await window.electronAPI?.cyrano?.pisteAction(piste, action);
     void refreshStatus();
   };
@@ -155,7 +184,7 @@ export const CyranoPanel: React.FC = () => {
     setStartError(null);
     try {
       // Réglages déjà mémorisés à chaque modification : même démarrage que l'automatique
-      const res = await startCyranoFromSaved();
+      const res = await startCyranoFromSaved(competitionId);
       if (!res.success) setStartError(res.error ?? 'start_failed');
     } catch (err) {
       setStartError(err instanceof Error ? err.message : String(err));
@@ -171,12 +200,13 @@ export const CyranoPanel: React.FC = () => {
 
   const applyPistes = async (next: CyranoPisteConfigDTO[]) => {
     setPistes(next);
-    writePistes(next);
+    void savePistesFor(competitionId, next);
     if (running && window.electronAPI?.cyrano) {
       await window.electronAPI.cyrano.setPistes(next.filter(p => p.piste && p.ip));
     }
   };
 
+  const importInputRef = useRef<HTMLInputElement>(null);
   const addRow = () => {
     void applyPistes([...pistes, { ...EMPTY_ROW }]);
   };
@@ -421,7 +451,7 @@ export const CyranoPanel: React.FC = () => {
                     {/* Actions de secours (#1829) : serveur démarré, piste déclarée */}
                     {running && st && (
                       <span className="cyrano-inline">
-                        {(['ack', 'next', 'resync'] as const).map(action => (
+                        {(['ack', 'next', 'prev', 'resync'] as const).map(action => (
                           <Button
                             key={action}
                             size="sm"
@@ -454,6 +484,86 @@ export const CyranoPanel: React.FC = () => {
           <Button size="sm" onClick={addRow}>
             <Icon icon={Plus} /> {t('rsm.cyrano_add_piste')}
           </Button>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_profile')}
+            <select value={profileId} onChange={e => setProfileId(e.target.value)}>
+              {CYRANO_PROFILES.map(pr => (
+                <option key={pr.id} value={pr.id}>
+                  {t(`rsm.cyrano_profile_${pr.id}`)} ({pr.port})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_batch_from')}
+            <input
+              type="number"
+              min={1}
+              value={batchFrom}
+              onChange={e => setBatchFrom(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            />
+          </label>
+          <label className="cyrano-option">
+            {t('rsm.cyrano_batch_count')}
+            <input
+              type="number"
+              min={1}
+              max={64}
+              value={batchCount}
+              onChange={e => setBatchCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            />
+          </label>
+          <Button
+            size="sm"
+            onClick={() => {
+              const profile = CYRANO_PROFILES.find(pr => pr.id === profileId) ?? CYRANO_PROFILES[0];
+              void applyPistes([...pistes, ...buildBatch(profile, batchFrom, batchCount, pistes)]);
+            }}
+          >
+            {t('rsm.cyrano_batch_add')}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              const blob = new Blob([exportPistes(pistes)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'cyrano-pistes.json';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            {t('rsm.cyrano_export')}
+          </Button>
+          <label className="cyrano-option">
+            <Button size="sm" onClick={() => importInputRef.current?.click()}>
+              {t('rsm.cyrano_import')}
+            </Button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={async e => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                const res = parsePistesImport(await file.text());
+                if (!res.ok) {
+                  setImportMsg(
+                    t('rsm.cyrano_import_error', { reason: t(`rsm.cyrano_import_${res.error}`) })
+                  );
+                  return;
+                }
+                setImportMsg(
+                  t('rsm.cyrano_import_done', { n: res.pistes.length, rejected: res.rejected })
+                );
+                void applyPistes(res.pistes);
+              }}
+            />
+          </label>
+          {importMsg && <span className="cyrano-import-msg">{importMsg}</span>}
         </div>
       </div>
 

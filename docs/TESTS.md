@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 10 | 155 |
-| `src/main/` | 67 | 554 |
+| `src/database/` | 11 | 158 |
+| `src/main/` | 69 | 569 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
-| `src/renderer/components/` | 96 | 482 |
+| `src/renderer/components/` | 97 | 490 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **383** | **2918** |
+| **Total** | **387** | **2944** |
 
-Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2268,6 +2268,16 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/cyranoRepo.test.ts</code> — 3 tests</summary>
+
+- **CyranoRepo (#1829)**
+  - enregistre et relit les pistes dans l’ordre
+  - remplace la liste entière sans toucher aux autres compétitions
+  - compétition absente ou identifiant vide : liste vide, pas d’écriture
+
+</details>
+
+<details>
 <summary><code>src/database/repos/eventDayRepo.test.ts</code> — 7 tests</summary>
 
 - **EventDayRepo (#1714)**
@@ -2526,7 +2536,7 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 34 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 37 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2554,6 +2564,9 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - **actions de secours depuis le poste (#1829)**
     - ACK forcé envoyé à la piste
     - NEXT du poste : mêmes garde-fous que la touche de l’appareil
+    - PREV du poste : rappel du match terminé pour correction (maître seulement)
+    - bandeau appareil : mode et liaison publiés sur l’arène
+    - PREV émis par l’appareil : rappel du match terminé, comme le bouton du poste
     - resynchronisation : match de l’arène renvoyé, alerte levée
     - piste inconnue : refus
   - **modes par piste (#1829)**
@@ -3157,6 +3170,21 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/prevMatch.test.ts</code> — 7 tests</summary>
+
+- **checkPrevEligibility**
+  - refuse quand rien n’a été terminé sur la piste
+  - accepte dans la fenêtre de correction, match suivant pas démarré
+  - accepte exactement à la limite de la fenêtre
+  - refuse après la fenêtre de correction
+  - ne coupe jamais un combat en cours
+- **restoreForCorrection**
+  - garde scores et tireurs, efface fin et durée
+  - ne modifie pas le snapshot d’origine
+
+</details>
+
+<details>
 <summary><code>src/main/remote/publicDto.test.ts</code> — 8 tests</summary>
 
 - **stripPersonalData**
@@ -3170,6 +3198,18 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/recallPrev.test.ts</code> — 5 tests</summary>
+
+- **recallPrevMatch**
+  - rend le match terminé à l’arène, scores conservés, et restaure les événements
+  - refuse sans rien modifier hors fenêtre
+  - refuse un combat en cours
+  - n’efface rien et ne rend rien si la purge DB échoue
+  - remet en tête de file un match DE non commencé
 
 </details>
 
@@ -5055,6 +5095,23 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - décoratif → tous les écrans, préréglage → piste seule
   - thème sauvegardé → son type d’écran
   - éditeur : thèmes prédéfinis aux variables complètes
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/cyranoPisteTools.test.ts</code> — 8 tests</summary>
+
+- **profils constructeur (#1829)**
+  - port 50100 en standard, 50101 en EFP1.1
+- **ajout en lot**
+  - numéros consécutifs, piste n ↔ arène n, port du profil
+  - ignore les numéros déjà présents
+  - ne dépasse jamais le maximum de pistes
+- **export / import**
+  - aller-retour sans perte
+  - accepte aussi un tableau nu
+  - écarte les lignes invalides et les doublons, et le compte est rendu
+  - refuse le JSON cassé, le mauvais format et la liste vide
 
 </details>
 

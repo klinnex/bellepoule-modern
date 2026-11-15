@@ -92,6 +92,13 @@ export interface ServerMessage {
 }
 
 // Arena management
+/** Appareil de piste Cyrano relié à l'arène (#1829) : bandeau côté arbitre */
+export interface ArenaCyranoLink {
+  piste: string;
+  mode: 'master' | 'display' | 'manual';
+  online: boolean;
+}
+
 export interface Arena {
   id: string;
   name: string;
@@ -106,6 +113,8 @@ export interface Arena {
   swapped?: boolean;
   /** Match en cours : gaucher (A) contre droitier → A rouge (#1439) */
   leftHanded?: boolean;
+  /** Appareil de piste relié à l'arène (#1829) */
+  cyrano?: ArenaCyranoLink | null;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
@@ -161,6 +170,8 @@ export interface ArenaMatch {
 export interface ArenaUpdate {
   arenaId: string;
   match: ArenaMatch | null;
+  /** Appareil de piste Cyrano relié à l'arène (#1829) */
+  cyrano?: ArenaCyranoLink | null;
   scoreA?: number;
   scoreB?: number;
   time?: number;

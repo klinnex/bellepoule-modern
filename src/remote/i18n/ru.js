@@ -52,6 +52,12 @@
   'referee.lobby': '← Лобби',
   'referee.lobby_title': 'Назад в лобби дорожек',
   'referee.referee_label': 'Судья:',
+  'referee.cyrano_bar': 'Дорожка {{piste}}: {{mode}} — {{state}}',
+  'referee.cyrano_mode_master': 'Главный',
+  'referee.cyrano_mode_display': 'Дисплей',
+  'referee.cyrano_mode_manual': 'Вручную',
+  'referee.cyrano_online': 'в сети',
+  'referee.cyrano_offline': 'не в сети',
   'referee.change': 'Сменить',
   'referee.black_card_title': 'Чёрная карточка',
   'referee.black_card_desc':

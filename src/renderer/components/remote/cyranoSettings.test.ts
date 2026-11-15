@@ -6,7 +6,6 @@ import {
   readOptions,
   writeAutoStart,
   writeHost,
-  writePistes,
   writePort,
 } from './cyranoSettings';
 
@@ -18,13 +17,14 @@ describe('réglages Cyrano (#1829)', () => {
       start: vi.fn().mockResolvedValue({ success: true, port: 50101 }),
       setPistes: vi.fn().mockResolvedValue(undefined),
       setOptions: vi.fn().mockResolvedValue(undefined),
+      loadPistes: vi.fn().mockResolvedValue([]),
     };
     (window as unknown as { electronAPI: unknown }).electronAPI = { cyrano: api };
   });
 
   it('démarrage automatique désactivé par défaut', async () => {
-    writePistes([{ piste: '1', ip: '10.0.0.1' }]);
-    expect(await autoStartCyrano()).toBe(false);
+    api.loadPistes.mockResolvedValue([{ piste: '1', ip: '10.0.0.1' }]);
+    expect(await autoStartCyrano('c1')).toBe(false);
     expect(api.start).not.toHaveBeenCalled();
   });
 
@@ -32,11 +32,12 @@ describe('réglages Cyrano (#1829)', () => {
     writeAutoStart(true);
     writePort(50101);
     writeHost('192.168.1.10');
-    writePistes([
+    api.loadPistes.mockResolvedValue([
       { piste: '1', ip: '10.0.0.1' },
       { piste: '', ip: '10.0.0.2' },
     ]);
-    expect(await autoStartCyrano()).toBe(true);
+    expect(await autoStartCyrano('c1')).toBe(true);
+    expect(api.loadPistes).toHaveBeenCalledWith('c1');
     expect(api.start).toHaveBeenCalledWith({ port: 50101, host: '192.168.1.10' });
     expect(api.setPistes).toHaveBeenCalledWith([{ piste: '1', ip: '10.0.0.1' }]);
     expect(api.setOptions).toHaveBeenCalledWith(readOptions());
@@ -44,7 +45,7 @@ describe('réglages Cyrano (#1829)', () => {
 
   it('démarrage automatique sans piste : rien', async () => {
     writeAutoStart(true);
-    expect(await autoStartCyrano()).toBe(false);
+    expect(await autoStartCyrano('c1')).toBe(false);
   });
 
   it('journal exportable : une trame par ligne', () => {
