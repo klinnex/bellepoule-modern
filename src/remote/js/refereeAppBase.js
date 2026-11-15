@@ -607,9 +607,9 @@ class RefereeAppBase {
   setupTimerInteractions() {
     const timerDisplay = document.getElementById('timer-display');
 
-    // Appui long (800 ms) : reset. Géré en pointer events : un appui annulé par le
+    // Appui long (3 s) : reset. Géré en pointer events uniquement : un appui annulé par le
     // navigateur (sélection de texte, menu contextuel, glissement) ne reset jamais (#1808).
-    const LONG_PRESS_MS = 800;
+    const LONG_PRESS_MS = 3000;
     let longPressFired = false;
     const cancelPress = () => {
       if (this.longPressTimer) {
@@ -632,6 +632,8 @@ class RefereeAppBase {
     timerDisplay.addEventListener('pointercancel', cancelPress);
     timerDisplay.addEventListener('pointerleave', cancelPress);
     timerDisplay.addEventListener('contextmenu', e => e.preventDefault());
+    // Pas de listeners touchstart/touchend : un second timer de reset (800 ms) se lançait
+    // en parallèle du pointer et provoquait des resets sur simple tap (#1808).
 
     // Tap simple : démarre le match si pas encore commencé, sinon play/pause
     timerDisplay.addEventListener('click', () => {
@@ -640,21 +642,6 @@ class RefereeAppBase {
         return;
       }
       this.handleStartPauseClick();
-    });
-
-    // Touch events pour mobile
-    timerDisplay.addEventListener('touchstart', e => {
-      this.longPressTimer = setTimeout(() => {
-        this.resetTimer();
-        this.longPressTimer = null;
-      }, 800);
-    });
-
-    timerDisplay.addEventListener('touchend', e => {
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
     });
   }
 
