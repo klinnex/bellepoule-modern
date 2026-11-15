@@ -12,19 +12,40 @@ import { useToast } from '../Toast';
 import { Button } from '../common/Button';
 import { Battery, Plug } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import { ipcErrorText } from '../../services/ipcError';
+import {
+  assignUrl,
+  buildAssignRoles,
+  defaultAssign,
+  isAssignable,
+  type AssignRole,
+  type ScreenAssignment,
+} from './screenAssign';
 
 interface ConnectedScreensPanelProps {
   competitionId: string;
   isRemoteActive: boolean;
+  arenaCount: number;
 }
 
+const SELECT_STYLE: React.CSSProperties = {
+  fontSize: '0.75rem',
+  padding: '0.2rem 0.4rem',
+  borderRadius: '0.3rem',
+  border: '1px solid #475569',
+  background: '#0f172a',
+  color: '#e2e8f0',
+};
+
 export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React.memo(
-  ({ competitionId, isRemoteActive }) => {
+  ({ competitionId, isRemoteActive, arenaCount }) => {
     const { t } = useTranslation();
     const { showToast } = useToast();
     // Écrans connectés
     const [connectedClients, setConnectedClients] = useState<ConnectedClient[]>([]);
     const [renameValues, setRenameValues] = useState<Record<string, string>>({});
+    // Affectation choisie localement (rôle + arène) par écran, en attendant son ré-enregistrement
+    const [assignments, setAssignments] = useState<Record<string, ScreenAssignment>>({});
     // kioskModal : socketId de l'écran pour lequel on configure le mode kiosk
     const [kioskModal, setKioskModal] = useState<string | null>(null);
     const [kioskModalConfig, setKioskModalConfig] = useState<KioskScreenConfig>({
@@ -49,6 +70,31 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
         setConnectedClients(clients);
       });
     }, [isRemoteActive, competitionId]);
+
+    // Changement de type à distance : navigation de l'écran vers la vue choisie (même origine)
+    const applyAssign = async (client: ConnectedClient, role: AssignRole, arena: number) => {
+      const previous = assignments[client.socketId];
+      setAssignments(prev => ({ ...prev, [client.socketId]: { role, arena } }));
+      const res = await window.electronAPI.remote.sendClientCommand(
+        competitionId,
+        client.socketId,
+        {
+          type: 'navigate',
+          url: assignUrl('', role, arena),
+        }
+      );
+      if (!res?.success) {
+        setAssignments(prev => {
+          const next = { ...prev };
+          if (previous) next[client.socketId] = previous;
+          else delete next[client.socketId];
+          return next;
+        });
+        showToast(ipcErrorText(t, res, t('rsm.error')), 'error');
+      }
+    };
+
+    const assignRoles = buildAssignRoles(t);
 
     return (
       <>
@@ -76,6 +122,44 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                   </span>
                   <span className="is-1217ec">{clientLabel}</span>
                   <span className="is-d05aef">{client.ip}</span>
+                  {isAssignable(client) &&
+                    (() => {
+                      const a = assignments[client.socketId] ?? defaultAssign(client);
+                      return (
+                        <>
+                          <select
+                            value={a.role}
+                            onChange={e =>
+                              applyAssign(client, e.target.value as AssignRole, a.arena)
+                            }
+                            style={SELECT_STYLE}
+                            title={t('xiaomi.tablet_role')}
+                            aria-label={t('xiaomi.tablet_role')}
+                          >
+                            {assignRoles.map(r => (
+                              <option key={r.value} value={r.value}>
+                                {r.label}
+                              </option>
+                            ))}
+                          </select>
+                          {a.role !== 'kiosk' && (
+                            <select
+                              value={a.arena}
+                              onChange={e => applyAssign(client, a.role, Number(e.target.value))}
+                              style={SELECT_STYLE}
+                              title={t('xiaomi.arena')}
+                              aria-label={t('xiaomi.arena')}
+                            >
+                              {Array.from({ length: arenaCount }, (_, i) => (
+                                <option key={i + 1} value={i + 1}>
+                                  {t('xiaomi.arena')} {i + 1}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </>
+                      );
+                    })()}
                   {client.battery && (
                     <span
                       title={client.battery.charging ? t('rsm.charging') : t('rsm.on_battery')}

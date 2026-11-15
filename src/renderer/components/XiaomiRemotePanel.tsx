@@ -11,6 +11,13 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { ConnectedClient, TVCommand, KioskScreenConfig } from '@shared/types/preload';
 import { Button } from './common/Button';
 import { LobbyQrCode } from './remote/LobbyQrCode';
+import {
+  assignUrl,
+  buildAssignRoles,
+  defaultAssign,
+  isAssignable,
+  type AssignRole,
+} from './remote/screenAssign';
 
 interface XiaomiRemotePanelProps {
   competitionId: string;
@@ -41,36 +48,6 @@ const STATUS_COLORS: Record<string, string> = {
   warn: '#f59e0b',
   offline: '#6b7280',
 };
-
-type AssignRole = 'affichage' | 'arbitre' | 'kiosk';
-
-function buildAssignRoles(
-  t: (key: string, params?: { [key: string]: string | number }) => string
-): { value: AssignRole; label: string }[] {
-  return [
-    { value: 'affichage', label: t('remote_score.screen_type_display') },
-    { value: 'arbitre', label: t('referee.arbitre') },
-    { value: 'kiosk', label: t('xiaomi.client_type_kiosk') },
-  ];
-}
-
-function arenaNum(client: ConnectedClient): number {
-  if (!client.arenaId) return 1;
-  return parseInt(client.arenaId.replace('arena', ''), 10) || 1;
-}
-
-function defaultAssign(client: ConnectedClient): { role: AssignRole; arena: number } {
-  if (client.clientType === 'referee') return { role: 'arbitre', arena: arenaNum(client) };
-  if (client.clientType === 'kiosk') return { role: 'kiosk', arena: arenaNum(client) };
-  if (client.clientType === 'arena') return { role: 'affichage', arena: arenaNum(client) };
-  return { role: 'affichage', arena: 1 }; // lobby et autres
-}
-
-function assignUrl(base: string, role: AssignRole, arena: number): string {
-  if (role === 'kiosk') return `${base}/kiosk`;
-  if (role === 'arbitre') return `${base}/arene${arena}/arbitre`;
-  return `${base}/arene${arena}`;
-}
 
 function clientDisplayUrl(base: string, client: ConnectedClient): string {
   if (client.clientType === 'referee') {
@@ -279,11 +256,6 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
   const canSwap = swapSet.size === 2;
   const isArenaOrLobby = (c: ConnectedClient) =>
     c.clientType === 'arena' || c.clientType === 'lobby';
-  const isAssignable = (c: ConnectedClient) =>
-    c.clientType === 'arena' ||
-    c.clientType === 'lobby' ||
-    c.clientType === 'referee' ||
-    c.clientType === 'kiosk';
 
   return (
     <div
