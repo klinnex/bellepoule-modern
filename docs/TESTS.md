@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 66 | 542 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
-| `src/renderer/components/` | 95 | 478 |
+| `src/renderer/components/` | 96 | 482 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **381** | **2896** |
+| **Total** | **382** | **2900** |
 
-Unitaires : 371 fichiers, 2857 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 372 fichiers, 2861 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5065,6 +5065,17 @@ Unitaires : 371 fichiers, 2857 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - valeur inconnue : retombe sur Basique
 - **RemoteViewModeTabs**
   - affiche deux onglets et signale le changement
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/settingsModal.helpers.test.ts</code> — 4 tests</summary>
+
+- **readInputModes (saisie simplifiée / enchaînée exclusives)**
+  - défaut : enchaînée active, simplifiée annulée
+  - simplifiée active → enchaînée désactivée
+  - ne retourne jamais les deux modes actifs, même si les deux clés sont à true
+  - exactement un mode actif dans tous les cas
 
 </details>
 
