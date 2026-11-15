@@ -63,6 +63,37 @@ export function cyranoCards(f: CyranoFencer): string[] {
   return cards;
 }
 
+/**
+ * Cartons P d'un tireur (EFP1.1, champ 12) au format des arènes (`p-red`, `p-black`), #1829.
+ * 0 aucun ; 1 jaune P, sans effet sur le score, non transmis ; 2 rouge P ; 3 deux rouges P ;
+ * 4 noir P ; 5 deux noirs P. Le rouge P touche le score, le noir P fait perdre le match.
+ */
+export function cyranoPCards(f: CyranoFencer): string[] {
+  switch (f.pCard) {
+    case 2:
+      return ['p-red'];
+    case 3:
+      return ['p-red', 'p-red'];
+    case 4:
+      return ['p-black'];
+    case 5:
+      return ['p-black', 'p-black'];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Valeur du champ 12 du DISP pour les cartons P d'un tireur. Règle 2026-2027 : 0, 2 ou 4 ;
+ * le noir P prime sur le rouge P.
+ */
+export function pCardValue(cards: readonly string[] | undefined): number {
+  if (!cards) return 0;
+  if (cards.includes('p-black')) return 4;
+  if (cards.includes('p-red')) return 2;
+  return 0;
+}
+
 /** Chrono Cyrano (`m:ss` ou `m:ss.cc` sous 10 s) → secondes ; null si absent ou illisible. */
 export function parseCyranoStopwatch(value: string | undefined): number | null {
   const m = /^(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?$/.exec(value?.trim() ?? '');
