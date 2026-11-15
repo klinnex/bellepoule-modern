@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 65 | 526 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
-| `src/renderer/components/` | 94 | 470 |
+| `src/renderer/components/` | 94 | 473 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **379** | **2872** |
+| **Total** | **379** | **2875** |
 
-Unitaires : 369 fichiers, 2833 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 369 fichiers, 2836 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5004,7 +5004,7 @@ Unitaires : 369 fichiers, 2833 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 7 tests</summary>
 
 - **OrgNotePanel**
   - publie puis masque la note
@@ -5012,6 +5012,9 @@ Unitaires : 369 fichiers, 2833 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - ne requête rien hors session distante
   - ignore la liste poussée par le serveur d'une autre compétition (#1292)
   - liste les écrans, renomme et envoie le mode kiosk
+  - change le type de l'écran à distance (affichage / arbitre / arène choisie)
+  - pas de sélecteur d'arène pour un kiosque
+  - annule le changement local si la commande échoue
 
 </details>
 
