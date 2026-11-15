@@ -52,6 +52,8 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Voltar ao lobby das pistas',
   'referee.referee_label': 'Árbitro:',
+  'referee.cyrano_master_lock': 'Entrada bloqueada: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
+  'arena.resting_label': 'Descanso',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Mestre',
   'referee.cyrano_mode_display': 'Visor',

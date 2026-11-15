@@ -434,6 +434,8 @@ export class PisteHub {
         action: running ? 'update_timer' : 'pause_timer',
         time,
         timerStatus: running ? 'running' : 'paused',
+        // État P : minute de repos (#1829)
+        resting: msg.state === 'P',
       });
     }
   }

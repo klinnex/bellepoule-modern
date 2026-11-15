@@ -52,6 +52,8 @@
   'referee.lobby': '← Lobi',
   'referee.lobby_title': 'Distreiñ da lobi ar pistoù',
   'referee.referee_label': 'Arbitr:',
+  'referee.cyrano_master_lock': "Enrollet: an arc'hwel a zo e mod mestr. Reizhañ hepken dre lemel.",
+  'arena.resting_label': 'Repos',
   'referee.cyrano_bar': 'Pistenn {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Mestr',
   'referee.cyrano_mode_display': 'Diskwel',

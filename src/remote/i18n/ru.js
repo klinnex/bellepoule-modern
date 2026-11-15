@@ -52,6 +52,8 @@
   'referee.lobby': '← Лобби',
   'referee.lobby_title': 'Назад в лобби дорожек',
   'referee.referee_label': 'Судья:',
+  'referee.cyrano_master_lock': 'Ввод заблокирован: устройство дорожки в режиме главного. Исправляйте только удалением.',
+  'arena.resting_label': 'Отдых',
   'referee.cyrano_bar': 'Дорожка {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Главный',
   'referee.cyrano_mode_display': 'Дисплей',

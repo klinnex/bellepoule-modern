@@ -52,6 +52,8 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Zurück zur Bahn-Lobby',
   'referee.referee_label': 'Kampfrichter:',
+  'referee.cyrano_master_lock': 'Eingabe gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
+  'arena.resting_label': 'Pause',
   'referee.cyrano_bar': 'Bahn {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Hauptgerät',
   'referee.cyrano_mode_display': 'Anzeige',

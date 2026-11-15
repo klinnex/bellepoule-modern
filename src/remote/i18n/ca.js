@@ -52,6 +52,8 @@
   'referee.lobby': '← Vestíbul',
   'referee.lobby_title': 'Tornar al vestíbul de pistes',
   'referee.referee_label': 'Àrbitre:',
+  'referee.cyrano_master_lock': "Entrada bloquejada: l'aparell de pista és en mode mestre. Corregiu només traient.",
+  'arena.resting_label': 'Descans',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Mestre',
   'referee.cyrano_mode_display': 'Visualitzador',

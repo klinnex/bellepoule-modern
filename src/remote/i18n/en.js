@@ -52,6 +52,8 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Back to the strip lobby',
   'referee.referee_label': 'Referee:',
+  'referee.cyrano_master_lock': 'Input locked: the track device is in master mode. Correct by removal only.',
+  'arena.resting_label': 'Rest',
   'referee.cyrano_bar': 'Track {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Master',
   'referee.cyrano_mode_display': 'Display',

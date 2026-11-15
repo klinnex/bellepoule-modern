@@ -1053,6 +1053,14 @@ class RefereeApp extends RefereeAppBase {
   }
 
   handleArenaUpdate(data) {
+    // Repos de l'appareil de piste (#1829) : l'état de repos suit l'appareil
+    if (data.resting !== undefined) {
+      this.isResting = data.resting === true;
+      this.updateControlButtons();
+    }
+    if (data.cyrano !== undefined) {
+      this.cyranoMasterLock = !!data.cyrano && data.cyrano.mode === 'master' && data.cyrano.online;
+    }
     if (data.screenThemes?.referee) {
       applyScreenTheme(data.screenThemes.referee.variables);
     }

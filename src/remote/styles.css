@@ -513,3 +513,18 @@ button:disabled {
 .cyrano-bar.cyrano-bar-warn {
   border-left: 4px solid var(--red-500);
 }
+
+/* Repos de l'appareil de piste sur l'écran d'arène */
+.arena-resting-label {
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.3rem 1rem;
+  border-radius: 1rem;
+  background: var(--color-warning);
+  color: var(--color-black);
+  font-weight: 700;
+  z-index: 50;
+}
+.arena-resting-label.hidden { display: none; }
