@@ -696,4 +696,20 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 24,
+    description:
+      'Table cyrano_pistes : table des pistes des appareils Cyrano, par compétition (#1829)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS cyrano_pistes (
+          competition_id TEXT NOT NULL,
+          piste TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          config TEXT NOT NULL,
+          PRIMARY KEY (competition_id, piste)
+        )
+      `);
+    },
+  },
 ];

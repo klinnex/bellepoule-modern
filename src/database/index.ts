@@ -19,6 +19,7 @@ import { RefereeRepo } from './repos/refereeRepo';
 import { EventDayRepo } from './repos/eventDayRepo';
 import { TeamRepo } from './repos/teamRepo';
 import { OrganisationRepo } from './repos/organisationRepo';
+import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -53,6 +54,7 @@ export class DatabaseManager {
   private readonly referees = new RefereeRepo(this.sql);
   private readonly teams = new TeamRepo(this.sql);
   private readonly organisation = new OrganisationRepo(this.sql);
+  private readonly cyrano = new CyranoRepo(this.sql);
   /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
   public readonly eventDays = new EventDayRepo(this.sql);
 
@@ -664,6 +666,14 @@ export class DatabaseManager {
     ...args: Parameters<RefereeRepo['getRefereeStats']>
   ): ReturnType<RefereeRepo['getRefereeStats']> {
     return this.referees.getRefereeStats(...args);
+  }
+
+  public getCyranoPistes(competitionId: string): CyranoPisteRow[] {
+    return this.cyrano.getCyranoPistes(competitionId);
+  }
+
+  public replaceCyranoPistes(competitionId: string, pistes: CyranoPisteRow[]): void {
+    return this.cyrano.replaceCyranoPistes(competitionId, pistes);
   }
 
   public logRemoteEvent(

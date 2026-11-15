@@ -1367,6 +1367,9 @@ export interface CyranoAPI {
   }) => Promise<void>;
   /** Actions de secours par piste (#1829) */
   pisteAction: (piste: string, action: 'ack' | 'next' | 'prev' | 'resync') => Promise<boolean>;
+  /** Table des pistes enregistrée en base, par compétition (#1829) */
+  loadPistes: (competitionId: string) => Promise<CyranoPisteConfigDTO[]>;
+  savePistes: (competitionId: string, pistes: CyranoPisteConfigDTO[]) => Promise<boolean>;
 }
 
 /** Trame du journal Cyrano (#1829) */
