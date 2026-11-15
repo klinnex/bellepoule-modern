@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
-| `src/main/` | 69 | 569 |
+| `src/main/` | 69 | 575 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 97 | 490 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **387** | **2944** |
+| **Total** | **387** | **2950** |
 
-Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 377 fichiers, 2911 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2536,7 +2536,7 @@ Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 37 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 42 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2561,6 +2561,12 @@ Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette
   - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
   - sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet
+  - **PREV — touche PREVIOUS de l’appareil (#1829)**
+    - après ACK : match rappelé, DISP avec scores et cartons, correction réenregistrée
+    - après NEXT : le match suivant non commencé cède la place au match rappelé
+    - combat en cours : refusé, DISP du match courant renvoyé
+    - rien à rappeler : refusé sans changer l’arène
+    - afficheur : PREV sans effet
   - **actions de secours depuis le poste (#1829)**
     - ACK forcé envoyé à la piste
     - NEXT du poste : mêmes garde-fous que la touche de l’appareil
@@ -2596,7 +2602,7 @@ Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 9 tests</summary>
+<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 10 tests</summary>
 
 - **Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)**
   - expose toutes les commandes de la télécommande
@@ -2608,6 +2614,7 @@ Unitaires : 377 fichiers, 2905 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bloc PC : abandon, expulsion, réserve, médical dans la trame INFO
   - priorité tirée au sort, P RESET, arme
   - VALIDATE → E ; NEXT bloqué tant que le match n’est pas acquitté ; RAZ efface tout
+  - DISP d’un match repris (PREV) : scores et cartons installés
 
 </details>
 
