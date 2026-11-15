@@ -24,8 +24,7 @@ import {
   AUDIT_LOG_KEY,
   TTS_CONFIG_KEY,
   QUICK_MOUSE_KEY,
-  SIMPLIFIED_INPUT_KEY,
-  CHAINED_INPUT_KEY,
+  readInputModes,
   TtsConfig,
   type SettingsModalProps,
 } from '../../components/settingsModal.helpers';
@@ -62,11 +61,11 @@ export function useSettingsPreferences(ctx: Ctx) {
   );
 
   const [simplifiedInputMode, setSimplifiedInputMode] = useState<boolean>(
-    () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
+    () => readInputModes(localStorage).simplified
   );
 
   const [chainedInputMode, setChainedInputMode] = useState<boolean>(
-    () => localStorage.getItem(CHAINED_INPUT_KEY) === 'true'
+    () => readInputModes(localStorage).chained
   );
 
   const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
