@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
-| `src/main/` | 69 | 579 |
+| `src/main/` | 71 | 593 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 97 | 490 |
+| `src/renderer/components/` | 97 | 491 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 375 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **387** | **2956** |
+| **Total** | **389** | **2971** |
 
-Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 379 fichiers, 2932 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2528,6 +2528,18 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/e2e.test.ts</code> — 5 tests</summary>
+
+- **Cyrano bout en bout : UDP réel, appareil simulé (#1829)**
+  - DISP reçu par UDP : tireurs, n° de poule et de match
+  - BEGIN, touches et cartons : l’arène suit l’appareil
+  - VALIDATE → ACK par UDP → match terminé
+  - PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés
+  - égalité sans priorité : NAK, match non terminé
+
+</details>
+
+<details>
 <summary><code>src/main/cyrano/matchCoords.test.ts</code> — 4 tests</summary>
 
 - **resolveCyranoCoords (#1720)**
@@ -2539,7 +2551,7 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 44 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 45 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2576,6 +2588,7 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - ACK forcé envoyé à la piste
     - NEXT du poste : mêmes garde-fous que la touche de l’appareil
     - PREV du poste : rappel du match terminé pour correction (maître seulement)
+    - état P de l’appareil (minute de repos) : repos publié sur l’arène, levé à la reprise (#1829)
     - bandeau appareil : mode et liaison publiés sur l’arène
     - PREV émis par l’appareil : rappel du match terminé, comme le bouton du poste
     - resynchronisation : match de l’arène renvoyé, alerte levée
@@ -3257,12 +3270,27 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 8 tests</summary>
 
 - **POST /api/register**
   - refuse un champ texte de plus de 200 caractères sans le traiter
   - retire chevrons et caractères de contrôle, garde apostrophes et &
   - ignore les champs non textuels sans planter
+- **pointage autonome /api/competitions/:id/self-checkin (#1858)**
+  - sert la page /competition/:id/checkin
+  - licence (espaces, tirets, casse ignorés) + date de naissance → pointé présent
+  - date fausse : refus générique et échec compté
+  - statut sportif verrouillé, compétition inactive, saisie invalide
+  - déjà présent : succès sans réécriture
+
+</details>
+
+<details>
+<summary><code>src/main/remote/routes/resultsRoutes.test.ts</code> — 2 tests</summary>
+
+- **publicTableauRounds (#1858)**
+  - finale en premier, exempts exclus, score et vainqueur exposés
+  - sans tableau : liste vide
 
 </details>
 
@@ -3581,7 +3609,7 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 12 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
@@ -3590,6 +3618,7 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - https oui, http seulement réseau local, autres schémas non
 - **isPermissionAllowed**
   - caméra depuis l’app uniquement, sans micro
+  - écriture presse-papier depuis l’app uniquement, jamais la lecture (#1858)
 - **configuration Electron (#1148)**
   - fenêtre principale en sandbox avec garde-fous
   - fuses : RunAsNode off, asar seul
@@ -4479,13 +4508,14 @@ Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/QRCodeShare.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/QRCodeShare.test.tsx</code> — 5 tests</summary>
 
 - **QRCodeShare**
   - affiche le titre du mode résultats et les onglets
   - affiche un message si le serveur distant n’est pas démarré
   - bascule vers l’onglet pointage
-  - le bouton Fermer déclenche onClose
+  - la croix en haut à droite déclenche onClose, plus de bouton Fermer en pied (#1858)
+  - propose l’impression du QR Code (#1858)
 
 </details>
 
