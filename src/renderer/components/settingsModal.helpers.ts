@@ -201,8 +201,21 @@ export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
 
 export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
 
-/** Saisie enchaînée : après chaque score, la modale de la case suivante s'ouvre (désactivée par défaut) */
+/** Saisie enchaînée : après chaque score, la modale de la case suivante s'ouvre (activée par défaut) */
 export const CHAINED_INPUT_KEY = 'bellepoule-chained-input-mode';
+
+/**
+ * Saisie des poules : saisie simplifiée OU saisie enchaînée, jamais les deux.
+ * Défaut : enchaînée activée, simplifiée annulée. Si la simplifiée est activée (clé stockée),
+ * l'enchaînée est désactivée ; sinon l'enchaînée est active.
+ */
+export function readInputModes(storage: Pick<Storage, 'getItem'>): {
+  simplified: boolean;
+  chained: boolean;
+} {
+  const simplified = storage.getItem(SIMPLIFIED_INPUT_KEY) === 'true';
+  return { simplified, chained: !simplified };
+}
 
 export interface TtsConfig {
   voiceName: string | null;

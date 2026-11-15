@@ -15,6 +15,7 @@ import { usePdfTemplateStore } from '../../../features/pdfTemplates/hooks/usePdf
 import { useHistory } from '../useHistory';
 import type { PoolViewProps, ViewMode } from '../../components/pool/poolViewTypes';
 import { useTranslation } from '../useTranslation';
+import { readInputModes } from '../../components/settingsModal.helpers';
 
 type Ctx = PoolViewProps;
 
@@ -147,8 +148,8 @@ export function usePoolViewState(ctx: Ctx) {
   const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
-  const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
-  const chainedInputMode = localStorage.getItem('bellepoule-chained-input-mode') === 'true';
+  const { simplified: simplifiedInputMode, chained: chainedInputMode } =
+    readInputModes(localStorage);
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 

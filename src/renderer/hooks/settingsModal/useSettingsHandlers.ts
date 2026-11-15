@@ -38,6 +38,7 @@ import {
   QUICK_MOUSE_KEY,
   SIMPLIFIED_INPUT_KEY,
   CHAINED_INPUT_KEY,
+  readInputModes,
   type SettingsModalProps,
 } from '../../components/settingsModal.helpers';
 import { useSettingsPreferences } from './useSettingsPreferences';
@@ -266,14 +267,19 @@ export function useSettingsHandlers(ctx: Ctx) {
     saveUiDensity(density);
   };
 
+  // Saisie simplifiée et enchaînée s'excluent : activer l'une désactive l'autre
   const handleSimplifiedInputModeChange = (enabled: boolean) => {
     setSimplifiedInputMode(enabled);
+    setChainedInputMode(!enabled);
     localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
+    localStorage.setItem(CHAINED_INPUT_KEY, String(!enabled));
   };
 
   const handleChainedInputModeChange = (enabled: boolean) => {
     setChainedInputMode(enabled);
+    setSimplifiedInputMode(!enabled);
     localStorage.setItem(CHAINED_INPUT_KEY, String(enabled));
+    localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(!enabled));
   };
 
   // Export / import JSON des paramètres (logos inclus)
@@ -313,8 +319,9 @@ export function useSettingsHandlers(ctx: Ctx) {
         handleWebhookUrlChange(values['bellepoule-webhook-url']);
       setAuditLogEnabled(localStorage.getItem(AUDIT_LOG_KEY) !== 'false');
       setQuickMouseScoring(localStorage.getItem(QUICK_MOUSE_KEY) === 'true');
-      setSimplifiedInputMode(localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true');
-      setChainedInputMode(localStorage.getItem(CHAINED_INPUT_KEY) === 'true');
+      const inputModes = readInputModes(localStorage);
+      setSimplifiedInputMode(inputModes.simplified);
+      setChainedInputMode(inputModes.chained);
       setConfettiDisabled(isConfettiDisabled());
       handleUiScaleChange(loadUiScale());
       handleUiDensityChange(loadUiDensity());
