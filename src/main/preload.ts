@@ -199,6 +199,7 @@ const electronApi = {
     startSession: (strips: number, weapon: string, customRules?: any) =>
       ipcRenderer.invoke('training:startSession', strips, weapon, customRules),
     stopSession: () => ipcRenderer.invoke('training:stopSession'),
+    setTheme: (theme: string) => ipcRenderer.invoke('training:setTheme', theme),
     getHistory: () => ipcRenderer.invoke('training:getHistory'),
     getSession: () => ipcRenderer.invoke('training:getSession'),
     getArenas: () => ipcRenderer.invoke('training:getArenas'),

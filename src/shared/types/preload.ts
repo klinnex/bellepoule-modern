@@ -1267,6 +1267,9 @@ export interface TrainingAPI {
     customRules?: TrainingCustomRules
   ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
+  setTheme: (
+    theme: 'dark' | 'light' | 'neon' | 'unicorn'
+  ) => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
   getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
   getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;

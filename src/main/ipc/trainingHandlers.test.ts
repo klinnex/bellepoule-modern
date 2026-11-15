@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 
 const handlers = new Map<string, (...args: any[]) => any>();
 const stopSpy = vi.fn();
+const updateThemeSpy = vi.fn();
 
 vi.mock('electron', () => ({
   app: { getPath: () => '/tmp' },
@@ -15,6 +16,7 @@ vi.mock('../remoteScoreServer', () => ({
     setTtsConfig = vi.fn();
     getServerUrl = () => 'http://127.0.0.1:8066';
     getLocalIPAddress = () => '127.0.0.1';
+    updateTheme = updateThemeSpy;
   },
 }));
 vi.mock('../certManager', () => ({ ensureCert: vi.fn() }));
@@ -34,6 +36,30 @@ function fakeWindow() {
   win.isDestroyed = () => false;
   return win;
 }
+
+describe('training:setTheme', () => {
+  beforeEach(async () => {
+    handlers.clear();
+    remoteServers.clear();
+    usedPorts.clear();
+    updateThemeSpy.mockClear();
+    registerTrainingHandlers({ db: {} as never, getMainWindow: () => fakeWindow() as never });
+    await handlers.get('training:startServer')!({}, 8066, '127.0.0.1');
+  });
+
+  it('applique un thème intégré au serveur d’entraînement', async () => {
+    expect(await handlers.get('training:setTheme')!({}, 'neon')).toEqual({ success: true });
+    expect(updateThemeSpy).toHaveBeenCalledWith('neon');
+  });
+
+  it('refuse un thème inconnu ou personnalisé', async () => {
+    expect(await handlers.get('training:setTheme')!({}, 'custom')).toEqual({
+      success: false,
+      error: 'invalid_theme',
+    });
+    expect(updateThemeSpy).not.toHaveBeenCalled();
+  });
+});
 
 describe('registerTrainingHandlers : arrêt du serveur d’entraînement / démo', () => {
   let win: ReturnType<typeof fakeWindow>;
