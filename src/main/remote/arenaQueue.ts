@@ -7,7 +7,6 @@ import { ArenaMatch } from '../../shared/types/remote';
 import { Match, MatchStatus, type Fencer } from '../../shared/types';
 import type { RendererMatch, SessionMatch } from './types';
 import * as slots from './arenaSlots';
-import { checkPrevEligibility, restoreForCorrection } from './prevMatch';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 
@@ -16,13 +15,7 @@ type S = RemoteScoreServer;
 /** État et services du serveur utilisés par ce module (accesseurs : valeurs toujours à jour). */
 export interface ArenaQueueContext {
   readonly applySmartMatchOrder: S['applySmartMatchOrder'];
-  readonly arenaCards: S['arenaCards'];
   readonly arenaCount: S['arenaCount'];
-  readonly arenaEventTimes: S['arenaEventTimes'];
-  readonly arenaExits: S['arenaExits'];
-  readonly arenaLastFinished: S['arenaLastFinished'];
-  readonly arenaTouches: S['arenaTouches'];
-  readonly resolveDbMatchId: S['resolveDbMatchId'];
   readonly arenaHomePoolId: S['arenaHomePoolId'];
   readonly arenaMatchQueue: S['arenaMatchQueue'];
   readonly arenaNextMatchIndex: S['arenaNextMatchIndex'];
@@ -47,57 +40,6 @@ export interface ArenaQueueContext {
   readonly sessionMatchScores: S['sessionMatchScores'];
   sessionMatches: S['sessionMatches'];
   readonly updateArena: S['updateArena'];
-}
-
-/**
- * PREV (#1829) : rappelle le dernier match terminé de la piste pour correction, dans la fenêtre
- * bornée de `prevMatch.ts`. Le match en attente (non démarré) passe derrière : pool → relu par la
- * file normale, DE → remis en tête de file. Renvoie false si le rappel est refusé.
- */
-export function recallPrevMatch(ctx: ArenaQueueContext, arenaId: string): boolean {
-  const arena = ctx.arenas.get(arenaId);
-  if (!arena || !ctx.session) return false;
-  const snapshot = ctx.arenaLastFinished.get(arenaId);
-  const verdict = checkPrevEligibility(snapshot, arena.currentMatch, Date.now());
-  if (!verdict.ok || !snapshot) {
-    logger.info(
-      LogCategory.NETWORK,
-      `[RemoteScoreServer] PREV refusé sur arène ${arenaId} : ${verdict.ok ? 'aucun' : verdict.reason}`
-    );
-    return false;
-  }
-
-  const restored = restoreForCorrection(snapshot);
-  // Purge des lignes DB du match : le « fin de match » suivant les réécrit (sinon doublons)
-  if (!ctx.isTrainingMode) {
-    try {
-      const dbId = ctx.resolveDbMatchId(restored);
-      if (dbId) ctx.db.clearArenaEvents(dbId);
-    } catch (e) {
-      logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] PREV : purge DB échouée', e);
-      return false;
-    }
-  }
-
-  const pending = arena.currentMatch;
-  if (pending && pending.status !== 'finished' && pending.isTableau) {
-    ctx.arenaMatchQueue.set(arenaId, [pending, ...(ctx.arenaMatchQueue.get(arenaId) || [])]);
-  }
-
-  const ev = snapshot.events;
-  ctx.arenaCards.set(arenaId, ev.cards ?? { cardsA: [], cardsB: [] });
-  ctx.arenaTouches.set(arenaId, ev.touches ?? { touchesA: [], touchesB: [] });
-  ctx.arenaExits.set(arenaId, [...ev.exits]);
-  if (ev.times) ctx.arenaEventTimes.set(arenaId, ev.times);
-  else ctx.arenaEventTimes.delete(arenaId);
-  ctx.arenaLastFinished.delete(arenaId);
-
-  ctx.assignMatchToArena(arenaId, restored);
-  logger.info(
-    LogCategory.NETWORK,
-    `[RemoteScoreServer] PREV : match ${restored.id} rendu à l'arène ${arenaId} pour correction`
-  );
-  return true;
 }
 
 export function peekNextMatch(ctx: ArenaQueueContext, arenaId: string): ArenaMatch | null {

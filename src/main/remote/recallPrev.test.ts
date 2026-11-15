@@ -2,7 +2,7 @@
  * Rappel PREV (recallPrevMatch, #1829) : état de l'arène, base et file après un rappel
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { recallPrevMatch, type ArenaQueueContext } from './arenaQueue';
+import { recallPrevMatch, rememberLastFinished, type MatchFinishContext } from './matchFinish';
 import { PREV_WINDOW_MS, type LastFinishedSnapshot } from './prevMatch';
 import type { ArenaMatch } from '../../shared/types/remote';
 
@@ -39,8 +39,6 @@ function makeCtx(opts: {
   dbThrows?: boolean;
 }) {
   const arena = { id: 'a1', currentMatch: opts.current, status: 'ready' };
-  const arenaLastFinished = new Map<string, LastFinishedSnapshot>();
-  if (opts.snapshot) arenaLastFinished.set('a1', opts.snapshot);
   const arenaMatchQueue = new Map<string, ArenaMatch[]>([['a1', opts.queue ?? []]]);
   const arenaCards = new Map();
   const arenaTouches = new Map();
@@ -58,7 +56,6 @@ function makeCtx(opts: {
     arenas: new Map([['a1', arena]]),
     session: { competitionId: 'c' },
     isTrainingMode: false,
-    arenaLastFinished,
     arenaMatchQueue,
     arenaCards,
     arenaTouches,
@@ -67,7 +64,8 @@ function makeCtx(opts: {
     db,
     resolveDbMatchId: (m: ArenaMatch) => m.id,
     assignMatchToArena,
-  } as unknown as ArenaQueueContext;
+  } as unknown as MatchFinishContext;
+  if (opts.snapshot) rememberLastFinished(arena, opts.snapshot);
   return { ctx, arena, db, assignMatchToArena, arenaMatchQueue, arenaCards, arenaExits };
 }
 

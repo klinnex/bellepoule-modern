@@ -103,18 +103,16 @@ import {
   type TrainingSessionContext,
 } from './remote/trainingSession';
 import type { DemoPlayer } from './remote/demoMode';
-import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
+import { finishArenaMatch, recallPrevMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
   loadNextMatch,
-  recallPrevMatch,
   updateMatchArena,
   assignPools,
   isGuestMatch,
   refreshDeMatches,
   type ArenaQueueContext,
 } from './remote/arenaQueue';
-import type { LastFinishedSnapshot } from './remote/prevMatch';
 import { createSession, updateMatchScore, type SessionOpsContext } from './remote/sessionOps';
 import {
   setCheckinEnabled,
@@ -180,8 +178,6 @@ const NET = LogCategory.NETWORK;
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
-/** Raccourcis de type pour les modules extraits (#1240) : état du serveur, paramètres hors contexte */
-type S = RemoteScoreServer;
 type Tail<T extends unknown[]> = T extends [unknown, ...infer R] ? R : never;
 
 export class RemoteScoreServer {
@@ -565,7 +561,6 @@ export class RemoteScoreServer {
         'arenaCards',
         'arenaEventTimes',
         'arenaExits',
-        'arenaLastFinished',
         'arenaMatchQueue',
         'arenaRefereeSelected',
         'arenaTouches',
@@ -582,6 +577,7 @@ export class RemoteScoreServer {
       [
         'broadcastArenaUpdate',
         'broadcastDashboardUpdate',
+        'assignMatchToArena',
         'createTrainingMatch',
         'fireWebhook',
         'loadNextMatch',
@@ -723,15 +719,10 @@ export class RemoteScoreServer {
     return (this._arenaQueueCtx ??= liveContext<ArenaQueueContext>(
       this,
       [
-        'arenaCards',
         'arenaCount',
-        'arenaEventTimes',
-        'arenaExits',
-        'arenaLastFinished',
         'arenaMatchQueue',
         'arenaNextMatchIndex',
         'arenaRefereeSelected',
-        'arenaTouches',
         'arenas',
         'db',
         'io',
@@ -753,7 +744,6 @@ export class RemoteScoreServer {
         'isMatchPlayable',
         'loadNextMatch',
         'persistArenaState',
-        'resolveDbMatchId',
         'resolveDeMatchReferee',
         'resolveReferee',
         'updateArena',
@@ -1225,8 +1215,6 @@ export class RemoteScoreServer {
     this.io.to(socketId).emit('server:command', { type: 'navigate', url: '/kiosk' });
   }
 
-  // Dernier match terminé par arène, rappelable par PREV pendant la fenêtre de correction (#1829)
-  private arenaLastFinished: Map<string, LastFinishedSnapshot> = new Map();
   // Stockage des cartons par arène
   private arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }> = new Map();
   // Stockage des touches par zone par arène (zones : 'A' | 'B' | 'C')
@@ -1259,7 +1247,6 @@ export class RemoteScoreServer {
 
   /** Purge l'état de combat par arène (cartons, touches, mort subite…) — fin de session ou réinit des arènes. */
   private clearArenaCombatState(): void {
-    this.arenaLastFinished.clear();
     this.arenaCards.clear();
     this.arenaTouches.clear();
     this.arenaExits.clear();
@@ -1615,9 +1602,7 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string): void { return loadNextMatch(this.arenaQueueCtx, arenaId); }
-  /** PREV (#1829) : rappel du match précédent pour correction ; false si refusé */
-  public recallPrevMatch(arenaId: string): boolean { return recallPrevMatch(this.arenaQueueCtx, arenaId); }
+  public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
   public hasSession(): boolean { return this.session !== null; }
   public getSessionWeapon(): string | null { return this.sessionWeapon; }
 

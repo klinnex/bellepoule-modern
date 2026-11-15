@@ -33,7 +33,6 @@ export interface ArenaControlContext {
   readonly sessionMatchScores: S['sessionMatchScores'];
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
-  readonly recallPrevMatch: S['recallPrevMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
@@ -235,7 +234,7 @@ export function handleArenaControl(
     }
     case 'prev':
       // Rappel du match précédent pour correction, fenêtre bornée (#1829) ; refus silencieux côté tablette
-      ctx.recallPrevMatch(data.arenaId);
+      ctx.loadNextMatch(data.arenaId, true);
       break;
     case 'next':
       ctx.loadNextMatch(data.arenaId);
