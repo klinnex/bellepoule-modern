@@ -154,3 +154,42 @@ function padRight(str: string, len: number): string {
   if (str.length >= len) return str.substring(0, len);
   return str + ' '.repeat(len - str.length);
 }
+
+/**
+ * Exporte les résultats finaux au format FFF (même structure que la liste des tireurs,
+ * la colonne position porte le classement final).
+ * Les tireurs sans rang (abandon, exclusion) sont listés en dernier, sans position.
+ */
+export function exportResultsToFFF(
+  results: Array<{ rank?: number | null; fencer: Fencer }>
+): string {
+  const sorted = [...results].sort((a, b) => {
+    const ra = a.rank ?? Number.MAX_SAFE_INTEGER;
+    const rb = b.rank ?? Number.MAX_SAFE_INTEGER;
+    return ra - rb;
+  });
+
+  const lines: string[] = ['FFF;UTF8;competition;;individuel'];
+
+  for (const { rank, fencer } of sorted) {
+    const section0 = [
+      fffField(fencer.lastName).toUpperCase(),
+      fffField(fencer.firstName),
+      formatDateFFF(fencer.birthDate),
+      genderToFFF(fencer.gender),
+      fffField(fencer.nationality) || 'FRA',
+    ].join(',');
+    const section2 = [
+      fffField(fencer.license),
+      fffField(fencer.region),
+      fffField(fencer.club),
+      fencer.ranking != null ? String(fencer.ranking) : '',
+      '',
+      fffField(fencer.department),
+    ].join(',');
+    const position = rank != null ? String(rank) : '';
+    lines.push(`${section0};,,;${section2};${position},t`);
+  }
+
+  return lines.join('\n');
+}

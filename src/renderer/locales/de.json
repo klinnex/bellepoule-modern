@@ -402,6 +402,7 @@
     "exporting": "Wird erstellt…",
     "export_csv": "CSV",
     "export_xml_ffe": "XML (FFE)",
+    "export_fff": "Ergebnisse FFF (.fff)",
     "export_pdf_ranking": "Ranglisten-PDF",
     "export_pdf_full_signed": "Vollständiges PDF mit Unterschriften",
     "book_sections_title": "Inhalt der Mappe",

@@ -246,6 +246,7 @@
     "exporting": "A gerar…",
     "export_csv": "CSV",
     "export_xml_ffe": "XML (FFE)",
+    "export_fff": "Resultados FFF (.fff)",
     "export_pdf_ranking": "PDF da classificação",
     "export_pdf_full_signed": "PDF completo com assinaturas",
     "book_sections_title": "Conteúdo do livro",

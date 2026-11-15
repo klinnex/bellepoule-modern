@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { exportFencersToFFF, exportFencersToTXT } from './fencerExport';
+import { exportFencersToFFF, exportFencersToTXT, exportResultsToFFF } from './fencerExport';
 import { Fencer, Gender, FencerStatus } from '../types';
 
 const makeFencer = (over: Partial<Fencer> = {}): Fencer => ({
@@ -99,5 +99,30 @@ describe('exportFencersToFFF — département (#1504)', () => {
   it('écrit le département après le classement', () => {
     const out = exportFencersToFFF([makeFencer({ region: 'IDF', ranking: 3, department: '75' })]);
     expect(out.split('\n')[1]).toContain(';,IDF,,3,,75;');
+  });
+});
+
+describe('exportResultsToFFF', () => {
+  it('commence par l’en-tête FFF et porte le rang final en position', () => {
+    const out = exportResultsToFFF([
+      { rank: 2, fencer: makeFencer({ lastName: 'Martin', firstName: 'Paul' }) },
+      { rank: 1, fencer: makeFencer({ lastName: 'Dupont', firstName: 'Jean' }) },
+    ]);
+    const lines = out.split('\n');
+    expect(lines[0]).toBe('FFF;UTF8;competition;;individuel');
+    expect(lines[1].startsWith('DUPONT,Jean,')).toBe(true);
+    expect(lines[1].endsWith(';1,t')).toBe(true);
+    expect(lines[2].endsWith(';2,t')).toBe(true);
+  });
+
+  it('place les tireurs sans rang en dernier, sans position', () => {
+    const out = exportResultsToFFF([
+      { rank: null, fencer: makeFencer({ lastName: 'Abandon' }) },
+      { rank: 1, fencer: makeFencer({ lastName: 'Dupont' }) },
+    ]);
+    const lines = out.split('\n');
+    expect(lines[1].startsWith('DUPONT,')).toBe(true);
+    expect(lines[2].startsWith('ABANDON,')).toBe(true);
+    expect(lines[2].endsWith(';,t')).toBe(true);
   });
 });

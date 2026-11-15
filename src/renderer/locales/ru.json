@@ -246,6 +246,7 @@
     "exporting": "Формирование…",
     "export_csv": "CSV",
     "export_xml_ffe": "XML (FFE)",
+    "export_fff": "Результаты FFF (.fff)",
     "export_pdf_ranking": "PDF рейтинга",
     "export_pdf_full_signed": "Полный PDF с подписями",
     "book_sections_title": "Содержание книги",
