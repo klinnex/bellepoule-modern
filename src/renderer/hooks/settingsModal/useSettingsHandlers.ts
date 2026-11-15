@@ -70,7 +70,6 @@ export function useSettingsHandlers(ctx: Ctx) {
     setUiScale,
     setUiDensity,
     setSimplifiedInputMode,
-    chainedInputMode,
     setChainedInputMode,
     persistTtsConfig,
     changeLanguage,

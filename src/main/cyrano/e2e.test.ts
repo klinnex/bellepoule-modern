@@ -40,8 +40,6 @@ vi.mock('http', () => ({
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { CyranoServer } from './server';
 import { PisteHub } from './pisteHub';
-import { buildDisp } from './disp';
-import { FencerStatus } from '../../shared/types';
 // Appareil simulé (scripts/lib/cyranoDevice.js), testé ici car Vitest ne couvre que src/
 const { CyranoDevice } = require('../../../scripts/lib/cyranoDevice.js');
 
