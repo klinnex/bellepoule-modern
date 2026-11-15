@@ -1244,22 +1244,21 @@ export interface EventDayOverview {
   conflicts: DayRefereeConflict[];
 }
 
+/** Coordonnées du serveur d'entraînement renvoyées au renderer */
+interface TrainingServerInfo {
+  url: string;
+  ip: string;
+  port: number;
+  useHttps: boolean;
+  certFingerprint?: string;
+}
+
 export interface TrainingAPI {
   startServer: (
     port?: number,
     host?: string,
     useHttps?: boolean
-  ) => Promise<{
-    success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
-    error?: string;
-  }>;
+  ) => Promise<{ success: boolean; serverInfo?: TrainingServerInfo; error?: string }>;
   stopServer: () => Promise<{ success: boolean; error?: string }>;
   startSession: (
     strips: number,
@@ -1267,21 +1266,13 @@ export interface TrainingAPI {
     customRules?: TrainingCustomRules
   ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
-  setTheme: (
-    theme: 'dark' | 'light' | 'neon' | 'unicorn'
-  ) => Promise<{ success: boolean; error?: string }>;
+  setTheme: (theme: string) => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
   getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
   getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;
   getServerInfo: () => Promise<{
     success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
+    serverInfo?: TrainingServerInfo;
     error?: string;
   }>;
   /** Démo autonome : ouvre les écrans arène / tablette arbitre / kiosque du serveur d'entraînement */
