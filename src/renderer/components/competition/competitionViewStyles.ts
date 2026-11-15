@@ -9,7 +9,9 @@ export const CV_STYLES = {
     display: 'flex',
     flex: 1,
     flexDirection: 'column' as const,
-    overflow: 'hidden',
+    // clip (et non hidden) : hidden reste défilable par le focus programmatique
+    // (cellule de saisie) → la barre de phases remontait hors écran
+    overflow: 'clip',
   } satisfies React.CSSProperties,
   thirdPlaceOverlay: {
     position: 'fixed' as const,
