@@ -16,6 +16,9 @@ export interface CyranoDispFencer {
   /** Valeur du champ nation (pays, club, ligue) : réduite à 3 caractères */
   nat?: string;
   score?: number;
+  /** Cartons déjà donnés (reprise d'un match : PREV, appareil redémarré) ; omis si aucun */
+  yellowCards?: number;
+  redCards?: number;
 }
 
 export interface CyranoDispMatch {
@@ -58,6 +61,8 @@ function fencer(f: CyranoDispFencer, opts: CyranoDispOptions): CyranoFencer {
     nat: formatCyranoNat(f.nat),
     score: f.score,
     status: 'U',
+    ...(f.yellowCards ? { yellowCards: f.yellowCards } : {}),
+    ...(f.redCards ? { redCards: f.redCards } : {}),
   };
 }
 

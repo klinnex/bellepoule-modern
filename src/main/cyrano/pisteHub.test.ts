@@ -89,6 +89,7 @@ const mockDb = {
   getFencer: vi.fn().mockReturnValue(null),
   updateReferee: vi.fn(),
   getSessionState: vi.fn().mockReturnValue(null),
+  clearArenaEvents: vi.fn(),
 };
 
 const DEVICE_IP = '10.0.0.1';
@@ -337,6 +338,73 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     expect(lastDisp()).toMatchObject({
       right: { id: short(ID.de), score: 0 },
       left: { id: short(ID.bc) },
+    });
+  });
+
+  describe('PREV — touche PREVIOUS de l’appareil (#1829)', () => {
+    const finishFirst = () => {
+      device(info('H', { id: short(ID.ef), score: 4, y: 1 }, { id: short(ID.ab), score: 2, r: 2 }));
+      device(info('E', { id: short(ID.ef), score: 5, y: 1 }, { id: short(ID.ab), score: 2, r: 2 }));
+      expect(arena().status).toBe('finished');
+    };
+
+    it('après ACK : match rappelé, DISP avec scores et cartons, correction réenregistrée', () => {
+      finishFirst();
+      disps = [];
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().currentMatch).toMatchObject({
+        id: pm(1, ID.ef, ID.ab).id,
+        scoreA: 5,
+        scoreB: 2,
+      });
+      expect(arena().currentMatch?.status).not.toBe('finished');
+      expect(lastDisp()).toMatchObject({
+        right: { id: short(ID.ef), score: 5, yellowCards: 1 },
+        left: { id: short(ID.ab), score: 2, redCards: 2 },
+      });
+      expect(mockDb.clearArenaEvents).toHaveBeenCalled();
+      // Correction sur l'appareil puis nouvelle validation
+      mockDb.updateMatch.mockClear();
+      device(info('H', { id: short(ID.ef), score: 5, y: 1 }, { id: short(ID.ab), score: 3, r: 2 }));
+      device(info('E', { id: short(ID.ef), score: 5, y: 1 }, { id: short(ID.ab), score: 3, r: 2 }));
+      expect(acks).toBe(2);
+      expect(mockDb.updateMatch).toHaveBeenCalledWith(
+        pm(1, ID.ef, ID.ab).id,
+        expect.objectContaining({ scoreB: expect.objectContaining({ value: 3 }) })
+      );
+    });
+
+    it('après NEXT : le match suivant non commencé cède la place au match rappelé', () => {
+      finishFirst();
+      device('|EFP1.1|NEXT|1||%|');
+      expect(arena().currentMatch?.id).toBe(pm(2, ID.de, ID.bc).id);
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      expect(lastDisp()).toMatchObject({ right: { id: short(ID.ef), score: 5 } });
+    });
+
+    it('combat en cours : refusé, DISP du match courant renvoyé', () => {
+      finishFirst();
+      device('|EFP1.1|NEXT|1||%|');
+      device(info('F', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
+      disps = [];
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().currentMatch?.id).toBe(pm(2, ID.de, ID.bc).id);
+      expect(lastDisp()).toMatchObject({ right: { id: short(ID.de), score: 1 } });
+    });
+
+    it('rien à rappeler : refusé sans changer l’arène', () => {
+      disps = [];
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      expect(lastDisp()).toMatchObject({ right: { id: short(ID.ef) } });
+    });
+
+    it('afficheur : PREV sans effet', () => {
+      finishFirst();
+      setMode('display');
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().status).toBe('finished');
     });
   });
 
