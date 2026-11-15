@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
-| `src/main/` | 69 | 577 |
+| `src/main/` | 69 | 579 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 97 | 490 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **387** | **2954** |
+| **Total** | **387** | **2956** |
 
-Unitaires : 377 fichiers, 2915 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 377 fichiers, 2917 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2512,7 +2512,7 @@ Unitaires : 377 fichiers, 2915 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/deviceState.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/cyrano/deviceState.test.ts</code> — 8 tests</summary>
 
 - **deviceState (#1720)**
   - Id UUID : le préfixe de 8 caractères qui circule dans les trames
@@ -2521,6 +2521,9 @@ Unitaires : 377 fichiers, 2915 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - cyranoCards : jaune puis rouges
   - parseCyranoStopwatch : m:ss et m:ss.cc
   - isActiveCyranoState : F, H, P
+- **cartons P EFP1.1 (#1829)**
+  - champ 12 → cartons P des arènes
+  - cartons P des arènes → champ 12 du DISP (0, 2 ou 4, noir prime)
 
 </details>
 
