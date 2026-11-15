@@ -6,19 +6,6 @@
 import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
 /**
- * Formate une date au format DD/MM/YYYY pour l'export FFF
- */
-function formatDateFFF(date?: Date): string {
-  if (!date) return '';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '';
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-/**
  * Neutralise les séparateurs FFF (, et ;) dans un champ libre
  */
 function fffField(value?: string): string {
