@@ -19,6 +19,7 @@ const isVictory = (s: SessionScore): boolean => typeof s === 'object' && !!s?.is
 
 export interface MatchFinishContext {
   readonly arenaCards: S['arenaCards'];
+  readonly arenaLastFinished: S['arenaLastFinished'];
   readonly arenaEventTimes: S['arenaEventTimes'];
   readonly arenaExits: S['arenaExits'];
   readonly arenaMatchQueue: S['arenaMatchQueue'];
@@ -73,6 +74,19 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     ctx.recentMatchDurationsMs.push(wallMs);
     if (ctx.recentMatchDurationsMs.length > 50) ctx.recentMatchDurationsMs.shift();
   }
+
+  // Dernier match terminé : rappelable par PREV pendant la fenêtre de correction (#1829)
+  if (!ctx.isTrainingMode)
+    ctx.arenaLastFinished.set(arenaId, {
+      match: { ...arena.currentMatch },
+      finishedAt: Date.now(),
+      events: {
+        cards: ctx.arenaCards.get(arenaId),
+        touches: ctx.arenaTouches.get(arenaId),
+        exits: [...(ctx.arenaExits.get(arenaId) ?? [])],
+        times: ctx.arenaEventTimes.get(arenaId),
+      },
+    });
 
   // Persistance secondaire (timing / cartons / touches / sorties) : ces écritures
   // utilisent arena.currentMatch.id qui, pour un match de tableau, n'est PAS l'id DB

@@ -683,6 +683,19 @@ export class MatchRepo {
     return true;
   }
 
+  /**
+   * Efface touches, cartons et sorties d'arène d'un match (rappel PREV pour correction, #1829).
+   * Le match sera réenregistré à sa nouvelle fin : sans purge, les lignes seraient dupliquées.
+   */
+  public clearArenaEvents(matchId: string): void {
+    if (!this.sql.db) throw new Error('Database not open');
+    this.sql.transaction(() => {
+      this.sql.run('DELETE FROM match_touches WHERE match_id = ?', [matchId]);
+      this.sql.run('DELETE FROM match_cards WHERE match_id = ?', [matchId]);
+      this.sql.run('DELETE FROM match_arena_exits WHERE match_id = ?', [matchId]);
+    });
+  }
+
   public saveArenaExit(exit: {
     id: string;
     matchId: string;

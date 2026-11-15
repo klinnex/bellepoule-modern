@@ -496,6 +496,12 @@ export class DatabaseManager {
     return this.matches.replaceSimulatedMatchEvents(...args);
   }
 
+  public clearArenaEvents(
+    ...args: Parameters<MatchRepo['clearArenaEvents']>
+  ): ReturnType<MatchRepo['clearArenaEvents']> {
+    return this.matches.clearArenaEvents(...args);
+  }
+
   public saveArenaExit(
     ...args: Parameters<MatchRepo['saveArenaExit']>
   ): ReturnType<MatchRepo['saveArenaExit']> {
