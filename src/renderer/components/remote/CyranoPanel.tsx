@@ -126,7 +126,7 @@ export const CyranoPanel: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const pisteAction = async (piste: string, action: 'ack' | 'next' | 'resync') => {
+  const pisteAction = async (piste: string, action: 'ack' | 'next' | 'prev' | 'resync') => {
     await window.electronAPI?.cyrano?.pisteAction(piste, action);
     void refreshStatus();
   };
@@ -421,7 +421,7 @@ export const CyranoPanel: React.FC = () => {
                     {/* Actions de secours (#1829) : serveur démarré, piste déclarée */}
                     {running && st && (
                       <span className="cyrano-inline">
-                        {(['ack', 'next', 'resync'] as const).map(action => (
+                        {(['ack', 'next', 'prev', 'resync'] as const).map(action => (
                           <Button
                             key={action}
                             size="sm"

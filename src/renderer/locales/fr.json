@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Acquitter de force la fin de match bloquée sur l'appareil",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Match suivant, comme la touche NEXT de l'appareil",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Rappeler le match précédent pour correction (dans les 3 min suivant sa fin)",
     "cyrano_action_resync": "Resynchroniser",
     "cyrano_action_resync_title": "Effacer l'état connu et renvoyer le match de la piste à l'appareil",
     "cyrano_log": "Journal des trames",

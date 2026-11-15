@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "強制確認卡在裝置上的比賽結束",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "下一場比賽，如同裝置的 NEXT 鍵",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "召回上一場比賽作更正（結束後 3 分鐘內）",
     "cyrano_action_resync": "重新同步",
     "cyrano_action_resync_title": "清除已知狀態並重新傳送該劍道的比賽至裝置",
     "cyrano_log": "訊框記錄",

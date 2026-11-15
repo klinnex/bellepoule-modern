@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Forçar a confirmação do fim de assalto bloqueado no aparelho",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Assalto seguinte, como a tecla NEXT do aparelho",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Reabrir o combate anterior para correção (até 3 min após o fim)",
     "cyrano_action_resync": "Ressincronizar",
     "cyrano_action_resync_title": "Esquecer o estado conhecido e reenviar o assalto da pista ao aparelho",
     "cyrano_log": "Registo de tramas",

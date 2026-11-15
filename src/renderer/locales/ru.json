@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Принудительно подтвердить конец боя, зависший на аппарате",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Следующий бой, как кнопка NEXT аппарата",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Вернуть предыдущий матч для исправления (в течение 3 мин после окончания)",
     "cyrano_action_resync": "Синхронизировать",
     "cyrano_action_resync_title": "Сбросить известное состояние и заново отправить бой дорожки на аппарат",
     "cyrano_log": "Журнал кадров",

@@ -78,6 +78,7 @@ const mockDb = {
   updateMatch: vi.fn(),
   updateMatchTiming: vi.fn(),
   saveCard: vi.fn(),
+  clearArenaEvents: vi.fn(),
   saveTouch: vi.fn(),
   saveArenaExit: vi.fn(),
   logScoreChange: vi.fn(),
@@ -457,6 +458,16 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
       hub.pisteAction('1', 'next');
       expect(arena().currentMatch?.id).toBe(pm(2, ID.de, ID.bc).id);
+    });
+
+    it('PREV du poste : rappel du match terminé pour correction (maître seulement)', () => {
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 0 }));
+      device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
+      hub.pisteAction('1', 'next');
+      expect(arena().currentMatch?.id).toBe(pm(2, ID.de, ID.bc).id);
+      expect(hub.pisteAction('1', 'prev')).toBe(true);
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+      expect(arena().currentMatch).toMatchObject({ scoreA: 5, scoreB: 2 });
     });
 
     it('resynchronisation : match de l’arène renvoyé, alerte levée', () => {

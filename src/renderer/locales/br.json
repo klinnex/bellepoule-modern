@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Anaout dre heg dibenn an emgann stanket war an ardivink",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Emgann war-lerc'h, evel bouton NEXT an ardivink",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Adkas ar stal kent evit reizhañ (3 min goude ar fin)",
     "cyrano_action_resync": "Kempredañ",
     "cyrano_action_resync_title": "Ankouaat ar stad anavezet hag adkas emgann al leurenn d'an ardivink",
     "cyrano_log": "Marilh ar frammoù",

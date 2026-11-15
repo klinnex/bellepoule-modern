@@ -1496,6 +1496,8 @@
     "cyrano_action_ack_title": "Force-acknowledge the bout end stuck on the device",
     "cyrano_action_next": "NEXT",
     "cyrano_action_next_title": "Next bout, like the device's NEXT key",
+    "cyrano_action_prev": "PREV",
+    "cyrano_action_prev_title": "Recall the previous match for correction (within 3 min of its end)",
     "cyrano_action_resync": "Resync",
     "cyrano_action_resync_title": "Forget the known state and resend the strip's bout to the device",
     "cyrano_log": "Frame log",
