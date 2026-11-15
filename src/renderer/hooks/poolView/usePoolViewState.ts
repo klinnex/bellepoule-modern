@@ -148,7 +148,8 @@ export function usePoolViewState(ctx: Ctx) {
   const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
-  const { simplified: simplifiedInputMode, chained: chainedInputMode } = readInputModes(localStorage);
+  const { simplified: simplifiedInputMode, chained: chainedInputMode } =
+    readInputModes(localStorage);
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
