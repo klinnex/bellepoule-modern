@@ -11,7 +11,7 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
-import { exportResultsToFFF } from '../../shared/utils/fencerExport';
+import { encodeFFFWin1252, exportResultsToFFF } from '../../shared/utils/fencerExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
 import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
@@ -451,12 +451,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export XML réussi !', 'success');
   };
 
-  // Export FFF des résultats finaux (fin de compétition)
+  // Export FFF des résultats finaux (fin de compétition, spécification FFF)
   const exportFFF = () => {
     const content = exportResultsToFFF(
-      resultsToDisplay.map(r => ({ rank: r.rank, fencer: r.fencer }))
+      competition,
+      resultsToDisplay.map(r => ({ rank: r.rank, fencer: r.fencer, eliminatedAt: r.eliminatedAt }))
     );
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([encodeFFFWin1252(content) as BlobPart], { type: 'text/plain;charset=windows-1252' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.fff`;

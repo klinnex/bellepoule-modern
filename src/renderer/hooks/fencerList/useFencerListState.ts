@@ -262,6 +262,8 @@ export function useFencerListState(ctx: Ctx) {
   };
 
   const handleExportFencers = async (format: 'txt' | 'fff') => {
+    // Le FFF exige les données de compétition (en-tête) : sans elles, rien n'est exporté
+    if (format === 'fff' && !ctx.competition) return;
     const extension = format === 'fff' ? 'fff' : 'txt';
     const filterName = format === 'fff' ? 'Fichier FFE' : 'Fichier texte';
 
@@ -275,7 +277,10 @@ export function useFencerListState(ctx: Ctx) {
     });
 
     if (result && !result.canceled && result.filePath) {
-      const content = format === 'fff' ? exportFencersToFFF(fencers) : exportFencersToTXT(fencers);
+      const content =
+        format === 'fff'
+          ? exportFencersToFFF(ctx.competition!, fencers)
+          : exportFencersToTXT(fencers);
       await window.electronAPI.file.writeContent(result.filePath, content);
     }
   };
