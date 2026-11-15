@@ -597,7 +597,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
 
         {/* ── Section : Écrans connectés (+ modale kiosk) — dans le même conteneur que les autres volets ── */}
         {fold('screens')(
-          <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
+          <ConnectedScreensPanel
+            competitionId={competition.id}
+            isRemoteActive={isRemoteActive}
+            arenaCount={arenaCount}
+          />
         )}
       </div>
 
