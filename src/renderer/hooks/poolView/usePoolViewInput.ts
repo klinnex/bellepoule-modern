@@ -3,7 +3,8 @@
  * Licensed under GPL-3.0
  */
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
+import { nextChainedPair } from '../../components/pool/poolChainedInput';
 import { useModalResize } from '../useModalResize';
 import { useFocusTrap } from '../useFocusTrap';
 import { Fencer, MatchStatus, FencerStatus } from '../../../shared/types';
@@ -32,6 +33,7 @@ export function usePoolViewInput(ctx: Ctx) {
     undo,
     redo,
     simplifiedInputMode,
+    chainedInputMode,
     hoveredFencerIds,
     fencers,
     handleMatchDelete,
@@ -255,6 +257,51 @@ export function usePoolViewInput(ctx: Ctx) {
     minHeight: 300,
   });
 
+  /** Saisie enchaînée : la modale est ouverte depuis une case de la matrice (et le réglage est actif) */
+  const chainedRef = useRef(false);
+
+  /** Tireur hors poule (abandon, forfait, exclusion) : case non saisissable */
+  const isOutOfPool = (f: Fencer) =>
+    f.status === FencerStatus.ABANDONED ||
+    f.status === FencerStatus.FORFAIT ||
+    f.status === FencerStatus.EXCLUDED;
+
+  /** Case suivante après le match `matchIdx` (ligne par ligne, au-dessus de la diagonale), ou null */
+  const findChainedNext = (matchIdx: number) => {
+    const m = pool.matches[matchIdx];
+    if (!m?.fencerA || !m?.fencerB) return null;
+    const ia = fencers.findIndex(f => f.id === m.fencerA!.id);
+    const ib = fencers.findIndex(f => f.id === m.fencerB!.id);
+    if (ia < 0 || ib < 0) return null;
+    const isPlayable = ({ rowIdx, colIdx }: { rowIdx: number; colIdx: number }) => {
+      const rowF = fencers[rowIdx];
+      const colF = fencers[colIdx];
+      if (isOutOfPool(rowF) || isOutOfPool(colF)) return false;
+      const idx = getMatchIndex(rowF, colF);
+      return idx !== -1 && pool.matches[idx].status !== MatchStatus.CANCELLED;
+    };
+    const pair = nextChainedPair(
+      fencers.length,
+      { rowIdx: Math.min(ia, ib), colIdx: Math.max(ia, ib) },
+      isPlayable
+    );
+    if (!pair) return null;
+    const rowF = fencers[pair.rowIdx];
+    const colF = fencers[pair.colIdx];
+    const matchIndex = getMatchIndex(rowF, colF);
+    // Même convention que handleCellClick : tireur de ligne à gauche
+    return { matchIndex, inverted: pool.matches[matchIndex].fencerA?.id === colF.id };
+  };
+
+  /** Score validé : ferme la modale, puis ouvre la case suivante si la saisie enchaînée est active */
+  const finishScoreEntry = (matchIdx: number) => {
+    const continueChain = chainedRef.current && chainedInputMode;
+    closeAndResetScoreModal();
+    if (!continueChain) return;
+    const next = findChainedNext(matchIdx);
+    if (next) openScoreModal(next.matchIndex, next.inverted, true);
+  };
+
   const closeAndResetScoreModal = () => {
     setEditingMatch(null);
     setIsMatchInverted(false);
@@ -287,7 +334,7 @@ export function usePoolViewInput(ctx: Ctx) {
     });
     onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
     setMatchesUpdateTrigger(prev => prev + 1);
-    closeAndResetScoreModal();
+    finishScoreEntry(matchIdx);
   };
 
   /** Choix du vainqueur à égalité (gauche / droite affichées, ou « Aucun ») */
@@ -304,8 +351,9 @@ export function usePoolViewInput(ctx: Ctx) {
   // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
   const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeAndResetScoreModal);
 
-  const openScoreModal = (matchIndex: number, inverted = false) => {
+  const openScoreModal = (matchIndex: number, inverted = false, chained = false) => {
     const match = pool.matches[matchIndex];
+    chainedRef.current = chained;
     setEditingMatch(matchIndex);
     setIsMatchInverted(inverted);
     setEditScoreA(
@@ -449,7 +497,7 @@ export function usePoolViewInput(ctx: Ctx) {
       setInlineSingleScore(current !== undefined ? String(current) : '');
       return;
     }
-    openScoreModal(matchIndex, inverted);
+    openScoreModal(matchIndex, inverted, chainedInputMode);
   };
 
   return {
@@ -461,6 +509,7 @@ export function usePoolViewInput(ctx: Ctx) {
     chooseTieWinner,
     scoreTrapRef,
     openScoreModal,
+    finishScoreEntry,
     handleHoverCell,
     handleHoverLeave,
     handleWheelScore,

@@ -33,6 +33,7 @@ export function usePoolViewActions(ctx: Ctx) {
     getRecordedCellScore,
     tieWinnerCellsRef,
     openNextCell,
+    finishScoreEntry,
     showToast,
     t,
     openScoreModal,
@@ -215,8 +216,8 @@ export function usePoolViewActions(ctx: Ctx) {
     // Forcer la mise à jour de l'ordre des matchs
     setMatchesUpdateTrigger(prev => prev + 1);
 
-    // Fermer le modal immédiatement après la mise à jour
-    closeAndResetScoreModal();
+    // Fermer le modal immédiatement après la mise à jour (puis case suivante si saisie enchaînée)
+    finishScoreEntry(matchIdx);
   };
 
   // Mettre à jour la ref avec la fonction actuelle

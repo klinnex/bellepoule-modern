@@ -201,6 +201,9 @@ export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
 
 export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
 
+/** Saisie enchaînée : après chaque score, la modale de la case suivante s'ouvre (désactivée par défaut) */
+export const CHAINED_INPUT_KEY = 'bellepoule-chained-input-mode';
+
 export interface TtsConfig {
   voiceName: string | null;
   rate: number;

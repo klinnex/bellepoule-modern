@@ -77,6 +77,14 @@ export function usePoolScoreModal(ctx: Ctx) {
   // Agrandissement automatique quand le contenu s'allonge (égalité, statut spécial, #1826)
   useAutoFitHeight(modalRef, editingMatch !== null);
 
+  // Saisie enchaînée : la modale reste montée d'une case à l'autre, on remet le focus sur le score A
+  React.useEffect(() => {
+    if (editingMatch === null) return;
+    const first = modalRef.current?.querySelector<HTMLInputElement>('input[type="number"]');
+    first?.focus();
+    first?.select();
+  }, [editingMatch, modalRef]);
+
   // Render Score Modal
   const renderScoreModal = () => {
     if (editingMatch === null) return null;

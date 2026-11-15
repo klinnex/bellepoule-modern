@@ -37,6 +37,7 @@ import {
   AUDIT_LOG_KEY,
   QUICK_MOUSE_KEY,
   SIMPLIFIED_INPUT_KEY,
+  CHAINED_INPUT_KEY,
   type SettingsModalProps,
 } from '../../components/settingsModal.helpers';
 import { useSettingsPreferences } from './useSettingsPreferences';
@@ -68,6 +69,8 @@ export function useSettingsHandlers(ctx: Ctx) {
     setUiScale,
     setUiDensity,
     setSimplifiedInputMode,
+    chainedInputMode,
+    setChainedInputMode,
     persistTtsConfig,
     changeLanguage,
     changeTheme,
@@ -268,6 +271,11 @@ export function useSettingsHandlers(ctx: Ctx) {
     localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
   };
 
+  const handleChainedInputModeChange = (enabled: boolean) => {
+    setChainedInputMode(enabled);
+    localStorage.setItem(CHAINED_INPUT_KEY, String(enabled));
+  };
+
   // Export / import JSON des paramètres (logos inclus)
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupStatus, setBackupStatus] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -306,6 +314,7 @@ export function useSettingsHandlers(ctx: Ctx) {
       setAuditLogEnabled(localStorage.getItem(AUDIT_LOG_KEY) !== 'false');
       setQuickMouseScoring(localStorage.getItem(QUICK_MOUSE_KEY) === 'true');
       setSimplifiedInputMode(localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true');
+      setChainedInputMode(localStorage.getItem(CHAINED_INPUT_KEY) === 'true');
       setConfettiDisabled(isConfettiDisabled());
       handleUiScaleChange(loadUiScale());
       handleUiDensityChange(loadUiDensity());
@@ -359,6 +368,7 @@ export function useSettingsHandlers(ctx: Ctx) {
     handleUiScaleChange,
     handleUiDensityChange,
     handleSimplifiedInputModeChange,
+    handleChainedInputModeChange,
     importInputRef,
     backupStatus,
     handleExportSettings,

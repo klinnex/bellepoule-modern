@@ -148,6 +148,7 @@ export function usePoolViewState(ctx: Ctx) {
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
   const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
+  const chainedInputMode = localStorage.getItem('bellepoule-chained-input-mode') === 'true';
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
@@ -374,6 +375,7 @@ export function usePoolViewState(ctx: Ctx) {
     setHoveredFencerIds,
     quickMouseScoring,
     simplifiedInputMode,
+    chainedInputMode,
     defaultArena,
     handleMatchArenaChange,
     addAction,
