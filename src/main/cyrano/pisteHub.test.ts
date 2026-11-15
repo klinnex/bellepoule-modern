@@ -1,3 +1,4 @@
+import { FencerStatus } from '../../shared/types';
 /**
  * PisteHub (#1720) — intégration appareil Cyrano ↔ RemoteScoreServer réel, mode appareil maître.
  * Identifiants de tireurs au format UUID (36 caractères) : l'appareil n'en reçoit que 8.
@@ -87,6 +88,7 @@ const mockDb = {
   getFencersByCompetition: vi.fn().mockReturnValue([]),
   getRefereesByCompetition: vi.fn().mockReturnValue([]),
   updateFencer: vi.fn(),
+  logRemoteEvent: vi.fn(),
   getFencer: vi.fn().mockReturnValue(null),
   updateReferee: vi.fn(),
   getSessionState: vi.fn().mockReturnValue(null),
@@ -400,6 +402,20 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       scoreA: { value: 3, isVictory: false, isAbstention: true },
       scoreB: { value: 1, isVictory: true, isAbstention: false },
     });
+  });
+
+  it('END sur exclusion (statut E) : tireur exclu comme pour un carton noir, annulable (#1829)', () => {
+    device(info('E', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 4, status: 'E' }));
+    expect(mockDb.updateFencer).toHaveBeenCalledWith(ID.ab, {
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card',
+    });
+    expect(mockDb.updateFencer).not.toHaveBeenCalledWith(ID.ef, expect.anything());
+  });
+
+  it('END sur abandon : aucune exclusion automatique, le DT est sollicité', () => {
+    device(info('E', { id: short(ID.ef), score: 3, status: 'A' }, { id: short(ID.ab), score: 1 }));
+    expect(mockDb.updateFencer).not.toHaveBeenCalled();
   });
 
   it('END sur exclusion : exclusion marquée sur le tireur exclu', () => {
