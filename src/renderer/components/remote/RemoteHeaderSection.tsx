@@ -9,6 +9,7 @@ import { Square } from 'lucide-react';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { RSM_STYLES } from './rsmStyles';
 import type { RemoteScoreManagerCtx } from '../remote/remoteScoreManagerCtx';
+import { FirewallCheckPanel } from './FirewallCheckPanel';
 
 /** En-tête de la saisie distante : état du serveur, URLs et options (extrait de RemoteScoreManager, #1599) */
 export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
@@ -116,6 +117,7 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                     {t('rsm.reload')}
                   </button>
                 </div>
+                <FirewallCheckPanel t={t} port={remotePort} />
               </>
             )}
             {!isExpert && !certFingerprint && serverUrl.startsWith('http://') && (

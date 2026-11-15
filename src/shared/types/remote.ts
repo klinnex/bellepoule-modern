@@ -225,3 +225,19 @@ export interface MatchSignatureRequest {
   scoreA: number;
   scoreB: number;
 }
+
+/** Constat du diagnostic pare-feu Windows (saisie distante) : code traduit côté renderer. */
+export interface FirewallFinding {
+  level: 'ok' | 'warning' | 'error';
+  code: string;
+  params?: Record<string, string | number>;
+}
+
+/** Résultat du diagnostic pare-feu. supported: false hors Windows (rien n'a été lu). */
+export interface FirewallDiagnosis {
+  supported: boolean;
+  port: number;
+  networkCategories: string[];
+  findings: FirewallFinding[];
+  error?: string;
+}
