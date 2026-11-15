@@ -21,9 +21,11 @@ import { buildDisp, EMPTY_DISP, type CyranoDispFencer, type CyranoDispMatch } fr
 import { pickCyranoNat, type CyranoNameLength, type CyranoNatSource } from './names';
 import {
   cyranoCards,
+  cyranoPCards,
   isActiveCyranoState,
   mapCyranoSides,
   parseCyranoStopwatch,
+  pCardValue,
   type CyranoSides,
 } from './deviceState';
 import { toCyranoWeapon } from './disp';
@@ -402,8 +404,8 @@ export class PisteHub {
 
     const scoreA = sides.A.score ?? match.scoreA;
     const scoreB = sides.B.score ?? match.scoreB;
-    const cardsA = cyranoCards(sides.A);
-    const cardsB = cyranoCards(sides.B);
+    const cardsA = [...cyranoCards(sides.A), ...cyranoPCards(sides.A)];
+    const cardsB = [...cyranoCards(sides.B), ...cyranoPCards(sides.B)];
     // L'appareil connaît ce score : pas de DISP en écho
     this.device.set(piste.piste, { matchId: match.id, scoreA, scoreB });
     const key = JSON.stringify([match.id, scoreA, scoreB, cardsA, cardsB]);
@@ -574,9 +576,11 @@ export class PisteHub {
       isCurrent && arena?.status !== 'in_progress' && w?.matchId === match.id
         ? w.stopwatch
         : undefined;
+    // Cartons P (#1829) : champ 12 du DISP, 0 / 2 / 4 selon la règle 2026-2027
     const count = (list: string[] | undefined) => ({
       yellowCards: list?.includes('yellow') ? 1 : 0,
       redCards: list?.filter(c => c === 'red').length ?? 0,
+      pCard: pCardValue(list),
     });
     const right: CyranoDispFencer = {
       id: fA.id,

@@ -19,6 +19,8 @@ export interface CyranoDispFencer {
   /** Cartons déjà donnés (reprise d'un match : PREV, appareil redémarré) ; omis si aucun */
   yellowCards?: number;
   redCards?: number;
+  /** Cartons P (EFP1.1, champ 12 : 0, 2 ou 4 selon la règle 2026-2027) (#1829) */
+  pCard?: number;
 }
 
 export interface CyranoDispMatch {
@@ -65,6 +67,7 @@ function fencer(f: CyranoDispFencer, opts: CyranoDispOptions): CyranoFencer {
     status: 'U',
     ...(f.yellowCards ? { yellowCards: f.yellowCards } : {}),
     ...(f.redCards ? { redCards: f.redCards } : {}),
+    ...(f.pCard ? { pCard: f.pCard } : {}),
   };
 }
 
