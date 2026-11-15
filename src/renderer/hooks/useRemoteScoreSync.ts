@@ -56,7 +56,8 @@ export function useRemoteScoreSync({
       scoreARaw: number,
       scoreBRaw: number,
       finished: boolean,
-      winnerOverride?: 'A' | 'B'
+      winnerOverride?: 'A' | 'B',
+      loserMark?: 'abandon' | 'exclusion'
     ) => {
       const matchId = matchIdRaw;
       // Le score peut arriver sous forme d'objet Score ({ value }) ou de chaîne
@@ -167,7 +168,7 @@ export function useRemoteScoreSync({
           LogCategory.UI,
           `[applyRemoteScore] match=${matchId} routé vers POULES (non trouvé en tableau/consolante)`
         );
-        updateMatchFromRemote(matchId, scoreA, scoreB, status, winnerOverride);
+        updateMatchFromRemote(matchId, scoreA, scoreB, status, winnerOverride, loserMark);
       }
     },
     [updateMatchFromRemote, competitionId]
@@ -239,13 +240,16 @@ export function useRemoteScoreSync({
       scoreB: number;
       winner?: 'A' | 'B';
       isTableau?: boolean;
+      deviceReason?: 'priority' | 'abandon' | 'exclusion';
     }) => {
-      const { matchId, scoreA, scoreB, winner: winnerOverride, isTableau } = data;
+      const { matchId, scoreA, scoreB, winner: winnerOverride, isTableau, deviceReason } = data;
       logger.warn(
         LogCategory.UI,
         `[CompetitionView] match:finished REÇU matchId=${matchId} score=${scoreA}-${scoreB} tableau=${!!isTableau}`
       );
-      applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride);
+      const loserMark =
+        deviceReason === 'abandon' || deviceReason === 'exclusion' ? deviceReason : undefined;
+      applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride, loserMark);
       fireWebhookNotif(
         `Match terminé — ${competitionTitle}`,
         `Score : ${scoreA} – ${scoreB}${isTableau ? ' (tableau)' : ''}`

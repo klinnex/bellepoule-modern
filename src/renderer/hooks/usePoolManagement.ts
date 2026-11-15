@@ -582,7 +582,8 @@ export const usePoolManagement = ({
       scoreA: number,
       scoreB: number,
       status: MatchStatus,
-      winnerOverride?: 'A' | 'B'
+      winnerOverride?: 'A' | 'B',
+      loserMark?: 'abandon' | 'exclusion'
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];
@@ -600,6 +601,10 @@ export const usePoolManagement = ({
               const winner =
                 winnerOverride ?? (scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null);
 
+              // Abandon / exclusion du perdant signalés par l'appareil : marque conservée,
+              // sinon l'annulation des résultats (#1144) ne s'applique pas (#1829)
+              const markA = !!winner && winner !== 'A' && loserMark !== undefined;
+              const markB = !!winner && winner !== 'B' && loserMark !== undefined;
               const updatedPool = { ...pool };
               const updatedMatches = [...pool.matches];
               updatedMatches[matchIdx] = {
@@ -607,15 +612,15 @@ export const usePoolManagement = ({
                 scoreA: {
                   value: scoreA,
                   isVictory: winner === 'A',
-                  isAbstention: false,
-                  isExclusion: false,
+                  isAbstention: markA && loserMark === 'abandon',
+                  isExclusion: markA && loserMark === 'exclusion',
                   isForfait: false,
                 },
                 scoreB: {
                   value: scoreB,
                   isVictory: winner === 'B',
-                  isAbstention: false,
-                  isExclusion: false,
+                  isAbstention: markB && loserMark === 'abandon',
+                  isExclusion: markB && loserMark === 'exclusion',
                   isForfait: false,
                 },
                 status,

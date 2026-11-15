@@ -3,7 +3,8 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import { MatchStatus } from '../../shared/types';
+import { FencerStatus, MatchStatus } from '../../shared/types';
+import { recordRemoteEvent } from './remoteEvents';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
@@ -107,6 +108,87 @@ export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boole
     `[RemoteScoreServer] PREV : match ${restored.id} rendu à l'arène ${arenaId} pour correction`
   );
   return true;
+}
+
+/**
+ * Exclusion signalée par l'appareil (statut E, #1829) : même traitement que le carton noir de la
+ * tablette (remote/routes/matchRoutes.ts) — exclusion avec motif `black_card`, donc annulable depuis
+ * la tablette, notification au renderer et appel DT.
+ */
+function applyDeviceExclusion(
+  ctx: MatchFinishContext,
+  arenaId: string,
+  match: ArenaMatch,
+  side: 'A' | 'B'
+): void {
+  const culprit = side === 'A' ? match.fencerA : match.fencerB;
+  if (!culprit?.id) return;
+  try {
+    ctx.db.updateFencer(culprit.id, {
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card',
+    });
+  } catch (e) {
+    logger.warn(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] exclusion appareil : mise à jour échouée',
+      e
+    );
+    return;
+  }
+  const mainWin = getSharedMainWindow();
+  mainWin?.webContents.send('remote:fencer_excluded', {
+    fencerId: culprit.id,
+    matchId: match.id,
+    reason: 'black_card',
+  });
+  recordRemoteEvent(ctx, {
+    type: 'dt_call',
+    arenaId,
+    matchId: match.id,
+    refereeId: match.referee?.id ?? null,
+    detail: 'black_card',
+  });
+  mainWin?.webContents.send('remote:dt_call', {
+    arenaId,
+    arenaNumber: ctx.arenas.get(arenaId)?.number ?? null,
+    matchNumber: (match as { number?: number }).number ?? null,
+    competitionId: ctx.session?.competitionId ?? null,
+    timestamp: Date.now(),
+    reason: 'black_card',
+    fencerName: `${culprit.lastName ?? ''} ${culprit.firstName ?? ''}`.trim() || null,
+  });
+}
+
+/**
+ * Abandon signalé par l'appareil (statut A, #1829) : le DT décide. Jamais de changement automatique
+ * du statut (décision médicale, t.45.1) ; l'appel apparaît dans le panneau DT avec le motif.
+ */
+function proposeAbandonToDT(
+  ctx: MatchFinishContext,
+  arenaId: string,
+  match: ArenaMatch,
+  side: 'A' | 'B'
+): void {
+  const abandoning = side === 'A' ? match.fencerA : match.fencerB;
+  recordRemoteEvent(ctx, {
+    type: 'dt_call',
+    arenaId,
+    matchId: match.id,
+    refereeId: match.referee?.id ?? null,
+    detail: 'abandon',
+  });
+  getSharedMainWindow()?.webContents.send('remote:dt_call', {
+    arenaId,
+    arenaNumber: ctx.arenas.get(arenaId)?.number ?? null,
+    matchNumber: (match as { number?: number }).number ?? null,
+    competitionId: ctx.session?.competitionId ?? null,
+    timestamp: Date.now(),
+    reason: 'abandon',
+    fencerName: abandoning
+      ? `${abandoning.lastName ?? ''} ${abandoning.firstName ?? ''}`.trim()
+      : null,
+  });
 }
 
 export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void {
@@ -387,6 +469,12 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           status: MatchStatus.FINISHED,
         });
         emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
+        // Fin signalée par l'appareil avec un tireur exclu (statut E) ou en abandon (statut A) (#1829)
+        if (deviceEnd?.reason === 'exclusion' && winner) {
+          applyDeviceExclusion(ctx, arenaId, finishedMatch, winner === 'A' ? 'B' : 'A');
+        } else if (deviceEnd?.reason === 'abandon' && winner) {
+          proposeAbandonToDT(ctx, arenaId, finishedMatch, winner === 'A' ? 'B' : 'A');
+        }
         ctx.db.logScoreChange({
           matchId: effectiveDbId,
           arenaId,
@@ -444,6 +532,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       winner: winnerForRenderer,
       poolId: finishedMatch.poolId,
       isTableau: finishedMatch.isTableau ?? false,
+      deviceReason: finishedMatch.deviceEnd?.reason,
     });
     logger.info(
       LogCategory.NETWORK,

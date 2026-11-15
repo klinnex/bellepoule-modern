@@ -235,6 +235,8 @@ export interface RemoteMatchFinishedEvent {
   winner?: 'A' | 'B';
   poolId?: string;
   isTableau?: boolean;
+  /** Motif de fin signalé par l'appareil de piste : le perdant porte l'abandon / l'exclusion (#1829) */
+  deviceReason?: 'priority' | 'abandon' | 'exclusion';
 }
 
 export interface SessionState {
