@@ -308,6 +308,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                 type="password"
                 className="arena-password-input rsm-pwd-input"
                 placeholder={t('rsm.common_pwd_placeholder')}
+                title={t('rsm.common_pwd_placeholder')}
                 value={commonArenaPassword}
                 onChange={e => setCommonArenaPassword(e.target.value)}
                 onKeyDown={e => {
