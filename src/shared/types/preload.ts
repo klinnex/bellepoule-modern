@@ -20,13 +20,7 @@ import {
   RemoteEvent,
   MatchTiming,
 } from '../types';
-import type {
-  MatchSignatureRequest,
-  RemoteSession,
-  Arena,
-  ArenaUpdate,
-  FirewallDiagnosis,
-} from './remote';
+import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
 import type {
   DayReferee,
   DayRefereeAssignment,
@@ -454,7 +448,6 @@ export interface RemoteServerAPI {
     useHttps?: boolean
   ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
   stopServer: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
-  firewallCheck: (port: number) => Promise<FirewallDiagnosis>;
   getServerInfo: (
     competitionId: string
   ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
@@ -1426,7 +1419,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   greg: GregAPI;
   ftp: FtpAPI;
   crypto: CryptoAPI;
-  remote: RemoteServerAPI;
+  remote: RemoteServerAPI & import('./remote').RemoteFirewallAPI;
   training: TrainingAPI;
   eventDay: EventDayAPI;
   cyrano: CyranoAPI;

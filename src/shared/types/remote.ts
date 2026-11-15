@@ -241,3 +241,8 @@ export interface FirewallDiagnosis {
   findings: FirewallFinding[];
   error?: string;
 }
+
+/** API de diagnostic pare-feu (fusionnée dans window.electronAPI.remote). */
+export interface RemoteFirewallAPI {
+  firewallCheck: (port: number) => Promise<FirewallDiagnosis>;
+}
