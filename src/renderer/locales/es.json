@@ -2891,7 +2891,10 @@
     "checkin_desc": "Los tiradores de «{{title}}» escanean para registrarse.",
     "checkin_info": "Muestre este código QR en la entrada de la sala para que los tiradores confirmen su presencia.",
     "tab_results": "Resultados",
-    "tab_checkin": "Registro"
+    "tab_checkin": "Registro",
+    "print": "Imprimir el código QR",
+    "print_error": "Error al imprimir",
+    "copy_error": "No se pudo copiar: selecciona la URL y cópiala a mano."
   },
   "kioskEntry": {
     "quit": "✕ Salir del modo quiosco",

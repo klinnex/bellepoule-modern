@@ -1248,6 +1248,12 @@ body {
   margin-bottom: 0;
 }
 
+/* Libellés Tireur 1 / Tireur 2 centrés au-dessus de leur liste (#1858) */
+.comparison__selectors .form-label {
+  display: block;
+  text-align: center;
+}
+
 .comparison__vs {
   font-size: 1.5rem;
   font-weight: 700;
@@ -1599,15 +1605,9 @@ body {
 }
 
 .qrcode__info {
-  text-align: left;
-}
-
-.qrcode__info ul {
-  margin: 0.5rem 0 0 1.25rem;
-}
-
-.qrcode__info li {
-  margin-bottom: 0.25rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
 /* ============================================================================

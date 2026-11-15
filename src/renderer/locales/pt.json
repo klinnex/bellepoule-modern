@@ -2891,7 +2891,10 @@
     "checkin_desc": "Os esgrimistas de «{{title}}» leem o código para registar a sua presença.",
     "checkin_info": "Apresente este código QR à entrada do local para que os esgrimistas possam confirmar a sua presença.",
     "tab_results": "Resultados",
-    "tab_checkin": "Chamada"
+    "tab_checkin": "Chamada",
+    "print": "Imprimir o código QR",
+    "print_error": "Falha na impressão",
+    "copy_error": "Não foi possível copiar: selecione o URL e copie manualmente."
   },
   "kioskEntry": {
     "quit": "✕ Sair do modo quiosque",

@@ -2891,7 +2891,10 @@
     "checkin_desc": "Die Fechter von „{{title}}“ scannen, um sich selbst einzuchecken.",
     "checkin_info": "Zeigen Sie diesen QR-Code am Halleneingang, damit die Fechter ihre Anwesenheit bestätigen.",
     "tab_results": "Ergebnisse",
-    "tab_checkin": "Check-in"
+    "tab_checkin": "Check-in",
+    "print": "QR-Code drucken",
+    "print_error": "Drucken fehlgeschlagen",
+    "copy_error": "Kopieren fehlgeschlagen: URL markieren und manuell kopieren."
   },
   "kioskEntry": {
     "quit": "✕ Kioskmodus beenden",

@@ -11,8 +11,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { logger, LogCategory } from '@shared/services/logger';
 import { Competition } from '../../shared/types';
 import { Button } from './common/Button';
-import { Lightbulb, Smartphone } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { buildQrSheetsHTML } from './ArenaQrCodesModal';
+import { ipcErrorText } from '../services/ipcError';
 
 type QRMode = 'results' | 'checkin';
 
@@ -83,10 +85,38 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl).then(() => {
+  // Impression A4 du QR seul (#1858) : boîte d'impression intégrée
+  const printQRCode = async () => {
+    if (!shareUrl) return;
+    try {
+      const QRCode = (await import('qrcode')).default;
+      const dataUrl = await QRCode.toDataURL(shareUrl, {
+        width: 600,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+      });
+      const html = buildQrSheetsHTML(
+        [{ title: competition.title, subtitle: cfg.title, url: shareUrl, dataUrl }],
+        1,
+        competition.title
+      );
+      const res = await window.electronAPI?.file?.printHtml?.(html);
+      if (res && !res.success) throw new Error(ipcErrorText(t, res, t('qrShare.print_error')));
+    } catch (err) {
+      logger.error(LogCategory.UI, 'Erreur impression QR', err as Error);
+      showToast(err instanceof Error ? err.message : t('qrShare.print_error'), 'error');
+    }
+  };
+
+  // Copie de l'URL (#1858) : échec signalé au lieu d'être silencieux
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
       showToast(t('qrShare.copied'), 'success');
-    });
+    } catch (err) {
+      logger.error(LogCategory.UI, 'Copie URL impossible', err as Error);
+      showToast(t('qrShare.copy_error'), 'error');
+    }
   };
 
   const modeConfig = {
@@ -113,8 +143,8 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal__header">
-          <h2 className="modal__title">
+        <div className="modal-header">
+          <h2 className="modal-title">
             <Icon icon={Smartphone} /> {cfg.title}
           </h2>
           <button className="modal__close" onClick={onClose} aria-label={t('actions.close')}>
@@ -144,7 +174,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
           ))}
         </div>
 
-        <div className="modal__body">
+        <div className="modal-body">
           <div className="qrcode__container">
             <p className="qrcode__description">{cfg.description}</p>
 
@@ -179,19 +209,14 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
               </div>
             )}
 
-            <div className="qrcode__info">
-              <div className="alert alert--info">
-                <strong>
-                  <Icon icon={Lightbulb} />{' '}
-                </strong>
-                {cfg.info}
-              </div>
-            </div>
+            <p className="qrcode__info">{cfg.info}</p>
           </div>
         </div>
 
-        <div className="modal__footer">
-          <Button onClick={onClose}>{t('actions.close')}</Button>
+        <div className="modal-footer">
+          <Button onClick={printQRCode} disabled={!qrCodeUrl || isGenerating}>
+            {t('qrShare.print')}
+          </Button>
           <Button variant="primary" onClick={downloadQRCode} disabled={!qrCodeUrl || isGenerating}>
             {t('qrShare.download')}
           </Button>

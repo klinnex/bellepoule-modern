@@ -2891,7 +2891,10 @@
     "checkin_desc": "Els tiradors de «{{title}}» escanegen per registrar-se.",
     "checkin_info": "Mostreu aquest codi QR a l'entrada de la sala perquè els tiradors confirmin la seva presència.",
     "tab_results": "Resultats",
-    "tab_checkin": "Registre"
+    "tab_checkin": "Registre",
+    "print": "Imprimeix el codi QR",
+    "print_error": "Error en imprimir",
+    "copy_error": "No es pot copiar: selecciona l'URL i copia-la a mà."
   },
   "kioskEntry": {
     "quit": "✕ Surt del mode quiosc",

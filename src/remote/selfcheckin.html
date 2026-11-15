@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="selfCheckin.page_title">Pointage – BellePoule</title>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--slate-900);
+        color: var(--slate-100);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem 1rem 3rem;
+      }
+      header {
+        text-align: center;
+        max-width: 440px;
+        margin-bottom: 1.25rem;
+      }
+      header h1 {
+        font-size: 1.5rem;
+        color: var(--slate-50);
+      }
+      header p {
+        color: var(--slate-400);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+      .card {
+        background: var(--slate-800);
+        border: 1px solid var(--slate-700);
+        border-radius: 10px;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 440px;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--slate-400);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.4rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.7rem 0.875rem;
+        background: var(--slate-900);
+        border: 1px solid var(--slate-700);
+        border-radius: 8px;
+        color: var(--slate-100);
+        font-size: 1rem;
+      }
+      input:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--blue-400);
+        outline-offset: 2px;
+      }
+      button {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--blue-500);
+        color: var(--color-white);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .msg {
+        margin-top: 1rem;
+        padding: 0.875rem;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+      }
+      .msg.ok {
+        background: var(--tw-green-900);
+        color: var(--tw-green-400);
+      }
+      .msg.err {
+        background: var(--tw-red-950);
+        color: var(--red-200);
+      }
+      .hidden {
+        display: none;
+      }
+      .hint {
+        color: var(--slate-400);
+        font-size: 0.8rem;
+        text-align: center;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 data-i18n="selfCheckin.title">Pointage</h1>
+      <p data-i18n="selfCheckin.intro">
+        Saisissez votre numéro de licence et votre date de naissance pour confirmer votre présence.
+      </p>
+    </header>
+    <main class="card">
+      <form id="form" novalidate>
+        <div class="form-group">
+          <label for="license" data-i18n="selfCheckin.license">Numéro de licence</label>
+          <input
+            id="license"
+            name="license"
+            type="text"
+            autocomplete="off"
+            maxlength="40"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="birth" data-i18n="selfCheckin.birth_date">Date de naissance</label>
+          <input id="birth" name="birth" type="date" required />
+        </div>
+        <button type="submit" id="submit" data-i18n="selfCheckin.submit">Je suis présent</button>
+      </form>
+      <div id="msg" class="msg hidden" role="status" aria-live="polite"></div>
+      <p class="hint" data-i18n="selfCheckin.hint">
+        En cas de problème, présentez-vous à la table d'appel.
+      </p>
+    </main>
+    <script>
+      (function () {
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        // Identifiant lu dans l'URL /competition/:id/checkin (format validé côté serveur, #997)
+        const m = window.location.pathname.match(/^\/competition\/([A-Za-z0-9_-]{1,64})\/checkin/);
+        const competitionId = m ? m[1] : '';
+        const form = document.getElementById('form');
+        const msg = document.getElementById('msg');
+        const submit = document.getElementById('submit');
+
+        function show(text, ok) {
+          msg.textContent = text;
+          msg.className = 'msg ' + (ok ? 'ok' : 'err');
+        }
+
+
+        form.addEventListener('submit', async e => {
+          e.preventDefault();
+          const license = document.getElementById('license').value.trim();
+          const birthDate = document.getElementById('birth').value;
+          if (!license || !birthDate) return show(tk('selfCheckin.err_input'), false);
+          submit.disabled = true;
+          try {
+            const r = await fetch(
+              '/api/competitions/' + encodeURIComponent(competitionId) + '/self-checkin',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ license, birthDate }),
+              }
+            );
+            const data = await r.json().catch(() => ({}));
+            if (r.ok && data.success) {
+              const name = (data.firstName || '') + ' ' + String(data.lastName || '').toUpperCase();
+              show(
+                tk(data.already ? 'selfCheckin.already' : 'selfCheckin.success', {
+                  name: name.trim(),
+                }),
+                true
+              );
+              form.classList.add('hidden');
+            } else if (r.status === 429) {
+              show(tk('selfCheckin.err_limited'), false);
+            } else {
+              show(window.errorText(data, tk('selfCheckin.err_generic')), false);
+            }
+          } catch {
+            show(tk('selfCheckin.err_generic'), false);
+          } finally {
+            submit.disabled = false;
+          }
+        });
+
+        if (window.initRemoteI18n) window.initRemoteI18n();
+      })();
+    </script>
+  </body>
+</html>

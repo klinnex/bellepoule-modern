@@ -2891,7 +2891,10 @@
     "checkin_desc": "Gli schermidori di « {{title}} » scansionano per confermare da soli la propria presenza.",
     "checkin_info": "Mostra questo QR code all'ingresso della sala affinché gli schermidori confermino la propria presenza.",
     "tab_results": "Risultati",
-    "tab_checkin": "Conferma presenza"
+    "tab_checkin": "Conferma presenza",
+    "print": "Stampa il codice QR",
+    "print_error": "Stampa non riuscita",
+    "copy_error": "Copia non riuscita: seleziona l'URL e copiala a mano."
   },
   "kioskEntry": {
     "quit": "✕ Esci dalla modalità kiosk",

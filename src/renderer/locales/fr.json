@@ -2889,9 +2889,12 @@
     "results_info": "Les spectateurs peuvent voir les résultats en temps réel.",
     "checkin_title": "QR Code de pointage",
     "checkin_desc": "Les tireurs de « {{title}} » scannent pour se pointer eux-mêmes.",
-    "checkin_info": "Affichez ce QR code à l'entrée de la salle pour que les tireurs confirment leur présence.",
+    "checkin_info": "Affichez ce QR code à l'entrée de la salle : chaque tireur confirme sa présence avec son numéro de licence et sa date de naissance.",
     "tab_results": "Résultats",
-    "tab_checkin": "Pointage"
+    "tab_checkin": "Pointage",
+    "print": "Imprimer le QR Code",
+    "print_error": "Échec de l'impression",
+    "copy_error": "Copie impossible : sélectionnez l'URL et copiez-la à la main."
   },
   "kioskEntry": {
     "quit": "✕ Quitter le mode kiosque",
