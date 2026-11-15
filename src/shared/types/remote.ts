@@ -239,7 +239,8 @@ export interface FirewallDiagnosis {
   port: number;
   networkCategories: string[];
   findings: FirewallFinding[];
-  error?: string;
+  /** Détail technique en cas d'échec de lecture (affiché tel quel, non traduit). */
+  detail?: string;
 }
 
 /** API de diagnostic pare-feu (fusionnée dans window.electronAPI.remote). */

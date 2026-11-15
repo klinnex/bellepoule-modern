@@ -26,11 +26,16 @@ export interface RawFirewallData {
 /** Script PowerShell en lecture seule : aucune modification du pare-feu. */
 export function buildFirewallScript(): string {
   return [
+    "$ProgressPreference = 'SilentlyContinue'",
     "$ErrorActionPreference = 'SilentlyContinue'",
+    'try {',
     '$profiles = @(Get-NetFirewallProfile | ForEach-Object { [pscustomobject]@{ Name = [string]$_.Name; Enabled = [string]$_.Enabled; DefaultInboundAction = [string]$_.DefaultInboundAction } })',
     '$networks = @(Get-NetConnectionProfile | ForEach-Object { [pscustomobject]@{ Name = [string]$_.Name; NetworkCategory = [string]$_.NetworkCategory } })',
     '$rules = @(Get-NetFirewallRule -Direction Inbound -Enabled True | ForEach-Object { $pf = $_ | Get-NetFirewallPortFilter; $ap = $_ | Get-NetFirewallApplicationFilter; [pscustomobject]@{ Name = [string]$_.DisplayName; Action = [string]$_.Action; Profile = [string]$_.Profile; Protocol = [string]$pf.Protocol; LocalPort = @($pf.LocalPort | ForEach-Object { [string]$_ }); Program = [string]$ap.Program } })',
-    '[pscustomobject]@{ profiles = $profiles; networks = $networks; rules = $rules } | ConvertTo-Json -Depth 5 -Compress',
+    '  [pscustomobject]@{ profiles = $profiles; networks = $networks; rules = $rules } | ConvertTo-Json -Depth 5 -Compress',
+    '} catch {',
+    '  [pscustomobject]@{ fatal = [string]$_.Exception.Message } | ConvertTo-Json -Compress',
+    '}',
   ].join('\n');
 }
 
@@ -135,26 +140,31 @@ export function analyzeFirewall(
   return findings;
 }
 
+/** Extrait le JSON de la sortie (tolère du texte parasite avant ou après). */
+function extractJson(stdout: string): string {
+  const start = stdout.indexOf('{');
+  const end = stdout.lastIndexOf('}');
+  return start >= 0 && end > start ? stdout.slice(start, end + 1) : '';
+}
+
 /** Transforme la sortie JSON PowerShell en diagnostic. Tolère les champs absents. */
 export function parseFirewallOutput(
   stdout: string,
   port: number,
   exePath: string
 ): FirewallDiagnosis {
-  const trimmed = stdout.trim();
-  if (!trimmed) {
-    return {
-      supported: true,
-      port,
-      networkCategories: [],
-      findings: [{ level: 'error', code: 'unreadable' }],
-    };
+  const json = extractJson(stdout);
+  if (!json) {
+    return unreadable(port, `Sortie sans JSON : ${stdout.trim().slice(0, 300) || '(vide)'}`);
   }
   let raw: RawFirewallData;
   try {
     // Sortie PowerShell : forme connue (voir buildFirewallScript), validée par analyzeFirewall
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsed: Record<string, any> = JSON.parse(trimmed);
+    const parsed: Record<string, any> = JSON.parse(json);
+    if (typeof parsed.fatal === 'string') {
+      return unreadable(port, `Erreur PowerShell : ${parsed.fatal}`);
+    }
     raw = {
       profiles: toArray<RawFirewallData['profiles'][number]>(parsed.profiles),
       networks: toArray<RawFirewallData['networks'][number]>(parsed.networks),
@@ -163,13 +173,8 @@ export function parseFirewallOutput(
         LocalPort: toArray<string>(r.LocalPort),
       })),
     };
-  } catch {
-    return {
-      supported: true,
-      port,
-      networkCategories: [],
-      findings: [{ level: 'error', code: 'unreadable' }],
-    };
+  } catch (e) {
+    return unreadable(port, `JSON invalide : ${e instanceof Error ? e.message : String(e)}`);
   }
   const networkCategories = [
     ...new Set(raw.networks.map(n => normalizeCategory(n.NetworkCategory))),
@@ -179,6 +184,16 @@ export function parseFirewallOutput(
     port,
     networkCategories,
     findings: analyzeFirewall(raw, port, exePath),
+  };
+}
+
+function unreadable(port: number, detail: string): FirewallDiagnosis {
+  return {
+    supported: true,
+    port,
+    networkCategories: [],
+    findings: [{ level: 'error', code: 'unreadable' }],
+    detail,
   };
 }
 
@@ -199,27 +214,20 @@ export function runFirewallCheck(
   if (platform !== 'win32') {
     return Promise.resolve({ supported: false, port, networkCategories: [], findings: [] });
   }
+  const encoded = Buffer.from(buildFirewallScript(), 'utf16le').toString('base64');
   return new Promise(resolve => {
     execFile(
       'powershell.exe',
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        buildFirewallScript(),
-      ],
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded],
       { timeout: 30000, windowsHide: true, maxBuffer: 16 * 1024 * 1024 },
-      (error, stdout) => {
+      (error, stdout, stderr) => {
         if (error) {
-          resolve({
-            supported: true,
-            port,
-            networkCategories: [],
-            findings: [{ level: 'error', code: 'unreadable' }],
-            error: error.message,
-          });
+          const killed = (error as NodeJS.ErrnoException & { killed?: boolean }).killed;
+          const reason = killed ? 'délai dépassé (30 s)' : `code ${String(error.code ?? '?')}`;
+          const err = String(stderr ?? '')
+            .trim()
+            .slice(0, 300);
+          resolve(unreadable(port, `PowerShell : ${reason}${err ? ` — ${err}` : ''}`));
           return;
         }
         resolve(parseFirewallOutput(String(stdout), port, exePath));

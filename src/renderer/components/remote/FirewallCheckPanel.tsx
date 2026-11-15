@@ -62,6 +62,7 @@ export function FirewallCheckPanel({ t, port }: { t: Translate; port: number }) 
               </li>
             ))}
           </ul>
+          {result.detail && <p style={RSM_STYLES.fwDetail}>{result.detail}</p>}
           <p style={RSM_STYLES.fwNote}>{t('rsm.fw_note')}</p>
         </div>
       )}
