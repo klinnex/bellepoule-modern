@@ -184,7 +184,11 @@ class CyranoDevice extends EventEmitter {
     s.ref = [g[14] || '', g[15] || '', g[16] || ''];
     if (!s.general.round) s.general.round = '1';
     s.priority = 'N';
-    s.stopwatchMs = s.periodMs;
+    // Chrono transmis pour un match repris (PREV) ; sinon temps de la période
+    const watch = /^(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?$/.exec(g[9] || '');
+    s.stopwatchMs = watch
+      ? (Number(watch[1]) * 60 + Number(watch[2])) * 1000 + Number((watch[3] || '0').padEnd(2, '0')) * 10
+      : s.periodMs;
     s.right = f(r);
     s.left = f(l);
     this.note(s.right.id ? `match ${s.right.name} – ${s.left.name}` : 'aucun match disponible');

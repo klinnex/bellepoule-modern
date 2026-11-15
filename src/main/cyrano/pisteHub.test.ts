@@ -344,7 +344,16 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
   describe('PREV — touche PREVIOUS de l’appareil (#1829)', () => {
     const finishFirst = () => {
       device(info('H', { id: short(ID.ef), score: 4, y: 1 }, { id: short(ID.ab), score: 2, r: 2 }));
-      device(info('E', { id: short(ID.ef), score: 5, y: 1 }, { id: short(ID.ab), score: 2, r: 2 }));
+      device(
+        info(
+          'E',
+          { id: short(ID.ef), score: 5, y: 1 },
+          { id: short(ID.ab), score: 2, r: 2 },
+          {
+            stopwatch: '1:20',
+          }
+        )
+      );
       expect(arena().status).toBe('finished');
     };
 
@@ -363,6 +372,9 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
         left: { id: short(ID.ab), score: 2, redCards: 2 },
       });
       expect(mockDb.clearArenaEvents).toHaveBeenCalled();
+      // Chrono de fin repris : dans le DISP et sur la tablette / l'écran d'arène
+      expect(lastDisp()?.stopwatch).toBe('1:20');
+      expect(updates[updates.length - 1]).toMatchObject({ time: 80, timerStatus: 'paused' });
       // Correction sur l'appareil puis nouvelle validation
       mockDb.updateMatch.mockClear();
       device(info('H', { id: short(ID.ef), score: 5, y: 1 }, { id: short(ID.ab), score: 3, r: 2 }));

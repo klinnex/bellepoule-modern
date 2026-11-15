@@ -31,6 +31,8 @@ export interface CyranoDispMatch {
   round?: number;
   /** Heure prévue (HH:MM) */
   time?: string;
+  /** Chrono à reprendre (`m:ss`) : match rappelé (PREV) ; omis pour un match neuf */
+  stopwatch?: string;
   /** Arme BellePoule ('E' | 'F' | 'S' | 'L' | 'C') */
   weapon: string;
   team?: boolean;
@@ -75,6 +77,7 @@ export function buildDisp(m: CyranoDispMatch, opts: CyranoDispOptions = {}): Cyr
     match: String(m.match),
     round: String(m.round ?? 1),
     time: m.time,
+    ...(m.stopwatch ? { stopwatch: m.stopwatch } : {}),
     type: m.team ? 'T' : 'I',
     weapon: toCyranoWeapon(m.weapon),
     priority: 'N',

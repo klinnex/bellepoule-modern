@@ -56,7 +56,10 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 
 Un `DISP` du match courant porte aussi les cartons déjà donnés (champs jaune / rouge des zones
 tireurs, omis à zéro) : sans eux, le premier `INFO` d'un appareil qui reprend un match (PREV,
-redémarrage) les effacerait. À confirmer sur un appareil réel.
+redémarrage) les effacerait. Pour un match rappelé (PREV) pas encore relancé, il porte aussi le
+chrono de fin de match (dernier chrono reçu de l'appareil), également diffusé à la tablette et à
+l'écran d'arène ; jamais de chrono dans un `DISP` envoyé en plein combat. À confirmer sur un
+appareil réel.
 
 Le `DISP` porte la phase, la poule (numéro de la poule) ou le tableau (`A16`, `A8`…) et le numéro
 du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage seul (noms et score),
