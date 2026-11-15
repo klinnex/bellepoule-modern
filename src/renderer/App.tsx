@@ -575,6 +575,8 @@ const AppContent: React.FC = () => {
     setTrainingServerUrl('');
     setTrainingStrips(1);
     setTrainingWeapon('');
+    // Retour à la fenêtre de paramétrage du mode (au lieu de fermer)
+    setShowTrainingModal(true);
   }, []);
 
   const handleDeleteCompetition = useCallback(

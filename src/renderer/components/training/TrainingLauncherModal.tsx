@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { X, Swords, Minus, Plus, Clock, Zap, Network, Shuffle } from 'lucide-react';
+import { Swords, Minus, Plus, Clock, Zap, Network, Shuffle } from 'lucide-react';
 import { Weapon, TargetZone, ZONE_POINTS, ZONE_LABELS } from '../../../shared/types';
 import type { TrainingCustomRules } from '../../../shared/types/preload';
 import { Button } from '../common/Button';
@@ -167,9 +167,15 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           >
             <Swords size={18} /> {t('trainingLauncher.title')}
           </h2>
-          <Button variant="ghost" className="btn-icon" onClick={onClose} title={t('actions.close')}>
-            <X size={16} />
-          </Button>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={onClose}
+            title={t('actions.close')}
+            aria-label={t('actions.close')}
+          >
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
