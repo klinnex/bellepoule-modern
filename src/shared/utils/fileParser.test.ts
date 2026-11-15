@@ -8,6 +8,8 @@ import {
 } from './fileParser';
 import { exportFencersToFFF } from './fencerExport';
 
+import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
+
 const TEST_COMP = {
   id: 'c1',
   title: 'Coupe de Dourdan 2026',
@@ -20,7 +22,6 @@ const TEST_COMP = {
   createdAt: new Date(),
   updatedAt: new Date(),
 } as unknown as Competition;
-import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
 // ============================================================================
 // parseSimpleTXTFile
