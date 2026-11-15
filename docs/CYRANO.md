@@ -125,9 +125,23 @@ npm run cyrano:sim -- --server 127.0.0.1 --server-port 50100 --port 50101 --pist
 ```
 
 Le simulateur répond aux HELLO par un INFO complet, installe les DISP en état W (match en
-cours : un DISP des mêmes tireurs corrige les scores), passe en W à la réception d'un ACK. Commandes clavier : `next`, `prev`, `begin`, `go`, `halt`, `end`,
-`r+` / `l+` / `r-` / `l-` (touches), `yr` / `yl` (jaune), `rr` / `rl` (rouge),
-`pr` / `pl` / `pn` (priorité), `ar` / `al` (abandon), `swap` (inversion), `reset`, `show`, `quit`.
+cours : un DISP des mêmes tireurs corrige les scores), passe en W à la réception d'un ACK.
+Ses commandes reprennent la télécommande WSG des Saint-Georges SG31 / SG32 :
+
+| Groupe | Commandes (console) | Touche de la télécommande |
+|---|---|---|
+| Chrono | `stopgo` (`go`, `halt`), `pause`, `reset`, `round+` / `round-`, `clock+` / `clock-`, `init+` / `init-` | STOP/GO, PAUSE (minute de repos, état `P`), RESET (temps de la période), ROUND ∧∨, jaune CLOCK ∧∨ (±1 s), rouge RESET ∧∨ (durée ±1 min) |
+| Arme | `weapon`, `epee` / `foil` / `sabre` | touche arme, jaune + PAUSE / RESET / STOP/GO |
+| Priorité | `prio`, `pn` ; `pr` / `pl` (essais) | ⚄ (tirage au sort), jaune P RESET |
+| Score | `r+` `r-` `l+` `l-`, `yr` `yl` / `yr-` `yl-`, `rr` `rl` / `rr-` `rl-`, `swap`, `zero`, `cards0` | ∧ ∨, jaune ∧∨ (carton jaune), rouge ∧∨ (carton rouge), ⟷, 0:0, jaune CARDS RESET |
+| Bloc PC | `next`, `prev`, `begin`, `end` (`validate`), `ar` / `al`, `er` / `el`, `resr` / `resl`, `mr` / `ml` | vert NEXT, PREVIOUS, BEGIN, VALIDATE ; jaune ABANDON, RESERVE ; rouge EXPULSION, assistance médicale |
+| Appareil | `raz`, `show`, `quit` | extinction / rallumage |
+
+- Chrono à 0:00 : GO refusé (comme l'appareil). `pause` lance la minute de repos ; à sa fin,
+  le temps de la période revient et la période passe à la suivante ; `reset` l'écourte.
+- `reset` ne remet que le chrono ; `raz` efface tout (tireurs, scores, cartons, chrono).
+- Une commande impossible dans l'état courant est refusée avec sa raison (même règle pour la
+  télécommande web, qui grise le bouton).
 
 Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur (`--port`).
 
@@ -135,12 +149,24 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
 
 ```bash
 npm run cyrano:remote          # 3 pistes par défaut, page http://127.0.0.1:5099
+npm run cyrano:remote -- --count 16   # pistes 1 à 16 : 127.0.0.N, port 50100 + N
 npm run cyrano:remote -- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102 --server-port 50100
 ```
 
-Une carte par piste : état de l'appareil, chrono, tireurs gauche (rouge) / droite (vert), boutons
-BEGIN, GO, HALT, END, NEXT, PREV, SWAP, RESET, touches ±1, cartons jaune / rouge, priorité,
-abandon, et journal des trames (HELLO masqués). Mêmes appareils simulés que la console
+Une carte par piste : état de l'appareil, chrono, période et durée, tireurs gauche (rouge) /
+droite (vert), boutons groupés comme sur la télécommande (bloc PC, chrono, arme, score, cartons,
+priorité), libellés colorés selon la touche de mode, et journal des trames (HELLO masqués).
+Au-delà de 4 pistes, les cartes s'ouvrent repliées sur une ligne (état, chrono, tireurs et score) ;
+un clic sur l'en-tête déplie la télécommande, boutons « Tout déplier / Tout replier » en haut.
+La table des pistes correspondante peut être déclarée d'un coup depuis la console DevTools de
+l'application :
+
+```js
+const pistes = Array.from({ length: 16 }, (_, k) => ({ piste: String(k + 1), ip: `127.0.0.${k + 1}`,
+  port: 50101 + k, arena: k + 1, protocol: 'auto', mode: 'master' }));
+localStorage.setItem('bellepoule-cyrano-pistes', JSON.stringify(pistes)); // panneau Cyrano
+await window.electronAPI.cyrano.setPistes(pistes);                         // serveur
+``` Mêmes appareils simulés que la console
 (`scripts/lib/cyranoDevice.js`). Ne pas lancer en même temps un simulateur console sur les mêmes ports.
 
 Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc

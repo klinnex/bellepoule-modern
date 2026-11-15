@@ -43,13 +43,34 @@ function parse(raw) {
   return { g: zones[0] || [], r: zones[1] || [], l: zones[2] || [] };
 }
 
-/** Commandes de la télécommande, dans l'ordre d'affichage. */
+/**
+ * Commandes, calquées sur la télécommande WSG des appareils Saint-Georges SG31 / SG32
+ * (fonction blanche = touche seule ; jaune / rouge / verte = avec la touche de mode).
+ */
 const COMMANDS = [
-  'next', 'prev', 'begin', 'go', 'halt', 'end', 'swap', 'reset',
-  'r+', 'r-', 'yr', 'rr', 'pr', 'ar',
-  'l+', 'l-', 'yl', 'rl', 'pl', 'al',
-  'pn',
+  // Chrono : STOP/GO, PAUSE (minute de repos), RESET (temps initial), ROUND ∧∨,
+  // CLOCK ∧∨ (jaune : ±1 s, chrono arrêté), RESET ∧∨ (rouge : temps initial ±1 min)
+  'stopgo', 'go', 'halt', 'pause', 'reset', 'round+', 'round-', 'clock+', 'clock-', 'init+', 'init-',
+  // Arme : touche arme (cycle) ; jaune + PAUSE / RESET / STOP/GO = épée / fleuret / sabre
+  'weapon', 'epee', 'foil', 'sabre',
+  // Priorité : ⚄ (tirage au sort), jaune = P RESET ; pr / pl = priorité imposée (essais)
+  'prio', 'pn', 'pr', 'pl',
+  // Score : ∧ (+1, jaune = carton jaune, rouge = carton rouge) et ∨ (l'inverse)
+  'r+', 'r-', 'yr', 'yr-', 'rr', 'rr-',
+  'l+', 'l-', 'yl', 'yl-', 'rl', 'rl-',
+  // ⟷ (inversion), 0:0, jaune + 0:0 = CARDS RESET
+  'swap', 'zero', 'cards0',
+  // Bloc PC (vert) : PREVIOUS, BEGIN, NEXT, VALIDATE ; jaune : ABANDON, RESERVE ;
+  // rouge : EXPULSION, assistance médicale
+  'prev', 'begin', 'next', 'end', 'validate',
+  'ar', 'al', 'er', 'el', 'resr', 'resl', 'mr', 'ml',
+  // Remise à zéro complète de l'appareil (extinction / rallumage)
+  'raz',
 ];
+
+const WEAPONS = ['E', 'F', 'S'];
+const PAUSE_MS = 60000;
+const DEFAULT_PERIOD_MS = 180000;
 
 /** Actions sur un tireur : r = droite, l = gauche. */
 const FENCER_ACTIONS = {};
@@ -57,9 +78,14 @@ for (const side of ['r', 'l']) {
   FENCER_ACTIONS[`${side}+`] = { side, op: '+' };
   FENCER_ACTIONS[`${side}-`] = { side, op: '-' };
   FENCER_ACTIONS[`y${side}`] = { side, op: 'yellow' };
+  FENCER_ACTIONS[`y${side}-`] = { side, op: 'yellow-' };
   FENCER_ACTIONS[`r${side}`] = { side, op: 'red' };
+  FENCER_ACTIONS[`r${side}-`] = { side, op: 'red-' };
   FENCER_ACTIONS[`p${side}`] = { side, op: 'priority' };
   FENCER_ACTIONS[`a${side}`] = { side, op: 'abandon' };
+  FENCER_ACTIONS[`e${side}`] = { side, op: 'expulsion' };
+  FENCER_ACTIONS[`res${side}`] = { side, op: 'reserve' };
+  FENCER_ACTIONS[`m${side}`] = { side, op: 'medical' };
 }
 
 class CyranoDevice extends EventEmitter {
@@ -81,7 +107,8 @@ class CyranoDevice extends EventEmitter {
       compe: '',
       general: { phase: '', poulTab: '', match: '', round: '', time: '', type: '', weapon: '' },
       ref: ['', '', ''],
-      stopwatchMs: 180000,
+      periodMs: DEFAULT_PERIOD_MS,
+      stopwatchMs: DEFAULT_PERIOD_MS,
       priority: 'N',
       state: 'W',
       right: emptyFencer(),
@@ -146,8 +173,9 @@ class CyranoDevice extends EventEmitter {
     s.compe = g[3] || '';
     s.general = { phase: g[4] || '', poulTab: g[5] || '', match: g[6] || '', round: g[7] || '', time: g[8] || '', type: g[10] || '', weapon: g[11] || '' };
     s.ref = [g[14] || '', g[15] || '', g[16] || ''];
+    if (!s.general.round) s.general.round = '1';
     s.priority = 'N';
-    s.stopwatchMs = 180000;
+    s.stopwatchMs = s.periodMs;
     s.right = f(r);
     s.left = f(l);
     this.note(s.right.id ? `match ${s.right.name} – ${s.left.name}` : 'aucun match disponible');
@@ -193,82 +221,193 @@ class CyranoDevice extends EventEmitter {
     }
   }
 
+  stopTimer() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+  }
+
+  startTimer() {
+    this.stopTimer();
+    this.timer = setInterval(() => this.tick(), 1000);
+  }
+
+  /** Une seconde de chrono : assaut (F) ou minute de repos (P). */
   tick() {
     const { s } = this;
-    s.stopwatchMs -= 1000;
-    if (s.stopwatchMs <= 0) {
-      s.stopwatchMs = 0;
-      s.state = 'H';
-      clearInterval(this.timer);
-      this.timer = null;
+    s.stopwatchMs = Math.max(0, s.stopwatchMs - 1000);
+    if (s.stopwatchMs === 0) {
+      this.stopTimer();
+      if (s.state === 'P') {
+        // Fin du repos : temps de la période rétabli, période suivante (score et cartons gardés)
+        s.stopwatchMs = s.periodMs;
+        s.general.round = String((Number(s.general.round) || 1) + 1);
+        s.state = 'H';
+        this.note(`fin de la minute de repos : période ${s.general.round}, GO pour reprendre`);
+      } else {
+        s.state = 'H';
+        this.note('temps écoulé : PAUSE (minute de repos) ou RESET (temps de la période)');
+      }
     }
     this.sendInfo();
+  }
+
+  /**
+   * Commande disponible dans l'état courant ? Renvoie '' si oui, sinon la raison.
+   * Même règle pour la console, la télécommande web (boutons grisés) et `command`.
+   */
+  blocked(name) {
+    const { s } = this;
+    const active = s.state !== 'W';
+    if (name === 'raz' || name === 'weapon' || name === 'epee' || name === 'foil' || name === 'sabre') return '';
+    if (name === 'next' || name === 'prev') return active ? 'match en cours (VALIDATE avant)' : '';
+    if (name === 'begin') return active ? 'match déjà ouvert' : s.right.id ? '' : 'aucun match chargé (NEXT)';
+    if (!active) return 'aucun match ouvert (BEGIN)';
+    if (s.state === 'E') return 'fin de match en attente de réponse (ACK / NAK)';
+    switch (name) {
+      case 'go':
+        if (s.state === 'F') return 'chrono déjà lancé';
+        if (s.state === 'P') return 'minute de repos en cours (RESET pour l’écourter)';
+        return s.stopwatchMs > 0 ? '' : 'temps écoulé : PAUSE ou RESET';
+      case 'stopgo':
+        if (s.state === 'P') return 'minute de repos en cours (RESET pour l’écourter)';
+        return s.state === 'F' || s.stopwatchMs > 0 ? '' : 'temps écoulé : PAUSE ou RESET';
+      case 'halt':
+        return s.state === 'F' ? '' : 'chrono déjà arrêté';
+      case 'pause':
+        return s.state === 'P' ? 'minute de repos déjà en cours' : '';
+      case 'clock+':
+      case 'clock-':
+      case 'init+':
+      case 'init-':
+        return s.state === 'P' ? 'minute de repos en cours (RESET pour l’écourter)' : '';
+      default:
+        return '';
+    }
   }
 
   /** Exécute une commande de télécommande ; false si inconnue. */
   command(name) {
     const { s } = this;
-    const active = s.state !== 'W';
-    const stopTimer = () => {
-      if (this.timer) clearInterval(this.timer);
-      this.timer = null;
-    };
+    if (name === 'validate') name = 'end';
+    if (!COMMANDS.includes(name) && name !== 'show') return false;
+    if (name === 'show') return this.note(this.infoFrame()), true;
+    const why = this.blocked(name);
+    if (why) return this.note(`${name.toUpperCase()} impossible : ${why}`), true;
     switch (name) {
       case 'next':
       case 'prev':
-        if (active) return this.note(`${name.toUpperCase()} impossible : match en cours`), true;
         return this.sendCmd(name.toUpperCase()), true;
       case 'begin':
-        if (!active) (s.state = 'H'), this.sendInfo();
-        return true;
+        s.state = 'H';
+        break;
+      case 'stopgo':
+        return this.command(s.state === 'F' ? 'halt' : 'go');
       case 'go':
-        if (s.state === 'H' || s.state === 'P') {
-          s.state = 'F';
-          stopTimer();
-          this.timer = setInterval(() => this.tick(), 1000);
-          this.sendInfo();
-        }
-        return true;
+        s.state = 'F';
+        this.startTimer();
+        break;
       case 'halt':
-        if (s.state === 'F') (s.state = 'H'), stopTimer(), this.sendInfo();
-        return true;
+        s.state = 'H';
+        this.stopTimer();
+        break;
+      case 'pause':
+        // Minute de repos : chrono à 1:00 en décompte, armes testables sans effet sur le score
+        s.state = 'P';
+        s.stopwatchMs = PAUSE_MS;
+        this.startTimer();
+        break;
+      case 'reset':
+        // Temps initial de la période ; score, cartons et période inchangés
+        this.stopTimer();
+        s.state = 'H';
+        s.stopwatchMs = s.periodMs;
+        break;
+      case 'round+':
+      case 'round-': {
+        const n = (Number(s.general.round) || 1) + (name === 'round+' ? 1 : -1);
+        s.general.round = String(Math.min(99, Math.max(1, n)));
+        break;
+      }
+      case 'clock+':
+      case 'clock-':
+        // Réglage fin : chrono arrêté, ±1 s
+        this.stopTimer();
+        if (s.state === 'F') s.state = 'H';
+        s.stopwatchMs = Math.min(99 * 60000, Math.max(0, s.stopwatchMs + (name === 'clock+' ? 1000 : -1000)));
+        break;
+      case 'init+':
+      case 'init-':
+        // Temps initial ±1 min, chrono remis à cette valeur
+        this.stopTimer();
+        s.state = 'H';
+        s.periodMs = Math.min(99 * 60000, Math.max(60000, s.periodMs + (name === 'init+' ? 60000 : -60000)));
+        s.stopwatchMs = s.periodMs;
+        break;
+      case 'weapon':
+        s.general.weapon = WEAPONS[(WEAPONS.indexOf(s.general.weapon) + 1) % WEAPONS.length];
+        break;
+      case 'epee':
+      case 'foil':
+      case 'sabre':
+        s.general.weapon = { epee: 'E', foil: 'F', sabre: 'S' }[name];
+        break;
+      case 'prio':
+        // ⚄ : tirage au sort de la priorité
+        s.priority = Math.random() < 0.5 ? 'R' : 'L';
+        this.note(`priorité tirée au sort : ${s.priority === 'R' ? 'droite' : 'gauche'}`);
+        break;
+      case 'pn':
+        s.priority = 'N';
+        break;
       case 'end':
-        if (active) (s.state = 'E'), stopTimer(), this.sendInfo();
-        return true;
+        // VALIDATE : fin de match, attente de l'ACK / NAK du logiciel
+        s.state = 'E';
+        this.stopTimer();
+        break;
       case 'swap':
         [s.right, s.left] = [s.left, s.right];
         if (s.priority !== 'N') s.priority = s.priority === 'R' ? 'L' : 'R';
-        this.sendInfo();
-        return true;
-      case 'reset':
-        stopTimer();
+        break;
+      case 'zero':
+        s.right.score = 0;
+        s.left.score = 0;
+        break;
+      case 'cards0':
+        for (const f of [s.right, s.left]) (f.y = 0), (f.r = 0), (f.p = 0);
+        break;
+      case 'raz':
+        // Extinction / rallumage : tireurs, scores, cartons et chrono effacés
+        this.stopTimer();
         s.right = emptyFencer();
         s.left = emptyFencer();
         s.state = 'W';
-        s.stopwatchMs = 180000;
-        this.sendInfo();
-        return true;
-      case 'pn':
-        if (active) (s.priority = 'N'), this.sendInfo();
-        return true;
-      case 'show':
-        this.note(this.infoFrame());
-        return true;
-      default:
+        s.priority = 'N';
+        s.periodMs = DEFAULT_PERIOD_MS;
+        s.stopwatchMs = DEFAULT_PERIOD_MS;
+        s.general.round = '';
         break;
+      default:
+        this.fencerAction(FENCER_ACTIONS[name]);
     }
-    const action = FENCER_ACTIONS[name];
-    if (!action) return false;
-    if (!active) return this.note('appuyer sur BEGIN avant de saisir'), true;
-    const f = action.side === 'r' ? s.right : s.left;
-    if (action.op === '+') f.score++;
-    else if (action.op === '-') f.score = Math.max(0, f.score - 1);
-    else if (action.op === 'yellow') f.y = 1;
-    else if (action.op === 'red') f.r++;
-    else if (action.op === 'priority') s.priority = action.side.toUpperCase();
-    else if (action.op === 'abandon') f.status = 'A';
     this.sendInfo();
     return true;
+  }
+
+  fencerAction({ side, op }) {
+    const { s } = this;
+    const f = side === 'r' ? s.right : s.left;
+    const toggle = st => (f.status = f.status === st ? 'U' : st);
+    if (op === '+') f.score = Math.min(99, f.score + 1);
+    else if (op === '-') f.score = Math.max(0, f.score - 1);
+    else if (op === 'yellow') f.y = 1;
+    else if (op === 'yellow-') f.y = 0;
+    else if (op === 'red') f.r = Math.min(9, f.r + 1);
+    else if (op === 'red-') f.r = Math.max(0, f.r - 1);
+    else if (op === 'priority') s.priority = side.toUpperCase();
+    else if (op === 'abandon') toggle('A');
+    else if (op === 'expulsion') toggle('E');
+    else if (op === 'reserve') f.reserve = f.reserve === 'R' ? 'N' : 'R';
+    else if (op === 'medical') f.medical = Math.min(9, f.medical + 1);
   }
 
   snapshot() {
@@ -280,6 +419,8 @@ class CyranoDevice extends EventEmitter {
       protocol: this.protocol,
       state: s.state,
       stopwatch: fmtWatch(s.stopwatchMs),
+      period: fmtWatch(s.periodMs),
+      blocked: Object.fromEntries(COMMANDS.map(c => [c, this.blocked(c)])),
       priority: s.priority,
       general: s.general,
       right: { ...s.right },

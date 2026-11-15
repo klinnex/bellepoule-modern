@@ -11,9 +11,16 @@
  *   plusieurs simulateurs sur un même poste → une adresse de bouclage chacun (Linux :
  *   127.0.0.2, 127.0.0.3… sans configuration ; macOS : `sudo ifconfig lo0 alias 127.0.0.2`).
  *
- * Commandes (stdin) : next | prev | begin | end | go | halt | r+ | l+ | r- | l-
- *   | yr | yl | rr | rl (cartons) | pr | pl | pn (priorité) | ar | al (abandon)
- *   | swap (inversion droite/gauche) | reset | show | quit
+ * Commandes (stdin), calquées sur la télécommande WSG (SG31 / SG32) :
+ *   chrono    stopgo | go | halt | pause (minute de repos) | reset (temps de la période)
+ *             | round+ | round- | clock+ | clock- (±1 s) | init+ | init- (durée ±1 min)
+ *   arme      weapon (cycle) | epee | foil | sabre
+ *   priorité  prio (tirage au sort) | pn (P RESET) | pr | pl (imposée, essais)
+ *   score     r+ | r- | l+ | l- | yr | yl | yr- | yl- (jaune) | rr | rl | rr- | rl- (rouge)
+ *             | swap | zero (0:0) | cards0 (CARDS RESET)
+ *   bloc PC   next | prev | begin | end (= validate) | ar | al (abandon) | er | el (expulsion)
+ *             | resr | resl (réserve) | mr | ml (médical)
+ *   appareil  raz (remise à zéro complète) | show | quit
  * Licensed under GPL-3.0
  */
 const readline = require('readline');
