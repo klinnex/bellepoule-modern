@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 57 | 715 |
+| `src/shared/utils/` | 57 | 719 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **382** | **2905** |
+| **Total** | **382** | **2909** |
 
-Unitaires : 372 fichiers, 2866 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 372 fichiers, 2870 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -446,13 +446,13 @@ Unitaires : 372 fichiers, 2866 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 14 tests</summary>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 18 tests</summary>
 
 - **exportFencersToFFF**
-  - commence par l’en-tête FFF standard
+  - commence par l’en-tête FFF;WIN;COMPETITION puis la ligne de compétition
   - met le nom en majuscules et convertit le genre
-  - formate la date de naissance en DD/MM/YYYY
-  - incrémente la position pour chaque tireur
+  - formate la date de naissance en D/M/AAAA comme la spécification
+  - numérote la position dans la liste pour chaque tireur
   - laisse la date vide si absente
 - **exportFencersToTXT**
   - inclut le titre souligné quand fourni
@@ -463,9 +463,14 @@ Unitaires : 372 fichiers, 2866 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - clôt la liste par une ligne de fin
 - **exportFencersToFFF — département (#1504)**
   - écrit le département après le classement
-- **exportResultsToFFF**
-  - commence par l’en-tête FFF et porte le rang final en position
-  - place les tireurs sans rang en dernier, sans position
+- **exportResultsToFFF (spécification FFF)**
+  - écrit l’en-tête FFF;WIN;COMPETITION;organisateur puis la ligne de compétition
+  - écrit général;FIE;national;rang,T pour un tireur ayant participé au tableau
+  - marque P pour un tireur éliminé dans les poules
+  - trie par rang, met les rangs vides en dernier et omet les exclus
+- **encodeFFFWin1252**
+  - encode les accents en cp1252 (é = 0xE9, € = 0x80)
+  - remplace les caractères hors cp1252 par ?
 
 </details>
 
