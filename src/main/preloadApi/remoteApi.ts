@@ -10,6 +10,7 @@ export const remoteApi = {
   startServer: (competitionId: string, port?: number, host?: string, useHttps?: boolean) =>
     ipcRenderer.invoke('remote:startServer', competitionId, port, host, useHttps),
   getCertFingerprint: () => ipcRenderer.invoke('remote:getCertFingerprint'),
+  firewallCheck: (port: number) => ipcRenderer.invoke('remote:firewallCheck', port),
   stopServer: (competitionId: string) => ipcRenderer.invoke('remote:stopServer', competitionId),
   getServerInfo: (competitionId: string) =>
     ipcRenderer.invoke('remote:getServerInfo', competitionId),

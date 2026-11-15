@@ -12,6 +12,7 @@ import { RemoteScoreServer } from '../remoteScoreServer';
 import { ensureCert } from '../certManager';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from '../remoteRegistry';
 import { applyActiveWave } from '../remote/activeWave';
+import { runFirewallCheck } from '../remote/firewallCheck';
 import { setSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
@@ -128,6 +129,20 @@ export function registerRemoteServerHandlers({
       }
     }
   );
+
+  // Diagnostic pare-feu Windows (lecture seule ; supported: false hors Windows)
+  ipcMain.handle('remote:firewallCheck', async (_event, port: unknown) => {
+    const safePort = typeof port === 'number' && Number.isInteger(port) ? port : NaN;
+    if (!(safePort >= 1 && safePort <= 65535)) {
+      return {
+        supported: true,
+        port: 0,
+        networkCategories: [],
+        findings: [{ level: 'error', code: 'unreadable' }],
+      };
+    }
+    return runFirewallCheck(safePort);
+  });
 
   ipcMain.handle('remote:stopServer', async (_event, competitionId: string) => {
     try {

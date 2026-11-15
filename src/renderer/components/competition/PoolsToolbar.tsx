@@ -7,6 +7,8 @@ import { Button } from '../common/Button';
 import GlobalPoolColumnsMenu from '../pool/GlobalPoolColumnsMenu';
 import WindowSizePresets from '../pool/WindowSizePresets';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Icon } from '../common/Icon';
+import { Printer } from 'lucide-react';
 
 interface PoolsToolbarProps {
   isLaserSabre: boolean;
@@ -54,9 +56,13 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
         <option value="grid">{t('competitionView.grid_view')}</option>
         <option value="single">{t('competitionView.single_view')}</option>
       </select>
-      <Button variant="primary" onClick={onPrintAll} title={t('competitionView.print_title')}>
-        {t('competitionView.print')}
-      </Button>
+      <Button
+        variant="primary"
+        onClick={onPrintAll}
+        title={t('competitionView.print_title')}
+        aria-label={t('competitionView.print')}
+        icon={<Icon icon={Printer} />}
+      />
       {poolCount > 1 && (
         <Button variant="success" onClick={onExportAll}>
           {t('competitionView.export_all')}

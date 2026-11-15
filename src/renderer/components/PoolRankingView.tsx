@@ -33,7 +33,8 @@ import {
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
 import { CardIcon } from './common/CardIcon';
-import { Funnel } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { Funnel, Printer } from 'lucide-react';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
 import {
   CollapseToggle,
@@ -450,9 +451,13 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           <Button className="is-22b62c" onClick={handleExportPDF}>
             PDF
           </Button>
-          <Button className="is-22b62c" onClick={handlePrint}>
-            {t('poolRanking.print')}
-          </Button>
+          <Button
+            className="is-22b62c"
+            onClick={handlePrint}
+            title={t('poolRanking.print')}
+            aria-label={t('poolRanking.print')}
+            icon={<Icon icon={Printer} />}
+          />
           <div className="is-4565f9" />
           {!isInSplitGroupTab && (
             <Button

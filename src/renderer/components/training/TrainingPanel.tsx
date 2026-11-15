@@ -19,6 +19,16 @@ import TrainingPrintModal from './TrainingPrintModal';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 import { Button } from '../common/Button';
 
+type TrainingTheme = 'dark' | 'light' | 'neon' | 'unicorn';
+
+// Thèmes intégrés (pas de thème personnalisé en entraînement)
+const TRAINING_THEME_OPTIONS: { value: TrainingTheme; labelKey?: string; label?: string }[] = [
+  { value: 'dark', labelKey: 'rsm.theme_dark' },
+  { value: 'light', labelKey: 'rsm.theme_light' },
+  { value: 'neon', labelKey: 'rsm.theme_neon' },
+  { value: 'unicorn', label: 'Unicorn' },
+];
+
 const WEAPON_LABELS: Record<string, string> = {
   E: 'weapons.epee',
   F: 'weapons.foil',
@@ -324,6 +334,14 @@ const TrainingPanel: React.FC<Props> = ({
   const { t } = useTranslation();
   const [history, setHistory] = useState<TrainingMatchRecord[]>([]);
   const [printOpen, setPrintOpen] = useState(false);
+  const [theme, setTheme] = useState<TrainingTheme>('dark');
+
+  const handleThemeChange = async (next: TrainingTheme) => {
+    const previous = theme;
+    setTheme(next);
+    const res = await window.electronAPI?.training?.setTheme(next);
+    if (res && !res.success) setTheme(previous);
+  };
 
   const refreshHistory = useCallback(async () => {
     const result = await window.electronAPI?.training?.getHistory();
@@ -422,6 +440,29 @@ const TrainingPanel: React.FC<Props> = ({
               {t('trainingPanel.in_progress')}
             </span>
           </h2>
+          <select
+            aria-label={t('rsm.display_theme')}
+            title={t('rsm.display_theme')}
+            value={theme}
+            onChange={e => handleThemeChange(e.target.value as TrainingTheme)}
+            style={{
+              marginLeft: 'auto',
+              marginRight: '0.75rem',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '6px',
+              border: '1px solid var(--color-border)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: '0.8125rem',
+              cursor: 'pointer',
+            }}
+          >
+            {TRAINING_THEME_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label ?? t(opt.labelKey!)}
+              </option>
+            ))}
+          </select>
           <button
             className="btn-close"
             onClick={onClose}
