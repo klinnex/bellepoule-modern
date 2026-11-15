@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 66 | 542 |
+| `src/main/` | 66 | 545 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 96 | 482 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **382** | **2900** |
+| **Total** | **382** | **2903** |
 
-Unitaires : 372 fichiers, 2861 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 372 fichiers, 2864 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3053,7 +3053,7 @@ Unitaires : 372 fichiers, 2861 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/firewallCheck.test.ts</code> — 14 tests</summary>
+<summary><code>src/main/remote/firewallCheck.test.ts</code> — 17 tests</summary>
 
 - **analyzeFirewall**
   - autorise le port quand une règle Allow couvre le profil actif
@@ -3069,6 +3069,10 @@ Unitaires : 372 fichiers, 2861 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **parseFirewallOutput**
   - accepte les objets seuls (ConvertTo-Json ne met pas de tableau pour un élément)
   - sortie vide ou invalide : erreur « unreadable » sans exception
+- **détail des échecs de lecture**
+  - erreur fatale PowerShell : le message est remonté tel quel
+  - texte parasite avant le JSON : le JSON est quand même lu
+  - sortie sans JSON : le début de la sortie est joint au détail
 - **runFirewallCheck**
   - hors Windows : non pris en charge, aucune commande lancée
   - le script est en lecture seule (aucune commande de modification)
