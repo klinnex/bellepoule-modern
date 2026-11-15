@@ -48,6 +48,24 @@ describe('rapieresAge', () => {
     ).toBe('SENIOR');
   });
 
+  it('âge moyen décimal arrondi au-dessus (#1864)', () => {
+    // 1977 (49 ans) + 1996 (30 ans) → 39,5 ans → 40 → V1
+    expect(
+      rapieresTeamCategory(team({ birthDate: '1977-12-31' }, { birthDate: '1996-01-01' }), REF)
+    ).toBe('V1');
+    // 1986,5 → 39,5 ans → V1 ; 1987,5 → 38,5 → 39 → SENIOR
+    expect(rapieresCategoryFromBirthYear(1986.5, REF)).toBe('V1');
+    expect(rapieresCategoryFromBirthYear(1987.5, REF)).toBe('SENIOR');
+    // M20 → SENIOR : 2006,5 → 19,5 → 20
+    expect(rapieresCategoryFromBirthYear(2006.5, REF)).toBe('SENIOR');
+  });
+
+  it('année de naissance seule compte, pas la date (#1864)', () => {
+    // né le 1er janvier ou le 31 décembre 1986 : même catégorie
+    expect(rapieresTeamCategory(team({ birthDate: '1986-01-01' }, {}), REF)).toBe('V1');
+    expect(rapieresTeamCategory(team({ birthDate: '1986-12-31' }, {}), REF)).toBe('V1');
+  });
+
   it('une seule date connue : elle sert ; aucune : catégorie saisie', () => {
     expect(rapieresTeamCategory(team({ birthDate: '1980-03-01' }, {}), REF)).toBe('V1');
     expect(rapieresTeamCategory(team({ category: 'V3' }, { category: 'M20' }), REF)).toBe('V3');

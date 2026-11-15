@@ -324,7 +324,7 @@ describe('Tournoi des rapières (#1118)', () => {
     });
 
     it('filtre par catégorie d’équipe (moyenne des années de naissance, #1441)', () => {
-      // Années relatives à l'année courante : âges moyens ≈ 33 ans (x) et ≈ 19 ans (y)
+      // Années relatives à l'année courante : âges moyens ≈ 33 ans (x) et ≈ 17 ans (y)
       const Y = new Date().getFullYear();
       const withDates: Record<string, RapieresTeamInfo> = {
         x: {
@@ -337,12 +337,12 @@ describe('Tournoi des rapières (#1118)', () => {
         y: {
           level: 'beginner',
           fencers: [
-            { firstName: 'A', lastName: 'y1', category: 'M20', birthDate: `${Y - 20}-03-01` },
-            { firstName: 'B', lastName: 'y2', category: 'M20', birthDate: `${Y - 19}-03-01` },
+            { firstName: 'A', lastName: 'y1', category: 'M20', birthDate: `${Y - 18}-03-01` },
+            { firstName: 'B', lastName: 'y2', category: 'M20', birthDate: `${Y - 17}-03-01` },
           ],
         },
       };
-      // x : moyenne Y-33 → Seniors ; y : moyenne Y-19.5 → M20
+      // x : moyenne Y-33 → Seniors ; y : moyenne Y-17.5 → M20
       expect(filterRanking(ranked, withDates, { category: 'SENIOR' })).toEqual([
         { teamId: 'x', rank: 1 },
       ]);
