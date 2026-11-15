@@ -48,7 +48,7 @@ describe('exportFencersList', () => {
     await setup().exportFencersList([fencer('1')], 'fff');
     expect(writeContent).toHaveBeenCalledTimes(1);
     const [, content] = writeContent.mock.calls[0];
-    expect(content.split('\n')[0]).toBe('FFF;UTF8;competition;;individuel');
+    expect(content.split('\n')[0]).toBe('FFF;WIN;COMPETITION;Open Test');
     expect(showToast).toHaveBeenCalledWith(expect.stringContaining('FFF'), 'success');
   });
 

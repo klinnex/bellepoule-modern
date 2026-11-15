@@ -310,6 +310,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             key={`appel-round-${viewedPoolRound}`}
             fencers={viewedRoundAppel}
             competitionId={competition.id}
+            competition={competition}
             onCheckIn={() => {}}
             onAddFencer={() => {}}
             readOnly
@@ -319,6 +320,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           <FencerList
             fencers={currentAppelFencers}
             competitionId={competition.id}
+            competition={competition}
             onCheckIn={handleCheckInFencer}
             onAddFencer={() =>
               isRapieres ? setRapieresTeamModal({}) : modals.setShowAddFencerModal(true)

@@ -97,7 +97,11 @@ export function parseFFEFile(content: string): ImportResult {
  * Ligne de métadonnées FFF (ex: "FFF;WIN;competition;;individuel", "UTF8;...")
  */
 function isMetadataLine(line: string): boolean {
-  return /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line);
+  // Ligne 2 d'un fichier FFF de compétition : date;arme;sexe;catégorie;nom;nom réduit
+  return (
+    /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line) ||
+    /^\s*\d{1,2}\/\d{1,2}\/\d{4}\s*;\s*(fleuret|epee|épée|sabre|)\s*;/i.test(line)
+  );
 }
 
 /**

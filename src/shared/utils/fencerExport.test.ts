@@ -25,38 +25,53 @@ const makeFencer = (over: Partial<Fencer> = {}): Fencer => ({
   ...over,
 });
 
+const LIST_COMP = {
+  id: 'c1',
+  title: 'Coupe de Dourdan 2026',
+  shortTitle: 'Dourdan 2026',
+  organizer: "CERCLE D'ESCRIME DE DOURDAN",
+  date: new Date('2026-06-07'),
+  weapon: Weapon.SABRE,
+  gender: Gender.MALE,
+  category: Category.SENIOR,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+} as unknown as Competition;
+
 describe('exportFencersToFFF', () => {
-  it('commence par l’en-tête FFF standard', () => {
-    const out = exportFencersToFFF([]);
-    expect(out.split('\n')[0]).toBe('FFF;UTF8;competition;;individuel');
+  it('commence par l’en-tête FFF;WIN;COMPETITION puis la ligne de compétition', () => {
+    const lines = exportFencersToFFF(LIST_COMP, []).split('\n');
+    expect(lines[0]).toBe("FFF;WIN;COMPETITION;CERCLE D'ESCRIME DE DOURDAN");
+    expect(lines[1]).toBe('7/6/2026;sabre;m;senior;Coupe de Dourdan 2026;Dourdan 2026');
   });
 
   it('met le nom en majuscules et convertit le genre', () => {
-    const out = exportFencersToFFF([makeFencer({ lastName: 'Martin', gender: Gender.FEMALE })]);
-    const line = out.split('\n')[1];
+    const out = exportFencersToFFF(LIST_COMP, [
+      makeFencer({ lastName: 'Martin', gender: Gender.FEMALE }),
+    ]);
+    const line = out.split('\n')[2];
     expect(line.startsWith('MARTIN,Jean,')).toBe(true);
-    expect(line).toContain(',F,FRA');
+    expect(line).toContain(',F,FRA;;');
   });
 
-  it('formate la date de naissance en DD/MM/YYYY', () => {
-    const out = exportFencersToFFF([makeFencer({ birthDate: new Date('1990-03-05') })]);
-    expect(out.split('\n')[1]).toContain(',05/03/1990,');
+  it('formate la date de naissance en D/M/AAAA comme la spécification', () => {
+    const out = exportFencersToFFF(LIST_COMP, [makeFencer({ birthDate: new Date('1990-03-05') })]);
+    expect(out.split('\n')[2]).toContain(',5/3/1990,');
   });
 
-  it('incrémente la position pour chaque tireur', () => {
-    const out = exportFencersToFFF([
+  it('numérote la position dans la liste pour chaque tireur', () => {
+    const out = exportFencersToFFF(LIST_COMP, [
       makeFencer({ id: '1' }),
       makeFencer({ id: '2', lastName: 'Martin' }),
     ]);
     const lines = out.split('\n');
-    expect(lines[1].endsWith(';1,t')).toBe(true);
-    expect(lines[2].endsWith(';2,t')).toBe(true);
+    expect(lines[2].endsWith(';1,')).toBe(true);
+    expect(lines[3].endsWith(';2,')).toBe(true);
   });
 
   it('laisse la date vide si absente', () => {
-    const out = exportFencersToFFF([makeFencer({ birthDate: undefined })]);
-    // section0 : NOM,Prénom,,Sexe,Nation
-    expect(out.split('\n')[1]).toContain('DUPONT,Jean,,M,FRA');
+    const out = exportFencersToFFF(LIST_COMP, [makeFencer({ birthDate: undefined })]);
+    expect(out.split('\n')[2]).toContain('DUPONT,Jean,,M,FRA');
   });
 });
 
@@ -102,8 +117,10 @@ describe('exportFencersToTXT', () => {
 
 describe('exportFencersToFFF — département (#1504)', () => {
   it('écrit le département après le classement', () => {
-    const out = exportFencersToFFF([makeFencer({ region: 'IDF', ranking: 3, department: '75' })]);
-    expect(out.split('\n')[1]).toContain(';,IDF,,3,,75;');
+    const out = exportFencersToFFF(LIST_COMP, [
+      makeFencer({ region: 'IDF', ranking: 3, department: '75' }),
+    ]);
+    expect(out.split('\n')[2]).toContain(';;,IDF,,3,,75;1,');
   });
 });
 

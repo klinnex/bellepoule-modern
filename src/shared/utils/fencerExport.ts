@@ -40,46 +40,65 @@ function genderToFFF(gender: Gender): string {
 }
 
 /**
- * Exporte la liste des tireurs au format FFF (FFE - Federation Francaise d'Escrime)
- * Format standard FFF: NOM,Prénom,Naissance,Sexe,Nationalité;,,;Licence,Ligue,Club,Classement,?,?;Position,t
+ * Ligne 2 de l'en-tête FFF (compétition) : date;arme;sexe;catégorie;nom;nom réduit
+ * Les lignes 1 et 2 sont communes à la liste des tireurs et aux résultats.
  */
-export function exportFencersToFFF(fencers: Fencer[]): string {
-  const lines: string[] = [];
+function competitionHeaderLines(competition: Competition): string[] {
+  const organizer = fffField(competition.organizer) || fffField(competition.title);
+  const shortName = fffField(competition.shortTitle) || fffField(competition.title);
+  return [
+    `FFF;WIN;COMPETITION;${organizer}`,
+    [
+      formatDateFFFShort(competition.date),
+      weaponToFFF(competition.weapon),
+      genderToFFF(competition.gender).toLowerCase(),
+      categoryToFFF(competition.category),
+      fffField(competition.title),
+      shortName,
+    ].join(';'),
+  ];
+}
 
-  // En-tete standard FFF (fichier écrit en UTF-8)
-  lines.push('FFF;UTF8;competition;;individuel');
+/** Partie 1 d'une ligne FFF : NOM,Prénom,date,sexe,nation */
+function fencerGeneralPart(fencer: Fencer): string {
+  return [
+    fffField(fencer.lastName).toUpperCase(),
+    fffField(fencer.firstName),
+    formatDateFFFShort(fencer.birthDate),
+    genderToFFF(fencer.gender),
+    fffField(fencer.nationality) || 'FRA',
+  ].join(',');
+}
 
-  let position = 1;
-  for (const fencer of fencers) {
-    // Section 0: NOM,Prénom,Naissance,Sexe,Nationalité (séparés par virgule)
-    const section0 = [
-      fffField(fencer.lastName).toUpperCase(),
-      fffField(fencer.firstName),
-      formatDateFFF(fencer.birthDate),
-      genderToFFF(fencer.gender),
-      fffField(fencer.nationality) || 'FRA',
-    ].join(',');
+/**
+ * Partie 3 d'une ligne FFF (fédération nationale) : licence,région,club,classement,points,département
+ * N5 (points) reste vide ; le département (#1504) occupe le 6e champ, comme le lit le parseur.
+ */
+function fencerNationalPart(fencer: Fencer): string {
+  return [
+    fffField(fencer.license),
+    fffField(fencer.region),
+    fffField(fencer.club),
+    fencer.ranking != null ? String(fencer.ranking) : '',
+    '',
+    fffField(fencer.department),
+  ].join(',');
+}
 
-    // Section 1: Vide (,,)
-    const section1 = ',,';
+/**
+ * Exporte la liste des tireurs au format FFF (spécification FFF, 3 août 2000).
+ *   ligne 1 : FFF;WIN;COMPETITION;<organisateur>
+ *   ligne 2 : date;arme;sexe;catégorie;nom;nom réduit
+ *   lignes  : NOM,Prénom,date,sexe,nation;;<national>;<position>,
+ * La partie compétition ne porte que la position dans la liste (C1) : le statut T/P
+ * n'existe qu'après la compétition.
+ */
+export function exportFencersToFFF(competition: Competition, fencers: Fencer[]): string {
+  const lines: string[] = [...competitionHeaderLines(competition)];
 
-    // Section 2: Licence,Ligue,Club,Classement,Nationalité?,?
-    const section2 = [
-      fffField(fencer.license),
-      fffField(fencer.region),
-      fffField(fencer.club),
-      fencer.ranking != null ? String(fencer.ranking) : '',
-      '', // Nationalité (doublon)
-      fffField(fencer.department), // Département (#1504)
-    ].join(',');
-
-    // Section 3: Position,Statut
-    const section3 = `${position},t`;
-
-    // Assembler les sections séparées par ;
-    lines.push(`${section0};${section1};${section2};${section3}`);
-    position++;
-  }
+  fencers.forEach((fencer, index) => {
+    lines.push(`${fencerGeneralPart(fencer)};;${fencerNationalPart(fencer)};${index + 1},`);
+  });
 
   return lines.join('\n');
 }
@@ -212,50 +231,19 @@ export function exportResultsToFFF(
   competition: Competition,
   results: Array<{ rank?: number | null; fencer: Fencer; eliminatedAt?: string }>
 ): string {
-  const organizer = fffField(competition.organizer) || fffField(competition.title);
-  const shortName = fffField(competition.shortTitle) || fffField(competition.title);
-  const lines: string[] = [
-    `FFF;WIN;COMPETITION;${organizer}`,
-    [
-      formatDateFFFShort(competition.date),
-      weaponToFFF(competition.weapon),
-      genderToFFF(competition.gender).toLowerCase(),
-      categoryToFFF(competition.category),
-      fffField(competition.title),
-      shortName,
-    ].join(';'),
-  ];
+  const lines: string[] = [...competitionHeaderLines(competition)];
 
   const sorted = results
     .filter(r => r.fencer.status !== FencerStatus.EXCLUDED)
     .sort((a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER));
 
   for (const { rank, fencer, eliminatedAt } of sorted) {
-    // Partie 1 : informations générales
-    const general = [
-      fffField(fencer.lastName).toUpperCase(),
-      fffField(fencer.firstName),
-      formatDateFFFShort(fencer.birthDate),
-      genderToFFF(fencer.gender),
-      fffField(fencer.nationality) || 'FRA',
-    ].join(',');
-
-    // Partie 2 : informations FIE (non fournies par BellePoule : vide)
-    const fie = '';
-
-    // Partie 3 : informations de la fédération nationale
-    const national = [
-      fffField(fencer.license),
-      fffField(fencer.region),
-      fffField(fencer.club),
-      fencer.ranking != null ? String(fencer.ranking) : '',
-    ].join(',');
-
-    // Partie 4 : informations de la compétition (rang final, T ou P)
+    // Partie 2 (FIE) : non fournie par BellePoule, vide
+    // Partie 4 : rang final et statut (T = tableau, P = poules)
     const status = eliminatedAt?.startsWith('Poules') ? 'P' : 'T';
-    const competitionPart = `${rank != null ? rank : ''},${status}`;
-
-    lines.push(`${general};${fie};${national};${competitionPart}`);
+    lines.push(
+      `${fencerGeneralPart(fencer)};;${fencerNationalPart(fencer)};${rank != null ? rank : ''},${status}`
+    );
   }
 
   return lines.join('\n');

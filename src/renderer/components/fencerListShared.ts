@@ -2,7 +2,7 @@
  * BellePoule Modern - Types et colonnes de FencerList (extrait, #1599)
  * Licensed under GPL-3.0
  */
-import { Fencer, FencerStatus } from '../../shared/types';
+import { Competition, Fencer, FencerStatus } from '../../shared/types';
 
 export type SortableCol =
   | 'ref'
@@ -34,6 +34,7 @@ export const COLUMNS = [
 export interface FencerListProps {
   fencers: Fencer[];
   competitionId?: string;
+  competition?: Competition;
   onCheckIn: (id: string) => void;
   onAddFencer: () => void;
   onEditFencer?: (id: string, updates: Partial<Fencer>) => void;

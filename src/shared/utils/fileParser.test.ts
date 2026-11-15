@@ -7,7 +7,20 @@ import {
   resolveFencerFileFormat,
 } from './fileParser';
 import { exportFencersToFFF } from './fencerExport';
-import { Gender, FencerStatus, Fencer } from '../types';
+
+const TEST_COMP = {
+  id: 'c1',
+  title: 'Coupe de Dourdan 2026',
+  shortTitle: 'Dourdan 2026',
+  organizer: "CERCLE D'ESCRIME DE DOURDAN",
+  date: new Date('2026-06-07'),
+  weapon: Weapon.SABRE,
+  gender: Gender.MALE,
+  category: Category.SENIOR,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+} as unknown as Competition;
+import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
 // ============================================================================
 // parseSimpleTXTFile
@@ -310,13 +323,13 @@ describe('issue #906 — import .fff', () => {
     }) as Fencer;
 
   it('aller-retour avec seulement nom/prénom', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean'), mk('Martin', 'Paul')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Dupont', 'Jean'), mk('Martin', 'Paul')]);
     const result = parseFFEFile(out);
     expect(result.fencers.map(f => f.lastName)).toEqual(['DUPONT', 'MARTIN']);
   });
 
   it('nom contenant « nom » / « x » (pas pris pour un en-tête)', () => {
-    const out = exportFencersToFFF([mk('Nomade', 'Alexandre')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Nomade', 'Alexandre')]);
     const result = parseFFEFile(out);
     expect(result.fencers).toHaveLength(1);
     expect(result.fencers[0].lastName).toBe('NOMADE');
@@ -330,7 +343,7 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('club contenant une virgule : champs non décalés', () => {
-    const out = exportFencersToFFF([
+    const out = exportFencersToFFF(TEST_COMP, [
       mk('Dupont', 'Jean', { club: 'Cercle, Paris', license: '42' }),
     ]);
     const f = parseFFEFile(out).fencers[0];
@@ -339,7 +352,9 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('département : aller-retour export/import FFF (#1504)', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean', { region: 'IDF', department: '75' })]);
+    const out = exportFencersToFFF(TEST_COMP, [
+      mk('Dupont', 'Jean', { region: 'IDF', department: '75' }),
+    ]);
     const f = parseFFEFile(out).fencers[0];
     expect(f.department).toBe('75');
     expect(f.region).toBe('IDF');
@@ -369,7 +384,7 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('.fff ouvert via « Importer XML » → parseur FFE', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Dupont', 'Jean')]);
     expect(resolveFencerFileFormat('xml', out)).toBe('fff');
     expect(resolveFencerFileFormat('txt', out)).toBe('fff');
     expect(resolveFencerFileFormat('fff', '<Competition/>')).toBe('xml');

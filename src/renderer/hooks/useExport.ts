@@ -126,7 +126,7 @@ export const useExport = ({
 
         if (result && !result.canceled && result.filePath) {
           const content = isFFF
-            ? exportFencersToFFF(fencers)
+            ? exportFencersToFFF(competition, fencers)
             : exportFencersToTXT(fencers, competition.title);
           await window.electronAPI?.file?.writeContent(result.filePath, content);
           showToast(`Export ${extension.toUpperCase()} des tireurs réussi`, 'success');
