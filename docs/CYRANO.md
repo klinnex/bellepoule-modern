@@ -149,12 +149,24 @@ Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur
 
 ```bash
 npm run cyrano:remote          # 3 pistes par défaut, page http://127.0.0.1:5099
+npm run cyrano:remote -- --count 16   # pistes 1 à 16 : 127.0.0.N, port 50100 + N
 npm run cyrano:remote -- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102 --server-port 50100
 ```
 
 Une carte par piste : état de l'appareil, chrono, période et durée, tireurs gauche (rouge) /
 droite (vert), boutons groupés comme sur la télécommande (bloc PC, chrono, arme, score, cartons,
-priorité), libellés colorés selon la touche de mode, et journal des trames (HELLO masqués). Mêmes appareils simulés que la console
+priorité), libellés colorés selon la touche de mode, et journal des trames (HELLO masqués).
+Au-delà de 4 pistes, les cartes s'ouvrent repliées sur une ligne (état, chrono, tireurs et score) ;
+un clic sur l'en-tête déplie la télécommande, boutons « Tout déplier / Tout replier » en haut.
+La table des pistes correspondante peut être déclarée d'un coup depuis la console DevTools de
+l'application :
+
+```js
+const pistes = Array.from({ length: 16 }, (_, k) => ({ piste: String(k + 1), ip: `127.0.0.${k + 1}`,
+  port: 50101 + k, arena: k + 1, protocol: 'auto', mode: 'master' }));
+localStorage.setItem('bellepoule-cyrano-pistes', JSON.stringify(pistes)); // panneau Cyrano
+await window.electronAPI.cyrano.setPistes(pistes);                         // serveur
+``` Mêmes appareils simulés que la console
 (`scripts/lib/cyranoDevice.js`). Ne pas lancer en même temps un simulateur console sur les mêmes ports.
 
 Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc

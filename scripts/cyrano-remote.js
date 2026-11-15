@@ -4,8 +4,11 @@
  * boutons calqués sur la télécommande WSG des SG31 / SG32 (chrono, PAUSE, périodes, arme,
  * score, cartons, priorité, bloc PC), état de l'appareil et journal des trames en direct.
  *
+ *   npm run cyrano:remote [-- --count 16]
  *   npm run cyrano:remote [-- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102,3@127.0.0.3:50103]
  *                         [--server 127.0.0.1] [--server-port 50100] [--ui-port 5099]
+ * --count N : pistes 1 à N, appareil N sur 127.0.0.N, port 50100 + N (défaut : 3).
+ *   --pistes donne la liste exacte et l'emporte sur --count.
  *
  * Chaque piste = un appareil simulé (scripts/lib/cyranoDevice.js) sur sa propre adresse de
  * bouclage : le logiciel identifie une piste par son IP. Page : http://127.0.0.1:5099
@@ -23,7 +26,12 @@ const opt = (name, def) => {
 const SERVER = opt('server', '127.0.0.1');
 const SERVER_PORT = Number(opt('server-port', 50100));
 const UI_PORT = Number(opt('ui-port', 5099));
-const PISTES = opt('pistes', '1@127.0.0.1:50101,2@127.0.0.2:50102,3@127.0.0.3:50103')
+const COUNT = Number(opt('count', 3));
+if (!Number.isInteger(COUNT) || COUNT < 1 || COUNT > 254) {
+  throw new Error(`--count : « ${opt('count')} », entier de 1 à 254 attendu`);
+}
+const defaultPistes = Array.from({ length: COUNT }, (_, k) => `${k + 1}@127.0.0.${k + 1}:${50101 + k}`).join(',');
+const PISTES = opt('pistes', defaultPistes)
   .split(',')
   .map(spec => {
     const m = /^([^@]+)@([^:]+):(\d+)$/.exec(spec.trim());
@@ -52,7 +60,15 @@ const PAGE = `<!doctype html>
     font:14px/1.4 system-ui, sans-serif; }
   h1 { font-size:18px; margin:0 0 12px; }
   h1 small { color:var(--muted); font-weight:400; }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(460px, 1fr)); }
+  .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(min(100%, 460px), 1fr)); align-items:start; }
+  .toolbar { display:flex; gap:6px; margin:0 0 12px; flex-wrap:wrap; }
+  .head { cursor:pointer; user-select:none; }
+  .head .chev { color:var(--muted); width:1em; }
+  .head .sum { color:var(--muted); font-size:13px; font-variant-numeric:tabular-nums; }
+  .head .sum b { color:var(--text); font-size:15px; }
+  .card.collapsed { padding:8px 12px; }
+  .card.collapsed .body { display:none; }
+  .card:not(.collapsed) .head .sum { display:none; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
   .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .head .title { font-weight:700; font-size:16px; }
@@ -97,13 +113,15 @@ const PAGE = `<!doctype html>
 </head>
 <body>
 <h1>Télécommande Cyrano <small id="srv"></small></h1>
+<div class="toolbar"><button id="open-all">Tout déplier</button><button id="close-all">Tout replier</button></div>
 <div class="grid" id="grid"></div>
 <p class="help">Boutons calqués sur la télécommande WSG (SG31 / SG32). Couleur du libellé = touche de mode
 à maintenir sur la vraie télécommande : <span style="color:var(--yellow)">jaune</span>,
 <span style="color:#ff8a80">rouge</span>, <span style="color:#5fd197">vert</span> (bloc PC).
 Déroulé : <b>NEXT</b> → <b>BEGIN</b> → <b>STOP/GO</b>… → <b>VALIDATE</b> (ACK ou NAK).
 Fin de période : <b>PAUSE</b> (minute de repos, puis période suivante) ou <b>RESET</b> (temps de la période).
-Gauche = rouge, droite = vert, comme sur l'appareil. Un bouton grisé donne la raison au survol.</p>
+Gauche = rouge, droite = vert, comme sur l'appareil. Un bouton grisé donne la raison au survol.
+Un clic sur l'en-tête d'une piste la déplie ou la replie (repliées d'office au-delà de 4 pistes).</p>
 <script>
 const STATES = { W: 'attente', H: 'halte', F: 'assaut', P: 'minute de repos', E: 'fin — attente ACK' };
 const WEAPONS = { E: 'épée', F: 'fleuret', S: 'sabre' };
@@ -119,6 +137,13 @@ function button(piste, label, c, cls) {
   };
   return b;
 }
+let expectedPistes = 0;
+function setOpen(card, open) {
+  card.classList.toggle('collapsed', !open);
+  card.querySelector('.chev').textContent = open ? '▾' : '▸';
+}
+document.getElementById('open-all').onclick = () => document.querySelectorAll('.card').forEach(c => setOpen(c, true));
+document.getElementById('close-all').onclick = () => document.querySelectorAll('.card').forEach(c => setOpen(c, false));
 function group(title, ...buttons) {
   const g = el('div', 'group');
   const keys = el('div', 'keys');
@@ -146,7 +171,8 @@ function createCard(snap) {
   const p = snap.piste;
   const card = el('div', 'card');
   const head = el('div', 'head');
-  head.append(el('span', 'title', 'Piste ' + p), el('span', 'badge'), el('span', 'watch'));
+  head.append(el('span', 'chev'), el('span', 'title', 'Piste ' + p), el('span', 'badge'), el('span', 'sum'), el('span', 'watch'));
+  head.onclick = () => setOpen(card, card.classList.contains('collapsed'));
   const meta = el('div', 'meta');
   const fencers = el('div', 'fencers');
   const center = el('div', 'center');
@@ -164,7 +190,10 @@ function createCard(snap) {
     button(p, 'PREVIOUS', 'prev', 'g'), button(p, 'BEGIN', 'begin', 'g'), button(p, 'NEXT', 'next', 'g'),
     button(p, 'VALIDATE', 'end', 'end'), button(p, 'RAZ appareil', 'raz', 'raz'));
   const log = el('div', 'log');
-  card.append(head, meta, fencers, pc, chrono, weapon, log);
+  const body = el('div', 'body');
+  body.append(meta, pc, fencers, chrono, weapon, log);
+  card.append(head, body);
+  setOpen(card, expectedPistes <= 4);
   document.getElementById('grid').append(card);
   const c = { card, head, meta, fencers, log };
   cards.set(p, c);
@@ -196,6 +225,11 @@ function render(snap) {
   watch.append(el('small', '', 'période ' + (g.round || '—') + ' · durée ' + snap.period));
   c.meta.textContent = (g.phase ? 'Phase ' + g.phase + ' · Poule/Tableau ' + g.poulTab + ' · Match ' + g.match + ' · ' : '')
     + 'Arme ' + (WEAPONS[g.weapon] || '—') + ' · ' + snap.protocol + ' · ' + snap.bind + ':' + snap.port;
+  const sum = c.head.querySelector('.sum');
+  sum.replaceChildren();
+  if (snap.left.name || snap.right.name) {
+    sum.append(snap.left.name || '—', ' ', el('b', '', snap.left.score + ' – ' + snap.right.score), ' ', snap.right.name || '—');
+  } else sum.textContent = 'aucun match';
   const [left, , right] = c.fencers.children;
   renderFencer(left, snap.left, snap.priority === 'L');
   renderFencer(right, snap.right, snap.priority === 'R');
@@ -219,7 +253,10 @@ function appendLog(piste, entry) {
 const es = new EventSource('/events');
 es.onmessage = ev => {
   const msg = JSON.parse(ev.data);
-  if (msg.type === 'hello') document.getElementById('srv').textContent = '— logiciel ' + msg.server;
+  if (msg.type === 'hello') {
+    expectedPistes = msg.pistes;
+    document.getElementById('srv').textContent = '— logiciel ' + msg.server + ' · ' + msg.pistes + ' piste(s)';
+  }
   if (msg.type === 'state') render(msg.snap);
   if (msg.type === 'log') appendLog(msg.piste, msg.entry);
 };
@@ -239,7 +276,9 @@ const server = http.createServer((req, res) => {
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
     });
-    res.write(`data: ${JSON.stringify({ type: 'hello', server: `${SERVER}:${SERVER_PORT}` })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ type: 'hello', server: `${SERVER}:${SERVER_PORT}`, pistes: PISTES.length })}\n\n`
+    );
     for (const d of devices.values()) {
       res.write(`data: ${JSON.stringify({ type: 'state', snap: d.snapshot() })}\n\n`);
     }
