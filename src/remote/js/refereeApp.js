@@ -8,6 +8,33 @@
 /* exported openJournal, reloadIfIdle */
 class RefereeApp extends RefereeAppBase {
   // Retirer des points (appui long)
+  /** Bandeau appareil de piste Cyrano (#1829) : mode et liaison ; masqué sans appareil. */
+  renderCyranoBar(link) {
+    let bar = document.getElementById('cyrano-bar');
+    if (!bar) {
+      // Créé à la demande, juste après la barre arbitre (pas de balisage fixe dans referee.html)
+      bar = document.createElement('div');
+      bar.id = 'cyrano-bar';
+      bar.className = 'referee-bar cyrano-bar hidden';
+      bar.setAttribute('role', 'status');
+      const icon = window.bpIcon ? window.bpIcon('zap') : '';
+      bar.innerHTML = `<div class="referee-bar-label">${icon} <span id="cyrano-bar-text">—</span></div>`;
+      document.getElementById('referee-bar')?.after(bar);
+    }
+    const text = document.getElementById('cyrano-bar-text');
+    if (!text) return;
+    if (!link) {
+      bar.classList.add('hidden');
+      bar.classList.remove('cyrano-bar-warn');
+      return;
+    }
+    const mode = window.T(`referee.cyrano_mode_${link.mode}`);
+    const state = window.T(link.online ? 'referee.cyrano_online' : 'referee.cyrano_offline');
+    text.textContent = window.T('referee.cyrano_bar', { piste: link.piste, mode, state });
+    bar.classList.toggle('cyrano-bar-warn', !link.online || link.mode === 'manual');
+    bar.classList.remove('hidden');
+  }
+
   removeScore(fencer, points) {
     if (!this.currentMatch) return;
     if (this.matchStatus === 'not_started') return;
@@ -1056,6 +1083,9 @@ class RefereeApp extends RefereeAppBase {
     }
     if (data.referees !== undefined) {
       this.refereesList = data.referees;
+    }
+    if (data.cyrano !== undefined) {
+      this.renderCyranoBar(data.cyrano);
     }
     // Arbitre par défaut fourni par le serveur (arbitre de la poule, #908)
     if (

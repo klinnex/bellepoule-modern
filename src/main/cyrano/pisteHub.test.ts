@@ -470,6 +470,19 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(arena().currentMatch).toMatchObject({ scoreA: 5, scoreB: 2 });
     });
 
+    it('bandeau appareil : mode et liaison publiés sur l’arène', () => {
+      device(info('H', { id: short(ID.ef), score: 0 }, { id: short(ID.ab), score: 0 }));
+      expect(arena().cyrano).toEqual({ piste: '1', mode: 'master', online: true });
+    });
+
+    it('PREV émis par l’appareil : rappel du match terminé, comme le bouton du poste', () => {
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 0 }));
+      device(info('E', { id: short(ID.ef), score: 5 }, { id: short(ID.ab), score: 2 }));
+      hub.pisteAction('1', 'next');
+      device('|EFP1.1|PREV|1||%|');
+      expect(arena().currentMatch?.id).toBe(pm(1, ID.ef, ID.ab).id);
+    });
+
     it('resynchronisation : match de l’arène renvoyé, alerte levée', () => {
       device(info('H', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
       expect(hub.getAlerts()['1']).toBeDefined();

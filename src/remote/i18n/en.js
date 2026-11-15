@@ -52,6 +52,12 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Back to the strip lobby',
   'referee.referee_label': 'Referee:',
+  'referee.cyrano_bar': 'Track {{piste}}: {{mode}} — {{state}}',
+  'referee.cyrano_mode_master': 'Master',
+  'referee.cyrano_mode_display': 'Display',
+  'referee.cyrano_mode_manual': 'Manual',
+  'referee.cyrano_online': 'online',
+  'referee.cyrano_offline': 'offline',
   'referee.change': 'Change',
   'referee.black_card_title': 'Black Card',
   'referee.black_card_desc':

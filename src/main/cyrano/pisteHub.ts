@@ -171,6 +171,7 @@ export class PisteHub {
     this.cyrano.on('info', this.handleInfo);
     this.cyrano.on('next', this.handleNext);
     this.cyrano.on('status', this.handleStatus);
+    this.cyrano.on('prev', this.handlePrevFromDevice);
   }
 
   /** Débranche les écouteurs. */
@@ -178,6 +179,7 @@ export class PisteHub {
     this.cyrano.off('info', this.handleInfo);
     this.cyrano.off('next', this.handleNext);
     this.cyrano.off('status', this.handleStatus);
+    this.cyrano.off('prev', this.handlePrevFromDevice);
   }
 
   /**
@@ -185,6 +187,7 @@ export class PisteHub {
    * (l'appareil redémarré ou reconnecté reprend l'affichage sans intervention).
    */
   private handleStatus = (piste: CyranoPisteStatus): void => {
+    this.syncArenaLink(piste);
     if (piste.status === 'offline') {
       this.offline.add(piste.piste);
       logger.warn(
@@ -212,8 +215,27 @@ export class PisteHub {
       const previous = this.modes.get(status.piste);
       this.modes.set(status.piste, mode);
       if (previous !== undefined && previous !== mode) this.resendMatch(status.piste);
+      this.syncArenaLink(status);
     }
   }
+
+  /** Bandeau appareil côté arbitre : mode et liaison de la piste reliée à l'arène (#1829). */
+  private syncArenaLink(piste: CyranoPisteStatus): void {
+    if (!piste.arena) return;
+    this.getRemote()?.updateArena(`arena${piste.arena}`, {
+      cyrano: {
+        piste: piste.piste,
+        mode: this.modeOf(piste),
+        online: piste.status === 'online',
+      },
+    });
+  }
+
+  /** PREV émis par l'appareil de piste : même traitement que le bouton du poste. */
+  private handlePrevFromDevice = (piste: CyranoPisteStatus): void => {
+    if (this.modeOf(piste) !== 'master') return;
+    this.handlePrev(piste);
+  };
 
   /** DISP du match courant de l'arène (ou affichage vide) ; sans effet en manuel. */
   private resendMatch(piste: string): void {
