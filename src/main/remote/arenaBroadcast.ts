@@ -86,6 +86,7 @@ export function broadcastArenaUpdate(
     swapped: arena?.swapped ?? false,
     leftHanded: arena?.leftHanded ?? false,
     showPhotos: ctx.sessionShowPhotos,
+    cyrano: arena?.cyrano ?? null,
     cardAnnounce: ctx.sessionCardAnnounce,
     theme: override?.theme ?? ctx.sessionTheme,
     customTheme: override?.customTheme,

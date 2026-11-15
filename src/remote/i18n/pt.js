@@ -52,6 +52,12 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Voltar ao lobby das pistas',
   'referee.referee_label': 'Árbitro:',
+  'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
+  'referee.cyrano_mode_master': 'Mestre',
+  'referee.cyrano_mode_display': 'Visor',
+  'referee.cyrano_mode_manual': 'Manual',
+  'referee.cyrano_online': 'online',
+  'referee.cyrano_offline': 'offline',
   'referee.change': 'Alterar',
   'referee.black_card_title': 'Cartão preto',
   'referee.black_card_desc':

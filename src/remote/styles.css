@@ -508,3 +508,8 @@ button:disabled {
     padding: 1rem;
   }
 }
+
+/* Bandeau appareil de piste Cyrano côté arbitre : alerte si hors ligne ou en manuel */
+.cyrano-bar.cyrano-bar-warn {
+  border-left: 4px solid var(--red-500);
+}
