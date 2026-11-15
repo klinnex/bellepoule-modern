@@ -1216,7 +1216,7 @@ export class RemoteScoreServer {
   }
 
   // Stockage des cartons par arène
-  private arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }> = new Map();
+  readonly arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }> = new Map();
   // Stockage des touches par zone par arène (zones : 'A' | 'B' | 'C')
   private arenaTouches: Map<string, { touchesA: string[]; touchesB: string[] }> = new Map();
   // Stockage des sorties d'arène par arène

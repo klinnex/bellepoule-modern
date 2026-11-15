@@ -16,6 +16,9 @@ export interface CyranoDispFencer {
   /** Valeur du champ nation (pays, club, ligue) : réduite à 3 caractères */
   nat?: string;
   score?: number;
+  /** Cartons déjà donnés (reprise d'un match : PREV, appareil redémarré) ; omis si aucun */
+  yellowCards?: number;
+  redCards?: number;
 }
 
 export interface CyranoDispMatch {
@@ -28,6 +31,8 @@ export interface CyranoDispMatch {
   round?: number;
   /** Heure prévue (HH:MM) */
   time?: string;
+  /** Chrono à reprendre (`m:ss`) : match rappelé (PREV) ; omis pour un match neuf */
+  stopwatch?: string;
   /** Arme BellePoule ('E' | 'F' | 'S' | 'L' | 'C') */
   weapon: string;
   team?: boolean;
@@ -58,6 +63,8 @@ function fencer(f: CyranoDispFencer, opts: CyranoDispOptions): CyranoFencer {
     nat: formatCyranoNat(f.nat),
     score: f.score,
     status: 'U',
+    ...(f.yellowCards ? { yellowCards: f.yellowCards } : {}),
+    ...(f.redCards ? { redCards: f.redCards } : {}),
   };
 }
 
@@ -70,6 +77,7 @@ export function buildDisp(m: CyranoDispMatch, opts: CyranoDispOptions = {}): Cyr
     match: String(m.match),
     round: String(m.round ?? 1),
     time: m.time,
+    ...(m.stopwatch ? { stopwatch: m.stopwatch } : {}),
     type: m.team ? 'T' : 'I',
     weapon: toCyranoWeapon(m.weapon),
     priority: 'N',

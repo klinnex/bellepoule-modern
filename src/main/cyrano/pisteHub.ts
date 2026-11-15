@@ -91,6 +91,8 @@ export class PisteHub {
   private device = new Map<string, DeviceView>();
   /** Score + cartons déjà appliqués à l'arène, par piste (pas de réécriture à chaque INFO). */
   private applied = new Map<string, string>();
+  /** Dernier chrono connu de l'appareil, par piste : repris au rappel du match (PREV) */
+  private watch = new Map<string, { matchId: string; stopwatch: string }>();
   /** Match dont la fin a été acquittée, par piste : un END répété reçoit à nouveau ACK. */
   private acked = new Map<string, string>();
   /** Alertes en cours (BAD MATCH), par piste. */
@@ -170,16 +172,16 @@ export class PisteHub {
   attach(): void {
     this.cyrano.on('info', this.handleInfo);
     this.cyrano.on('next', this.handleNext);
+    this.cyrano.on('prev', this.handlePrev);
     this.cyrano.on('status', this.handleStatus);
-    this.cyrano.on('prev', this.handlePrevFromDevice);
   }
 
   /** Débranche les écouteurs. */
   detach(): void {
     this.cyrano.off('info', this.handleInfo);
     this.cyrano.off('next', this.handleNext);
+    this.cyrano.off('prev', this.handlePrev);
     this.cyrano.off('status', this.handleStatus);
-    this.cyrano.off('prev', this.handlePrevFromDevice);
   }
 
   /**
@@ -230,12 +232,6 @@ export class PisteHub {
       },
     });
   }
-
-  /** PREV émis par l'appareil de piste : même traitement que le bouton du poste. */
-  private handlePrevFromDevice = (piste: CyranoPisteStatus): void => {
-    if (this.modeOf(piste) !== 'master') return;
-    this.handlePrev(piste);
-  };
 
   /** DISP du match courant de l'arène (ou affichage vide) ; sans effet en manuel. */
   private resendMatch(piste: string): void {
@@ -345,7 +341,7 @@ export class PisteHub {
       });
       return;
     }
-    this.cyrano.sendDisp(piste, this.buildDispFor(match, scoreA, scoreB));
+    this.cyrano.sendDisp(piste, this.buildDispFor(match, scoreA, scoreB, status));
     logger.info(LogCategory.NETWORK, `Cyrano: DISP → ${piste} (match ${match.id})`);
   }
 
@@ -428,7 +424,8 @@ export class PisteHub {
     }
 
     const time = parseCyranoStopwatch(msg.stopwatch);
-    if (time !== null) {
+    if (time !== null && msg.stopwatch) {
+      this.watch.set(piste.piste, { matchId: match.id, stopwatch: msg.stopwatch });
       const running = msg.state === 'F';
       remote.handleArenaControl(socket, {
         arenaId,
@@ -466,6 +463,9 @@ export class PisteHub {
       return;
     }
 
+    // Chrono à la fin du match : repris si le match est rappelé (PREV)
+    if (parseCyranoStopwatch(msg.stopwatch) !== null && msg.stopwatch)
+      this.watch.set(piste.piste, { matchId: match.id, stopwatch: msg.stopwatch });
     // État final de l'appareil (score, cartons) avant clôture
     this.applyDeviceState(
       piste,
@@ -483,17 +483,6 @@ export class PisteHub {
     this.acked.set(piste.piste, match.id);
     this.applied.delete(piste.piste);
     remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'finish' });
-  }
-
-  /** PREV (#1829) : rappel du dernier match terminé de l'arène pour correction. */
-  private handlePrev(piste: CyranoPisteStatus): void {
-    if (!piste.arena) return;
-    const remote = this.getRemote();
-    if (!remote) return;
-    const arenaId = `arena${piste.arena}`;
-    this.device.delete(piste.piste);
-    remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'prev' });
-    logger.info(LogCategory.NETWORK, `Cyrano: PREV sur piste ${piste.piste} → arène ${arenaId}`);
   }
 
   /**
@@ -521,20 +510,81 @@ export class PisteHub {
     logger.info(LogCategory.NETWORK, `Cyrano: NEXT sur piste ${piste.piste} → arène ${arenaId}`);
   };
 
+  /**
+   * PREV (touche PREVIOUS de l'appareil, ou bouton de secours du poste) : rappel du dernier
+   * match terminé de l'arène pour
+   * correction (fenêtre bornée, `recallPrevMatch`). Le DISP du match rappelé part par
+   * `onArenaUpdate`, avec ses scores et cartons. Refus (combat en cours, rien à rappeler,
+   * fenêtre dépassée) : l'appareil retrouve le match courant.
+   */
+  private handlePrev = (piste: CyranoPisteStatus, _msg?: CyranoMessage): void => {
+    if (!piste.arena) return;
+    const remote = this.getRemote();
+    if (!remote) return;
+    if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
+    const arenaId = `arena${piste.arena}`;
+    const before = remote.getArena(arenaId)?.currentMatch;
+    this.device.delete(piste.piste);
+    remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'prev' });
+    const recalled = remote.getArena(arenaId)?.currentMatch;
+    if (recalled && recalled !== before) {
+      logger.info(LogCategory.NETWORK, `Cyrano: PREV sur piste ${piste.piste} → match rappelé`);
+      // Chrono de fin du match rappelé : tablette et écran d'arène (le DISP le porte déjà)
+      const w = this.watch.get(piste.piste);
+      const time = w?.matchId === recalled.id ? parseCyranoStopwatch(w.stopwatch) : null;
+      if (time !== null)
+        remote.handleArenaControl(this.deviceSocket(piste), {
+          arenaId,
+          action: 'pause_timer',
+          time,
+          timerStatus: 'paused',
+        });
+      return;
+    }
+    logger.info(
+      LogCategory.NETWORK,
+      `Cyrano: PREV sur piste ${piste.piste} refusé — match courant renvoyé`
+    );
+    this.resendMatch(piste.piste);
+  };
+
   /** Pseudo-socket de l'appareil pour `arena_control` (id `cyrano:<piste>`). */
   private deviceSocket(piste: CyranoPisteStatus): Socket {
     return { id: `cyrano:${piste.piste}`, emit: () => true } as unknown as Socket;
   }
 
-  private buildDispFor(match: ArenaMatch, scoreA: number, scoreB: number) {
+  private buildDispFor(
+    match: ArenaMatch,
+    scoreA: number,
+    scoreB: number,
+    piste?: CyranoPisteStatus
+  ) {
     const fA = match.fencerA;
     const fB = match.fencerB;
+    const remote = this.getRemote();
+    // Cartons déjà donnés sur ce match (match rappelé, appareil redémarré) : sans eux, le
+    // premier INFO de l'appareil les effacerait
+    const arenaId = `arena${piste?.arena}`;
+    const arena = piste?.arena ? remote?.getArena(arenaId) : null;
+    const isCurrent = arena?.currentMatch?.id === match.id;
+    const cards = isCurrent ? remote?.arenaCards.get(arenaId) : undefined;
+    // Chrono : seulement pour un match repris pas encore relancé (PREV), jamais en plein combat
+    const w = piste ? this.watch.get(piste.piste) : undefined;
+    const stopwatch =
+      isCurrent && arena?.status !== 'in_progress' && w?.matchId === match.id
+        ? w.stopwatch
+        : undefined;
+    const count = (list: string[] | undefined) => ({
+      yellowCards: list?.includes('yellow') ? 1 : 0,
+      redCards: list?.filter(c => c === 'red').length ?? 0,
+    });
     const right: CyranoDispFencer = {
       id: fA.id,
       lastName: fA.lastName,
       firstName: fA.firstName,
       nat: pickCyranoNat(fA, this.opts.natSource, this.opts.international),
       score: scoreA,
+      ...count(cards?.cardsA),
     };
     const left: CyranoDispFencer = {
       id: fB.id,
@@ -542,9 +592,9 @@ export class PisteHub {
       firstName: fB.firstName,
       nat: pickCyranoNat(fB, this.opts.natSource, this.opts.international),
       score: scoreB,
+      ...count(cards?.cardsB),
     };
 
-    const remote = this.getRemote();
     const { phase, poulTab, matchNum } = resolveCyranoCoords(
       match,
       remote?.getSession()?.competitionId,
@@ -554,6 +604,7 @@ export class PisteHub {
       phase,
       poulTab,
       match: matchNum,
+      stopwatch,
       // Arme de la séance ; Laser / CUSTOM → champ vide (affichage seul)
       weapon: remote?.getSessionWeapon() ?? '',
       right,

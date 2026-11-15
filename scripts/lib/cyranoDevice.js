@@ -169,13 +169,26 @@ class CyranoDevice extends EventEmitter {
 
   installDisp({ g, r, l }) {
     const { s } = this;
-    const f = z => ({ ...emptyFencer(), id: z[0] || '', name: z[1] || '', nat: z[2] || '', score: Number(z[3]) || 0 });
+    // Cartons transmis pour un match repris (PREV, appareil redémarré)
+    const f = z => ({
+      ...emptyFencer(),
+      id: z[0] || '',
+      name: z[1] || '',
+      nat: z[2] || '',
+      score: Number(z[3]) || 0,
+      y: Number(z[5]) || 0,
+      r: Number(z[6]) || 0,
+    });
     s.compe = g[3] || '';
     s.general = { phase: g[4] || '', poulTab: g[5] || '', match: g[6] || '', round: g[7] || '', time: g[8] || '', type: g[10] || '', weapon: g[11] || '' };
     s.ref = [g[14] || '', g[15] || '', g[16] || ''];
     if (!s.general.round) s.general.round = '1';
     s.priority = 'N';
-    s.stopwatchMs = s.periodMs;
+    // Chrono transmis pour un match repris (PREV) ; sinon temps de la période
+    const watch = /^(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?$/.exec(g[9] || '');
+    s.stopwatchMs = watch
+      ? (Number(watch[1]) * 60 + Number(watch[2])) * 1000 + Number((watch[3] || '0').padEnd(2, '0')) * 10
+      : s.periodMs;
     s.right = f(r);
     s.left = f(l);
     this.note(s.right.id ? `match ${s.right.name} – ${s.left.name}` : 'aucun match disponible');
@@ -190,6 +203,8 @@ class CyranoDevice extends EventEmitter {
     for (const z of [r, l]) {
       const f = [s.right, s.left].find(x => x.id === z[0]);
       if (z[3] !== undefined && z[3] !== '') f.score = Number(z[3]) || 0;
+      if (z[5] !== undefined && z[5] !== '') f.y = Number(z[5]) || 0;
+      if (z[6] !== undefined && z[6] !== '') f.r = Number(z[6]) || 0;
     }
     this.note(`scores corrigés : ${s.right.score} – ${s.left.score}`);
     return this.sendInfo();

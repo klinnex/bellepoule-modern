@@ -3,8 +3,11 @@
 > État (#1720, #1829) : codec, serveur UDP, supervision, simulateur, panneau de configuration,
 > raccordement aux arènes, **modes par piste** (appareil maître, afficheur, manuel), bascule en
 > manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage.
-> Restent : PREV, bandeau appareil dans la vue arbitre, pistes en base, profils constructeur,
-> cartons P, équipes.
+> PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
+> dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
+> import / export de la liste.
+> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, validation
+> de fin unifiée, test de bout en bout en CI.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -49,8 +52,16 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 | `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match |
 | `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
 | `NEXT` | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux) |
+| `PREV` | rappel du dernier match terminé de l'arène pour correction (`recallPrevMatch`, 3 min après sa fin) : `DISP` avec ses scores et cartons, puis nouvelle validation (`END` → `ACK`) qui le réenregistre ; un match de tableau non commencé repasse en tête de file. Refus (combat en cours, rien à rappeler, délai dépassé) : `DISP` du match courant (ou affichage vide). Sans effet en afficheur |
 | Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
 | Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
+
+Un `DISP` du match courant porte aussi les cartons déjà donnés (champs jaune / rouge des zones
+tireurs, omis à zéro) : sans eux, le premier `INFO` d'un appareil qui reprend un match (PREV,
+redémarrage) les effacerait. Pour un match rappelé (PREV) pas encore relancé, il porte aussi le
+chrono de fin de match (dernier chrono reçu de l'appareil), également diffusé à la tablette et à
+l'écran d'arène ; jamais de chrono dans un `DISP` envoyé en plein combat. À confirmer sur un
+appareil réel.
 
 Le `DISP` porte la phase, la poule (numéro de la poule) ou le tableau (`A16`, `A8`…) et le numéro
 du match (`matchCoords.ts`). Sabre laser et armes personnalisées : affichage seul (noms et score),
@@ -66,6 +77,7 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 | Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
 | Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
 | Secours `NEXT` | même effet que la touche NEXT de l'appareil (mêmes garde-fous) |
+| Secours `PREV` | même effet que la touche PREVIOUS de l'appareil : rappel du dernier match terminé (§ 2 bis) |
 | Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
 | Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
 
@@ -202,8 +214,8 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
      tablette) : référence pour la tablette en miroir.
 2. Pilote Cyrano en lecture (mode afficheur), supervision dans l'interface.
 3. Télécommande : NEXT / PREV via `arenaQueue`, END → ACK / NAK → `matchFinish`, alerte BAD MATCH.
-   - PREV suppose une fonction « match précédent », absente de `arenaQueue` aujourd'hui ;
-     fenêtre de correction bornée (cf. Engarde : refus au-delà de 3 min ou si le match est verrouillé).
+   - PREV : rappel du match précédent (`recallPrevMatch`, #1852), fenêtre de correction de 3 min
+     (cf. Engarde), relié à la touche PREVIOUS de l'appareil.
 4. Interface : table des pistes enregistrée en base, profils constructeur, format des noms.
    - Actions de secours par piste : ACK forcé, passage en manuel, NEXT envoyé depuis le poste,
      remise à zéro de l'affichage.
@@ -214,7 +226,8 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 6. Cartons P, équipes (`Type=T`, relais, remplaçant).
 
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
-PREV, bandeau arbitre, table des pistes en base, profils constructeur et les extensions restent ouverts.
+PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
+base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).
