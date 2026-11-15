@@ -52,6 +52,8 @@
   'referee.lobby': '← Vestíbulo',
   'referee.lobby_title': 'Volver al vestíbulo de pistas',
   'referee.referee_label': 'Árbitro:',
+  'referee.cyrano_master_lock': 'Entrada bloqueada: el aparato de pista está en modo maestro. Corrija solo quitando.',
+  'arena.resting_label': 'Descanso',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Maestro',
   'referee.cyrano_mode_display': 'Visualización',

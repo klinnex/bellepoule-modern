@@ -48,6 +48,8 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Torna al lobby delle pedane',
   'referee.referee_label': 'Arbitro:',
+  'referee.cyrano_master_lock': 'Inserimento bloccato: la pedana è in modalità master. Correggere solo togliendo.',
+  'arena.resting_label': 'Riposo',
   'referee.cyrano_bar': 'Pedana {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Master',
   'referee.cyrano_mode_display': 'Display',

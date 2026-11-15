@@ -52,6 +52,8 @@
   'referee.lobby': '← Lobby',
   'referee.lobby_title': 'Retour au lobby des pistes',
   'referee.referee_label': 'Arbitre :',
+  'referee.cyrano_master_lock': "Saisie verrouillée : l'appareil de piste est en mode maître. Corrigez par retrait seulement.",
+  'arena.resting_label': 'Repos',
   'referee.cyrano_bar': 'Piste {{piste}} : {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Maître',
   'referee.cyrano_mode_display': 'Afficheur',

@@ -57,6 +57,8 @@ export function handleArenaControl(
     scoreB?: number;
     time?: number;
     timerStatus?: 'running' | 'paused' | 'reset';
+    /** Minute de repos sur l'appareil de piste (#1829) */
+    resting?: boolean;
     fencer?: 'A' | 'B';
     cardType?: 'white' | 'yellow' | 'red';
     cardsA?: string[];
@@ -87,6 +89,8 @@ export function handleArenaControl(
     socket.emit('error', { message: 'Arène non trouvée' });
     return;
   }
+  // Repos de l'appareil de piste : porté par l'arène, diffusé à chaque mise à jour (#1829)
+  if (typeof data.resting === 'boolean') arena.resting = data.resting;
 
   // Appareil de piste Cyrano (pseudo-socket `cyrano:<piste>`, #1720) : tablettes en miroir
   const source = socket.id?.startsWith('cyrano:') ? { source: 'device' as const } : {};

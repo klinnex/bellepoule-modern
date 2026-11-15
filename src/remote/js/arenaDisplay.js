@@ -268,7 +268,22 @@ class ArenaDisplay {
     }
   }
 
+  // Minute de repos de l'appareil de piste (état P, #1829) : bandeau « Repos » créé à la demande
+  applyRestingLabel(resting) {
+    let el = document.getElementById('arena-resting-label');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'arena-resting-label';
+      el.className = 'arena-resting-label hidden';
+      el.setAttribute('role', 'status');
+      document.body.appendChild(el);
+    }
+    el.textContent = window.T ? window.T('arena.resting_label') : 'Repos';
+    el.classList.toggle('hidden', !resting);
+  }
+
   handleArenaUpdate(data) {
+    if (data.resting !== undefined) this.applyRestingLabel(data.resting === true);
     // Plan pur (/js/arenaUpdate.js) : opérations ordonnées appliquées ici
     const ops = ArenaUpdate.planArenaUpdate(
       {

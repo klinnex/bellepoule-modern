@@ -821,6 +821,11 @@ class RefereeAppBase {
   }
 
   addScore(fencer, points) {
+    // Appareil de piste en maître et en ligne : la tablette ne fait que corriger (retrait), pas saisir (#1829)
+    if (points > 0 && this.cyranoMasterLock) {
+      this.showNotification(window.T('referee.cyrano_master_lock'));
+      return;
+    }
     const check = BPRefereeScoring.validateAddScore({
       hasMatch: !!this.currentMatch,
       matchStatus: this.matchStatus,

@@ -565,6 +565,15 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(arena().currentMatch).toMatchObject({ scoreA: 5, scoreB: 2 });
     });
 
+    it('état P de l’appareil (minute de repos) : repos publié sur l’arène, levé à la reprise (#1829)', () => {
+      device(info('H', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().resting).toBe(false);
+      device(info('P', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().resting).toBe(true);
+      device(info('H', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().resting).toBe(false);
+    });
+
     it('bandeau appareil : mode et liaison publiés sur l’arène', () => {
       device(info('H', { id: short(ID.ef), score: 0 }, { id: short(ID.ab), score: 0 }));
       expect(arena().cyrano).toEqual({ piste: '1', mode: 'master', online: true });

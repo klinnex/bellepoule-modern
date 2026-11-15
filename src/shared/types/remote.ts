@@ -115,6 +115,8 @@ export interface Arena {
   leftHanded?: boolean;
   /** Appareil de piste relié à l'arène (#1829) */
   cyrano?: ArenaCyranoLink | null;
+  /** Minute de repos sur l'appareil (état P, #1829) */
+  resting?: boolean;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
@@ -172,6 +174,8 @@ export interface ArenaUpdate {
   match: ArenaMatch | null;
   /** Appareil de piste Cyrano relié à l'arène (#1829) */
   cyrano?: ArenaCyranoLink | null;
+  /** Minute de repos sur l'appareil (état P, #1829) */
+  resting?: boolean;
   scoreA?: number;
   scoreB?: number;
   time?: number;

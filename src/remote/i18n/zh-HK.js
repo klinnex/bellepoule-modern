@@ -52,6 +52,8 @@
   'referee.lobby': '← 大堂',
   'referee.lobby_title': '返回劍道大堂',
   'referee.referee_label': '裁判：',
+  'referee.cyrano_master_lock': '已鎖定輸入：跑道裝置處於主機模式，只能以扣除方式更正。',
+  'arena.resting_label': '休息',
   'referee.cyrano_bar': '跑道 {{piste}}：{{mode}} — {{state}}',
   'referee.cyrano_mode_master': '主機',
   'referee.cyrano_mode_display': '顯示器',
