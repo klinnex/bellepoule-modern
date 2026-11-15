@@ -269,6 +269,9 @@
   border-radius: 6px;
   background: rgb(220 38 38 / 8%);
 }
+.perf-pool--late {
+  background: rgb(220 38 38 / 8%);
+}
 .org-pool__late {
   display: inline-flex;
   align-items: center;

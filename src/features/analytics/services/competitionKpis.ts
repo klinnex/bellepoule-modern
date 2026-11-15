@@ -124,6 +124,8 @@ export interface FencerMatchKpis {
   losses: number;
   /** Écart moyen |TD − TR| sur tous les matchs */
   averageGap: number;
+  /** Écart moyen signé : + si les victoires pèsent plus que les défaites, − sinon */
+  averageSignedGap: number;
   averageWinGap: number;
   averageLossGap: number;
   /** Victoires serrées : écart ≤ 2 touches */
@@ -177,6 +179,7 @@ export function fencerMatchKpis(fencerId: string, matches: KpiMatch[]): FencerMa
     wins,
     losses,
     averageGap: own.length ? gapSum / own.length : 0,
+    averageSignedGap: own.length ? (winGap - lossGap) / own.length : 0,
     averageWinGap: wins ? winGap / wins : 0,
     averageLossGap: losses ? lossGap / losses : 0,
     closeWins,
@@ -276,6 +279,16 @@ export interface OrganisationKpis {
 /** Poule en retard : au moins 2 matchs de retard sur la médiane des poules (#1817) */
 const LATE_GAP_MATCHES = 2;
 
+/** Marque les poules en retard : au moins 2 matchs joués de moins que la médiane des poules (#1817) */
+export function markLatePools(rows: Array<{ done: number; total: number; late: boolean }>): void {
+  const open = rows.filter(p => p.total > 0);
+  if (open.length < 2) return;
+  const sorted = open.map(p => p.done).sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  for (const p of open) p.late = p.done < p.total && median - p.done >= LATE_GAP_MATCHES;
+}
+
 export function organisationKpis(input: {
   pools: Pool[];
   tableauMatches?: KpiTableauMatch[];
@@ -307,14 +320,7 @@ export function organisationKpis(input: {
       late: false,
     };
   });
-  // Poule en retard : au moins 2 matchs joués de moins que la médiane des poules
-  const open = poolRows.filter(p => p.total > 0);
-  if (open.length > 1) {
-    const sorted = open.map(p => p.done).sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-    for (const p of open) p.late = p.done < p.total && median - p.done >= LATE_GAP_MATCHES;
-  }
+  markLatePools(poolRows);
 
   const playableTableau = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB);
   const tableauDone = playableTableau.filter(m => m.winner).length;
