@@ -39,6 +39,8 @@ import type {
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
+export type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
+import type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
 
 // Config TTS (minuteur vocal) des tablettes d'arbitrage, réglée dans les paramètres globaux
 export interface TtsConfig {
@@ -1205,25 +1207,6 @@ export interface CryptoAPI {
   unprotect: (ciphertext: string) => Promise<string | null>;
 }
 
-export interface TrainingCustomRules {
-  matchDurationSeconds: number;
-  allowedZones: string[];
-  disableSuddenDeath: boolean;
-  /** Mode démo : matchs aléatoires joués automatiquement */
-  demo?: boolean;
-}
-
-export interface TrainingMatchRecord {
-  id: string;
-  arenaId: string;
-  arenaNumber: number;
-  weapon: string;
-  scoreA: number;
-  scoreB: number;
-  durationSec: number;
-  finishedAt: string;
-}
-
 /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
 export interface EventDayAPI {
   list: () => Promise<EventDay[]>;
@@ -1249,15 +1232,6 @@ export interface EventDayAPI {
 export interface EventDayOverview {
   statuses: DayRefereeStatus[];
   conflicts: DayRefereeConflict[];
-}
-
-/** Coordonnées du serveur d'entraînement renvoyées au renderer */
-interface TrainingServerInfo {
-  url: string;
-  ip: string;
-  port: number;
-  useHttps: boolean;
-  certFingerprint?: string;
 }
 
 export interface TrainingAPI {

@@ -1,0 +1,32 @@
+/* Diagnostic pare-feu Windows (saisie distante) — FirewallCheckPanel.tsx */
+
+.fw-check {
+  margin-top: 0.5rem;
+}
+
+.fw-check__result {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.fw-check__list {
+  margin: 0.25rem 0;
+  padding-left: 1.2rem;
+}
+
+.fw-check__note {
+  color: #94a3b8;
+  margin: 0;
+}
+
+.fw-ok {
+  color: #15803d;
+}
+
+.fw-warning {
+  color: #b45309;
+}
+
+.fw-error {
+  color: #b91c1c;
+}

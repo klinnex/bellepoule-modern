@@ -38,27 +38,26 @@ export function FirewallCheckPanel({ t, port }: { t: Translate; port: number }) 
   };
 
   return (
-    <div style={{ marginTop: '0.5rem' }}>
+    <div className="fw-check">
       <button className="btn-secondary" onClick={runCheck} disabled={checking}>
         {checking ? t('rsm.fw_checking') : t('rsm.fw_button')}
       </button>
       {result && result.supported && (
-        <div role="status" aria-live="polite" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+        <div role="status" aria-live="polite" className="fw-check__result">
           <strong>{t('rsm.fw_title')}</strong>
-          <ul style={{ margin: '0.25rem 0', paddingLeft: '1.2rem' }}>
+          <ul className="fw-check__list">
             {result.findings.map((f, i) => (
               <li
                 key={`${f.code}-${i}`}
-                style={{
-                  color:
-                    f.level === 'ok' ? '#15803d' : f.level === 'warning' ? '#b45309' : '#b91c1c',
-                }}
+                className={
+                  f.level === 'ok' ? 'fw-ok' : f.level === 'warning' ? 'fw-warning' : 'fw-error'
+                }
               >
                 {t(`rsm.fw_${f.code}`, f.params)}
               </li>
             ))}
           </ul>
-          <p style={{ color: '#94a3b8', margin: 0 }}>{t('rsm.fw_note')}</p>
+          <p className="fw-check__note">{t('rsm.fw_note')}</p>
         </div>
       )}
     </div>
