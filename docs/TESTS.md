@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 67 | 554 |
+| `src/main/` | 69 | 566 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 96 | 482 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **383** | **2918** |
+| **Total** | **385** | **2930** |
 
-Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 375 fichiers, 2891 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3157,6 +3157,21 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/prevMatch.test.ts</code> — 7 tests</summary>
+
+- **checkPrevEligibility**
+  - refuse quand rien n’a été terminé sur la piste
+  - accepte dans la fenêtre de correction, match suivant pas démarré
+  - accepte exactement à la limite de la fenêtre
+  - refuse après la fenêtre de correction
+  - ne coupe jamais un combat en cours
+- **restoreForCorrection**
+  - garde scores et tireurs, efface fin et durée
+  - ne modifie pas le snapshot d’origine
+
+</details>
+
+<details>
 <summary><code>src/main/remote/publicDto.test.ts</code> — 8 tests</summary>
 
 - **stripPersonalData**
@@ -3170,6 +3185,18 @@ Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/recallPrev.test.ts</code> — 5 tests</summary>
+
+- **recallPrevMatch**
+  - rend le match terminé à l’arène, scores conservés, et restaure les événements
+  - refuse sans rien modifier hors fenêtre
+  - refuse un combat en cours
+  - n’efface rien et ne rend rien si la purge DB échoue
+  - remet en tête de file un match DE non commencé
 
 </details>
 
