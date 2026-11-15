@@ -103,7 +103,7 @@ import {
   type TrainingSessionContext,
 } from './remote/trainingSession';
 import type { DemoPlayer } from './remote/demoMode';
-import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
+import { finishArenaMatch, recallPrevMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
   loadNextMatch,
@@ -178,8 +178,6 @@ const NET = LogCategory.NETWORK;
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
-/** Raccourcis de type pour les modules extraits (#1240) : état du serveur, paramètres hors contexte */
-type S = RemoteScoreServer;
 type Tail<T extends unknown[]> = T extends [unknown, ...infer R] ? R : never;
 
 export class RemoteScoreServer {
@@ -579,6 +577,7 @@ export class RemoteScoreServer {
       [
         'broadcastArenaUpdate',
         'broadcastDashboardUpdate',
+        'assignMatchToArena',
         'createTrainingMatch',
         'fireWebhook',
         'loadNextMatch',
@@ -1603,7 +1602,7 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string): void { return loadNextMatch(this.arenaQueueCtx, arenaId); }
+  public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
   public hasSession(): boolean { return this.session !== null; }
   public getSessionWeapon(): string | null { return this.sessionWeapon; }
 

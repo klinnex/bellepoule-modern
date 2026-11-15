@@ -10,6 +10,8 @@ import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { SessionScore } from './types';
+import { checkPrevEligibility, restoreForCorrection, type LastFinishedSnapshot } from './prevMatch';
+import type { ArenaMatch } from '../../shared/types/remote';
 
 type S = RemoteScoreServer;
 
@@ -25,6 +27,7 @@ export interface MatchFinishContext {
   readonly arenaRefereeSelected: S['arenaRefereeSelected'];
   readonly arenaTouches: S['arenaTouches'];
   readonly arenas: S['arenas'];
+  readonly assignMatchToArena: S['assignMatchToArena'];
   readonly broadcastArenaUpdate: S['broadcastArenaUpdate'];
   readonly broadcastDashboardUpdate: S['broadcastDashboardUpdate'];
   readonly createTrainingMatch: S['createTrainingMatch'];
@@ -42,6 +45,68 @@ export interface MatchFinishContext {
   readonly sessionModernRules: S['sessionModernRules'];
   readonly sessionWeapon: S['sessionWeapon'];
   readonly trainingHistory: S['trainingHistory'];
+}
+
+/**
+ * Dernier match terminé, par objet arène (PREV, #1829). Lié à l'objet : une réinitialisation
+ * des arènes le supprime sans purge explicite.
+ */
+const lastFinished = new WeakMap<object, LastFinishedSnapshot>();
+
+/** Mémorise le dernier match terminé d'une arène (appelé à la fin de match) */
+export function rememberLastFinished(arena: object, snapshot: LastFinishedSnapshot): void {
+  lastFinished.set(arena, snapshot);
+}
+
+/**
+ * PREV (#1829) : rappelle le dernier match terminé de la piste pour correction, dans la fenêtre
+ * bornée de `prevMatch.ts`. Un match DE non commencé repasse en tête de file (les pools sont
+ * relues par la file normale). Renvoie false si le rappel est refusé, sans rien modifier.
+ */
+export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boolean {
+  const arena = ctx.arenas.get(arenaId);
+  if (!arena || !ctx.session) return false;
+  const snapshot = lastFinished.get(arena);
+  const verdict = checkPrevEligibility(snapshot, arena.currentMatch, Date.now());
+  if (!verdict.ok || !snapshot) {
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] PREV refusé sur arène ${arenaId} : ${verdict.ok ? 'aucun' : verdict.reason}`
+    );
+    return false;
+  }
+
+  const restored = restoreForCorrection(snapshot);
+  // Purge des lignes DB du match : le « fin de match » suivant les réécrit (sinon doublons)
+  if (!ctx.isTrainingMode) {
+    try {
+      const dbId = ctx.resolveDbMatchId(restored);
+      if (dbId) ctx.db.clearArenaEvents(dbId);
+    } catch (e) {
+      logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] PREV : purge DB échouée', e);
+      return false;
+    }
+  }
+
+  const pending: ArenaMatch | null = arena.currentMatch;
+  if (pending && pending.status !== 'finished' && pending.isTableau) {
+    ctx.arenaMatchQueue.set(arenaId, [pending, ...(ctx.arenaMatchQueue.get(arenaId) || [])]);
+  }
+
+  const ev = snapshot.events;
+  ctx.arenaCards.set(arenaId, ev.cards ?? { cardsA: [], cardsB: [] });
+  ctx.arenaTouches.set(arenaId, ev.touches ?? { touchesA: [], touchesB: [] });
+  ctx.arenaExits.set(arenaId, [...ev.exits]);
+  if (ev.times) ctx.arenaEventTimes.set(arenaId, ev.times);
+  else ctx.arenaEventTimes.delete(arenaId);
+  lastFinished.delete(arena);
+
+  ctx.assignMatchToArena(arenaId, restored);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] PREV : match ${restored.id} rendu à l'arène ${arenaId} pour correction`
+  );
+  return true;
 }
 
 export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void {
@@ -73,6 +138,19 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     ctx.recentMatchDurationsMs.push(wallMs);
     if (ctx.recentMatchDurationsMs.length > 50) ctx.recentMatchDurationsMs.shift();
   }
+
+  // Dernier match terminé : rappelable par PREV pendant la fenêtre de correction (#1829)
+  if (!ctx.isTrainingMode)
+    rememberLastFinished(arena, {
+      match: { ...arena.currentMatch },
+      finishedAt: Date.now(),
+      events: {
+        cards: ctx.arenaCards.get(arenaId),
+        touches: ctx.arenaTouches.get(arenaId),
+        exits: [...(ctx.arenaExits.get(arenaId) ?? [])],
+        times: ctx.arenaEventTimes.get(arenaId),
+      },
+    });
 
   // Persistance secondaire (timing / cartons / touches / sorties) : ces écritures
   // utilisent arena.currentMatch.id qui, pour un match de tableau, n'est PAS l'id DB

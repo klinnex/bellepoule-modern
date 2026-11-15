@@ -232,6 +232,10 @@ export function handleArenaControl(
       }
       break;
     }
+    case 'prev':
+      // Rappel du match précédent pour correction, fenêtre bornée (#1829) ; refus silencieux côté tablette
+      ctx.loadNextMatch(data.arenaId, true);
+      break;
     case 'next':
       ctx.loadNextMatch(data.arenaId);
       ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
