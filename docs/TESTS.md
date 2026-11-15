@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 66 | 545 |
+| `src/main/` | 67 | 554 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 96 | 482 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **382** | **2909** |
+| **Total** | **383** | **2918** |
 
-Unitaires : 372 fichiers, 2870 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 373 fichiers, 2879 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2579,6 +2579,22 @@ Unitaires : 372 fichiers, 2870 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - supervision : en ligne → incertain → hors ligne
   - journal borné
   - version imposée par piste
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 9 tests</summary>
+
+- **Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)**
+  - expose toutes les commandes de la télécommande
+  - temps écoulé : GO refusé, PAUSE puis reprise en période 2 sans perdre score ni cartons
+  - RESET remet le temps de la période sans effacer tireurs, score ni cartons
+  - RESET pendant la minute de repos l’écourte (période inchangée)
+  - CLOCK ±1 s arrête le chrono ; RESET ±1 min change la durée de la période
+  - 0:0 et CARDS RESET ; ∨ jaune / ∨ rouge retirent les cartons
+  - bloc PC : abandon, expulsion, réserve, médical dans la trame INFO
+  - priorité tirée au sort, P RESET, arme
+  - VALIDATE → E ; NEXT bloqué tant que le match n’est pas acquitté ; RAZ efface tout
 
 </details>
 
