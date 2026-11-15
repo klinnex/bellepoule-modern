@@ -4,8 +4,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { exportFencersToFFF, exportFencersToTXT, exportResultsToFFF } from './fencerExport';
-import { Fencer, Gender, FencerStatus } from '../types';
+import {
+  encodeFFFWin1252,
+  exportFencersToFFF,
+  exportFencersToTXT,
+  exportResultsToFFF,
+} from './fencerExport';
+import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
 const makeFencer = (over: Partial<Fencer> = {}): Fencer => ({
   id: '1',
@@ -102,27 +107,70 @@ describe('exportFencersToFFF — département (#1504)', () => {
   });
 });
 
-describe('exportResultsToFFF', () => {
-  it('commence par l’en-tête FFF et porte le rang final en position', () => {
-    const out = exportResultsToFFF([
-      { rank: 2, fencer: makeFencer({ lastName: 'Martin', firstName: 'Paul' }) },
-      { rank: 1, fencer: makeFencer({ lastName: 'Dupont', firstName: 'Jean' }) },
-    ]);
+describe('exportResultsToFFF (spécification FFF)', () => {
+  const comp = {
+    id: 'c1',
+    title: 'Coupe de Dourdan 2026',
+    shortTitle: 'Dourdan 2026',
+    organizer: "CERCLE D'ESCRIME DE DOURDAN",
+    date: new Date('2026-06-07'),
+    weapon: Weapon.SABRE,
+    gender: Gender.MALE,
+    category: Category.SENIOR,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as unknown as Competition;
+
+  it('écrit l’en-tête FFF;WIN;COMPETITION;organisateur puis la ligne de compétition', () => {
+    const out = exportResultsToFFF(comp, []);
     const lines = out.split('\n');
-    expect(lines[0]).toBe('FFF;UTF8;competition;;individuel');
-    expect(lines[1].startsWith('DUPONT,Jean,')).toBe(true);
-    expect(lines[1].endsWith(';1,t')).toBe(true);
-    expect(lines[2].endsWith(';2,t')).toBe(true);
+    expect(lines[0]).toBe("FFF;WIN;COMPETITION;CERCLE D'ESCRIME DE DOURDAN");
+    expect(lines[1]).toBe('7/6/2026;sabre;m;senior;Coupe de Dourdan 2026;Dourdan 2026');
   });
 
-  it('place les tireurs sans rang en dernier, sans position', () => {
-    const out = exportResultsToFFF([
+  it('écrit général;FIE;national;rang,T pour un tireur ayant participé au tableau', () => {
+    const out = exportResultsToFFF(comp, [
+      {
+        rank: 1,
+        fencer: makeFencer({ lastName: 'Dupont', firstName: 'Jean', license: '123' }),
+        eliminatedAt: 'Finale',
+      },
+    ]);
+    const line = out.split('\n')[2];
+    expect(line.startsWith('DUPONT,Jean,')).toBe(true);
+    expect(line).toContain(';;123,');
+    expect(line.endsWith(';1,T')).toBe(true);
+  });
+
+  it('marque P pour un tireur éliminé dans les poules', () => {
+    const out = exportResultsToFFF(comp, [
+      { rank: 9, fencer: makeFencer({ lastName: 'Martin' }), eliminatedAt: 'Poules' },
+    ]);
+    expect(out.split('\n')[2].endsWith(';9,P')).toBe(true);
+  });
+
+  it('trie par rang, met les rangs vides en dernier et omet les exclus', () => {
+    const out = exportResultsToFFF(comp, [
       { rank: null, fencer: makeFencer({ lastName: 'Abandon' }) },
+      { rank: 2, fencer: makeFencer({ lastName: 'Martin' }) },
       { rank: 1, fencer: makeFencer({ lastName: 'Dupont' }) },
+      { rank: 3, fencer: makeFencer({ lastName: 'Exclu', status: FencerStatus.EXCLUDED }) },
     ]);
     const lines = out.split('\n');
-    expect(lines[1].startsWith('DUPONT,')).toBe(true);
-    expect(lines[2].startsWith('ABANDON,')).toBe(true);
-    expect(lines[2].endsWith(';,t')).toBe(true);
+    expect(lines.length).toBe(2 + 3);
+    expect(lines[2].startsWith('DUPONT,')).toBe(true);
+    expect(lines[3].startsWith('MARTIN,')).toBe(true);
+    expect(lines[4].startsWith('ABANDON,')).toBe(true);
+    expect(lines[4].endsWith(';,T')).toBe(true);
+  });
+});
+
+describe('encodeFFFWin1252', () => {
+  it('encode les accents en cp1252 (é = 0xE9, € = 0x80)', () => {
+    expect(Array.from(encodeFFFWin1252('é€'))).toEqual([0xe9, 0x80]);
+  });
+
+  it('remplace les caractères hors cp1252 par ?', () => {
+    expect(Array.from(encodeFFFWin1252('中'))).toEqual([0x3f]);
   });
 });

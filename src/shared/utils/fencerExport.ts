@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, Gender } from '../types';
+import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
 /**
  * Formate une date au format DD/MM/YYYY pour l'export FFF
@@ -155,41 +155,131 @@ function padRight(str: string, len: number): string {
   return str + ' '.repeat(len - str.length);
 }
 
+/** Date FFF sans zéro de tête (ex. 7/6/2000), comme dans la spécification */
+function formatDateFFFShort(date?: Date | string): string {
+  if (!date) return '';
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
+
+/** Arme au vocabulaire FFF (fleuret, epee, sabre) */
+function weaponToFFF(weapon: Weapon): string {
+  switch (weapon) {
+    case Weapon.FOIL:
+      return 'fleuret';
+    case Weapon.EPEE:
+      return 'epee';
+    case Weapon.SABRE:
+    case Weapon.LASER:
+      return 'sabre';
+    default:
+      return '';
+  }
+}
+
+/** Catégorie d'âge au vocabulaire FFF (approximation : à valider avec la FFE) */
+function categoryToFFF(category: Category): string {
+  switch (category) {
+    case Category.U9:
+      return 'poussin';
+    case Category.U11:
+      return 'benjamin';
+    case Category.U13:
+      return 'minime';
+    case Category.U15:
+    case Category.U17:
+      return 'cadet';
+    case Category.U20:
+      return 'junior';
+    case Category.SENIOR:
+      return 'senior';
+    default:
+      return 'veteran';
+  }
+}
+
 /**
- * Exporte les résultats finaux au format FFF (même structure que la liste des tireurs,
- * la colonne position porte le classement final).
- * Les tireurs sans rang (abandon, exclusion) sont listés en dernier, sans position.
+ * Exporte les résultats finaux au format FFF « résultat de compétition »
+ * (spécification FFF, 3 août 2000) :
+ *   ligne 1 : FFF;WIN;COMPETITION;<organisateur>
+ *   ligne 2 : date;arme;sexe;catégorie;nom;nom réduit
+ *   lignes  : NOM,Prénom,date,sexe,nation;<FIE vide>;<national>;<rang>,<T|P>
+ * Les tireurs exclus sont omis. Les tireurs sans rang (carton noir) ont un rang vide.
+ * T = participation au tableau, P = éliminé dans les poules.
  */
 export function exportResultsToFFF(
-  results: Array<{ rank?: number | null; fencer: Fencer }>
+  competition: Competition,
+  results: Array<{ rank?: number | null; fencer: Fencer; eliminatedAt?: string }>
 ): string {
-  const sorted = [...results].sort((a, b) => {
-    const ra = a.rank ?? Number.MAX_SAFE_INTEGER;
-    const rb = b.rank ?? Number.MAX_SAFE_INTEGER;
-    return ra - rb;
-  });
+  const organizer = fffField(competition.organizer) || fffField(competition.title);
+  const shortName = fffField(competition.shortTitle) || fffField(competition.title);
+  const lines: string[] = [
+    `FFF;WIN;COMPETITION;${organizer}`,
+    [
+      formatDateFFFShort(competition.date),
+      weaponToFFF(competition.weapon),
+      genderToFFF(competition.gender).toLowerCase(),
+      categoryToFFF(competition.category),
+      fffField(competition.title),
+      shortName,
+    ].join(';'),
+  ];
 
-  const lines: string[] = ['FFF;UTF8;competition;;individuel'];
+  const sorted = results
+    .filter(r => r.fencer.status !== FencerStatus.EXCLUDED)
+    .sort((a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER));
 
-  for (const { rank, fencer } of sorted) {
-    const section0 = [
+  for (const { rank, fencer, eliminatedAt } of sorted) {
+    // Partie 1 : informations générales
+    const general = [
       fffField(fencer.lastName).toUpperCase(),
       fffField(fencer.firstName),
-      formatDateFFF(fencer.birthDate),
+      formatDateFFFShort(fencer.birthDate),
       genderToFFF(fencer.gender),
       fffField(fencer.nationality) || 'FRA',
     ].join(',');
-    const section2 = [
+
+    // Partie 2 : informations FIE (non fournies par BellePoule : vide)
+    const fie = '';
+
+    // Partie 3 : informations de la fédération nationale
+    const national = [
       fffField(fencer.license),
       fffField(fencer.region),
       fffField(fencer.club),
       fencer.ranking != null ? String(fencer.ranking) : '',
-      '',
-      fffField(fencer.department),
     ].join(',');
-    const position = rank != null ? String(rank) : '';
-    lines.push(`${section0};,,;${section2};${position},t`);
+
+    // Partie 4 : informations de la compétition (rang final, T ou P)
+    const status = eliminatedAt?.startsWith('Poules') ? 'P' : 'T';
+    const competitionPart = `${rank != null ? rank : ''},${status}`;
+
+    lines.push(`${general};${fie};${national};${competitionPart}`);
   }
 
   return lines.join('\n');
 }
+
+/**
+ * Encode un texte FFF en Windows-1252 (charset annoncé par « FFF;WIN »).
+ * Les caractères absents de cp1252 sont remplacés par « ? ».
+ */
+export function encodeFFFWin1252(text: string): Uint8Array {
+  const bytes: number[] = [];
+  for (const ch of text) {
+    const code = ch.codePointAt(0) ?? 0x3f;
+    if (code < 0x80 || (code >= 0xa0 && code <= 0xff)) {
+      bytes.push(code);
+    } else {
+      const idx = CP1252_HIGH.indexOf(ch);
+      bytes.push(idx >= 0 ? 0x80 + idx : 0x3f);
+    }
+  }
+  return new Uint8Array(bytes);
+}
+
+/** Caractères cp1252 de 0x80 à 0x9F (les autres sont identiques à Latin-1) */
+const CP1252_HIGH =
+  '\u20ac\u0081\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u008d\u017d\u008f' +
+  '\u0090\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u009d\u017e\u0178';
