@@ -138,8 +138,10 @@
 }
 
 .rsm-pwd-input {
-  flex: 0 0 9rem;
-  width: 9rem;
+  /* largeur calée sur le texte d'aide (#1826) : lisible en entier, rétrécit si la carte est étroite */
+  flex: 0 1 54ch;
+  width: 54ch;
+  min-width: 0;
 }
 
 .theme-dark .rsm-pwd-card {
