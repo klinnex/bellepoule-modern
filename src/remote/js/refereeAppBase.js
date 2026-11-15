@@ -78,7 +78,7 @@ class RefereeAppBase {
     this.overtimeType = null; // 'supplementary' | 'challenger' | null
     this.coinFlipWinner = null; // 'A' | 'B' | null — vainqueur par tirage au sort
     this._pendingBlackCardFencer = null; // fenceur en attente de carton noir
-    this.actionHistory = []; // Historique pour undo (max 10)
+    this.actionHistory = []; // Historique pour undo (20 dernières actions, #1808)
     this.cardAnnounceEnabled = false; // Réglé depuis les paramètres de saisie distante
     this.refereeFeatureEnabled = false; // Fonctionnalité gestion arbitres
     this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
