@@ -137,7 +137,7 @@ registerRemoteServerHandlers({
   },
 });
 
-registerCyranoHandlers({ cyranoServer, pisteHub });
+registerCyranoHandlers({ cyranoServer, pisteHub, db });
 
 registerRemoteMatchHandlers();
 

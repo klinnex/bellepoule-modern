@@ -49,7 +49,40 @@ export function readPistes(): CyranoPisteConfigDTO[] {
     return [];
   }
 }
-export const writePistes = (p: CyranoPisteConfigDTO[]) => write(PISTES_KEY, JSON.stringify(p));
+/** Ancienne liste des pistes (localStorage), lue une seule fois pour migrer vers la base (#1829) */
+export function readLegacyPistes(): CyranoPisteConfigDTO[] {
+  return readPistes();
+}
+export function clearLegacyPistes(): void {
+  try {
+    localStorage.removeItem(PISTES_KEY);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
+/** Table des pistes de la compétition, enregistrée en base (#1829) */
+export async function loadPistesFor(competitionId: string | null): Promise<CyranoPisteConfigDTO[]> {
+  const api = window.electronAPI?.cyrano;
+  if (!api?.loadPistes || !competitionId) return [];
+  try {
+    return (await api.loadPistes(competitionId)) as CyranoPisteConfigDTO[];
+  } catch {
+    return [];
+  }
+}
+export async function savePistesFor(
+  competitionId: string | null,
+  pistes: CyranoPisteConfigDTO[]
+): Promise<void> {
+  const api = window.electronAPI?.cyrano;
+  if (!api?.savePistes || !competitionId) return;
+  try {
+    await api.savePistes(competitionId, pistes);
+  } catch {
+    /* échec d'écriture : la liste reste affichée, enregistrée à la prochaine modification */
+  }
+}
 
 export const readPort = (): number => parseInt(read(PORT_KEY) ?? '', 10) || DEFAULT_PORT;
 export const writePort = (p: number) => write(PORT_KEY, String(p));
@@ -78,21 +111,24 @@ export const usablePistes = (p: CyranoPisteConfigDTO[]) => p.filter(r => r.piste
  * Démarre le serveur Cyrano avec les réglages mémorisés : port, interface, pistes, options.
  * Déjà démarré : pistes et options renvoyées quand même.
  */
-export async function startCyranoFromSaved(): Promise<{ success: boolean; error?: string }> {
+export async function startCyranoFromSaved(
+  competitionId: string | null
+): Promise<{ success: boolean; error?: string }> {
   const api = window.electronAPI?.cyrano;
   if (!api) return { success: false, error: 'electronAPI.cyrano indisponible' };
   const res = await api.start({ port: readPort(), host: readHost() });
   if (!res.success) return { success: false, error: res.error ?? 'start_failed' };
-  await api.setPistes(usablePistes(readPistes()));
+  await api.setPistes(usablePistes(await loadPistesFor(competitionId)));
   await api.setOptions(readOptions());
   return { success: true };
 }
 
 /** Démarrage automatique (#1829) : seulement si activé et au moins une piste déclarée */
-export async function autoStartCyrano(): Promise<boolean> {
-  if (!readAutoStart() || usablePistes(readPistes()).length === 0) return false;
+export async function autoStartCyrano(competitionId: string | null): Promise<boolean> {
+  if (!readAutoStart()) return false;
+  if (usablePistes(await loadPistesFor(competitionId)).length === 0) return false;
   try {
-    return (await startCyranoFromSaved()).success;
+    return (await startCyranoFromSaved(competitionId)).success;
   } catch {
     return false;
   }

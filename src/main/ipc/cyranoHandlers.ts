@@ -2,12 +2,14 @@
  * BellePoule Modern - Handlers IPC Cyrano (#1720)
  * Configuration et supervision du serveur UDP Cyrano et du PisteHub.
  * Canaux : cyrano:start, cyrano:stop, cyrano:isRunning, cyrano:setPistes,
- *          cyrano:getStatus, cyrano:getLog, cyrano:setOptions, cyrano:pisteAction (#1829)
+ *          cyrano:getStatus, cyrano:getLog, cyrano:setOptions, cyrano:pisteAction,
+ *          cyrano:loadPistes, cyrano:savePistes (table des pistes en base, #1829)
  * Licensed under GPL-3.0
  */
 
 import { ipcMain } from 'electron';
 import { CyranoServer, type CyranoPisteConfig } from '../cyrano/server';
+import type { DatabaseManager } from '../../database';
 import {
   PISTE_ACTIONS,
   PisteHub,
@@ -18,10 +20,11 @@ import {
 export interface CyranoHandlersContext {
   cyranoServer: CyranoServer;
   pisteHub: PisteHub;
+  db: Pick<DatabaseManager, 'getCyranoPistes' | 'replaceCyranoPistes'>;
 }
 
 export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
-  const { cyranoServer, pisteHub } = ctx;
+  const { cyranoServer, pisteHub, db } = ctx;
 
   ipcMain.handle(
     'cyrano:start',
@@ -57,6 +60,29 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
     cyranoServer.setPistes(pistes);
     // Changement de mode d'une piste : DISP renvoyé (#1829)
     pisteHub.syncPisteModes();
+  });
+
+  // Table des pistes : rattachée à la compétition (#1829). Identifiant vide = rien.
+  ipcMain.handle('cyrano:loadPistes', (_, competitionId: unknown): Record<string, unknown>[] => {
+    if (typeof competitionId !== 'string' || !competitionId) return [];
+    return db.getCyranoPistes(competitionId).map(row => row.config);
+  });
+
+  ipcMain.handle('cyrano:savePistes', (_, competitionId: unknown, pistes: unknown): boolean => {
+    if (typeof competitionId !== 'string' || !competitionId || !Array.isArray(pistes)) return false;
+    const rows = pistes
+      .filter(
+        (p): p is Record<string, unknown> & { piste: string } =>
+          !!p &&
+          typeof p === 'object' &&
+          typeof (p as { piste?: unknown }).piste === 'string' &&
+          (p as { piste: string }).piste.length > 0 &&
+          (p as { piste: string }).piste.length <= 16
+      )
+      .slice(0, 64)
+      .map(p => ({ piste: p.piste, config: p }));
+    db.replaceCyranoPistes(competitionId, rows);
+    return true;
   });
 
   ipcMain.handle('cyrano:getStatus', () => {

@@ -28,16 +28,20 @@ import {
   readAutoStart,
   readHost,
   readOptions,
-  readPistes,
+  clearLegacyPistes,
+  loadPistesFor,
+  readLegacyPistes,
   readPort,
+  savePistesFor,
   startCyranoFromSaved,
   writeAutoStart,
   writeHost,
   writeOptions,
-  writePistes,
   writePort,
   type CyranoOptions,
 } from './cyranoSettings';
+
+import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
 
 const POLL_MS = 5000;
 const LOG_LINES = 200;
@@ -62,7 +66,26 @@ export const CyranoPanel: React.FC = () => {
   const { t } = useTranslation();
   const [running, setRunning] = useState(false);
   const [udpPort, setUdpPort] = useState<number>(readPort);
-  const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>(readPistes);
+  // Table des pistes : en base, par compétition (#1829)
+  const competitionId = useCompetitionStore(s => s.currentCompetition?.id ?? null);
+  const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      let list = await loadPistesFor(competitionId);
+      const legacy = readLegacyPistes();
+      if (list.length === 0 && legacy.length > 0 && competitionId) {
+        // Migration unique depuis le localStorage
+        await savePistesFor(competitionId, legacy);
+        clearLegacyPistes();
+        list = legacy;
+      }
+      if (alive) setPistes(list);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [competitionId]);
   const [statuses, setStatuses] = useState<CyranoPisteStatusDTO[]>([]);
   const [options, setOptionsState] = useState<CyranoOptions>(readOptions);
   const { nameLength, natSource, international } = options;
@@ -155,7 +178,7 @@ export const CyranoPanel: React.FC = () => {
     setStartError(null);
     try {
       // Réglages déjà mémorisés à chaque modification : même démarrage que l'automatique
-      const res = await startCyranoFromSaved();
+      const res = await startCyranoFromSaved(competitionId);
       if (!res.success) setStartError(res.error ?? 'start_failed');
     } catch (err) {
       setStartError(err instanceof Error ? err.message : String(err));
@@ -171,7 +194,7 @@ export const CyranoPanel: React.FC = () => {
 
   const applyPistes = async (next: CyranoPisteConfigDTO[]) => {
     setPistes(next);
-    writePistes(next);
+    void savePistesFor(competitionId, next);
     if (running && window.electronAPI?.cyrano) {
       await window.electronAPI.cyrano.setPistes(next.filter(p => p.piste && p.ip));
     }

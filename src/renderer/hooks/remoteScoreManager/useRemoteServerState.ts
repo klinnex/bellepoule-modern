@@ -399,7 +399,7 @@ export function useRemoteServerState(ctx: Ctx) {
       if (result.success && result.session) {
         setSession(result.session);
         // Appareils de piste Cyrano : démarrage automatique avec la séance (#1829)
-        void autoStartCyrano();
+        void autoStartCyrano(competition.id);
         if (kioskPreset !== 'default') {
           window.electronAPI.remote
             .updateKioskTheme(competition.id, { '--k-preset': kioskPreset })
