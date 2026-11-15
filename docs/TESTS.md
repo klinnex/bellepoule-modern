@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 65 | 528 |
+| `src/main/` | 66 | 542 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 95 | 478 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **380** | **2882** |
+| **Total** | **381** | **2896** |
 
-Unitaires : 370 fichiers, 2843 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 371 fichiers, 2857 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3049,6 +3049,29 @@ Unitaires : 370 fichiers, 2843 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - prochain match de tableau : piste assignée au match
     - piste du match en cours prioritaire sur la piste prévue
     - piste prévue de la poule quand aucune arène ne la joue encore (#1078)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/firewallCheck.test.ts</code> — 14 tests</summary>
+
+- **analyzeFirewall**
+  - autorise le port quand une règle Allow couvre le profil actif
+  - signale l'absence de règle quand le défaut est Block
+  - signale un réseau Public même avec une règle ouverte pour Private seulement
+  - une règle Block prime sur une règle Allow
+  - accepte une plage de ports et une règle par programme
+  - ignore une règle visant un autre programme
+  - profil désactivé : pas de blocage
+  - défaut Allow : entrées autorisées
+  - sans réseau actif ou sans profil lisible : constat dédié
+  - DomainAuthenticated est traité comme le profil Domaine
+- **parseFirewallOutput**
+  - accepte les objets seuls (ConvertTo-Json ne met pas de tableau pour un élément)
+  - sortie vide ou invalide : erreur « unreadable » sans exception
+- **runFirewallCheck**
+  - hors Windows : non pris en charge, aucune commande lancée
+  - le script est en lecture seule (aucune commande de modification)
 
 </details>
 
