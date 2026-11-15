@@ -4,6 +4,7 @@
  */
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { RemoteServerAPI } from '../../shared/types/preload';
+import type { RemoteFirewallAPI } from '../../shared/types/remote';
 
 export const remoteApi = {
   getNetworkInterfaces: () => ipcRenderer.invoke('remote:getNetworkInterfaces'),
@@ -169,4 +170,4 @@ export const remoteApi = {
     ipcRenderer.invoke('remote:identifyClient', competitionId, socketId),
   setClientKioskMode: (competitionId: string, socketId: string, config: any) =>
     ipcRenderer.invoke('remote:setClientKioskMode', competitionId, socketId, config),
-} satisfies RemoteServerAPI;
+} satisfies RemoteServerAPI & RemoteFirewallAPI;

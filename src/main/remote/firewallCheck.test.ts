@@ -151,6 +151,37 @@ describe('parseFirewallOutput', () => {
   });
 });
 
+describe('détail des échecs de lecture', () => {
+  it('erreur fatale PowerShell : le message est remonté tel quel', () => {
+    const d = parseFirewallOutput(
+      JSON.stringify({ fatal: 'Accès refusé à la stratégie' }),
+      8066,
+      EXE
+    );
+    expect(d.findings[0].code).toBe('unreadable');
+    expect(d.detail).toBe('Erreur PowerShell : Accès refusé à la stratégie');
+  });
+
+  it('texte parasite avant le JSON : le JSON est quand même lu', () => {
+    const out =
+      'WARNING: quelque chose\n' +
+      JSON.stringify({
+        profiles: [{ Name: 'Private', Enabled: 'True', DefaultInboundAction: 'Block' }],
+        networks: [{ Name: 'x', NetworkCategory: 'Private' }],
+        rules: [],
+      });
+    const d = parseFirewallOutput(out, 8066, EXE);
+    expect(d.detail).toBeUndefined();
+    expect(d.findings[0].code).toBe('no_allow_rule');
+  });
+
+  it('sortie sans JSON : le début de la sortie est joint au détail', () => {
+    const d = parseFirewallOutput('Access is denied', 8066, EXE);
+    expect(d.findings[0].code).toBe('unreadable');
+    expect(d.detail).toBe('Sortie sans JSON : Access is denied');
+  });
+});
+
 describe('runFirewallCheck', () => {
   it('hors Windows : non pris en charge, aucune commande lancée', async () => {
     const d = await runFirewallCheck(8066, 'linux');

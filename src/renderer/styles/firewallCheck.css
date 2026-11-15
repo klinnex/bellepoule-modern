@@ -14,6 +14,14 @@
   padding-left: 1.2rem;
 }
 
+.fw-check__detail {
+  color: #94a3b8;
+  font-family: monospace;
+  font-size: 0.75rem;
+  word-break: break-all;
+  margin: 0.25rem 0;
+}
+
 .fw-check__note {
   color: #94a3b8;
   margin: 0;
