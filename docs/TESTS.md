@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 10 | 155 |
-| `src/main/` | 65 | 526 |
+| `src/main/` | 65 | 528 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 142 |
 | `src/renderer/components/` | 95 | 478 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **380** | **2880** |
+| **Total** | **380** | **2882** |
 
-Unitaires : 370 fichiers, 2841 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 370 fichiers, 2843 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2756,8 +2756,11 @@ Unitaires : 370 fichiers, 2841 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 5 tests</summary>
 
+- **training:setTheme**
+  - applique un thème intégré au serveur d’entraînement
+  - refuse un thème inconnu ou personnalisé
 - **registerTrainingHandlers : arrêt du serveur d’entraînement / démo**
   - stopServer libère le port et arrête le serveur
   - fenêtre principale fermée (macOS, app dans le Dock) → serveur arrêté
