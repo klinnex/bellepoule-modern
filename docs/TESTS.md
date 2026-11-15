@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 57 | 713 |
+| `src/shared/utils/` | 57 | 715 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **382** | **2903** |
+| **Total** | **382** | **2905** |
 
-Unitaires : 372 fichiers, 2864 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 372 fichiers, 2866 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -446,7 +446,7 @@ Unitaires : 372 fichiers, 2864 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 12 tests</summary>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 14 tests</summary>
 
 - **exportFencersToFFF**
   - commence par l’en-tête FFF standard
@@ -463,6 +463,9 @@ Unitaires : 372 fichiers, 2864 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - clôt la liste par une ligne de fin
 - **exportFencersToFFF — département (#1504)**
   - écrit le département après le classement
+- **exportResultsToFFF**
+  - commence par l’en-tête FFF et porte le rang final en position
+  - place les tireurs sans rang en dernier, sans position
 
 </details>
 
