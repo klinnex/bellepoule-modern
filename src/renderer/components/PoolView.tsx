@@ -110,6 +110,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
     matchArenaOverrides,
     cardScale,
     waveMatchIds,
+    categoryOf,
     handleMatchArenaChange,
     renderScoreModal,
     showAddFencerModal,
@@ -181,6 +182,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
           onInlineSingleScoreChange={setInlineSingleScore}
           onInlineSubmit={handleInlineSubmit}
           onInlineCancel={handleInlineCancel}
+          categoryOf={categoryOf}
         />
       </div>
       {orderedMatches.finished.length > 0 && (
@@ -432,7 +434,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
               {showColumnMenu && (
                 <div style={COL_MENU}>
                   <div style={COL_MENU_HEADER}>{t('poolView.columns_shown')}</div>
-                  {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
+                  {POOL_COLUMNS.filter(
+                    col =>
+                      (col.id !== 'quest' || isLaserSabre) &&
+                      (col.id !== 'category' || !!categoryOf)
+                  ).map(col => (
                     <label key={col.id} className="pv-col-menu-label">
                       <input
                         type="checkbox"

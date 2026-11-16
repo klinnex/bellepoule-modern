@@ -31,6 +31,15 @@
         --ref-muted: rgba(255,255,255,0.6);
         --ref-card-bg: rgba(255, 255, 255, 0.05);
         --ref-border: rgba(255, 255, 255, 0.1);
+        /* Carte du match (#1808) : suit le thème choisi, pas le thème clair/sombre du téléphone */
+        --ref-match-bg: rgba(30, 30, 40, 0.97); --ref-match-text: var(--tw-gray-100);
+        --ref-fencer-bg: var(--tw-gray-800); --ref-fencer-text: var(--tw-gray-50); --ref-fencer-muted: var(--tw-gray-400);
+        --ref-red-side-bg: linear-gradient(135deg, var(--c-3b0a0a) 0%, var(--c-4c1010) 100%);
+        --ref-green-side-bg: linear-gradient(135deg, var(--c-0a2e1a) 0%, var(--c-103d22) 100%);
+        --ref-green-side-cb-bg: linear-gradient(135deg, var(--c-0a1a3b) 0%, var(--c-10224c) 100%);
+        --ref-modal-bg: var(--tw-gray-800); --ref-modal-text: var(--tw-gray-100);
+        --ref-final-bg: var(--tw-gray-900); --ref-final-text: var(--tw-gray-100);
+        --ref-btn-bg: rgba(255, 255, 255, 0.15); --ref-btn-border: rgba(255, 255, 255, 0.35); --ref-btn-text: var(--color-white);
       }
       * {
         margin: 0;
@@ -121,10 +130,10 @@
 
       /* Panneau de match actif */
       .active-match {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--ref-match-bg);
         border-radius: 1rem;
         padding: 0.75rem;
-        color: var(--tw-gray-800);
+        color: var(--ref-match-text);
         margin-bottom: 1rem;
         display: none;
       }
@@ -143,7 +152,8 @@
       }
 
       .fencer-box {
-        background: var(--tw-gray-100);
+        background: var(--ref-fencer-bg);
+        color: var(--ref-fencer-text);
         padding: 0.6rem;
         border-radius: 0.75rem;
         text-align: center;
@@ -155,12 +165,12 @@
 
       .fencer-box.red-side {
         border-color: var(--red-500);
-        background: linear-gradient(135deg, var(--tw-red-50) 0%, var(--color-danger-bg) 100%);
+        background: var(--ref-red-side-bg);
       }
 
       .fencer-box.green-side {
         border-color: var(--green-500);
-        background: linear-gradient(135deg, var(--tw-green-50) 0%, var(--tw-green-100) 100%);
+        background: var(--ref-green-side-bg);
       }
 
       .fencer-name {
@@ -174,7 +184,7 @@
 
       .fencer-club {
         font-size: 0.7rem;
-        color: var(--tw-gray-500);
+        color: var(--ref-fencer-muted);
         margin-bottom: 0.2rem;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -827,7 +837,8 @@
       }
 
       .modal-content {
-        background: white;
+        background: var(--ref-modal-bg);
+        color: var(--ref-modal-text);
         border-radius: 1rem;
         padding: 1.5rem;
         max-width: 90%;
@@ -853,7 +864,8 @@
       }
 
       .final-score {
-        background: var(--tw-gray-100);
+        background: var(--ref-final-bg);
+        color: var(--ref-final-text);
         padding: 1rem;
         border-radius: 0.5rem;
         text-align: center;
@@ -986,7 +998,7 @@
       /* Écran prochains matchs */
       .next-matches-screen {
         display: none;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.5);
         border-radius: 1rem;
         padding: 1.5rem 1rem;
         margin-bottom: 1rem;
@@ -1126,7 +1138,7 @@
       /* Mode daltonien : vert remplacé par bleu (paire rouge/bleu lisible deutéranopie/protanopie) */
       body.colorblind .fencer-box.green-side {
         border-color: var(--blue-600);
-        background: linear-gradient(135deg, var(--tw-blue-50) 0%, var(--color-info-bg) 100%);
+        background: var(--ref-green-side-cb-bg);
       }
       body.colorblind .fencer-box.red-side { border-color: var(--tw-orange-600); }
       body.colorblind .score-display.green-score { color: var(--blue-600); }
@@ -1137,20 +1149,6 @@
       body.colorblind .coin-flip-confirm-winner.winner-red { color: var(--tw-orange-500); }
       body.colorblind .btn-arena-exit-green { background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); }
       body.colorblind .btn-arena-exit-red { background: linear-gradient(135deg, var(--tw-orange-500), var(--tw-orange-600)); }
-      @media (prefers-color-scheme: dark) {
-        body.colorblind .fencer-box.green-side { background: linear-gradient(135deg, var(--c-0a1a3b) 0%, var(--c-10224c) 100%); }
-      }
-      @media (prefers-color-scheme: dark) {
-        .active-match { background: rgba(30,30,40,0.97); color: var(--tw-gray-100); }
-        .fencer-box { background: var(--tw-gray-800); color: var(--tw-gray-50); }
-        .fencer-box.red-side { background: linear-gradient(135deg, var(--c-3b0a0a) 0%, var(--c-4c1010) 100%); }
-        .fencer-box.green-side { background: linear-gradient(135deg, var(--c-0a2e1a) 0%, var(--c-103d22) 100%); }
-        .fencer-club { color: var(--tw-gray-400); }
-        .modal-content { background: var(--tw-gray-800); color: var(--tw-gray-100); }
-        .final-score { background: var(--tw-gray-900); color: var(--tw-gray-100); }
-        .next-matches-screen { background: rgba(0,0,0,0.5); }
-      }
-
       /* ── Overlay signature des combattants (match tableau) ── */
       .match-sig-overlay {
         display: none;
@@ -1350,10 +1348,10 @@
         margin-bottom: 0.5rem;
       }
       .inl-fc7f64.inl-fc7f64 {
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.35);
+        background: var(--ref-btn-bg);
+        border: 1px solid var(--ref-btn-border);
         border-radius: 0.5rem;
-        color: var(--color-white);
+        color: var(--ref-btn-text);
         font-weight: 600;
         padding: 0.35rem 0.85rem;
         font-size: 0.85rem;

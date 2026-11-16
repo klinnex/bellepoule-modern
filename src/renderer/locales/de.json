@@ -2090,7 +2090,8 @@
     "nat": "Nat",
     "reg": "Reg",
     "change_pool": "Pool wechseln",
-    "change_pool_aria": "{{name}} in einen anderen Pool verschieben"
+    "change_pool_aria": "{{name}} in einen anderen Pool verschieben",
+    "cat": "Kat"
   },
   "competitionView": {
     "no_pools": "Keine Pools",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "Tableau wird geladen…",
     "readonly": "Tableau schreibgeschützt — Endergebnisse erstellt.",
     "edit_confirm": "Das Bearbeiten des Tableaus löscht die Endergebnisse. Fortfahren?",
-    "edit_tableau": "Tableau bearbeiten"
+    "edit_tableau": "Tableau bearbeiten",
+    "numbering": "Nummerierung",
+    "numbering_title": "Blasen: Platznummer im Pool statt Initialen"
   },
   "trainingPanel": {
     "copy_url": "URL kopieren",
@@ -2983,7 +2986,8 @@
     "col_region": "Region",
     "col_lastName": "Name",
     "col_firstName": "Vorname",
-    "col_matches": "Gefechte"
+    "col_matches": "Gefechte",
+    "col_category": "Kategorie"
   },
   "fencerStats": {
     "loading": "Wird geladen…",

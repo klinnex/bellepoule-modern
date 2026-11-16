@@ -4,6 +4,8 @@
  */
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import type { Fencer } from '../../../shared/types';
+import { rapieresCategoryAbbr, rapieresTeamCategory } from '../../../features/rapieres/rapieresAge';
 import type { PoolPrepLaunchAction } from '../../components/PoolPrepView';
 import { buildStripQrs } from '../useExport';
 import { usePoolStripChange } from '../usePoolStripChange';
@@ -230,6 +232,18 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
   const handlePoolStripChange = usePoolStripChange(competition.id, pools, setPools);
 
   const stripQrs = buildStripQrs(pools, poolsRemoteInfo);
+  // Tournoi des rapières : colonne « Cat. » des poules (#1864)
+  const rapieresTeams = rapieres.teams;
+  const poolCategoryOf = useMemo(
+    () =>
+      isRapieres
+        ? (f: Fencer) => {
+            const info = rapieresTeams[f.id];
+            return info ? rapieresCategoryAbbr(rapieresTeamCategory(info)) : '';
+          }
+        : undefined,
+    [isRapieres, rapieresTeams]
+  );
   const renderPoolCard = (pool: (typeof pools)[number], poolIndex: number) => (
     <CompetitionPoolCard
       key={pool.id}
@@ -262,6 +276,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
       onAutoFillReferees={handlePoolAutoFillReferees}
       onRefereeAssigned={handlePoolRefereeAssigned}
       waveMatchIds={currentWaveMatchIds}
+      categoryOf={poolCategoryOf}
     />
   );
 

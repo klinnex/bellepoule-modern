@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 68 | 775 |
+| `src/shared/utils/` | 68 | 776 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,21 +98,21 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
+| Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 12 | 192 |
 | `src/main/` | 74 | 611 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 107 | 534 |
+| `src/renderer/components/` | 107 | 539 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **415** | **3136** |
+| **Total** | **415** | **3143** |
 
-Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1511,13 +1511,14 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/trainingThemes.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/trainingThemes.test.ts</code> — 5 tests</summary>
 
 - **trainingThemes (#1500)**
   - liste fermée, Mousquetaires inclus
   - sombre : défaut partout (pas de thème arbitre, kiosk prédéfini)
   - chaque thème hors sombre change kiosk et tablette arbitre
   - Mousquetaires : piste en thème personnalisé
+  - carte du match arbitre (#1808) : suit le thème choisi, pas le thème du téléphone
 
 </details>
 
@@ -2105,7 +2106,7 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 7 tests</summary>
+<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 8 tests</summary>
 
 - **rapieresAge**
   - lit l’année de naissance depuis AAAA-MM-JJ
@@ -2115,6 +2116,7 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - année de naissance seule compte, pas la date (#1864)
   - une seule date connue : elle sert ; aucune : catégorie saisie
   - sexe d’équipe : M, F, mixte ; indéterminé si un sexe manque
+  - abréviation de catégorie pour la colonne « Cat. » des poules (#1864)
 
 </details>
 
@@ -4947,10 +4949,12 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/analytics/WeaponStatsCard.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/analytics/WeaponStatsCard.test.tsx</code> — 4 tests</summary>
 
 - **WeaponStatsCard (#1817)**
   - armes olympiques : écart, cartons/match, abandons, temps limite
+  - tournoi des rapières : mêmes indicateurs que l'épée
+  - arme personnalisée hors rapières : indicateurs historiques
   - sabre laser : indicateurs historiques
 
 </details>
@@ -5280,7 +5284,7 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 9 tests</summary>
 
 - **PoolScoreMatrix**
   - affiche les noms des tireurs en en-tête de ligne
@@ -5289,6 +5293,9 @@ Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
   - rapières : cases de la vague en cours surlignées en violet (#1118)
+  - numérotage : bulles = placement dans la poule au lieu des initiales (#1864)
+  - rapières : colonne « Cat. » en dernier, seulement avec categoryOf (#1864)
+  - rapières : colonne « Cat. » affiche la catégorie abrégée (#1864)
 
 </details>
 

@@ -2090,7 +2090,8 @@
     "nat": "Стр",
     "reg": "Рег",
     "change_pool": "Сменить пул",
-    "change_pool_aria": "Переместить {{name}} в другой пул"
+    "change_pool_aria": "Переместить {{name}} в другой пул",
+    "cat": "Кат"
   },
   "competitionView": {
     "no_pools": "Нет пулов",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "Загрузка таблицы…",
     "readonly": "Таблица только для чтения — итоговые результаты сформированы.",
     "edit_confirm": "Редактирование таблицы сотрёт итоговые результаты. Продолжить?",
-    "edit_tableau": "Редактировать таблицу"
+    "edit_tableau": "Редактировать таблицу",
+    "numbering": "Нумерация",
+    "numbering_title": "Кружки: номер позиции в пуле вместо инициалов"
   },
   "trainingPanel": {
     "copy_url": "Копировать URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Регион",
     "col_lastName": "Фамилия",
     "col_firstName": "Имя",
-    "col_matches": "Бои"
+    "col_matches": "Бои",
+    "col_category": "Категория"
   },
   "fencerStats": {
     "loading": "Загрузка…",

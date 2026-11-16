@@ -1,7 +1,8 @@
 /**
  * BellePoule Modern - Carte « Statistiques de l'arme » (onglet Performances)
  * Armes olympiques : écart moyen au score, cartons par match, abandons / exclusions /
- * forfaits, matchs au temps limite (#1817). Autres armes : indicateurs historiques.
+ * forfaits, matchs au temps limite (#1817). Tournoi des rapières : mêmes indicateurs
+ * que l'épée. Autres armes : indicateurs historiques.
  * Licensed under GPL-3.0
  */
 
@@ -12,6 +13,7 @@ import {
   weaponKpis,
   type KpiTableauMatch,
 } from '../../../features/analytics/services/competitionKpis';
+import { isRapieresMode } from '../../../shared/utils/customFormulaSettings';
 
 const OLYMPIC: string[] = [Weapon.EPEE, Weapon.FOIL, Weapon.SABRE];
 
@@ -43,7 +45,9 @@ export const WeaponStatsCard: React.FC<{
   legacy: LegacyWeaponStats;
 }> = ({ competition, poolMatches, tableauMatches, fencers, fencerStats, legacy }) => {
   const { t } = useTranslation();
-  const olympic = OLYMPIC.includes(competition.weapon);
+  const olympic =
+    OLYMPIC.includes(competition.weapon) ||
+    isRapieresMode(competition.weapon, competition.settings);
   const weapon = competition.weapon;
   const tableMaxScore = competition.settings?.defaultTableMaxScore;
   const kpis = useMemo(

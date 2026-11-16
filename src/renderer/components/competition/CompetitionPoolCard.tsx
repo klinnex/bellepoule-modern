@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { Pool, Referee, Weapon } from '../../../shared/types';
+import type { Fencer, Pool, Referee, Weapon } from '../../../shared/types';
 import type { Arena } from '../../../shared/types/remote';
 import { specialStatusPatch } from '../../../shared/utils/forfeit';
 import type { useFencerManagement } from '../../hooks/useFencerManagement';
@@ -47,6 +47,7 @@ export interface CompetitionPoolCardProps {
   onAutoFillReferees: (assignments: Map<string, Referee>) => void;
   onRefereeAssigned: (poolId: string, poolReferees: Referee[]) => void;
   waveMatchIds: Set<string> | undefined;
+  categoryOf?: (fencer: Fencer) => string;
 }
 
 const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
@@ -79,6 +80,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
   onAutoFillReferees,
   onRefereeAssigned,
   waveMatchIds,
+  categoryOf,
 }) => {
   return (
     <div style={{ minWidth: 0, overflow: 'auto' }}>
@@ -162,6 +164,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         onAutoFillReferees={onAutoFillReferees}
         onRefereeAssigned={onRefereeAssigned}
         waveMatchIds={waveMatchIds}
+        categoryOf={categoryOf}
       />
     </div>
   );

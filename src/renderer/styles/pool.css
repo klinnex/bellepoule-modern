@@ -792,3 +792,16 @@ button.pv-pill {
 .ranking-black-card + .ranking-status-badge {
   margin-left: 1rem;
 }
+
+/* Colonne Club élargie, tous modes (#1864) */
+.pool-cell.pool-cell-club {
+  width: 110px;
+  padding-inline: 0.25rem;
+  overflow: hidden;
+}
+
+.pool-cell-club > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

@@ -8,10 +8,13 @@ import GlobalPoolColumnsMenu from '../pool/GlobalPoolColumnsMenu';
 import WindowSizePresets from '../pool/WindowSizePresets';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Icon } from '../common/Icon';
-import { Printer } from 'lucide-react';
+import { ListOrdered, Printer } from 'lucide-react';
+import { usePoolNumbering } from '../../hooks/usePoolNumbering';
 
 interface PoolsToolbarProps {
   isLaserSabre: boolean;
+  /** Tournoi des rapières : colonne « Cat. » proposée (#1864) */
+  isRapieres?: boolean;
   poolCardSize: React.ComponentProps<typeof WindowSizePresets>['value'];
   onPoolCardSizeChange: React.ComponentProps<typeof WindowSizePresets>['onChange'];
   poolsViewMode: 'grid' | 'single';
@@ -23,6 +26,7 @@ interface PoolsToolbarProps {
 
 const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
   isLaserSabre,
+  isRapieres = false,
   poolCardSize,
   onPoolCardSizeChange,
   poolsViewMode,
@@ -32,6 +36,7 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
   onExportAll,
 }) => {
   const { t } = useTranslation();
+  const { numbering, toggleNumbering } = usePoolNumbering();
   return (
     <div
       style={{
@@ -43,7 +48,17 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
         marginBottom: '2rem',
       }}
     >
-      <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} />
+      <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} hasCategory={isRapieres} />
+      {/* Numérotage : bulles = placement dans la poule au lieu des initiales (#1864) */}
+      <Button
+        variant={numbering ? 'primary' : 'secondary'}
+        onClick={toggleNumbering}
+        aria-pressed={numbering}
+        title={t('competitionView.numbering_title')}
+        icon={<ListOrdered size={15} />}
+      >
+        {t('competitionView.numbering')}
+      </Button>
       <WindowSizePresets value={poolCardSize} onChange={onPoolCardSizeChange} />
       <select
         className="form-input"

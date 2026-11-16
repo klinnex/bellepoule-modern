@@ -2090,7 +2090,8 @@
     "nat": "Nac",
     "reg": "Reg",
     "change_pool": "Mudar de poule",
-    "change_pool_aria": "Mover {{name}} para outra poule"
+    "change_pool_aria": "Mover {{name}} para outra poule",
+    "cat": "Cat"
   },
   "competitionView": {
     "no_pools": "Sem poules",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "A carregar o quadro…",
     "readonly": "Quadro só de leitura — resultados finais gerados.",
     "edit_confirm": "Editar o quadro irá apagar os resultados finais. Continuar?",
-    "edit_tableau": "Editar o quadro"
+    "edit_tableau": "Editar o quadro",
+    "numbering": "Numeração",
+    "numbering_title": "Bolhas: número de posição na poule em vez das iniciais"
   },
   "trainingPanel": {
     "copy_url": "Copiar URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Região",
     "col_lastName": "Apelido",
     "col_firstName": "Nome próprio",
-    "col_matches": "Combates"
+    "col_matches": "Combates",
+    "col_category": "Categoria"
   },
   "fencerStats": {
     "loading": "A carregar…",

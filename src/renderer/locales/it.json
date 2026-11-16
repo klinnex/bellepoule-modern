@@ -2090,7 +2090,8 @@
     "nat": "Naz",
     "reg": "Reg",
     "change_pool": "Cambia girone",
-    "change_pool_aria": "Cambia girone a {{name}}"
+    "change_pool_aria": "Cambia girone a {{name}}",
+    "cat": "Cat"
   },
   "competitionView": {
     "no_pools": "Nessun girone",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "Caricamento tabellone…",
     "readonly": "Tabellone in sola lettura — risultati finali generati.",
     "edit_confirm": "Modificare il tabellone cancellerà i risultati finali. Continuare?",
-    "edit_tableau": "Modifica il tabellone"
+    "edit_tableau": "Modifica il tabellone",
+    "numbering": "Numerazione",
+    "numbering_title": "Bolle: numero di posizione nel girone invece delle iniziali"
   },
   "trainingPanel": {
     "copy_url": "Copia l'URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Regione",
     "col_lastName": "Cognome",
     "col_firstName": "Nome",
-    "col_matches": "Incontri"
+    "col_matches": "Incontri",
+    "col_category": "Categoria"
   },
   "fencerStats": {
     "loading": "Caricamento…",
