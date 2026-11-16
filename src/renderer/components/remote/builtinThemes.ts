@@ -13,7 +13,11 @@ import {
   PUBLIC_DEFAULTS,
   REFEREE_DEFAULTS,
 } from '../ThemeEditor';
-import { MUSKETEERS_THEME } from '../../../shared/utils/trainingThemes';
+import {
+  MUSKETEERS_THEME,
+  REFEREE_DARK_MATCH_VARS,
+  REFEREE_LIGHT_MATCH_VARS,
+} from '../../../shared/utils/trainingThemes';
 
 export const BUILTIN_THEME_PREFIX = 'builtin:';
 
@@ -170,6 +174,7 @@ const STEAMPUNK: Record<ThemeTargetType, Record<string, string>> = {
     '--ref-muted': 'rgba(243,226,184,0.6)',
     '--ref-card-bg': 'rgba(212, 166, 74, 0.08)',
     '--ref-border': 'rgba(181, 137, 59, 0.45)',
+    ...REFEREE_DARK_MATCH_VARS,
   },
   pool: {
     '--pool-bg': '#24140a',
@@ -253,6 +258,7 @@ const ARCADE: Record<ThemeTargetType, Record<string, string>> = {
     '--ref-muted': '#b07cff',
     '--ref-card-bg': 'rgba(0, 240, 255, 0.06)',
     '--ref-border': 'rgba(255, 43, 214, 0.5)',
+    ...REFEREE_DARK_MATCH_VARS,
   },
   pool: {
     '--pool-bg': '#07001a',
@@ -331,6 +337,7 @@ const SUMIE: Record<ThemeTargetType, Record<string, string>> = {
     '--ref-muted': '#6e675a',
     '--ref-card-bg': 'rgba(27, 27, 27, 0.04)',
     '--ref-border': 'rgba(27, 27, 27, 0.18)',
+    ...REFEREE_LIGHT_MATCH_VARS,
   },
   pool: {
     '--pool-bg': '#f2ecdd',

@@ -20,6 +20,47 @@ export function isTrainingTheme(value: unknown): value is TrainingTheme {
   return typeof value === 'string' && (TRAINING_THEMES as readonly string[]).includes(value);
 }
 
+/** Tablette d'arbitre (#1808) : carte du match sombre (valeurs par défaut de referee.html). */
+export const REFEREE_DARK_MATCH_VARS: Record<string, string> = {
+  '--ref-match-bg': 'rgba(30, 30, 40, 0.97)',
+  '--ref-match-text': '#f3f4f6',
+  '--ref-fencer-bg': '#1f2937',
+  '--ref-fencer-text': '#f9fafb',
+  '--ref-fencer-muted': '#9ca3af',
+  '--ref-red-side-bg': 'linear-gradient(135deg, #3b0a0a 0%, #4c1010 100%)',
+  '--ref-green-side-bg': 'linear-gradient(135deg, #0a2e1a 0%, #103d22 100%)',
+  '--ref-green-side-cb-bg': 'linear-gradient(135deg, #0a1a3b 0%, #10224c 100%)',
+  '--ref-modal-bg': '#1f2937',
+  '--ref-modal-text': '#f3f4f6',
+  '--ref-final-bg': '#111827',
+  '--ref-final-text': '#f3f4f6',
+  '--ref-btn-bg': 'rgba(255, 255, 255, 0.15)',
+  '--ref-btn-border': 'rgba(255, 255, 255, 0.35)',
+  '--ref-btn-text': '#ffffff',
+};
+
+/**
+ * Tablette d'arbitre (#1808) : carte du match claire (fond de carte blanc, texte sombre).
+ * Sans ces variables, la carte reste sombre, quel que soit le thème du téléphone.
+ */
+export const REFEREE_LIGHT_MATCH_VARS: Record<string, string> = {
+  '--ref-match-bg': 'rgba(255, 255, 255, 0.95)',
+  '--ref-match-text': '#1f2937',
+  '--ref-fencer-bg': '#f3f4f6',
+  '--ref-fencer-text': '#1f2937',
+  '--ref-fencer-muted': '#6b7280',
+  '--ref-red-side-bg': 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+  '--ref-green-side-bg': 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+  '--ref-green-side-cb-bg': 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+  '--ref-modal-bg': '#ffffff',
+  '--ref-modal-text': '#1f2937',
+  '--ref-final-bg': '#f3f4f6',
+  '--ref-final-text': '#1f2937',
+  '--ref-btn-bg': 'rgba(31, 41, 55, 0.08)',
+  '--ref-btn-border': 'rgba(31, 41, 55, 0.3)',
+  '--ref-btn-text': '#1f2937',
+};
+
 /**
  * Mousquetaires : casaque bleu roi, liseré or, parchemin d'édit royal.
  * Scores or pâle : vert émeraude / rouge cardinal ; chrono argent poli.
@@ -85,6 +126,22 @@ export const MUSKETEERS_THEME: Record<ThemeTargetType, Record<string, string>> =
     '--ref-muted': 'rgba(245,236,210,0.6)',
     '--ref-card-bg': 'rgba(232,195,90,0.07)',
     '--ref-border': 'rgba(201,164,62,0.45)',
+    // Carte du match : parchemin, côtés émeraude / cardinal (comme l'écran de piste)
+    '--ref-match-bg': 'linear-gradient(180deg, #fbf5e3 0%, #efe3c0 100%)',
+    '--ref-match-text': '#14224d',
+    '--ref-fencer-bg': '#f5ecd2',
+    '--ref-fencer-text': '#14224d',
+    '--ref-fencer-muted': '#6b5a2e',
+    '--ref-red-side-bg': 'linear-gradient(135deg, #f7e3e6 0%, #e9c0c7 100%)',
+    '--ref-green-side-bg': 'linear-gradient(135deg, #eef3e6 0%, #d3e2c6 100%)',
+    '--ref-green-side-cb-bg': 'linear-gradient(135deg, #e6ecf7 0%, #c6d3e9 100%)',
+    '--ref-modal-bg': '#fbf5e3',
+    '--ref-modal-text': '#14224d',
+    '--ref-final-bg': '#efe3c0',
+    '--ref-final-text': '#14224d',
+    '--ref-btn-bg': 'rgba(20, 34, 77, 0.08)',
+    '--ref-btn-border': '#c9a43e',
+    '--ref-btn-text': '#14224d',
   },
   pool: {
     '--pool-bg': '#0e1d47',
@@ -105,16 +162,27 @@ const REFEREE_VARS: Record<Exclude<TrainingTheme, 'musketeers'>, Record<string, 
     '--ref-bg': 'linear-gradient(135deg, #3d5f94 0%, #6a8cc4 100%)',
     '--ref-header-bg': 'rgba(255, 255, 255, 0.18)',
     '--ref-text': '#ffffff',
+    ...REFEREE_LIGHT_MATCH_VARS,
   },
   neon: {
     '--ref-bg': 'radial-gradient(ellipse at top, #0f1f17 0%, #0a0a0a 70%)',
     '--ref-header-bg': 'rgba(0, 255, 136, 0.1)',
     '--ref-text': '#eafff4',
+    '--ref-match-bg': 'rgba(10, 10, 10, 0.95)',
+    '--ref-fencer-bg': '#111a15',
+    '--ref-btn-bg': 'rgba(0, 255, 136, 0.08)',
+    '--ref-btn-border': 'rgba(0, 255, 136, 0.5)',
+    '--ref-btn-text': '#eafff4',
   },
   unicorn: {
     '--ref-bg': 'linear-gradient(135deg, #2a0f4a 0%, #6b2a8e 55%, #b83f86 100%)',
     '--ref-header-bg': 'rgba(255, 122, 217, 0.15)',
     '--ref-text': '#fff0fb',
+    '--ref-match-bg': 'rgba(42, 15, 74, 0.92)',
+    '--ref-fencer-bg': '#2a0f4a',
+    '--ref-btn-bg': 'rgba(255, 122, 217, 0.12)',
+    '--ref-btn-border': 'rgba(255, 122, 217, 0.45)',
+    '--ref-btn-text': '#fff0fb',
   },
 };
 
