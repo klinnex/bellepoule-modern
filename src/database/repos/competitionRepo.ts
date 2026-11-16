@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Category, Competition, Gender, Phase, PhaseType, Weapon } from '../../shared/types';
 import { validateCompetitionData } from '../validation';
+import { PrivacyRepo } from './privacyRepo';
 import type { SqlExecutor } from './sqlExecutor';
 import { parseCompetitionRow, type SqlRow } from './rowMappers';
 
@@ -56,20 +57,14 @@ export class CompetitionRepo {
     return rows.map(r => parseCompetitionRow(r));
   }
 
+  /**
+   * Supprime la compétition et toutes ses lignes (poules, matchs, touches, signatures,
+   * instantanés de session…) : aucune donnée personnelle orpheline (RGPD, #1882).
+   * Les résultats déjà versés au classement saisonnier sont conservés.
+   */
   public deleteCompetition(id: string): void {
     if (!this.sql.db) throw new Error('Database not open');
-    this.sql.transaction(() => {
-      this.sql.run(
-        `DELETE FROM pool_signatures WHERE pool_id IN (
-           SELECT p.id FROM pools p JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id = ?
-         )`,
-        [id]
-      );
-      // Matchs de tableau (table_id = compétition) : sans cela, un ré-import laisse des matchs obsolètes
-      this.sql.run('DELETE FROM matches WHERE table_id = ? AND round IS NOT NULL', [id]);
-      this.sql.run('DELETE FROM fencers WHERE competition_id = ?', [id]);
-      this.sql.run('DELETE FROM competitions WHERE id = ?', [id]);
-    });
+    new PrivacyRepo(this.sql).purgeCompetition(id, true);
   }
 
   public updateCompetition(id: string, updates: Partial<Competition>): void {

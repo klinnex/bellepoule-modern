@@ -131,6 +131,31 @@ const electronApi = {
     },
   },
 
+  // RGPD (#1882) : droits des personnes, conservation, .bpm chiffrés
+  privacy: {
+    getSettings: () => ipcRenderer.invoke('privacy:getSettings'),
+    setSettings: (settings: unknown) => ipcRenderer.invoke('privacy:setSettings', settings),
+    findPersons: (query: string) => ipcRenderer.invoke('privacy:findPersons', query),
+    exportPerson: (ref: unknown, defaultName?: string) =>
+      ipcRenderer.invoke('privacy:exportPerson', ref, defaultName),
+    getPersonData: (ref: unknown) => ipcRenderer.invoke('privacy:getPersonData', ref),
+    anonymizePerson: (ref: unknown) => ipcRenderer.invoke('privacy:anonymizePerson', ref),
+    erasePerson: (ref: unknown) => ipcRenderer.invoke('privacy:erasePerson', ref),
+    retentionCandidates: () => ipcRenderer.invoke('privacy:retentionCandidates'),
+    applyRetention: (selection?: unknown) =>
+      ipcRenderer.invoke('privacy:applyRetention', selection),
+    exportEncryptedBpm: (competitionId: string | null, password: string) =>
+      ipcRenderer.invoke('privacy:exportEncryptedBpm', competitionId, password),
+    openEncryptedBpm: (password: string) =>
+      ipcRenderer.invoke('privacy:openEncryptedBpm', password),
+    cancelEncryptedBpm: () => ipcRenderer.invoke('privacy:cancelEncryptedBpm'),
+    onEncryptedBpmRequest: (callback: (fileName: string) => void) => {
+      const handler = (_: IpcRendererEvent, fileName: string) => callback(fileName);
+      ipcRenderer.on('privacy:encrypted-bpm', handler);
+      return () => ipcRenderer.removeListener('privacy:encrypted-bpm', handler);
+    },
+  },
+
   // Proxy réseau (Paramètres → Réseau)
   proxy: {
     get: () => ipcRenderer.invoke('proxy:get'),

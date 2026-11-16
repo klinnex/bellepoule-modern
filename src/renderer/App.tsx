@@ -55,6 +55,7 @@ const ReportIssueModal = React.lazy(() => import('./components/ReportIssueModal'
 const AboutModal = React.lazy(() => import('./components/AboutModal'));
 const SettingsModal = React.lazy(() => import('./components/SettingsModal'));
 const DTCallNotification = React.lazy(() => import('./components/DTCallNotification'));
+const PrivacyPrompts = React.lazy(() => import('./components/PrivacyPrompts'));
 const UpdateNotification = React.lazy(() => import('./components/UpdateNotification'));
 import UpdateMenuButton from './components/UpdateMenuButton';
 const KeyboardShortcutsHelp = React.lazy(() => import('./components/KeyboardShortcutsHelp'));
@@ -705,6 +706,9 @@ const AppContent: React.FC = () => {
       </Suspense>
       <Suspense fallback={null}>
         <DTCallNotification />
+      </Suspense>
+      <Suspense fallback={null}>
+        <PrivacyPrompts />
       </Suspense>
       <div className="app">
         <header className="header">

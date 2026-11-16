@@ -5,7 +5,14 @@
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import type { AddressInfo } from 'net';
-import { createPublicParser, publicJson, stripPersonalData } from './publicDto';
+import {
+  createPublicParser,
+  initialOf,
+  maskFullName,
+  publicJson,
+  setNameMasking,
+  stripPersonalData,
+} from './publicDto';
 
 const fencer = () => ({
   id: 'f1',
@@ -116,5 +123,35 @@ describe('createPublicParser (Socket.IO)', () => {
     decoder.add(encoded);
     expect(decoded.data[0]).toBe('arena:arena1:update');
     expect(decoded.data[1].match.fencerA.lastName).toBe('DUPONT');
+  });
+});
+
+describe('masquage des noms (RGPD, #1882)', () => {
+  it('« initial » : NOM P. ; « initials » : N. P. ; « full » inchangé', () => {
+    const data = { fencers: [fencer()], match: { fencerAName: 'DUPONT Jean-Luc' } };
+    const a = stripPersonalData(data, false, 'initial');
+    expect(a.fencers[0]).toMatchObject({ lastName: 'DUPONT', firstName: 'L.' });
+    expect(a.match.fencerAName).toBe('DUPONT J.-L.');
+    const b = stripPersonalData(data, false, 'initials');
+    expect(b.fencers[0]).toMatchObject({ lastName: 'D.', firstName: 'L.' });
+    expect(b.match.fencerAName).toBe('D. J.-L.');
+    expect(stripPersonalData(data, false, 'full').fencers[0]).toMatchObject({
+      lastName: 'DUPONT',
+      firstName: 'Léa',
+    });
+  });
+
+  it('nom complet sans majuscules : dernier mot gardé', () => {
+    expect(maskFullName('Léa Dupont', 'initial')).toBe('L. Dupont');
+    expect(initialOf('élise')).toBe('É.');
+  });
+
+  it('réglage global appliqué par défaut', () => {
+    setNameMasking('initial');
+    try {
+      expect(stripPersonalData({ firstName: 'Léa' })).toEqual({ firstName: 'L.' });
+    } finally {
+      setNameMasking('full');
+    }
   });
 });

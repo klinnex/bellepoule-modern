@@ -10,13 +10,16 @@ import type { DatabaseManager } from '../database';
 import { getL } from './menuLabels';
 import { authorizePath } from './pathAuthorization';
 import { readImportText } from './xlsxToCsv';
+import { isEncryptedBpm } from './bpmCrypto';
 
 export interface MenuActionsContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
+  /** Archive .bpm chiffrée (RGPD, #1882) : le renderer demande le mot de passe */
+  onEncryptedBpm?: (filepath: string) => void;
 }
 
-export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
+export function createMenuActions({ db, getMainWindow, onEncryptedBpm }: MenuActionsContext) {
   function startRemoteScoreServer(): void {
     const L = getL();
     dialog.showMessageBox(getMainWindow()!, {
@@ -50,6 +53,10 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
           // Fichier BellePoule classique : import XML dans la compétition ouverte
           const content = await readImportText(filepath);
           getMainWindow()?.webContents.send('menu:import', 'xml', filepath, content);
+          return;
+        }
+        if (onEncryptedBpm && (await isEncryptedBpm(filepath))) {
+          onEncryptedBpm(filepath);
           return;
         }
         // Fusion dans la base active, état d'avancement compris (#1117)

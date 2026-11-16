@@ -21,7 +21,7 @@ beforeEach(() => {
 describe('SettingsModal', () => {
   it("affiche un onglet par section et seulement le contenu de l'onglet actif", () => {
     renderModal();
-    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getAllByRole('tab')).toHaveLength(7);
     expect(screen.getByRole('tab', { name: /Affichage/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Taille du texte')).toBeInTheDocument();
     expect(screen.queryByText('Notifications webhook')).not.toBeInTheDocument();

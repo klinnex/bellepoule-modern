@@ -8,6 +8,7 @@ import {
   Palette,
   PenLine,
   Settings as SettingsIcon,
+  ShieldCheck,
   Volume2,
   type LucideIcon,
 } from 'lucide-react';
@@ -15,7 +16,7 @@ import {
 // Organisation des paramètres : sections (onglets) → réglages.
 // `keys` = clés de traduction parcourues par la recherche.
 export type SettingsSectionId =
-  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'system';
+  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'privacy' | 'system';
 
 export type SettingsItemId =
   | 'language'
@@ -34,7 +35,11 @@ export type SettingsItemId =
   | 'updates'
   | 'proxy'
   | 'backup'
-  | 'tour';
+  | 'tour'
+  | 'privacy_network'
+  | 'privacy_retention'
+  | 'privacy_person'
+  | 'privacy_bpm';
 
 export interface SettingsSectionDef {
   id: SettingsSectionId;
@@ -97,6 +102,17 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
     icon: Bell,
     labelKey: 'settings.section_notifications',
     items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
+  },
+  {
+    id: 'privacy',
+    icon: ShieldCheck,
+    labelKey: 'privacy.section',
+    items: [
+      { id: 'privacy_person', keys: ['privacy.person_title', 'privacy.person_hint'] },
+      { id: 'privacy_network', keys: ['privacy.network_title', 'privacy.network_hint'] },
+      { id: 'privacy_retention', keys: ['privacy.retention_title', 'privacy.retention_hint'] },
+      { id: 'privacy_bpm', keys: ['privacy.bpm_title', 'privacy.bpm_hint'] },
+    ],
   },
   {
     id: 'system',

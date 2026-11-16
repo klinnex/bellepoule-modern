@@ -121,6 +121,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 size="medium"
               />
             </div>
+            <p className="privacy-note privacy-note--center">{t('privacy.photo_consent')}</p>
 
             <div className="u-grid-2">
               <div className="form-group">

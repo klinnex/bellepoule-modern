@@ -65,6 +65,15 @@ describe('POST /api/register', () => {
     );
   });
 
+  it('photo conservée seulement avec consentement coché (RGPD, #1882)', () => {
+    const photo = 'data:image/jpeg;base64,AAAA';
+    const { call, addFencer } = setup();
+    call({ lastName: 'Dupont', firstName: 'Jo', gender: 'M', photo });
+    expect(addFencer).toHaveBeenLastCalledWith('c1', expect.objectContaining({ photo: undefined }));
+    call({ lastName: 'Dupont', firstName: 'Jo', gender: 'M', photo, photoConsent: true });
+    expect(addFencer).toHaveBeenLastCalledWith('c1', expect.objectContaining({ photo }));
+  });
+
   it('ignore les champs non textuels sans planter', () => {
     const { call } = setup();
     const res = call({ lastName: 'Dupont', firstName: 'Jo', gender: 'M', club: { a: 1 } });
