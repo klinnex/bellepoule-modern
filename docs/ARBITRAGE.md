@@ -145,6 +145,9 @@ Premier écran affiché à l'ouverture.
 
 - **Appui long** sur un bouton carton : retire le dernier carton du tireur et restitue
   les points accordés. Appui long sur **P** : retire le dernier carton de passivité.
+- **Vainqueur du P-noir** : meilleur score ; à égalité, le mieux classé au départ ; sinon
+  tirage au sort (`passivityWinner`, `src/shared/utils/matchEndValidation.ts` ; copie servie
+  aux tablettes dans `src/remote/js/refereeCards.js`, parité testée).
 - **Carton noir** : visible seulement si `blackCardEnabled` (paramètre compétition,
   désactivé par défaut). Fenêtre de confirmation → match perdu, tireur **exclu** de la
   compétition (statut `EXCLUDED`, motif enregistré), **DT appelé automatiquement**.
@@ -224,9 +227,12 @@ cartons, historique des fautes, état mort subite. Jusqu'à **10** actions.
 le score (rouge – vert).
 
 - **Annuler** : reprise du chrono si il tournait.
-- **Confirmer** : `POST /api/matches/:id/finish` → vainqueur = meilleur score →
-  enregistrement en base, mise à jour de la poule/du tableau dans l'application,
-  diffusion `match_finished`.
+- **Confirmer** : `POST /api/matches/:id/finish` → vainqueur (`decideMatchWinner`,
+  `src/shared/utils/matchEndValidation.ts`, règles communes avec l'appareil Cyrano) :
+  adversaire du tireur au carton noir, sinon meilleur score, sinon tirage au sort / P-noir,
+  sinon priorité → enregistrement en base, mise à jour de la poule/du tableau dans
+  l'application, diffusion `match_finished`. Scores hors 0–50 refusés (`invalid_scores`).
+  Un match validé par erreur se rappelle par PREV.
 - Retour automatique à la liste après 2 s.
 - **Tableau** + option `signTableauMatches` : écran **✍️ Signature des combattants**
   (deux zones de signature) avant le match suivant.
