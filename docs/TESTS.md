@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 64 | 755 |
+| `src/shared/utils/` | 66 | 764 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 73 | 607 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 106 | 530 |
+| `src/renderer/components/` | 106 | 531 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **409** | **3106** |
+| **Total** | **411** | **3116** |
 
-Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -778,6 +778,18 @@ Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/miniCalendar.test.ts</code> — 5 tests</summary>
+
+- **mini-calendrier (#1872)**
+  - novembre 2026 : commence le lundi 26 octobre, 6 semaines
+  - mois commençant un lundi (juin 2026)
+  - février bissextile
+  - navigation entre années
+  - libellés localisés
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 48 tests</summary>
 
 - **exportRankingCSV**
@@ -861,6 +873,17 @@ Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **QR des pistes (#1872)**
   - bornes 0..99
   - 2 pistes par page, titre, payload BPC1:A:n, nom échappé
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/clubPlanPdf.test.ts</code> — 4 tests</summary>
+
+- **plan de cours PDF (#1872)**
+  - en-tête, déroulé chronologique, durée totale, cases à cocher
+  - heure de début : horaires réels
+  - textes échappés, logo non data:image refusé, plan vide
+  - sans intitulé : titre « Plan de cours »
 
 </details>
 
@@ -4924,7 +4947,7 @@ Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 10 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
@@ -4936,6 +4959,7 @@ Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - séance en cours : exercice coché, notes enregistrées
   - fermeture : bilan proposé, note et remarque par tireur
   - préparer une séance à l’avance puis la démarrer
+  - ouverture : date choisie dans le mini-calendrier
 
 </details>
 
