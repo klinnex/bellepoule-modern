@@ -11,6 +11,7 @@ vi.mock('../ConfirmDialog', () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(true) }),
 }));
 import { ClubSessionsPanel } from './ClubSessionsPanel';
+import { Weapon } from '../../../shared/types';
 
 const m = (id: string, lastName: string) => ({
   id,
@@ -87,14 +88,16 @@ beforeEach(() => {
 });
 
 describe('ClubSessionsPanel', () => {
-  it('sans séance ouverte : ouvre la séance du jour avec les pistes du club', async () => {
+  it('sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club', async () => {
     api.listSessions.mockResolvedValue([]);
-    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={{ ...settings, weapon: Weapon.SABRE }} />);
+    expect(await screen.findByLabelText('Arme')).toHaveValue('S');
+    fireEvent.change(screen.getByLabelText('Arme'), { target: { value: 'F' } });
     fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir la séance du jour' }));
     await waitFor(() =>
       expect(api.createSession).toHaveBeenCalledWith(
         'c1',
-        expect.objectContaining({ stripCount: 2, label: '' })
+        expect.objectContaining({ stripCount: 2, label: '', weapon: 'F' })
       )
     );
   });

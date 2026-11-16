@@ -881,6 +881,12 @@ export const ALL_MIGRATIONS: Migration[] = [
       } catch {
         /* colonne déjà présente */
       }
+      // Arme pratiquée par défaut du club (règles de la saisie distante des séances)
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN weapon TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
     },
   },
 ];

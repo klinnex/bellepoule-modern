@@ -3443,5 +3443,10 @@
     "button": "Balanço",
     "remarks": "Observações do mestre de armas",
     "no_remarks": "Ainda sem observações."
+  },
+  "clubWeapon": {
+    "label": "Arma",
+    "choose": "Escolher a arma",
+    "club_label": "Arma do clube"
   }
 }

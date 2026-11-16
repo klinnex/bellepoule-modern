@@ -32,6 +32,7 @@ interface ClubRow {
   id: string;
   name: string | null;
   logo: string | null;
+  weapon: string | null;
   strip_count: number | null;
   created_at: string;
   updated_at: string;
@@ -190,6 +191,7 @@ export class ClubRepo {
       name: r.name ?? '',
       logo: opt(r.logo),
       stripCount: clampInt(r.strip_count ?? 1, 1, MAX_STRIPS, 1),
+      weapon: opt(oneWeapon(r.weapon)),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -263,6 +265,10 @@ export class ClubRepo {
     if (data.stripCount !== undefined) {
       sets.push('strip_count = ?');
       values.push(clampInt(data.stripCount, 1, MAX_STRIPS, 1));
+    }
+    if (data.weapon !== undefined) {
+      sets.push('weapon = ?');
+      values.push(oneWeapon(data.weapon));
     }
     if (sets.length > 0) {
       this.sql.run(`UPDATE clubs SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`, [
@@ -573,7 +579,7 @@ export class ClubRepo {
         clubId,
         data.date,
         str(data.label),
-        oneWeapon(data.weapon),
+        oneWeapon(data.weapon) ?? club.weapon ?? null,
         clampInt(data.stripCount ?? club.stripCount, 1, MAX_STRIPS, 1),
         data.planned ? 'planned' : 'open',
         cleanLongText(data.objectives) ?? null,

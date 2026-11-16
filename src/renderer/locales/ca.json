@@ -3443,5 +3443,10 @@
     "button": "Balanç",
     "remarks": "Observacions del mestre d'armes",
     "no_remarks": "Encara no hi ha observacions."
+  },
+  "clubWeapon": {
+    "label": "Arma",
+    "choose": "Triar l'arma",
+    "club_label": "Arma del club"
   }
 }

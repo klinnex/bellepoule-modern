@@ -3443,5 +3443,10 @@
     "button": "總結",
     "remarks": "教練評語",
     "no_remarks": "暫無評語。"
+  },
+  "clubWeapon": {
+    "label": "劍種",
+    "choose": "選擇劍種",
+    "club_label": "會館劍種"
   }
 }
