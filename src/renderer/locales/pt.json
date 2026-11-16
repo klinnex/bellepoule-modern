@@ -16,7 +16,10 @@
     "tools": "Ferramentas",
     "wifi_qr": "Código QR Wi-Fi",
     "tv_remote": "Comando de TV",
-    "guided_tour": "Visita guiada"
+    "guided_tour": "Visita guiada",
+    "club": "Clube",
+    "club_open": "Abrir o espaço do clube",
+    "club_close": "Fechar o separador Clube"
   },
   "menu": {
     "new_competition": "Nova competição",
@@ -3238,5 +3241,39 @@
     "eta_projected": "Quadro projetado (não gerado)",
     "planned_projected": "Previsto (poules + quadro projetado): {{time}}",
     "planned_estimate": "Referência (1.ª estimativa): {{time}}"
+  },
+  "club": {
+    "tab_members": "Sócios",
+    "tab_sessions": "Sessões",
+    "tab_stats": "Estatísticas",
+    "default_name": "O meu clube",
+    "subtitle": "Modo Clube · espaço permanente",
+    "nav_label": "Secções do clube",
+    "sessions_soon": "Sessões: em breve",
+    "sessions_soon_desc": "A abertura de sessões, a presença e os assaltos nas pistas chegam no próximo passo.",
+    "stats_soon": "Estatísticas: em breve",
+    "stats_soon_desc": "O balanço por sessão, mês, trimestre e época chega em breve.",
+    "settings_saved": "Identidade do clube guardada",
+    "logo_too_big": "Logótipo demasiado grande (máximo 2 MB)",
+    "delete_confirm": "Apagar definitivamente {{name}} com os seus assaltos e presenças?",
+    "regenerate_confirm": "Gerar um novo código para {{name}}? O cartão antigo deixará de ser reconhecido.",
+    "regenerate": "Novo código de cartão",
+    "identity": "Identidade do clube",
+    "name": "Nome do clube",
+    "logo": "Logótipo do clube",
+    "logo_remove": "Remover logótipo",
+    "members_count": "Sócios ({{count}})",
+    "print_cards": "Imprimir cartões",
+    "first_name": "Nome próprio",
+    "last_name": "Apelido",
+    "license": "Licença",
+    "search": "Procurar sócio",
+    "show_archived": "Mostrar arquivados",
+    "no_members": "Nenhum sócio",
+    "no_members_desc": "Adicione os sócios do clube para imprimir os cartões.",
+    "card_code": "Código do cartão",
+    "actions": "Ações",
+    "archive": "Arquivar",
+    "unarchive": "Reativar"
   }
 }

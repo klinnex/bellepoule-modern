@@ -16,7 +16,10 @@
     "tools": "Tools",
     "wifi_qr": "WiFi QR code",
     "tv_remote": "TV remote",
-    "guided_tour": "Guided tour"
+    "guided_tour": "Guided tour",
+    "club": "Club",
+    "club_open": "Open the club space",
+    "club_close": "Close the Club tab"
   },
   "menu": {
     "new_competition": "New Competition",
@@ -3238,5 +3241,39 @@
     "eta_projected": "Projected table (not generated)",
     "planned_projected": "Planned (pools + projected table): {{time}}",
     "planned_estimate": "Reference (first estimate): {{time}}"
+  },
+  "club": {
+    "tab_members": "Members",
+    "tab_sessions": "Sessions",
+    "tab_stats": "Statistics",
+    "default_name": "My club",
+    "subtitle": "Club mode · permanent space",
+    "nav_label": "Club sections",
+    "sessions_soon": "Sessions: coming soon",
+    "sessions_soon_desc": "Opening sessions, check-in and bouts on strips come in the next step.",
+    "stats_soon": "Statistics: coming soon",
+    "stats_soon_desc": "Results per session, month, quarter and season are coming soon.",
+    "settings_saved": "Club identity saved",
+    "logo_too_big": "Logo too large (2 MB maximum)",
+    "delete_confirm": "Permanently delete {{name}} along with their bouts and attendance?",
+    "regenerate_confirm": "Generate a new code for {{name}}? Their old card will no longer be recognised.",
+    "regenerate": "New card code",
+    "identity": "Club identity",
+    "name": "Club name",
+    "logo": "Club logo",
+    "logo_remove": "Remove logo",
+    "members_count": "Members ({{count}})",
+    "print_cards": "Print cards",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "license": "Licence",
+    "search": "Search members",
+    "show_archived": "Show archived",
+    "no_members": "No members",
+    "no_members_desc": "Add your club members to print their cards.",
+    "card_code": "Card code",
+    "actions": "Actions",
+    "archive": "Archive",
+    "unarchive": "Reactivate"
   }
 }

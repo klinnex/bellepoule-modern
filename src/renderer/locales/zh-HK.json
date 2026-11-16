@@ -16,7 +16,10 @@
     "tools": "工具",
     "wifi_qr": "WiFi 二維碼",
     "tv_remote": "電視遙控器",
-    "guided_tour": "導覽"
+    "guided_tour": "導覽",
+    "club": "會館",
+    "club_open": "開啟會館空間",
+    "club_close": "關閉會館分頁"
   },
   "menu": {
     "new_competition": "新增比賽",
@@ -3238,5 +3241,39 @@
     "eta_projected": "預測淘汰賽（未生成）",
     "planned_projected": "計劃（小組賽 + 預測淘汰賽）：{{time}}",
     "planned_estimate": "參考（首次估算）：{{time}}"
+  },
+  "club": {
+    "tab_members": "會員",
+    "tab_sessions": "訓練",
+    "tab_stats": "統計",
+    "default_name": "我的會館",
+    "subtitle": "會館模式 · 常設空間",
+    "nav_label": "會館分頁",
+    "sessions_soon": "訓練：即將推出",
+    "sessions_soon_desc": "開設訓練、點名及比賽場上的對賽將於下一步推出。",
+    "stats_soon": "統計：即將推出",
+    "stats_soon_desc": "按訓練、月份、季度及賽季的總結即將推出。",
+    "settings_saved": "會館資料已儲存",
+    "logo_too_big": "標誌太大（最多 2 MB）",
+    "delete_confirm": "永久刪除 {{name}} 及其對賽和出席紀錄？",
+    "regenerate_confirm": "為 {{name}} 產生新代碼？舊會員證將不再被識別。",
+    "regenerate": "新會員證代碼",
+    "identity": "會館資料",
+    "name": "會館名稱",
+    "logo": "會館標誌",
+    "logo_remove": "移除標誌",
+    "members_count": "會員（{{count}}）",
+    "print_cards": "列印會員證",
+    "first_name": "名字",
+    "last_name": "姓氏",
+    "license": "牌照",
+    "search": "搜尋會員",
+    "show_archived": "顯示已封存",
+    "no_members": "沒有會員",
+    "no_members_desc": "加入會員以列印會員證。",
+    "card_code": "會員證代碼",
+    "actions": "操作",
+    "archive": "封存",
+    "unarchive": "重新啟用"
   }
 }

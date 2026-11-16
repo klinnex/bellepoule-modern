@@ -16,7 +16,10 @@
     "tools": "Strumenti",
     "wifi_qr": "QR Code WiFi",
     "tv_remote": "Telecomando TV",
-    "guided_tour": "Percorso guidato"
+    "guided_tour": "Percorso guidato",
+    "club": "Club",
+    "club_open": "Apri lo spazio club",
+    "club_close": "Chiudi la scheda Club"
   },
   "menu": {
     "new_competition": "Nuova competizione",
@@ -3238,5 +3241,39 @@
     "eta_projected": "Tabellone stimato (non generato)",
     "planned_projected": "Previsto (gironi + tabellone stimato): {{time}}",
     "planned_estimate": "Riferimento (1ª stima): {{time}}"
+  },
+  "club": {
+    "tab_members": "Soci",
+    "tab_sessions": "Sedute",
+    "tab_stats": "Statistiche",
+    "default_name": "Il mio club",
+    "subtitle": "Modalità Club · spazio permanente",
+    "nav_label": "Sezioni del club",
+    "sessions_soon": "Sedute: in arrivo",
+    "sessions_soon_desc": "Apertura delle sedute, presenze e assalti sulle pedane arrivano nel prossimo passo.",
+    "stats_soon": "Statistiche: in arrivo",
+    "stats_soon_desc": "Il bilancio per seduta, mese, trimestre e stagione arriva presto.",
+    "settings_saved": "Identità del club salvata",
+    "logo_too_big": "Logo troppo grande (massimo 2 MB)",
+    "delete_confirm": "Eliminare definitivamente {{name}} con i suoi assalti e presenze?",
+    "regenerate_confirm": "Generare un nuovo codice per {{name}}? La vecchia tessera non sarà più riconosciuta.",
+    "regenerate": "Nuovo codice tessera",
+    "identity": "Identità del club",
+    "name": "Nome del club",
+    "logo": "Logo del club",
+    "logo_remove": "Rimuovi logo",
+    "members_count": "Soci ({{count}})",
+    "print_cards": "Stampa tessere",
+    "first_name": "Nome",
+    "last_name": "Cognome",
+    "license": "Licenza",
+    "search": "Cerca un socio",
+    "show_archived": "Mostra archiviati",
+    "no_members": "Nessun socio",
+    "no_members_desc": "Aggiungi i soci del club per stampare le loro tessere.",
+    "card_code": "Codice tessera",
+    "actions": "Azioni",
+    "archive": "Archivia",
+    "unarchive": "Riattiva"
   }
 }

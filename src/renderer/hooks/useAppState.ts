@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Competition } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 
-type View = 'home' | 'competition';
+type View = 'home' | 'competition' | 'club';
 
 export interface OpenCompetition {
   competition: Competition;

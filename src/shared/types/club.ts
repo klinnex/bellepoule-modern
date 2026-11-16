@@ -176,7 +176,8 @@ export interface ClubMemberReport {
 /** Mode Club : membres, séances, combats libres, statistiques (#1872) */
 export interface ClubAPI {
   getSettings: () => Promise<ClubSettings>;
-  updateSettings: (data: Partial<ClubSettings> & { logo?: string | null }) => Promise<ClubSettings>;
+  /** logo: null efface le logo */
+  updateSettings: (data: { name?: string; logo?: string | null }) => Promise<ClubSettings>;
   listMembers: (includeInactive?: boolean) => Promise<ClubMember[]>;
   /** Membre d'après le code lu sur sa carte (actifs seulement) */
   findMemberByCardCode: (code: string) => Promise<ClubMember | null>;

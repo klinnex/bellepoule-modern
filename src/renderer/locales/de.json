@@ -54,7 +54,10 @@
     "tools": "Werkzeuge",
     "wifi_qr": "WLAN-QR-Code",
     "tv_remote": "TV-Fernbedienung",
-    "guided_tour": "Geführte Tour"
+    "guided_tour": "Geführte Tour",
+    "club": "Verein",
+    "club_open": "Vereinsbereich öffnen",
+    "club_close": "Vereins-Tab schließen"
   },
   "cardGroups": {
     "GROUP_1": "Gruppe 1 (Weiß → Gelb → Gelb)",
@@ -3238,5 +3241,39 @@
     "eta_projected": "Hochgerechnetes Tableau (nicht erstellt)",
     "planned_projected": "Geplant (Pools + hochgerechnetes Tableau): {{time}}",
     "planned_estimate": "Referenz (erste Schätzung): {{time}}"
+  },
+  "club": {
+    "tab_members": "Mitglieder",
+    "tab_sessions": "Trainings",
+    "tab_stats": "Statistiken",
+    "default_name": "Mein Verein",
+    "subtitle": "Vereinsmodus · dauerhafter Bereich",
+    "nav_label": "Vereinsbereiche",
+    "sessions_soon": "Trainings: bald verfügbar",
+    "sessions_soon_desc": "Trainings eröffnen, Anwesenheit und Gefechte auf den Bahnen folgen im nächsten Schritt.",
+    "stats_soon": "Statistiken: bald verfügbar",
+    "stats_soon_desc": "Auswertung nach Training, Monat, Quartal und Saison folgt bald.",
+    "settings_saved": "Vereinsdaten gespeichert",
+    "logo_too_big": "Logo zu groß (max. 2 MB)",
+    "delete_confirm": "{{name}} samt Gefechten und Anwesenheiten endgültig löschen?",
+    "regenerate_confirm": "Neuen Code für {{name}} erzeugen? Der alte Ausweis wird nicht mehr erkannt.",
+    "regenerate": "Neuer Ausweiscode",
+    "identity": "Vereinsdaten",
+    "name": "Vereinsname",
+    "logo": "Vereinslogo",
+    "logo_remove": "Logo entfernen",
+    "members_count": "Mitglieder ({{count}})",
+    "print_cards": "Ausweise drucken",
+    "first_name": "Vorname",
+    "last_name": "Nachname",
+    "license": "Lizenz",
+    "search": "Mitglied suchen",
+    "show_archived": "Archivierte anzeigen",
+    "no_members": "Keine Mitglieder",
+    "no_members_desc": "Fügen Sie Vereinsmitglieder hinzu, um ihre Ausweise zu drucken.",
+    "card_code": "Ausweiscode",
+    "actions": "Aktionen",
+    "archive": "Archivieren",
+    "unarchive": "Reaktivieren"
   }
 }

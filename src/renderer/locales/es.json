@@ -16,7 +16,10 @@
     "tools": "Herramientas",
     "wifi_qr": "Código QR WiFi",
     "tv_remote": "Mando de TV",
-    "guided_tour": "Recorrido guiado"
+    "guided_tour": "Recorrido guiado",
+    "club": "Club",
+    "club_open": "Abrir el espacio del club",
+    "club_close": "Cerrar la pestaña Club"
   },
   "menu": {
     "new_competition": "Nueva Competición",
@@ -3238,5 +3241,39 @@
     "eta_projected": "Cuadro proyectado (no generado)",
     "planned_projected": "Previsto (poules + cuadro proyectado): {{time}}",
     "planned_estimate": "Referencia (1.ª estimación): {{time}}"
+  },
+  "club": {
+    "tab_members": "Socios",
+    "tab_sessions": "Sesiones",
+    "tab_stats": "Estadísticas",
+    "default_name": "Mi club",
+    "subtitle": "Modo Club · espacio permanente",
+    "nav_label": "Secciones del club",
+    "sessions_soon": "Sesiones: próximamente",
+    "sessions_soon_desc": "La apertura de sesiones, el registro y los asaltos en las pistas llegan en el siguiente paso.",
+    "stats_soon": "Estadísticas: próximamente",
+    "stats_soon_desc": "El balance por sesión, mes, trimestre y temporada llega pronto.",
+    "settings_saved": "Identidad del club guardada",
+    "logo_too_big": "Logotipo demasiado grande (2 MB máximo)",
+    "delete_confirm": "¿Borrar definitivamente a {{name}} junto con sus asaltos y asistencias?",
+    "regenerate_confirm": "¿Generar un código nuevo para {{name}}? Su carné antiguo dejará de reconocerse.",
+    "regenerate": "Nuevo código de carné",
+    "identity": "Identidad del club",
+    "name": "Nombre del club",
+    "logo": "Logotipo del club",
+    "logo_remove": "Quitar el logotipo",
+    "members_count": "Socios ({{count}})",
+    "print_cards": "Imprimir los carnés",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "license": "Licencia",
+    "search": "Buscar un socio",
+    "show_archived": "Mostrar archivados",
+    "no_members": "Ningún socio",
+    "no_members_desc": "Añada los socios del club para imprimir sus carnés.",
+    "card_code": "Código de carné",
+    "actions": "Acciones",
+    "archive": "Archivar",
+    "unarchive": "Reactivar"
   }
 }
