@@ -16,13 +16,6 @@ import {
 } from '../../shared/utils/eventDay';
 import type { SqlExecutor } from './sqlExecutor';
 import { parsePoolRefereeIds } from './rowMappers';
-import {
-  encryptField,
-  decryptField,
-  encryptEventDayReferee,
-  decryptEventDayReferee,
-  ENCRYPTED_EVENT_DAY_REFEREE_FIELDS,
-} from '../crypto';
 
 interface DayRow {
   id: string;
@@ -87,11 +80,6 @@ function rowToDayReferee(row: DayRefereeRow): DayReferee {
   };
 }
 
-function rowToEncryptedDayReferee(row: DayRefereeRow): DayReferee {
-  const decrypted = decryptEventDayReferee({ ...row }) as DayRefereeRow;
-  return rowToDayReferee(decrypted);
-}
-
 const clampStrips = (n: unknown): number => {
   const v = Math.floor(Number(n));
   return Number.isFinite(v) && v > 0 ? Math.min(v, 999) : 0;
@@ -104,14 +92,6 @@ const clampStrips = (n: unknown): number => {
  */
 export class EventDayRepo {
   constructor(private readonly sql: SqlExecutor) {}
-
-  private encryptValue(field: string, value: unknown): unknown {
-    return encryptField(field, value);
-  }
-
-  private decryptValue(field: string, value: unknown): unknown {
-    return decryptField(field, value);
-  }
 
   // ─── Journées ────────────────────────────────────────────────────────────────
 
@@ -220,20 +200,13 @@ export class EventDayRepo {
         'SELECT * FROM event_day_referees WHERE event_day_id = ? ORDER BY last_name, first_name',
         [dayId]
       )
-      .map(rowToEncryptedDayReferee);
+      .map(rowToDayReferee);
   }
 
   public createReferee(dayId: string, data: DayRefereeInput): DayReferee {
     if (!this.sql.db) throw new Error('Database not open');
     const id = uuidv4();
     const now = new Date().toISOString();
-    const encrypted = {
-      first_name: this.encryptValue('first_name', (data.firstName ?? '').trim()),
-      last_name: this.encryptValue('last_name', (data.lastName ?? '').trim()),
-      club: this.encryptValue('club', data.club || null),
-      license: this.encryptValue('license', data.license || null),
-      category: this.encryptValue('category', data.category || null),
-    };
     this.sql.run(
       `INSERT INTO event_day_referees
          (id, event_day_id, first_name, last_name, club, license, category, weapons, created_at, updated_at)
@@ -241,11 +214,11 @@ export class EventDayRepo {
       [
         id,
         dayId,
-        encrypted.first_name,
-        encrypted.last_name,
-        encrypted.club,
-        encrypted.license,
-        encrypted.category,
+        (data.firstName ?? '').trim(),
+        (data.lastName ?? '').trim(),
+        data.club || null,
+        data.license || null,
+        data.category || null,
         serializeWeapons(data.weapons),
         now,
         now,
@@ -255,7 +228,7 @@ export class EventDayRepo {
       id,
     ]);
     if (!row) throw new Error('Day referee not created');
-    return rowToEncryptedDayReferee(row);
+    return rowToDayReferee(row);
   }
 
   public updateReferee(id: string, data: DayRefereeInput): void {
@@ -273,10 +246,7 @@ export class EventDayRepo {
       if (data[key] !== undefined) {
         sets.push(`${col} = ?`);
         const v = String(data[key]).trim();
-        const processedValue = v || (col.endsWith('_name') ? '' : null);
-        // Encrypt sensitive fields
-        const encryptedValue = this.encryptValue(col, processedValue);
-        values.push(encryptedValue);
+        values.push(v || (col.endsWith('_name') ? '' : null));
       }
     }
     if (data.weapons !== undefined) {
@@ -315,18 +285,10 @@ export class EventDayRepo {
     const weapon = comp.weapon as Weapon;
     const dayRefs = this.listReferees(comp.event_day_id).filter(r => canOfficiate(r, weapon));
     return this.sql.transaction(() => {
-      // Decrypt existing referees for comparison
-      const existingRows = this.sql.queryAll<CompetitionRefereeRow>(
+      const existing = this.sql.queryAll<CompetitionRefereeRow>(
         'SELECT id, name, club, license, category, day_referee_id FROM referees WHERE competition_id = ?',
         [competitionId]
       );
-      const existing = existingRows.map(row => ({
-        ...row,
-        name: this.decryptValue('name', row.name) as string | null,
-        club: this.decryptValue('club', row.club) as string | null,
-        license: this.decryptValue('license', row.license) as string | null,
-        category: this.decryptValue('category', row.category) as string | null,
-      }));
       let added = 0;
       let updated = 0;
       const now = new Date().toISOString();
@@ -347,15 +309,10 @@ export class EventDayRepo {
             (target.license ?? null) === values[2] &&
             (target.category ?? null) === values[3];
           if (!same) {
-            // Encrypt values for UPDATE
-            const encryptedName = this.encryptValue('name', values[0]) as string;
-            const encryptedClub = this.encryptValue('club', values[1]) as string | null;
-            const encryptedLicense = this.encryptValue('license', values[2]) as string | null;
-            const encryptedCategory = this.encryptValue('category', values[3]) as string | null;
             this.sql.run(
               `UPDATE referees SET name = ?, club = ?, license = ?, category = ?, day_referee_id = ?, updated_at = ?
                WHERE id = ?`,
-              [encryptedName, encryptedClub, encryptedLicense, encryptedCategory, dr.id, now, target.id]
+              [...values, dr.id, now, target.id]
             );
             target.day_referee_id = dr.id;
             updated++;
@@ -367,14 +324,10 @@ export class EventDayRepo {
           [competitionId]
         );
         // Non pointé par défaut, comme une saisie manuelle (#1016)
-        const encryptedName = this.encryptValue('name', values[0]) as string;
-        const encryptedClub = this.encryptValue('club', values[1]) as string | null;
-        const encryptedLicense = this.encryptValue('license', values[2]) as string | null;
-        const encryptedCategory = this.encryptValue('category', values[3]) as string | null;
         this.sql.run(
           `INSERT INTO referees (id, competition_id, ref, name, nationality, club, license, category, status, day_referee_id, created_at, updated_at)
            VALUES (?, ?, ?, ?, 'FRA', ?, ?, ?, 'unavailable', ?, ?, ?)`,
-          [uuidv4(), competitionId, next?.next_ref ?? 1, encryptedName, encryptedClub, encryptedLicense, encryptedCategory, dr.id, now, now]
+          [uuidv4(), competitionId, next?.next_ref ?? 1, ...values, dr.id, now, now]
         );
         added++;
       }

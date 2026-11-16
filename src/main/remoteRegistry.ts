@@ -44,12 +44,3 @@ export function sendClientListToWindow(server: RemoteScoreServer, clients: unkno
   const owner = [...remoteServers].find(([, e]) => e.server === server)?.[0] ?? null;
   mainWin.webContents.send('remote:clientListUpdate', clients, owner);
 }
-
-/** Retourne une Map competitionId → RemoteScoreServer pour le routage Cyrano (#1878). */
-export function getRemoteServersMap(): Map<string, RemoteScoreServer> {
-  const map = new Map<string, RemoteScoreServer>();
-  for (const [competitionId, entry] of remoteServers) {
-    map.set(competitionId, entry.server);
-  }
-  return map;
-}

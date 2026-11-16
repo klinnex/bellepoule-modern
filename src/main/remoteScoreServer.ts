@@ -1602,7 +1602,6 @@ export class RemoteScoreServer {
   public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
   public hasSession(): boolean { return this.session !== null; }
   public getSessionWeapon(): string | null { return this.sessionWeapon; }
-  public getCompetitionId(): string | null { return this.session?.competitionId ?? null; }
 
   private buildDashboardSnapshot(
     ...args: Tail<Parameters<typeof buildDashboardSnapshot>>
