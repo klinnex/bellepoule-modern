@@ -13,12 +13,14 @@ import {
   buildCyrano,
   parseCyrano,
   sanitizeField,
+  splitCyranoFrames,
   CYRANO_DEFAULT_PORT,
   CYRANO_MAX_FRAME,
   type CyranoMessage,
   type CyranoProtocol,
 } from './codec';
 import { isIP } from 'net';
+import os from 'os';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export type CyranoProtocolSetting = CyranoProtocol | 'auto';
@@ -106,6 +108,35 @@ interface PisteEntry extends CyranoPisteStatus {
 
 const ipKey = (ip: string): string => ip.replace(/^::ffff:/, '').toLowerCase();
 
+interface IPv4Subnet {
+  network: number;
+  mask: number;
+}
+
+const ipv4ToInt = (ip: string): number =>
+  ip.split('.').reduce((acc, part) => ((acc << 8) | (Number(part) & 255)) >>> 0, 0);
+
+/** Sous-réseau de l'interface locale portant `host` (null si l'adresse n'est pas locale). */
+export function findIPv4Subnet(
+  host: string,
+  interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]> = os.networkInterfaces()
+): IPv4Subnet | null {
+  for (const list of Object.values(interfaces)) {
+    for (const info of list ?? []) {
+      if (info.family !== 'IPv4' || info.address !== host) continue;
+      const mask = ipv4ToInt(info.netmask);
+      return { network: (ipv4ToInt(host) & mask) >>> 0, mask };
+    }
+  }
+  return null;
+}
+
+export function inIPv4Subnet(ip: string, subnet: IPv4Subnet): boolean {
+  const v4 = ipKey(ip);
+  if (isIP(v4) !== 4) return false;
+  return (ipv4ToInt(v4) & subnet.mask) >>> 0 === subnet.network;
+}
+
 export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   private socket: dgram.Socket | null = null;
   private helloTimer: NodeJS.Timeout | null = null;
@@ -113,6 +144,8 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   private readonly log: CyranoFrameLogEntry[] = [];
   private readonly opts: Required<Omit<CyranoServerOptions, 'host'>> & { host?: string };
   private boundPort = 0;
+  /** Sous-réseau de l'interface choisie : trames d'IP inconnues hors de ce réseau ignorées */
+  private subnet: IPv4Subnet | null = null;
 
   constructor(options: CyranoServerOptions = {}) {
     super();
@@ -136,6 +169,12 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
       this.opts.port = port;
     }
     const host = this.opts.host;
+    // Interface IPv4 choisie : écoute sur toutes les interfaces, filtrée par sous-réseau.
+    // Sous Linux / macOS, un socket lié à une adresse précise ne reçoit pas les
+    // diffusions (192.168.1.255) qu'émettent les Saint-George SG32.
+    const ipv4 = !!host && isIP(host) === 4;
+    this.subnet = ipv4 ? findIPv4Subnet(host) : null;
+    const bindHost = ipv4 ? undefined : host;
     const socket = dgram.createSocket({ type: host?.includes(':') ? 'udp6' : 'udp4' });
     this.socket = socket;
     socket.on('message', (buf, rinfo) => this.handle(buf, rinfo.address, rinfo.port));
@@ -145,7 +184,7 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
         reject(err);
       };
       socket.once('error', onError);
-      socket.bind(this.opts.port, host, () => {
+      socket.bind(this.opts.port, bindHost, () => {
         socket.off('error', onError);
         socket.on('error', err => {
           logger.error(LogCategory.NETWORK, 'Cyrano: erreur socket UDP', toError(err));
@@ -307,8 +346,23 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
 
   /** Traite un datagramme reçu (public pour les tests). */
   handle(buf: Buffer | string, address: string, port: number): void {
-    const raw = typeof buf === 'string' ? buf : buf.toString('latin1');
+    const datagram = typeof buf === 'string' ? buf : buf.toString('latin1');
     const entry = this.pistes.get(ipKey(address));
+    // Écoute limitée à une interface : IP inconnues d'un autre réseau ignorées sans trace
+    if (!entry && this.subnet && !inIPv4Subnet(address, this.subnet)) return;
+    // Plusieurs trames dans un datagramme (SG32) : traitées dans l'ordre, la dernière fait foi.
+    // Au-delà de 4 trames de taille maximale, le datagramme entier est rejeté.
+    const frames =
+      datagram.length > CYRANO_MAX_FRAME * 4 ? [datagram] : splitCyranoFrames(datagram);
+    for (const raw of frames) this.handleFrame(raw, address, port, entry);
+  }
+
+  private handleFrame(
+    raw: string,
+    address: string,
+    port: number,
+    entry: PisteEntry | undefined
+  ): void {
     if (raw.length > CYRANO_MAX_FRAME) {
       this.record({
         dir: 'in',
