@@ -1290,7 +1290,10 @@
     "zone_c_label": "Torso or head",
     "club_card_title": "Membership card",
     "club_cards_title": "Membership cards",
-    "club_card_season": "Season {{season}}"
+    "club_card_season": "Season {{season}}",
+    "club_arena_title": "Strip {{n}}",
+    "club_arena_hint": "Scan this QR code, then both fencers' cards, to start the bout",
+    "club_arenas_title": "Strip QR codes"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -3278,7 +3281,10 @@
     "import": "Import (.fff)",
     "import_confirm": "Import {{count}} member(s) from « {{file}} »? Members already present (same licence, or same first and last name) are completed, not duplicated.",
     "import_done": "Import done: {{created}} added, {{updated}} completed, {{skipped}} already present",
-    "import_empty": "No members found in this file"
+    "import_empty": "No members found in this file",
+    "strip_count": "Number of strips",
+    "print_arena_qr": "Print strip QR codes",
+    "photo": "Photo"
   },
   "clubTour": {
     "title": "Welcome to Club mode",

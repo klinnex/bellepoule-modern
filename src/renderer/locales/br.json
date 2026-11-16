@@ -1290,7 +1290,10 @@
     "zone_c_label": "Kof pe penn",
     "club_card_title": "Kartenn ezel",
     "club_cards_title": "Kartennoù ezel",
-    "club_card_season": "Koulzad {{season}}"
+    "club_card_season": "Koulzad {{season}}",
+    "club_arena_title": "Leurenn {{n}}",
+    "club_arena_hint": "Skanit ar c'hod QR-mañ ha goude kartennoù an daou skrimer evit loc'hañ an emgann",
+    "club_arenas_title": "Kodoù QR al leurennoù"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",
@@ -3278,7 +3281,10 @@
     "import": "Enporzhiañ (.fff)",
     "import_confirm": "Enporzhiañ {{count}} ezel eus « {{file}} » ? An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, ket eilet.",
     "import_done": "Enporzhiañ echu : {{created}} ouzhpennet, {{updated}} klokaet, {{skipped}} a oa dija",
-    "import_empty": "Ezel ebet kavet er restr-mañ"
+    "import_empty": "Ezel ebet kavet er restr-mañ",
+    "strip_count": "Niver a leurennoù",
+    "print_arena_qr": "Moullañ kodoù QR al leurennoù",
+    "photo": "Luc'hskeudenn"
   },
   "clubTour": {
     "title": "Degemer mat er Mod Klub",

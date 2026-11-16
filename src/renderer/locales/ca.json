@@ -1290,7 +1290,10 @@
     "zone_c_label": "Tronc o cap",
     "club_card_title": "Carnet de soci",
     "club_cards_title": "Carnets de soci",
-    "club_card_season": "Temporada {{season}}"
+    "club_card_season": "Temporada {{season}}",
+    "club_arena_title": "Pista {{n}}",
+    "club_arena_hint": "Escanegeu aquest codi QR i després els carnets dels dos tiradors per llançar el combat",
+    "club_arenas_title": "QR de les pistes"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -3278,7 +3281,10 @@
     "import": "Importar (.fff)",
     "import_confirm": "Importar {{count}} soci(s) des de « {{file}} »? Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, no es dupliquen.",
     "import_done": "Importació acabada: {{created}} afegit(s), {{updated}} completat(s), {{skipped}} ja present(s)",
-    "import_empty": "No s'ha trobat cap soci en aquest fitxer"
+    "import_empty": "No s'ha trobat cap soci en aquest fitxer",
+    "strip_count": "Nombre de pistes",
+    "print_arena_qr": "Imprimir els QR de les pistes",
+    "photo": "Foto"
   },
   "clubTour": {
     "title": "Benvingut al Mode Club",

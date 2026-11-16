@@ -196,6 +196,10 @@ const electronApi = {
   club: {
     getSettings: () => ipcRenderer.invoke('club:getSettings'),
     updateSettings: (data: unknown) => ipcRenderer.invoke('club:updateSettings', data),
+    importPhotos: (filepath: string) => {
+      if (!filepath || typeof filepath !== 'string') throw new Error('Filepath is required');
+      return ipcRenderer.invoke('club:importPhotos', filepath);
+    },
     findMemberByCardCode: (code: string) => ipcRenderer.invoke('club:findMemberByCardCode', code),
     regenerateCardCode: (id: string) => ipcRenderer.invoke('club:regenerateCardCode', id),
     listMembers: (includeInactive?: boolean) =>

@@ -36,6 +36,7 @@ interface MemberRow {
   notes: string | null;
   active: number;
   card_code: string | null;
+  photo: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -100,6 +101,11 @@ const newCardCode = (): string => randomBytes(5).toString('hex').toUpperCase();
 /** Logo accepté : data URL image base64, 2 Mo max */
 const LOGO_RE = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 const MAX_LOGO_LENGTH = 2_800_000;
+/** Photo de membre : data URL png/jpeg/webp, ≈ 1 Mo max */
+const PHOTO_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const MAX_PHOTO_LENGTH = 1_400_000;
+const validPhoto = (p: unknown): p is string =>
+  typeof p === 'string' && p.length <= MAX_PHOTO_LENGTH && PHOTO_RE.test(p);
 
 function rowToMember(r: MemberRow): ClubMember {
   return {
@@ -115,6 +121,7 @@ function rowToMember(r: MemberRow): ClubMember {
     notes: opt(r.notes),
     active: r.active !== 0,
     cardCode: r.card_code ?? '',
+    photo: opt(r.photo),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -157,16 +164,24 @@ export class ClubRepo {
   // ─── Identité du club ────────────────────────────────────────────────────────
 
   public getSettings(): ClubSettings {
-    if (!this.sql.db) return { name: '' };
+    if (!this.sql.db) return { name: '', stripCount: 1 };
     const rows = this.sql.queryAll<{ key: string; value: string | null }>(
       'SELECT key, value FROM club_settings'
     );
     const get = (k: string) => rows.find(r => r.key === k)?.value ?? null;
-    return { name: get('name') ?? '', logo: opt(get('logo')) };
+    return {
+      name: get('name') ?? '',
+      logo: opt(get('logo')),
+      stripCount: clampInt(get('strip_count') ?? 1, 1, MAX_STRIPS, 1),
+    };
   }
 
   /** logo: null efface le logo ; logo invalide refusé */
-  public updateSettings(data: { name?: string; logo?: string | null }): ClubSettings {
+  public updateSettings(data: {
+    name?: string;
+    logo?: string | null;
+    stripCount?: number;
+  }): ClubSettings {
     this.ensureOpen();
     const set = (key: string, value: string | null) =>
       this.sql.run(
@@ -185,6 +200,9 @@ export class ClubRepo {
     this.sql.transaction(() => {
       if (data.name !== undefined) set('name', str(data.name) ?? '');
       if (data.logo !== undefined) set('logo', data.logo);
+      if (data.stripCount !== undefined) {
+        set('strip_count', String(clampInt(data.stripCount, 1, MAX_STRIPS, 1)));
+      }
     });
     return this.getSettings();
   }
@@ -223,6 +241,12 @@ export class ClubRepo {
           ? data.notes.replace(/[<>]/g, '').trim().slice(0, 2000)
           : null;
     if (data.active !== undefined) cols.active = data.active ? 1 : 0;
+    if (data.photo !== undefined) {
+      if (data.photo !== null && !validPhoto(data.photo)) {
+        throw new Error('Photo invalide (image PNG, JPEG ou WebP, 1 Mo max)');
+      }
+      cols.photo = data.photo;
+    }
     return cols;
   }
 
@@ -282,6 +306,28 @@ export class ClubRepo {
       id,
     ]);
     return this.getMember(id);
+  }
+
+  /** Photos par licence (ZIP) : membres actifs ou archivés, licence identique */
+  public setPhotosByLicense(photos: { license: string; photo: string }[]): {
+    matched: number;
+    total: number;
+  } {
+    this.ensureOpen();
+    let matched = 0;
+    const now = new Date().toISOString();
+    this.sql.transaction(() => {
+      for (const { license, photo } of photos) {
+        const lic = typeof license === 'string' ? license.trim() : '';
+        if (!lic || !validPhoto(photo)) continue;
+        const r = this.sql.run(
+          'UPDATE club_members SET photo = ?, updated_at = ? WHERE license = ?',
+          [photo, now, lic]
+        );
+        if (r.changes > 0) matched++;
+      }
+    });
+    return { matched, total: photos.length };
   }
 
   /** Import en lot (fichier FFE…) : crée les nouveaux, complète les existants, ignore les doublons */

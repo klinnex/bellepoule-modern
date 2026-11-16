@@ -1290,7 +1290,10 @@
     "zone_c_label": "Rumpf oder Kopf",
     "club_card_title": "Mitgliedsausweis",
     "club_cards_title": "Mitgliedsausweise",
-    "club_card_season": "Saison {{season}}"
+    "club_card_season": "Saison {{season}}",
+    "club_arena_title": "Bahn {{n}}",
+    "club_arena_hint": "Diesen QR-Code und dann die Ausweise beider Fechter scannen, um das Gefecht zu starten",
+    "club_arenas_title": "Bahn-QR-Codes"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -3278,7 +3281,10 @@
     "import": "Importieren (.fff)",
     "import_confirm": "{{count}} Mitglied(er) aus « {{file}} » importieren? Bereits vorhandene Mitglieder (gleiche Lizenz oder gleicher Vor- und Nachname) werden ergänzt, nicht doppelt angelegt.",
     "import_done": "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} ergänzt, {{skipped}} bereits vorhanden",
-    "import_empty": "Keine Mitglieder in dieser Datei gefunden"
+    "import_empty": "Keine Mitglieder in dieser Datei gefunden",
+    "strip_count": "Anzahl der Bahnen",
+    "print_arena_qr": "Bahn-QR-Codes drucken",
+    "photo": "Foto"
   },
   "clubTour": {
     "title": "Willkommen im Vereinsmodus",

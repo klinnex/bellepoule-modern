@@ -1290,7 +1290,10 @@
     "zone_c_label": "Tronco o cabeza",
     "club_card_title": "Carné de socio",
     "club_cards_title": "Carnés de socio",
-    "club_card_season": "Temporada {{season}}"
+    "club_card_season": "Temporada {{season}}",
+    "club_arena_title": "Pista {{n}}",
+    "club_arena_hint": "Escanee este código QR y luego los carnés de los dos tiradores para iniciar el asalto",
+    "club_arenas_title": "QR de las pistas"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",
@@ -3278,7 +3281,10 @@
     "import": "Importar (.fff)",
     "import_confirm": "¿Importar {{count}} socio(s) desde « {{file}} »? Los socios ya presentes (misma licencia, o mismo nombre y apellido) se completan, no se duplican.",
     "import_done": "Importación terminada: {{created}} añadido(s), {{updated}} completado(s), {{skipped}} ya presente(s)",
-    "import_empty": "No se ha encontrado ningún socio en este archivo"
+    "import_empty": "No se ha encontrado ningún socio en este archivo",
+    "strip_count": "Número de pistas",
+    "print_arena_qr": "Imprimir los QR de las pistas",
+    "photo": "Foto"
   },
   "clubTour": {
     "title": "Bienvenido al Modo Club",

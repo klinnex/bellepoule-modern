@@ -28,7 +28,8 @@ let api: Record<string, ReturnType<typeof vi.fn>>;
 
 beforeEach(() => {
   api = {
-    getSettings: vi.fn().mockResolvedValue({ name: 'Cercle d’escrime' }),
+    getSettings: vi.fn().mockResolvedValue({ name: 'Cercle d’escrime', stripCount: 3 }),
+    importPhotos: vi.fn().mockResolvedValue({ matched: 2, total: 3 }),
     updateSettings: vi.fn().mockResolvedValue({ name: 'Nouveau nom' }),
     listMembers: vi.fn().mockResolvedValue([member]),
     createMember: vi.fn().mockResolvedValue(member),
@@ -110,5 +111,18 @@ describe('ClubView', () => {
     const rows = api.importMembers.mock.calls[0][0] as { lastName: string; firstName: string }[];
     expect(rows.map(r => `${r.lastName} ${r.firstName}`)).toEqual(['MARTIN Anne', 'DURAND Paul']);
     expect(confirmSpy).toHaveBeenCalled();
+  });
+
+  it('nombre de pistes enregistré, import des photos ZIP', async () => {
+    (window as unknown as { electronAPI: Record<string, unknown> }).electronAPI.dialog = {
+      openFile: vi.fn().mockResolvedValue({ filePath: '/tmp/photos.zip' }),
+    };
+    render(<ClubView />);
+    const strips = await screen.findByLabelText('Nombre de pistes');
+    await waitFor(() => expect(strips).toHaveValue(3));
+    fireEvent.change(strips, { target: { value: '6' } });
+    await waitFor(() => expect(api.updateSettings).toHaveBeenCalledWith({ stripCount: 6 }));
+    fireEvent.click(screen.getByRole('button', { name: 'Importer photos (.zip)' }));
+    await waitFor(() => expect(api.importPhotos).toHaveBeenCalledWith('/tmp/photos.zip'));
   });
 });

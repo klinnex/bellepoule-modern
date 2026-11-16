@@ -18,6 +18,32 @@ import {
 import { readImportText } from '../xlsxToCsv';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
+/**
+ * Photos d'un ZIP choisi par l'utilisateur (chemin autorisé) : fichiers .jpg/.jpeg/.png
+ * nommés par licence → { license, photo data URL }. Partagé compétition / Mode Club.
+ */
+export async function readPhotosZip(
+  filepath: string
+): Promise<{ license: string; photo: string }[]> {
+  filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
+  const buffer = await readBoundedFile(filepath);
+  const zip = await JSZip.loadAsync(buffer);
+  const safeNames = checkZipEntries(zip);
+
+  const photos: { license: string; photo: string }[] = [];
+
+  for (const filename of safeNames) {
+    const file = zip.files[filename];
+    const ext = path.extname(filename).toLowerCase();
+    if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
+    const basename = path.basename(filename, ext);
+    const data = await file.async('base64');
+    const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+    photos.push({ license: basename, photo: `data:${mimeType};base64,${data}` });
+  }
+  return photos;
+}
+
 export interface FileHandlersContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
@@ -82,23 +108,7 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
 
   // Photo ZIP import handler
   ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: string) => {
-    filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
-    const buffer = await readBoundedFile(filepath);
-    const zip = await JSZip.loadAsync(buffer);
-    const safeNames = checkZipEntries(zip);
-
-    const photos: { license: string; photo: string }[] = [];
-
-    for (const filename of safeNames) {
-      const file = zip.files[filename];
-      const ext = path.extname(filename).toLowerCase();
-      if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
-      const basename = path.basename(filename, ext);
-      const data = await file.async('base64');
-      const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
-      photos.push({ license: basename, photo: `data:${mimeType};base64,${data}` });
-    }
-
+    const photos = await readPhotosZip(filepath);
     return db.updateFencerPhotosByLicense(competitionId, photos);
   });
 

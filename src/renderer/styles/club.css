@@ -116,3 +116,6 @@
 .club-row--between .club-card-title {
   flex: 1;
 }
+.club-strips-input {
+  width: 6rem;
+}

@@ -1290,7 +1290,10 @@
     "zone_c_label": "軀幹或頭部",
     "club_card_title": "會員證",
     "club_cards_title": "會員證",
-    "club_card_season": "{{season}} 賽季"
+    "club_card_season": "{{season}} 賽季",
+    "club_arena_title": "劍道 {{n}}",
+    "club_arena_hint": "掃描此 QR 碼，再掃描兩位劍手的會員證即可開始對賽",
+    "club_arenas_title": "劍道 QR 碼"
   },
   "rsm": {
     "strip_plan": "劍道圖",
@@ -3278,7 +3281,10 @@
     "import": "匯入 (.fff)",
     "import_confirm": "從「{{file}}」匯入 {{count}} 位會員？已存在的會員（相同牌照，或相同姓名）會被補充資料，不會重複。",
     "import_done": "匯入完成：新增 {{created}}，補充 {{updated}}，已存在 {{skipped}}",
-    "import_empty": "此檔案中找不到會員"
+    "import_empty": "此檔案中找不到會員",
+    "strip_count": "劍道數目",
+    "print_arena_qr": "列印劍道 QR 碼",
+    "photo": "相片"
   },
   "clubTour": {
     "title": "歡迎使用會館模式",

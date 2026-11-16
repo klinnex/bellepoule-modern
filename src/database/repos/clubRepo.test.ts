@@ -87,6 +87,24 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.getMember(a.id)!.birthYear).toBe(2000);
     });
 
+    it('photo : validée, effaçable, import par licence', () => {
+      const png = 'data:image/png;base64,iVBORw0KGgo=';
+      const a = member('A', { license: '42' });
+      expect(repo.updateMember(a.id, { photo: png })!.photo).toBe(png);
+      expect(() =>
+        repo.updateMember(a.id, { photo: 'data:image/svg+xml;base64,PHN2Zz4=' })
+      ).toThrow();
+      expect(repo.updateMember(a.id, { photo: null })!.photo).toBeUndefined();
+      expect(
+        repo.setPhotosByLicense([
+          { license: '42', photo: png },
+          { license: '99', photo: png },
+          { license: '42', photo: 'javascript:x' },
+        ])
+      ).toEqual({ matched: 1, total: 3 });
+      expect(repo.getMember(a.id)!.photo).toBe(png);
+    });
+
     it('nom requis', () => {
       expect(() => repo.createMember({ firstName: ' ', lastName: '' })).toThrow();
     });
@@ -139,15 +157,22 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
 
     it('nom + logo, logo validé, null efface', () => {
-      expect(repo.getSettings()).toEqual({ name: '', logo: undefined });
+      expect(repo.getSettings()).toEqual({ name: '', logo: undefined, stripCount: 1 });
+      expect(repo.updateSettings({ stripCount: 250 }).stripCount).toBe(99);
+      expect(repo.updateSettings({ stripCount: 4 }).stripCount).toBe(4);
       const png = 'data:image/png;base64,iVBORw0KGgo=';
       expect(repo.updateSettings({ name: ' <Cercle> ', logo: png })).toEqual({
         name: 'Cercle',
         logo: png,
+        stripCount: 4,
       });
       expect(() => repo.updateSettings({ logo: 'javascript:alert(1)' })).toThrow();
       expect(() => repo.updateSettings({ logo: 'data:text/html;base64,PGI+' })).toThrow();
-      expect(repo.updateSettings({ logo: null })).toEqual({ name: 'Cercle', logo: undefined });
+      expect(repo.updateSettings({ logo: null })).toEqual({
+        name: 'Cercle',
+        logo: undefined,
+        stripCount: 4,
+      });
     });
 
     it('migration 26 : codes générés pour les membres existants', () => {
