@@ -1293,7 +1293,15 @@
     "club_card_season": "{{season}} 賽季",
     "club_arena_title": "劍道 {{n}}",
     "club_arena_hint": "掃描此 QR 碼，再掃描兩位劍手的會員證即可開始對賽",
-    "club_arenas_title": "劍道 QR 碼"
+    "club_arenas_title": "劍道 QR 碼",
+    "club_plan_title": "課程計劃",
+    "club_plan_duration": "時間",
+    "club_plan_objectives": "目標",
+    "club_plan_progress": "訓練流程",
+    "club_plan_time": "時段",
+    "club_plan_exercise": "練習",
+    "club_plan_empty": "未有計劃練習",
+    "club_plan_notes": "備註"
   },
   "rsm": {
     "strip_plan": "劍道圖",
@@ -3322,7 +3330,7 @@
     "open_title": "新訓練",
     "label": "標題（可選）",
     "label_ph": "晚間訓練",
-    "open": "開設今天的訓練",
+    "open": "開設訓練",
     "past": "過往訓練",
     "none": "沒有訓練",
     "present_count": "出席：{{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "未有已準備的訓練。",
     "summary": "練習：{{count}} · {{duration}}",
     "start": "開始",
-    "delete_confirm": "刪除 {{date}} 的已計劃訓練？"
+    "delete_confirm": "刪除 {{date}} 的已計劃訓練？",
+    "export_pdf": "匯出 PDF",
+    "print": "列印"
   },
   "clubFeedback": {
     "title": "{{date}} 訓練總結",
@@ -3448,5 +3458,13 @@
     "label": "劍種",
     "choose": "選擇劍種",
     "club_label": "會館劍種"
+  },
+  "miniCalendar": {
+    "label": "日曆",
+    "prev": "上個月",
+    "next": "下個月",
+    "mark_planned": "已計劃訓練",
+    "mark_open": "進行中訓練",
+    "mark_closed": "已完成訓練"
   }
 }

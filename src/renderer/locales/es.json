@@ -1293,7 +1293,15 @@
     "club_card_season": "Temporada {{season}}",
     "club_arena_title": "Pista {{n}}",
     "club_arena_hint": "Escanee este código QR y luego los carnés de los dos tiradores para iniciar el asalto",
-    "club_arenas_title": "QR de las pistas"
+    "club_arenas_title": "QR de las pistas",
+    "club_plan_title": "Plan de clase",
+    "club_plan_duration": "Duración",
+    "club_plan_objectives": "Objetivos",
+    "club_plan_progress": "Desarrollo de la sesión",
+    "club_plan_time": "Horario",
+    "club_plan_exercise": "Ejercicio",
+    "club_plan_empty": "Ningún ejercicio previsto",
+    "club_plan_notes": "Notas"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",
@@ -3322,7 +3330,7 @@
     "open_title": "Nueva sesión",
     "label": "Título (opcional)",
     "label_ph": "Entrenamiento de la tarde",
-    "open": "Abrir la sesión de hoy",
+    "open": "Abrir la sesión",
     "past": "Sesiones anteriores",
     "none": "Ninguna sesión",
     "present_count": "Presentes: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Ninguna sesión preparada.",
     "summary": "Ejercicios: {{count}} · {{duration}}",
     "start": "Iniciar",
-    "delete_confirm": "¿Eliminar la sesión prevista del {{date}}?"
+    "delete_confirm": "¿Eliminar la sesión prevista del {{date}}?",
+    "export_pdf": "Exportar en PDF",
+    "print": "Imprimir"
   },
   "clubFeedback": {
     "title": "Balance de la sesión del {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Arma",
     "choose": "Elegir el arma",
     "club_label": "Arma del club"
+  },
+  "miniCalendar": {
+    "label": "Calendario",
+    "prev": "Mes anterior",
+    "next": "Mes siguiente",
+    "mark_planned": "sesión prevista",
+    "mark_open": "sesión en curso",
+    "mark_closed": "sesión pasada"
   }
 }

@@ -93,7 +93,7 @@ describe('ClubSessionsPanel', () => {
     render(<ClubSessionsPanel clubId="c1" settings={{ ...settings, weapon: Weapon.SABRE }} />);
     expect(await screen.findByLabelText('Arme')).toHaveValue('S');
     fireEvent.change(screen.getByLabelText('Arme'), { target: { value: 'F' } });
-    fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir la séance du jour' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir la séance' }));
     await waitFor(() =>
       expect(api.createSession).toHaveBeenCalledWith(
         'c1',
@@ -229,6 +229,23 @@ describe('ClubSessionsPanel', () => {
           objectives: 'Distance',
           plan: [expect.objectContaining({ title: 'Assauts dirigés', minutes: 10 })],
         })
+      )
+    );
+  });
+
+  it('ouverture : date choisie dans le mini-calendrier', async () => {
+    api.listSessions.mockResolvedValue([]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    const cal = await screen.findByRole('group', { name: 'Date' });
+    const days = cal.querySelectorAll('button.mini-cal-day:not(.is-out)');
+    fireEvent.click(days[2]);
+    const picked = days[2].getAttribute('aria-label')!.slice(0, 10);
+    expect(days[2]).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir la séance' }));
+    await waitFor(() =>
+      expect(api.createSession).toHaveBeenCalledWith(
+        'c1',
+        expect.objectContaining({ date: picked })
       )
     );
   });

@@ -12,6 +12,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { MiniCalendar, type DayMark } from './MiniCalendar';
 import type { Weapon } from '../../../shared/types';
 
 interface ClubSessionPlannerProps {
@@ -19,6 +20,8 @@ interface ClubSessionPlannerProps {
   session?: ClubSession | null;
   defaultDate: string;
   defaultWeapon?: Weapon;
+  /** Jours déjà occupés par une séance (marqués dans le calendrier) */
+  marks?: Readonly<Record<string, DayMark>>;
   onSave: (data: ClubSessionInput) => void;
   onClose: () => void;
 }
@@ -34,6 +37,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   session,
   defaultDate,
   defaultWeapon,
+  marks,
   onSave,
   onClose,
 }) => {
@@ -88,16 +92,17 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
         </>
       }
     >
-      <div className="club-row">
-        <label className="form-label">
+      <div className="club-row club-row--top">
+        <div className="form-label">
           {t('clubPlan.date')}
-          <input
-            className="form-input"
-            type="date"
+          <MiniCalendar
             value={date}
-            onChange={e => setDate(e.target.value)}
+            today={defaultDate}
+            marks={marks}
+            label={t('clubPlan.date')}
+            onChange={setDate}
           />
-        </label>
+        </div>
         <ClubWeaponSelect value={weapon} onChange={setWeapon} />
         <label className="form-label club-grow">
           {t('clubSession.label')}

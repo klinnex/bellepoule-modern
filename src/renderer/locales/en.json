@@ -1293,7 +1293,15 @@
     "club_card_season": "Season {{season}}",
     "club_arena_title": "Strip {{n}}",
     "club_arena_hint": "Scan this QR code, then both fencers' cards, to start the bout",
-    "club_arenas_title": "Strip QR codes"
+    "club_arenas_title": "Strip QR codes",
+    "club_plan_title": "Lesson plan",
+    "club_plan_duration": "Duration",
+    "club_plan_objectives": "Objectives",
+    "club_plan_progress": "Session outline",
+    "club_plan_time": "Time",
+    "club_plan_exercise": "Exercise",
+    "club_plan_empty": "No exercise planned",
+    "club_plan_notes": "Notes"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -3322,7 +3330,7 @@
     "open_title": "New session",
     "label": "Title (optional)",
     "label_ph": "Evening training",
-    "open": "Open today's session",
+    "open": "Open session",
     "past": "Previous sessions",
     "none": "No sessions",
     "present_count": "Present: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "No session prepared.",
     "summary": "Exercises: {{count}} · {{duration}}",
     "start": "Start",
-    "delete_confirm": "Delete the session planned for {{date}}?"
+    "delete_confirm": "Delete the session planned for {{date}}?",
+    "export_pdf": "Export to PDF",
+    "print": "Print"
   },
   "clubFeedback": {
     "title": "Session review — {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Weapon",
     "choose": "Choose the weapon",
     "club_label": "Club weapon"
+  },
+  "miniCalendar": {
+    "label": "Calendar",
+    "prev": "Previous month",
+    "next": "Next month",
+    "mark_planned": "planned session",
+    "mark_open": "session in progress",
+    "mark_closed": "past session"
   }
 }

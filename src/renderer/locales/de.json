@@ -1293,7 +1293,15 @@
     "club_card_season": "Saison {{season}}",
     "club_arena_title": "Bahn {{n}}",
     "club_arena_hint": "Diesen QR-Code und dann die Ausweise beider Fechter scannen, um das Gefecht zu starten",
-    "club_arenas_title": "Bahn-QR-Codes"
+    "club_arenas_title": "Bahn-QR-Codes",
+    "club_plan_title": "Trainingsplan",
+    "club_plan_duration": "Dauer",
+    "club_plan_objectives": "Ziele",
+    "club_plan_progress": "Ablauf des Trainings",
+    "club_plan_time": "Uhrzeit",
+    "club_plan_exercise": "Übung",
+    "club_plan_empty": "Keine Übung geplant",
+    "club_plan_notes": "Notizen"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -3322,7 +3330,7 @@
     "open_title": "Neues Training",
     "label": "Titel (optional)",
     "label_ph": "Abendtraining",
-    "open": "Heutiges Training eröffnen",
+    "open": "Training eröffnen",
     "past": "Frühere Trainings",
     "none": "Keine Trainings",
     "present_count": "Anwesend: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Kein Training vorbereitet.",
     "summary": "Übungen: {{count}} · {{duration}}",
     "start": "Starten",
-    "delete_confirm": "Das für {{date}} geplante Training löschen?"
+    "delete_confirm": "Das für {{date}} geplante Training löschen?",
+    "export_pdf": "Als PDF exportieren",
+    "print": "Drucken"
   },
   "clubFeedback": {
     "title": "Trainingsbilanz vom {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Waffe",
     "choose": "Waffe wählen",
     "club_label": "Vereinswaffe"
+  },
+  "miniCalendar": {
+    "label": "Kalender",
+    "prev": "Vorheriger Monat",
+    "next": "Nächster Monat",
+    "mark_planned": "geplantes Training",
+    "mark_open": "laufendes Training",
+    "mark_closed": "vergangenes Training"
   }
 }

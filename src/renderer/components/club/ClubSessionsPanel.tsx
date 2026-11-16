@@ -8,10 +8,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalendarPlus,
   ClipboardList,
+  FileDown,
   Lock,
   MessageSquare,
   Pencil,
   Play,
+  Printer,
   QrCode,
   Radio,
   ScanLine,
@@ -30,6 +32,8 @@ import type {
 } from '../../../shared/types/club';
 import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { MiniCalendar, type DayMark } from './MiniCalendar';
+import { exportClubPlanToPDF, printClubPlan } from '../../../shared/utils/pdfExport/clubPlanPdf';
 import { Weapon } from '../../../shared/types';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
@@ -175,6 +179,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const [qrOpen, setQrOpen] = useState(false);
   const [planner, setPlanner] = useState<{ session: ClubSession | null } | null>(null);
   const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
+  const [openDate, setOpenDate] = useState(today);
   // Arme de la séance à ouvrir : celle du club par défaut
   const [weaponChoice, setWeaponChoice] = useState<Weapon | undefined>(undefined);
   const openWeapon = weaponChoice ?? settings.weapon;
@@ -266,11 +271,32 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     />
   );
 
+  /** Plan de cours : export PDF ou impression, avec l'identité du club */
+  const planOutput = async (s: ClubSession, mode: 'pdf' | 'print') => {
+    const opts = {
+      clubName: settings.name,
+      logo: settings.logo,
+      weaponLabel: s.weapon ? weaponLabel(s.weapon, t) : undefined,
+    };
+    try {
+      if (mode === 'pdf') await exportClubPlanToPDF(s, opts);
+      else await printClubPlan(s, opts);
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
+  /** Jours ayant déjà une séance, marqués dans les calendriers */
+  const dayMarks: Record<string, DayMark> = {};
+  for (const s of sessions)
+    if (!dayMarks[s.date] || s.status === 'open') dayMarks[s.date] = s.status;
+
   const plannerModal = planner && (
     <ClubSessionPlanner
       session={planner.session}
       defaultDate={today()}
       defaultWeapon={settings.weapon}
+      marks={dayMarks}
       onSave={savePlan}
       onClose={() => setPlanner(null)}
     />
@@ -283,7 +309,17 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           <h2 id="club-open-title" className="club-card-title">
             {t('clubSession.open_title')}
           </h2>
-          <div className="club-row">
+          <div className="club-row club-row--top">
+            <div className="form-label">
+              {t('clubPlan.date')}
+              <MiniCalendar
+                value={openDate}
+                today={today()}
+                marks={dayMarks}
+                label={t('clubPlan.date')}
+                onChange={setOpenDate}
+              />
+            </div>
             <label className="form-label club-grow">
               {t('clubSession.label')}
               <input
@@ -302,7 +338,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
               onClick={() =>
                 void run(async () => {
                   await api.createSession(clubId, {
-                    date: today(),
+                    date: openDate,
                     label,
                     weapon: openWeapon,
                     stripCount: settings.stripCount,
@@ -352,6 +388,22 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                       >
                         {t('clubPlan.edit')}
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<FileDown size={14} aria-hidden="true" />}
+                        aria-label={t('clubPlan.export_pdf')}
+                        title={t('clubPlan.export_pdf')}
+                        onClick={() => void planOutput(s, 'pdf')}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Printer size={14} aria-hidden="true" />}
+                        aria-label={t('clubPlan.print')}
+                        title={t('clubPlan.print')}
+                        onClick={() => void planOutput(s, 'print')}
+                      />
                       <Button
                         size="sm"
                         variant="primary"
@@ -518,6 +570,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
         key={current.id}
         session={current}
         onEdit={() => setPlanner({ session: current })}
+        onExportPdf={() => void planOutput(current, 'pdf')}
+        onPrint={() => void planOutput(current, 'print')}
         onToggle={(itemId, done) =>
           void run(() =>
             api.updateSession(current.id, {

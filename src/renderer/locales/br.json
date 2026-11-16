@@ -1293,7 +1293,15 @@
     "club_card_season": "Koulzad {{season}}",
     "club_arena_title": "Leurenn {{n}}",
     "club_arena_hint": "Skanit ar c'hod QR-mañ ha goude kartennoù an daou skrimer evit loc'hañ an emgann",
-    "club_arenas_title": "Kodoù QR al leurennoù"
+    "club_arenas_title": "Kodoù QR al leurennoù",
+    "club_plan_title": "Steuñv ar gentel",
+    "club_plan_duration": "Padelezh",
+    "club_plan_objectives": "Palioù",
+    "club_plan_progress": "Kenderc'h an abadenn",
+    "club_plan_time": "Eur",
+    "club_plan_exercise": "Poelladenn",
+    "club_plan_empty": "Poelladenn ebet rakwelet",
+    "club_plan_notes": "Notennoù"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",
@@ -3322,7 +3330,7 @@
     "open_title": "Abadenn nevez",
     "label": "Titl (diret)",
     "label_ph": "Embregadur an noz",
-    "open": "Digeriñ abadenn an deiz",
+    "open": "Digeriñ an abadenn",
     "past": "Abadennoù kent",
     "none": "Abadenn ebet",
     "present_count": "Bezant : {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Abadenn prientet ebet.",
     "summary": "Poelladennoù : {{count}} · {{duration}}",
     "start": "Kregiñ",
-    "delete_confirm": "Dilemel an abadenn rakwelet d'an {{date}} ?"
+    "delete_confirm": "Dilemel an abadenn rakwelet d'an {{date}} ?",
+    "export_pdf": "Ezporzhiañ e PDF",
+    "print": "Moullañ"
   },
   "clubFeedback": {
     "title": "Bilañs an abadenn {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Arm",
     "choose": "Dibab an arm",
     "club_label": "Arm ar c'hlub"
+  },
+  "miniCalendar": {
+    "label": "Deiziadur",
+    "prev": "Miz kent",
+    "next": "Miz war-lerc'h",
+    "mark_planned": "abadenn rakwelet",
+    "mark_open": "abadenn o vont en-dro",
+    "mark_closed": "abadenn tremenet"
   }
 }

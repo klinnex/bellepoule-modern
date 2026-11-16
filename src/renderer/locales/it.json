@@ -1293,7 +1293,15 @@
     "club_card_season": "Stagione {{season}}",
     "club_arena_title": "Pedana {{n}}",
     "club_arena_hint": "Scansiona questo codice QR e poi le tessere dei due schermidori per avviare l'assalto",
-    "club_arenas_title": "QR delle pedane"
+    "club_arenas_title": "QR delle pedane",
+    "club_plan_title": "Piano della lezione",
+    "club_plan_duration": "Durata",
+    "club_plan_objectives": "Obiettivi",
+    "club_plan_progress": "Svolgimento della seduta",
+    "club_plan_time": "Orario",
+    "club_plan_exercise": "Esercizio",
+    "club_plan_empty": "Nessun esercizio previsto",
+    "club_plan_notes": "Note"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",
@@ -3322,7 +3330,7 @@
     "open_title": "Nuova seduta",
     "label": "Titolo (facoltativo)",
     "label_ph": "Allenamento serale",
-    "open": "Apri la seduta di oggi",
+    "open": "Apri la seduta",
     "past": "Sedute precedenti",
     "none": "Nessuna seduta",
     "present_count": "Presenti: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Nessuna seduta preparata.",
     "summary": "Esercizi: {{count}} · {{duration}}",
     "start": "Avvia",
-    "delete_confirm": "Eliminare la seduta prevista del {{date}}?"
+    "delete_confirm": "Eliminare la seduta prevista del {{date}}?",
+    "export_pdf": "Esporta in PDF",
+    "print": "Stampa"
   },
   "clubFeedback": {
     "title": "Bilancio della seduta del {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Arma",
     "choose": "Scegli l'arma",
     "club_label": "Arma del club"
+  },
+  "miniCalendar": {
+    "label": "Calendario",
+    "prev": "Mese precedente",
+    "next": "Mese successivo",
+    "mark_planned": "seduta prevista",
+    "mark_open": "seduta in corso",
+    "mark_closed": "seduta passata"
   }
 }
