@@ -28,6 +28,7 @@ import type {
   DayRefereeInput,
   DayRefereeStatus,
   DaySyncResult,
+  DayStripAPI,
   EventDay,
 } from './eventDay';
 import type { ClubAPI } from './club';
@@ -1212,7 +1213,8 @@ export interface CryptoAPI {
 }
 
 /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
-export interface EventDayAPI {
+/** Pistes en temps réel d'une journée (#1878) : voir eventDay.ts */
+export interface EventDayAPI extends DayStripAPI {
   list: () => Promise<EventDay[]>;
   create: (data: { name: string; date: string; stripCount?: number }) => Promise<EventDay>;
   update: (
@@ -1231,15 +1233,6 @@ export interface EventDayAPI {
   getOverview: (dayId: string) => Promise<EventDayOverview>;
   getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
   getStripOccupation: (dayId: string) => Promise<import('./eventDay').DayStripStatus[]>;
-  /** Pistes en temps réel : occupation, réservation, propositions (#1878) */
-  getStripBoard: (dayId: string) => Promise<import('./eventDay').DayStripBoard | null>;
-  assignStrip: (dayId: string, strip: number, key: string) => Promise<boolean>;
-  setStripRule: (
-    dayId: string,
-    strip: number,
-    rule: import('./eventDay').StripRule | null
-  ) => Promise<boolean>;
-  setAutoAssign: (dayId: string, on: boolean) => Promise<boolean>;
 }
 
 export interface EventDayOverview {
