@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 13 | 205 |
-| `src/main/` | 77 | 631 |
+| `src/main/` | 77 | 632 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 108 | 544 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **423** | **3196** |
+| **Total** | **423** | **3197** |
 
-Unitaires : 413 fichiers, 3157 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2826,7 +2826,7 @@ Unitaires : 413 fichiers, 3157 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 45 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 46 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -2870,6 +2870,7 @@ Unitaires : 413 fichiers, 3157 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - piste inconnue : refus
   - **modes par piste (#1829)**
     - afficheur : DISP reçu, INFO ignorés, END refusé (NAK), NEXT sans effet
+    - afficheur partageant l’arène du maître : reçoit aussi les scores de la tablette
     - manuel : aucun DISP envoyé, INFO ignorés, END refusé, resynchronisation refusée
     - retour de manuel vers maître : DISP du match courant renvoyé
     - appareil hors ligne : bascule en manuel (plus de DISP), retour en ligne : DISP renvoyé
