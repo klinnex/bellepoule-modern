@@ -21,6 +21,7 @@ import {
 import { FencerStatsTable } from '../../features/analytics/components/FencerStatsTable';
 import { AnalyticsCharts } from './analytics/AnalyticsCharts';
 import { OrganisationPanel } from './analytics/OrganisationPanel';
+import { WeaponStatsCard } from './analytics/WeaponStatsCard';
 import { ColumnsMenu, useColumnVisibility, type ColumnDef } from './analytics/ColumnsMenu';
 import {
   averageMatchSeconds,
@@ -434,6 +435,11 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     }
   };
 
+  // Matchs terminés : poules + tableau jusqu'au dernier match (#1817)
+  const tableauCounts = useMemo(() => {
+    const playable = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB);
+    return { done: playable.filter(m => m.winner).length, total: playable.length };
+  }, [tableauMatches]);
   const latest = useMemo(
     () => ({
       data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe, timings),
@@ -546,7 +552,11 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                 />
               )}
               {activeTab === 'organisation' && (
-                <OrganisationPanel competitionId={competition.id} kpis={orgKpis} />
+                <OrganisationPanel
+                  competitionId={competition.id}
+                  kpis={orgKpis}
+                  phase={tableauCounts.total > 0 ? 'tableau' : 'pools'}
+                />
               )}
               {activeTab === 'journal' && (
                 <Suspense fallback={null}>
@@ -668,7 +678,11 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                         {t('analytics.completed')}
                       </div>
                       <div className="text-2xl font-bold text-green-800">
-                        {analyticsData.completedMatches}/{analyticsData.totalMatches}
+                        {selectedTimeframe === 'all'
+                          ? `${analyticsData.completedMatches + tableauCounts.done}/${
+                              analyticsData.totalMatches + tableauCounts.total
+                            }`
+                          : `${analyticsData.completedMatches}/${analyticsData.totalMatches}`}
                       </div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
@@ -767,32 +781,14 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                     </div>
                   </div>
 
-                  {/* Weapon Statistics */}
-                  <div className="mt-6 bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-4">{t('analytics.weapon_stats')}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <div className="text-sm text-gray-600">{t('analytics.total_matches')}</div>
-                        <div className="font-bold">{analyticsData.weaponStats.totalMatches}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">{t('analytics.avg_margin')}</div>
-                        <div className="font-bold">
-                          {analyticsData.weaponStats.averageVictoryMargin.toFixed(1)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">{t('analytics.most_touching')}</div>
-                        <div className="font-bold">
-                          {analyticsData.weaponStats.mostTouchingMatch}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">{t('analytics.competition')}</div>
-                        <div className="font-bold">{competition.weapon}</div>
-                      </div>
-                    </div>
-                  </div>
+                  <WeaponStatsCard
+                    competition={competition}
+                    poolMatches={matches}
+                    tableauMatches={tableauMatches}
+                    fencers={fencers}
+                    fencerStats={fencerStats}
+                    legacy={analyticsData.weaponStats}
+                  />
                 </>
               )}
             </div>

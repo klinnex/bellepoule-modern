@@ -133,3 +133,15 @@ describe('AnalyticsCharts — armes olympiques (#1817)', () => {
     ]);
   });
 });
+
+describe('AnalyticsCharts — motifs de cartons traduits (#1817)', () => {
+  it('libellé français + infobulle', () => {
+    const s = { ...stat('a', [0, 0, 0], [0, 0, 0]), cardsByReason: { early_start: 2 } };
+    const { getByTitle } = render(
+      <TranslationProvider>
+        <AnalyticsCharts competition={competition} stats={[s]} />
+      </TranslationProvider>
+    );
+    expect(getByTitle('Départ anticipé').textContent).toBe('Départ anticipé');
+  });
+});

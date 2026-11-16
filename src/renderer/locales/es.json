@@ -1693,7 +1693,12 @@
     "dt_calls": "Llamadas DT",
     "black_cards": "Tarjetas negras",
     "touches_per_match": "toq./asalto",
-    "touches_per_match_title": "Media de tocados dados por asalto"
+    "touches_per_match_title": "Media de tocados dados por asalto",
+    "cards_per_match": "Tarjetas por asalto",
+    "withdrawals": "Abandonos / exclusiones / incomparecencias",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Asaltos al tiempo límite",
+    "time_limit_hint": "Asaltos disputados terminados sin que ningún tirador alcance la puntuación máxima"
   },
   "refereeManager": {
     "title": "Gestión de árbitros",
@@ -2148,7 +2153,9 @@
     "computing": "Calculando…",
     "error": "Cálculo imposible: {{error}}",
     "remaining": "Combates restantes:",
-    "wait": "Espera entre dos combates (poule más grande, orden oficial): media {{avg}} min, máx. {{max}} min"
+    "wait": "Espera entre dos combates (poule más grande, orden oficial): media {{avg}} min, máx. {{max}} min",
+    "planned_end": "Fin planificado: {{time}}",
+    "set_planned_end": "Fijar como fin planificado"
   },
   "scoreAudit": {
     "title": "Historial de resultados",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Fallos de sincronización",
     "dt_calls": "Llamadas DT",
     "issue_disconnect": "Tableta de árbitro desconectada (pista {{arena}})",
-    "issue_sync_error": "Fallo al resincronizar un marcador"
+    "issue_sync_error": "Fallo al resincronizar un marcador",
+    "ended_at": "Terminado a las {{time}}",
+    "final_deviation": "Desviación final del planning",
+    "planned_estimate": "Referencia (1.ª estimación): {{time}}"
   }
 }

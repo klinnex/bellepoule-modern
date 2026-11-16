@@ -1693,7 +1693,12 @@
     "dt_calls": "Appels DT",
     "black_cards": "Cartons noirs",
     "touches_per_match": "TD/match",
-    "touches_per_match_title": "Moyenne de touches données par match"
+    "touches_per_match_title": "Moyenne de touches données par match",
+    "cards_per_match": "Cartons par match",
+    "withdrawals": "Abandons / exclusions / forfaits",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Matchs au temps limite",
+    "time_limit_hint": "Matchs disputés terminés sans qu'aucun tireur n'atteigne le score maximum"
   },
   "refereeManager": {
     "title": "Gestion des Arbitres",
@@ -2148,7 +2153,9 @@
     "computing": "Calcul en cours…",
     "error": "Calcul impossible : {{error}}",
     "remaining": "Matchs restants :",
-    "wait": "Attente entre deux matchs (poule la plus grande, ordre officiel) : moyenne {{avg}} min, max {{max}} min"
+    "wait": "Attente entre deux matchs (poule la plus grande, ordre officiel) : moyenne {{avg}} min, max {{max}} min",
+    "planned_end": "Fin planifiée retenue : {{time}}",
+    "set_planned_end": "Retenir comme fin planifiée"
   },
   "scoreAudit": {
     "title": "Historique des scores",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Défauts de synchro",
     "dt_calls": "Appels DT",
     "issue_disconnect": "Tablette arbitre déconnectée (piste {{arena}})",
-    "issue_sync_error": "Échec de resynchronisation d’un score"
+    "issue_sync_error": "Échec de resynchronisation d’un score",
+    "ended_at": "Terminé à {{time}}",
+    "final_deviation": "Écart final au planning",
+    "planned_estimate": "Référence (1re estimation) : {{time}}"
   }
 }

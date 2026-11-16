@@ -383,6 +383,7 @@ export class FencerRepo {
     whiteCards: number;
     yellowCards: number;
     redCards: number;
+    blackCards: number;
     cardsByReason: Record<string, number>;
     arenaExits: number;
     matchesPlayed: number;
@@ -412,6 +413,7 @@ export class FencerRepo {
       whiteCards: 0,
       yellowCards: 0,
       redCards: 0,
+      blackCards: 0,
       cardsByReason: {} as Record<string, number>,
       arenaExits: 0,
       matchesPlayed: 0,
@@ -464,6 +466,7 @@ export class FencerRepo {
         if (type === 'white') empty.whiteCards += cnt;
         else if (type === 'yellow') empty.yellowCards += cnt;
         else if (type === 'red') empty.redCards += cnt;
+        else if (type === 'black') empty.blackCards += cnt;
         const reason = r.reason as string;
         if (reason && reason !== 'unknown')
           empty.cardsByReason[reason] = (empty.cardsByReason[reason] ?? 0) + cnt;

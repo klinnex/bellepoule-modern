@@ -371,6 +371,8 @@ export interface FencerCompetitionStats {
   whiteCards: number;
   yellowCards: number;
   redCards: number;
+  /** Cartons noirs (absent des anciennes versions) */
+  blackCards?: number;
   cardsByReason: Partial<Record<CardReason, number>>;
   // Sorties d'arène
   arenaExits: number;

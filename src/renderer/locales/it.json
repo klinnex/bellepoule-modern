@@ -1693,7 +1693,12 @@
     "dt_calls": "Chiamate DT",
     "black_cards": "Cartellini neri",
     "touches_per_match": "stocc./assalto",
-    "touches_per_match_title": "Media di stoccate date per assalto"
+    "touches_per_match_title": "Media di stoccate date per assalto",
+    "cards_per_match": "Cartellini per assalto",
+    "withdrawals": "Abbandoni / esclusioni / forfait",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Assalti al tempo limite",
+    "time_limit_hint": "Assalti disputati terminati senza che nessuno raggiunga il punteggio massimo"
   },
   "refereeManager": {
     "title": "Gestione degli arbitri",
@@ -2148,7 +2153,9 @@
     "computing": "Calcolo in corso…",
     "error": "Calcolo impossibile: {{error}}",
     "remaining": "Incontri rimanenti:",
-    "wait": "Attesa tra due incontri (girone più grande, ordine ufficiale): media {{avg}} min, max {{max}} min"
+    "wait": "Attesa tra due incontri (girone più grande, ordine ufficiale): media {{avg}} min, max {{max}} min",
+    "planned_end": "Fine pianificata: {{time}}",
+    "set_planned_end": "Imposta come fine pianificata"
   },
   "scoreAudit": {
     "title": "Cronologia dei punteggi",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Errori di sincronizzazione",
     "dt_calls": "Chiamate DT",
     "issue_disconnect": "Tablet arbitro disconnesso (pedana {{arena}})",
-    "issue_sync_error": "Risincronizzazione punteggio fallita"
+    "issue_sync_error": "Risincronizzazione punteggio fallita",
+    "ended_at": "Terminato alle {{time}}",
+    "final_deviation": "Scostamento finale dal programma",
+    "planned_estimate": "Riferimento (1ª stima): {{time}}"
   }
 }

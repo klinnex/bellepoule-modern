@@ -1693,7 +1693,12 @@
     "dt_calls": "DT-Rufe",
     "black_cards": "Schwarze Karten",
     "touches_per_match": "Tr./Gefecht",
-    "touches_per_match_title": "Durchschnittlich gesetzte Treffer pro Gefecht"
+    "touches_per_match_title": "Durchschnittlich gesetzte Treffer pro Gefecht",
+    "cards_per_match": "Karten pro Gefecht",
+    "withdrawals": "Aufgaben / Ausschlüsse / Forfaits",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Gefechte bis Zeitablauf",
+    "time_limit_hint": "Ausgetragene Gefechte, in denen kein Fechter die Höchstpunktzahl erreicht hat"
   },
   "refereeManager": {
     "title": "Kampfrichterverwaltung",
@@ -2148,7 +2153,9 @@
     "computing": "Wird berechnet…",
     "error": "Berechnung nicht möglich: {{error}}",
     "remaining": "Verbleibende Gefechte:",
-    "wait": "Wartezeit zwischen zwei Gefechten (größter Pool, offizielle Reihenfolge): Ø {{avg}} Min., max. {{max}} Min."
+    "wait": "Wartezeit zwischen zwei Gefechten (größter Pool, offizielle Reihenfolge): Ø {{avg}} Min., max. {{max}} Min.",
+    "planned_end": "Geplantes Ende: {{time}}",
+    "set_planned_end": "Als geplantes Ende übernehmen"
   },
   "scoreAudit": {
     "title": "Ergebnisverlauf",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Synchronisationsfehler",
     "dt_calls": "DT-Rufe",
     "issue_disconnect": "Kampfrichter-Tablet getrennt (Bahn {{arena}})",
-    "issue_sync_error": "Ergebnis-Nachsynchronisierung fehlgeschlagen"
+    "issue_sync_error": "Ergebnis-Nachsynchronisierung fehlgeschlagen",
+    "ended_at": "Beendet um {{time}}",
+    "final_deviation": "Endgültige Planabweichung",
+    "planned_estimate": "Referenz (erste Schätzung): {{time}}"
   }
 }

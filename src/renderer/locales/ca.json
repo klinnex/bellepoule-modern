@@ -1693,7 +1693,12 @@
     "dt_calls": "Crides DT",
     "black_cards": "Targetes negres",
     "touches_per_match": "tocs/assalt",
-    "touches_per_match_title": "Mitjana de tocs donats per assalt"
+    "touches_per_match_title": "Mitjana de tocs donats per assalt",
+    "cards_per_match": "Targetes per assalt",
+    "withdrawals": "Abandonaments / exclusions / incompareixences",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Assalts al temps límit",
+    "time_limit_hint": "Assalts disputats acabats sense que cap tirador arribi a la puntuació màxima"
   },
   "refereeManager": {
     "title": "Gestió d'àrbitres",
@@ -2148,7 +2153,9 @@
     "computing": "S'està calculant…",
     "error": "Càlcul impossible: {{error}}",
     "remaining": "Combats restants:",
-    "wait": "Espera entre dos combats (poule més gran, ordre oficial): mitjana {{avg}} min, màx. {{max}} min"
+    "wait": "Espera entre dos combats (poule més gran, ordre oficial): mitjana {{avg}} min, màx. {{max}} min",
+    "planned_end": "Final planificat: {{time}}",
+    "set_planned_end": "Fixar com a final planificat"
   },
   "scoreAudit": {
     "title": "Historial de resultats",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Errors de sincronització",
     "dt_calls": "Crides DT",
     "issue_disconnect": "Tauleta d’àrbitre desconnectada (pista {{arena}})",
-    "issue_sync_error": "Error en resincronitzar un marcador"
+    "issue_sync_error": "Error en resincronitzar un marcador",
+    "ended_at": "Acabat a les {{time}}",
+    "final_deviation": "Desviació final de la planificació",
+    "planned_estimate": "Referència (1a estimació): {{time}}"
   }
 }

@@ -10,6 +10,7 @@ import {
   organisationKpis,
   rankingProgression,
   averageMatchSeconds,
+  weaponKpis,
   type KpiMatch,
 } from './competitionKpis';
 import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../../shared/types';
@@ -299,5 +300,81 @@ describe('averageMatchSeconds', () => {
         timing({ startTime: '2026-11-13T09:00:00Z' }),
       ])
     ).toBe(250);
+  });
+});
+
+describe('weaponKpis (#1817)', () => {
+  const tab = (id: string, sa: number, sb: number, special?: string) => ({
+    id,
+    round: 8,
+    fencerA: { id: 'a' },
+    fencerB: { id: 'b' },
+    scoreA: sa,
+    scoreB: sb,
+    winner: { id: sa >= sb ? 'a' : 'b' },
+    isBye: false,
+    specialStatus: special ? { status: special } : null,
+  });
+
+  it('écart moyen, cartons par match, temps limite, statuts', () => {
+    const forfeit = poolMatch('p3', 'a', 'c', 5, 0);
+    (forfeit.scoreB as { isForfait: boolean }).isForfait = true;
+    const k = weaponKpis({
+      poolMatches: [
+        poolMatch('p1', 'a', 'b', 5, 3), // 5 pts atteints
+        poolMatch('p2', 'b', 'c', 3, 2), // temps limite
+        forfeit, // non disputé
+        poolMatch('p4', 'a', 'c', 0, 0, MatchStatus.NOT_STARTED),
+      ],
+      tableauMatches: [tab('t1', 15, 10), tab('t2', 9, 8), tab('t3', 0, 0, 'abandon')],
+      fencers: [
+        f('a'),
+        f('b', undefined, FencerStatus.ABANDONED),
+        f('c', undefined, FencerStatus.EXCLUDED),
+        f('d', undefined, FencerStatus.FORFAIT),
+      ],
+      totalCards: 12,
+      tableMaxScore: 15,
+    });
+    expect(k.finished).toBe(6);
+    expect(k.cardsPerMatch).toBe(2);
+    // marges disputées : 2, 1, 5, 1
+    expect(k.averageMargin).toBeCloseTo(9 / 4);
+    expect(k.timeLimit).toBe(2);
+    expect(k.timeLimitPercent).toBe(50);
+    expect([k.abandons, k.exclusions, k.forfaits]).toEqual([1, 1, 1]);
+  });
+
+  it('aucun match : zéros', () => {
+    const k = weaponKpis({ poolMatches: [], fencers: [], totalCards: 0 });
+    expect(k).toMatchObject({
+      finished: 0,
+      cardsPerMatch: 0,
+      averageMargin: 0,
+      timeLimitPercent: 0,
+    });
+  });
+});
+
+describe('organisationKpis.lastEndAt (#1817)', () => {
+  it('fin du dernier match horodaté', () => {
+    const k = organisationKpis({
+      pools: [],
+      timings: [
+        timing({
+          matchId: 'x',
+          startTime: '2026-11-13T09:00:00Z',
+          endTime: '2026-11-13T09:05:00Z',
+        }),
+        timing({
+          matchId: 'y',
+          startTime: '2026-11-13T10:00:00Z',
+          endTime: '2026-11-13T10:04:00Z',
+        }),
+      ],
+      now: Date.parse('2026-11-13T11:00:00Z'),
+    });
+    expect(k.lastEndAt).toBe(Date.parse('2026-11-13T10:04:00Z'));
+    expect(organisationKpis({ pools: [], now: 0 }).lastEndAt).toBeNull();
   });
 });

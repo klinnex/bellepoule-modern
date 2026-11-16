@@ -36,6 +36,8 @@ export interface KpiTableauMatch {
   scoreB: number | null;
   winner: { id: string } | null;
   isBye: boolean;
+  /** Match perdu sur abandon / forfait / exclusion (non disputé jusqu'au bout) */
+  specialStatus?: { status: string } | null;
 }
 
 const time = (v: unknown): number => {
@@ -260,6 +262,10 @@ export interface OrganisationKpis {
   /** Fin estimée (ms) ; null si rien à estimer */
   etaAt: number | null;
   etaBasis: 'measured' | 'default' | null;
+  /** Fin du dernier match terminé (ms) ; null si aucun horodatage */
+  lastEndAt: number | null;
+  /** Instant du calcul (ms) */
+  now: number;
   /** Matchs terminés dans la dernière heure */
   lastHourThroughput: number;
   /** Débit moyen depuis le premier match lancé (matchs / h) */
@@ -407,6 +413,8 @@ export function organisationKpis(input: {
     inProgress,
     etaAt,
     etaBasis,
+    lastEndAt: ends.length ? Math.max(...ends) : null,
+    now,
     lastHourThroughput: ends.filter(e => e > now - 3_600_000 && e <= now).length,
     averageThroughput: hours > 0 ? ends.length / Math.max(hours, 1 / 60) : 0,
     averageWaitSeconds: avg(waits),
@@ -436,4 +444,65 @@ export function averageMatchSeconds(timings: MatchTiming[]): number {
     )
     .filter(d => d > 0);
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+}
+
+// ── Statistiques de l'arme (armes olympiques) ────────────────────────────────
+
+export interface WeaponKpis {
+  /** Matchs terminés (poules + tableau) */
+  finished: number;
+  /** Écart moyen au score des matchs disputés */
+  averageMargin: number;
+  /** Cartons (blanc, jaune, rouge, noir) par match terminé */
+  cardsPerMatch: number;
+  abandons: number;
+  exclusions: number;
+  forfaits: number;
+  /** Matchs arrivés au temps limite : aucun tireur n'a atteint le score maximum */
+  timeLimit: number;
+  /** Part des matchs disputés arrivés au temps limite (0..100) */
+  timeLimitPercent: number;
+}
+
+const notFenced = (m: Match) =>
+  [m.scoreA, m.scoreB].some(s => s?.isAbstention || s?.isExclusion || s?.isForfait);
+
+/** Indicateurs « Statistiques de l'arme » pour fleuret / épée / sabre (#1817). */
+export function weaponKpis(input: {
+  poolMatches: Match[];
+  tableauMatches?: KpiTableauMatch[];
+  fencers: Fencer[];
+  /** Total des cartons de la compétition */
+  totalCards: number;
+  /** Score maximum en tableau (repli : 15) */
+  tableMaxScore?: number;
+}): WeaponKpis {
+  const { poolMatches, tableauMatches = [], fencers, totalCards, tableMaxScore = 15 } = input;
+  const pool = poolMatches.filter(m => m.status === MatchStatus.FINISHED);
+  const tableau = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB && m.winner);
+  const finished = pool.length + tableau.length;
+
+  // Matchs disputés jusqu'au bout (hors abandon, forfait, exclusion)
+  const fenced: Array<{ a: number; b: number; max: number }> = [
+    ...pool
+      .filter(m => !notFenced(m))
+      .map(m => ({ a: m.scoreA?.value ?? 0, b: m.scoreB?.value ?? 0, max: m.maxScore || 5 })),
+    ...tableau
+      .filter(m => !m.specialStatus)
+      .map(m => ({ a: m.scoreA ?? 0, b: m.scoreB ?? 0, max: tableMaxScore })),
+  ];
+  const margins = fenced.map(m => Math.abs(m.a - m.b));
+  const timeLimit = fenced.filter(m => Math.max(m.a, m.b) < m.max).length;
+  const countStatus = (s: FencerStatus) => fencers.filter(f => f.status === s).length;
+
+  return {
+    finished,
+    averageMargin: margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : 0,
+    cardsPerMatch: finished ? totalCards / finished : 0,
+    abandons: countStatus(FencerStatus.ABANDONED),
+    exclusions: countStatus(FencerStatus.EXCLUDED),
+    forfaits: countStatus(FencerStatus.FORFAIT),
+    timeLimit,
+    timeLimitPercent: fenced.length ? (timeLimit / fenced.length) * 100 : 0,
+  };
 }
