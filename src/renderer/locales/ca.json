@@ -1293,7 +1293,15 @@
     "club_card_season": "Temporada {{season}}",
     "club_arena_title": "Pista {{n}}",
     "club_arena_hint": "Escanegeu aquest codi QR i després els carnets dels dos tiradors per llançar el combat",
-    "club_arenas_title": "QR de les pistes"
+    "club_arenas_title": "QR de les pistes",
+    "club_plan_title": "Pla de la classe",
+    "club_plan_duration": "Durada",
+    "club_plan_objectives": "Objectius",
+    "club_plan_progress": "Desenvolupament de la sessió",
+    "club_plan_time": "Horari",
+    "club_plan_exercise": "Exercici",
+    "club_plan_empty": "Cap exercici previst",
+    "club_plan_notes": "Notes"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -3322,7 +3330,7 @@
     "open_title": "Nova sessió",
     "label": "Títol (opcional)",
     "label_ph": "Entrenament del vespre",
-    "open": "Obrir la sessió d'avui",
+    "open": "Obrir la sessió",
     "past": "Sessions anteriors",
     "none": "Cap sessió",
     "present_count": "Presents: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Cap sessió preparada.",
     "summary": "Exercicis: {{count}} · {{duration}}",
     "start": "Iniciar",
-    "delete_confirm": "Suprimir la sessió prevista del {{date}}?"
+    "delete_confirm": "Suprimir la sessió prevista del {{date}}?",
+    "export_pdf": "Exportar en PDF",
+    "print": "Imprimir"
   },
   "clubFeedback": {
     "title": "Balanç de la sessió del {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Arma",
     "choose": "Triar l'arma",
     "club_label": "Arma del club"
+  },
+  "miniCalendar": {
+    "label": "Calendari",
+    "prev": "Mes anterior",
+    "next": "Mes següent",
+    "mark_planned": "sessió prevista",
+    "mark_open": "sessió en curs",
+    "mark_closed": "sessió passada"
   }
 }

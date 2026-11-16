@@ -1293,7 +1293,15 @@
     "club_card_season": "Сезон {{season}}",
     "club_arena_title": "Дорожка {{n}}",
     "club_arena_hint": "Отсканируйте этот QR-код, затем карты обоих фехтовальщиков, чтобы начать бой",
-    "club_arenas_title": "QR-коды дорожек"
+    "club_arenas_title": "QR-коды дорожек",
+    "club_plan_title": "План занятия",
+    "club_plan_duration": "Длительность",
+    "club_plan_objectives": "Цели",
+    "club_plan_progress": "Ход тренировки",
+    "club_plan_time": "Время",
+    "club_plan_exercise": "Упражнение",
+    "club_plan_empty": "Упражнения не запланированы",
+    "club_plan_notes": "Заметки"
   },
   "rsm": {
     "strip_plan": "План дорожек",
@@ -3322,7 +3330,7 @@
     "open_title": "Новая тренировка",
     "label": "Название (необязательно)",
     "label_ph": "Вечерняя тренировка",
-    "open": "Открыть сегодняшнюю тренировку",
+    "open": "Открыть тренировку",
     "past": "Прошлые тренировки",
     "none": "Тренировок нет",
     "present_count": "Присутствуют: {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Нет подготовленных тренировок.",
     "summary": "Упражнения: {{count}} · {{duration}}",
     "start": "Начать",
-    "delete_confirm": "Удалить тренировку, запланированную на {{date}}?"
+    "delete_confirm": "Удалить тренировку, запланированную на {{date}}?",
+    "export_pdf": "Экспорт в PDF",
+    "print": "Печать"
   },
   "clubFeedback": {
     "title": "Итоги тренировки {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Оружие",
     "choose": "Выберите оружие",
     "club_label": "Оружие клуба"
+  },
+  "miniCalendar": {
+    "label": "Календарь",
+    "prev": "Предыдущий месяц",
+    "next": "Следующий месяц",
+    "mark_planned": "запланированная тренировка",
+    "mark_open": "текущая тренировка",
+    "mark_closed": "прошедшая тренировка"
   }
 }

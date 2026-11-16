@@ -386,3 +386,89 @@
   border-radius: 2px;
   flex-shrink: 0;
 }
+/* Mini-calendrier (choix de la date d'une séance) */
+.club-row--top {
+  align-items: flex-start;
+}
+.mini-cal {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-weight: 400;
+}
+.mini-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mini-cal-title {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.mini-cal-grid {
+  border-collapse: collapse;
+}
+.mini-cal-grid th {
+  font-size: var(--fs-xs, 0.75rem);
+  color: var(--color-text-light);
+  font-weight: 500;
+  padding: 0.15rem 0;
+  text-align: center;
+}
+.mini-cal-grid td {
+  padding: 1px;
+}
+.mini-cal-day {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  position: relative;
+}
+.mini-cal-day:hover,
+.mini-cal-day:focus-visible {
+  background: var(--color-surface-2);
+}
+.mini-cal-day.is-out {
+  color: var(--color-text-light);
+  opacity: 0.55;
+}
+.mini-cal-day.is-today {
+  border-color: var(--color-primary);
+}
+.mini-cal-day.is-selected {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+/* Jour déjà occupé par une séance : point sous le chiffre */
+.mini-cal-day[class*='has-']::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--color-text-light);
+}
+.mini-cal-day.has-planned::after {
+  background: var(--color-primary);
+}
+.mini-cal-day.has-open::after {
+  background: var(--color-success, #15803d);
+}
+.mini-cal-day.is-selected::after {
+  background: #fff;
+}

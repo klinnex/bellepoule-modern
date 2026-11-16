@@ -1293,7 +1293,15 @@
     "club_card_season": "Saison {{season}}",
     "club_arena_title": "Piste {{n}}",
     "club_arena_hint": "Scannez ce QR code puis les cartes des deux tireurs pour lancer le combat",
-    "club_arenas_title": "QR des pistes"
+    "club_arenas_title": "QR des pistes",
+    "club_plan_title": "Plan de cours",
+    "club_plan_duration": "Durée",
+    "club_plan_objectives": "Objectifs",
+    "club_plan_progress": "Déroulé de la séance",
+    "club_plan_time": "Horaire",
+    "club_plan_exercise": "Exercice",
+    "club_plan_empty": "Aucun exercice prévu",
+    "club_plan_notes": "Notes"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",
@@ -3322,7 +3330,7 @@
     "open_title": "Nouvelle séance",
     "label": "Intitulé (facultatif)",
     "label_ph": "Entraînement du soir",
-    "open": "Ouvrir la séance du jour",
+    "open": "Ouvrir la séance",
     "past": "Séances précédentes",
     "none": "Aucune séance",
     "present_count": "Présents : {{count}}",
@@ -3427,7 +3435,9 @@
     "none_planned": "Aucune séance préparée.",
     "summary": "Exercices : {{count}} · {{duration}}",
     "start": "Démarrer",
-    "delete_confirm": "Supprimer la séance prévue du {{date}} ?"
+    "delete_confirm": "Supprimer la séance prévue du {{date}} ?",
+    "export_pdf": "Exporter en PDF",
+    "print": "Imprimer"
   },
   "clubFeedback": {
     "title": "Bilan de la séance du {{date}}",
@@ -3448,5 +3458,13 @@
     "label": "Arme",
     "choose": "Choisir l'arme",
     "club_label": "Arme du club"
+  },
+  "miniCalendar": {
+    "label": "Calendrier",
+    "prev": "Mois précédent",
+    "next": "Mois suivant",
+    "mark_planned": "séance prévue",
+    "mark_open": "séance en cours",
+    "mark_closed": "séance passée"
   }
 }

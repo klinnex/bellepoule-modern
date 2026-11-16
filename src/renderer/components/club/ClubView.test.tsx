@@ -61,9 +61,7 @@ describe('ClubView', () => {
     expect(screen.getByText('Membres (1)')).toBeInTheDocument();
     expect(api.listMembers).toHaveBeenCalledWith('c1', false);
     fireEvent.click(screen.getByRole('button', { name: 'Séances' }));
-    expect(
-      await screen.findByRole('button', { name: 'Ouvrir la séance du jour' })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ouvrir la séance' })).toBeInTheDocument();
   });
 
   it('ajoute un membre', async () => {

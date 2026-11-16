@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { ClipboardList, Pencil, Save } from 'lucide-react';
+import { ClipboardList, FileDown, Pencil, Printer, Save } from 'lucide-react';
 import type { ClubSession } from '../../../shared/types/club';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -16,6 +16,8 @@ interface ClubSessionPlanCardProps {
   onToggle: (itemId: string, done: boolean) => void;
   onSaveNotes: (notes: string) => void;
   onEdit: () => void;
+  onExportPdf: () => void;
+  onPrint: () => void;
 }
 
 export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
@@ -23,6 +25,8 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
   onToggle,
   onSaveNotes,
   onEdit,
+  onExportPdf,
+  onPrint,
 }) => {
   const { t } = useTranslation();
   // null = notes enregistrées (pas d'édition en cours)
@@ -43,9 +47,17 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
             </span>
           )}
         </h2>
-        <Button icon={<Pencil size={15} aria-hidden="true" />} onClick={onEdit}>
-          {t('clubPlan.edit')}
-        </Button>
+        <span className="club-row">
+          <Button icon={<FileDown size={15} aria-hidden="true" />} onClick={onExportPdf}>
+            {t('clubPlan.export_pdf')}
+          </Button>
+          <Button icon={<Printer size={15} aria-hidden="true" />} onClick={onPrint}>
+            {t('clubPlan.print')}
+          </Button>
+          <Button icon={<Pencil size={15} aria-hidden="true" />} onClick={onEdit}>
+            {t('clubPlan.edit')}
+          </Button>
+        </span>
       </div>
       {session.objectives && (
         <p className="club-objectives">
