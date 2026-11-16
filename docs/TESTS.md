@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 69 | 784 |
+| `src/shared/utils/` | 70 | 786 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **417** | **3167** |
+| **Total** | **418** | **3169** |
 
-Unitaires : 407 fichiers, 3128 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -290,6 +290,15 @@ Unitaires : 407 fichiers, 3128 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
   - dédoublonne par licence puis nom (accents/casse), complète sans écraser
   - statut par ligne, dans l’ordre du fichier
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubMembersExport.test.ts</code> — 2 tests</summary>
+
+- **exportClubMembersToFFF**
+  - écrit en-tête et lignes FFF
+  - se réimporte (nom, licence, sexe, date)
 
 </details>
 
