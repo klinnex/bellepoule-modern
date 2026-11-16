@@ -3292,6 +3292,8 @@
     "archive": "Archivia",
     "unarchive": "Riattiva",
     "import": "Importa (.fff)",
+    "export": "Esporta (.fff)",
+    "export_done": "{{count}} membro/i esportato/i",
     "import_done": "Importazione completata: {{created}} aggiunto/i, {{updated}} completato/i, {{skipped}} già presente/i",
     "import_empty": "Nessun socio trovato in questo file",
     "strip_count": "Numero di pedane",

@@ -3292,6 +3292,8 @@
     "archive": "Archive",
     "unarchive": "Reactivate",
     "import": "Import (.fff)",
+    "export": "Export (.fff)",
+    "export_done": "{{count}} member(s) exported",
     "import_done": "Import done: {{created}} added, {{updated}} completed, {{skipped}} already present",
     "import_empty": "No members found in this file",
     "strip_count": "Number of strips",

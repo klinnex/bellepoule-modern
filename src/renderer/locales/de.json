@@ -3292,6 +3292,8 @@
     "archive": "Archivieren",
     "unarchive": "Reaktivieren",
     "import": "Importieren (.fff)",
+    "export": "Exportieren (.fff)",
+    "export_done": "{{count}} Mitglied(er) exportiert",
     "import_done": "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} ergänzt, {{skipped}} bereits vorhanden",
     "import_empty": "Keine Mitglieder in dieser Datei gefunden",
     "strip_count": "Anzahl der Bahnen",

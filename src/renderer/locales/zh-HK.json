@@ -3292,6 +3292,8 @@
     "archive": "封存",
     "unarchive": "重新啟用",
     "import": "匯入 (.fff)",
+    "export": "匯出 (.fff)",
+    "export_done": "已匯出 {{count}} 名會員",
     "import_done": "匯入完成：新增 {{created}}，補充 {{updated}}，已存在 {{skipped}}",
     "import_empty": "此檔案中找不到會員",
     "strip_count": "劍道數目",

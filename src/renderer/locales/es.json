@@ -3292,6 +3292,8 @@
     "archive": "Archivar",
     "unarchive": "Reactivar",
     "import": "Importar (.fff)",
+    "export": "Exportar (.fff)",
+    "export_done": "{{count}} miembro(s) exportado(s)",
     "import_done": "Importación terminada: {{created}} añadido(s), {{updated}} completado(s), {{skipped}} ya presente(s)",
     "import_empty": "No se ha encontrado ningún socio en este archivo",
     "strip_count": "Número de pistas",
