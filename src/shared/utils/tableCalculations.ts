@@ -425,10 +425,12 @@ export function calculateTableRanking(table: DirectEliminationTable): TableRanki
     }
 
     // Attribuer un rang distinct à chaque perdant
+    // #1864 : sans petite finale jouée, les perdants des demi-finales sont 3es ex æquo
+    const tiedThird = round === 2 && !thirdPlaceMatch?.winner;
     for (let i = 0; i < losers.length; i++) {
       rankings.push({
         fencer: losers[i].fencer,
-        rank: currentPlace + i,
+        rank: tiedThird ? currentPlace : currentPlace + i,
         eliminatedAt: round,
       });
     }

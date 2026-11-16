@@ -89,6 +89,49 @@ describe('calculateFinalResults - abandon / forfait / exclusion (#1012)', () => 
   });
 });
 
+describe('calculateFinalResults - 3e place non jouée (#1864)', () => {
+  const mk = (id: string, round: number, position: number, o: Partial<TableauMatch>) =>
+    ({ id, round, position, scoreA: 15, scoreB: 10, isBye: false, ...o }) as TableauMatch;
+
+  it('deux 3es ex æquo, pas de 4e, puis 5e', () => {
+    const ranking = mkRanking(8);
+    const [a, b, c, d, e, f, g, h] = ranking.map(r => r.fencer);
+    const matches: TableauMatch[] = [
+      mk('8-0', 8, 0, { fencerA: a, fencerB: h, winner: a }),
+      mk('8-1', 8, 1, { fencerA: d, fencerB: e, winner: d }),
+      mk('8-2', 8, 2, { fencerA: c, fencerB: f, winner: c }),
+      mk('8-3', 8, 3, { fencerA: b, fencerB: g, winner: b }),
+      mk('4-0', 4, 0, { fencerA: a, fencerB: d, winner: a }),
+      mk('4-1', 4, 1, { fencerA: c, fencerB: b, winner: b }),
+      mk('2-0', 2, 0, { fencerA: a, fencerB: b, winner: a }),
+    ];
+    const results = calculateFinalResults(matches, ranking, 8);
+    const rank = (id: string) => results.find(r => r.fencer.id === id)!.rank;
+    expect(rank(c.id)).toBe(3);
+    expect(rank(d.id)).toBe(3);
+    expect(results.some(r => r.rank === 4)).toBe(false);
+    expect(results.filter(r => r.rank >= 5).map(r => r.rank)).toEqual([5, 6, 7, 8]);
+  });
+
+  it('petite finale jouée : 3e et 4e distincts', () => {
+    const ranking = mkRanking(4);
+    const [a, b, c, d] = ranking.map(r => r.fencer);
+    const matches: TableauMatch[] = [
+      mk('4-0', 4, 0, { fencerA: a, fencerB: d, winner: a }),
+      mk('4-1', 4, 1, { fencerA: b, fencerB: c, winner: b }),
+      mk('2-0', 2, 0, { fencerA: a, fencerB: b, winner: a }),
+      mk('3-0', 3, 0, { fencerA: c, fencerB: d, winner: d }),
+    ];
+    const results = calculateFinalResults(matches, ranking, 4);
+    expect(results.map(r => [r.fencer.id, r.rank])).toEqual([
+      [a.id, 1],
+      [b.id, 2],
+      [d.id, 3],
+      [c.id, 4],
+    ]);
+  });
+});
+
 describe('generateFIESeeding (#1080)', () => {
   it('tables en dur identiques à la construction FIE générique', () => {
     for (const size of [4, 8, 16, 32, 64, 128]) {

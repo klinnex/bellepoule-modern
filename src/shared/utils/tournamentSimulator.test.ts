@@ -46,10 +46,13 @@ describe('simulateTournament', () => {
     expect(r.tableMatchCount).toBe(199);
 
     // Classement final : 200 tireurs, un seul vainqueur, rangs distincts
+    // sauf les deux 3es ex æquo (pas de petite finale, #1864) : pas de 4e
     expect(r.tableRanking).toHaveLength(200);
     const ranks = r.tableRanking.map(x => x.rank);
     expect(ranks.filter(x => x === 1)).toHaveLength(1);
-    expect(new Set(ranks).size).toBe(200);
+    expect(ranks.filter(x => x === 3)).toHaveLength(2);
+    expect(ranks).not.toContain(4);
+    expect(new Set(ranks).size).toBe(199);
     const final = r.table.nodes.find(n => n.round === 1);
     expect(r.tableRanking.find(x => x.rank === 1)?.fencer.id).toBe(final?.winner?.id);
   });
