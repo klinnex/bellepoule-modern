@@ -701,7 +701,6 @@
   'results.match_won': 'Победа',
   'results.match_lost': 'Поражение',
   'results.match_pending': 'Предстоит',
-  'results.fencer_follow': 'Подробный путь фехтовальщика',
   'selfCheckin.page_title': 'Регистрация – BellePoule',
   'selfCheckin.title': 'Регистрация',
   'selfCheckin.intro': 'Введите номер лицензии и дату рождения, чтобы подтвердить присутствие.',

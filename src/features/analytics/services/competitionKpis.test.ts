@@ -11,6 +11,7 @@ import {
   rankingProgression,
   averageMatchSeconds,
   weaponKpis,
+  tableauWaves,
   type KpiMatch,
 } from './competitionKpis';
 import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../../shared/types';
@@ -376,5 +377,70 @@ describe('organisationKpis.lastEndAt (#1817)', () => {
     });
     expect(k.lastEndAt).toBe(Date.parse('2026-11-13T10:04:00Z'));
     expect(organisationKpis({ pools: [], now: 0 }).lastEndAt).toBeNull();
+  });
+});
+
+describe('bandeau Organisation poules / compétition (#1817)', () => {
+  const NOW = Date.parse('2026-11-13T10:00:00Z');
+  const pool = (id: string, number: number, matches: Match[]) =>
+    ({ id, number, matches }) as unknown as Pool;
+
+  it('tableauWaves : exempts déduits, tours successifs', () => {
+    expect(tableauWaves(1, 4)).toBe(0);
+    expect(tableauWaves(4, 1)).toBe(3);
+    expect(tableauWaves(5, 1)).toBe(4);
+    expect(tableauWaves(8, 4)).toBe(3);
+    expect(tableauWaves(6, 2)).toBe(1 + 1 + 1);
+  });
+
+  it('poules en cours : fin des poules + tableau projeté', () => {
+    const k = organisationKpis({
+      pools: [
+        pool('A', 1, [
+          poolMatch('a1', 'f1', 'f2', 5, 1),
+          poolMatch('a2', 'f3', 'f4', 0, 0, MatchStatus.NOT_STARTED),
+        ]),
+      ],
+      now: NOW,
+    });
+    expect(k.hasTableau).toBe(false);
+    expect(k.poolsEtaAt).not.toBeNull();
+    expect(k.poolsEndAt).toBeNull();
+    expect(k.tableauProjectionMs).toBeGreaterThan(0);
+    expect(k.competitionEtaAt).toBe(k.poolsEtaAt! + k.tableauProjectionMs!);
+  });
+
+  it('poules finies : fin réelle des poules, tableau généré = ETA globale', () => {
+    const pools = [pool('A', 1, [poolMatch('a1', 'f1', 'f2', 5, 1)])];
+    const timings = [
+      timing({
+        matchId: 'a1',
+        startTime: '2026-11-13T09:00:00Z',
+        endTime: '2026-11-13T09:05:00Z',
+      }),
+    ];
+    const k = organisationKpis({ pools, timings, now: NOW });
+    expect(k.poolsEtaAt).toBeNull();
+    expect(k.poolsEndAt).toBe(Date.parse('2026-11-13T09:05:00Z'));
+    const withTableau = organisationKpis({
+      pools,
+      timings,
+      tableauMatches: [
+        {
+          id: 't1',
+          round: 2,
+          fencerA: { id: 'f1' },
+          fencerB: { id: 'f2' },
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        },
+      ],
+      now: NOW,
+    });
+    expect(withTableau.hasTableau).toBe(true);
+    expect(withTableau.tableauProjectionMs).toBeNull();
+    expect(withTableau.competitionEtaAt).toBe(withTableau.etaAt);
   });
 });

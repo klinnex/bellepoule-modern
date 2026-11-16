@@ -694,7 +694,6 @@
   'results.match_won': 'Victòria',
   'results.match_lost': 'Derrota',
   'results.match_pending': 'Pendent',
-  'results.fencer_follow': 'Seguiment detallat del tirador',
   'selfCheckin.page_title': 'Registre – BellePoule',
   'selfCheckin.title': 'Registre',
   'selfCheckin.intro': 'Introdueix el número de llicència i la data de naixement per confirmar la teva presència.',

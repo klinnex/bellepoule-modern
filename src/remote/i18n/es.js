@@ -694,7 +694,6 @@
   'results.match_won': 'Victoria',
   'results.match_lost': 'Derrota',
   'results.match_pending': 'Pendiente',
-  'results.fencer_follow': 'Seguimiento detallado del tirador',
   'selfCheckin.page_title': 'Registro – BellePoule',
   'selfCheckin.title': 'Registro',
   'selfCheckin.intro': 'Introduce tu número de licencia y tu fecha de nacimiento para confirmar tu presencia.',

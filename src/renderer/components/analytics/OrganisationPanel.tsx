@@ -57,31 +57,116 @@ const Tile: React.FC<{ label: string; value: React.ReactNode; sub?: React.ReactN
   </div>
 );
 
+const fmtDeviation = (
+  t: (k: string, p?: Record<string, string | number>) => string,
+  min: number | null
+): string =>
+  min == null
+    ? '—'
+    : min === 0
+      ? t('organisation.on_time')
+      : t(min > 0 ? 'organisation.late_by' : 'organisation.ahead_by', { n: Math.abs(min) });
+
+const minutesBetween = (at: number | null, ref: number | null) =>
+  at != null && ref != null ? Math.round((at - ref) / 60_000) : null;
+
+/** Une moitié du bandeau : fin estimée (ou réelle) + écart au planning */
+const EtaBlock: React.FC<{
+  testId: string;
+  etaLabel: string;
+  eta: React.ReactNode;
+  etaHint?: React.ReactNode;
+  deviationLabel: string;
+  deviationMin: number | null;
+  plannedLabel: string | null;
+  onReset?: () => void;
+  resetLabel: string;
+  t: (k: string, p?: Record<string, string | number>) => string;
+}> = ({
+  testId,
+  etaLabel,
+  eta,
+  etaHint,
+  deviationLabel,
+  deviationMin,
+  plannedLabel,
+  onReset,
+  resetLabel,
+  t,
+}) => (
+  <div className="org-eta__half" data-testid={testId}>
+    <div>
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{etaLabel}</div>
+      <div className="org-eta__time">{eta}</div>
+      {etaHint && <div className="text-xs text-gray-400">{etaHint}</div>}
+    </div>
+    <div>
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        {deviationLabel}
+      </div>
+      <div
+        className={`org-eta__deviation ${deviationMin == null ? '' : deviationMin > 0 ? 'is-late' : 'is-ahead'}`}
+      >
+        {fmtDeviation(t, deviationMin)}
+      </div>
+      {plannedLabel && (
+        <div className="text-xs text-gray-400 flex items-center gap-1">
+          {plannedLabel}
+          {onReset && (
+            <button
+              type="button"
+              className="btn-link"
+              title={resetLabel}
+              aria-label={resetLabel}
+              onClick={onReset}
+            >
+              <Icon icon={RotateCcw} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 export const OrganisationPanel: React.FC<{
   competitionId: string;
   kpis: OrganisationKpis;
-  /** Phase en cours : choisit l'heure de fin planifiée (poules ou tableau) */
-  phase?: SchedulePhase;
-}> = ({ competitionId, kpis, phase = 'pools' }) => {
+}> = ({ competitionId, kpis }) => {
   const { t } = useTranslation();
   const [, setRev] = useState(0);
-  // Heure de fin planifiée = calculée par l'assistant de planning ; repli : 1re fin estimée
-  const planned = getPlannedEnd(competitionId, phase);
-  const fromPlanning = hasPlannedEnd(competitionId, phase);
-  const baseline = planned ?? kpis.etaAt;
-  useEffect(() => {
-    if (planned == null && kpis.etaAt != null) rememberFirstEstimate(competitionId, kpis.etaAt);
-  }, [planned, kpis.etaAt, competitionId]);
 
-  // Compétition terminée : retard / avance final figé (#1817)
-  const finished = kpis.total > 0 && kpis.done >= kpis.total;
+  // Poules : référence = fin planifiée des poules (assistant), repli 1re fin estimée
+  const plannedPools = getPlannedEnd(competitionId, 'pools');
+  const poolsFromPlanning = hasPlannedEnd(competitionId, 'pools');
+  const poolsBaseline = plannedPools ?? kpis.poolsEtaAt;
+  useEffect(() => {
+    if (plannedPools == null && kpis.poolsEtaAt != null)
+      rememberFirstEstimate(competitionId, kpis.poolsEtaAt);
+  }, [plannedPools, kpis.poolsEtaAt, competitionId]);
+  const poolsDeviation = minutesBetween(kpis.poolsEtaAt ?? kpis.poolsEndAt, poolsBaseline);
+
+  // Compétition : fin planifiée du tableau ; avant le tableau, fin des poules + tableau projeté
+  const tableauFromPlanning = hasPlannedEnd(competitionId, 'tableau');
+  const plannedCompetition = tableauFromPlanning
+    ? getPlannedEnd(competitionId, 'tableau')
+    : poolsBaseline != null && kpis.tableauProjectionMs != null
+      ? poolsBaseline + kpis.tableauProjectionMs
+      : null;
+
+  // Compétition terminée (tableau compris) : retard / avance final figé (#1817)
+  const finished = kpis.hasTableau && kpis.total > 0 && kpis.done >= kpis.total;
   const storedFinal = finished ? getFinalDeviation(competitionId) : null;
   const final = useMemo<FinalDeviation | null>(() => {
     if (storedFinal) return storedFinal;
-    if (!finished || baseline == null) return null;
+    if (!finished || plannedCompetition == null) return null;
     const endAt = kpis.lastEndAt ?? kpis.now;
-    return { endAt, plannedAt: baseline, deviationMin: Math.round((endAt - baseline) / 60_000) };
-  }, [storedFinal, finished, baseline, kpis.lastEndAt, kpis.now]);
+    return {
+      endAt,
+      plannedAt: plannedCompetition,
+      deviationMin: Math.round((endAt - plannedCompetition) / 60_000),
+    };
+  }, [storedFinal, finished, plannedCompetition, kpis.lastEndAt, kpis.now]);
   useEffect(() => {
     if (finished && final && !storedFinal) setFinalDeviation(competitionId, final);
     // Matchs ajoutés ou annulés après la fin : l'écart redevient vivant
@@ -89,72 +174,82 @@ export const OrganisationPanel: React.FC<{
       setFinalDeviation(competitionId, null);
   }, [finished, final, storedFinal, kpis.total, competitionId]);
 
-  const deviationMin = final
+  const competitionDeviation = final
     ? final.deviationMin
-    : baseline != null && kpis.etaAt != null
-      ? Math.round((kpis.etaAt - baseline) / 60_000)
-      : null;
-  const shownPlanned = final ? final.plannedAt : baseline;
+    : minutesBetween(kpis.competitionEtaAt, plannedCompetition);
+  const shownCompetitionPlanned = final ? final.plannedAt : plannedCompetition;
   const pct = kpis.total ? (kpis.done / kpis.total) * 100 : 0;
+  const reset = (phase: SchedulePhase, at: number | null) =>
+    at != null
+      ? () => {
+          setPlannedEnd(competitionId, phase, at);
+          setRev(r => r + 1);
+        }
+      : undefined;
 
   return (
     <div className="space-y-4" data-testid="organisation-panel">
-      {/* Fin estimée + écart au planning */}
+      {/* Bandeau : poules à gauche, compétition à droite (#1817) */}
       <div className="org-eta">
-        <div>
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            {t('organisation.eta')}
-          </div>
-          <div className="org-eta__time">
-            {kpis.etaAt != null
-              ? fmtClock(kpis.etaAt)
-              : final
-                ? t('organisation.ended_at', { time: fmtClock(final.endAt) })
-                : kpis.total > 0
+        <EtaBlock
+          t={t}
+          testId="org-eta-pools"
+          etaLabel={t('organisation.eta_pools')}
+          eta={
+            kpis.poolsEtaAt != null
+              ? fmtClock(kpis.poolsEtaAt)
+              : kpis.poolsEndAt != null
+                ? t('organisation.ended_at', { time: fmtClock(kpis.poolsEndAt) })
+                : kpis.poolsTotal > 0
                   ? t('organisation.all_done')
-                  : '—'}
-          </div>
-          {kpis.etaBasis === 'default' && (
-            <div className="text-xs text-gray-400">{t('organisation.eta_default')}</div>
-          )}
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            {t(final ? 'organisation.final_deviation' : 'organisation.deviation')}
-          </div>
-          <div
-            className={`org-eta__deviation ${deviationMin == null ? '' : deviationMin > 0 ? 'is-late' : 'is-ahead'}`}
-          >
-            {deviationMin == null
-              ? '—'
-              : deviationMin === 0
-                ? t('organisation.on_time')
-                : t(deviationMin > 0 ? 'organisation.late_by' : 'organisation.ahead_by', {
-                    n: Math.abs(deviationMin),
-                  })}
-          </div>
-          {shownPlanned != null && (
-            <div className="text-xs text-gray-400 flex items-center gap-1">
-              {t(fromPlanning || final ? 'organisation.planned' : 'organisation.planned_estimate', {
-                time: fmtClock(shownPlanned),
-              })}
-              {!final && kpis.etaAt != null && (
-                <button
-                  type="button"
-                  className="btn-link"
-                  title={t('organisation.reset_baseline')}
-                  aria-label={t('organisation.reset_baseline')}
-                  onClick={() => {
-                    if (kpis.etaAt != null) setPlannedEnd(competitionId, phase, kpis.etaAt);
-                    setRev(r => r + 1);
-                  }}
-                >
-                  <Icon icon={RotateCcw} />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+                  : '—'
+          }
+          etaHint={kpis.etaBasis === 'default' ? t('organisation.eta_default') : undefined}
+          deviationLabel={t('organisation.deviation_pools')}
+          deviationMin={poolsDeviation}
+          plannedLabel={
+            poolsBaseline != null
+              ? t(poolsFromPlanning ? 'organisation.planned' : 'organisation.planned_estimate', {
+                  time: fmtClock(poolsBaseline),
+                })
+              : null
+          }
+          onReset={reset('pools', kpis.poolsEtaAt)}
+          resetLabel={t('organisation.reset_baseline')}
+        />
+        <EtaBlock
+          t={t}
+          testId="org-eta-competition"
+          etaLabel={t('organisation.eta_competition')}
+          eta={
+            final
+              ? t('organisation.ended_at', { time: fmtClock(final.endAt) })
+              : kpis.competitionEtaAt != null
+                ? fmtClock(kpis.competitionEtaAt)
+                : finished
+                  ? t('organisation.all_done')
+                  : '—'
+          }
+          etaHint={
+            !kpis.hasTableau && kpis.tableauProjectionMs != null
+              ? t('organisation.eta_projected')
+              : undefined
+          }
+          deviationLabel={t('organisation.final_deviation')}
+          deviationMin={competitionDeviation}
+          plannedLabel={
+            shownCompetitionPlanned != null
+              ? t(
+                  tableauFromPlanning || final
+                    ? 'organisation.planned'
+                    : 'organisation.planned_projected',
+                  { time: fmtClock(shownCompetitionPlanned) }
+                )
+              : null
+          }
+          onReset={!final && kpis.hasTableau ? reset('tableau', kpis.competitionEtaAt) : undefined}
+          resetLabel={t('organisation.reset_baseline')}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

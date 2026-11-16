@@ -248,6 +248,18 @@
   border-radius: 8px;
   background: var(--color-surface-2);
 }
+/* Bandeau séparé en deux : poules (gauche) / compétition (droite) (#1817) */
+.org-eta__half {
+  flex: 1 1 320px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+.org-eta__half + .org-eta__half {
+  justify-content: flex-end;
+  border-left: 1px solid var(--color-border);
+  padding-left: 32px;
+}
 .org-eta__time {
   font-size: 2rem;
   font-weight: 800;
@@ -340,4 +352,16 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+}
+
+/* Head-to-Head : listes pleine largeur, centrées sous Tireur 1 / Tireur 2 (#1858) */
+.comparison__selectors .form-group {
+  min-width: 0;
+}
+.comparison__selectors .form-control {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  text-align-last: center;
 }

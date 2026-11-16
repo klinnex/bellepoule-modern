@@ -1684,7 +1684,7 @@
     "pool_n": "Poule {{n}}",
     "weapon_stats": "Estadístiques de l'arma",
     "total_matches": "Total de combats",
-    "avg_margin": "Marge mitjà de victòria",
+    "avg_margin": "Mitjana de diferència per victòria",
     "most_touching": "Combat amb més tocats",
     "competition": "Competició",
     "tab_organisation": "Organització",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "tocs/assalt",
     "touches_per_match_title": "Mitjana de tocs donats per assalt",
     "cards_per_match": "Targetes per assalt",
-    "withdrawals": "Abandonaments / exclusions / incompareixences",
+    "withdrawals": "Mèdic / exclusions / incompareixences",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assalts al temps límit",
     "time_limit_hint": "Assalts disputats acabats sense que cap tirador arribi a la puntuació màxima"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Error en resincronitzar un marcador",
     "ended_at": "Acabat a les {{time}}",
     "final_deviation": "Desviació final de la planificació",
+    "eta_pools": "Final estimat de les poules",
+    "deviation_pools": "Desviació de les poules respecte a la planificació",
+    "eta_competition": "Final estimat de la competició",
+    "eta_projected": "Quadre projectat (no generat)",
+    "planned_projected": "Previst (poules + quadre projectat): {{time}}",
     "planned_estimate": "Referència (1a estimació): {{time}}"
   }
 }

@@ -683,7 +683,6 @@
   'results.match_won': 'Vittoria',
   'results.match_lost': 'Sconfitta',
   'results.match_pending': 'Da disputare',
-  'results.fencer_follow': 'Percorso dettagliato dello schermidore',
   'selfCheckin.page_title': 'Conferma presenza – BellePoule',
   'selfCheckin.title': 'Conferma presenza',
   'selfCheckin.intro': 'Inserisci numero di tessera e data di nascita per confermare la presenza.',

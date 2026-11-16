@@ -701,7 +701,6 @@
   'results.match_won': 'Vitória',
   'results.match_lost': 'Derrota',
   'results.match_pending': 'Por disputar',
-  'results.fencer_follow': 'Acompanhamento detalhado do atirador',
   'selfCheckin.page_title': 'Chamada – BellePoule',
   'selfCheckin.title': 'Chamada',
   'selfCheckin.intro': 'Introduza o número de licença e a data de nascimento para confirmar a presença.',

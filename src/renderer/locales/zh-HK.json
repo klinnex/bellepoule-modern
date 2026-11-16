@@ -1684,7 +1684,7 @@
     "pool_n": "小組 {{n}}",
     "weapon_stats": "劍種統計",
     "total_matches": "比賽總數",
-    "avg_margin": "平均勝分差",
+    "avg_margin": "每場勝利平均分差",
     "most_touching": "最多得分的比賽",
     "competition": "賽事",
     "tab_organisation": "組織",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "擊中/場",
     "touches_per_match_title": "每場平均擊中數",
     "cards_per_match": "每場牌數",
-    "withdrawals": "退賽 / 驅逐 / 棄權",
+    "withdrawals": "傷病 / 驅逐 / 棄權",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "打滿時間的比賽",
     "time_limit_hint": "已進行的比賽中，雙方均未達到最高分即結束"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "比分重新同步失敗",
     "ended_at": "於 {{time}} 結束",
     "final_deviation": "最終進度偏差",
+    "eta_pools": "小組賽預計結束",
+    "deviation_pools": "小組賽進度偏差",
+    "eta_competition": "比賽預計結束",
+    "eta_projected": "預測淘汰賽（未生成）",
+    "planned_projected": "計劃（小組賽 + 預測淘汰賽）：{{time}}",
     "planned_estimate": "參考（首次估算）：{{time}}"
   }
 }

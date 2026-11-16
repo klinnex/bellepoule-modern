@@ -1684,7 +1684,7 @@
     "pool_n": "Pool {{n}}",
     "weapon_stats": "Weapon statistics",
     "total_matches": "Total bouts",
-    "avg_margin": "Avg. victory margin",
+    "avg_margin": "Avg. margin per victory",
     "most_touching": "Highest-scoring bout",
     "competition": "Competition",
     "tab_organisation": "Organisation",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "hits/bout",
     "touches_per_match_title": "Average hits scored per bout",
     "cards_per_match": "Cards per bout",
-    "withdrawals": "Withdrawals / exclusions / forfeits",
+    "withdrawals": "Medical / exclusions / forfeits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Bouts reaching time limit",
     "time_limit_hint": "Fenced bouts ending without either fencer reaching the maximum score"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Score resync failed",
     "ended_at": "Ended at {{time}}",
     "final_deviation": "Final schedule deviation",
+    "eta_pools": "Estimated pool end",
+    "deviation_pools": "Pool schedule deviation",
+    "eta_competition": "Estimated competition end",
+    "eta_projected": "Projected table (not generated)",
+    "planned_projected": "Planned (pools + projected table): {{time}}",
     "planned_estimate": "Reference (first estimate): {{time}}"
   }
 }

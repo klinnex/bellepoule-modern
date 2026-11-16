@@ -1684,7 +1684,7 @@
     "pool_n": "Poule {{n}}",
     "weapon_stats": "Estatísticas da arma",
     "total_matches": "Total de combates",
-    "avg_margin": "Margem média de vitória",
+    "avg_margin": "Média de diferença por vitória",
     "most_touching": "Combate com mais toques",
     "competition": "Competição",
     "tab_organisation": "Organização",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "toq./combate",
     "touches_per_match_title": "Média de toques dados por combate",
     "cards_per_match": "Cartões por assalto",
-    "withdrawals": "Abandonos / exclusões / faltas de comparência",
+    "withdrawals": "Médico / exclusões / faltas de comparência",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assaltos no tempo limite",
     "time_limit_hint": "Assaltos disputados terminados sem que nenhum atirador atinja a pontuação máxima"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Falha ao ressincronizar uma pontuação",
     "ended_at": "Terminado às {{time}}",
     "final_deviation": "Desvio final do planeamento",
+    "eta_pools": "Fim estimado das poules",
+    "deviation_pools": "Desvio das poules face ao planeamento",
+    "eta_competition": "Fim estimado da competição",
+    "eta_projected": "Quadro projetado (não gerado)",
+    "planned_projected": "Previsto (poules + quadro projetado): {{time}}",
     "planned_estimate": "Referência (1.ª estimativa): {{time}}"
   }
 }
