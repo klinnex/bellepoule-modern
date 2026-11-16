@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildCyrano, parseCyrano, sanitizeField } from './codec';
 import { formatCyranoName, formatCyranoNat, pickCyranoNat, transliterate } from './names';
-import { cyranoResult, validateCyranoEnd } from './endValidation';
+import { cyranoEndOutcome, validateCyranoEnd } from './endValidation';
+import { mapCyranoSides } from './deviceState';
 import { buildDisp, toCyranoWeapon } from './disp';
 
 // Trames d'exemple de la spécification Cyrano 1.1 (§6)
@@ -244,15 +245,43 @@ describe('fin de match (ACK / NAK)', () => {
     });
   });
 
-  it('résultat par identifiant : insensible à l’inversion droite/gauche', () => {
-    const a = parseCyrano('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|U|%|32|||3|U|%|')!;
-    const b = parseCyrano('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|32|||3|U|%|28|||5|U|%|')!;
-    expect(cyranoResult(a)).toEqual(cyranoResult(b));
-    expect(cyranoResult(a)?.winnerId).toBe('28');
-    const prio = parseCyrano('|EFP1.1|INFO|1|c|||||||I|E|L|E|%|28|||4|U|%|32|||4|U|%|')!;
-    expect(cyranoResult(prio)?.winnerId).toBe('32');
-    const ab = parseCyrano('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|A|%|32|||3|U|%|')!;
-    expect(cyranoResult(ab)).toMatchObject({ winnerId: '32', abandoned: ['28'] });
+  it('issue par tireur A / B : insensible à l’inversion droite/gauche', () => {
+    const match = { fencerA: { id: '28' }, fencerB: { id: '32' } } as never;
+    const outcome = (raw: string) => {
+      const msg = parseCyrano(raw)!;
+      return cyranoEndOutcome(msg, mapCyranoSides(msg, match)!);
+    };
+    // Victoire au score : vainqueur déduit des scores par matchFinish
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|U|%|32|||3|U|%|')).toEqual({});
+    // Priorité gauche : tireur B (32) à gauche, puis A (28) à gauche après inversion
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|L|E|%|28|||4|U|%|32|||4|U|%|')).toEqual({
+      winner: 'B',
+      reason: 'priority',
+    });
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|L|E|%|32|||4|U|%|28|||4|U|%|')).toEqual({
+      winner: 'A',
+      reason: 'priority',
+    });
+    // Abandon / exclusion : l'adversaire gagne, même mené au score
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|A|%|32|||3|U|%|')).toEqual({
+      winner: 'B',
+      reason: 'abandon',
+    });
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|32|||3|E|%|28|||1|U|%|')).toEqual({
+      winner: 'A',
+      reason: 'exclusion',
+    });
+    // Deux tireurs hors combat : pas de vainqueur imposé
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|A|%|32|||3|E|%|')).toEqual({});
+    // Égalité : décision V / D de l'appareil, prioritaire sur le champ priorité
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|R|E|%|28|||4|U|%|32|||4|V|%|')).toEqual({
+      winner: 'B',
+      reason: 'priority',
+    });
+    expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||4|D|%|32|||4|U|%|')).toEqual({
+      winner: 'B',
+      reason: 'priority',
+    });
   });
 });
 
