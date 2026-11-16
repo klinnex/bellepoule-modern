@@ -3340,6 +3340,14 @@
     "results": "Risultati ({{count}})",
     "col_strip": "Pedana",
     "col_bout": "Assalto",
-    "col_score": "Punteggio"
+    "col_score": "Punteggio",
+    "remote": "Inserimento remoto",
+    "remote_start": "Attiva l'inserimento remoto",
+    "remote_stop": "Disattiva",
+    "remote_qr": "QR code dei tablet",
+    "remote_on": "Attivo: i tablet arbitro si collegano a {{url}}/areneN/arbitre. Ogni assalto avviato viene inviato lì, il punteggio convalidato torna qui.",
+    "remote_off": "I punteggi si inseriscono su questo computer. Attiva l'inserimento remoto per arbitrare su tablet.",
+    "remote_busy": "Sul tablet di questa pedana c'è già un assalto in corso",
+    "remote_error": "Impossibile avviare l'inserimento remoto"
   }
 }

@@ -3340,6 +3340,14 @@
     "results": "結果（{{count}}）",
     "col_strip": "劍道",
     "col_bout": "對賽",
-    "col_score": "比分"
+    "col_score": "比分",
+    "remote": "遠端輸入",
+    "remote_start": "啟用遠端輸入",
+    "remote_stop": "停用",
+    "remote_qr": "平板 QR 碼",
+    "remote_on": "已啟用：裁判平板連接至 {{url}}/areneN/arbitre。每場開始的對賽會傳送到平板，確認的比分會傳回此處。",
+    "remote_off": "比分在此電腦輸入。啟用遠端輸入即可用平板執法。",
+    "remote_busy": "此劍道的平板已有對賽進行中",
+    "remote_error": "無法啟動遠端輸入"
   }
 }

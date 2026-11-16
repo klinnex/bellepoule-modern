@@ -33,6 +33,7 @@ beforeEach(() => {
     updateSettings: vi.fn().mockResolvedValue({ name: 'Nouveau nom' }),
     listMembers: vi.fn().mockResolvedValue([member]),
     listSessions: vi.fn().mockResolvedValue([]),
+    remoteStatus: vi.fn().mockResolvedValue({ active: false, url: null, strips: 0 }),
     createMember: vi.fn().mockResolvedValue(member),
     updateMember: vi.fn().mockResolvedValue(member),
     deleteMember: vi.fn(),

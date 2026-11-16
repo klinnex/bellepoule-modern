@@ -3340,6 +3340,14 @@
     "results": "Resultados ({{count}})",
     "col_strip": "Pista",
     "col_bout": "Asalto",
-    "col_score": "Marcador"
+    "col_score": "Marcador",
+    "remote": "Entrada remota",
+    "remote_start": "Activar la entrada remota",
+    "remote_stop": "Desactivar",
+    "remote_qr": "Códigos QR de las tabletas",
+    "remote_on": "Activa: las tabletas de árbitro se conectan a {{url}}/areneN/arbitre. Cada asalto iniciado se envía allí y el marcador validado vuelve aquí.",
+    "remote_off": "Los marcadores se introducen en este equipo. Active la entrada remota para arbitrar con tableta.",
+    "remote_busy": "Ya hay un asalto en curso en la tableta de esta pista",
+    "remote_error": "No se puede iniciar la entrada remota"
   }
 }

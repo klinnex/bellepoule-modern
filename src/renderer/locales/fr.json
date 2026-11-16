@@ -3340,6 +3340,14 @@
     "results": "Résultats ({{count}})",
     "col_strip": "Piste",
     "col_bout": "Combat",
-    "col_score": "Score"
+    "col_score": "Score",
+    "remote": "Saisie distante",
+    "remote_start": "Activer la saisie distante",
+    "remote_stop": "Désactiver",
+    "remote_qr": "QR codes des tablettes",
+    "remote_on": "Active : les tablettes arbitre se connectent à {{url}}/areneN/arbitre. Chaque combat lancé y est envoyé, le score validé revient ici.",
+    "remote_off": "Les scores se saisissent sur ce poste. Activez la saisie distante pour arbitrer sur tablette.",
+    "remote_busy": "Un match est déjà en cours sur la tablette de cette piste",
+    "remote_error": "Impossible de démarrer la saisie distante"
   }
 }

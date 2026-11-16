@@ -15,7 +15,7 @@ import { closeDemoScreens, openDemoScreens } from '../demoScreens';
 import { isTrainingTheme } from '../../shared/utils/trainingThemes';
 import { applyTrainingTheme } from '../remote/trainingTheme';
 
-const TRAINING_ID = '__training__';
+export const TRAINING_ID = '__training__';
 
 export interface TrainingHandlersContext {
   db: DatabaseManager;

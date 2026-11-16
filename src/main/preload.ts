@@ -196,6 +196,9 @@ const electronApi = {
   club: {
     getSettings: () => ipcRenderer.invoke('club:getSettings'),
     updateSettings: (data: unknown) => ipcRenderer.invoke('club:updateSettings', data),
+    remoteStatus: () => ipcRenderer.invoke('club:remoteStatus'),
+    pushBout: (boutId: string) => ipcRenderer.invoke('club:pushBout', boutId),
+    releaseBout: (boutId: string) => ipcRenderer.invoke('club:releaseBout', boutId),
     importPhotos: (filepath: string) => {
       if (!filepath || typeof filepath !== 'string') throw new Error('Filepath is required');
       return ipcRenderer.invoke('club:importPhotos', filepath);

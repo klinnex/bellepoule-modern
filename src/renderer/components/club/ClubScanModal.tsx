@@ -22,8 +22,8 @@ import { QrScanner } from './QrScanner';
 interface ClubScanModalProps {
   session: ClubSession;
   onClose: () => void;
-  /** Combat créé et lancé : la vue recharge la séance */
-  onLaunched: () => void;
+  /** Combat créé et lancé : la vue l'envoie à la tablette (saisie distante) et recharge */
+  onLaunched: (boutId: string) => void;
 }
 
 const fullName = (m: ClubMember | undefined) => (m ? `${m.lastName} ${m.firstName}` : '');
@@ -58,7 +58,7 @@ export const ClubScanModal: React.FC<ClubScanModalProps> = ({ session, onClose, 
       setMessage({ text: t('clubSession.scan_launched', { strip: state.strip }), ok: true });
       scanRef.current = EMPTY_SCAN;
       setScan(EMPTY_SCAN);
-      onLaunched();
+      onLaunched(bout.id);
     },
     [api, session.id, t, onLaunched]
   );

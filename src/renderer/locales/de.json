@@ -3340,6 +3340,14 @@
     "results": "Ergebnisse ({{count}})",
     "col_strip": "Bahn",
     "col_bout": "Gefecht",
-    "col_score": "Ergebnis"
+    "col_score": "Ergebnis",
+    "remote": "Ferneingabe",
+    "remote_start": "Ferneingabe aktivieren",
+    "remote_stop": "Deaktivieren",
+    "remote_qr": "Tablet-QR-Codes",
+    "remote_on": "Aktiv: Kampfrichter-Tablets verbinden sich mit {{url}}/areneN/arbitre. Jedes gestartete Gefecht wird dorthin gesendet, das bestätigte Ergebnis kommt hierher zurück.",
+    "remote_off": "Ergebnisse werden an diesem Rechner eingegeben. Aktivieren Sie die Ferneingabe, um auf Tablets zu leiten.",
+    "remote_busy": "Auf dem Tablet dieser Bahn läuft bereits ein Gefecht",
+    "remote_error": "Ferneingabe kann nicht gestartet werden"
   }
 }

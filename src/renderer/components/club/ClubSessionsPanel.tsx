@@ -5,7 +5,17 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, Lock, Play, ScanLine, Unlock, X } from 'lucide-react';
+import {
+  CalendarPlus,
+  Lock,
+  Play,
+  QrCode,
+  Radio,
+  ScanLine,
+  Unlock,
+  WifiOff,
+  X,
+} from 'lucide-react';
 import type { ClubBout, ClubMember, ClubSession, ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -13,6 +23,13 @@ import { EmptyState } from '../common/EmptyState';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { ClubScanModal } from './ClubScanModal';
+import ArenaQrCodesModal from '../ArenaQrCodesModal';
+
+interface RemoteState {
+  active: boolean;
+  url: string | null;
+  strips: number;
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -134,6 +151,9 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
   const [bouts, setBouts] = useState<ClubBout[]>([]);
   const [label, setLabel] = useState('');
   const [scanOpen, setScanOpen] = useState(false);
+  const [remote, setRemote] = useState<RemoteState>({ active: false, url: null, strips: 0 });
+  const [remoteBusy, setRemoteBusy] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const current = sessions.find(s => s.status === 'open') ?? null;
 
@@ -144,11 +164,15 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
     setMembers(mem);
     const open = list.find(s => s.status === 'open');
     setBouts(open ? await api.listBouts({ sessionId: open.id, includeUnfinished: true }) : []);
+    setRemote(await api.remoteStatus());
   }, [api]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Score validé sur une tablette arbitre : la séance se met à jour
+  useEffect(() => window.electronAPI?.onTrainingMatchFinished?.(() => void load()), [load]);
 
   const run = async (fn: () => Promise<unknown>) => {
     try {
@@ -240,6 +264,45 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
     );
   }
 
+  /** Combat lancé : envoyé à la tablette de sa piste si la saisie distante est active */
+  const pushToTablet = async (boutId: string) => {
+    if (!remote.active) return;
+    const r = await api.pushBout(boutId);
+    if (r === 'busy') showToast(t('clubSession.remote_busy'), 'warning');
+  };
+
+  const startRemote = async () => {
+    const training = window.electronAPI?.training;
+    if (!training) return;
+    setRemoteBusy(true);
+    try {
+      const srv = await training.startServer(undefined, undefined, true);
+      if (!srv.success && srv.error !== 'training_already_started') {
+        throw new Error(srv.error ?? t('clubSession.remote_error'));
+      }
+      const ses = await training.startSession(current.stripCount, current.weapon ?? 'E');
+      if (!ses.success && !(await api.remoteStatus()).active) {
+        throw new Error(ses.error ?? t('clubSession.remote_error'));
+      }
+      for (const b of bouts.filter(isLive)) await api.pushBout(b.id);
+    } catch (e) {
+      showToast(errText(e), 'error');
+    } finally {
+      setRemoteBusy(false);
+      await load();
+    }
+  };
+
+  const stopRemote = async () => {
+    const training = window.electronAPI?.training;
+    if (!training) return;
+    setRemoteBusy(true);
+    await training.stopSession().catch(() => undefined);
+    await training.stopServer().catch(() => undefined);
+    setRemoteBusy(false);
+    await load();
+  };
+
   const present = new Set(current.attendeeIds);
   const candidates = members.filter(m => present.has(m.id));
   const live = bouts.filter(isLive);
@@ -280,6 +343,47 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
         </div>
       </section>
 
+      <section className="club-card" aria-labelledby="club-remote-title">
+        <div className="club-row club-row--between">
+          <h2 id="club-remote-title" className="club-card-title">
+            {t('clubSession.remote')}
+          </h2>
+          {remote.active ? (
+            <>
+              <Button
+                icon={<QrCode size={15} aria-hidden="true" />}
+                onClick={() => setQrOpen(true)}
+              >
+                {t('clubSession.remote_qr')}
+              </Button>
+              <Button
+                variant="danger"
+                icon={<WifiOff size={15} aria-hidden="true" />}
+                loading={remoteBusy}
+                onClick={() => void stopRemote()}
+              >
+                {t('clubSession.remote_stop')}
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="primary"
+              data-tour="club-remote"
+              icon={<Radio size={15} aria-hidden="true" />}
+              loading={remoteBusy}
+              onClick={() => void startRemote()}
+            >
+              {t('clubSession.remote_start')}
+            </Button>
+          )}
+        </div>
+        <p className="club-muted">
+          {remote.active && remote.url
+            ? t('clubSession.remote_on', { url: remote.url })
+            : t('clubSession.remote_off')}
+        </p>
+      </section>
+
       <section className="club-card" aria-labelledby="club-strips-title">
         <h2 id="club-strips-title" className="club-card-title">
           {t('clubSession.strips')}
@@ -301,7 +405,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
                     onFinish={(a, b) =>
                       void run(() => api.finishBout(bout.id, { scoreA: a, scoreB: b }))
                     }
-                    onCancel={() => void run(() => api.cancelBout(bout.id))}
+                    onCancel={() =>
+                      void run(async () => {
+                        await api.cancelBout(bout.id);
+                        await api.releaseBout(bout.id);
+                      })
+                    }
                   />
                 ) : (
                   <FreeStrip
@@ -316,6 +425,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
                           strip: n,
                         });
                         await api.startBout(created.id);
+                        await pushToTablet(created.id);
                       })
                     }
                   />
@@ -390,7 +500,18 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
         <ClubScanModal
           session={current}
           onClose={() => setScanOpen(false)}
-          onLaunched={() => void load()}
+          onLaunched={boutId => void pushToTablet(boutId).finally(() => void load())}
+        />
+      )}
+      {qrOpen && remote.url && (
+        <ArenaQrCodesModal
+          arenas={strips.map(n => ({
+            number: n,
+            refereeUrl: `${remote.url}/arene${n}/arbitre`,
+            matchOrderUrl: `${remote.url}/arene${n}/matchs`,
+          }))}
+          competitionTitle={settings.name}
+          onClose={() => setQrOpen(false)}
         />
       )}
     </div>

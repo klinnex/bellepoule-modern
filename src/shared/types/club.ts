@@ -188,6 +188,12 @@ export interface ClubAPI {
     logo?: string | null;
     stripCount?: number;
   }) => Promise<ClubSettings>;
+  /** Saisie distante : serveur d'entraînement actif, URL, nombre d'arènes */
+  remoteStatus: () => Promise<{ active: boolean; url: string | null; strips: number }>;
+  /** Envoie le combat à la tablette arbitre de sa piste */
+  pushBout: (boutId: string) => Promise<'ok' | 'no_server' | 'no_arena' | 'busy'>;
+  /** Combat annulé : libère l'arène */
+  releaseBout: (boutId: string) => Promise<void>;
   /** Photos d'un ZIP (fichiers nommés par licence, comme en compétition) */
   importPhotos: (filepath: string) => Promise<{ matched: number; total: number }>;
   listMembers: (includeInactive?: boolean) => Promise<ClubMember[]>;

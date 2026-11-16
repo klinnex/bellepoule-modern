@@ -3340,6 +3340,14 @@
     "results": "Resultats ({{count}})",
     "col_strip": "Pista",
     "col_bout": "Combat",
-    "col_score": "Puntuació"
+    "col_score": "Puntuació",
+    "remote": "Entrada remota",
+    "remote_start": "Activar l'entrada remota",
+    "remote_stop": "Desactivar",
+    "remote_qr": "Codis QR de les tauletes",
+    "remote_on": "Activa: les tauletes d'àrbitre es connecten a {{url}}/areneN/arbitre. Cada combat iniciat s'hi envia i la puntuació validada torna aquí.",
+    "remote_off": "Les puntuacions s'introdueixen en aquest ordinador. Activeu l'entrada remota per arbitrar amb tauleta.",
+    "remote_busy": "Ja hi ha un combat en curs a la tauleta d'aquesta pista",
+    "remote_error": "No es pot iniciar l'entrada remota"
   }
 }

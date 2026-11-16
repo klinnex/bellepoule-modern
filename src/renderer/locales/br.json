@@ -3340,6 +3340,14 @@
     "results": "Disoc'hoù ({{count}})",
     "col_strip": "Leurenn",
     "col_bout": "Emgann",
-    "col_score": "Skor"
+    "col_score": "Skor",
+    "remote": "Enankañ a-bell",
+    "remote_start": "Gweredekaat an enankañ a-bell",
+    "remote_stop": "Diweredekaat",
+    "remote_qr": "Kodoù QR an tabletennoù",
+    "remote_on": "Gweredekaet : an tabletennoù arbitr a gevreañ ouzh {{url}}/areneN/arbitre. Pep emgann loc'het a vez kaset di, ar skor kadarnaet a zistro amañ.",
+    "remote_off": "Enankañ a reer ar skorioù war an urzhiataer-mañ. Gweredekait an enankañ a-bell evit arbitrañ war dablezenn.",
+    "remote_busy": "Un emgann a zo o vont en-dro war tablezenn al leurenn-mañ dija",
+    "remote_error": "N'haller ket loc'hañ an enankañ a-bell"
   }
 }

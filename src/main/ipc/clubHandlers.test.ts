@@ -47,7 +47,7 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(27);
+    expect(handlers.size).toBe(30);
   });
 
   it('booléens stricts et filtres par défaut', () => {
@@ -89,5 +89,24 @@ describe('handlers club:* (#1872)', () => {
       progression: { period: { kind: string } }[];
     };
     expect(r.progression[0].period.kind).toBe('month');
+  });
+
+  it('score de la tablette → combat club terminé (saisie arbitre), autres matchs ignorés', async () => {
+    const { onClubRemoteFinish } = await import('./clubHandlers');
+    const club = {
+      getBout: vi.fn((id: string) => (id === 'b1' ? { id, status: 'in_progress' } : null)),
+      finishBout: vi.fn(),
+    };
+    const db = { club } as unknown as DatabaseManager;
+    const rec = { arenaId: 'arena1', arenaNumber: 1, weapon: 'E', finishedAt: '' };
+    onClubRemoteFinish(db, { ...rec, id: 'club:b1', scoreA: 5, scoreB: 2, durationSec: 90 });
+    onClubRemoteFinish(db, { ...rec, id: 'training-x', scoreA: 1, scoreB: 0, durationSec: 1 });
+    expect(club.finishBout).toHaveBeenCalledTimes(1);
+    expect(club.finishBout).toHaveBeenCalledWith('b1', {
+      scoreA: 5,
+      scoreB: 2,
+      entryMode: 'referee',
+      duration: 90,
+    });
   });
 });

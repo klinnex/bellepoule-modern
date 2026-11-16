@@ -3340,6 +3340,14 @@
     "results": "Results ({{count}})",
     "col_strip": "Strip",
     "col_bout": "Bout",
-    "col_score": "Score"
+    "col_score": "Score",
+    "remote": "Remote scoring",
+    "remote_start": "Enable remote scoring",
+    "remote_stop": "Disable",
+    "remote_qr": "Tablet QR codes",
+    "remote_on": "Active: referee tablets connect to {{url}}/areneN/arbitre. Each bout started is sent there; the validated score comes back here.",
+    "remote_off": "Scores are entered on this computer. Enable remote scoring to referee on tablets.",
+    "remote_busy": "A bout is already in progress on this strip's tablet",
+    "remote_error": "Unable to start remote scoring"
   }
 }

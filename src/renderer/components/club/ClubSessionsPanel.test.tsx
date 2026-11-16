@@ -51,6 +51,7 @@ const live = {
 const settings = { name: 'Club', stripCount: 2 };
 
 let api: Record<string, ReturnType<typeof vi.fn>>;
+let training: Record<string, ReturnType<typeof vi.fn>>;
 
 beforeEach(() => {
   api = {
@@ -65,8 +66,17 @@ beforeEach(() => {
     setAttendance: vi.fn(),
     closeSession: vi.fn(),
     reopenSession: vi.fn(),
+    remoteStatus: vi.fn().mockResolvedValue({ active: false, url: null, strips: 0 }),
+    pushBout: vi.fn().mockResolvedValue('ok'),
+    releaseBout: vi.fn(),
   };
-  (window as unknown as { electronAPI: unknown }).electronAPI = { club: api };
+  training = {
+    startServer: vi.fn().mockResolvedValue({ success: true }),
+    startSession: vi.fn().mockResolvedValue({ success: true }),
+    stopSession: vi.fn().mockResolvedValue({ success: true }),
+    stopServer: vi.fn().mockResolvedValue({ success: true }),
+  };
+  (window as unknown as { electronAPI: unknown }).electronAPI = { club: api, training };
 });
 
 describe('ClubSessionsPanel', () => {
@@ -118,5 +128,33 @@ describe('ClubSessionsPanel', () => {
     await waitFor(() => expect(api.setAttendance).toHaveBeenCalledWith('s1', 'c', true));
     fireEvent.click(screen.getByRole('button', { name: 'Fermer la séance' }));
     await waitFor(() => expect(api.closeSession).toHaveBeenCalledWith('s1'));
+  });
+
+  it('saisie distante : démarre le serveur, envoie les combats en cours aux tablettes', async () => {
+    render(<ClubSessionsPanel settings={settings} />);
+    const start = await screen.findByRole('button', { name: 'Activer la saisie distante' });
+    api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
+    fireEvent.click(start);
+    await waitFor(() =>
+      expect(training.startServer).toHaveBeenCalledWith(undefined, undefined, true)
+    );
+    expect(training.startSession).toHaveBeenCalledWith(2, 'E');
+    await waitFor(() => expect(api.pushBout).toHaveBeenCalledWith('bt1'));
+    expect(
+      await screen.findByText(/https:\/\/10\.0\.0\.2:8066\/areneN\/arbitre/)
+    ).toBeInTheDocument();
+    // Combat lancé ensuite : envoyé à la tablette de sa piste
+    fireEvent.change(screen.getByLabelText('Tireur 1 — piste 2'), { target: { value: 'a' } });
+    fireEvent.change(screen.getByLabelText('Tireur 2 — piste 2'), { target: { value: 'b' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lancer' }));
+    await waitFor(() => expect(api.pushBout).toHaveBeenCalledWith('bt2'));
+    fireEvent.click(screen.getByRole('button', { name: 'Désactiver' }));
+    await waitFor(() => expect(training.stopServer).toHaveBeenCalled());
+  });
+
+  it('annuler un combat libère la tablette', async () => {
+    render(<ClubSessionsPanel settings={settings} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Annuler le combat' }));
+    await waitFor(() => expect(api.releaseBout).toHaveBeenCalledWith('bt1'));
   });
 });

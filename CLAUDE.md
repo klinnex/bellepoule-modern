@@ -105,7 +105,7 @@ Main Process (src/main/)
 ├── preloadApi/              # Groupes d'API du préload (dbApi, fileApi, dialogApi, remoteApi, printHandler) ; validation IPC dans ipc/validation.ts
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
-├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
+├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, clubArena (combats du Mode Club sur les tablettes, #1872), dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, endValidation (ACK/NAK), server (UDP, HELLO 15 s, supervision, journal), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)

@@ -5,6 +5,10 @@
  */
 import { ipcMain } from 'electron';
 import { readPhotosZip } from './fileHandlers';
+import { remoteServers } from '../remoteRegistry';
+import { TRAINING_ID } from './trainingHandlers';
+import { trainingFinishListeners, type TrainingFinishRecord } from '../remote/matchFinish';
+import { clubBoutIdOf, pushClubBout, releaseClubBout } from '../remote/clubArena';
 import type { DatabaseManager } from '../../database';
 import type {
   ClubBoutFilter,
@@ -43,8 +47,48 @@ export function buildMemberReport(
   };
 }
 
+/** Score final d'une tablette arbitre → combat du club terminé (saisie « referee ») */
+export function onClubRemoteFinish(db: DatabaseManager, record: TrainingFinishRecord): void {
+  const boutId = clubBoutIdOf(record?.id);
+  if (!boutId) return;
+  const bout = db.club.getBout(boutId);
+  if (!bout || bout.status === 'cancelled') return;
+  db.club.finishBout(boutId, {
+    scoreA: record.scoreA,
+    scoreB: record.scoreB,
+    entryMode: 'referee',
+    duration: record.durationSec,
+  });
+}
+
+const trainingServer = () => remoteServers.get(TRAINING_ID);
+
 export function registerClubHandlers({ db }: ClubHandlersContext): void {
   const repo = db.club;
+  trainingFinishListeners.add(record => onClubRemoteFinish(db, record));
+  // Saisie distante : serveur d'entraînement (tablettes /arene{N}/arbitre)
+  ipcMain.handle('club:remoteStatus', () => {
+    const entry = trainingServer();
+    const active = !!entry?.server.hasSession();
+    return {
+      active,
+      url: entry ? entry.server.getServerUrl() : null,
+      strips: active ? entry!.server.getArenaCount() : 0,
+    };
+  });
+  ipcMain.handle('club:pushBout', (_, boutId: string) => {
+    const bout = repo.getBout(boutId);
+    if (!bout || (bout.status !== 'pending' && bout.status !== 'in_progress')) return 'no_arena';
+    return pushClubBout(
+      trainingServer()?.server,
+      bout,
+      repo.getMember(bout.memberAId),
+      repo.getMember(bout.memberBId)
+    );
+  });
+  ipcMain.handle('club:releaseBout', (_, boutId: string) =>
+    releaseClubBout(trainingServer()?.server, boutId)
+  );
   // Identité du club + cartes
   ipcMain.handle('club:getSettings', () => repo.getSettings());
   ipcMain.handle(
