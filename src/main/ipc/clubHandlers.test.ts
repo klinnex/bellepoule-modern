@@ -39,17 +39,43 @@ describe('handlers club:* (#1872)', () => {
     findMemberByCardCode: vi.fn(() => null),
   };
 
+  const inventory = {
+    listItems: vi.fn(() => []),
+    createItem: vi.fn(() => null),
+    updateItem: vi.fn(() => null),
+    deleteItem: vi.fn(),
+    listLoans: vi.fn(() => []),
+    lendItem: vi.fn(() => null),
+    returnLoan: vi.fn(() => null),
+    deleteLoan: vi.fn(),
+  };
+
   beforeEach(() => {
     handlers.clear();
     vi.clearAllMocks();
-    registerClubHandlers({ db: { club: repo } as unknown as DatabaseManager });
+    registerClubHandlers({
+      db: { club: repo, clubInventory: inventory } as unknown as DatabaseManager,
+    });
   });
 
   const call = (ch: string, ...args: unknown[]) => handlers.get(ch)!({}, ...args);
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(43);
+    expect(handlers.size).toBe(51);
+  });
+
+  it('inventaire : délègue au dépôt, filtres et booléens par défaut', () => {
+    call('club:listItems', 'c1');
+    expect(inventory.listItems).toHaveBeenCalledWith('c1', true);
+    call('club:listItems', 'c1', false);
+    expect(inventory.listItems).toHaveBeenLastCalledWith('c1', false);
+    call('club:listLoans', 'c1');
+    expect(inventory.listLoans).toHaveBeenCalledWith('c1', {});
+    call('club:returnLoan', 'l1');
+    expect(inventory.returnLoan).toHaveBeenCalledWith('l1', {});
+    call('club:deleteLoan', 'l1');
+    expect(inventory.deleteLoan).toHaveBeenCalledWith('l1');
   });
 
   it('booléens stricts et filtres par défaut', () => {

@@ -953,4 +953,58 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 34,
+    description:
+      'Mode Club : inventaire du matériel (club_items) et prêts aux tireurs (club_loans)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_items (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          category TEXT NOT NULL,
+          brand TEXT,
+          model TEXT,
+          serial_number TEXT,
+          weapon TEXT,
+          size TEXT,
+          color TEXT,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          purchase_date TEXT,
+          purchase_price REAL,
+          supplier TEXT,
+          invoice_ref TEXT,
+          warranty_until TEXT,
+          condition TEXT NOT NULL DEFAULT 'good',
+          location TEXT,
+          notes TEXT,
+          retired INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_items_club ON club_items(club_id, category)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_loans (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          member_id TEXT,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          lent_at TEXT NOT NULL,
+          due_date TEXT,
+          returned_at TEXT,
+          condition_out TEXT NOT NULL DEFAULT 'good',
+          condition_in TEXT,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_item ON club_loans(item_id, returned_at)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_member ON club_loans(member_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_club ON club_loans(club_id, lent_at)`);
+    },
+  },
 ];

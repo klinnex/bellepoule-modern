@@ -1,0 +1,130 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
+import { ClubInventoryPanel } from './ClubInventoryPanel';
+
+const item = (over = {}) => ({
+  id: 'i1',
+  clubId: 'c',
+  name: 'Masque',
+  category: 'mask',
+  quantity: 3,
+  purchasePrice: 40,
+  condition: 'good',
+  retired: false,
+  lentQuantity: 1,
+  availableQuantity: 2,
+  createdAt: '',
+  updatedAt: '',
+  ...over,
+});
+
+const loan = (over = {}) => ({
+  id: 'l1',
+  clubId: 'c',
+  itemId: 'i1',
+  itemName: 'Masque',
+  memberId: 'm1',
+  memberName: 'Ada Lovelace',
+  quantity: 1,
+  lentAt: '2026-10-01T10:00:00.000Z',
+  dueDate: '2000-01-01',
+  conditionOut: 'good',
+  overdue: true,
+  createdAt: '',
+  updatedAt: '',
+  ...over,
+});
+
+let api: Record<string, ReturnType<typeof vi.fn>>;
+
+beforeEach(() => {
+  api = {
+    listItems: vi
+      .fn()
+      .mockResolvedValue([
+        item(),
+        item({
+          id: 'i2',
+          name: 'Veste vieille',
+          category: 'jacket',
+          retired: true,
+          lentQuantity: 0,
+          availableQuantity: 0,
+        }),
+      ]),
+    listLoans: vi.fn().mockResolvedValue([loan()]),
+    listMembers: vi
+      .fn()
+      .mockResolvedValue([
+        {
+          id: 'm1',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          active: true,
+          weapons: [],
+          cardCode: 'A',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]),
+    createItem: vi.fn().mockResolvedValue({}),
+    updateItem: vi.fn().mockResolvedValue({}),
+    deleteItem: vi.fn().mockResolvedValue(undefined),
+    lendItem: vi.fn().mockResolvedValue({}),
+    returnLoan: vi.fn().mockResolvedValue({}),
+    deleteLoan: vi.fn().mockResolvedValue(undefined),
+  };
+  (window as unknown as { electronAPI: unknown }).electronAPI = { club: api };
+});
+
+describe('ClubInventoryPanel (inventaire du club)', () => {
+  it('affiche le matériel actif, la synthèse et le prêt en retard ; les réformés sont masqués', async () => {
+    render(<ClubInventoryPanel clubId="c" />);
+    expect(await screen.findByText('Masque')).toBeInTheDocument();
+    expect(screen.queryByText('Veste vieille')).toBeNull();
+    const summary = screen.getByTestId('club-inventory-summary');
+    expect(within(summary).getByText('3')).toBeInTheDocument(); // exemplaires
+    expect(screen.getByText('En retard')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: /réformés/i }));
+    expect(await screen.findByText('Veste vieille')).toBeInTheDocument();
+  });
+
+  it('prête un exemplaire à un tireur', async () => {
+    render(<ClubInventoryPanel clubId="c" />);
+    await screen.findByText('Masque');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Prêter' })[0]);
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(/Tireur/), { target: { value: 'm1' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Prêter' }));
+    await waitFor(() =>
+      expect(api.lendItem).toHaveBeenCalledWith(
+        expect.objectContaining({ itemId: 'i1', memberId: 'm1', quantity: 1 })
+      )
+    );
+  });
+
+  it('refuse de supprimer du matériel prêté (bouton désactivé)', async () => {
+    render(<ClubInventoryPanel clubId="c" />);
+    await screen.findByText('Masque');
+    const del = screen.getAllByRole('button', { name: 'Supprimer' })[0];
+    expect(del).toBeDisabled();
+  });
+
+  it('enregistre le retour avec l’état constaté', async () => {
+    render(<ClubInventoryPanel clubId="c" />);
+    await screen.findByText('Masque');
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer le retour' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(/État au retour/), {
+      target: { value: 'worn' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Enregistrer le retour' }));
+    await waitFor(() =>
+      expect(api.returnLoan).toHaveBeenCalledWith('l1', { conditionIn: 'worn', notes: undefined })
+    );
+  });
+});

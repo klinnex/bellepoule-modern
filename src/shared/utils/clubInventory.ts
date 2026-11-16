@@ -1,0 +1,218 @@
+/**
+ * BellePoule Modern - Mode Club : inventaire du matériel (achats, garanties, prêts).
+ * Fonctions pures partagées par le dépôt, l'interface et les exports.
+ * Licensed under GPL-3.0
+ */
+import type {
+  ClubItem,
+  ClubItemCategory,
+  ClubItemCondition,
+  ClubItemInput,
+  ClubLoan,
+} from '../types/club';
+import { Weapon } from '../types';
+import { isIsoDate } from './clubStats';
+
+export const ITEM_CATEGORIES: readonly ClubItemCategory[] = [
+  'weapon',
+  'blade',
+  'mask',
+  'jacket',
+  'plastron',
+  'glove',
+  'breeches',
+  'cable',
+  'electric',
+  'bag',
+  'other',
+];
+
+export const ITEM_CONDITIONS: readonly ClubItemCondition[] = [
+  'new',
+  'good',
+  'worn',
+  'damaged',
+  'out_of_service',
+];
+
+/** Garantie qui expire dans moins de N jours : alerte */
+export const WARRANTY_ALERT_DAYS = 90;
+
+const MAX_TEXT = 200;
+const MAX_NOTES = 2000;
+const MAX_PRICE = 10_000_000;
+const MAX_QUANTITY = 999;
+
+/** Date locale AAAA-MM-JJ (pas UTC : un prêt du soir reste le jour même) */
+export function localIsoDate(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+const text = (v: unknown, max = MAX_TEXT): string | undefined => {
+  if (typeof v !== 'string') return undefined;
+  const s = v.trim().slice(0, max);
+  return s || undefined;
+};
+
+const intIn = (v: unknown, min: number, max: number, fallback: number): number => {
+  const n = typeof v === 'number' ? Math.trunc(v) : Number.parseInt(String(v), 10);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+};
+
+export const isItemCategory = (v: unknown): v is ClubItemCategory =>
+  typeof v === 'string' && (ITEM_CATEGORIES as readonly string[]).includes(v);
+
+export const isItemCondition = (v: unknown): v is ClubItemCondition =>
+  typeof v === 'string' && (ITEM_CONDITIONS as readonly string[]).includes(v);
+
+const isWeapon = (v: unknown): v is Weapon =>
+  typeof v === 'string' && (Object.values(Weapon) as string[]).includes(v);
+
+/**
+ * Valide et nettoie une fiche de matériel. Lève une erreur (message en français)
+ * si le nom, la date, le prix ou la garantie sont incohérents.
+ */
+export type NormalizedItemInput = ClubItemInput & {
+  quantity: number;
+  condition: ClubItemCondition;
+  retired: boolean;
+};
+
+export function normalizeItemInput(data: Partial<ClubItemInput>): NormalizedItemInput {
+  const name = text(data?.name);
+  if (!name) throw new Error('Nom du matériel requis');
+  const category = isItemCategory(data.category) ? data.category : 'other';
+
+  const purchaseDate = data.purchaseDate ? String(data.purchaseDate) : undefined;
+  if (purchaseDate !== undefined && !isIsoDate(purchaseDate)) {
+    throw new Error("Date d'achat invalide (AAAA-MM-JJ)");
+  }
+  const warrantyUntil = data.warrantyUntil ? String(data.warrantyUntil) : undefined;
+  if (warrantyUntil !== undefined && !isIsoDate(warrantyUntil)) {
+    throw new Error('Date de fin de garantie invalide (AAAA-MM-JJ)');
+  }
+  if (purchaseDate && warrantyUntil && warrantyUntil < purchaseDate) {
+    throw new Error("La garantie ne peut pas finir avant l'achat");
+  }
+
+  let purchasePrice: number | undefined;
+  if (data.purchasePrice !== undefined && data.purchasePrice !== null) {
+    const p = Number(data.purchasePrice);
+    if (!Number.isFinite(p) || p < 0 || p > MAX_PRICE) {
+      throw new Error("Prix d'achat invalide");
+    }
+    purchasePrice = Math.round(p * 100) / 100;
+  }
+
+  return {
+    name,
+    category,
+    brand: text(data.brand),
+    model: text(data.model),
+    serialNumber: text(data.serialNumber),
+    weapon: isWeapon(data.weapon) ? data.weapon : undefined,
+    size: text(data.size, 40),
+    color: text(data.color, 40),
+    quantity: intIn(data.quantity, 1, MAX_QUANTITY, 1),
+    purchaseDate: purchaseDate || undefined,
+    purchasePrice,
+    supplier: text(data.supplier),
+    invoiceRef: text(data.invoiceRef, 80),
+    warrantyUntil: warrantyUntil || undefined,
+    condition: isItemCondition(data.condition) ? data.condition : 'good',
+    location: text(data.location),
+    notes: text(data.notes, MAX_NOTES),
+    retired: data.retired === true,
+  };
+}
+
+/** Quantité prêtable : valeur bornée à 1..999 */
+export const normalizeQuantity = (v: unknown): number => intIn(v, 1, MAX_QUANTITY, 1);
+
+/** Prêt en cours et échéance dépassée (échéance = jour inclus, retard dès le lendemain) */
+export function isLoanOverdue(
+  loan: Pick<ClubLoan, 'dueDate' | 'returnedAt'>,
+  today: string = localIsoDate()
+): boolean {
+  return !loan.returnedAt && !!loan.dueDate && loan.dueDate < today;
+}
+
+/** Garantie encore valable mais expirant dans les WARRANTY_ALERT_DAYS jours */
+export function isWarrantyAlert(warrantyUntil: string | undefined, today: string): boolean {
+  if (!warrantyUntil || !isIsoDate(warrantyUntil)) return false;
+  if (warrantyUntil < today) return false;
+  const limit = addDays(today, WARRANTY_ALERT_DAYS);
+  return warrantyUntil <= limit;
+}
+
+/** Ajoute des jours à une date AAAA-MM-JJ (calcul en UTC pour éviter les décalages) */
+export function addDays(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+export interface InventorySummary {
+  /** Lignes de matériel (hors réformés) */
+  lines: number;
+  /** Exemplaires possédés (hors réformés) */
+  units: number;
+  /** Exemplaires actuellement prêtés */
+  lentUnits: number;
+  /** Valeur d'achat cumulée (prix × quantité, hors réformés) */
+  value: number;
+  /** Matériel ayant un prix d'achat renseigné */
+  valued: number;
+  /** Prêts en cours dont l'échéance est dépassée */
+  overdueLoans: number;
+  /** Garanties qui expirent sous WARRANTY_ALERT_DAYS jours */
+  warrantyAlerts: number;
+  /** Exemplaires par catégorie (hors réformés) */
+  byCategory: Partial<Record<ClubItemCategory, number>>;
+}
+
+/** Synthèse de l'inventaire à partir des fiches et des prêts en cours */
+export function computeInventorySummary(
+  items: ClubItem[],
+  openLoans: Pick<ClubLoan, 'quantity' | 'dueDate' | 'returnedAt'>[],
+  today: string = localIsoDate()
+): InventorySummary {
+  const active = items.filter(i => !i.retired);
+  const byCategory: Partial<Record<ClubItemCategory, number>> = {};
+  let units = 0;
+  let value = 0;
+  let valued = 0;
+  for (const i of active) {
+    units += i.quantity;
+    byCategory[i.category] = (byCategory[i.category] ?? 0) + i.quantity;
+    if (i.purchasePrice !== undefined) {
+      value += i.purchasePrice * i.quantity;
+      valued += 1;
+    }
+  }
+  return {
+    lines: active.length,
+    units,
+    lentUnits: openLoans.reduce((s, l) => s + (l.returnedAt ? 0 : l.quantity), 0),
+    value: Math.round(value * 100) / 100,
+    valued,
+    overdueLoans: openLoans.filter(l => isLoanOverdue(l, today)).length,
+    warrantyAlerts: active.filter(i => isWarrantyAlert(i.warrantyUntil, today)).length,
+    byCategory,
+  };
+}
+
+/** Cellule CSV : guillemets si besoin, nombres avec virgule décimale */
+const csvCell = (v: string | number | undefined | null): string => {
+  if (v === undefined || v === null) return '';
+  const s = typeof v === 'number' ? String(v).replace('.', ',') : v;
+  return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+/**
+ * CSV compatible tableur français (séparateur « ; », BOM UTF-8 pour Excel).
+ * Les en-têtes et les lignes sont fournis déjà traduits par l'appelant.
+ */
+export function toCsv(rows: (string | number | undefined | null)[][]): string {
+  return '﻿' + rows.map(r => r.map(csvCell).join(';')).join('\r\n') + '\r\n';
+}

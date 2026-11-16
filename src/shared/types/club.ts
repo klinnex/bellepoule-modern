@@ -304,6 +304,133 @@ export interface ClubMemberReport {
   progression: Array<{ period: ClubPeriod; stats: ClubMemberStats }>;
 }
 
+/** Catégorie de matériel (inventaire du club) */
+export type ClubItemCategory =
+  | 'weapon'
+  | 'blade'
+  | 'mask'
+  | 'jacket'
+  | 'plastron'
+  | 'glove'
+  | 'breeches'
+  | 'cable'
+  | 'electric'
+  | 'bag'
+  | 'other';
+
+/** État physique d'un matériel (à l'achat, au retour de prêt, à la réforme) */
+export type ClubItemCondition = 'new' | 'good' | 'worn' | 'damaged' | 'out_of_service';
+
+/** Ligne d'inventaire : un modèle de matériel, en `quantity` exemplaires (lot possible) */
+export interface ClubItem {
+  id: string;
+  clubId: string;
+  name: string;
+  category: ClubItemCategory;
+  brand?: string;
+  model?: string;
+  /** Numéro de série (exemplaire unique) */
+  serialNumber?: string;
+  weapon?: Weapon;
+  size?: string;
+  color?: string;
+  /** Nombre d'exemplaires possédés (≥ 1) */
+  quantity: number;
+  /** Date d'achat AAAA-MM-JJ */
+  purchaseDate?: string;
+  /** Prix unitaire d'achat, en euros */
+  purchasePrice?: number;
+  supplier?: string;
+  /** Référence de facture */
+  invoiceRef?: string;
+  /** Fin de garantie AAAA-MM-JJ */
+  warrantyUntil?: string;
+  condition: ClubItemCondition;
+  /** Emplacement de rangement (armoire, sac, bac…) */
+  location?: string;
+  notes?: string;
+  /** Réformé : n'est plus prêtable, reste dans l'historique */
+  retired: boolean;
+  /** Exemplaires actuellement prêtés (calculé) */
+  lentQuantity: number;
+  /** Exemplaires disponibles au prêt (calculé) */
+  availableQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClubItemInput = Pick<ClubItem, 'name' | 'category'> &
+  Partial<
+    Pick<
+      ClubItem,
+      | 'brand'
+      | 'model'
+      | 'serialNumber'
+      | 'weapon'
+      | 'size'
+      | 'color'
+      | 'quantity'
+      | 'purchaseDate'
+      | 'purchasePrice'
+      | 'supplier'
+      | 'invoiceRef'
+      | 'warrantyUntil'
+      | 'condition'
+      | 'location'
+      | 'notes'
+      | 'retired'
+    >
+  >;
+
+/** Prêt d'un matériel à un tireur du club (`returnedAt` absent = prêt en cours) */
+export interface ClubLoan {
+  id: string;
+  clubId: string;
+  itemId: string;
+  itemName: string;
+  /** Null si le tireur a été effacé (RGPD) alors que le matériel était encore prêté */
+  memberId: string | null;
+  memberName: string | null;
+  quantity: number;
+  /** Date et heure du prêt (ISO) */
+  lentAt: string;
+  /** Date de retour prévue AAAA-MM-JJ */
+  dueDate?: string;
+  returnedAt?: string;
+  conditionOut: ClubItemCondition;
+  conditionIn?: ClubItemCondition;
+  notes?: string;
+  /** Prêt en cours et échéance dépassée (calculé) */
+  overdue: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClubLoanInput {
+  itemId: string;
+  memberId: string;
+  quantity?: number;
+  dueDate?: string;
+  /** Défaut : état actuel du matériel */
+  conditionOut?: ClubItemCondition;
+  notes?: string;
+}
+
+export interface ClubLoanReturn {
+  /** Défaut : maintenant */
+  returnedAt?: string;
+  /** Si fourni, devient l'état du matériel */
+  conditionIn?: ClubItemCondition;
+  notes?: string;
+}
+
+export interface ClubLoanFilter {
+  memberId?: string;
+  itemId?: string;
+  /** true = prêts en cours seulement ; false = rendus seulement */
+  open?: boolean;
+}
+
 /** Mode Club : membres, séances, combats libres, statistiques (#1872) */
 export interface ClubAPI {
   /** Clubs avec effectif et séance ouverte (accueil) */
@@ -380,4 +507,17 @@ export interface ClubAPI {
     filter?: ClubBoutFilter,
     groupBy?: ClubPeriodKind
   ) => Promise<ClubMemberReport>;
+  /** Inventaire : matériel du club (réformés inclus si includeRetired) */
+  listItems: (clubId: string, includeRetired?: boolean) => Promise<ClubItem[]>;
+  createItem: (clubId: string, data: ClubItemInput) => Promise<ClubItem>;
+  updateItem: (id: string, data: Partial<ClubItemInput>) => Promise<ClubItem | null>;
+  /** Refusé si du matériel est prêté ; l'historique des prêts rendus est effacé avec lui */
+  deleteItem: (id: string) => Promise<void>;
+  /** Prêts (défaut : tous), plus récents d'abord */
+  listLoans: (clubId: string, filter?: ClubLoanFilter) => Promise<ClubLoan[]>;
+  /** Prête `quantity` exemplaires à un tireur (dans la limite des disponibles) */
+  lendItem: (data: ClubLoanInput) => Promise<ClubLoan>;
+  returnLoan: (id: string, data?: ClubLoanReturn) => Promise<ClubLoan | null>;
+  /** Supprime un prêt rendu (correction de saisie) ; un prêt en cours se rend d'abord */
+  deleteLoan: (id: string) => Promise<void>;
 }

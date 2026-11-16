@@ -630,3 +630,32 @@
   padding: 4px;
   border-radius: 6px;
 }
+
+/* Inventaire du club (#1872) : fiche de matériel, prêts */
+.club-grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+.club-grid-form .club-grow {
+  grid-column: 1 / -1;
+}
+.club-row--end {
+  justify-content: flex-end;
+}
+.club-error {
+  color: var(--color-danger, #c0392b);
+  font-weight: 600;
+}
+.club-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--surface-glass, rgba(127, 127, 127, 0.15));
+}
+.club-badge--warn {
+  background: #fde68a;
+  color: #78350f;
+}

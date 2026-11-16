@@ -21,6 +21,10 @@ import type {
   ClubBoutInput,
   ClubBoutResult,
   ClubExerciseInput,
+  ClubItemInput,
+  ClubLoanFilter,
+  ClubLoanInput,
+  ClubLoanReturn,
   ClubMemberInput,
   ClubMemberReport,
   ClubPeriodKind,
@@ -199,4 +203,24 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     (_, memberId: string, filter?: ClubBoutFilter, groupBy?: ClubPeriodKind) =>
       buildMemberReport(db, memberId, filter ?? {}, groupBy ?? 'month')
   );
+  // Inventaire : matériel et prêts
+  const inv = db.clubInventory;
+  ipcMain.handle('club:listItems', (_, clubId: string, includeRetired?: boolean) =>
+    inv.listItems(clubId, includeRetired !== false)
+  );
+  ipcMain.handle('club:createItem', (_, clubId: string, data: ClubItemInput) =>
+    inv.createItem(clubId, data ?? { name: '', category: 'other' })
+  );
+  ipcMain.handle('club:updateItem', (_, id: string, data: Partial<ClubItemInput>) =>
+    inv.updateItem(id, data ?? {})
+  );
+  ipcMain.handle('club:deleteItem', (_, id: string) => inv.deleteItem(id));
+  ipcMain.handle('club:listLoans', (_, clubId: string, filter?: ClubLoanFilter) =>
+    inv.listLoans(clubId, filter ?? {})
+  );
+  ipcMain.handle('club:lendItem', (_, data: ClubLoanInput) => inv.lendItem(data));
+  ipcMain.handle('club:returnLoan', (_, id: string, data?: ClubLoanReturn) =>
+    inv.returnLoan(id, data ?? {})
+  );
+  ipcMain.handle('club:deleteLoan', (_, id: string) => inv.deleteLoan(id));
 }

@@ -263,6 +263,17 @@ const electronApi = {
       ipcRenderer.invoke('club:updateExercise', id, data),
     deleteExercise: (id: string) => ipcRenderer.invoke('club:deleteExercise', id),
     importExercises: (list: unknown[]) => ipcRenderer.invoke('club:importExercises', list),
+    listItems: (clubId: string, includeRetired?: boolean) =>
+      ipcRenderer.invoke('club:listItems', clubId, includeRetired),
+    createItem: (clubId: string, data: unknown) =>
+      ipcRenderer.invoke('club:createItem', clubId, data),
+    updateItem: (id: string, data: unknown) => ipcRenderer.invoke('club:updateItem', id, data),
+    deleteItem: (id: string) => ipcRenderer.invoke('club:deleteItem', id),
+    listLoans: (clubId: string, filter?: unknown) =>
+      ipcRenderer.invoke('club:listLoans', clubId, filter),
+    lendItem: (data: unknown) => ipcRenderer.invoke('club:lendItem', data),
+    returnLoan: (id: string, data?: unknown) => ipcRenderer.invoke('club:returnLoan', id, data),
+    deleteLoan: (id: string) => ipcRenderer.invoke('club:deleteLoan', id),
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
     deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
     setAttendance: (sessionId: string, memberId: string, present: boolean) =>

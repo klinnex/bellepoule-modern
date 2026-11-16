@@ -7,14 +7,15 @@
 export async function saveTextFile(
   defaultPath: string,
   content: string,
-  title: string
+  title: string,
+  ext: 'json' | 'csv' = 'json'
 ): Promise<boolean> {
   const api = window.electronAPI;
   if (!api?.dialog?.saveFile || !api.file?.writeContent) return false;
   const r = await api.dialog.saveFile({
     title,
     defaultPath,
-    filters: [{ name: 'JSON', extensions: ['json'] }],
+    filters: [{ name: ext.toUpperCase(), extensions: [ext] }],
   });
   if (!r || r.canceled || !r.filePath) return false;
   await api.file.writeContent(r.filePath, content);

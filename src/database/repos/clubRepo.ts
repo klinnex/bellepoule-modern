@@ -323,6 +323,8 @@ export class ClubRepo {
       );
       this.sql.run('DELETE FROM club_bouts WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_sessions WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM club_loans WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM club_items WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_members WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM clubs WHERE id = ?', [id]);
     });
@@ -492,12 +494,14 @@ export class ClubRepo {
     return { created, updated: plan.update.length, skipped };
   }
 
-  /** Effacement définitif (RGPD) : membre, présences et combats */
+  /** Effacement définitif (RGPD) : membre, présences, combats et identité sur les prêts */
   public deleteMember(id: string): void {
     this.ensureOpen();
     this.sql.transaction(() => {
       this.sql.run('DELETE FROM club_bouts WHERE member_a_id = ? OR member_b_id = ?', [id, id]);
       this.sql.run('DELETE FROM club_attendance WHERE member_id = ?', [id]);
+      // Prêts : le matériel reste compté tant qu'il n'est pas rendu, sans identité
+      this.sql.run('UPDATE club_loans SET member_id = NULL WHERE member_id = ?', [id]);
       this.sql.run('DELETE FROM club_members WHERE id = ?', [id]);
     });
   }

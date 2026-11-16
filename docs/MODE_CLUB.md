@@ -2,7 +2,7 @@
 
 > Issue #1872. Vie du club hors compétition : membres pré-enregistrés, séances libres,
 > combats enchaînés sur les pistes, statistiques par tireur sur séance / mois / trimestre /
-> saison. Plusieurs clubs possibles. Données dans `bellepoule.db` (migrations 25 à 32),
+> saison. Plusieurs clubs possibles. Données dans `bellepoule.db` (migrations 25 à 34),
 > conservées d'une saison à l'autre.
 
 Accès : bouton **Club** de l'en-tête (logo du club s'il est défini) ou section **Clubs** de
@@ -16,6 +16,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 | **Séances** | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
 | **Statistiques** | Classement du club et fiche membre par période et par catégories d'âge. |
 | **Exercices** | Bibliothèque d'exercices partagée entre clubs, exportable / importable. |
+| **Inventaire** | Matériel du club (masques, armes, vestes…), achats, garanties, états, prêts aux tireurs. |
 
 ## 2. Membres
 
@@ -110,7 +111,42 @@ famille et par catégorie (une catégorie montre aussi les exercices communs). D
 séance, **Depuis la bibliothèque** propose les exercices des catégories du cours et les
 exercices communs. Export / import JSON (doublons titre + famille ignorés).
 
-## 7. Code
+## 7. Inventaire
+
+Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exemplaires) et par
+**prêts** à un tireur du club.
+
+- **Fiche** : nom, catégorie (arme, lame, masque, veste, plastron, gant, culotte, câble,
+  électrique, sac, autre), arme, marque, modèle, numéro de série, taille, couleur, quantité,
+  **date d'achat**, **prix unitaire** (€), fournisseur, référence de facture, **fin de garantie**,
+  **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
+  Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
+  quantité 1 à 999.
+- **Réformer** retire la fiche des prêts sans l'effacer (historique conservé) ; **Remettre en
+  service** l'inverse. Affichage des réformés : case à cocher.
+- **Prêter** : choix du tireur (membres actifs du club uniquement), quantité (dans la limite des
+  disponibles), retour prévu facultatif (date future), état au départ, remarque. La modale affiche
+  ce que le tireur détient déjà.
+- **Enregistrer le retour** : date de retour (maintenant par défaut), **état au retour**, qui
+  devient l'état de la fiche, remarque. Un retour ne peut pas précéder le prêt.
+- **Prêts en retard** : prêt en cours dont la date de retour prévue est dépassée (badge, compteur).
+- **Alertes garantie** : garanties qui expirent dans les 90 jours.
+- **Synthèse** : exemplaires, exemplaires prêtés, valeur d'achat (prix × quantité, hors réformés),
+  prêts en retard, alertes garantie.
+- **Refus** : suppression d'une fiche tant qu'un exemplaire est prêté ; quantité réduite sous le
+  nombre prêté ; prêt d'un matériel réformé, d'un tireur archivé ou d'un autre club.
+- **Historique** : prêts rendus (repliable). Un prêt rendu peut être supprimé (correction de saisie).
+- **Export CSV** : lignes visibles (filtres appliqués), séparateur `;`, compatible tableur français.
+- **Effacement RGPD d'un tireur** : son identité est retirée de ses prêts ; un matériel encore
+  prêté reste compté (« Tireur effacé »). **Effacement d'un club** : matériel et prêts supprimés.
+
+Dépôt : `src/database/repos/clubInventoryRepo.ts` (tables `club_items`, `club_loans`, migration 34).
+Règles pures (validation, retards, garanties, synthèse, CSV) : `src/shared/utils/clubInventory.ts`.
+Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEditor.tsx`,
+`ClubLoanModal.tsx`. API IPC : `club.listItems`, `createItem`, `updateItem`, `deleteItem`,
+`listLoans`, `lendItem`, `returnLoan`, `deleteLoan`.
+
+## 8. Code
 
 | Élément | Fichier |
 |---|---|
@@ -120,4 +156,5 @@ exercices communs. Export / import JSON (doublons titre + famille ignorés).
 | Saisie distante | `src/main/remote/clubArena.ts`, `src/main/remote/routes/clubRoutes.ts`, `src/remote/js/refereeClubCards.js` |
 | Utilitaires | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan) |
 | PDF | `src/shared/utils/pdfExport/clubCardsPdf.ts`, `clubPlanPdf.ts` |
+| Inventaire | `src/database/repos/clubInventoryRepo.ts`, `src/shared/utils/clubInventory.ts`, `src/renderer/components/club/ClubInventoryPanel.tsx` (tables `club_items`, `club_loans`) |
 | Interface | `src/renderer/components/club/` |

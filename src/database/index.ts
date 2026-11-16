@@ -21,6 +21,7 @@ import { TeamRepo } from './repos/teamRepo';
 import { OrganisationRepo } from './repos/organisationRepo';
 import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
 import { ClubRepo } from './repos/clubRepo';
+import { ClubInventoryRepo } from './repos/clubInventoryRepo';
 import { PrivacyRepo } from './repos/privacyRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
@@ -61,6 +62,8 @@ export class DatabaseManager {
   public readonly eventDays = new EventDayRepo(this.sql);
   /** Mode Club : membres, séances, combats libres (#1872) */
   public readonly club = new ClubRepo(this.sql);
+  /** Mode Club : inventaire du matériel et prêts aux tireurs */
+  public readonly clubInventory = new ClubInventoryRepo(this.sql);
   /** RGPD : droits des personnes, conservation (#1882) */
   public readonly privacy = new PrivacyRepo(this.sql);
 
