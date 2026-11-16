@@ -430,7 +430,7 @@ export class RemoteScoreServer {
         'finishArenaMatch',
         'getArena',
         'loadNextMatch',
-        'pauseArenaMatch',
+        'pauseArenaMatch', 'persistArenaState',
         'resolveReferee',
         'logDiag',
         'stampArenaEvents',

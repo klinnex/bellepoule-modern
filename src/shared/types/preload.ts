@@ -824,6 +824,11 @@ export interface DatabaseAPI {
     }>
   >;
 
+  /** Cartons de plusieurs matchs (feuilles imprimées, #1829) */
+  getCardsByMatchIds: (
+    matchIds: string[]
+  ) => Promise<Array<{ matchId: string; fencerId: string; cardType: string }>>;
+
   // Session State
   saveSessionState: (competitionId: string, state: SessionState) => Promise<void>;
   saveSessionStateSync: (competitionId: string, state: unknown) => boolean;
@@ -1053,7 +1058,11 @@ export interface FileAPI {
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   /** Classeur .xlsx écrit par le main (une feuille) */
-  writeSpreadsheet: (filepath: string, rows: (string | number)[][], sheetName?: string) => Promise<void>;
+  writeSpreadsheet: (
+    filepath: string,
+    rows: (string | number)[][],
+    sheetName?: string
+  ) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
     html: string,

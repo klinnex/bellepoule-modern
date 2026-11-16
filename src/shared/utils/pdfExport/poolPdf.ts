@@ -19,6 +19,7 @@ import {
 import { getActiveLocale } from '../localeFormat';
 import { extractBodyContent, extractStyleContent } from './bookPdf';
 import { escHtml } from './bookToc';
+import { CARDS_CSS, hasCards, renderCardTally, tallyCards } from './matchCardsPdf';
 
 export interface PoolExportOptions {
   title?: string;
@@ -40,6 +41,8 @@ export interface PoolExportOptions {
   stripNumber?: number;
   /** Coins OCR (position fixe) ; false dans les dossiers multi-sections, sinon répétés sur chaque page (#1712) */
   ocrMarks?: boolean;
+  /** Cartons reçus dans la poule : fencerId → types (`yellow`, `red`, `black`, `p-red`…) (#1829) */
+  cards?: Record<string, string[]>;
 }
 
 /** Colonnes calculées masquées par l'option `hideStatColumns`. */
@@ -219,6 +222,29 @@ export function generatePoolHTML(
     })
     .join('');
 
+  // Cartons par tireur (#1829) : J, R (nombre), N, puis cartons P à part (FIE t.124.3.e)
+  const cardRows = fencers
+    .map((fencer, i) => ({ fencer, num: i + 1, tally: tallyCards(options.cards?.[fencer.id]) }))
+    .filter(r => hasCards(r.tally));
+  const cardsSection =
+    cardRows.length === 0
+      ? ''
+      : `
+  <div class="section-label">${pdfT('cards', 'Cartons')}</div>
+  <table class="pool-cards">
+    <tbody>${cardRows
+      .map(
+        r => `
+      <tr>
+        <td class="num-cell">${r.num}</td>
+        <td class="name-cell">${escHtml(`${r.fencer.lastName.toUpperCase()} ${r.fencer.firstName ?? ''}`.trim())}</td>
+        <td class="cards-cell">${renderCardTally(r.tally)}</td>
+      </tr>`
+      )
+      .join('')}
+    </tbody>
+  </table>`;
+
   const matchIndexById = new Map(matches.map((m, i) => [m.id, i + 1]));
   const pending = matches.filter(m => m.status !== MatchStatus.FINISHED);
   const pendingSection =
@@ -306,7 +332,7 @@ export function generatePoolHTML(
       </tr>
     </thead>
     <tbody>${rows}</tbody>
-  </table>`,
+  </table>${cardsSection}`,
     'pending-matches': pendingSection,
     'finished-matches': finishedSection,
     footer: `
@@ -464,6 +490,13 @@ export function generatePoolHTML(
       }
     }
 
+    /* Cartons par tireur (#1829) */
+    ${CARDS_CSS}
+    .pool-cards { border-collapse: collapse; margin-bottom: 4mm; font-size: 8.5pt; }
+    .pool-cards td { border: 1px solid var(--border); padding: 1.2mm 2mm; vertical-align: middle; }
+    .pool-cards .num-cell { font-weight: 700; text-align: center; min-width: 7mm; }
+    .pool-cards .name-cell { font-weight: 600; white-space: nowrap; }
+
     /* Matchs */
     .match-grid {
       display: grid;
@@ -557,7 +590,9 @@ async function buildCombinedPoolsHTML(
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
-  stripQrs?: Record<string, PoolStripQr>
+  stripQrs?: Record<string, PoolStripQr>,
+  /** Cartons par poule : poolId → (fencerId → types), #1829 */
+  cardsByPool?: Record<string, Record<string, string[]>>
 ): Promise<string> {
   const pages: string[] = [];
   const styles = new Set<string>();
@@ -570,6 +605,7 @@ async function buildCombinedPoolsHTML(
         competitionName,
         stripQrUrl: stripQrs?.[pool.id]?.url,
         stripNumber: stripQrs?.[pool.id]?.strip,
+        cards: cardsByPool?.[pool.id],
       },
       template
     );
@@ -602,7 +638,9 @@ export async function exportMultiplePoolsToPDF(
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
-  stripQrs?: Record<string, PoolStripQr>
+  stripQrs?: Record<string, PoolStripQr>,
+  /** Cartons par poule : poolId → (fencerId → types), #1829 */
+  cardsByPool?: Record<string, Record<string, string[]>>
 ): Promise<void> {
   if (pools.length === 0) throw new Error(pdfT('no_pool_export', 'Aucune poule à exporter'));
   // Un seul PDF pour toutes les poules (#1413)
@@ -612,7 +650,8 @@ export async function exportMultiplePoolsToPDF(
     logoBase64,
     template,
     competitionName,
-    stripQrs
+    stripQrs,
+    cardsByPool
   );
   await savePDF(combined, allPoolsFileName(competitionName));
 }
@@ -654,7 +693,9 @@ export async function printMultiplePoolsHTML(
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
-  stripQrs?: Record<string, PoolStripQr>
+  stripQrs?: Record<string, PoolStripQr>,
+  /** Cartons par poule : poolId → (fencerId → types), #1829 */
+  cardsByPool?: Record<string, Record<string, string[]>>
 ): Promise<void> {
   if (pools.length === 0) throw new Error(pdfT('no_pool_print', 'Aucune poule à imprimer'));
   // Même mécanisme que l'export PDF (#1413) : un seul document, une seule fenêtre d'impression
@@ -664,7 +705,8 @@ export async function printMultiplePoolsHTML(
     logoBase64,
     template,
     competitionName,
-    stripQrs
+    stripQrs,
+    cardsByPool
   );
   await sendHtmlToPrint(combined);
 }

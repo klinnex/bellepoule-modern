@@ -2,7 +2,9 @@
 
 > État (#1720, #1829) : codec, serveur UDP, supervision, simulateur, panneau de configuration,
 > raccordement aux arènes, **modes par piste** (appareil maître, afficheur, manuel), bascule en
-> manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage.
+> manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage (chrono
+> compris), saisie de la tablette verrouillée (points et cartons) quand l'appareil maître fait foi,
+> cartons sur les feuilles imprimées.
 > PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
 > dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
 > import / export de la liste.
@@ -58,6 +60,16 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 | Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
 | Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
 
+**L'appareil fait foi** (appareil maître et en ligne, décision de l'auteur du ticket) : sur la
+tablette, l'ajout de points **et** de cartons (jaune, rouge, noir, P) est bloqué, avec une
+notification ; le retrait reste permis pour corriger. Côté serveur, une action de la tablette qui
+**ajoute** un carton est refusée : `update_score` dont les cartons s'allongent (comptage par type,
+`cyranoLock.ts`) → cartons ignorés, le reste de la mise à jour passe et la tablette reçoit en retour
+les cartons de l'arène (`source: 'device'`) ; `add_card` refusé ; carton noir envoyé avec la fin de
+match (`POST /api/matches/:id/finish`, `blackCardFencer`) → `409 cyrano_master_lock`. Les entrées
+de l'appareil (`cyrano:<piste>`) passent toujours. Appareil hors ligne, piste en afficheur ou en
+manuel : saisie libre sur la tablette.
+
 Un `DISP` du match courant porte aussi les cartons déjà donnés (champs jaune / rouge des zones
 tireurs, omis à zéro) : sans eux, le premier `INFO` d'un appareil qui reprend un match (PREV,
 redémarrage) les effacerait. Pour un match rappelé (PREV) pas encore relancé, il porte aussi le
@@ -108,7 +120,30 @@ Réglages mémorisés dans le navigateur de l'application (`localStorage`) : tab
 
 `persistArenaState` sauvegarde chaque arène. Au démarrage de la séance de saisie distante, une
 arène sauvegardée **en cours** reprend son match et son score, si ce match n'est pas terminé en base ;
-la file DE sauvegardée est rétablie. Le chrono n'est pas restauré.
+la file DE sauvegardée est rétablie.
+
+**Chrono** (`arenaTimer.ts`) : le serveur retient le dernier chrono reçu pour le match de l'arène
+(`update_timer` / `pause_timer` / `reset_timer`, de la tablette ou de l'appareil) et le sauvegarde
+avec l'arène, joint au match (`current_match.savedTimer` : temps restant, temps supplémentaire ;
+pas de migration). Sauvegarde immédiate à l'arrêt du chrono, au plus toutes les 5 s quand il tourne ;
+le décompte de la minute de repos de l'appareil (état `P`) n'est pas retenu. À la reprise, le chrono
+du match est rétabli **à l'arrêt** : il n'est jamais relancé automatiquement. Il est renvoyé à
+chaque client qui rejoint l'arène (`time`, `timerStatus: 'paused'`) : l'écran d'arène affiche le
+temps restant, la tablette le reprend en rouvrant le match si elle n'a pas son propre chrono mémorisé
+(`localStorage`, prioritaire). L'appareil de piste garde son propre chrono (le `DISP` envoyé en
+plein combat n'en porte pas).
+
+### 2 quinquies. Cartons sur les feuilles imprimées (#1829)
+
+Tous les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
+figurent sur les feuilles imprimées ou exportées en PDF, par tireur : blanc, jaune, rouge (avec leur
+nombre), noir, puis les **cartons P à part** (P rouge, P noir), comme le veut le règlement FIE
+(t.124.3.e). Lecture en une requête (`db.getCardsByMatchIds`).
+
+| Feuille | Rendu |
+|---|---|
+| Feuille de poule (impression, PDF d'une poule ou de toutes) | section « Cartons » sous la grille : un tireur par ligne (numéro, nom, cartons reçus dans la poule), seulement ceux qui en ont |
+| Feuille de match de tableau (feuilles d'arbitrage) | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur ; vide (à remplir à la main) sans carton enregistré. Un match saisi à distance est relu sous son id composite `<compétition>-<match>` |
 
 ### Supervision
 

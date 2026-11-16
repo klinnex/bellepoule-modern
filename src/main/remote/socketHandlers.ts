@@ -11,6 +11,7 @@ import { normalizeIp, isLoopbackAddress } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { recordRemoteEvent } from './remoteEvents';
+import { timerForMatch, timerJoinFields } from './arenaTimer';
 
 type S = RemoteScoreServer;
 
@@ -182,6 +183,8 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           ...(ctx.isTrainingMode && ctx.trainingCustomRules
             ? { trainingCustomRules: ctx.trainingCustomRules }
             : {}),
+          // Chrono connu du match (repris au redémarrage, à l'arrêt, #1829)
+          ...timerJoinFields(timerForMatch(arena)),
           ...(arena.status === 'finished' && {
             nextMatch: ctx.peekNextMatch(data.arenaId),
           }),

@@ -738,11 +738,156 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       }
     });
 
+    it('reprise : chrono sauvegardé du match repris, à l’arrêt (#1829)', async () => {
+      const saved = {
+        ...pm(2, ID.de, ID.bc),
+        scoreA: 3,
+        scoreB: 1,
+        status: 'in_progress',
+        savedTimer: { matchId: pm(2, ID.de, ID.bc).id, time: 97.5, running: true },
+      };
+      mockDb.getArenaState.mockReturnValue({
+        arenaId: 'arena1',
+        competitionId: 'comp-1',
+        currentMatch: saved,
+        matchQueue: [],
+        settings: null,
+        status: 'in_progress',
+        updatedAt: '',
+      });
+      try {
+        remote.stopSession();
+        await remote.startSession('comp-1', 1, [
+          { __poolFencers: true, poolId: POOL, poolNumber: 1, strip: 1, fencers: [] },
+          pm(1, ID.ef, ID.ab),
+          pm(2, ID.de, ID.bc),
+          pm(3, ID.ef, ID.de),
+        ] as unknown as Parameters<RemoteScoreServer['startSession']>[2]);
+        expect(arena().currentMatch?.id).toBe(saved.id);
+        expect(arena().currentMatch).not.toHaveProperty('savedTimer');
+        // Jamais relancé automatiquement
+        expect(arena().timer).toEqual({
+          matchId: saved.id,
+          time: 97.5,
+          suddenDeath: false,
+          overtimeType: null,
+          running: false,
+        });
+      } finally {
+        mockDb.getArenaState.mockReturnValue(null);
+      }
+    });
+
     it('mode hors liste : repli sur maître', () => {
       cyrano.setPistes([
         { piste: '1', ip: DEVICE_IP, port: 50101, arena: 1, mode: 'bogus' as any },
       ]);
       expect(cyrano.findPiste('1')?.mode).toBe('master');
+    });
+  });
+
+  describe('verrou des cartons et chrono sauvegardé (#1829)', () => {
+    // Un id de socket par appel : l'anti-rebond d'update_score est par socket
+    let n = 0;
+    const tablet = (data: Record<string, unknown>) => {
+      const emit = vi.fn();
+      type Ctl = Parameters<RemoteScoreServer['handleArenaControl']>;
+      remote.handleArenaControl(
+        { id: `tablet-${++n}`, emit } as unknown as Ctl[0],
+        {
+          arenaId: 'arena1',
+          ...data,
+        } as Ctl[1]
+      );
+      return emit;
+    };
+    const tabletCards = (cardsA: string[], cardsB: string[] = []) =>
+      tablet({
+        action: 'update_score',
+        scoreA: arena().currentMatch!.scoreA,
+        scoreB: arena().currentMatch!.scoreB,
+        cardsA,
+        cardsB,
+      });
+    const heldCards = () => remote.arenaCards.get('arena1');
+
+    it('maître en ligne : carton ajouté par la tablette refusé et tablette resynchronisée', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      expect(arena().cyrano).toEqual({ piste: '1', mode: 'master', online: true });
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+
+      const emit = tabletCards(['yellow', 'red'], ['p-red']);
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+      // La tablette reçoit les cartons de l'arène, comme une mise à jour de l'appareil
+      expect(emit).toHaveBeenCalledWith(
+        'arena:arena1:update',
+        expect.objectContaining({ source: 'device', cardsA: ['yellow'], cardsB: [] })
+      );
+      // Ancienne action add_card : refusée aussi
+      tablet({ action: 'add_card', fencer: 'B', cardType: 'red' });
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+    });
+
+    it('maître en ligne : retrait permis depuis la tablette, cartons de l’appareil toujours appliqués', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      const emit = tabletCards([]);
+      expect(heldCards()).toEqual({ cardsA: [], cardsB: [] });
+      expect(emit).not.toHaveBeenCalled();
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0, r: 1 }));
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
+    });
+
+    it('piste en manuel (ou appareil hors ligne) : la tablette ajoute librement', () => {
+      device(info('H', { id: short(ID.ef), score: 1 }, { id: short(ID.ab), score: 0 }));
+      setMode('manual');
+      expect(arena().cyrano?.mode).toBe('manual');
+      tabletCards(['yellow'], ['red']);
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
+    });
+
+    it('chrono de la tablette : dernière valeur sauvegardée avec l’état de l’arène', () => {
+      tablet({ action: 'start' });
+      mockDb.saveArenaState.mockClear();
+      tablet({ action: 'pause_timer', time: 125.5, timerStatus: 'paused' });
+      const [arenaId, state] = lastCall(mockDb.saveArenaState);
+      expect(arenaId).toBe('arena1');
+      expect(state.currentMatch).toMatchObject({
+        id: pm(1, ID.ef, ID.ab).id,
+        savedTimer: { matchId: pm(1, ID.ef, ID.ab).id, time: 125.5, running: false },
+      });
+      // L'état en mémoire de l'arène n'est pas modifié
+      expect(arena().currentMatch).not.toHaveProperty('savedTimer');
+      // En marche : pas plus d'une sauvegarde toutes les 5 s
+      const t0 = Date.now();
+      const now = vi.spyOn(Date, 'now');
+      try {
+        mockDb.saveArenaState.mockClear();
+        now.mockReturnValue(t0 + 1000);
+        tablet({ action: 'update_timer', time: 124, timerStatus: 'running' });
+        expect(mockDb.saveArenaState).not.toHaveBeenCalled();
+        now.mockReturnValue(t0 + 6000);
+        tablet({ action: 'update_timer', time: 119, timerStatus: 'running' });
+        now.mockReturnValue(t0 + 7000);
+        tablet({ action: 'update_timer', time: 118, timerStatus: 'running' });
+        expect(mockDb.saveArenaState).toHaveBeenCalledTimes(1);
+        expect(arena().timer).toMatchObject({ time: 118, running: true });
+      } finally {
+        now.mockRestore();
+      }
+    });
+
+    it('minute de repos de l’appareil (état P) : décompte du repos non sauvegardé comme chrono', () => {
+      device(info('H', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
+      expect(arena().timer).toMatchObject({ time: 180 });
+      device(
+        info(
+          'P',
+          { id: short(ID.ef), score: 2 },
+          { id: short(ID.ab), score: 1 },
+          { stopwatch: '0:42' }
+        )
+      );
+      expect(arena().timer).toMatchObject({ time: 180 });
     });
   });
 });

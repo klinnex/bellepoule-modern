@@ -580,6 +580,32 @@ export class MatchRepo {
       }));
   }
 
+  /**
+   * Cartons d'un ensemble de matchs (feuilles imprimées, #1829) : une requête, ordre chronologique.
+   * Ids vides ou non textuels ignorés ; 999 ids au plus par requête (limite SQLite).
+   */
+  public getCardsByMatchIds(
+    matchIds: string[]
+  ): Array<{ matchId: string; fencerId: string; cardType: string }> {
+    if (!this.sql.db) return [];
+    const ids = [...new Set(matchIds.filter(id => typeof id === 'string' && id))];
+    const out: Array<{ matchId: string; fencerId: string; cardType: string }> = [];
+    for (let i = 0; i < ids.length; i += 999) {
+      const chunk = ids.slice(i, i + 999);
+      const rows = this.sql.queryAll<SqlRow>(
+        `SELECT match_id, fencer_id, card_type FROM match_cards WHERE match_id IN (${chunk.map(() => '?').join(',')}) ORDER BY timestamp ASC`,
+        chunk
+      );
+      for (const r of rows)
+        out.push({
+          matchId: r.match_id as string,
+          fencerId: r.fencer_id as string,
+          cardType: r.card_type as string,
+        });
+    }
+    return out;
+  }
+
   // ─── Statistiques combattants ───────────────────────────────────────────────
 
   public saveTouch(touch: {

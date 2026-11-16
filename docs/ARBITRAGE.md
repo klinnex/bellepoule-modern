@@ -184,7 +184,10 @@ pas de blanc. Le motif est annoncé sur l'écran d'arène (`card_announcement`),
 - Rafraîchissement de la page pendant un match (veille, fausse manipulation, **← Retour**) :
   le temps restant est mémorisé sur la tablette (`localStorage bp_referee_timer_<arène>`, 6 h max).
   En rouvrant le même match, le chrono reprend au temps restant, à l'arrêt : **▶️** le relance.
-  Pas de reprise sur un autre appareil.
+- Redémarrage de l'application pendant un match : le serveur rend le dernier chrono sauvegardé de
+  l'arène (à l'arrêt, jamais relancé). L'écran d'arène l'affiche ; une tablette sans chrono
+  mémorisé (autre tablette, page rechargée ailleurs) le reprend en rouvrant le match
+  ([CYRANO.md](CYRANO.md) § 2 quater).
 
 ### 3.6 Fin de temps, temps supplémentaire, mort subite
 
@@ -285,6 +288,10 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 | `/lobby` | Salle d'attente (page d'accueil `/`). |
 
 Appareils de piste (Favero, SG…) via le protocole Cyrano : voir [CYRANO.md](CYRANO.md).
+Appareil **maître et en ligne** : l'appareil fait foi. La tablette ne peut plus ajouter ni points
+ni cartons (jaune, rouge, noir, P) ; une notification l'explique. Le retrait (appui long sur le
+bouton carton, −1) reste permis pour corriger. Le serveur refuse aussi tout carton ajouté depuis la
+tablette.
 
 Mode Club en séance (#1872) : en arrivant sur la piste, la tablette demande la carte de club du
 tireur A puis du tireur B (caméra ou code en clair, chaque carte peut être passée) ; bouton
@@ -301,11 +308,11 @@ d'arène, sauf `toggle_swap`).
 |---|---|---|
 | `select_match` | tablette | Assigne le match à l'arène, remet cartons/touches/sorties à zéro. |
 | `start` / `pause` | tablette | Statut de l'arène. |
-| `update_score` | tablette | Scores, cartons, zones touchées, état mort subite (anti-rebond). |
-| `update_timer` / `pause_timer` / `reset_timer` | tablette | Diffusion du chrono. |
+| `update_score` | tablette | Scores, cartons, zones touchées, état mort subite (anti-rebond). Appareil maître en ligne : cartons ajoutés ignorés, tablette resynchronisée. |
+| `update_timer` / `pause_timer` / `reset_timer` | tablette | Diffusion du chrono ; dernier chrono sauvegardé avec l'arène (reprise au redémarrage). |
 | `waiting_overtime` | tablette | Égalité en attente de temps supplémentaire. |
 | `coin_flip` | tablette | Animation de tirage au sort sur l'arène. |
-| `add_card`, `arena_exit` | tablette | Cartons / sorties. |
+| `add_card`, `arena_exit` | tablette | Cartons / sorties (`add_card` refusé si l'appareil maître est en ligne). |
 | `card_announcement`, `exit_announcement` | tablette | Annonce à l'écran d'arène. |
 | `dt_call` / `dt_cancel` | tablette | Notification DT dans l'application. |
 | `change_referee` | tablette | Change l'arbitre du match. |
