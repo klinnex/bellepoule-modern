@@ -1523,6 +1523,8 @@
     "cyrano_profile": "Профиль",
     "cyrano_profile_standard": "Стандарт",
     "cyrano_profile_efp11": "EFP1.1",
+    "cyrano_day_scope": "Таблица дорожек общая для дня «{{day}}»: каждая дорожка следует за соревнованием своего текущего назначения.",
+    "cyrano_other_event": "Другое соревнование",
     "cyrano_batch_from": "Первая дорожка",
     "cyrano_batch_count": "Количество дорожек",
     "cyrano_batch_add": "Добавить пакетом",

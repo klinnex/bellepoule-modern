@@ -1523,6 +1523,8 @@
     "cyrano_profile": "Perfil",
     "cyrano_profile_standard": "Estándar",
     "cyrano_profile_efp11": "EFP1.1",
+    "cyrano_day_scope": "Tabla de pistas compartida por la jornada «{{day}}»: cada pista sigue la prueba de su asignación actual.",
+    "cyrano_other_event": "Otra prueba",
     "cyrano_batch_from": "Primera pista",
     "cyrano_batch_count": "Número de pistas",
     "cyrano_batch_add": "Añadir en lote",

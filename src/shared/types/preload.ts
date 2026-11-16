@@ -1053,7 +1053,11 @@ export interface FileAPI {
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   /** Classeur .xlsx écrit par le main (une feuille) */
-  writeSpreadsheet: (filepath: string, rows: (string | number)[][], sheetName?: string) => Promise<void>;
+  writeSpreadsheet: (
+    filepath: string,
+    rows: (string | number)[][],
+    sheetName?: string
+  ) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
     html: string,
@@ -1377,6 +1381,10 @@ export interface CyranoAPI {
   /** Table des pistes enregistrée en base, par compétition (#1829) */
   loadPistes: (competitionId: string) => Promise<CyranoPisteConfigDTO[]>;
   savePistes: (competitionId: string, pistes: CyranoPisteConfigDTO[]) => Promise<boolean>;
+  /** Épreuve d'une journée : table des pistes partagée par la salle (#1878), sinon null */
+  getPistesScope: (competitionId: string) => Promise<{ dayId: string; dayName: string } | null>;
+  /** Épreuve suivie par chaque piste (identifiant de compétition), #1878 */
+  getRoutes: () => Promise<Record<string, string | null>>;
 }
 
 /** Trame du journal Cyrano (#1829) */

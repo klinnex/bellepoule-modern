@@ -1523,6 +1523,8 @@
     "cyrano_profile": "Profilo",
     "cyrano_profile_standard": "Standard",
     "cyrano_profile_efp11": "EFP1.1",
+    "cyrano_day_scope": "Tabella delle pedane condivisa dalla giornata «{{day}}»: ogni pedana segue la gara della sua assegnazione attuale.",
+    "cyrano_other_event": "Altra gara",
     "cyrano_batch_from": "Prima pedana",
     "cyrano_batch_count": "Numero di pedane",
     "cyrano_batch_add": "Aggiungi in blocco",

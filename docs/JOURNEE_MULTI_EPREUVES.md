@@ -14,7 +14,7 @@ Liste des compétitions → bouton **Journées**.
 | Champ | Rôle |
 |---|---|
 | Nom, date | Identification |
-| Pistes de la salle | Nombre de pistes (registre partagé : lot suivant) |
+| Pistes de la salle | Nombre de pistes ; table des appareils Cyrano partagée par les épreuves (voir CYRANO.md § 2 quinquies) |
 | Épreuves | Cases à cocher. Une épreuve appartient à une seule journée |
 
 Supprimer une journée conserve les épreuves et leurs arbitres (liens retirés).

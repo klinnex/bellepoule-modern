@@ -1523,6 +1523,8 @@
     "cyrano_profile": "Perfil",
     "cyrano_profile_standard": "Estàndard",
     "cyrano_profile_efp11": "EFP1.1",
+    "cyrano_day_scope": "Taula de pistes compartida per la jornada «{{day}}»: cada pista segueix la prova de la seva assignació actual.",
+    "cyrano_other_event": "Una altra prova",
     "cyrano_batch_from": "Primera pista",
     "cyrano_batch_count": "Nombre de pistes",
     "cyrano_batch_add": "Afegeix en lot",

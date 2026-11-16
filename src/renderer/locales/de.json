@@ -1523,6 +1523,8 @@
     "cyrano_profile": "Profil",
     "cyrano_profile_standard": "Standard",
     "cyrano_profile_efp11": "EFP1.1",
+    "cyrano_day_scope": "Bahnentabelle des Turniertags „{{day}}“: Jede Bahn folgt dem Wettbewerb ihrer aktuellen Zuteilung.",
+    "cyrano_other_event": "Anderer Wettbewerb",
     "cyrano_batch_from": "Erste Bahn",
     "cyrano_batch_count": "Anzahl Bahnen",
     "cyrano_batch_add": "Stapelweise hinzufügen",
