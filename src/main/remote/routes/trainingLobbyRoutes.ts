@@ -2,6 +2,7 @@
  * BellePoule Modern - Routes du lobby du mode entraînement (#1500).
  * GET /entrainement-lobby (page), GET /api/training/lobby (état des pistes),
  * POST /api/training/lobby/claim | release (occupation d'une piste).
+ * Le kiosk lit aussi GET /api/training/lobby pour marquer « Libre » les pistes non tenues.
  * Licensed under GPL-3.0
  */
 import type { RouteContext } from './context';
@@ -30,6 +31,7 @@ export function registerTrainingLobbyRoutes(ctx: RouteContext, lobby = new Train
     res.json({
       training: true,
       idleMs: LOBBY_IDLE_MS,
+      theme: ctx.trainingTheme ?? 'dark',
       arenas: lobby.list(arenaNumbers(ctx), clientId),
     });
   });
@@ -45,7 +47,10 @@ export function registerTrainingLobbyRoutes(ctx: RouteContext, lobby = new Train
     if (typeof clientId !== 'string' || !CLIENT_ID_RE.test(clientId)) {
       return res.status(400).json({ error: 'invalid_client' });
     }
+    const wasMine = lobby.list([n], clientId)[0]?.mine ?? false;
     if (!lobby.claim(n, clientId)) return res.status(409).json({ error: 'arena_occupied' });
+    // Kiosk : la piste passe de « Libre » à occupée
+    if (!wasMine) ctx.notifyKioskData?.();
     res.json({ ok: true });
   });
 
@@ -58,6 +63,8 @@ export function registerTrainingLobbyRoutes(ctx: RouteContext, lobby = new Train
     const n = Number(arena);
     if (Number.isInteger(n)) lobby.release(n, clientId);
     else lobby.releaseAll(clientId);
+    // Kiosk : la piste redevient « Libre »
+    if (ctx.isTrainingMode) ctx.notifyKioskData?.();
     res.json({ ok: true });
   });
 }

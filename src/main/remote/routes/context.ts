@@ -48,6 +48,8 @@ export interface RouteContext {
     { scoreA: ScheduleMatchInput['scoreA']; scoreB: ScheduleMatchInput['scoreB']; status: string }
   >;
   readonly trainingHistory: TrainingRecord[];
+  /** Thème des écrans d'entraînement, transmis au lobby (#1500) */
+  readonly trainingTheme?: string;
   /** Poules de la démo autonome (null hors démo) */
   /** Arbitre virtuel de la démo autonome (null hors démo) */
   readonly demoPlayer: DemoPlayer | null;
@@ -55,4 +57,6 @@ export interface RouteContext {
   checkArenaAuth(arenaId: string, cookieHeader: string | undefined): boolean;
   hasAnyValidToken(cookieHeader: string | undefined): boolean;
   computePhaseEta(): PhaseEtaSummary;
+  /** Signale au kiosk que ses données ont changé (occupation du lobby, #1500) */
+  notifyKioskData?(): void;
 }

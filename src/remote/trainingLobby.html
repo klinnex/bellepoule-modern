@@ -8,32 +8,100 @@
     <script src="/i18n.js"></script>
     <link rel="stylesheet" href="/tokens.css" />
     <style>
+      :root {
+        --lb-bg: var(--slate-900);
+        --lb-text: var(--color-white);
+        --lb-muted: var(--slate-400);
+        --lb-notice: var(--slate-500);
+        --lb-card: var(--slate-800);
+        --lb-free: var(--green-500);
+        --lb-free-text: var(--tw-green-300);
+        --lb-mine: var(--blue-500);
+        --lb-mine-text: var(--tw-blue-300);
+        --lb-occ: var(--slate-600);
+        --lb-occ-text: var(--tw-red-400);
+        --lb-font: 'Inter', system-ui, sans-serif;
+      }
+      /* Thèmes du mode entraînement (#1500), choisis dans la fenêtre Entraînement */
+      html[data-theme='light'] {
+        --lb-bg: linear-gradient(135deg, #e8edf5 0%, #c8d8f0 100%);
+        --lb-text: #1a2340;
+        --lb-muted: #374151;
+        --lb-notice: #4b5563;
+        --lb-card: #ffffff;
+        --lb-free: #059669;
+        --lb-free-text: #047857;
+        --lb-mine: #2563eb;
+        --lb-mine-text: #1d4ed8;
+        --lb-occ: #9ca3af;
+        --lb-occ-text: #b91c1c;
+      }
+      html[data-theme='neon'] {
+        --lb-bg: #0a0a0a;
+        --lb-text: #eafff4;
+        --lb-muted: #a0a0a0;
+        --lb-notice: #7a7a7a;
+        --lb-card: rgba(0, 255, 136, 0.05);
+        --lb-free: #00ff88;
+        --lb-free-text: #00ff88;
+        --lb-mine: #00d4ff;
+        --lb-mine-text: #00d4ff;
+        --lb-occ: #333333;
+        --lb-occ-text: #ff2244;
+      }
+      html[data-theme='unicorn'] {
+        --lb-bg: url('/unicorn-bg.png') center / cover fixed no-repeat #1a0a2e;
+        --lb-text: #fff0fb;
+        --lb-muted: rgba(255, 230, 250, 0.8);
+        --lb-notice: rgba(255, 230, 250, 0.65);
+        --lb-card: rgba(42, 15, 74, 0.82);
+        --lb-free: #ff7ad9;
+        --lb-free-text: #ffb3ea;
+        --lb-mine: #8b5cf6;
+        --lb-mine-text: #c4b5fd;
+        --lb-occ: rgba(255, 255, 255, 0.25);
+        --lb-occ-text: #ff8fa3;
+      }
+      html[data-theme='musketeers'] {
+        --lb-bg: radial-gradient(ellipse at 50% 20%, #1f3f8f 0%, #13285e 55%, #0a1638 100%);
+        --lb-text: #f5ecd2;
+        --lb-muted: rgba(245, 236, 210, 0.75);
+        --lb-notice: rgba(245, 236, 210, 0.6);
+        --lb-card: linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%);
+        --lb-free: #e8c35a;
+        --lb-free-text: #e8c35a;
+        --lb-mine: #8fe3b0;
+        --lb-mine-text: #8fe3b0;
+        --lb-occ: rgba(201, 164, 62, 0.3);
+        --lb-occ-text: #ff5a6e;
+        --lb-font: Georgia, serif;
+      }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        font-family: 'Inter', system-ui, sans-serif;
-        background: var(--slate-900);
+        font-family: var(--lb-font);
+        background: var(--lb-bg);
         min-height: 100vh;
-        color: white;
+        color: var(--lb-text);
         padding: 2rem 1rem;
       }
       .container { max-width: 760px; margin: 0 auto; text-align: center; }
       h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
-      .subtitle { color: var(--slate-400); margin-bottom: 0.5rem; }
-      .notice { color: var(--slate-500); font-size: 0.85rem; margin-bottom: 1.75rem; }
+      .subtitle { color: var(--lb-muted); margin-bottom: 0.5rem; }
+      .notice { color: var(--lb-notice); font-size: 0.85rem; margin-bottom: 1.75rem; }
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
       .strip {
         display: flex; flex-direction: column; gap: 0.35rem; align-items: center; justify-content: center;
-        min-height: 110px; padding: 1rem; border-radius: 0.9rem; text-decoration: none; color: var(--color-white);
-        background: var(--slate-800); border: 2px solid var(--green-500); font-weight: 700; font-size: 1.15rem;
+        min-height: 110px; padding: 1rem; border-radius: 0.9rem; text-decoration: none; color: var(--lb-text);
+        background: var(--lb-card); border: 2px solid var(--lb-free); font-weight: 700; font-size: 1.15rem;
       }
-      .strip small { font-size: 0.8rem; font-weight: 600; color: var(--tw-green-300); }
-      .strip.mine { border-color: var(--blue-500); }
-      .strip.mine small { color: var(--tw-blue-300); }
+      .strip small { font-size: 0.8rem; font-weight: 600; color: var(--lb-free-text); }
+      .strip.mine { border-color: var(--lb-mine); }
+      .strip.mine small { color: var(--lb-mine-text); }
       .strip.occupied {
-        border-color: var(--slate-600); color: var(--slate-500); cursor: not-allowed; pointer-events: none; opacity: 0.7;
+        border-color: var(--lb-occ); color: var(--lb-muted); cursor: not-allowed; pointer-events: none; opacity: 0.7;
       }
-      .strip.occupied small { color: var(--tw-red-400); }
-      .empty { color: var(--slate-400); padding: 2rem 0; }
+      .strip.occupied small { color: var(--lb-occ-text); }
+      .empty { color: var(--lb-muted); padding: 2rem 0; }
     </style>
   </head>
   <body>
@@ -63,7 +131,17 @@
         body: JSON.stringify({ clientId }),
       }).catch(() => {});
 
+      // Thème choisi dans la fenêtre Entraînement (liste fermée)
+      const THEMES = ['dark', 'light', 'neon', 'unicorn', 'musketeers'];
+      function applyTheme(theme) {
+        const t = THEMES.includes(theme) ? theme : 'dark';
+        if (document.documentElement.getAttribute('data-theme') !== t) {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      }
+
       function render(data) {
+        applyTheme(data && data.theme);
         const grid = document.getElementById('strips');
         const empty = document.getElementById('empty');
         const arenas = (data && data.training && data.arenas) || [];

@@ -50,15 +50,17 @@
   /**
    * HTML des cartes de piste.
    * @param {object[]} arenas
-   * @param {{tk: Function, escHtml: Function, arenaLabel: string}} ctx
+   * @param {{tk: Function, escHtml: Function, arenaLabel: string, freeArenas?: Set<number>|null}} ctx
+   *   freeArenas : entraînement, n° des pistes non tenues dans le lobby → « Libre » (#1500)
    */
   function renderArenasHtml(arenas, ctx) {
-    const { tk, escHtml, arenaLabel } = ctx;
+    const { tk, escHtml, arenaLabel, freeArenas } = ctx;
     return arenas
       .map(arena => {
         const aid = arena.id || arena.arenaId || '?';
         const m = arena.currentMatch;
         const isActive = arena.status === 'in_progress' && m;
+        const isFree = !isActive && !!freeArenas && freeArenas.has(arena.number);
 
         if (!m) {
           return `<div class="arena-card">
@@ -97,7 +99,7 @@
         return `<div class="arena-card ${isActive ? 'match-active' : ''}">
             <div class="arena-card-header">
               <span class="arena-name">${escHtml(arenaLabel)} ${escHtml(aid)}</span>
-              <span class="arena-status-pill ${isActive ? 'in-progress' : ''}">${isActive ? escHtml(tk('kiosk.status_ongoing')) : escHtml(tk('kiosk.status_assigned'))}</span>
+              <span class="arena-status-pill ${isActive ? 'in-progress' : isFree ? 'free' : ''}">${escHtml(tk(isActive ? 'kiosk.status_ongoing' : isFree ? 'traininglobby.free' : 'kiosk.status_assigned'))}</span>
             </div>
             <div class="arena-matchup">
               <div class="arena-fencer side-left fencer-${escHtml(leftColor)}">

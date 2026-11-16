@@ -12,11 +12,9 @@ import { RemoteScoreServer } from '../remoteScoreServer';
 import { findAvailablePort, remoteServers, usedPorts } from '../remoteRegistry';
 import { setSharedMainWindow } from '../mainWindowRef';
 import { closeDemoScreens, openDemoScreens } from '../demoScreens';
+import { isTrainingTheme } from '../../shared/utils/trainingThemes';
 
 const TRAINING_ID = '__training__';
-
-type TrainingTheme = 'dark' | 'light' | 'neon' | 'unicorn';
-const TRAINING_THEMES: TrainingTheme[] = ['dark', 'light', 'neon', 'unicorn'];
 
 export interface TrainingHandlersContext {
   db: DatabaseManager;
@@ -165,12 +163,12 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
   // Thème visuel des écrans d'entraînement (thèmes intégrés uniquement)
   ipcMain.handle('training:setTheme', async (_event, theme: string) => {
     try {
-      if (!TRAINING_THEMES.includes(theme as TrainingTheme)) {
+      if (!isTrainingTheme(theme)) {
         return { success: false, error: 'invalid_theme' };
       }
       const entry = remoteServers.get(TRAINING_ID);
       if (!entry) return { success: false, error: 'training_not_started' };
-      entry.server.updateTheme(theme as TrainingTheme);
+      entry.server.applyTrainingTheme(theme);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };

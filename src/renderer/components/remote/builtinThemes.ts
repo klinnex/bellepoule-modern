@@ -13,6 +13,7 @@ import {
   PUBLIC_DEFAULTS,
   REFEREE_DEFAULTS,
 } from '../ThemeEditor';
+import { MUSKETEERS_THEME } from '../../../shared/utils/trainingThemes';
 
 export const BUILTIN_THEME_PREFIX = 'builtin:';
 
@@ -182,83 +183,8 @@ const STEAMPUNK: Record<ThemeTargetType, Record<string, string>> = {
   },
 };
 
-/**
- * Mousquetaires : casaque bleu roi, liseré or, parchemin d'édit royal.
- * Scores or pâle : vert émeraude / rouge cardinal ; chrono argent poli.
- */
-const MUSKETEERS: Record<ThemeTargetType, Record<string, string>> = {
-  arena: {
-    '--bg': 'radial-gradient(ellipse at 50% 20%, #1f3f8f 0%, #13285e 55%, #0a1638 100%)',
-    '--text': '#f5ecd2',
-    '--header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
-    '--match-bg': 'linear-gradient(180deg, #fbf5e3 0%, #efe3c0 100%)',
-    '--fencer-name-color': '#14224d',
-    '--fencer-club-color': '#6b5a2e',
-    '--green-side-bg': 'linear-gradient(135deg, #eef3e6 0%, #d3e2c6 100%)',
-    '--green-side-border': '#1f5e3a',
-    '--red-side-bg': 'linear-gradient(135deg, #f7e3e6 0%, #e9c0c7 100%)',
-    '--red-side-border': '#8e1530',
-    '--score-bg': '#070a14',
-    '--score-green': '#8fe3b0',
-    '--score-green-glow': 'rgba(143,227,176,0.7), rgba(31,94,58,0.4)',
-    '--score-red': '#ff5a6e',
-    '--score-red-glow': 'rgba(255,90,110,0.7), rgba(142,21,48,0.4)',
-    '--timer-bg': '#070a14',
-    '--timer-color': '#d9dee8',
-    '--timer-glow': 'rgba(217,222,232,0.85), rgba(150,160,180,0.4)',
-    '--timer-border': '#c9a43e',
-    '--timer-run-color': '#ffffff',
-    '--timer-run-glow': 'rgba(255,255,255,0.9), rgba(200,210,230,0.5)',
-    '--timer-run-border': '#e8c35a',
-    '--waiting-color': '#f5ecd2',
-    '--idle-number-color': 'rgba(245,236,210,0.9)',
-    '--idle-label-color': 'rgba(232,195,90,0.75)',
-    '--score-font-family': 'Georgia, serif',
-    '--timer-font-family': 'Georgia, serif',
-    '--fencer-name-font-family': 'Georgia, serif',
-    '--vs-color': '#e8c35a',
-    '--vs-font-family': 'Georgia, serif',
-  },
-  kiosk: {
-    '--k-bg': 'radial-gradient(ellipse at top, #1a3478 0%, #0a1638 100%)',
-    '--k-accent': '#e8c35a',
-    '--k-accent2': '#8e1530',
-    '--k-card-bg': 'rgba(232,195,90,0.07)',
-    '--k-border': 'rgba(201,164,62,0.45)',
-    '--k-muted': 'rgba(245,236,210,0.6)',
-    '--k-progress': 'linear-gradient(90deg, #8e1530, #e8c35a, #1f5e3a)',
-  },
-  public: {
-    '--pub-bg': 'radial-gradient(ellipse at top, #1f3f8f 0%, #0a1638 100%)',
-    '--pub-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
-    '--pub-accent': '#e8c35a',
-    '--pub-accent2': '#8e1530',
-    '--pub-text': '#f5ecd2',
-    '--pub-muted': 'rgba(245,236,210,0.6)',
-    '--pub-card-bg': 'rgba(232,195,90,0.07)',
-    '--pub-border': 'rgba(201,164,62,0.45)',
-  },
-  referee: {
-    '--ref-bg': 'radial-gradient(ellipse at top, #1f3f8f 0%, #0a1638 100%)',
-    '--ref-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
-    '--ref-accent': '#e8c35a',
-    '--ref-accent2': '#8e1530',
-    '--ref-text': '#f5ecd2',
-    '--ref-muted': 'rgba(245,236,210,0.6)',
-    '--ref-card-bg': 'rgba(232,195,90,0.07)',
-    '--ref-border': 'rgba(201,164,62,0.45)',
-  },
-  pool: {
-    '--pool-bg': '#0e1d47',
-    '--pool-header-bg': 'linear-gradient(180deg, #1a2f6b 0%, #0e1d47 100%)',
-    '--pool-accent': '#e8c35a',
-    '--pool-accent2': '#8e1530',
-    '--pool-text': '#f5ecd2',
-    '--pool-muted': 'rgba(245,236,210,0.6)',
-    '--pool-card-bg': 'rgba(232,195,90,0.07)',
-    '--pool-border': 'rgba(201,164,62,0.45)',
-  },
-};
+/** Mousquetaires : partagé avec le mode entraînement (src/shared/utils/trainingThemes.ts) */
+const MUSKETEERS = MUSKETEERS_THEME;
 
 /**
  * Arcade 8-bit : borne de salle de jeux, noir profond, néons saturés, chiffres pixel.
