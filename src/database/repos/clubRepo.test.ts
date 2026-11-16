@@ -37,19 +37,21 @@ function makeSql(db: SqliteDb): SqlExecutor {
 
 describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
   let repo: ClubRepo;
+  let cid: string;
 
   beforeEach(() => {
     const db = new DatabaseSync!(':memory:');
     for (const m of ALL_MIGRATIONS) m.up({ run: (s: string) => db.exec(s) });
     repo = new ClubRepo(makeSql(db));
+    cid = repo.createClub({ name: 'Club' }).id;
   });
 
   const member = (lastName: string, extra = {}) =>
-    repo.createMember({ firstName: 'X', lastName, ...extra });
+    repo.createMember(cid, { firstName: 'X', lastName, ...extra });
 
   describe('membres', () => {
     it('crée, normalise et liste par nom', () => {
-      const m = repo.createMember({
+      const m = repo.createMember(cid, {
         firstName: '  <b>Léa</b> ',
         lastName: 'Zola',
         weapons: [Weapon.EPEE, 'Z' as Weapon, Weapon.EPEE],
@@ -64,22 +66,24 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
         active: true,
       });
       member('Abel');
-      expect(repo.listMembers().map(x => x.lastName)).toEqual(['Abel', 'Zola']);
+      expect(repo.listMembers(cid).map(x => x.lastName)).toEqual(['Abel', 'Zola']);
     });
 
     it('import en lot : création, complément, doublons', () => {
       const a = member('Abel', { license: '1' });
-      const r = repo.importMembers([
+      const r = repo.importMembers(cid, [
         { firstName: 'X', lastName: 'Abel', license: '1' },
         { firstName: 'Y', lastName: 'Zola', gender: 'F', birthYear: 2012 },
         { firstName: 'Y', lastName: 'ZOLA' },
         { firstName: ' ', lastName: ' ' },
       ]);
       expect(r).toEqual({ created: 1, updated: 0, skipped: 3 });
-      const zola = repo.listMembers().find(m => m.lastName === 'Zola')!;
+      const zola = repo.listMembers(cid).find(m => m.lastName === 'Zola')!;
       expect(zola).toMatchObject({ gender: 'F', birthYear: 2012 });
       expect(zola.cardCode).toMatch(/^[0-9A-F]{10}$/);
-      expect(repo.importMembers([{ firstName: 'X', lastName: 'ABEL', birthYear: 2000 }])).toEqual({
+      expect(
+        repo.importMembers(cid, [{ firstName: 'X', lastName: 'ABEL', birthYear: 2000 }])
+      ).toEqual({
         created: 0,
         updated: 1,
         skipped: 0,
@@ -96,7 +100,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       ).toThrow();
       expect(repo.updateMember(a.id, { photo: null })!.photo).toBeUndefined();
       expect(
-        repo.setPhotosByLicense([
+        repo.setPhotosByLicense(cid, [
           { license: '42', photo: png },
           { license: '99', photo: png },
           { license: '42', photo: 'javascript:x' },
@@ -106,20 +110,23 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
 
     it('nom requis', () => {
-      expect(() => repo.createMember({ firstName: ' ', lastName: '' })).toThrow();
+      expect(() => repo.createMember(cid, { firstName: ' ', lastName: '' })).toThrow();
     });
 
     it('archive : masqué par défaut, visible avec includeInactive', () => {
       const m = member('Abel');
       repo.updateMember(m.id, { active: false, laterality: 'X' as never });
-      expect(repo.listMembers()).toHaveLength(0);
-      expect(repo.listMembers(true)[0]).toMatchObject({ active: false, laterality: undefined });
+      expect(repo.listMembers(cid)).toHaveLength(0);
+      expect(repo.listMembers(cid, true)[0]).toMatchObject({
+        active: false,
+        laterality: undefined,
+      });
     });
 
     it('suppression RGPD : combats et présences effacés', () => {
       const a = member('A');
       const b = member('B');
-      const s = repo.createSession({ date: '2026-11-16' });
+      const s = repo.createSession(cid, { date: '2026-11-16' });
       repo.setAttendance(s.id, a.id, true);
       const bt = repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id });
       repo.finishBout(bt.id, { scoreA: 5, scoreB: 1 });
@@ -156,23 +163,20 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.getMember(a.id)!.cardCode).toBe(a.cardCode);
     });
 
-    it('nom + logo, logo validé, null efface', () => {
-      expect(repo.getSettings()).toEqual({ name: '', logo: undefined, stripCount: 1 });
-      expect(repo.updateSettings({ stripCount: 250 }).stripCount).toBe(99);
-      expect(repo.updateSettings({ stripCount: 4 }).stripCount).toBe(4);
+    it('nom + logo + pistes du club, logo validé, null efface', () => {
+      expect(repo.getClub(cid)).toMatchObject({ name: 'Club', logo: undefined, stripCount: 1 });
+      expect(repo.updateClub(cid, { stripCount: 250 })!.stripCount).toBe(99);
+      expect(repo.updateClub(cid, { stripCount: 4 })!.stripCount).toBe(4);
       const png = 'data:image/png;base64,iVBORw0KGgo=';
-      expect(repo.updateSettings({ name: ' <Cercle> ', logo: png })).toEqual({
+      expect(repo.updateClub(cid, { name: ' <Cercle> ', logo: png })).toMatchObject({
         name: 'Cercle',
         logo: png,
         stripCount: 4,
       });
-      expect(() => repo.updateSettings({ logo: 'javascript:alert(1)' })).toThrow();
-      expect(() => repo.updateSettings({ logo: 'data:text/html;base64,PGI+' })).toThrow();
-      expect(repo.updateSettings({ logo: null })).toEqual({
-        name: 'Cercle',
-        logo: undefined,
-        stripCount: 4,
-      });
+      expect(() => repo.updateClub(cid, { logo: 'javascript:alert(1)' })).toThrow();
+      expect(() => repo.updateClub(cid, { logo: 'data:text/html;base64,PGI+' })).toThrow();
+      expect(() => repo.updateClub(cid, { name: '  ' })).toThrow();
+      expect(repo.updateClub(cid, { logo: null })!.logo).toBeUndefined();
     });
 
     it('migration 26 : codes générés pour les membres existants', () => {
@@ -185,32 +189,121 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       for (const m of ALL_MIGRATIONS.filter(x => x.version >= 26))
         m.up({ run: (s: string) => db.exec(s) });
       const r = new ClubRepo(makeSql(db));
-      const codes = r.listMembers().map(m => m.cardCode);
+      const codes = r.listMembers('club-default').map(m => m.cardCode);
       expect(codes.every(c => /^[0-9A-F]{10}$/.test(c))).toBe(true);
       expect(new Set(codes).size).toBe(2);
     });
   });
 
+  describe('plusieurs clubs', () => {
+    it('membres, séances et combats cloisonnés par club ; résumé pour l’accueil', () => {
+      const other = repo.createClub({ name: 'Autre salle', stripCount: 3 }).id;
+      const a = member('A');
+      const b = member('B');
+      const z = repo.createMember(other, { firstName: 'Z', lastName: 'Zed' });
+      expect(repo.listMembers(cid).map(m => m.lastName)).toEqual(['A', 'B']);
+      expect(repo.listMembers(other).map(m => m.lastName)).toEqual(['Zed']);
+      const s = repo.createSession(other, { date: '2026-11-16' });
+      expect(s).toMatchObject({ clubId: other, stripCount: 3 });
+      expect(repo.listSessions(cid)).toHaveLength(0);
+      // Membre d'un autre club : refusé en pointage, en combat et au scan
+      expect(() => repo.setAttendance(s.id, a.id, true)).toThrow();
+      expect(() =>
+        repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: z.id })
+      ).toThrow();
+      expect(repo.findMemberByCardCode(a.cardCode, other)).toBeNull();
+      expect(repo.findMemberByCardCode(a.cardCode, cid)!.id).toBe(a.id);
+      const s2 = repo.createSession(cid, { date: '2026-11-16' });
+      repo.finishBout(repo.createBout({ sessionId: s2.id, memberAId: a.id, memberBId: b.id }).id, {
+        scoreA: 5,
+        scoreB: 1,
+      });
+      expect(repo.listBouts({ clubId: cid })).toHaveLength(1);
+      expect(repo.listBouts({ clubId: other })).toHaveLength(0);
+      expect(repo.listClubs()).toEqual([
+        expect.objectContaining({
+          id: other,
+          name: 'Autre salle',
+          membersCount: 1,
+          openSessionDate: '2026-11-16',
+        }),
+        expect.objectContaining({ id: cid, name: 'Club', membersCount: 2 }),
+      ]);
+    });
+
+    it('suppression d’un club : toutes ses données, pas celles des autres', () => {
+      const other = repo.createClub({ name: 'Autre' }).id;
+      const z = repo.createMember(other, { firstName: 'Z', lastName: 'Zed' });
+      const a = member('A');
+      const b = member('B');
+      const s = repo.createSession(cid, { date: '2026-11-16' });
+      repo.setAttendance(s.id, a.id, true);
+      repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id });
+      repo.deleteClub(cid);
+      expect(repo.getClub(cid)).toBeNull();
+      expect(repo.getMember(a.id)).toBeNull();
+      expect(repo.getSession(s.id)).toBeNull();
+      expect(repo.listBouts({ includeUnfinished: true })).toHaveLength(0);
+      expect(repo.getMember(z.id)).not.toBeNull();
+    });
+
+    it('création : nom requis, club inconnu refusé', () => {
+      expect(() => repo.createClub({ name: ' ' })).toThrow();
+      expect(() => repo.createMember('nope', { firstName: 'A', lastName: 'B' })).toThrow();
+      expect(() => repo.createSession('nope', { date: '2026-11-16' })).toThrow();
+    });
+
+    it('migration 28 : le club unique devient « club-default »', () => {
+      const db = new DatabaseSync!(':memory:');
+      for (const m of ALL_MIGRATIONS.filter(x => x.version < 28))
+        m.up({ run: (q: string) => db.exec(q) });
+      db.exec(
+        `INSERT INTO club_settings (key, value) VALUES ('name', 'Cercle'), ('strip_count', '4');
+         INSERT INTO club_members (id, first_name, last_name, card_code, created_at, updated_at)
+           VALUES ('m1', 'A', 'B', 'A1B2C3D4E5', '', '');`
+      );
+      for (const m of ALL_MIGRATIONS.filter(x => x.version >= 28))
+        m.up({ run: (q: string) => db.exec(q) });
+      const r = new ClubRepo(makeSql(db));
+      expect(r.listClubs()).toEqual([
+        expect.objectContaining({
+          id: 'club-default',
+          name: 'Cercle',
+          stripCount: 4,
+          membersCount: 1,
+        }),
+      ]);
+      expect(r.listMembers('club-default')[0].id).toBe('m1');
+    });
+
+    it('migration 28 sans données : aucun club créé', () => {
+      expect(repo.listClubs().map(c => c.id)).toEqual([cid]);
+    });
+  });
+
   describe('séances', () => {
     it('crée avec pistes bornées, date validée', () => {
-      const s = repo.createSession({ date: '2026-11-16', stripCount: 500, weapon: Weapon.FOIL });
+      const s = repo.createSession(cid, {
+        date: '2026-11-16',
+        stripCount: 500,
+        weapon: Weapon.FOIL,
+      });
       expect(s).toMatchObject({ stripCount: 99, status: 'open', weapon: Weapon.FOIL });
-      expect(() => repo.createSession({ date: '16/11/2026' })).toThrow();
+      expect(() => repo.createSession(cid, { date: '16/11/2026' })).toThrow();
     });
 
     it('liste filtrée par plage, plus récente d’abord', () => {
-      repo.createSession({ date: '2026-09-10' });
-      repo.createSession({ date: '2026-11-16' });
-      repo.createSession({ date: '2027-01-05' });
-      expect(repo.listSessions({ from: '2026-10-01', to: '2027-12-31' }).map(s => s.date)).toEqual([
-        '2027-01-05',
-        '2026-11-16',
-      ]);
+      repo.createSession(cid, { date: '2026-09-10' });
+      repo.createSession(cid, { date: '2026-11-16' });
+      repo.createSession(cid, { date: '2027-01-05' });
+      expect(
+        repo.listSessions(cid, { from: '2026-10-01', to: '2027-12-31' }).map(s => s.date)
+      ).toEqual(['2027-01-05', '2026-11-16']);
     });
 
     it('pointage idempotent, dépointage', () => {
       const a = member('A');
-      const s = repo.createSession({ date: '2026-11-16' });
+      const s = repo.createSession(cid, { date: '2026-11-16' });
       repo.setAttendance(s.id, a.id, true);
       expect(repo.setAttendance(s.id, a.id, true)).toEqual([a.id]);
       expect(repo.setAttendance(s.id, a.id, false)).toEqual([]);
@@ -219,7 +312,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
 
     it('changer la date répercute sur les combats', () => {
       const [a, b] = [member('A'), member('B')];
-      const s = repo.createSession({ date: '2026-11-16' });
+      const s = repo.createSession(cid, { date: '2026-11-16' });
       repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id });
       repo.updateSession(s.id, { date: '2026-11-17' });
       expect(repo.listBouts({ includeUnfinished: true })[0].date).toBe('2026-11-17');
@@ -227,7 +320,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
 
     it('fermeture : combats en cours annulés, création refusée', () => {
       const [a, b] = [member('A'), member('B')];
-      const s = repo.createSession({ date: '2026-11-16' });
+      const s = repo.createSession(cid, { date: '2026-11-16' });
       const bt = repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id });
       expect(repo.closeSession(s.id)).toMatchObject({ status: 'closed' });
       expect(repo.getBout(bt.id)!.status).toBe('cancelled');
@@ -239,7 +332,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
 
     it('suppression : combats et présences effacés', () => {
       const [a, b] = [member('A'), member('B')];
-      const s = repo.createSession({ date: '2026-11-16' });
+      const s = repo.createSession(cid, { date: '2026-11-16' });
       repo.setAttendance(s.id, a.id, true);
       repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id });
       repo.deleteSession(s.id);
@@ -255,7 +348,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     beforeEach(() => {
       a = member('A').id;
       b = member('B').id;
-      sid = repo.createSession({ date: '2026-11-16', stripCount: 3, weapon: Weapon.SABRE }).id;
+      sid = repo.createSession(cid, { date: '2026-11-16', stripCount: 3, weapon: Weapon.SABRE }).id;
     });
 
     it('contrôles à la création', () => {
@@ -298,6 +391,18 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.finishBout(bt.id, { scoreA: 3, scoreB: 3, winnerId: 'x' })!.winnerId).toBeNull();
     });
 
+    it('piste occupée : second combat refusé, libérée une fois terminé', () => {
+      const c = member('C').id;
+      const bt = repo.createBout({ sessionId: sid, memberAId: a, memberBId: b, strip: 2 });
+      expect(() =>
+        repo.createBout({ sessionId: sid, memberAId: a, memberBId: c, strip: 2 })
+      ).toThrow('Piste 2 occupée');
+      repo.finishBout(bt.id, { scoreA: 5, scoreB: 3 });
+      expect(repo.createBout({ sessionId: sid, memberAId: a, memberBId: c, strip: 2 }).strip).toBe(
+        2
+      );
+    });
+
     it('annulé : non terminable', () => {
       const bt = repo.createBout({ sessionId: sid, memberAId: a, memberBId: b });
       repo.cancelBout(bt.id);
@@ -306,7 +411,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
 
     it('filtres : membre, plage, arme, terminés seuls par défaut', () => {
       const c = member('C').id;
-      const s2 = repo.createSession({ date: '2027-02-01', weapon: Weapon.EPEE }).id;
+      const s2 = repo.createSession(cid, { date: '2027-02-01', weapon: Weapon.EPEE }).id;
       repo.finishBout(repo.createBout({ sessionId: sid, memberAId: a, memberBId: b }).id, {
         scoreA: 5,
         scoreB: 1,

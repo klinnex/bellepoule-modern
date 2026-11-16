@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { Gender, type Fencer } from '../types';
 import type { ClubMember } from '../types/club';
-import { fencersToClubMembers, planClubImport } from './clubImport';
+import { classifyClubImport, fencersToClubMembers, planClubImport } from './clubImport';
 
 const existing = (id: string, extra: Partial<ClubMember>): ClubMember => ({
   id,
+  clubId: 'c1',
   firstName: '',
   lastName: '',
   weapons: [],
@@ -52,5 +53,18 @@ describe('import des membres du club (#1872)', () => {
     expect(plan.create).toEqual([{ lastName: 'NEUF', firstName: 'Léa' }]);
     expect(plan.update).toEqual([{ id: 'b', data: { license: '777', birthYear: 2009 } }]);
     expect(plan.skipped).toBe(3);
+  });
+
+  it('statut par ligne, dans l’ordre du fichier', () => {
+    const st = classifyClubImport(
+      [existing('a', { lastName: 'Martin', firstName: 'Anne', license: '1' })],
+      [
+        { lastName: 'NEUF', firstName: 'Léa' },
+        { lastName: 'MARTIN', firstName: 'Anne' },
+        { lastName: 'MARTIN', firstName: 'Anne', birthYear: 2010 },
+        { lastName: 'Neuf', firstName: 'Lea' },
+      ]
+    );
+    expect(st.map(s => s.kind)).toEqual(['new', 'present', 'duplicate', 'duplicate']);
   });
 });

@@ -32,6 +32,13 @@ module.exports = (env = {}) => ({
           chunks: 'all',
           priority: 10,
         },
+        // Décodeur QR du Mode Club (#1872) : chargé à la demande au premier scan, hors chunk initial
+        jsqr: {
+          test: /[\\/]node_modules[\\/]jsqr[\\/]/,
+          name: 'jsqr',
+          chunks: 'async',
+          priority: 30,
+        },
         react: {
           test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
           name: 'react',

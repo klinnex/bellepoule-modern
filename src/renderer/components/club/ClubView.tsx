@@ -5,12 +5,23 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { BarChart3, CalendarDays, Shield, Sparkles, Users } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  BarChart3,
+  CalendarDays,
+  Shield,
+  Sparkles,
+  Trash2,
+  Users,
+} from 'lucide-react';
+import { useConfirm } from '../ConfirmDialog';
+import { ClubPicker } from './ClubPicker';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
-import { EmptyState } from '../common/EmptyState';
 import { ClubMembersPanel } from './ClubMembersPanel';
+import { ClubSessionsPanel } from './ClubSessionsPanel';
+import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubTour } from './ClubTour';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
@@ -26,8 +37,23 @@ const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'stats', icon: <BarChart3 size={15} aria-hidden="true" />, labelKey: 'club.tab_stats' },
 ];
 
-export const ClubView: React.FC = () => {
+interface ClubViewProps {
+  /** Club affiché ; null = choix ou création d'un club */
+  clubId: string | null;
+  onSelectClub: (clubId: string | null) => void;
+}
+
+export const ClubView: React.FC<ClubViewProps> = ({ clubId, onSelectClub }) => {
+  if (!clubId) return <ClubPicker onSelect={onSelectClub} />;
+  return <ClubSpace key={clubId} clubId={clubId} onSelectClub={onSelectClub} />;
+};
+
+const ClubSpace: React.FC<{
+  clubId: string;
+  onSelectClub: (clubId: string | null) => void;
+}> = ({ clubId, onSelectClub }) => {
   const { t } = useTranslation();
+  const { confirm } = useConfirm();
   const [tab, setTab] = useState<ClubTab>('members');
   const [settings, setSettings] = useState<ClubSettings>({ name: '', stripCount: 1 });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -37,9 +63,27 @@ export const ClubView: React.FC = () => {
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.club;
     if (!api) return;
-    setSettings(await api.getSettings());
+    const club = await api.getClub(clubId);
+    // Club supprimé ou inconnu : retour au choix du club
+    if (!club) {
+      onSelectClub(null);
+      return;
+    }
+    setSettings(club);
     setSettingsLoaded(true);
-  }, []);
+  }, [clubId, onSelectClub]);
+
+  const deleteClub = async () => {
+    const api = window.electronAPI?.club;
+    if (!api) return;
+    const ok = await confirm({
+      message: t('clubs.delete_confirm', { name: settings.name }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (!ok) return;
+    await api.deleteClub(clubId);
+    onSelectClub(null);
+  };
 
   const onCardsPrinted = useCallback(() => {
     markCardsPrinted();
@@ -72,6 +116,20 @@ export const ClubView: React.FC = () => {
         >
           {t('clubTour.restart')}
         </Button>
+        <Button
+          icon={<ArrowLeftRight size={15} aria-hidden="true" />}
+          onClick={() => onSelectClub(null)}
+        >
+          {t('clubs.switch')}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={14} aria-hidden="true" />}
+          aria-label={t('clubs.delete')}
+          title={t('clubs.delete')}
+          onClick={() => void deleteClub()}
+        />
       </header>
 
       <nav className="club-nav" aria-label={t('club.nav_label')}>
@@ -91,26 +149,15 @@ export const ClubView: React.FC = () => {
       <section className="club-content">
         {tab === 'members' && (
           <ClubMembersPanel
+            clubId={clubId}
             settings={settings}
             onSettingsChange={setSettings}
             onMembersLoaded={setMembersCount}
             onCardsPrinted={onCardsPrinted}
           />
         )}
-        {tab === 'sessions' && (
-          <EmptyState
-            icon={<CalendarDays size={32} aria-hidden="true" />}
-            title={t('club.sessions_soon')}
-            description={t('club.sessions_soon_desc')}
-          />
-        )}
-        {tab === 'stats' && (
-          <EmptyState
-            icon={<BarChart3 size={32} aria-hidden="true" />}
-            title={t('club.stats_soon')}
-            description={t('club.stats_soon_desc')}
-          />
-        )}
+        {tab === 'sessions' && <ClubSessionsPanel clubId={clubId} settings={settings} />}
+        {tab === 'stats' && <ClubStatsPanel clubId={clubId} />}
       </section>
 
       <ClubTour

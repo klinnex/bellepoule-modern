@@ -10,6 +10,7 @@ export type Laterality = 'R' | 'L';
 /** Membre du club, persistant d'une saison à l'autre */
 export interface ClubMember {
   id: string;
+  clubId: string;
   firstName: string;
   lastName: string;
   license?: string;
@@ -32,13 +33,35 @@ export interface ClubMember {
 }
 
 export type ClubMemberInput = Partial<
-  Omit<ClubMember, 'id' | 'cardCode' | 'photo' | 'createdAt' | 'updatedAt'>
+  Omit<ClubMember, 'id' | 'clubId' | 'cardCode' | 'photo' | 'createdAt' | 'updatedAt'>
 > & {
   firstName: string;
   lastName: string;
   /** null efface la photo */
   photo?: string | null;
 };
+
+/** Club (plusieurs clubs possibles, #1872) */
+export interface Club {
+  id: string;
+  name: string;
+  logo?: string;
+  stripCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Club vu depuis l'accueil : effectif et séance ouverte */
+export interface ClubSummary extends Club {
+  membersCount: number;
+  openSessionDate: string | null;
+}
+
+export interface ClubUpdate {
+  name?: string;
+  logo?: string | null;
+  stripCount?: number;
+}
 
 /** Identité du club : en-tête des cartes de membre */
 export interface ClubSettings {
@@ -54,6 +77,7 @@ export type ClubSessionStatus = 'open' | 'closed';
 /** Séance d'entraînement (une date, N pistes) */
 export interface ClubSession {
   id: string;
+  clubId: string;
   /** Date ISO AAAA-MM-JJ */
   date: string;
   label?: string;
@@ -125,6 +149,7 @@ export interface ClubBoutResult {
 
 /** Filtre des combats (bornes incluses, dates AAAA-MM-JJ) */
 export interface ClubBoutFilter {
+  clubId?: string;
   sessionId?: string;
   memberId?: string;
   from?: string;
@@ -181,31 +206,39 @@ export interface ClubMemberReport {
 
 /** Mode Club : membres, séances, combats libres, statistiques (#1872) */
 export interface ClubAPI {
-  getSettings: () => Promise<ClubSettings>;
+  /** Clubs avec effectif et séance ouverte (accueil) */
+  listClubs: () => Promise<ClubSummary[]>;
+  getClub: (id: string) => Promise<Club | null>;
+  createClub: (data: { name: string; stripCount?: number }) => Promise<Club>;
   /** logo: null efface le logo */
-  updateSettings: (data: {
-    name?: string;
-    logo?: string | null;
-    stripCount?: number;
-  }) => Promise<ClubSettings>;
+  updateClub: (id: string, data: ClubUpdate) => Promise<Club | null>;
+  /** Supprime le club et toutes ses données (membres, séances, combats) */
+  deleteClub: (id: string) => Promise<void>;
+  /** Saisie distante : serveur d'entraînement actif, URL, nombre d'arènes */
+  remoteStatus: () => Promise<{ active: boolean; url: string | null; strips: number }>;
+  /** Envoie le combat à la tablette arbitre de sa piste */
+  pushBout: (boutId: string) => Promise<'ok' | 'no_server' | 'no_arena' | 'busy'>;
+  /** Combat annulé : libère l'arène */
+  releaseBout: (boutId: string) => Promise<void>;
   /** Photos d'un ZIP (fichiers nommés par licence, comme en compétition) */
-  importPhotos: (filepath: string) => Promise<{ matched: number; total: number }>;
-  listMembers: (includeInactive?: boolean) => Promise<ClubMember[]>;
-  /** Membre d'après le code lu sur sa carte (actifs seulement) */
-  findMemberByCardCode: (code: string) => Promise<ClubMember | null>;
+  importPhotos: (clubId: string, filepath: string) => Promise<{ matched: number; total: number }>;
+  listMembers: (clubId: string, includeInactive?: boolean) => Promise<ClubMember[]>;
+  /** Membre d'après le code lu sur sa carte (actifs seulement ; clubId : de ce club) */
+  findMemberByCardCode: (code: string, clubId?: string) => Promise<ClubMember | null>;
   /** Nouveau code : l'ancienne carte devient invalide */
   regenerateCardCode: (id: string) => Promise<ClubMember | null>;
-  createMember: (data: ClubMemberInput) => Promise<ClubMember>;
+  createMember: (clubId: string, data: ClubMemberInput) => Promise<ClubMember>;
   updateMember: (id: string, data: Partial<ClubMemberInput>) => Promise<ClubMember | null>;
   /** Effacement définitif (RGPD) : présences et combats compris ; archiver = active:false */
   deleteMember: (id: string) => Promise<void>;
   /** Import en lot : nouveaux créés, existants complétés (licence puis nom), doublons ignorés */
   importMembers: (
+    clubId: string,
     inputs: ClubMemberInput[]
   ) => Promise<import('../utils/clubImport').ClubImportResult>;
-  listSessions: (range?: { from?: string; to?: string }) => Promise<ClubSession[]>;
+  listSessions: (clubId: string, range?: { from?: string; to?: string }) => Promise<ClubSession[]>;
   getSession: (id: string) => Promise<ClubSession | null>;
-  createSession: (data: ClubSessionInput) => Promise<ClubSession>;
+  createSession: (clubId: string, data: ClubSessionInput) => Promise<ClubSession>;
   updateSession: (id: string, data: Partial<ClubSessionInput>) => Promise<ClubSession | null>;
   /** Ferme la séance : combats non terminés annulés */
   closeSession: (id: string) => Promise<ClubSession | null>;

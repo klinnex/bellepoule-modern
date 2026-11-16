@@ -48,6 +48,10 @@ export interface MatchFinishContext {
   readonly trainingHistory: S['trainingHistory'];
 }
 
+/** Fin d'un match d'entraînement : écouteurs du process principal (Mode Club #1872) */
+export type TrainingFinishRecord = S['trainingHistory'][number];
+export const trainingFinishListeners = new Set<(record: TrainingFinishRecord) => void>();
+
 /**
  * Dernier match terminé, par objet arène (PREV, #1829). Lié à l'objet : une réinitialisation
  * des arènes le supprime sans purge explicite.
@@ -349,6 +353,14 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       durationSec: finishedMatch.duration ?? 0,
       finishedAt: new Date().toISOString(),
     });
+    const record = ctx.trainingHistory[ctx.trainingHistory.length - 1];
+    for (const listener of trainingFinishListeners) {
+      try {
+        listener(record);
+      } catch (e) {
+        logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] écouteur fin entraînement:', e);
+      }
+    }
     // Pré-charger le prochain match entraînement dans la file
     const queue = ctx.arenaMatchQueue.get(arenaId) ?? [];
     // Démo : null entre deux phases (la piste se libère, l'arbitre virtuel la réoccupe)

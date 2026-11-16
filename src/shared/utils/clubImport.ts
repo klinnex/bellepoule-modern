@@ -54,40 +54,54 @@ export function fencersToClubMembers(fencers: readonly Partial<Fencer>[]): ClubM
   return out;
 }
 
-/** Répartit les lignes importées : nouveaux membres, membres à compléter, doublons */
-export function planClubImport(
+/** Sort d'une ligne importée : nouveau membre, membre à compléter, déjà présent / doublon */
+export type ClubImportRowStatus =
+  | { kind: 'new' }
+  | { kind: 'update'; id: string; data: Partial<ClubMemberInput> }
+  | { kind: 'present'; id: string }
+  | { kind: 'duplicate' };
+
+/** Classe chaque ligne (même ordre) : licence d'abord, sinon nom + prénom */
+export function classifyClubImport(
   existing: readonly ClubMember[],
   incoming: readonly ClubMemberInput[]
-): ClubImportPlan {
+): ClubImportRowStatus[] {
   const byLicense = new Map<string, ClubMember>();
   const byName = new Map<string, ClubMember>();
   for (const m of existing) {
     if (licenseKey(m.license)) byLicense.set(licenseKey(m.license), m);
     byName.set(nameKey(m), m);
   }
-  const plan: ClubImportPlan = { create: [], update: [], skipped: 0 };
   const seen = new Set<string>();
-  for (const m of incoming) {
+  return incoming.map((m): ClubImportRowStatus => {
     const lk = licenseKey(m.license);
     const nk = nameKey(m);
     const fileKey = lk ? `L:${lk}` : `N:${nk}`;
-    if (seen.has(fileKey) || seen.has(`N:${nk}`)) {
-      plan.skipped++;
-      continue;
-    }
+    if (seen.has(fileKey) || seen.has(`N:${nk}`)) return { kind: 'duplicate' };
     seen.add(fileKey);
     seen.add(`N:${nk}`);
     const match = (lk && byLicense.get(lk)) || byName.get(nk);
-    if (!match) {
-      plan.create.push(m);
-      continue;
-    }
+    if (!match) return { kind: 'new' };
     const data: Partial<ClubMemberInput> = {};
     if (m.license && !match.license) data.license = m.license;
     if (m.gender && !match.gender) data.gender = m.gender;
     if (m.birthYear && !match.birthYear) data.birthYear = m.birthYear;
-    if (Object.keys(data).length > 0) plan.update.push({ id: match.id, data });
+    return Object.keys(data).length > 0
+      ? { kind: 'update', id: match.id, data }
+      : { kind: 'present', id: match.id };
+  });
+}
+
+/** Répartit les lignes importées : nouveaux membres, membres à compléter, doublons */
+export function planClubImport(
+  existing: readonly ClubMember[],
+  incoming: readonly ClubMemberInput[]
+): ClubImportPlan {
+  const plan: ClubImportPlan = { create: [], update: [], skipped: 0 };
+  classifyClubImport(existing, incoming).forEach((st, i) => {
+    if (st.kind === 'new') plan.create.push(incoming[i]);
+    else if (st.kind === 'update') plan.update.push({ id: st.id, data: st.data });
     else plan.skipped++;
-  }
+  });
   return plan;
 }

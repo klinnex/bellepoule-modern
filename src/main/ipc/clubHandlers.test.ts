@@ -34,7 +34,9 @@ describe('handlers club:* (#1872)', () => {
     setAttendance: vi.fn(() => ['a']),
     listBouts: vi.fn(() => bouts),
     listSessions: vi.fn(() => []),
-    updateSettings: vi.fn(() => ({ name: '' })),
+    updateClub: vi.fn(() => null),
+    createClub: vi.fn(() => null),
+    findMemberByCardCode: vi.fn(() => null),
   };
 
   beforeEach(() => {
@@ -47,21 +49,25 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(27);
+    expect(handlers.size).toBe(33);
   });
 
   it('booléens stricts et filtres par défaut', () => {
-    call('club:listMembers', 'yes');
-    expect(repo.listMembers).toHaveBeenCalledWith(false);
+    call('club:listMembers', 'c1', 'yes');
+    expect(repo.listMembers).toHaveBeenCalledWith('c1', false);
     call('club:setAttendance', 's', 'a', 1);
     expect(repo.setAttendance).toHaveBeenCalledWith('s', 'a', false);
-    call('club:listSessions');
-    expect(repo.listSessions).toHaveBeenCalledWith({});
+    call('club:listSessions', 'c1');
+    expect(repo.listSessions).toHaveBeenCalledWith('c1', {});
   });
 
-  it('paramètres : objet vide par défaut', () => {
-    call('club:updateSettings');
-    expect(repo.updateSettings).toHaveBeenCalledWith({});
+  it('club : objets vides par défaut', () => {
+    call('club:updateClub', 'c1');
+    expect(repo.updateClub).toHaveBeenCalledWith('c1', {});
+    call('club:createClub');
+    expect(repo.createClub).toHaveBeenCalledWith({ name: '' });
+    call('club:findMemberByCardCode', 'A1B2C3D4E5', 42);
+    expect(repo.findMemberByCardCode).toHaveBeenCalledWith('A1B2C3D4E5', undefined);
   });
 
   it('classement : force les combats terminés', () => {
@@ -89,5 +95,24 @@ describe('handlers club:* (#1872)', () => {
       progression: { period: { kind: string } }[];
     };
     expect(r.progression[0].period.kind).toBe('month');
+  });
+
+  it('score de la tablette → combat club terminé (saisie arbitre), autres matchs ignorés', async () => {
+    const { onClubRemoteFinish } = await import('./clubHandlers');
+    const club = {
+      getBout: vi.fn((id: string) => (id === 'b1' ? { id, status: 'in_progress' } : null)),
+      finishBout: vi.fn(),
+    };
+    const db = { club } as unknown as DatabaseManager;
+    const rec = { arenaId: 'arena1', arenaNumber: 1, weapon: 'E', finishedAt: '' };
+    onClubRemoteFinish(db, { ...rec, id: 'club:b1', scoreA: 5, scoreB: 2, durationSec: 90 });
+    onClubRemoteFinish(db, { ...rec, id: 'training-x', scoreA: 1, scoreB: 0, durationSec: 1 });
+    expect(club.finishBout).toHaveBeenCalledTimes(1);
+    expect(club.finishBout).toHaveBeenCalledWith('b1', {
+      scoreA: 5,
+      scoreB: 2,
+      entryMode: 'referee',
+      duration: 90,
+    });
   });
 });

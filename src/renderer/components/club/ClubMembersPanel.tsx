@@ -17,9 +17,14 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import type { ClubMember, ClubSettings } from '../../../shared/types/club';
+import type { ClubMember, ClubMemberInput, ClubSettings } from '../../../shared/types/club';
 import { periodOf } from '../../../shared/utils/clubStats';
-import { fencersToClubMembers } from '../../../shared/utils/clubImport';
+import {
+  classifyClubImport,
+  fencersToClubMembers,
+  type ClubImportRowStatus,
+} from '../../../shared/utils/clubImport';
+import { ClubImportModal } from './ClubImportModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
 import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import {
@@ -38,6 +43,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 interface ClubMembersPanelProps {
+  clubId: string;
   settings: ClubSettings;
   onSettingsChange: (s: ClubSettings) => void;
   /** Nombre de membres actifs après chaque chargement (parcours guidé) */
@@ -47,6 +53,7 @@ interface ClubMembersPanelProps {
 }
 
 export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
+  clubId,
   settings,
   onSettingsChange,
   onMembersLoaded,
@@ -66,13 +73,18 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '' });
   const [printing, setPrinting] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
+  const [importDraft, setImportDraft] = useState<{
+    fileName: string;
+    rows: ClubMemberInput[];
+    statuses: ClubImportRowStatus[];
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!api) return;
-    const list = await api.listMembers(showArchived);
+    const list = await api.listMembers(clubId, showArchived);
     setMembers(list);
     onMembersLoaded?.(list.filter(m => m.active).length);
-  }, [api, showArchived, onMembersLoaded]);
+  }, [api, clubId, showArchived, onMembersLoaded]);
 
   useEffect(() => {
     void load();
@@ -97,9 +109,15 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   if (!api) return null;
 
+  /** Enregistre l'identité du club (nom, logo, pistes) et la remonte à la vue */
+  const saveClub = async (data: Parameters<typeof api.updateClub>[1]) => {
+    const club = await api.updateClub(clubId, data);
+    if (club) onSettingsChange(club);
+  };
+
   const saveName = () =>
     run(async () => {
-      onSettingsChange(await api.updateSettings({ name: clubName }));
+      await saveClub({ name: clubName });
       setNameEdit(null);
       showToast(t('club.settings_saved'), 'success');
     });
@@ -113,7 +131,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     const reader = new FileReader();
     reader.onload = () =>
       void run(async () => {
-        onSettingsChange(await api.updateSettings({ logo: String(reader.result) }));
+        await saveClub({ logo: String(reader.result) });
       });
     reader.readAsDataURL(file);
   };
@@ -122,7 +140,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     e.preventDefault();
     if (!draft.firstName.trim() && !draft.lastName.trim()) return;
     void run(async () => {
-      await api.createMember(draft);
+      await api.createMember(clubId, draft);
       setDraft({ firstName: '', lastName: '', license: '' });
     });
   };
@@ -156,22 +174,23 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         showToast(parsed.errors[0] ?? t('club.import_empty'), 'error');
         return;
       }
-      const ok = await confirm({
-        message: t('club.import_confirm', { count: rows.length, file: file.name }),
-        confirmLabel: t('actions.import'),
-      });
-      if (!ok) return;
-      await run(async () => {
-        const r = await api.importMembers(rows);
-        showToast(t('club.import_done', { ...r }), 'success');
-      });
+      // Sélection des personnes à importer (statut calculé sur tout l'annuaire, archivés compris)
+      const statuses = classifyClubImport(await api.listMembers(clubId, true), rows);
+      setImportDraft({ fileName: file.name, rows, statuses });
     } catch (e) {
       showToast(errText(e), 'error');
     }
   };
 
-  const saveStrips = (n: number) =>
-    run(async () => onSettingsChange(await api.updateSettings({ stripCount: n })));
+  const confirmImport = (selectedRows: ClubMemberInput[]) => {
+    setImportDraft(null);
+    void run(async () => {
+      const r = await api.importMembers(clubId, selectedRows);
+      showToast(t('club.import_done', { ...r }), 'success');
+    });
+  };
+
+  const saveStrips = (n: number) => run(async () => saveClub({ stripCount: n }));
 
   const printArenas = async () => {
     try {
@@ -189,7 +208,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
     if (!result?.filePath) return;
     await run(async () => {
-      const { matched, total } = await api.importPhotos(result.filePath);
+      const { matched, total } = await api.importPhotos(clubId, result.filePath);
       showToast(
         t('fencerList.photos_imported', { count: total, matched: String(matched) }),
         'success'
@@ -245,9 +264,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <Button
               variant="ghost"
               icon={<Trash2 size={15} aria-hidden="true" />}
-              onClick={() =>
-                void run(async () => onSettingsChange(await api.updateSettings({ logo: null })))
-              }
+              onClick={() => void run(async () => saveClub({ logo: null }))}
             >
               {t('club.logo_remove')}
             </Button>
@@ -455,6 +472,13 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </table>
         )}
       </section>
+      {importDraft && (
+        <ClubImportModal
+          {...importDraft}
+          onConfirm={confirmImport}
+          onClose={() => setImportDraft(null)}
+        />
+      )}
     </div>
   );
 };

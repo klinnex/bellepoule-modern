@@ -194,23 +194,34 @@ const electronApi = {
 
   // Mode Club (#1872)
   club: {
-    getSettings: () => ipcRenderer.invoke('club:getSettings'),
-    updateSettings: (data: unknown) => ipcRenderer.invoke('club:updateSettings', data),
-    importPhotos: (filepath: string) => {
+    listClubs: () => ipcRenderer.invoke('club:listClubs'),
+    getClub: (id: string) => ipcRenderer.invoke('club:getClub', id),
+    createClub: (data: unknown) => ipcRenderer.invoke('club:createClub', data),
+    updateClub: (id: string, data: unknown) => ipcRenderer.invoke('club:updateClub', id, data),
+    deleteClub: (id: string) => ipcRenderer.invoke('club:deleteClub', id),
+    remoteStatus: () => ipcRenderer.invoke('club:remoteStatus'),
+    pushBout: (boutId: string) => ipcRenderer.invoke('club:pushBout', boutId),
+    releaseBout: (boutId: string) => ipcRenderer.invoke('club:releaseBout', boutId),
+    importPhotos: (clubId: string, filepath: string) => {
       if (!filepath || typeof filepath !== 'string') throw new Error('Filepath is required');
-      return ipcRenderer.invoke('club:importPhotos', filepath);
+      return ipcRenderer.invoke('club:importPhotos', clubId, filepath);
     },
-    findMemberByCardCode: (code: string) => ipcRenderer.invoke('club:findMemberByCardCode', code),
+    findMemberByCardCode: (code: string, clubId?: string) =>
+      ipcRenderer.invoke('club:findMemberByCardCode', code, clubId),
     regenerateCardCode: (id: string) => ipcRenderer.invoke('club:regenerateCardCode', id),
-    listMembers: (includeInactive?: boolean) =>
-      ipcRenderer.invoke('club:listMembers', includeInactive),
-    createMember: (data: unknown) => ipcRenderer.invoke('club:createMember', data),
+    listMembers: (clubId: string, includeInactive?: boolean) =>
+      ipcRenderer.invoke('club:listMembers', clubId, includeInactive),
+    createMember: (clubId: string, data: unknown) =>
+      ipcRenderer.invoke('club:createMember', clubId, data),
     updateMember: (id: string, data: unknown) => ipcRenderer.invoke('club:updateMember', id, data),
     deleteMember: (id: string) => ipcRenderer.invoke('club:deleteMember', id),
-    importMembers: (inputs: unknown[]) => ipcRenderer.invoke('club:importMembers', inputs),
-    listSessions: (range?: unknown) => ipcRenderer.invoke('club:listSessions', range),
+    importMembers: (clubId: string, inputs: unknown[]) =>
+      ipcRenderer.invoke('club:importMembers', clubId, inputs),
+    listSessions: (clubId: string, range?: unknown) =>
+      ipcRenderer.invoke('club:listSessions', clubId, range),
     getSession: (id: string) => ipcRenderer.invoke('club:getSession', id),
-    createSession: (data: unknown) => ipcRenderer.invoke('club:createSession', data),
+    createSession: (clubId: string, data: unknown) =>
+      ipcRenderer.invoke('club:createSession', clubId, data),
     updateSession: (id: string, data: unknown) =>
       ipcRenderer.invoke('club:updateSession', id, data),
     closeSession: (id: string) => ipcRenderer.invoke('club:closeSession', id),

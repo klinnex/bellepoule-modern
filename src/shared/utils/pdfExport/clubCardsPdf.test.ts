@@ -10,6 +10,7 @@ import {
 
 const member = (i: number, extra: Partial<ClubMember> = {}): ClubMember => ({
   id: `m${i}`,
+  clubId: 'c1',
   firstName: `Prénom${i}`,
   lastName: `nom${i}`,
   weapons: [],
