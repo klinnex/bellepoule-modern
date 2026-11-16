@@ -3443,5 +3443,10 @@
     "button": "Review",
     "remarks": "Coach's comments",
     "no_remarks": "No comments yet."
+  },
+  "clubWeapon": {
+    "label": "Weapon",
+    "choose": "Choose the weapon",
+    "club_label": "Club weapon"
   }
 }

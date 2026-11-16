@@ -11,11 +11,14 @@ import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
+import { ClubWeaponSelect } from './ClubWeaponSelect';
+import type { Weapon } from '../../../shared/types';
 
 interface ClubSessionPlannerProps {
   /** Séance à modifier ; absente = nouvelle séance préparée */
   session?: ClubSession | null;
   defaultDate: string;
+  defaultWeapon?: Weapon;
   onSave: (data: ClubSessionInput) => void;
   onClose: () => void;
 }
@@ -30,12 +33,14 @@ const newItem = (): ClubPlanItem => ({
 export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   session,
   defaultDate,
+  defaultWeapon,
   onSave,
   onClose,
 }) => {
   const { t } = useTranslation();
   const [date, setDate] = useState(session?.date ?? defaultDate);
   const [label, setLabel] = useState(session?.label ?? '');
+  const [weapon, setWeapon] = useState<Weapon | undefined>(session?.weapon ?? defaultWeapon);
   const [objectives, setObjectives] = useState(session?.objectives ?? '');
   const [notes, setNotes] = useState(session?.notes ?? '');
   const [plan, setPlan] = useState<ClubPlanItem[]>(
@@ -71,6 +76,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
               onSave({
                 date,
                 label,
+                weapon,
                 objectives,
                 notes,
                 plan: plan.filter(it => it.title.trim()),
@@ -92,6 +98,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
             onChange={e => setDate(e.target.value)}
           />
         </label>
+        <ClubWeaponSelect value={weapon} onChange={setWeapon} />
         <label className="form-label club-grow">
           {t('clubSession.label')}
           <input

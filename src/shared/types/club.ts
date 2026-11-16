@@ -47,6 +47,8 @@ export interface Club {
   name: string;
   logo?: string;
   stripCount: number;
+  /** Arme par défaut des séances (règles de la saisie distante) */
+  weapon?: Weapon;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,11 +63,13 @@ export interface ClubUpdate {
   name?: string;
   logo?: string | null;
   stripCount?: number;
+  weapon?: Weapon | null;
 }
 
 /** Identité du club : en-tête des cartes de membre */
 export interface ClubSettings {
   name: string;
+  weapon?: Weapon;
   /** Logo en data URL image (png, jpeg, webp, svg) ; absent = pas de logo */
   logo?: string;
   /** Nombre de pistes de la salle (QR des pistes, séances) ; 1 par défaut */

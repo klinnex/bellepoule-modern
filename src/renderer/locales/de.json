@@ -3443,5 +3443,10 @@
     "button": "Bilanz",
     "remarks": "Bemerkungen des Trainers",
     "no_remarks": "Noch keine Bemerkungen."
+  },
+  "clubWeapon": {
+    "label": "Waffe",
+    "choose": "Waffe wählen",
+    "club_label": "Vereinswaffe"
   }
 }

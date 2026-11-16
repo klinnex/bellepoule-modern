@@ -32,6 +32,7 @@ import {
   exportClubCardsToPDF,
 } from '../../../shared/utils/pdfExport/clubCardsPdf';
 import { FencerPhoto } from '../FencerPhoto';
+import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -271,6 +272,11 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           )}
         </div>
         <div className="club-row">
+          <ClubWeaponSelect
+            value={settings.weapon}
+            label={t('clubWeapon.club_label')}
+            onChange={w => void run(async () => saveClub({ weapon: w }))}
+          />
           <label className="form-label" data-tour="club-strips">
             {t('club.strip_count')}
             <input

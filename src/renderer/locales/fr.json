@@ -3443,5 +3443,10 @@
     "button": "Bilan",
     "remarks": "Remarques du maître d'armes",
     "no_remarks": "Aucune remarque pour l'instant."
+  },
+  "clubWeapon": {
+    "label": "Arme",
+    "choose": "Choisir l'arme",
+    "club_label": "Arme du club"
   }
 }

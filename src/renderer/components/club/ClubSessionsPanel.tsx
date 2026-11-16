@@ -29,6 +29,9 @@ import type {
   ClubSettings,
 } from '../../../shared/types/club';
 import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
+import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { Weapon } from '../../../shared/types';
+import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
 import { ClubSessionPlanCard } from './ClubSessionPlanCard';
@@ -172,6 +175,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const [qrOpen, setQrOpen] = useState(false);
   const [planner, setPlanner] = useState<{ session: ClubSession | null } | null>(null);
   const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
+  // Arme de la séance à ouvrir : celle du club par défaut
+  const [weaponChoice, setWeaponChoice] = useState<Weapon | undefined>(undefined);
+  const openWeapon = weaponChoice ?? settings.weapon;
+  const setOpenWeapon = (w: Weapon) => setWeaponChoice(w);
 
   const current = sessions.find(s => s.status === 'open') ?? null;
 
@@ -263,6 +270,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     <ClubSessionPlanner
       session={planner.session}
       defaultDate={today()}
+      defaultWeapon={settings.weapon}
       onSave={savePlan}
       onClose={() => setPlanner(null)}
     />
@@ -286,6 +294,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                 onChange={e => setLabel(e.target.value)}
               />
             </label>
+            <ClubWeaponSelect value={openWeapon} onChange={setOpenWeapon} />
             <Button
               variant="primary"
               data-tour="club-open-session"
@@ -295,6 +304,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                   await api.createSession(clubId, {
                     date: today(),
                     label,
+                    weapon: openWeapon,
                     stripCount: settings.stripCount,
                   });
                   setLabel('');
@@ -428,7 +438,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
       if (!srv.success && srv.error !== 'training_already_started') {
         throw new Error(srv.error ?? t('clubSession.remote_error'));
       }
-      const ses = await training.startSession(current.stripCount, current.weapon ?? 'E');
+      const ses = await training.startSession(
+        current.stripCount,
+        current.weapon ?? settings.weapon ?? Weapon.EPEE
+      );
       if (!ses.success && !(await api.remoteStatus()).active) {
         throw new Error(ses.error ?? t('clubSession.remote_error'));
       }
@@ -475,6 +488,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           <h2 className="club-card-title">
             {t('clubSession.current', { date: current.date })}
             {current.label ? ` · ${current.label}` : ''}
+            {current.weapon ? ` · ${weaponLabel(current.weapon, t)}` : ''}
           </h2>
           <Button
             variant="primary"

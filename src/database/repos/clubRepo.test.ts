@@ -298,6 +298,15 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.getMember(z.id)).not.toBeNull();
     });
 
+    it('arme du club : par défaut des nouvelles séances, remplaçable', () => {
+      expect(repo.updateClub(cid, { weapon: Weapon.SABRE })!.weapon).toBe(Weapon.SABRE);
+      expect(repo.createSession(cid, { date: '2026-11-16' }).weapon).toBe(Weapon.SABRE);
+      expect(repo.createSession(cid, { date: '2026-11-17', weapon: Weapon.FOIL }).weapon).toBe(
+        Weapon.FOIL
+      );
+      expect(repo.updateClub(cid, { weapon: null })!.weapon).toBeUndefined();
+    });
+
     it('création : nom requis, club inconnu refusé', () => {
       expect(() => repo.createClub({ name: ' ' })).toThrow();
       expect(() => repo.createMember('nope', { firstName: 'A', lastName: 'B' })).toThrow();

@@ -3443,5 +3443,10 @@
     "button": "Bilañs",
     "remarks": "Evezhiadennoù ar mestr-skrim",
     "no_remarks": "Evezhiadenn ebet c'hoazh."
+  },
+  "clubWeapon": {
+    "label": "Arm",
+    "choose": "Dibab an arm",
+    "club_label": "Arm ar c'hlub"
   }
 }
