@@ -3275,7 +3275,6 @@
     "archive": "Archivar",
     "unarchive": "Reactivar",
     "import": "Importar (.fff)",
-    "import_confirm": "¿Importar {{count}} socio(s) desde « {{file}} »? Los socios ya presentes (misma licencia, o mismo nombre y apellido) se completan, no se duplican.",
     "import_done": "Importación terminada: {{created}} añadido(s), {{updated}} completado(s), {{skipped}} ya presente(s)",
     "import_empty": "No se ha encontrado ningún socio en este archivo",
     "strip_count": "Número de pistas",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Sesiones",
     "col_period": "Periodo",
     "leaderboard": "Clasificación del club"
+  },
+  "clubImport": {
+    "title": "Importar desde « {{file}} »",
+    "help": "Marque las personas que desea importar. Los socios ya presentes (misma licencia, o mismo nombre y apellido) se completan, nunca se duplican.",
+    "import_n": "Importar la selección ({{count}})",
+    "select_all": "Marcar todo",
+    "select_none": "Desmarcar todo",
+    "col_select": "Selección",
+    "col_status": "Estado",
+    "status_new": "Nuevo",
+    "status_update": "Por completar",
+    "status_present": "Ya presente",
+    "status_duplicate": "Duplicado en el archivo"
   }
 }

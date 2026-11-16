@@ -14,6 +14,7 @@ const member = {
   id: 'm1',
   firstName: 'Anne',
   lastName: 'MARTIN',
+  gender: 'F',
   birthYear: 2010,
   laterality: 'L' as const,
   license: '123',
@@ -111,10 +112,14 @@ describe('ClubView', () => {
     ].join('\n');
     const file = new File([fff], 'club.fff');
     fireEvent.change(screen.getByLabelText('Importer (.fff)'), { target: { files: [file] } });
+    // Sélection : MARTIN déjà présent (non importable), DURAND nouveau et coché
+    expect(await screen.findByText('Déjà présent')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'MARTIN Anne' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'DURAND Paul' })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Importer la sélection (1)' }));
     await waitFor(() => expect(api.importMembers).toHaveBeenCalled());
     const rows = api.importMembers.mock.calls[0][0] as { lastName: string; firstName: string }[];
-    expect(rows.map(r => `${r.lastName} ${r.firstName}`)).toEqual(['MARTIN Anne', 'DURAND Paul']);
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(rows.map(r => `${r.lastName} ${r.firstName}`)).toEqual(['DURAND Paul']);
   });
 
   it('nombre de pistes enregistré, import des photos ZIP', async () => {

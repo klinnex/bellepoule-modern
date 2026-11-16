@@ -3275,7 +3275,6 @@
     "archive": "Archive",
     "unarchive": "Reactivate",
     "import": "Import (.fff)",
-    "import_confirm": "Import {{count}} member(s) from « {{file}} »? Members already present (same licence, or same first and last name) are completed, not duplicated.",
     "import_done": "Import done: {{created}} added, {{updated}} completed, {{skipped}} already present",
     "import_empty": "No members found in this file",
     "strip_count": "Number of strips",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Sessions",
     "col_period": "Period",
     "leaderboard": "Club ranking"
+  },
+  "clubImport": {
+    "title": "Import from « {{file}} »",
+    "help": "Tick the people to import. Members already present (same licence, or same first and last name) are completed, never duplicated.",
+    "import_n": "Import selection ({{count}})",
+    "select_all": "Select all",
+    "select_none": "Select none",
+    "col_select": "Selection",
+    "col_status": "Status",
+    "status_new": "New",
+    "status_update": "To complete",
+    "status_present": "Already present",
+    "status_duplicate": "Duplicate in file"
   }
 }

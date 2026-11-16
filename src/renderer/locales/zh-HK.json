@@ -3275,7 +3275,6 @@
     "archive": "封存",
     "unarchive": "重新啟用",
     "import": "匯入 (.fff)",
-    "import_confirm": "從「{{file}}」匯入 {{count}} 位會員？已存在的會員（相同牌照，或相同姓名）會被補充資料，不會重複。",
     "import_done": "匯入完成：新增 {{created}}，補充 {{updated}}，已存在 {{skipped}}",
     "import_empty": "此檔案中找不到會員",
     "strip_count": "劍道數目",
@@ -3373,5 +3372,18 @@
     "col_sessions": "訓練次數",
     "col_period": "期間",
     "leaderboard": "會館排名"
+  },
+  "clubImport": {
+    "title": "從「{{file}}」匯入",
+    "help": "勾選要匯入的人。已存在的會員（相同牌照，或相同姓名）只會補充資料，不會重複。",
+    "import_n": "匯入所選（{{count}}）",
+    "select_all": "全選",
+    "select_none": "全不選",
+    "col_select": "選擇",
+    "col_status": "狀態",
+    "status_new": "新增",
+    "status_update": "待補充",
+    "status_present": "已存在",
+    "status_duplicate": "檔案內重複"
   }
 }

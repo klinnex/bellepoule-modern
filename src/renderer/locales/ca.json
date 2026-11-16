@@ -3275,7 +3275,6 @@
     "archive": "Arxivar",
     "unarchive": "Reactivar",
     "import": "Importar (.fff)",
-    "import_confirm": "Importar {{count}} soci(s) des de « {{file}} »? Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, no es dupliquen.",
     "import_done": "Importació acabada: {{created}} afegit(s), {{updated}} completat(s), {{skipped}} ja present(s)",
     "import_empty": "No s'ha trobat cap soci en aquest fitxer",
     "strip_count": "Nombre de pistes",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Sessions",
     "col_period": "Període",
     "leaderboard": "Classificació del club"
+  },
+  "clubImport": {
+    "title": "Importar des de « {{file}} »",
+    "help": "Marqueu les persones a importar. Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, mai es dupliquen.",
+    "import_n": "Importar la selecció ({{count}})",
+    "select_all": "Marcar-ho tot",
+    "select_none": "Desmarcar-ho tot",
+    "col_select": "Selecció",
+    "col_status": "Estat",
+    "status_new": "Nou",
+    "status_update": "A completar",
+    "status_present": "Ja present",
+    "status_duplicate": "Duplicat al fitxer"
   }
 }

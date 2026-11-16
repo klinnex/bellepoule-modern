@@ -3275,7 +3275,6 @@
     "archive": "Archivieren",
     "unarchive": "Reaktivieren",
     "import": "Importieren (.fff)",
-    "import_confirm": "{{count}} Mitglied(er) aus « {{file}} » importieren? Bereits vorhandene Mitglieder (gleiche Lizenz oder gleicher Vor- und Nachname) werden ergänzt, nicht doppelt angelegt.",
     "import_done": "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} ergänzt, {{skipped}} bereits vorhanden",
     "import_empty": "Keine Mitglieder in dieser Datei gefunden",
     "strip_count": "Anzahl der Bahnen",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Trainings",
     "col_period": "Zeitraum",
     "leaderboard": "Vereinsrangliste"
+  },
+  "clubImport": {
+    "title": "Import aus « {{file}} »",
+    "help": "Markieren Sie die zu importierenden Personen. Bereits vorhandene Mitglieder (gleiche Lizenz oder gleicher Vor- und Nachname) werden ergänzt, nie doppelt angelegt.",
+    "import_n": "Auswahl importieren ({{count}})",
+    "select_all": "Alle markieren",
+    "select_none": "Keine markieren",
+    "col_select": "Auswahl",
+    "col_status": "Status",
+    "status_new": "Neu",
+    "status_update": "Zu ergänzen",
+    "status_present": "Bereits vorhanden",
+    "status_duplicate": "Doppelt in der Datei"
   }
 }

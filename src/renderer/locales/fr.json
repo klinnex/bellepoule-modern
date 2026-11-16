@@ -3275,7 +3275,6 @@
     "archive": "Archiver",
     "unarchive": "Réactiver",
     "import": "Importer (.fff)",
-    "import_confirm": "Importer {{count}} membre(s) depuis « {{file}} » ? Les membres déjà présents (même licence, ou même nom et prénom) sont complétés, pas dupliqués.",
     "import_done": "Import terminé : {{created}} ajouté(s), {{updated}} complété(s), {{skipped}} déjà présent(s)",
     "import_empty": "Aucun membre trouvé dans ce fichier",
     "strip_count": "Nombre de pistes",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Séances",
     "col_period": "Période",
     "leaderboard": "Classement du club"
+  },
+  "clubImport": {
+    "title": "Importer depuis « {{file}} »",
+    "help": "Cochez les personnes à importer. Les membres déjà présents (même licence, ou même nom et prénom) sont complétés, jamais dupliqués.",
+    "import_n": "Importer la sélection ({{count}})",
+    "select_all": "Tout cocher",
+    "select_none": "Tout décocher",
+    "col_select": "Sélection",
+    "col_status": "Statut",
+    "status_new": "Nouveau",
+    "status_update": "À compléter",
+    "status_present": "Déjà présent",
+    "status_duplicate": "Doublon du fichier"
   }
 }

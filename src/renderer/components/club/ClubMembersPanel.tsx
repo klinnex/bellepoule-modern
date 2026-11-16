@@ -17,9 +17,14 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import type { ClubMember, ClubSettings } from '../../../shared/types/club';
+import type { ClubMember, ClubMemberInput, ClubSettings } from '../../../shared/types/club';
 import { periodOf } from '../../../shared/utils/clubStats';
-import { fencersToClubMembers } from '../../../shared/utils/clubImport';
+import {
+  classifyClubImport,
+  fencersToClubMembers,
+  type ClubImportRowStatus,
+} from '../../../shared/utils/clubImport';
+import { ClubImportModal } from './ClubImportModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
 import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import {
@@ -66,6 +71,11 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '' });
   const [printing, setPrinting] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
+  const [importDraft, setImportDraft] = useState<{
+    fileName: string;
+    rows: ClubMemberInput[];
+    statuses: ClubImportRowStatus[];
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!api) return;
@@ -156,18 +166,20 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         showToast(parsed.errors[0] ?? t('club.import_empty'), 'error');
         return;
       }
-      const ok = await confirm({
-        message: t('club.import_confirm', { count: rows.length, file: file.name }),
-        confirmLabel: t('actions.import'),
-      });
-      if (!ok) return;
-      await run(async () => {
-        const r = await api.importMembers(rows);
-        showToast(t('club.import_done', { ...r }), 'success');
-      });
+      // Sélection des personnes à importer (statut calculé sur tout l'annuaire, archivés compris)
+      const statuses = classifyClubImport(await api.listMembers(true), rows);
+      setImportDraft({ fileName: file.name, rows, statuses });
     } catch (e) {
       showToast(errText(e), 'error');
     }
+  };
+
+  const confirmImport = (selectedRows: ClubMemberInput[]) => {
+    setImportDraft(null);
+    void run(async () => {
+      const r = await api.importMembers(selectedRows);
+      showToast(t('club.import_done', { ...r }), 'success');
+    });
   };
 
   const saveStrips = (n: number) =>
@@ -455,6 +467,13 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </table>
         )}
       </section>
+      {importDraft && (
+        <ClubImportModal
+          {...importDraft}
+          onConfirm={confirmImport}
+          onClose={() => setImportDraft(null)}
+        />
+      )}
     </div>
   );
 };

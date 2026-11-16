@@ -3275,7 +3275,6 @@
     "archive": "Archivia",
     "unarchive": "Riattiva",
     "import": "Importa (.fff)",
-    "import_confirm": "Importare {{count}} socio/i da « {{file}} »? I soci già presenti (stessa licenza, o stesso nome e cognome) vengono completati, non duplicati.",
     "import_done": "Importazione completata: {{created}} aggiunto/i, {{updated}} completato/i, {{skipped}} già presente/i",
     "import_empty": "Nessun socio trovato in questo file",
     "strip_count": "Numero di pedane",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Sedute",
     "col_period": "Periodo",
     "leaderboard": "Classifica del club"
+  },
+  "clubImport": {
+    "title": "Importa da « {{file}} »",
+    "help": "Seleziona le persone da importare. I soci già presenti (stessa licenza, o stesso nome e cognome) vengono completati, mai duplicati.",
+    "import_n": "Importa la selezione ({{count}})",
+    "select_all": "Seleziona tutto",
+    "select_none": "Deseleziona tutto",
+    "col_select": "Selezione",
+    "col_status": "Stato",
+    "status_new": "Nuovo",
+    "status_update": "Da completare",
+    "status_present": "Già presente",
+    "status_duplicate": "Duplicato nel file"
   }
 }

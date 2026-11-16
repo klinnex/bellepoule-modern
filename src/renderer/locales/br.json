@@ -3275,7 +3275,6 @@
     "archive": "Dielloù",
     "unarchive": "Adweredekaat",
     "import": "Enporzhiañ (.fff)",
-    "import_confirm": "Enporzhiañ {{count}} ezel eus « {{file}} » ? An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, ket eilet.",
     "import_done": "Enporzhiañ echu : {{created}} ouzhpennet, {{updated}} klokaet, {{skipped}} a oa dija",
     "import_empty": "Ezel ebet kavet er restr-mañ",
     "strip_count": "Niver a leurennoù",
@@ -3373,5 +3372,18 @@
     "col_sessions": "Abadennoù",
     "col_period": "Prantad",
     "leaderboard": "Renkadur ar c'hlub"
+  },
+  "clubImport": {
+    "title": "Enporzhiañ diwar « {{file}} »",
+    "help": "Merkit an dud da enporzhiañ. An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, morse eilet.",
+    "import_n": "Enporzhiañ an dibab ({{count}})",
+    "select_all": "Merkañ pep tra",
+    "select_none": "Dimerkañ pep tra",
+    "col_select": "Dibab",
+    "col_status": "Statud",
+    "status_new": "Nevez",
+    "status_update": "Da glokaat",
+    "status_present": "Amañ dija",
+    "status_duplicate": "Doubl er restr"
   }
 }
