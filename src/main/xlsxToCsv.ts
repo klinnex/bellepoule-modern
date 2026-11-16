@@ -96,3 +96,87 @@ export async function readImportText(filePath: string): Promise<string> {
     ? xlsxToCsv(await readBoundedFile(filePath))
     : decodeTextFile(await fs.promises.readFile(filePath));
 }
+
+/** « 1 » → A, « 27 » → AB (index de colonne base 0) */
+const columnLetters = (index: number): string => {
+  let s = '';
+  for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+    s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+  }
+  return s;
+};
+
+/** Caractères interdits en XML 1.0 retirés ; échappement des entités */
+const xmlText = (v: string): string =>
+  v
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+/**
+ * Classeur .xlsx minimal (une feuille) : chaînes en ligne, nombres natifs.
+ * Relu par `xlsxToRows` ; ouvrable dans Excel, LibreOffice et Numbers.
+ */
+export async function rowsToXlsx(
+  rows: (string | number | null | undefined)[][],
+  sheetName = 'Feuille1'
+): Promise<Buffer> {
+  const safeSheet = xmlText(sheetName.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31)) || 'Feuille1';
+  const sheetRows = rows
+    .map((row, r) => {
+      const cells = row
+        .map((v, c) => {
+          const ref = `${columnLetters(c)}${r + 1}`;
+          if (v === null || v === undefined || v === '') return '';
+          if (typeof v === 'number' && Number.isFinite(v)) {
+            return `<c r="${ref}"><v>${v}</v></c>`;
+          }
+          return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlText(String(v))}</t></is></c>`;
+        })
+        .join('');
+      return `<row r="${r + 1}">${cells}</row>`;
+    })
+    .join('');
+
+  const zip = new JSZip();
+  zip.file(
+    '[Content_Types].xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '</Types>'
+  );
+  zip.file(
+    '_rels/.rels',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>'
+  );
+  zip.file(
+    'xl/workbook.xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      `<sheets><sheet name="${safeSheet}" sheetId="1" r:id="rId1"/></sheets></workbook>`
+  );
+  zip.file(
+    'xl/_rels/workbook.xml.rels',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '</Relationships>'
+  );
+  zip.file(
+    'xl/worksheets/sheet1.xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      `<sheetData>${sheetRows}</sheetData></worksheet>`
+  );
+  return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}

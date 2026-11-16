@@ -520,4 +520,6 @@ export interface ClubAPI {
   returnLoan: (id: string, data?: ClubLoanReturn) => Promise<ClubLoan | null>;
   /** Supprime un prêt rendu (correction de saisie) ; un prêt en cours se rend d'abord */
   deleteLoan: (id: string) => Promise<void>;
+  /** Import CSV / Excel : fiches ajoutées ; doublons de n° de série ignorés */
+  importItems: (clubId: string, items: ClubItemInput[]) => Promise<{ created: number; skipped: number }>;
 }

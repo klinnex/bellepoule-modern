@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Inventari",
+    "export_excel": "Exporta (Excel)",
+    "import": "Importa",
+    "import_action": "Importa les fitxes",
+    "import_confirm": "Importar {{created}} fitxa(es)? {{errors}} línia(es) omesa(es) per errors.",
+    "import_empty": "Cap fitxa vàlida en aquest fitxer.",
+    "import_line_error": "Línia {{line}}: {{message}}",
+    "import_done": "Importació: {{created}} afegida(es), {{skipped}} número(s) de sèrie duplicat(s) omès(os).",
     "title": "Inventari ({{n}} fitxes)",
     "add": "Afegir material",
     "export": "Exporta (CSV)",

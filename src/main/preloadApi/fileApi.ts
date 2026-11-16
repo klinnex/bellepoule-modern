@@ -31,6 +31,14 @@ export const fileApi = {
     }
     return ipcRenderer.invoke('file:writeContent', filepath, content);
   },
+  /** Classeur .xlsx (une feuille) écrit par le main depuis une grille de valeurs */
+  writeSpreadsheet: (filepath: string, rows: (string | number)[][], sheetName?: string) => {
+    if (!filepath || typeof filepath !== 'string') {
+      throw new Error('Filepath is required and must be a string');
+    }
+    if (!Array.isArray(rows)) throw new Error('Rows must be an array');
+    return ipcRenderer.invoke('file:writeSpreadsheet', filepath, rows, sheetName);
+  },
   printHtml: (html: string) => {
     if (!html || typeof html !== 'string') {
       throw new Error('HTML content is required');

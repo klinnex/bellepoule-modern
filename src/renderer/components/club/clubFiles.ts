@@ -67,3 +67,32 @@ export async function imageFileToDataUrl(file: File, maxSide = 1280): Promise<st
     return original;
   }
 }
+
+/** Ouvre un fichier CSV ou Excel (.xlsx lu en CSV par le main) ; null si annulé */
+export async function openInventoryFile(
+  title: string
+): Promise<{ filePath: string; content: string } | null> {
+  const r = await window.electronAPI?.dialog?.openFile({
+    title,
+    filters: [{ name: 'CSV, Excel', extensions: ['csv', 'xlsx'] }],
+  });
+  return r?.filePath ? { filePath: r.filePath, content: r.content ?? '' } : null;
+}
+
+/** Enregistre une grille en classeur Excel ; false si annulé */
+export async function saveSpreadsheetFile(
+  defaultPath: string,
+  rows: (string | number)[][],
+  title: string
+): Promise<boolean> {
+  const api = window.electronAPI;
+  if (!api?.dialog?.saveFile || !api.file?.writeSpreadsheet) return false;
+  const r = await api.dialog.saveFile({
+    title,
+    defaultPath,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+  });
+  if (!r || r.canceled || !r.filePath) return false;
+  await api.file.writeSpreadsheet(r.filePath, rows);
+  return true;
+}

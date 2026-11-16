@@ -1052,6 +1052,8 @@ export interface FileAPI {
     competitionId: string
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
+  /** Classeur .xlsx écrit par le main (une feuille) */
+  writeSpreadsheet: (filepath: string, rows: (string | number)[][], sheetName?: string) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
     html: string,

@@ -136,7 +136,15 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
 - **Refus** : suppression d'une fiche tant qu'un exemplaire est prêté ; quantité réduite sous le
   nombre prêté ; prêt d'un matériel réformé, d'un tireur archivé ou d'un autre club.
 - **Historique** : prêts rendus (repliable). Un prêt rendu peut être supprimé (correction de saisie).
-- **Export CSV** : lignes visibles (filtres appliqués), séparateur `;`, compatible tableur français.
+- **Export CSV ou Excel** : lignes visibles (filtres appliqués). CSV à séparateur `;` (tableur
+  français) ; Excel `.xlsx` une feuille.
+- **Import CSV ou Excel** : colonne « Nom » obligatoire, autres colonnes reconnues par leur intitulé
+  (sans accents ni casse, ordre libre). Catégorie, arme, état : libellés français ou codes internes.
+  Dates AAAA-MM-JJ, jj/mm/aaaa ou date Excel. Prix « 12,5 » ou « 12.5 ». « Réformé » : oui / non.
+  Un aperçu indique le nombre de fiches et les lignes en erreur (ignorées) avant l'import ; une fiche
+  dont le n° de série existe déjà dans le club est ignorée. 2 000 lignes maximum. Les colonnes
+  « Exemplaires prêtés » sont informatives (les prêts ne s'importent pas).
+  En-têtes d'échange en français, quelle que soit la langue de l'interface.
 - **Effacement RGPD d'un tireur** : son identité est retirée de ses prêts ; un matériel encore
   prêté reste compté (« Tireur effacé »). **Effacement d'un club** : matériel et prêts supprimés.
 

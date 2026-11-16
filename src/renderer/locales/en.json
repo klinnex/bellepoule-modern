@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Inventory",
+    "export_excel": "Export (Excel)",
+    "import": "Import",
+    "import_action": "Import items",
+    "import_confirm": "{{created}} item(s) to import, {{errors}} line(s) skipped due to errors. Continue?",
+    "import_empty": "No valid item in this file.",
+    "import_line_error": "Line {{line}}: {{message}}",
+    "import_done": "Import: {{created}} added, {{skipped}} duplicate serial number(s) skipped.",
     "title": "Inventory ({{n}} items)",
     "add": "Add item",
     "export": "Export (CSV)",

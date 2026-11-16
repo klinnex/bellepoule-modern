@@ -27,6 +27,7 @@ describe('registerFileHandlers (#1341)', () => {
       'file:importFencersArchive',
       'file:importPhotos',
       'file:writeContent',
+      'file:writeSpreadsheet',
     ]);
   });
 

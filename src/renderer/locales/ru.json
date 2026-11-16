@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Инвентарь",
+    "export_excel": "Экспорт (Excel)",
+    "import": "Импорт",
+    "import_action": "Импортировать",
+    "import_confirm": "Импортировать записей: {{created}}? Строк с ошибками пропущено: {{errors}}.",
+    "import_empty": "В файле нет корректных записей.",
+    "import_line_error": "Строка {{line}}: {{message}}",
+    "import_done": "Импорт: добавлено {{created}}, пропущено дубликатов серийных номеров: {{skipped}}.",
     "title": "Инвентарь ({{n}} позиций)",
     "add": "Добавить инвентарь",
     "export": "Экспорт (CSV)",

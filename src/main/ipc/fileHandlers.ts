@@ -15,7 +15,7 @@ import {
   readBoundedFile,
   validateImportedFencers,
 } from '../pathAuthorization';
-import { readImportText } from '../xlsxToCsv';
+import { readImportText, rowsToXlsx } from '../xlsxToCsv';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /**
@@ -84,6 +84,30 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
     }
     await fs.promises.writeFile(resolved, content, 'utf-8');
   });
+
+  // Tableur Excel (.xlsx) écrit depuis une grille de valeurs (Mode Club : inventaire)
+  ipcMain.handle(
+    'file:writeSpreadsheet',
+    async (_, filepath: string, rows: unknown, sheetName?: unknown) => {
+      const resolved = assertAuthorizedPath(filepath, 'write');
+      const appDir = path.resolve(app.getAppPath());
+      if (resolved.startsWith(appDir)) {
+        throw new Error('Writing inside app directory is not allowed');
+      }
+      if (!Array.isArray(rows) || rows.length > 20000) {
+        throw new Error('Tableau invalide (20 000 lignes max)');
+      }
+      const grid = rows.map(r =>
+        (Array.isArray(r) ? r : []).slice(0, 200).map(v =>
+          typeof v === 'number' || typeof v === 'string' ? v : ''
+        ) as (string | number)[]
+      );
+      await fs.promises.writeFile(
+        resolved,
+        await rowsToXlsx(grid, typeof sheetName === 'string' ? sheetName : undefined)
+      );
+    }
+  );
 
   // Photo ZIP export handler
   ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: string) => {

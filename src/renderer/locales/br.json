@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Invantar",
+    "export_excel": "Ezporzhiañ (Excel)",
+    "import": "Enporzhiañ",
+    "import_action": "Enporzhiañ an danvezioù",
+    "import_confirm": "Enporzhiañ {{created}} danvezioù ? {{errors}} linenn(enn) lamet abalamour da fazioù.",
+    "import_empty": "Danvez talvezus ebet er restr-mañ.",
+    "import_line_error": "Linenn {{line}} : {{message}}",
+    "import_done": "Importadur : {{created}} ouzhpennet, {{skipped}} niverenn(ioù) serienn kopiet lamet.",
     "title": "Invantar ({{n}})",
     "add": "Ouzhpennañ traoù",
     "export": "Ezporzhiañ (CSV)",

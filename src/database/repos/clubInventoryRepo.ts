@@ -430,4 +430,36 @@ export class ClubInventoryRepo {
     if (!cur.returnedAt) throw new Error('Prêt en cours : rendez-le avant de le supprimer');
     this.sql.run('DELETE FROM club_loans WHERE id = ?', [id]);
   }
+
+  /**
+   * Import en lot (CSV / Excel) : fiches ajoutées dans une seule transaction. Une fiche dont
+   * le n° de série existe déjà dans le club (ou plus haut dans le même fichier) est ignorée.
+   */
+  public importItems(
+    clubId: string,
+    inputs: ClubItemInput[]
+  ): { created: number; skipped: number } {
+    this.ensureOpen();
+    if (!Array.isArray(inputs) || inputs.length > 2000) {
+      throw new Error('Import limité à 2000 fiches');
+    }
+    const seen = new Set(
+      this.listItems(clubId).map(i => i.serialNumber?.trim().toLowerCase()).filter(Boolean)
+    );
+    let created = 0;
+    let skipped = 0;
+    this.sql.transaction(() => {
+      for (const data of inputs) {
+        const serial = data.serialNumber?.trim().toLowerCase();
+        if (serial && seen.has(serial)) {
+          skipped++;
+          continue;
+        }
+        if (serial) seen.add(serial);
+        this.createItem(clubId, data);
+        created++;
+      }
+    });
+    return { created, skipped };
+  }
 }

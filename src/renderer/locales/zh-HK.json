@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "器材庫存",
+    "export_excel": "匯出 (Excel)",
+    "import": "匯入",
+    "import_action": "匯入器材",
+    "import_confirm": "匯入 {{created}} 項器材？因錯誤略過 {{errors}} 行。",
+    "import_empty": "此檔案沒有有效的器材。",
+    "import_line_error": "第 {{line}} 行：{{message}}",
+    "import_done": "匯入：已新增 {{created}} 項，略過 {{skipped}} 個重複序號。",
     "title": "器材庫存（{{n}} 項）",
     "add": "新增器材",
     "export": "匯出 (CSV)",

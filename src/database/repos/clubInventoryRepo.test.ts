@@ -229,4 +229,17 @@ describe.skipIf(!DatabaseSync)('ClubInventoryRepo (inventaire du club)', () => {
     expect(inv.listItems(cid)).toHaveLength(0);
     expect(inv.listLoans(cid)).toHaveLength(0);
   });
+
+  it('import en lot : ignore les n° de série déjà présents ou répétés dans le fichier', () => {
+    inv.createItem(cid, { name: 'Épée A', category: 'weapon', serialNumber: 'SN-1' });
+    const r = inv.importItems(cid, [
+      { name: 'Épée A bis', category: 'weapon', serialNumber: 'sn-1' },
+      { name: 'Épée B', category: 'weapon', serialNumber: 'SN-2' },
+      { name: 'Épée B copie', category: 'weapon', serialNumber: 'SN-2' },
+      { name: 'Masque sans série', category: 'mask' },
+      { name: 'Masque sans série 2', category: 'mask' },
+    ]);
+    expect(r).toEqual({ created: 3, skipped: 2 });
+    expect(inv.listItems(cid)).toHaveLength(4);
+  });
 });

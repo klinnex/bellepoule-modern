@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Inventario",
+    "export_excel": "Exportar (Excel)",
+    "import": "Importar",
+    "import_action": "Importar fichas",
+    "import_confirm": "¿Importar {{created}} ficha(s)? {{errors}} línea(s) omitida(s) por errores.",
+    "import_empty": "Ninguna ficha válida en este archivo.",
+    "import_line_error": "Línea {{line}}: {{message}}",
+    "import_done": "Importación: {{created}} añadida(s), {{skipped}} número(s) de serie duplicado(s) omitido(s).",
     "title": "Inventario ({{n}} fichas)",
     "add": "Añadir material",
     "export": "Exportar (CSV)",

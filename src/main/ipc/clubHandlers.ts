@@ -223,4 +223,7 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     inv.returnLoan(id, data ?? {})
   );
   ipcMain.handle('club:deleteLoan', (_, id: string) => inv.deleteLoan(id));
+  ipcMain.handle('club:importItems', (_, clubId: string, list: ClubItemInput[]) =>
+    inv.importItems(clubId, Array.isArray(list) ? list : [])
+  );
 }

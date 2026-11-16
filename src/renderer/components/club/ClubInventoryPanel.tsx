@@ -4,7 +4,17 @@
  * Licensed under GPL-3.0
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, Download, HandCoins, Pencil, Plus, Trash2, Undo2, Archive } from 'lucide-react';
+import {
+  Archive,
+  BookOpen,
+  Download,
+  HandCoins,
+  Pencil,
+  Plus,
+  Trash2,
+  Undo2,
+  Upload,
+} from 'lucide-react';
 import type {
   ClubItem,
   ClubItemCategory,
@@ -18,8 +28,9 @@ import {
   computeInventorySummary,
   isWarrantyAlert,
   localIsoDate,
-  toCsv,
 } from '../../../shared/utils/clubInventory';
+import { toCsv } from '../../../shared/utils/clubInventory';
+import { parseDelimited, itemsToRows, rowsToItems } from '../../../shared/utils/clubInventoryIO';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -28,7 +39,7 @@ import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { ClubItemEditor } from './ClubItemEditor';
 import { ClubLoanModal } from './ClubLoanModal';
-import { saveTextFile } from './clubFiles';
+import { openInventoryFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -139,59 +150,52 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
     if (ok) await run(() => api.deleteLoan(loan.id));
   };
 
-  const exportCsv = async () => {
-    const statusLabel = (i: ClubItem) =>
-      i.retired ? t('clubInventory.status_retired') : t('clubInventory.status_active');
-    const rows: (string | number | undefined)[][] = [
-      [
-        t('clubInventory.name'),
-        t('clubInventory.category'),
-        t('clubInventory.weapon'),
-        t('clubInventory.brand'),
-        t('clubInventory.model'),
-        t('clubInventory.serial'),
-        t('clubInventory.size'),
-        t('clubInventory.color'),
-        t('clubInventory.quantity'),
-        t('clubInventory.lent_units'),
-        t('clubInventory.condition'),
-        t('clubInventory.location'),
-        t('clubInventory.purchase_date'),
-        t('clubInventory.purchase_price'),
-        t('clubInventory.warranty_until'),
-        t('clubInventory.supplier'),
-        t('clubInventory.invoice'),
-        t('clubInventory.notes'),
-        t('clubInventory.status'),
-      ],
-      ...visible.map(i => [
-        i.name,
-        t(`clubInventory.cat_${i.category}`),
-        i.weapon ? weaponLabel(i.weapon, t) : '',
-        i.brand,
-        i.model,
-        i.serialNumber,
-        i.size,
-        i.color,
-        i.quantity,
-        i.lentQuantity,
-        t(`clubInventory.cond_${i.condition}`),
-        i.location,
-        i.purchaseDate,
-        i.purchasePrice,
-        i.warrantyUntil,
-        i.supplier,
-        i.invoiceRef,
-        i.notes,
-        statusLabel(i),
-      ]),
-    ];
+  const exportFile = async (kind: 'csv' | 'xlsx') => {
+    const rows = itemsToRows(visible);
     try {
-      if (
-        await saveTextFile(`inventaire-${today}.csv`, toCsv(rows), t('clubInventory.export'), 'csv')
-      ) {
+      const name = `inventaire-${today}.${kind}`;
+      const title = t('clubInventory.export');
+      const done =
+        kind === 'csv'
+          ? await saveTextFile(name, toCsv(rows), title, 'csv')
+          : await saveSpreadsheetFile(name, rows, title);
+      if (done) {
         showToast(t('clubInventory.exported', { n: visible.length }), 'success');
       }
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
+  const importFile = async () => {
+    try {
+      const file = await openInventoryFile(t('clubInventory.import'));
+      if (!file) return;
+      const { items, errors } = rowsToItems(parseDelimited(file.content));
+      if (items.length === 0) {
+        showToast(t('clubInventory.import_empty'), 'error');
+        return;
+      }
+      const details = errors
+        .slice(0, 5)
+        .map(e => t('clubInventory.import_line_error', { line: e.line, message: e.message }))
+        .join('\n');
+      const ok = await confirm({
+        message: [
+          t('clubInventory.import_confirm', { created: items.length, errors: errors.length }),
+          details,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+        confirmLabel: t('clubInventory.import_action'),
+      });
+      if (!ok) return;
+      const r = await api.importItems(clubId, items);
+      showToast(
+        t('clubInventory.import_done', { created: r.created, skipped: r.skipped }),
+        'success'
+      );
+      await load();
     } catch (e) {
       showToast(errText(e), 'error');
     }
@@ -249,12 +253,22 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           <h2 id="club-inventory-title" className="club-card-title">
             {t('clubInventory.title', { n: summary.lines })}
           </h2>
+          <Button icon={<Upload size={15} aria-hidden="true" />} onClick={() => void importFile()}>
+            {t('clubInventory.import')}
+          </Button>
           <Button
             icon={<Download size={15} aria-hidden="true" />}
             disabled={visible.length === 0}
-            onClick={() => void exportCsv()}
+            onClick={() => void exportFile('csv')}
           >
             {t('clubInventory.export')}
+          </Button>
+          <Button
+            icon={<Download size={15} aria-hidden="true" />}
+            disabled={visible.length === 0}
+            onClick={() => void exportFile('xlsx')}
+          >
+            {t('clubInventory.export_excel')}
           </Button>
           <Button
             variant="primary"

@@ -3516,6 +3516,13 @@
   },
   "clubInventory": {
     "tab": "Inventar",
+    "export_excel": "Exportieren (Excel)",
+    "import": "Importieren",
+    "import_action": "Einträge importieren",
+    "import_confirm": "{{created}} Eintrag/Einträge importieren, {{errors}} Zeile(n) wegen Fehlern übersprungen. Fortfahren?",
+    "import_empty": "Keine gültigen Einträge in dieser Datei.",
+    "import_line_error": "Zeile {{line}}: {{message}}",
+    "import_done": "Import: {{created}} hinzugefügt, {{skipped}} doppelte Seriennummer(n) übersprungen.",
     "title": "Inventar ({{n}} Einträge)",
     "add": "Gegenstand hinzufügen",
     "export": "Exportieren (CSV)",
