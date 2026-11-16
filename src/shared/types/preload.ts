@@ -1053,7 +1053,11 @@ export interface FileAPI {
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   /** Classeur .xlsx écrit par le main (une feuille) */
-  writeSpreadsheet: (filepath: string, rows: (string | number)[][], sheetName?: string) => Promise<void>;
+  writeSpreadsheet: (
+    filepath: string,
+    rows: (string | number)[][],
+    sheetName?: string
+  ) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
     html: string,
@@ -1083,24 +1087,26 @@ export interface DialogAPI {
 }
 
 export interface MenuAPI {
-  onMenuNewCompetition: (callback: () => void) => void;
-  onMenuSave: (callback: () => void) => void;
-  onMenuCompetitionProperties: (callback: () => void) => void;
-  onMenuAddFencer: (callback: () => void) => void;
-  onMenuAddReferee: (callback: () => void) => void;
-  onMenuNextPhase: (callback: () => void) => void;
-  onMenuExport: (callback: (format: string) => void) => void;
-  onMenuImport: (callback: (format: string, filepath: string, content: string) => void) => void;
-  onMenuOpenSettings: (callback: () => void) => void;
-  onMenuReportIssue: (callback: () => void) => void;
-  onShowAbout: (callback: () => void) => void;
+  onMenuNewCompetition: (callback: () => void) => () => void;
+  onMenuSave: (callback: () => void) => () => void;
+  onMenuCompetitionProperties: (callback: () => void) => () => void;
+  onMenuAddFencer: (callback: () => void) => () => void;
+  onMenuAddReferee: (callback: () => void) => () => void;
+  onMenuNextPhase: (callback: () => void) => () => void;
+  onMenuExport: (callback: (format: string) => void) => () => void;
+  onMenuImport: (
+    callback: (format: string, filepath: string, content: string) => void
+  ) => () => void;
+  onMenuOpenSettings: (callback: () => void) => () => void;
+  onMenuReportIssue: (callback: () => void) => () => void;
+  onShowAbout: (callback: () => void) => () => void;
   /** competitionIds : compétitions fusionnées depuis le .bpm ouvert (#1117) */
-  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => void;
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => () => void;
   /** Compétition affichée : « Enregistrer sous » l'exporte seule */
   setCurrentCompetition?: (competitionId: string | null) => void;
-  onFileSaved: (callback: (filepath: string) => void) => void;
-  onAutosaveCompleted: (callback: () => void) => void;
-  onAutosaveFailed: (callback: () => void) => void;
+  onFileSaved: (callback: (filepath: string) => void) => () => void;
+  onAutosaveCompleted: (callback: () => void) => () => void;
+  onAutosaveFailed: (callback: () => void) => () => void;
   onDbReady: (callback: () => void) => void;
 }
 
