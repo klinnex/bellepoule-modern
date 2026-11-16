@@ -41,7 +41,6 @@ import {
   type CyranoOptions,
 } from './cyranoSettings';
 
-import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
 import { CYRANO_PROFILES, buildBatch, exportPistes, parsePistesImport } from './cyranoPisteTools';
 
 const POLL_MS = 5000;
@@ -63,12 +62,11 @@ const EMPTY_ROW: CyranoPisteConfigDTO = {
   mode: 'master',
 };
 
-export const CyranoPanel: React.FC = () => {
+export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ competitionId }) => {
   const { t } = useTranslation();
   const [running, setRunning] = useState(false);
   const [udpPort, setUdpPort] = useState<number>(readPort);
-  // Table des pistes : en base, par compétition (#1829)
-  const competitionId = useCompetitionStore(s => s.currentCompetition?.id ?? null);
+  // Table des pistes : en base, par compétition (#1829). Identifiant passé par le parent.
   const [pistes, setPistes] = useState<CyranoPisteConfigDTO[]>([]);
   useEffect(() => {
     let alive = true;
