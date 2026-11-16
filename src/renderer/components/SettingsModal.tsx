@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
+import PrivacySettingsSection from './PrivacySettingsSection';
 import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
@@ -491,6 +492,11 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
         );
       case 'proxy':
         return <ProxySettingsSection />;
+      case 'privacy_network':
+      case 'privacy_retention':
+      case 'privacy_person':
+      case 'privacy_bpm':
+        return <PrivacySettingsSection item={id} />;
       case 'backup':
         return (
           <>
@@ -535,6 +541,7 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
             <div className="form-group">
               <label style={BOLD}>{t('settings.webhook_title')}</label>
               <p style={HINT}>{t('settings.webhook_hint')}</p>
+              <p style={HINT}>{t('privacy.export_warning')}</p>
               <input
                 type="url"
                 className="form-input mb-2"

@@ -20,6 +20,7 @@ import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { registerEventDayHandlers } from './ipc/eventDayHandlers';
 import { registerClubHandlers } from './ipc/clubHandlers';
+import { applyStoredPrivacySettings, createPrivacyHandlers } from './ipc/privacyHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
 import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
@@ -68,7 +69,13 @@ const createWindow = (initialLang?: string): void =>
     buildMenu: lang => buildMenu(lang),
   });
 
-const menuActions = createMenuActions({ db, getMainWindow: () => mainWindow });
+// RGPD (#1882) : droits des personnes, conservation, archives .bpm chiffrées
+const privacyHandlers = createPrivacyHandlers({ db, getMainWindow: () => mainWindow });
+const menuActions = createMenuActions({
+  db,
+  getMainWindow: () => mainWindow,
+  onEncryptedBpm: privacyHandlers.requestEncryptedOpen,
+});
 const { handleOpenFile, exportCompetitionDialog, setCurrentCompetitionId } = menuActions;
 const buildMenu = (language?: string): void =>
   createMenu(
@@ -84,6 +91,7 @@ const buildMenu = (language?: string): void =>
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
 registerEventDayHandlers({ db });
 registerClubHandlers({ db });
+privacyHandlers.register();
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
 
 // File handlers
@@ -227,6 +235,8 @@ async function openDatabase(): Promise<void> {
 
   await db.open(dbPath);
   logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
+  // Noms abrégés sur le réseau + purge automatique des données échues (RGPD, #1882)
+  applyStoredPrivacySettings(db, userDataPath);
 }
 
 // Autosave every 2 minutes

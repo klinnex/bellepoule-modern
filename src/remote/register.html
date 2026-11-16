@@ -108,6 +108,20 @@
       padding-top: 1.25rem;
     }
 
+    .privacy-consent {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .privacy-notice {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin: 0.75rem 0;
+      line-height: 1.4;
+    }
     .photo-section h2 {
       font-size: 0.95rem;
       font-weight: 600;
@@ -322,7 +336,13 @@
         <button type="button" class="btn btn-secondary" id="btn-retake"><span data-icon="refresh"></span> <span data-i18n="register.retake">Reprendre</span></button>
         <button type="button" class="btn btn-danger-outline" id="btn-remove-photo" data-i18n="register.remove_photo">✕ Supprimer</button>
       </div>
+      <label class="privacy-consent" for="photoConsent">
+        <input id="photoConsent" type="checkbox" />
+        <span data-i18n="register.photo_consent">J'accepte que ma photo soit utilisée pour la compétition (accord d'un parent si je suis mineur).</span>
+      </label>
     </div>
+
+    <p class="privacy-notice" id="privacy-notice" data-i18n="register.privacy_notice">Vos données (nom, prénom, genre, club, licence, nationalité, date de naissance, photo) sont traitées par l'organisateur pour gérer la compétition. Nom, prénom, club et résultats peuvent être affichés sur les écrans et documents de la compétition. Pour y accéder, les rectifier ou les effacer, adressez-vous à l'organisateur.</p>
 
     <button type="submit" class="btn btn-primary btn-submit" id="btn-submit" data-i18n="register.submit">
       S'inscrire
@@ -490,7 +510,13 @@
       nationality: document.getElementById('nationality').value.trim().toUpperCase().substring(0, 3) || 'FRA',
       birthDate: document.getElementById('birthDate').value || null,
       photo: photoBase64 || null,
+      photoConsent: document.getElementById('photoConsent').checked,
     };
+
+    if (payload.photo && !payload.photoConsent) {
+      showToast(tk('register.photo_consent_required'), 'error');
+      return;
+    }
 
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = '<div class="spinner"></div>';

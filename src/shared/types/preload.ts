@@ -31,6 +31,7 @@ import type {
   EventDay,
 } from './eventDay';
 import type { ClubAPI } from './club';
+import type { PrivacyAPI } from './privacy';
 export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
@@ -1390,6 +1391,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   dialog: DialogAPI;
   updater: UpdaterAPI;
   proxy: ProxyAPI;
+  privacy: PrivacyAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
   ftp: FtpAPI;

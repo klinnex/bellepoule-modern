@@ -101,6 +101,9 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
         </>
       }
     >
+      <p role="note" className="privacy-note">
+        {t('privacy.export_warning')}
+      </p>
       {onExportCompetition && (
         <Section title={t('competition.export_section')}>
           <Button onClick={onExportCompetition}>{t('competition.save_progress_bpm')}</Button>

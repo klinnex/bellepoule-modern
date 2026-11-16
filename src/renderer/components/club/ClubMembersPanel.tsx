@@ -368,6 +368,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           />
           <Button
             icon={<ImageUp size={15} aria-hidden="true" />}
+            title={t('privacy.photo_consent')}
             onClick={() => void importPhotos()}
           >
             {t('fencerList.import_photos')}

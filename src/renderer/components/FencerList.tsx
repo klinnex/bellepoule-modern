@@ -242,6 +242,7 @@ const FencerListComponent: React.FC<FencerListProps> = (props: FencerListProps) 
                       <Button
                         variant="ghost"
                         style={MENU_ITEM}
+                        title={t('privacy.photo_consent')}
                         onClick={() => {
                           handleImportPhotos();
                           setImportMenuOpen(false);

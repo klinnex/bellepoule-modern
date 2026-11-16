@@ -33,6 +33,7 @@ import './styles/dashboard.css';
 import './styles/event-day.css';
 import './styles/club.css';
 import './styles/cyrano.css';
+import './styles/privacy.css';
 import './styles/analytics.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';

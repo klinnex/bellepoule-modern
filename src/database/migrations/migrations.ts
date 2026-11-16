@@ -939,4 +939,18 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 33,
+    description:
+      "RGPD : horodatage d'anonymisation des compétitions et des membres du club (#1882)",
+    up(db) {
+      for (const table of ['competitions', 'club_members']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN anonymized_at TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+    },
+  },
 ];

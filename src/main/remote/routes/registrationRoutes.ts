@@ -147,8 +147,13 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       return res.status(429).json({ error: 'rate_limited' });
     }
 
-    const { lastName, firstName, gender, club, license, nationality, birthDate, photo } =
+    const { lastName, firstName, gender, club, license, nationality, birthDate } =
       req.body as Record<string, string | null | undefined>;
+    // Photo conservée seulement avec le consentement explicite coché (RGPD, #1882)
+    const photo =
+      (req.body as Record<string, unknown>).photoConsent === true
+        ? (req.body as Record<string, string | null | undefined>).photo
+        : undefined;
 
     if (!lastName || typeof lastName !== 'string' || lastName.trim() === '') {
       return res.status(400).json({ error: 'last_name_required' });
