@@ -57,13 +57,13 @@ export function cyranoEndOutcome(
   sides: CyranoSides
 ): NonNullable<ArenaMatch['deviceEnd']> {
   const out = (s?: string) => s === 'A' || s === 'E';
-  const outA = out(sides.A.status);
-  const outB = out(sides.B.status);
-  if (outA !== outB) {
-    const loser = outA ? sides.A : sides.B;
-    return { winner: outA ? 'B' : 'A', reason: loser.status === 'A' ? 'abandon' : 'exclusion' };
+  const derouteA = out(sides.A.status);
+  const derouteB = out(sides.B.status);
+  if (derouteA !== derouteB) {
+    const loser = derouteA ? sides.A : sides.B;
+    return { winner: derouteA ? 'B' : 'A', reason: loser.status === 'A' ? 'abandon' : 'exclusion' };
   }
-  if (outA || sides.A.score !== sides.B.score) return {};
+  if (derouteA || sides.A.score !== sides.B.score) return {};
   // Égalité : statut V / D de l'appareil, sinon priorité (côté appareil → tireur)
   if (sides.A.status === 'V' || sides.B.status === 'D') return { winner: 'A', reason: 'priority' };
   if (sides.B.status === 'V' || sides.A.status === 'D') return { winner: 'B', reason: 'priority' };
@@ -84,12 +84,15 @@ interface DeviceView {
 const isFinished = (match: ArenaMatch | null | undefined, status?: string) =>
   status === 'finished' || match?.status === 'finished';
 
+/** Fonction qui retourne tous les serveurs distants actifs (competitionId → RemoteScoreServer). */
+export type GetRemoteServers = () => Map<string, RemoteScoreServer>;
+
 /** Associe CyranoServer aux arènes RemoteScoreServer. Instancié une seule fois. */
 export class PisteHub {
   private readonly cyrano: CyranoServer;
-  private readonly getRemote: () => RemoteScoreServer | null;
+  private readonly getRemoteServers: GetRemoteServers;
   private opts: Required<PisteHubOptions>;
-  /** Ce que l'appareil affiche, par piste. */
+/** Ce que l'appareil affiche, par piste. */
   private device = new Map<string, DeviceView>();
   /** Score + cartons déjà appliqués à l'arène, par piste (pas de réécriture à chaque INFO). */
   private applied = new Map<string, string>();
@@ -103,6 +106,10 @@ export class PisteHub {
   private offline = new Set<string>();
   /** Dernier mode effectif connu, par piste : détecte un changement de mode. */
   private modes = new Map<string, CyranoPisteMode>();
+  /** Dernier matchId envoyé en DISP par piste — évite les doublons. */
+  private lastDispMatch = new Map<string, string | null>();
+  /** Dernière compétition utilisée par piste (fallback quand aucun match en cours). */
+  private lastCompetitionByPiste = new Map<string, string>();
   /** Base : numéros de poule et de match pour le DISP. */
   private readonly coordsSource?: MatchCoordsSource;
   /** Notification d'une nouvelle alerte BAD MATCH (DT). */
@@ -110,14 +117,14 @@ export class PisteHub {
 
   constructor(
     cyrano: CyranoServer,
-    getRemote: () => RemoteScoreServer | null,
+    getRemoteServers: GetRemoteServers,
     options: PisteHubOptions & {
       coordsSource?: MatchCoordsSource;
       onAlert?: (piste: string, alert: PisteAlert) => void;
     } = {}
   ) {
     this.cyrano = cyrano;
-    this.getRemote = getRemote;
+    this.getRemoteServers = getRemoteServers;
     this.coordsSource = options.coordsSource;
     this.onAlert = options.onAlert;
     this.opts = {
@@ -186,6 +193,7 @@ export class PisteHub {
     this.cyrano.off('status', this.handleStatus);
   }
 
+  /
   /**
    * Liaison : hors ligne → piste basculée en manuel ; retour en ligne → DISP du match courant
    * (l'appareil redémarré ou reconnecté reprend l'affichage sans intervention).
@@ -252,11 +260,47 @@ export class PisteHub {
   }
 
   /**
-   * Rappel installé sur `RemoteScoreServer.cyranoHook`, appelé après chaque
-   * broadcastArenaUpdate. DISP si le match change ou si le score diffère de celui
-   * de l'appareil (correction depuis la tablette). Jamais de DISP d'un match terminé.
+   * Trouve le serveur distant pour une piste donnée.
+   * Priorité :
+   * 1. Serveur dont l'arène correspondante a un match en cours
+   * 2. Dernière compétition utilisée par cette piste (fallback)
+   * 3. Premier serveur avec une session active (comportement legacy)
    */
-  onArenaUpdate = (arenaId: string, update: ArenaUpdate): void => {
+  private findServerForPiste(piste: CyranoPisteStatus): RemoteScoreServer | null {
+    if (!piste.arena) return null;
+    const arenaId = `arena${piste.arena}`;
+    const servers = this.getRemoteServers();
+
+    // 1. Chercher un serveur avec un match en cours sur cette arène
+    for (const [competitionId, server] of servers) {
+      const arena = server.getArena(arenaId);
+      if (arena?.currentMatch) {
+        this.lastCompetitionByPiste.set(piste.piste, competitionId);
+        return server;
+      }
+    }
+
+    // 2. Fallback : dernière compétition utilisée par cette piste
+    const lastCompId = this.lastCompetitionByPiste.get(piste.piste);
+    if (lastCompId) {
+      const server = servers.get(lastCompId);
+      if (server?.hasSession()) return server;
+    }
+
+    // 3. Fallback legacy : premier serveur avec session
+    for (const server of servers.values()) {
+      if (server.hasSession()) return server;
+    }
+
+    return null;
+  }
+
+  /**
+   * Rappel installé sur `RemoteScoreServer.cyranoHook`, appelé après chaque
+   * broadcastArenaUpdate. DISP si le match change (depuis n'importe quel serveur).
+   * Met à jour lastCompetitionByPiste pour le routage ultérieur.
+   */
+  onArenaUpdate = (server: RemoteScoreServer, arenaId: string, update: ArenaUpdate): void => {
     const arenaNumber = parseInt(arenaId.replace(/^arena/, ''), 10);
     if (isNaN(arenaNumber)) return;
     const piste = this.cyrano.findByArena(arenaNumber);
@@ -271,6 +315,10 @@ export class PisteHub {
       return;
     }
     if (isFinished(match, update.status)) return;
+
+    // Mémoriser la compétition pour cette piste (pour le routage ultérieur)
+    const compId = server.getCompetitionId();
+    if (compId) this.lastCompetitionByPiste.set(piste.piste, compId);
 
     const scoreA = update.scoreA ?? match.scoreA;
     const scoreB = update.scoreB ?? match.scoreB;
@@ -349,7 +397,7 @@ export class PisteHub {
 
   private handleInfo = (piste: CyranoPisteStatus, msg: CyranoMessage): void => {
     if (!piste.arena) return;
-    const remote = this.getRemote();
+    const remote = this.findServerForPiste(piste);
     if (!remote) return;
     const mode = this.modeOf(piste, remote);
     // Piste hors appareil : aucune entrée prise en compte, la fin reçoit un NAK
@@ -495,23 +543,13 @@ export class PisteHub {
    */
   private handleNext = (piste: CyranoPisteStatus, _msg: CyranoMessage): void => {
     if (!piste.arena) return;
-    const remote = this.getRemote();
+    const remote = this.findServerForPiste(piste);
     if (!remote) return;
     const arenaId = `arena${piste.arena}`;
-    const arena = remote.getArena(arenaId);
-    const match = arena?.currentMatch;
-    if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
-    if (arena && match && !isFinished(match, arena.status)) {
-      logger.info(
-        LogCategory.NETWORK,
-        `Cyrano: NEXT sur piste ${piste.piste} refusé — match ${match.id} non terminé, DISP renvoyé`
-      );
-      this.sendMatch(piste.piste, match, match.scoreA, match.scoreB);
-      return;
-    }
-    this.device.delete(piste.piste);
-    remote.handleArenaControl(this.deviceSocket(piste), { arenaId, action: 'next' });
-    logger.info(LogCategory.NETWORK, `Cyrano: NEXT sur piste ${piste.piste} → arène ${arenaId}`);
+this.lastDispMatch.delete(piste.piste);
+    remote.loadNextMatch(arenaId);
+    const compId = remote.getCompetitionId();
+    logger.info(LogCategory.NETWORK, `Cyrano: NEXT sur piste ${piste.piste} → arène ${arenaId} (comp ${compId ?? '?'})`);
   };
 
   /**
@@ -619,4 +657,16 @@ export class PisteHub {
     };
     return buildDisp(dispMatch, { nameLength: this.opts.nameLength });
   }
+}
+/** Coordonnées Cyrano (phase, poulTab, matchNum) dérivées de l'ArenaMatch. */
+function coordsFromMatch(match: ArenaMatch): {
+  phase: number;
+  poulTab: string;
+  matchNum: number;
+} {
+  if (match.isTableau) {
+    return { phase: 2, poulTab: 'A', matchNum: 1 };
+  }
+  const poolNum = match.poolId ? parseInt(match.poolId.replace(/.*-/, ''), 10) || 1 : 1;
+  return { phase: 1, poulTab: String(poolNum), matchNum: 1 };
 }
