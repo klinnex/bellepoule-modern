@@ -25,7 +25,14 @@ Give answer. Stop.
 - Si aucun changement nécessaire → réponds **uniquement** "OK – à jour" ou "Aucun changement"
 - Jamais plus de 450 lignes de diff par réponse
 - HTML : jamais de nettoyage par regex (`replace(/<script…/)`) → jsdom (scripts/tests) ou `escHtml` (remote). Sinon alerte CodeQL `js/incomplete-multi-character-sanitization`
-- Préfère Haiku 4.5 ou Sonnet 4.6 pour les tâches de doc (beaucoup moins cher)
+
+## Routage des modèles – coût
+- Tâche à faible valeur → déléguer à `Agent` avec `model: "haiku"` (ou `subagent_type: "Explore"` pour la recherche en lecture seule) : grep/recherche de fichiers, listing, `check:i18n`, lint/format, traductions, doc mécanique, résumé de logs, vérif de présence d'un symbole
+- Implémentation courante, tests, refactor local, doc technique → `model: "sonnet"` (Sonnet 5.5, `claude-sonnet-5-5`)
+- Opus (`model: "opus"`, `claude-opus-5-5`) **uniquement** si nécessaire : décision d'architecture, bug multi-fichiers non trivial, sécurité (auth, CodeQL, sanitisation), protocole Cyrano/remote, migration DB, revue critique
+- Sous-agent : demander un résultat court (liste, verdict, chemins:lignes), pas le contenu brut
+- Ne pas déléguer ce qui exige un jugement fin ou une vérification que tu ne peux pas relire toi-même
+- Doc : Haiku 5.5 (`claude-haiku-5-5`) ou Sonnet 5.5 suffisent (beaucoup moins cher)
 
 ## Documentation des tests – règle absolue
 - `docs/TESTS.md` est généré : ne jamais l'éditer à la main
