@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 57 | 719 |
+| `src/shared/utils/` | 58 | 723 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
-| `src/main/` | 71 | 593 |
+| `src/main/` | 71 | 596 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 97 | 491 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 57 | 377 |
+| `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **389** | **2975** |
+| **Total** | **390** | **2983** |
 
-Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1383,6 +1383,17 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - reporte arme, genre, catégorie, couleur et settings
   - utilise le nom du modèle comme titre par défaut
   - utilise le titre fourni s’il est présent
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/trainingThemes.test.ts</code> — 4 tests</summary>
+
+- **trainingThemes (#1500)**
+  - liste fermée, Mousquetaires inclus
+  - sombre : défaut partout (pas de thème arbitre, kiosk prédéfini)
+  - chaque thème hors sombre change kiosk et tablette arbitre
+  - Mousquetaires : piste en thème personnalisé
 
 </details>
 
@@ -2820,10 +2831,11 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 6 tests</summary>
 
 - **training:setTheme**
   - applique un thème intégré au serveur d’entraînement
+  - accepte le thème Mousquetaires (#1500)
   - refuse un thème inconnu ou personnalisé
 - **registerTrainingHandlers : arrêt du serveur d’entraînement / démo**
   - stopServer libère le port et arrête le serveur
@@ -3318,7 +3330,7 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/trainingLobby.test.ts</code> — 12 tests</summary>
+<summary><code>src/main/remote/trainingLobby.test.ts</code> — 14 tests</summary>
 
 - **TrainingLobby (#1500)**
   - occupe une piste : un autre client est refusé
@@ -3331,6 +3343,8 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - sert la page /entrainement-lobby
   - hors entraînement : état vide, occupation refusée
   - liste les pistes principales (sans sous-pistes) avec leur occupation
+  - transmet le thème des écrans d’entraînement (défaut sombre)
+  - prévient le kiosk quand une piste est prise puis libérée
   - piste occupée : 409 arena\_occupied pour un autre client
   - validation : piste inconnue 404, client invalide 400
   - release libère la piste (ou toutes sans numéro)
@@ -5726,7 +5740,7 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/kioskArenas.test.ts</code> — 10 tests</summary>
+<summary><code>src/remote/js/kioskArenas.test.ts</code> — 11 tests</summary>
 
 - **kioskArenas.js scores**
   - detectScoreChanges : changement, slash à +3, rien sans historique
@@ -5734,6 +5748,7 @@ Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - snapshotScores : null sans match, pistes sans id ignorées
 - **kioskArenas.js gabarit**
   - piste libre : en attente, aucun match
+  - entraînement : piste non tenue dans le lobby marquée « Libre » (#1500)
   - match en cours : B rouge à gauche, A vert à droite
   - inversion : permutation des côtés et des couleurs
   - gaucher A contre droitier (#1439) : A rouge à gauche
