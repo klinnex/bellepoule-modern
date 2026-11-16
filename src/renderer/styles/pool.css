@@ -805,3 +805,16 @@ button.pv-pill {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Consultation des signatures d'une poule (#1826) */
+.pool-signatures-table td {
+  vertical-align: middle;
+}
+.pool-signature-img {
+  display: block;
+  max-height: 60px;
+  max-width: 220px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}

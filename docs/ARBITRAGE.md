@@ -245,6 +245,10 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 
 - **✍️ SIGNATURE** → `/arene{N}/poule` : feuille de poule (onglets *Tableau* / *Matchs*),
   chaque tireur signe au doigt. Signatures stockées dans `pool_signatures`.
+  Toutes les signatures enregistrées → poule verrouillée : plus de re-signature
+  (boutons désactivés, API `409 signatures_locked`).
+- Côté application, la pastille ✍️ `x/x` de la feuille de poule ouvre la **consultation**
+  des signatures (lecture seule) ; aucun accès direct à la saisie depuis l'application.
 - **📋 JOURNAL** → chronologie détaillée de l'arène.
 
 ---

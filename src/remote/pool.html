@@ -713,6 +713,7 @@
         table.appendChild(thead);
 
         // Corps : lignes "N. NOM Prénom"
+        const allSignedLocked = fencers.length > 0 && fencers.every(f => !!signaturesData[f.id]);
         const tbody = document.createElement('tbody');
         fencers.forEach((rowFencer, rowIdx) => {
           const tr = document.createElement('tr');
@@ -743,7 +744,13 @@
           sigBtn.className = 'sig-btn';
           const isDone = fencerFinishedAll(rowFencer, matches);
           const isSigned = !!signaturesData[rowFencer.id];
-          if (!isDone) {
+          if (allSignedLocked) {
+            // Toutes les signatures enregistrées : poule verrouillée, plus d'édition (#1826)
+            sigBtn.disabled = true;
+            sigBtn.textContent = '✓';
+            sigBtn.classList.add('signed');
+            sigBtn.title = window.T('pool.signatures_locked');
+          } else if (!isDone) {
             sigBtn.disabled = true;
             sigBtn.title = window.T('pool.sign_unavailable');
             sigBtn.innerHTML = bpIcon('sign');

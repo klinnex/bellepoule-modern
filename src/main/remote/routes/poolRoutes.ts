@@ -377,6 +377,19 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       return res.status(403).json({ error: 'fencer_matches_pending' });
     }
 
+    // Poule verrouillée dès que tous les tireurs ont signé : plus de re-signature (#1826)
+    const poolFencerIds = new Set<string>();
+    for (const m of allMatches) {
+      const a = m.fencerA?.id ?? (m as { fencerAId?: string }).fencerAId;
+      const b = m.fencerB?.id ?? (m as { fencerBId?: string }).fencerBId;
+      if (a) poolFencerIds.add(a);
+      if (b) poolFencerIds.add(b);
+    }
+    const signedIds = new Set(ctx.db.getPoolSignatures(poolId).map(sig => sig.fencerId));
+    if (poolFencerIds.size > 0 && [...poolFencerIds].every(id => signedIds.has(id))) {
+      return res.status(409).json({ error: 'signatures_locked' });
+    }
+
     try {
       ctx.db.savePoolSignature(poolId, fencerId, signatureData);
 
