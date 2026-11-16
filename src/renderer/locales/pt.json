@@ -1284,7 +1284,10 @@
     "victories_defeats": "V / D",
     "zone_a_label": "Mão + punho do sabre",
     "zone_b_label": "Braço ou perna",
-    "zone_c_label": "Tronco ou cabeça"
+    "zone_c_label": "Tronco ou cabeça",
+    "club_card_title": "Cartão de sócio",
+    "club_cards_title": "Cartões de sócio",
+    "club_card_season": "Época {{season}}"
   },
   "rsm": {
     "strip_plan": "Plano das pistas",

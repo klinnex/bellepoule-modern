@@ -1284,7 +1284,10 @@
     "victories_defeats": "T / K",
     "zone_a_label": "Dorn + dornell ar sabrenn",
     "zone_b_label": "Brec'h pe gar",
-    "zone_c_label": "Kof pe penn"
+    "zone_c_label": "Kof pe penn",
+    "club_card_title": "Kartenn ezel",
+    "club_cards_title": "Kartennoù ezel",
+    "club_card_season": "Koulzad {{season}}"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",

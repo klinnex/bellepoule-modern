@@ -1284,7 +1284,10 @@
     "victories_defeats": "V / D",
     "zone_a_label": "Mà + empunyadura del sabre",
     "zone_b_label": "Braç o cama",
-    "zone_c_label": "Tronc o cap"
+    "zone_c_label": "Tronc o cap",
+    "club_card_title": "Carnet de soci",
+    "club_cards_title": "Carnets de soci",
+    "club_card_season": "Temporada {{season}}"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",

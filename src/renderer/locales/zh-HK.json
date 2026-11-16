@@ -1284,7 +1284,10 @@
     "victories_defeats": "勝 / 負",
     "zone_a_label": "手 + 劍柄",
     "zone_b_label": "手臂或腿",
-    "zone_c_label": "軀幹或頭部"
+    "zone_c_label": "軀幹或頭部",
+    "club_card_title": "會員證",
+    "club_cards_title": "會員證",
+    "club_card_season": "{{season}} 賽季"
   },
   "rsm": {
     "strip_plan": "劍道圖",

@@ -1284,7 +1284,10 @@
     "victories_defeats": "S / N",
     "zone_a_label": "Hand + Säbelgriff",
     "zone_b_label": "Arm oder Bein",
-    "zone_c_label": "Rumpf oder Kopf"
+    "zone_c_label": "Rumpf oder Kopf",
+    "club_card_title": "Mitgliedsausweis",
+    "club_cards_title": "Mitgliedsausweise",
+    "club_card_season": "Saison {{season}}"
   },
   "rsm": {
     "strip_plan": "Bahnplan",

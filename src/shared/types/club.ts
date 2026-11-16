@@ -23,14 +23,25 @@ export interface ClubMember {
   notes?: string;
   /** false = archivé (n'apparaît plus dans le pointage, stats conservées) */
   active: boolean;
+  /** Code de la carte de club (QR `BPC1:M:<code>`), 10 hex ; régénérable si carte perdue */
+  cardCode: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ClubMemberInput = Partial<Omit<ClubMember, 'id' | 'createdAt' | 'updatedAt'>> & {
+export type ClubMemberInput = Partial<
+  Omit<ClubMember, 'id' | 'cardCode' | 'createdAt' | 'updatedAt'>
+> & {
   firstName: string;
   lastName: string;
 };
+
+/** Identité du club : en-tête des cartes de membre */
+export interface ClubSettings {
+  name: string;
+  /** Logo en data URL image (png, jpeg, webp, svg) ; absent = pas de logo */
+  logo?: string;
+}
 
 export type ClubSessionStatus = 'open' | 'closed';
 
@@ -164,7 +175,13 @@ export interface ClubMemberReport {
 
 /** Mode Club : membres, séances, combats libres, statistiques (#1872) */
 export interface ClubAPI {
+  getSettings: () => Promise<ClubSettings>;
+  updateSettings: (data: Partial<ClubSettings> & { logo?: string | null }) => Promise<ClubSettings>;
   listMembers: (includeInactive?: boolean) => Promise<ClubMember[]>;
+  /** Membre d'après le code lu sur sa carte (actifs seulement) */
+  findMemberByCardCode: (code: string) => Promise<ClubMember | null>;
+  /** Nouveau code : l'ancienne carte devient invalide */
+  regenerateCardCode: (id: string) => Promise<ClubMember | null>;
   createMember: (data: ClubMemberInput) => Promise<ClubMember>;
   updateMember: (id: string, data: Partial<ClubMemberInput>) => Promise<ClubMember | null>;
   /** Effacement définitif (RGPD) : présences et combats compris ; archiver = active:false */

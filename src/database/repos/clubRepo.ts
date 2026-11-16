@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import type { Weapon } from '../../shared/types';
 import type {
@@ -12,8 +13,10 @@ import type {
   ClubSession,
   ClubSessionInput,
   ClubSessionStatus,
+  ClubSettings,
   Laterality,
 } from '../../shared/types/club';
+import { normalizeCardCode } from '../../shared/utils/clubQr';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
 import { sanitizeText } from '../validation';
@@ -31,6 +34,7 @@ interface MemberRow {
   category: string | null;
   notes: string | null;
   active: number;
+  card_code: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +95,10 @@ const entryMode = (v: unknown): ClubEntryMode =>
 const oneWeapon = (v: unknown): Weapon | null =>
   parseWeapons(typeof v === 'string' ? v : null)[0] ?? null;
 const opt = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
+const newCardCode = (): string => randomBytes(5).toString('hex').toUpperCase();
+/** Logo accepté : data URL image base64, 2 Mo max */
+const LOGO_RE = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
+const MAX_LOGO_LENGTH = 2_800_000;
 
 function rowToMember(r: MemberRow): ClubMember {
   return {
@@ -105,6 +113,7 @@ function rowToMember(r: MemberRow): ClubMember {
     category: opt(r.category),
     notes: opt(r.notes),
     active: r.active !== 0,
+    cardCode: r.card_code ?? '',
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -142,6 +151,41 @@ export class ClubRepo {
 
   private ensureOpen(): void {
     if (!this.sql.db) throw new Error('Database not open');
+  }
+
+  // ─── Identité du club ────────────────────────────────────────────────────────
+
+  public getSettings(): ClubSettings {
+    if (!this.sql.db) return { name: '' };
+    const rows = this.sql.queryAll<{ key: string; value: string | null }>(
+      'SELECT key, value FROM club_settings'
+    );
+    const get = (k: string) => rows.find(r => r.key === k)?.value ?? null;
+    return { name: get('name') ?? '', logo: opt(get('logo')) };
+  }
+
+  /** logo: null efface le logo ; logo invalide refusé */
+  public updateSettings(data: { name?: string; logo?: string | null }): ClubSettings {
+    this.ensureOpen();
+    const set = (key: string, value: string | null) =>
+      this.sql.run(
+        'INSERT INTO club_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        [key, value]
+      );
+    if (data.logo !== undefined && data.logo !== null) {
+      if (
+        typeof data.logo !== 'string' ||
+        data.logo.length > MAX_LOGO_LENGTH ||
+        !LOGO_RE.test(data.logo)
+      ) {
+        throw new Error('Logo invalide (image PNG, JPEG, WebP ou SVG, 2 Mo max)');
+      }
+    }
+    this.sql.transaction(() => {
+      if (data.name !== undefined) set('name', str(data.name) ?? '');
+      if (data.logo !== undefined) set('logo', data.logo);
+    });
+    return this.getSettings();
   }
 
   // ─── Membres ─────────────────────────────────────────────────────────────────
@@ -187,7 +231,7 @@ export class ClubRepo {
     if (!cols.first_name && !cols.last_name) throw new Error('Nom du membre requis');
     const id = uuidv4();
     const now = new Date().toISOString();
-    const all = { id, ...cols, created_at: now, updated_at: now };
+    const all = { id, ...cols, card_code: this.uniqueCardCode(), created_at: now, updated_at: now };
     const keys = Object.keys(all);
     this.sql.run(
       `INSERT INTO club_members (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
@@ -206,6 +250,36 @@ export class ClubRepo {
         [...Object.values(cols), new Date().toISOString(), id]
       );
     }
+    return this.getMember(id);
+  }
+
+  private uniqueCardCode(): string {
+    for (;;) {
+      const code = newCardCode();
+      if (!this.sql.queryOne('SELECT 1 FROM club_members WHERE card_code = ?', [code])) return code;
+    }
+  }
+
+  /** Membre actif correspondant au code de carte lu (QR ou saisie) */
+  public findMemberByCardCode(code: string): ClubMember | null {
+    if (!this.sql.db) return null;
+    const c = normalizeCardCode(code);
+    if (!c) return null;
+    const r = this.sql.queryOne<MemberRow>(
+      'SELECT * FROM club_members WHERE card_code = ? AND active = 1',
+      [c]
+    );
+    return r ? rowToMember(r) : null;
+  }
+
+  /** Carte perdue : nouveau code, l'ancienne carte n'est plus reconnue */
+  public regenerateCardCode(id: string): ClubMember | null {
+    this.ensureOpen();
+    this.sql.run('UPDATE club_members SET card_code = ?, updated_at = ? WHERE id = ?', [
+      this.uniqueCardCode(),
+      new Date().toISOString(),
+      id,
+    ]);
     return this.getMember(id);
   }
 

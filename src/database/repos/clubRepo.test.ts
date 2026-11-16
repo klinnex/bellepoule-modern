@@ -92,6 +92,60 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
   });
 
+  describe('cartes et identité du club', () => {
+    it('code carte unique à la création, retrouvé par code (actifs)', () => {
+      const a = member('A');
+      const b = member('B');
+      expect(a.cardCode).toMatch(/^[0-9A-F]{10}$/);
+      expect(a.cardCode).not.toBe(b.cardCode);
+      expect(repo.findMemberByCardCode(a.cardCode.toLowerCase())!.id).toBe(a.id);
+      expect(repo.findMemberByCardCode('nope')).toBeNull();
+      repo.updateMember(a.id, { active: false });
+      expect(repo.findMemberByCardCode(a.cardCode)).toBeNull();
+    });
+
+    it('régénération : ancienne carte invalide', () => {
+      const a = member('A');
+      const b = repo.regenerateCardCode(a.id)!;
+      expect(b.cardCode).not.toBe(a.cardCode);
+      expect(repo.findMemberByCardCode(a.cardCode)).toBeNull();
+      expect(repo.findMemberByCardCode(b.cardCode)!.id).toBe(a.id);
+    });
+
+    it('code non modifiable via updateMember', () => {
+      const a = member('A');
+      repo.updateMember(a.id, { cardCode: 'AAAAAAAAAA' } as never);
+      expect(repo.getMember(a.id)!.cardCode).toBe(a.cardCode);
+    });
+
+    it('nom + logo, logo validé, null efface', () => {
+      expect(repo.getSettings()).toEqual({ name: '', logo: undefined });
+      const png = 'data:image/png;base64,iVBORw0KGgo=';
+      expect(repo.updateSettings({ name: ' <Cercle> ', logo: png })).toEqual({
+        name: 'Cercle',
+        logo: png,
+      });
+      expect(() => repo.updateSettings({ logo: 'javascript:alert(1)' })).toThrow();
+      expect(() => repo.updateSettings({ logo: 'data:text/html;base64,PGI+' })).toThrow();
+      expect(repo.updateSettings({ logo: null })).toEqual({ name: 'Cercle', logo: undefined });
+    });
+
+    it('migration 26 : codes générés pour les membres existants', () => {
+      const db = new DatabaseSync!(':memory:');
+      for (const m of ALL_MIGRATIONS.filter(x => x.version < 26))
+        m.up({ run: (s: string) => db.exec(s) });
+      db.exec(
+        `INSERT INTO club_members (id, first_name, last_name, created_at, updated_at) VALUES ('x', 'A', 'B', '', ''), ('y', 'C', 'D', '', '')`
+      );
+      for (const m of ALL_MIGRATIONS.filter(x => x.version >= 26))
+        m.up({ run: (s: string) => db.exec(s) });
+      const r = new ClubRepo(makeSql(db));
+      const codes = r.listMembers().map(m => m.cardCode);
+      expect(codes.every(c => /^[0-9A-F]{10}$/.test(c))).toBe(true);
+      expect(new Set(codes).size).toBe(2);
+    });
+  });
+
   describe('séances', () => {
     it('crée avec pistes bornées, date validée', () => {
       const s = repo.createSession({ date: '2026-11-16', stripCount: 500, weapon: Weapon.FOIL });

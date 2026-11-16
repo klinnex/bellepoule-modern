@@ -1284,7 +1284,10 @@
     "victories_defeats": "V / S",
     "zone_a_label": "Mano + impugnatura della sciabola",
     "zone_b_label": "Braccio o gamba",
-    "zone_c_label": "Tronco o testa"
+    "zone_c_label": "Tronco o testa",
+    "club_card_title": "Tessera socio",
+    "club_cards_title": "Tessere socio",
+    "club_card_season": "Stagione {{season}}"
   },
   "rsm": {
     "strip_plan": "Piano delle pedane",

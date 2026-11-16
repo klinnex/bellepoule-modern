@@ -1284,7 +1284,10 @@
     "victories_defeats": "П / П",
     "zone_a_label": "Кисть + рукоять сабли",
     "zone_b_label": "Рука или нога",
-    "zone_c_label": "Туловище или голова"
+    "zone_c_label": "Туловище или голова",
+    "club_card_title": "Членский билет",
+    "club_cards_title": "Членские билеты",
+    "club_card_season": "Сезон {{season}}"
   },
   "rsm": {
     "strip_plan": "План дорожек",
