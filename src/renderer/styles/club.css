@@ -210,3 +210,25 @@
 .club-scan-steps strong {
   margin-left: auto;
 }
+.club-clickable {
+  cursor: pointer;
+}
+.club-clickable:hover,
+.club-clickable:focus-visible {
+  background: var(--color-surface-2);
+}
+.club-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0;
+}
+.club-kpis dt {
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+}
+.club-kpis dd {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}

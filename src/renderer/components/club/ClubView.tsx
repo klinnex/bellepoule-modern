@@ -9,9 +9,9 @@ import { BarChart3, CalendarDays, Shield, Sparkles, Users } from 'lucide-react';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
-import { EmptyState } from '../common/EmptyState';
 import { ClubMembersPanel } from './ClubMembersPanel';
 import { ClubSessionsPanel } from './ClubSessionsPanel';
+import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubTour } from './ClubTour';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
@@ -99,13 +99,7 @@ export const ClubView: React.FC = () => {
           />
         )}
         {tab === 'sessions' && <ClubSessionsPanel settings={settings} />}
-        {tab === 'stats' && (
-          <EmptyState
-            icon={<BarChart3 size={32} aria-hidden="true" />}
-            title={t('club.stats_soon')}
-            description={t('club.stats_soon_desc')}
-          />
-        )}
+        {tab === 'stats' && <ClubStatsPanel />}
       </section>
 
       <ClubTour
