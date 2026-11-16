@@ -3275,5 +3275,24 @@
     "actions": "Ações",
     "archive": "Arquivar",
     "unarchive": "Reativar"
+  },
+  "clubTour": {
+    "title": "Bem-vindo ao Modo Clube",
+    "skip": "Saltar o guia",
+    "next": "Seguinte",
+    "back": "Voltar",
+    "close": "Terminar",
+    "restart": "Guia",
+    "welcome": "O espaço Clube é permanente: sócios, sessões e estatísticas mantêm-se de uma época para a outra. Quatro passos para começar.",
+    "finished_title": "O seu clube está pronto!",
+    "finished_hint": "Próximo passo: as sessões, para registar as presenças e lançar assaltos nas pistas. Reabra este guia com o botão « Guia ».",
+    "step_identity": "Dar nome ao clube",
+    "step_logo": "Adicionar o logótipo (opcional)",
+    "step_members": "Adicionar os sócios",
+    "step_cards": "Imprimir os cartões",
+    "hint_identity": "Escreva o nome do clube e clique em « Guardar ». Aparece nos cartões de sócio.",
+    "hint_logo": "Escolha uma imagem (PNG, JPEG, WebP ou SVG). Passo opcional: clique em « Seguinte » para o saltar.",
+    "hint_members": "Preencha nome próprio, apelido e licença, depois « Adicionar ». Cada sócio recebe um código de cartão único.",
+    "hint_cards": "« Imprimir cartões » cria um PDF com 10 cartões por página: logótipo, nome e código QR de identificação para recortar."
   }
 }

@@ -3275,5 +3275,24 @@
     "actions": "Acciones",
     "archive": "Archivar",
     "unarchive": "Reactivar"
+  },
+  "clubTour": {
+    "title": "Bienvenido al Modo Club",
+    "skip": "Omitir la guía",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "close": "Terminar",
+    "restart": "Guía",
+    "welcome": "El espacio Club es permanente: socios, sesiones y estadísticas se mantienen de una temporada a otra. Cuatro pasos para empezar.",
+    "finished_title": "¡Su club está listo!",
+    "finished_hint": "Siguiente paso: las sesiones, para registrar a los presentes y lanzar asaltos en las pistas. Vuelva a abrir esta guía con el botón « Guía ».",
+    "step_identity": "Nombrar el club",
+    "step_logo": "Añadir el logotipo (opcional)",
+    "step_members": "Añadir los socios",
+    "step_cards": "Imprimir los carnés",
+    "hint_identity": "Escriba el nombre del club y haga clic en « Guardar ». Aparece en los carnés de socio.",
+    "hint_logo": "Elija una imagen (PNG, JPEG, WebP o SVG). Paso opcional: haga clic en « Siguiente » para omitirlo.",
+    "hint_members": "Rellene nombre, apellido y licencia, y luego « Agregar ». Cada socio recibe un código de carné único.",
+    "hint_cards": "« Imprimir los carnés » crea un PDF de 10 carnés por página: logotipo, nombre y código QR de identificación para recortar."
   }
 }

@@ -3275,5 +3275,24 @@
     "actions": "Accions",
     "archive": "Arxivar",
     "unarchive": "Reactivar"
+  },
+  "clubTour": {
+    "title": "Benvingut al Mode Club",
+    "skip": "Ometre la guia",
+    "next": "Següent",
+    "back": "Enrere",
+    "close": "Acabar",
+    "restart": "Guia",
+    "welcome": "L'espai Club és permanent: socis, sessions i estadístiques es mantenen d'una temporada a l'altra. Quatre passos per començar.",
+    "finished_title": "El vostre club està a punt!",
+    "finished_hint": "Pas següent: les sessions, per registrar els presents i llançar combats a les pistes. Torneu a obrir aquesta guia amb el botó « Guia ».",
+    "step_identity": "Posar nom al club",
+    "step_logo": "Afegir el logotip (opcional)",
+    "step_members": "Afegir els socis",
+    "step_cards": "Imprimir els carnets",
+    "hint_identity": "Escriviu el nom del club i feu clic a « Desar ». Apareix als carnets de soci.",
+    "hint_logo": "Trieu una imatge (PNG, JPEG, WebP o SVG). Pas opcional: feu clic a « Següent » per ometre'l.",
+    "hint_members": "Ompliu nom, cognom i llicència, i després « Afegir ». Cada soci rep un codi de carnet únic.",
+    "hint_cards": "« Imprimir els carnets » crea un PDF de 10 carnets per pàgina: logotip, nom i codi QR d'identificació per retallar."
   }
 }

@@ -3275,5 +3275,24 @@
     "actions": "Actions",
     "archive": "Archive",
     "unarchive": "Reactivate"
+  },
+  "clubTour": {
+    "title": "Welcome to Club mode",
+    "skip": "Skip guide",
+    "next": "Next",
+    "back": "Back",
+    "close": "Finish",
+    "restart": "Guide",
+    "welcome": "The club space is permanent: members, sessions and statistics carry over from one season to the next. Four steps to get started.",
+    "finished_title": "Your club is ready!",
+    "finished_hint": "Next step: sessions, to check in attendees and start bouts on the strips. Restart this guide with the « Guide » button.",
+    "step_identity": "Name the club",
+    "step_logo": "Add the logo (optional)",
+    "step_members": "Add members",
+    "step_cards": "Print cards",
+    "hint_identity": "Enter the club name and click « Save ». It appears on membership cards.",
+    "hint_logo": "Choose an image (PNG, JPEG, WebP or SVG). Optional step: click « Next » to skip it.",
+    "hint_members": "Enter first name, last name and licence, then « Add ». Each member gets a unique card code.",
+    "hint_cards": "« Print cards » creates a PDF with 10 cards per page: logo, name and identification QR code, ready to cut out."
   }
 }

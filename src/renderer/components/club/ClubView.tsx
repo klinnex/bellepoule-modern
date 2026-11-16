@@ -5,12 +5,14 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { BarChart3, CalendarDays, Shield, Users } from 'lucide-react';
+import { BarChart3, CalendarDays, Shield, Sparkles, Users } from 'lucide-react';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { ClubMembersPanel } from './ClubMembersPanel';
+import { ClubTour } from './ClubTour';
+import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
 type ClubTab = 'members' | 'sessions' | 'stats';
 
@@ -28,10 +30,20 @@ export const ClubView: React.FC = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ClubTab>('members');
   const [settings, setSettings] = useState<ClubSettings>({ name: '' });
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [membersCount, setMembersCount] = useState<number | null>(null);
+  const [cardsPrinted, setCardsPrinted] = useState(readCardsPrinted);
 
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.club;
-    if (api) setSettings(await api.getSettings());
+    if (!api) return;
+    setSettings(await api.getSettings());
+    setSettingsLoaded(true);
+  }, []);
+
+  const onCardsPrinted = useCallback(() => {
+    markCardsPrinted();
+    setCardsPrinted(true);
   }, []);
 
   useEffect(() => {
@@ -46,10 +58,20 @@ export const ClubView: React.FC = () => {
         ) : (
           <Shield className="club-header-logo club-header-logo--empty" aria-hidden="true" />
         )}
-        <div>
+        <div className="club-grow">
           <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
           <p className="club-header-sub">{t('club.subtitle')}</p>
         </div>
+        <Button
+          variant="ghost"
+          icon={<Sparkles size={15} aria-hidden="true" />}
+          onClick={() => {
+            setTab('members');
+            restartClubTour();
+          }}
+        >
+          {t('clubTour.restart')}
+        </Button>
       </header>
 
       <nav className="club-nav" aria-label={t('club.nav_label')}>
@@ -68,7 +90,12 @@ export const ClubView: React.FC = () => {
 
       <section className="club-content">
         {tab === 'members' && (
-          <ClubMembersPanel settings={settings} onSettingsChange={setSettings} />
+          <ClubMembersPanel
+            settings={settings}
+            onSettingsChange={setSettings}
+            onMembersLoaded={setMembersCount}
+            onCardsPrinted={onCardsPrinted}
+          />
         )}
         {tab === 'sessions' && (
           <EmptyState
@@ -85,6 +112,14 @@ export const ClubView: React.FC = () => {
           />
         )}
       </section>
+
+      <ClubTour
+        ready={settingsLoaded && membersCount !== null}
+        hasName={settings.name.trim() !== ''}
+        hasLogo={!!settings.logo}
+        membersCount={membersCount ?? 0}
+        cardsPrinted={cardsPrinted}
+      />
     </div>
   );
 };

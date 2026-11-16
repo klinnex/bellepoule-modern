@@ -3275,5 +3275,24 @@
     "actions": "Oberoù",
     "archive": "Dielloù",
     "unarchive": "Adweredekaat"
+  },
+  "clubTour": {
+    "title": "Degemer mat er Mod Klub",
+    "skip": "Tremen ar sturlevr",
+    "next": "War-lerc'h",
+    "back": "Distreiñ",
+    "close": "Echuiñ",
+    "restart": "Sturlevr",
+    "welcome": "Padus eo al lec'h klub : an izili, an abadennoù hag ar stadegoù a chom eus ur c'houlzad d'egile. Pevar fazenn evit kregiñ.",
+    "finished_title": "Prest eo ho klub !",
+    "finished_hint": "Pazenn war-lerc'h : an abadennoù, evit gwiriañ an dud bezant ha loc'hañ emgannoù war al leurennoù. Adloc'hit ar sturlevr gant ar bouton « Sturlevr ».",
+    "step_identity": "Envel ar c'hlub",
+    "step_logo": "Ouzhpennañ al logo (diret)",
+    "step_members": "Ouzhpennañ an izili",
+    "step_cards": "Moullañ ar c'hartennoù",
+    "hint_identity": "Skrivit anv ar c'hlub ha klikit war « Enrollañ ». War ar c'hartennoù ezel e vo.",
+    "hint_logo": "Dibabit ur skeudenn (PNG, JPEG, WebP pe SVG). Pazenn diret : klikit war « War-lerc'h » evit he zremen.",
+    "hint_members": "Leunit an anv-bihan, an anv hag al lañvaz, ha goude « Ouzhpenn ». Ur c'hod karten unel a vez roet da bep ezel.",
+    "hint_cards": "« Moullañ ar c'hartennoù » a grou ur PDF gant 10 karten dre bajenn : logo, anv ha kod QR, da droc'hañ."
   }
 }

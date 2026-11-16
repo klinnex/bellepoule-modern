@@ -3275,5 +3275,24 @@
     "actions": "Actions",
     "archive": "Archiver",
     "unarchive": "Réactiver"
+  },
+  "clubTour": {
+    "title": "Bienvenue dans le Mode Club",
+    "skip": "Passer le guide",
+    "next": "Suivant",
+    "back": "Retour",
+    "close": "Terminer",
+    "restart": "Guide",
+    "welcome": "L'espace Club est permanent : vos membres, séances et statistiques restent d'une saison à l'autre. Quatre étapes pour démarrer.",
+    "finished_title": "Votre club est prêt !",
+    "finished_hint": "Prochaine étape : les séances, pour pointer les présents et lancer des combats sur les pistes. Relancez ce guide avec le bouton « Guide ».",
+    "step_identity": "Nommer le club",
+    "step_logo": "Ajouter le logo (facultatif)",
+    "step_members": "Ajouter les membres",
+    "step_cards": "Imprimer les cartes",
+    "hint_identity": "Saisissez le nom du club puis cliquez sur « Sauvegarder ». Il apparaît sur les cartes de membre.",
+    "hint_logo": "Choisissez une image (PNG, JPEG, WebP ou SVG). Étape facultative : cliquez sur « Suivant » pour la passer.",
+    "hint_members": "Renseignez prénom, nom et licence, puis « Ajouter ». Chaque membre reçoit un code de carte unique.",
+    "hint_cards": "« Imprimer les cartes » crée un PDF de 10 cartes par page : logo, nom et QR code d'identification à découper."
   }
 }

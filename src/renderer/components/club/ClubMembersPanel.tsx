@@ -22,11 +22,17 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 interface ClubMembersPanelProps {
   settings: ClubSettings;
   onSettingsChange: (s: ClubSettings) => void;
+  /** Nombre de membres actifs après chaque chargement (parcours guidé) */
+  onMembersLoaded?: (activeCount: number) => void;
+  /** Cartes exportées (parcours guidé) */
+  onCardsPrinted?: () => void;
 }
 
 export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   settings,
   onSettingsChange,
+  onMembersLoaded,
+  onCardsPrinted,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -36,15 +42,18 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState('');
-  const [clubName, setClubName] = useState(settings.name);
+  // null = nom enregistré (pas d'édition en cours)
+  const [nameEdit, setNameEdit] = useState<string | null>(null);
+  const clubName = nameEdit ?? settings.name;
   const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '' });
   const [printing, setPrinting] = useState(false);
 
-  useEffect(() => setClubName(settings.name), [settings.name]);
-
   const load = useCallback(async () => {
-    if (api) setMembers(await api.listMembers(showArchived));
-  }, [api, showArchived]);
+    if (!api) return;
+    const list = await api.listMembers(showArchived);
+    setMembers(list);
+    onMembersLoaded?.(list.filter(m => m.active).length);
+  }, [api, showArchived, onMembersLoaded]);
 
   useEffect(() => {
     void load();
@@ -72,6 +81,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const saveName = () =>
     run(async () => {
       onSettingsChange(await api.updateSettings({ name: clubName }));
+      setNameEdit(null);
       showToast(t('club.settings_saved'), 'success');
     });
 
@@ -120,6 +130,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     setPrinting(true);
     try {
       await exportClubCardsToPDF(list, settings, { season: periodOf(today(), 'season').key });
+      onCardsPrinted?.();
     } catch (e) {
       showToast(errText(e), 'error');
     } finally {
@@ -134,13 +145,13 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           {t('club.identity')}
         </h2>
         <div className="club-row">
-          <label className="form-label club-grow">
+          <label className="form-label club-grow" data-tour="club-name">
             {t('club.name')}
             <input
               className="form-input"
               value={clubName}
               maxLength={100}
-              onChange={e => setClubName(e.target.value)}
+              onChange={e => setNameEdit(e.target.value)}
             />
           </label>
           <Button icon={<Save size={15} aria-hidden="true" />} onClick={() => void saveName()}>
@@ -148,7 +159,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </Button>
         </div>
         <div className="club-row">
-          <label className="form-label">
+          <label className="form-label" data-tour="club-logo">
             {t('club.logo')}
             <input
               className="form-input"
@@ -178,6 +189,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </h2>
           <Button
             variant="primary"
+            data-tour="club-print-cards"
             icon={<IdCard size={15} aria-hidden="true" />}
             loading={printing}
             disabled={!filtered.some(m => m.active)}
@@ -212,7 +224,12 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
               onChange={e => setDraft(d => ({ ...d, license: e.target.value }))}
             />
           </label>
-          <Button type="submit" variant="success" icon={<Plus size={15} aria-hidden="true" />}>
+          <Button
+            type="submit"
+            variant="success"
+            data-tour="club-add-member"
+            icon={<Plus size={15} aria-hidden="true" />}
+          >
             {t('actions.add')}
           </Button>
         </form>

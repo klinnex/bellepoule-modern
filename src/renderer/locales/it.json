@@ -3275,5 +3275,24 @@
     "actions": "Azioni",
     "archive": "Archivia",
     "unarchive": "Riattiva"
+  },
+  "clubTour": {
+    "title": "Benvenuto nella modalità Club",
+    "skip": "Salta la guida",
+    "next": "Avanti",
+    "back": "Indietro",
+    "close": "Fine",
+    "restart": "Guida",
+    "welcome": "Lo spazio Club è permanente: soci, sedute e statistiche restano da una stagione all'altra. Quattro passi per iniziare.",
+    "finished_title": "Il tuo club è pronto!",
+    "finished_hint": "Prossimo passo: le sedute, per registrare i presenti e avviare assalti sulle pedane. Riapri questa guida con il pulsante « Guida ».",
+    "step_identity": "Dai un nome al club",
+    "step_logo": "Aggiungi il logo (facoltativo)",
+    "step_members": "Aggiungi i soci",
+    "step_cards": "Stampa le tessere",
+    "hint_identity": "Inserisci il nome del club e fai clic su « Salva ». Compare sulle tessere socio.",
+    "hint_logo": "Scegli un'immagine (PNG, JPEG, WebP o SVG). Passo facoltativo: fai clic su « Avanti » per saltarlo.",
+    "hint_members": "Inserisci nome, cognome e licenza, poi « Aggiungi ». Ogni socio riceve un codice tessera unico.",
+    "hint_cards": "« Stampa tessere » crea un PDF con 10 tessere per pagina: logo, nome e codice QR di identificazione da ritagliare."
   }
 }
