@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 72 | 810 |
+| `src/shared/utils/` | 73 | 816 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 14 | 231 |
-| `src/main/` | 78 | 642 |
+| `src/database/` | 15 | 234 |
+| `src/main/` | 83 | 665 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 109 | 551 |
+| `src/renderer/components/` | 110 | 556 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **428** | **3264** |
+| **Total** | **436** | **3301** |
 
-Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1385,6 +1385,19 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - normalise les bornes invalides
   - répartit en rotation sur l’intervalle
   - computePoolStrips n’utilise que les pistes de l’intervalle
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/stripRules.test.ts</code> — 6 tests</summary>
+
+- **stripRules — réservation des pistes (#1878)**
+  - par défaut tout est autorisé
+  - épreuves autorisées
+  - piste de finale : tableau de 8 et moins, pas de poules
+  - poules seulement
+  - normalisation des entrées invalides
+  - ordre : sans piste d’abord, poules, puis petits tableaux
 
 </details>
 
@@ -2664,6 +2677,16 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/stripRuleRepo.test.ts</code> — 3 tests</summary>
+
+- **StripRuleRepo (#1878)**
+  - réservation enregistrée, relue, retirée par la règle par défaut
+  - affectation automatique par journée
+  - suppression de la journée : réservations et table Cyrano de la salle supprimées
+
+</details>
+
+<details>
 <summary><code>src/database/repos/touchStats.test.ts</code> — 2 tests</summary>
 
 - **Touches données / reçues par zone**
@@ -2965,6 +2988,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/pisteHubRouting.test.ts</code> — 5 tests</summary>
+
+- **PisteHub — pistes partagées entre épreuves (#1878)**
+  - la piste suit l’épreuve de son affectation : DISP avec l’arme et l’épreuve du match
+  - INFO de l’appareil appliqué à l’épreuve suivie, jamais à l’autre
+  - piste prise : l’autre épreuve affectée à la même piste attend la fin, puis prend la main
+  - aucune affectation : la piste reste sur sa dernière épreuve, rien n’est envoyé
+  - une seule épreuve ouverte : comportement inchangé (serveur unique)
+
+</details>
+
+<details>
 <summary><code>src/main/cyrano/server.test.ts</code> — 11 tests</summary>
 
 - **CyranoServer**
@@ -3061,6 +3096,29 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - protect / unprotect font l’aller-retour en base64
   - renvoie null sans chiffrement disponible
   - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/cyranoHandlers.test.ts</code> — 5 tests</summary>
+
+- **cyranoHandlers — table des pistes**
+  - épreuve hors journée : table propre à l’épreuve
+  - épreuves d’une même journée : une seule table, partagée
+  - journée encore vide : la table existante de l’épreuve est reprise
+  - épreuve suivie par piste
+  - entrées invalides refusées
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/dayStripHandlers.test.ts</code> — 4 tests</summary>
+
+- **dayStripHandlers (#1878)**
+  - tableau des pistes : occupée, libre avec proposition
+  - affectation : piste hors salle ou réservée refusée, piste libre acceptée
+  - réservation : entrées invalides refusées, null retire la réservation
+  - affectation automatique : la piste libre est prise sans clic
 
 </details>
 
@@ -3479,6 +3537,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/dayStripBoard.test.ts</code> — 5 tests</summary>
+
+- **dayStripBoard — pistes libérées d’une journée (#1878)**
+  - occupation et propositions : une piste libre reçoit le travail en attente
+  - réservation : piste de finale réservée au tableau de 8 d’une épreuve
+  - piste occupée ou travail inconnu : refus
+  - affectation automatique : une proposition par piste libre, jamais deux fois la même
+  - aucune saisie distante ouverte : tableau hors ligne, sans proposition
+
+</details>
+
+<details>
 <summary><code>src/main/remote/demoMode.test.ts</code> — 13 tests</summary>
 
 - **touchPoints**
@@ -3724,6 +3794,17 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **updateMatchScore**
   - match d’entraînement sur une arène : score appliqué, pas d’erreur
   - match introuvable partout : erreur « Match non trouvé »
+
+</details>
+
+<details>
+<summary><code>src/main/remote/stripHandover.test.ts</code> — 4 tests</summary>
+
+- **stripHandover — travail en attente et piste libérée (#1878)**
+  - poule sans piste : proposée ; jamais déplacée vers une piste hors de l’épreuve
+  - poule en file derrière une piste occupée : installée sur la piste libre, qui la garde
+  - match de tableau en file derrière une piste occupée : déplacé sur la piste libre
+  - sans séance : rien n’attend
 
 </details>
 
@@ -4744,6 +4825,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - Entrée valide la saisie
   - résout null sur annulation
   - hors provider résout null (window.prompt non supporté)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/DayStripBoardPanel.test.tsx</code> — 5 tests</summary>
+
+- **DayStripBoardPanel (#1878)**
+  - piste occupée, piste libre avec proposition, réservation résumée
+  - Affecter : la piste libre reçoit le travail choisi
+  - réservation : tableau de 8 enregistré pour une seule épreuve
+  - affectation automatique activée depuis la case
+  - sans saisie distante : occupation prévue en base, sans proposition
 
 </details>
 
