@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 63 | 752 |
+| `src/shared/utils/` | 64 | 755 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 187 |
+| `src/database/` | 12 | 189 |
 | `src/main/` | 73 | 607 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 106 | 527 |
+| `src/renderer/components/` | 106 | 530 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **408** | **3097** |
+| **Total** | **409** | **3105** |
 
-Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 399 fichiers, 3066 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -274,6 +274,16 @@ Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
   - dédoublonne par licence puis nom (accents/casse), complète sans écraser
   - statut par ligne, dans l’ordre du fichier
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubPlan.test.ts</code> — 3 tests</summary>
+
+- **plan de cours et bilan (#1872)**
+  - plan : titre requis, durée bornée, consignes multilignes, chevrons retirés
+  - durée totale et format
+  - bilan : note 1..5, textes nettoyés, vide → undefined
 
 </details>
 
@@ -2366,7 +2376,7 @@ Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 29 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 31 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2382,6 +2392,9 @@ Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - code non modifiable via updateMember
     - nom + logo + pistes du club, logo validé, null efface
     - migration 26 : codes générés pour les membres existants
+  - **préparation et bilan des séances**
+    - séance préparée : plan, objectifs, démarrage, une seule ouverte
+    - bilan de séance et remarques par tireur
   - **plusieurs clubs**
     - membres, séances et combats cloisonnés par club ; résumé pour l’accueil
     - suppression d’un club : toutes ses données, pas celles des autres
@@ -4910,7 +4923,7 @@ Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 9 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes du club
@@ -4919,6 +4932,9 @@ Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - pointage et fermeture
   - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
   - annuler un combat libère la tablette
+  - séance en cours : exercice coché, notes enregistrées
+  - fermeture : bilan proposé, note et remarque par tireur
+  - préparer une séance à l’avance puis la démarrer
 
 </details>
 
