@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 72 | 808 |
+| `src/shared/utils/` | 72 | 810 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,7 +100,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 14 | 223 |
+| `src/database/` | 14 | 228 |
 | `src/main/` | 78 | 635 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **428** | **3244** |
+| **Total** | **428** | **3251** |
 
-Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 418 fichiers, 3212 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -317,7 +317,7 @@ Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/clubInventoryIO.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/clubInventoryIO.test.ts</code> — 11 tests</summary>
 
 - **parseDelimited**
   - lit le CSV « ; » avec guillemets, retours ligne et BOM
@@ -331,6 +331,9 @@ Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - signale les lignes invalides sans bloquer les autres
   - refuse un fichier sans colonne Nom
   - convertit les dates Excel numériques des colonnes de date
+- **catégories du club dans l’échange**
+  - écrit le nom de la catégorie propre et la relit vers sa clé
+  - une catégorie inconnue retombe sur « Autre »
 
 </details>
 
@@ -2492,7 +2495,7 @@ Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 18 tests</summary>
+<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 23 tests</summary>
 
 - **ClubInventoryRepo (inventaire du club)**
   - crée une fiche complète avec achat, garantie et emplacement
@@ -2513,6 +2516,12 @@ Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - effacement RGPD d’un tireur : son prêt reste compté, sans identité
   - effacement d’un club : matériel et prêts supprimés
   - import en lot : ignore les n° de série déjà présents ou répétés dans le fichier
+  - **catégories du club**
+    - crée, liste avec le nombre de fiches, renomme
+    - refuse un nom vide ou déjà pris, sans tenir compte de la casse
+    - refuse de supprimer une catégorie utilisée, supprime une catégorie libre
+    - une fiche ne peut utiliser qu’une catégorie de son propre club
+    - la suppression du club efface ses catégories
 
 </details>
 
