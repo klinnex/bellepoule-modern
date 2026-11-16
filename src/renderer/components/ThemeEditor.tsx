@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
+import { REFEREE_DARK_MATCH_VARS } from '../../shared/utils/trainingThemes';
 import { useTranslation } from '../hooks/useTranslation';
 import { Copy } from 'lucide-react';
 import { RankMedal } from './common/RankMedal';
@@ -282,6 +283,7 @@ const REFEREE_DEFAULTS: Record<string, string> = {
   '--ref-muted': 'rgba(255,255,255,0.6)',
   '--ref-card-bg': 'rgba(255, 255, 255, 0.05)',
   '--ref-border': 'rgba(255, 255, 255, 0.1)',
+  ...REFEREE_DARK_MATCH_VARS,
 };
 
 const REFEREE_VAR_GROUPS: VarGroup[] = [
@@ -306,6 +308,16 @@ const REFEREE_VAR_GROUPS: VarGroup[] = [
     vars: [
       { key: '--ref-card-bg', label: 'Fond cartes', type: 'text' },
       { key: '--ref-border', label: 'Bordures', type: 'text' },
+    ],
+  },
+  {
+    label: 'Arbitre – Carte du match',
+    vars: [
+      { key: '--ref-match-bg', label: 'Fond carte du match', type: 'text' },
+      { key: '--ref-match-text', label: 'Texte carte du match', type: 'color' },
+      { key: '--ref-fencer-bg', label: 'Fond tireurs', type: 'text' },
+      { key: '--ref-fencer-text', label: 'Texte tireurs', type: 'color' },
+      { key: '--ref-btn-text', label: 'Texte bouton Retour', type: 'color' },
     ],
   },
 ];
