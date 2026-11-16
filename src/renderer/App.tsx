@@ -182,6 +182,30 @@ const AppContent: React.FC = () => {
     handleTabSwitch,
   } = useAppState(showToast);
 
+  // Club affiché : logo (remplace le bouclier) et nom de l'onglet, relus à chaque changement de vue
+  const [activeClub, setActiveClub] = useState<{ name: string; logo?: string } | null>(null);
+  useEffect(() => {
+    const api = window.electronAPI?.club;
+    if (!api || !activeClubId) {
+      setActiveClub(null);
+      return;
+    }
+    let alive = true;
+    void api
+      .getClub(activeClubId)
+      .then(c => alive && setActiveClub(c ? { name: c.name, logo: c.logo } : null))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [activeClubId, view]);
+  const clubIcon = (size: number) =>
+    activeClub?.logo ? (
+      <img className="club-icon-logo" src={activeClub.logo} alt="" width={size} height={size} />
+    ) : (
+      <Shield size={size} aria-hidden="true" />
+    );
+
   // Accueil sans compétition : l'état vide porte déjà le CTA principal
   const isEmptyHome = view === 'home' && !isLoading && competitions.length === 0;
 
@@ -744,7 +768,7 @@ const AppContent: React.FC = () => {
               onClick={openClub}
               title={t('app.club_open')}
             >
-              <Shield size={15} />
+              {clubIcon(15)}
               <span className="header-btn-label">{t('app.club')}</span>
             </Button>
             <Button
@@ -960,8 +984,8 @@ const AppContent: React.FC = () => {
                   }
                 }}
               >
-                <Shield size={13} aria-hidden="true" />
-                <span className="club-tab-label">{t('app.club')}</span>
+                {clubIcon(16)}
+                <span className="club-tab-label">{activeClub?.name || t('app.club')}</span>
                 <Tooltip content={t('app.club_close')}>
                   <Button
                     variant="ghost"

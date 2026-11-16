@@ -380,3 +380,9 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+/* Logo du club à la place du bouclier (bouton d'en-tête, onglet) */
+.club-icon-logo {
+  object-fit: contain;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
