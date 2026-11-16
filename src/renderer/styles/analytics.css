@@ -353,3 +353,15 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
+
+/* Head-to-Head : listes pleine largeur, centrées sous Tireur 1 / Tireur 2 (#1858) */
+.comparison__selectors .form-group {
+  min-width: 0;
+}
+.comparison__selectors .form-control {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  text-align-last: center;
+}
