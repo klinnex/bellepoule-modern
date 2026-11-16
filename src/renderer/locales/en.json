@@ -1525,6 +1525,7 @@
     "cyrano_profile_efp11": "EFP1.1",
     "cyrano_day_scope": "Strip table shared by the event day “{{day}}”: each strip follows the event of its current assignment.",
     "cyrano_other_event": "Other event",
+    "cyrano_profile_saintgeorge": "Saint-George SG31 / SG32",
     "cyrano_batch_from": "First track",
     "cyrano_batch_count": "Number of tracks",
     "cyrano_batch_add": "Add in batch",

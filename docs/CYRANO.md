@@ -73,7 +73,8 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 | Réglage / action | Effet |
 |---|---|
 | Mode de la piste | `maître` (défaut), `afficheur` ou `manuel` (voir § 2 ter) ; changement pris en compte immédiatement |
-| Interface d'écoute | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage |
+| Interface d'écoute | adresse IP locale (ou toutes les interfaces) ; prise en compte au démarrage. Une interface IPv4 choisie écoute en réalité sur toutes les interfaces (sinon les diffusions `x.x.x.255` ne sont pas reçues sous Linux / macOS) : les trames d'IP non déclarées hors de son sous-réseau sont ignorées sans trace |
+| Profil (ajout en lot) | `Standard` (50100), `EFP1.1` (50101), `Saint-George SG31 / SG32` (50101, IP `192.168.1.(100 + piste)` pré-remplie) |
 | Démarrer avec la saisie distante | serveur Cyrano démarré à chaque lancement de séance, avec la table des pistes mémorisée |
 | Secours `ACK` | ACK forcé : débloque un appareil resté en attente d'acquittement |
 | Secours `NEXT` | même effet que la touche NEXT de l'appareil (mêmes garde-fous) |
@@ -144,6 +145,16 @@ terminé sur l'arène, ou match suivant en file) :
 UDP sur le LAN, sans chiffrement ni jeton : seules les trames des **IP déclarées** sont traitées.
 Les autres sont journalisées (`rejected: 'unknown_ip'`) et signalées par l'événement `unknown`
 (aide à la découverte), sans effet. Trames illisibles ou > 512 octets : ignorées.
+Un datagramme peut contenir plusieurs trames collées (`…%||EFP1.1|INFO|…`, Saint-George SG32) :
+elles sont traitées dans l'ordre, la dernière fait foi (`splitCyranoFrames`).
+
+### Saint-George SG31 / SG32
+
+Constaté en salle (12 SG32) : IP fixe `192.168.1.(100 + piste)`, écoute sur **50101**, INFO émis
+depuis 50101 en **diffusion** vers `192.168.1.255:50100` toutes les 2 à 4 s (aucune IP de serveur
+à régler sur l'appareil). Côté poste : port UDP 50100, IP dans `192.168.1.0/24` hors 101 à 112,
+profil `Saint-George`, numéro de piste BellePoule = numéro de l'appareil. La télécommande n'agit que
+si elle est appairée à l'appareil (socle de charge) ; BEGIN fait passer de `W` à `H` (spéc. § 4).
 
 ### Pare-feu
 

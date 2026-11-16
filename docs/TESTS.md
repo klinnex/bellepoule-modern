@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 14 | 231 |
-| `src/main/` | 78 | 635 |
+| `src/main/` | 78 | 642 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 109 | 550 |
+| `src/renderer/components/` | 109 | 551 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **428** | **3256** |
+| **Total** | **428** | **3264** |
 
-Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2831,7 +2831,7 @@ Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/codec.test.ts</code> — 24 tests</summary>
+<summary><code>src/main/cyrano/codec.test.ts</code> — 27 tests</summary>
 
 - **parseCyrano — trames de la spécification**
   - HELLO / NEXT / PREV
@@ -2862,6 +2862,10 @@ Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **DISP depuis un match**
   - construit les champs et respecte les longueurs
   - armes hors protocole
+- **splitCyranoFrames (datagrammes Saint-George SG32)**
+  - une trame seule est rendue telle quelle
+  - deux INFO collés : deux trames, dans l’ordre, la dernière lisible
+  - EFP1 collé à EFP1.1
 
 </details>
 
@@ -2961,7 +2965,7 @@ Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/server.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/cyrano/server.test.ts</code> — 11 tests</summary>
 
 - **CyranoServer**
   - interface d’écoute : adresse IP ou vide, refus sinon (#1829)
@@ -2971,6 +2975,11 @@ Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - supervision : en ligne → incertain → hors ligne
   - journal borné
   - version imposée par piste
+- **Interface d’écoute et datagrammes Saint-George**
+  - sous-réseau de l’interface locale
+  - deux INFO dans un datagramme : deux trames traitées, la dernière retenue
+  - interface choisie : reçoit aussi les datagrammes adressés à une autre IP locale (broadcast)
+  - interface choisie : IP inconnues d’un autre réseau ignorées sans trace
 
 </details>
 
@@ -5713,11 +5722,12 @@ Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/cyranoPisteTools.test.ts</code> — 8 tests</summary>
+<summary><code>src/renderer/components/remote/cyranoPisteTools.test.ts</code> — 9 tests</summary>
 
 - **profils constructeur (#1829)**
   - port 50100 en standard, 50101 en EFP1.1
 - **ajout en lot**
+  - profil Saint-George : port 50101, IP 192.168.1.(100 + piste)
   - numéros consécutifs, piste n ↔ arène n, port du profil
   - ignore les numéros déjà présents
   - ne dépasse jamais le maximum de pistes

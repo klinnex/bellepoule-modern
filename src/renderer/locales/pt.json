@@ -1525,6 +1525,7 @@
     "cyrano_profile_efp11": "EFP1.1",
     "cyrano_day_scope": "Tabela de pistas partilhada pela jornada «{{day}}»: cada pista segue a prova da sua atribuição atual.",
     "cyrano_other_event": "Outra prova",
+    "cyrano_profile_saintgeorge": "Saint-George SG31 / SG32",
     "cyrano_batch_from": "Primeira pista",
     "cyrano_batch_count": "Número de pistas",
     "cyrano_batch_add": "Adicionar em lote",

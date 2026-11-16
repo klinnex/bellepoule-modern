@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import dgram from 'dgram';
-import { CyranoServer } from './server';
+import { CyranoServer, findIPv4Subnet, inIPv4Subnet } from './server';
 import { parseCyrano } from './codec';
 
 /** Appareil simulé : socket UDP local qui collecte les trames reçues. */
@@ -146,5 +146,72 @@ describe('CyranoServer', () => {
     cleanup.push(() => server.stop());
     await server.start();
     expect(await app.next()).toBe('|EFP1|HELLO|9||%|');
+  });
+});
+
+describe('Interface d’écoute et datagrammes Saint-George', () => {
+  const cleanup: (() => Promise<void>)[] = [];
+  afterEach(async () => {
+    while (cleanup.length) await cleanup.pop()!();
+  });
+
+  it('sous-réseau de l’interface locale', () => {
+    const ifaces = {
+      eth0: [
+        {
+          address: '192.168.1.5',
+          netmask: '255.255.255.0',
+          family: 'IPv4',
+          mac: '',
+          internal: false,
+          cidr: '192.168.1.5/24',
+        },
+      ],
+    } as unknown as Parameters<typeof findIPv4Subnet>[1];
+    const subnet = findIPv4Subnet('192.168.1.5', ifaces)!;
+    expect(inIPv4Subnet('192.168.1.107', subnet)).toBe(true);
+    expect(inIPv4Subnet('::ffff:192.168.1.112', subnet)).toBe(true);
+    expect(inIPv4Subnet('192.168.2.107', subnet)).toBe(false);
+    expect(findIPv4Subnet('10.1.2.3', ifaces)).toBeNull();
+  });
+
+  it('deux INFO dans un datagramme : deux trames traitées, la dernière retenue', () => {
+    const server = new CyranoServer();
+    server.setPistes([{ piste: '7', ip: '192.168.1.107', port: 50101, arena: 7 }]);
+    const seen: string[] = [];
+    server.on('info', (_p, msg) => seen.push(msg.state ?? ''));
+    server.handle(
+      '|EFP1.1|INFO|7|||||1||03:00|I|F|N|W|%|a|A||0|U|%|b|B||0|U|%|' +
+        '|EFP1.1|INFO|7|||||1||02:59|I|F|N|F|%|a|A||0|U|%|b|B||0|U|%|',
+      '192.168.1.107',
+      50101
+    );
+    expect(seen).toEqual(['W', 'F']);
+    expect(server.getStatuses()[0].lastInfo?.stopwatch).toBe('02:59');
+    expect(server.getLog().filter(e => e.dir === 'in')).toHaveLength(2);
+  });
+
+  it.skipIf(process.platform !== 'linux')(
+    'interface choisie : reçoit aussi les datagrammes adressés à une autre IP locale (broadcast)',
+    async () => {
+      const server = new CyranoServer({ port: 0, host: '127.0.0.1', helloIntervalMs: 60_000 });
+      server.setPistes([{ piste: '7', ip: '127.0.0.1', port: 9, arena: 7 }]);
+      cleanup.push(() => server.stop());
+      const port = await server.start();
+      const got = new Promise<string>(resolve => server.on('info', (_p, m) => resolve(m.piste)));
+      const sock = dgram.createSocket('udp4');
+      cleanup.push(() => new Promise<void>(r => sock.close(() => r())));
+      // 127.0.0.2 : autre adresse locale, comme 192.168.1.255 pour un SG32
+      sock.send('|EFP1.1|INFO|7|x|%|', port, '127.0.0.2');
+      expect(await got).toBe('7');
+    }
+  );
+
+  it('interface choisie : IP inconnues d’un autre réseau ignorées sans trace', () => {
+    const server = new CyranoServer({ host: '127.0.0.1' });
+    (server as unknown as { subnet: unknown }).subnet = findIPv4Subnet('127.0.0.1');
+    server.handle('|EFP1.1|INFO|1|x|%|', '10.9.9.9', 50101);
+    server.handle('|EFP1.1|INFO|1|x|%|', '127.0.0.9', 50101);
+    expect(server.getLog().map(e => e.ip)).toEqual(['127.0.0.9']);
   });
 });

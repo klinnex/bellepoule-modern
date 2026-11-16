@@ -154,6 +154,15 @@ function parseFencer(fields: string[]): CyranoFencer | undefined {
 }
 
 /**
+ * Sépare les trames d'un datagramme. Certains appareils (Saint-George SG32) envoient
+ * deux INFO successifs dans un seul datagramme (`…%||EFP1.1|INFO|…`) : la plus récente
+ * est la dernière. Un datagramme d'une seule trame est rendu tel quel.
+ */
+export function splitCyranoFrames(raw: string): string[] {
+  return raw.split(/(?<=%\|)(?=\|EFP1(?:\.1)?\|)/);
+}
+
+/**
  * Découpe une trame Cyrano. Retourne `null` si la trame n'est pas exploitable
  * (protocole ou commande inconnus, taille excessive). Tolérant : zones et champs
  * de fin omis, espaces parasites, retour à la ligne final.
