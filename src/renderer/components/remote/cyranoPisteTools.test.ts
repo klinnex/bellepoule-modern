@@ -21,6 +21,14 @@ describe('profils constructeur (#1829)', () => {
 });
 
 describe('ajout en lot', () => {
+  it('profil Saint-George : port 50101, IP 192.168.1.(100 + piste)', () => {
+    const sg = CYRANO_PROFILES.find(p => p.id === 'saintgeorge')!;
+    const rows = buildBatch(sg, 7, 2, []);
+    expect(rows[0]).toMatchObject({ piste: '7', ip: '192.168.1.107', port: 50101, arena: 7 });
+    expect(rows[1].ip).toBe('192.168.1.108');
+    expect(buildBatch(sg, 155, 1, [])[0].ip).toBe('');
+  });
+
   it('numéros consécutifs, piste n ↔ arène n, port du profil', () => {
     const rows = buildBatch(EFP11, 1, 3, []);
     expect(rows.map(r => r.piste)).toEqual(['1', '2', '3']);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildCyrano, parseCyrano, sanitizeField } from './codec';
+import { buildCyrano, parseCyrano, sanitizeField, splitCyranoFrames } from './codec';
 import { formatCyranoName, formatCyranoNat, pickCyranoNat, transliterate } from './names';
 import { cyranoResult, validateCyranoEnd } from './endValidation';
 import { buildDisp, toCyranoWeapon } from './disp';
@@ -283,5 +283,28 @@ describe('DISP depuis un match', () => {
     expect(toCyranoWeapon('L')).toBeUndefined();
     expect(toCyranoWeapon('C')).toBeUndefined();
     expect(toCyranoWeapon('S')).toBe('S');
+  });
+});
+
+describe('splitCyranoFrames (datagrammes Saint-George SG32)', () => {
+  const a =
+    '|EFP1.1|INFO|3|||||1||03:00.00|I|F|N|W|%||3||0|U|0|0|0|0||N|0|%||NANTES||0|U|0|0|0|0||N|0|%|';
+  const b =
+    '|EFP1.1|INFO|3|||||1||03:00.00|I|F|N|W|%||3||0|U|0|0|0|1||N|0|%||NANTES||0|U|0|0|0|0||N|0|%|';
+
+  it('une trame seule est rendue telle quelle', () => {
+    expect(splitCyranoFrames(a)).toEqual([a]);
+    expect(splitCyranoFrames(SPEC.hello)).toEqual([SPEC.hello]);
+  });
+
+  it('deux INFO collés : deux trames, dans l’ordre, la dernière lisible', () => {
+    const frames = splitCyranoFrames(a + b);
+    expect(frames).toEqual([a, b]);
+    expect(parseCyrano(frames[1])?.right?.whiteLight).toBe(true);
+  });
+
+  it('EFP1 collé à EFP1.1', () => {
+    const efp1 = '|EFP1|INFO|3|x|%|';
+    expect(splitCyranoFrames(efp1 + a)).toEqual([efp1, a]);
   });
 });

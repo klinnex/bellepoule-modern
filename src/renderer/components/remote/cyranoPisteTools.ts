@@ -12,18 +12,29 @@ export const EXPORT_FORMAT = 'bellepoule-cyrano-pistes';
 
 /** Profils constructeur : port d'écoute et protocole selon l'appareil (50100 ou 50101) */
 export interface CyranoProfile {
-  id: 'standard' | 'efp11';
+  id: 'standard' | 'efp11' | 'saintgeorge';
   port: number;
   protocol: 'EFP1' | 'EFP1.1' | 'auto';
+  /** IP déduite du numéro de piste, quand le constructeur l'impose */
+  ipOf?: (piste: number) => string;
 }
 
 export const CYRANO_PROFILES: readonly CyranoProfile[] = [
   { id: 'standard', port: 50100, protocol: 'auto' },
   { id: 'efp11', port: 50101, protocol: 'EFP1.1' },
+  // Saint-George SG31 / SG32 : IP fixe 192.168.1.(100 + piste), écoute sur 50101,
+  // INFO diffusés en broadcast vers le port 50100 du poste
+  {
+    id: 'saintgeorge',
+    port: 50101,
+    protocol: 'auto',
+    ipOf: n => (n >= 1 && n <= 154 ? `192.168.1.${100 + n}` : ''),
+  },
 ];
 
 /**
- * Lot de pistes : numéros consécutifs à partir de `from`, piste n ↔ arène n, IP vide à saisir.
+ * Lot de pistes : numéros consécutifs à partir de `from`, piste n ↔ arène n, IP vide à saisir
+ * (ou déduite du numéro selon le profil).
  * Les numéros déjà présents sont ignorés ; la liste ne dépasse jamais MAX_PISTES.
  */
 export function buildBatch(
@@ -38,7 +49,13 @@ export function buildBatch(
   for (let n = from; out.length < Math.min(count, room) && n < from + 1000; n++) {
     const piste = String(n);
     if (taken.has(piste)) continue;
-    out.push({ piste, ip: '', port: profile.port, arena: n, protocol: profile.protocol });
+    out.push({
+      piste,
+      ip: profile.ipOf?.(n) ?? '',
+      port: profile.port,
+      arena: n,
+      protocol: profile.protocol,
+    });
   }
   return out;
 }
