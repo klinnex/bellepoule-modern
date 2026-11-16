@@ -290,8 +290,9 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 Appareils de piste (Favero, SG…) via le protocole Cyrano : voir [CYRANO.md](CYRANO.md).
 Appareil **maître et en ligne** : l'appareil fait foi. La tablette ne peut plus ajouter ni points
 ni cartons (jaune, rouge, noir, P) ; une notification l'explique. Le retrait (appui long sur le
-bouton carton, −1) reste permis pour corriger. Le serveur refuse aussi tout carton ajouté depuis la
-tablette.
+bouton carton, −1) reste permis pour corriger. Le serveur refuse aussi tout point ou carton ajouté
+depuis la tablette ; un carton noir refusé (appareil passé en ligne entre-temps) est retiré et le
+combat continue.
 
 Mode Club en séance (#1872) : en arrivant sur la piste, la tablette demande la carte de club du
 tireur A puis du tireur B (caméra ou code en clair, chaque carte peut être passée) ; bouton

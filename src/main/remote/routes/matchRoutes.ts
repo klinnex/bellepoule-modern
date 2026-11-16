@@ -285,9 +285,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         return res.status(404).json({ error: 'match_not_found' });
       }
 
-      // Carton noir donné par la tablette alors que l'appareil maître fait foi : refusé (#1829)
+      // Carton noir : le combattant fautif est exclu de la compétition
+      // Ignoré si le carton noir n'est pas activé sur la compétition
+      const blackCarded =
+        ctx.sessionBlackCardEnabled && (blackCardFencer === 'A' || blackCardFencer === 'B')
+          ? blackCardFencer
+          : null;
+
+      // Carton noir donné par la tablette alors que l'appareil maître fait foi : refusé (#1829).
+      // Seulement si le carton noir est pris en compte (sinon le champ est ignoré, comme avant)
       if (
-        (blackCardFencer === 'A' || blackCardFencer === 'B') &&
+        blackCarded &&
         [...ctx.arenas.values()].some(
           a => a.currentMatch?.id === matchId && isCyranoMasterOnline(a)
         )
@@ -295,13 +303,6 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         ctx.logDiag(`[REST /finish] carton noir refusé : appareil maître en ligne (${matchId})`);
         return res.status(409).json({ error: 'cyrano_master_lock' });
       }
-
-      // Carton noir : le combattant fautif est exclu de la compétition
-      // Ignoré si le carton noir n'est pas activé sur la compétition
-      const blackCarded =
-        ctx.sessionBlackCardEnabled && (blackCardFencer === 'A' || blackCardFencer === 'B')
-          ? blackCardFencer
-          : null;
 
       // Minute prioritaire (#1442) : égalité finale sans override → tireur prioritaire tiré
       const prevScores = ctx.sessionMatchScores.get(matchId) as

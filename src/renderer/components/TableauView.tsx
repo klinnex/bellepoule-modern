@@ -152,9 +152,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = (props: TableauViewProp
     const title = `Tableau de ${tableauSize}${roundLabel ? ` — ${roundLabel}` : ''}`;
     const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
     try {
-      const signatures = await loadDESignatures(filteredMatches);
-      // Cartons reçus par tireur, imprimés sur la feuille du match (#1829)
-      const cards = await loadDECards(filteredMatches, competitionId);
+      // Signatures et cartons reçus par tireur, imprimés sur la feuille du match (#1829)
+      const [signatures, cards] = await Promise.all([
+        loadDESignatures(filteredMatches),
+        loadDECards(filteredMatches, competitionId),
+      ]);
       const sheetOptions = cards ? { cards } : undefined;
 
       const { printTableauHTML, exportTableauToPDF } = await import('../../shared/utils/pdfExport');

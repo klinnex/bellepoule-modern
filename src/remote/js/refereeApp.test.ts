@@ -255,6 +255,8 @@ describe('appareil de piste maître (#1829) : chrono du serveur et cartons verro
     addPassivityCard: () => void;
     requestBlackCard: (fencer: string) => void;
     removeCardFromButton: (config: { fencer: string; cardType: string }) => void;
+    _pendingBlackCardFencer: string | null;
+    confirmBlackCard: () => Promise<void>;
   };
   const fencer = (id: string) => ({ id, firstName: id, lastName: id, club: '' });
   const resumed = (serverTimer: unknown) => ({
@@ -334,6 +336,22 @@ describe('appareil de piste maître (#1829) : chrono du serveur et cartons verro
     app.removeCardFromButton({ fencer: 'A', cardType: 'yellow' });
     expect([...app.cardsA, ...app.cardsB]).toEqual(['yellow']);
     expect(emittedData).toContainEqual(expect.objectContaining({ action: 'update_score' }));
+  });
+
+  it('carton noir refusé par le serveur (409, appareil maître devenu en ligne) : le combat continue', async () => {
+    const { dom, emittedData } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; fetch: unknown };
+    const app = w.refereeApp;
+    app.currentMatch = { id: 'm1' };
+    app.matchStatus = 'in_progress';
+    w.fetch = async () => ({ ok: false, status: 409, json: async () => ({}) });
+    emittedData.length = 0;
+    app._pendingBlackCardFencer = 'A';
+    await app.confirmBlackCard();
+    expect(app.cardsA).toEqual([]);
+    expect(app.matchStatus).toBe('in_progress');
+    const actions = emittedData.map(d => (d as { action?: string } | undefined)?.action);
+    expect(actions).not.toContain('finish');
   });
 
   it('appareil hors ligne : ajout de carton de nouveau permis', async () => {

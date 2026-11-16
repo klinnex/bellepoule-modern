@@ -837,6 +837,20 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
     });
 
+    it('maître en ligne : remplacement d’un carton — l’ajout est refusé, le retrait passe', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      tabletCards(['red']);
+      expect(heldCards()).toEqual({ cardsA: [], cardsB: [] });
+    });
+
+    it('maître en ligne : la tablette ne peut que retirer des points', () => {
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 1 }));
+      tablet({ action: 'update_score', scoreA: 4, scoreB: 1 });
+      expect(arena().currentMatch).toMatchObject({ scoreA: 3, scoreB: 1 });
+      tablet({ action: 'update_score', scoreA: 2, scoreB: 2 });
+      expect(arena().currentMatch).toMatchObject({ scoreA: 2, scoreB: 1 });
+    });
+
     it('piste en manuel (ou appareil hors ligne) : la tablette ajoute librement', () => {
       device(info('H', { id: short(ID.ef), score: 1 }, { id: short(ID.ab), score: 0 }));
       setMode('manual');

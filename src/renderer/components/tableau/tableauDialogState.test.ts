@@ -51,6 +51,15 @@ describe('tableauDialogState', () => {
     expect(getCardsByMatchIds).toHaveBeenCalledWith(['m1', 'comp-m1', 'm2', 'comp-m2']);
   });
 
+  it('loadDECards : match saisi à distance, lignes sous l’id simple ignorées (pas de doublon)', async () => {
+    const getCardsByMatchIds = vi.fn().mockResolvedValue([
+      { matchId: 'comp-m1', fencerId: 'a', cardType: 'yellow' },
+      { matchId: 'm1', fencerId: 'a', cardType: 'yellow' },
+    ]);
+    (window as unknown as { electronAPI: unknown }).electronAPI = { db: { getCardsByMatchIds } };
+    expect(await loadDECards([m('m1', 'a', 'b')], 'comp')).toEqual({ m1: { A: ['yellow'] } });
+  });
+
   it('loadDECards : undefined sans carton ou en cas d erreur', async () => {
     expect(await loadDECards([m('m1', 'a', 'b')], 'comp')).toBeUndefined();
     (window as unknown as { electronAPI: unknown }).electronAPI = {

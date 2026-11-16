@@ -1188,12 +1188,14 @@ class RefereeAppBase {
     document.getElementById('btn-dt-icon')?.classList.add('dt-active');
 
     // Terminer le match : l'adversaire du fautif est vainqueur
+    const previousStatus = this.matchStatus;
     this.matchStatus = 'finished';
     this._clearStoredTimer();
     this.stopTimer();
 
+    let res = null;
     try {
-      await fetch(`/api/matches/${this.currentMatch.id}/finish`, {
+      res = await fetch(`/api/matches/${this.currentMatch.id}/finish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1208,6 +1210,19 @@ class RefereeAppBase {
       });
     } catch (e) {
       console.error('[BlackCard] Erreur finish:', e);
+    }
+    // Appareil de piste maître devenu en ligne entre-temps (#1829) : carton refusé par le
+    // serveur, le combat continue (pas de fin silencieuse sans le carton noir)
+    if (res && res.status === 409) {
+      cards.pop();
+      this.matchStatus = previousStatus;
+      this.updateScores();
+      this.updateCardsDisplay();
+      this.broadcastUpdate();
+      this.showNotification(window.T('referee.cyrano_master_card_lock'));
+      this.updateMatchStatus();
+      this.updateControlButtons();
+      return;
     }
 
     this.updateMatchStatus();

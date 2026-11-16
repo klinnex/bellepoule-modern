@@ -63,10 +63,13 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 **L'appareil fait foi** (appareil maître et en ligne, décision de l'auteur du ticket) : sur la
 tablette, l'ajout de points **et** de cartons (jaune, rouge, noir, P) est bloqué, avec une
 notification ; le retrait reste permis pour corriger. Côté serveur, une action de la tablette qui
-**ajoute** un carton est refusée : `update_score` dont les cartons s'allongent (comptage par type,
-`cyranoLock.ts`) → cartons ignorés, le reste de la mise à jour passe et la tablette reçoit en retour
-les cartons de l'arène (`source: 'device'`) ; `add_card` refusé ; carton noir envoyé avec la fin de
-match (`POST /api/matches/:id/finish`, `blackCardFencer`) → `409 cyrano_master_lock`. Les entrées
+**ajoute** un carton ou un point est refusée : `update_score` dont les cartons s'allongent
+(comptage par type, `cyranoLock.ts`) → ajouts ignorés, retraits gardés (`keepRemovals` : remplacer
+un jaune par un rouge garde le retrait du jaune), la tablette reçoit en retour les cartons de
+l'arène (`source: 'device'`) ; scores bornés aux scores actuels (`lockedScore`) ; `add_card`
+refusé ; carton noir pris en compte envoyé avec la fin de match (`POST /api/matches/:id/finish`,
+`blackCardFencer`) → `409 cyrano_master_lock`, la tablette retire alors le carton et le combat
+continue. Les entrées
 de l'appareil (`cyrano:<piste>`) passent toujours. Appareil hors ligne, piste en afficheur ou en
 manuel : saisie libre sur la tablette.
 

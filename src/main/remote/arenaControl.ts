@@ -11,7 +11,13 @@ import { getSharedMainWindow } from '../mainWindowRef';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import { recordRemoteEvent } from './remoteEvents';
 import { recordArenaTimer } from './arenaTimer';
-import { addsCard, isCyranoMasterOnline, isDeviceSocket } from './cyranoLock';
+import {
+  addsCard,
+  keepRemovals,
+  lockedScore,
+  isCyranoMasterOnline,
+  isDeviceSocket,
+} from './cyranoLock';
 
 type S = RemoteScoreServer;
 
@@ -273,6 +279,11 @@ export function handleArenaControl(
       if (data.overtimeType !== undefined) {
         ctx.arenaOvertimeType.set(data.arenaId, data.overtimeType);
       }
+      // Appareil maître en ligne : la tablette ne peut que retirer des points (#1829)
+      if (cardLock && data.scoreA !== undefined && data.scoreB !== undefined) {
+        data.scoreA = lockedScore(arena.currentMatch?.scoreA, data.scoreA);
+        data.scoreB = lockedScore(arena.currentMatch?.scoreB, data.scoreB);
+      }
       if (data.scoreA !== undefined && data.scoreB !== undefined) {
         ctx.updateArenaScore(
           data.arenaId,
@@ -287,15 +298,16 @@ export function handleArenaControl(
         const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
         if (addsCard(held.cardsA, data.cardsA) || addsCard(held.cardsB, data.cardsB)) {
           ctx.logDiag(`[Cyrano] arène ${data.arenaId} : carton ajouté par la tablette refusé`);
-          data.cardsA = undefined;
-          data.cardsB = undefined;
+          // Ajouts ignorés, retraits gardés (remplacement d'un carton : le retrait passe)
+          if (data.cardsA !== undefined) data.cardsA = keepRemovals(held.cardsA, data.cardsA);
+          if (data.cardsB !== undefined) data.cardsB = keepRemovals(held.cardsB, data.cardsB);
           socket.emit(`arena:${data.arenaId}:update`, {
             arenaId: data.arenaId,
             match: arena.currentMatch,
             scoreA: arena.currentMatch?.scoreA,
             scoreB: arena.currentMatch?.scoreB,
-            cardsA: held.cardsA,
-            cardsB: held.cardsB,
+            cardsA: data.cardsA ?? held.cardsA,
+            cardsB: data.cardsB ?? held.cardsB,
             status: arena.status,
             cyrano: arena.cyrano ?? null,
             source: 'device',

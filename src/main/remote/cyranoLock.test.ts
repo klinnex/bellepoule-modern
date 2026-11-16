@@ -2,7 +2,13 @@
  * Verrou de saisie quand l'appareil de piste maître fait foi (#1829)
  */
 import { describe, it, expect } from 'vitest';
-import { addsCard, isCyranoMasterOnline, isDeviceSocket } from './cyranoLock';
+import {
+  addsCard,
+  isCyranoMasterOnline,
+  isDeviceSocket,
+  keepRemovals,
+  lockedScore,
+} from './cyranoLock';
 
 describe('cyranoLock (#1829)', () => {
   it('isCyranoMasterOnline : maître et en ligne seulement', () => {
@@ -39,5 +45,18 @@ describe('cyranoLock (#1829)', () => {
     expect(addsCard(['yellow'], [])).toBe(false);
     expect(addsCard(['yellow'], undefined)).toBe(false);
     expect(addsCard(undefined, ['black'])).toBe(true);
+  });
+
+  it('keepRemovals : ajouts ignorés, retraits gardés (remplacement d’un carton)', () => {
+    expect(keepRemovals(['yellow'], ['red'])).toEqual([]);
+    expect(keepRemovals(['yellow', 'red'], ['red', 'black'])).toEqual(['red']);
+    expect(keepRemovals(['red', 'red'], ['red', 'red', 'red'])).toEqual(['red', 'red']);
+    expect(keepRemovals(undefined, ['black'])).toEqual([]);
+  });
+
+  it('lockedScore : la tablette ne fait que retirer des points', () => {
+    expect(lockedScore(3, 4)).toBe(3);
+    expect(lockedScore(3, 2)).toBe(2);
+    expect(lockedScore(undefined, 4)).toBe(4);
   });
 });

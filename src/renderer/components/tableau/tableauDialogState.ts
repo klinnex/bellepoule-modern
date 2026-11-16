@@ -76,10 +76,20 @@ export async function loadDECards(
     if (dbIdToMatch.size === 0) return undefined;
     const rows =
       (await window.electronAPI?.db?.getCardsByMatchIds?.([...dbIdToMatch.keys()])) ?? [];
+    // Match saisi à distance : seules ses lignes sous l'id composite comptent (pas de doublon
+    // avec d'éventuelles lignes sous l'id simple)
+    const remoteIds = new Set(
+      rows
+        .filter(
+          r => competitionId && r.matchId === `${competitionId}-${dbIdToMatch.get(r.matchId)?.id}`
+        )
+        .map(r => dbIdToMatch.get(r.matchId)!.id)
+    );
     const cards: DECards = {};
     for (const row of rows) {
       const match = dbIdToMatch.get(row.matchId);
       if (!match) continue;
+      if (row.matchId === match.id && remoteIds.has(match.id)) continue;
       const slot =
         match.fencerA?.id === row.fencerId ? 'A' : match.fencerB?.id === row.fencerId ? 'B' : null;
       if (!slot) continue;

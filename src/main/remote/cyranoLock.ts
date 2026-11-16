@@ -35,3 +35,26 @@ export function addsCard(current: readonly string[] | undefined, next: unknown):
   }
   return false;
 }
+
+/**
+ * Cartons gardés quand l'ajout est refusé : retraits permis, ajouts ignorés (intersection par
+ * type). Remplacer un jaune par un rouge garde ainsi le retrait du jaune.
+ */
+export function keepRemovals(current: readonly string[] | undefined, next: unknown): string[] {
+  const left = new Map<string, number>();
+  for (const c of Array.isArray(next) ? next : [])
+    left.set(String(c), (left.get(String(c)) ?? 0) + 1);
+  const kept: string[] = [];
+  for (const c of current ?? []) {
+    const n = left.get(c) ?? 0;
+    if (n === 0) continue;
+    left.set(c, n - 1);
+    kept.push(c);
+  }
+  return kept;
+}
+
+/** Score de la tablette borné au score actuel : l'appareil fait foi, la tablette ne fait que retirer */
+export function lockedScore(current: number | undefined, next: number): number {
+  return typeof current === 'number' && next > current ? current : next;
+}
