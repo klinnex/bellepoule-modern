@@ -3291,7 +3291,14 @@
     "import_empty": "No members found in this file",
     "strip_count": "Number of strips",
     "print_arena_qr": "Print strip QR codes",
-    "photo": "Photo"
+    "photo": "Photo",
+    "birth_date": "Date of birth",
+    "birth_date_of": "Date of birth of {{name}}",
+    "sort_by": "Sort by",
+    "sort_name": "Name",
+    "sort_category": "Age category",
+    "cards_pdf": "Save the cards as PDF",
+    "arena_qr_pdf": "Save the strip QR codes as PDF"
   },
   "clubTour": {
     "title": "Welcome to Club mode",
@@ -3357,7 +3364,13 @@
     "remote_on": "Active: referee tablets connect to {{url}}/areneN/arbitre. Each bout started is sent there; the validated score comes back here.",
     "remote_off": "Scores are entered on this computer. Enable remote scoring to referee on tablets.",
     "remote_busy": "A bout is already in progress on this strip's tablet",
-    "remote_error": "Unable to start remote scoring"
+    "remote_error": "Unable to start remote scoring",
+    "lobby": "Strip lobby",
+    "lobby_copy": "Copy the lobby link",
+    "lobby_copied": "Lobby link copied",
+    "lobby_qr_alt": "Strip lobby QR code",
+    "lobby_hint": "Scan this QR code with a tablet to pick a strip and referee.",
+    "remote_cards_hint": "On the tablet, fencer A's card then fencer B's card are requested (identification optional): with both cards, the bout is recorded in the session."
   },
   "clubStats": {
     "period": "Period",
@@ -3444,7 +3457,20 @@
     "print": "Print",
     "export_plan": "Export plan",
     "import_plan": "Import a plan",
-    "plan_exported": "Plan exported"
+    "plan_exported": "Plan exported",
+    "repeat": "Repeat this session",
+    "every_days": "Every (days)",
+    "repeat_end": "End",
+    "repeat_count": "After a number of sessions",
+    "repeat_until": "On a date",
+    "occurrences": "Sessions",
+    "until_date": "Until",
+    "repeat_summary": "Sessions created: {{count}} (last on {{last}})",
+    "repeat_none": "No session to create",
+    "series_created": "Sessions prepared: {{count}}",
+    "series_badge": "Recurring",
+    "series_history": "Other sessions in the series ({{count}})",
+    "series_empty": "Empty plan"
   },
   "clubFeedback": {
     "title": "Session review — {{date}}",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "Unreadable file (invalid JSON)",
     "error_wrong_format": "This file is not of the right type",
     "error_empty": "The file contains nothing to import"
+  },
+  "clubAge": {
+    "from": "From category",
+    "to": "To category",
+    "youngest": "Youngest",
+    "oldest": "Oldest",
+    "category": "Age category",
+    "all": "All",
+    "audience": "Target age categories",
+    "common": "Common to all",
+    "selected": "Categories: {{count}}",
+    "course_for": "Class for",
+    "only_course": "Class categories and common exercises"
+  },
+  "clubAttendance": {
+    "title": "Attendance — present: {{count}}",
+    "button": "Attendance ({{count}})",
+    "check_all": "Check all",
+    "none": "No member in these categories."
   }
 }

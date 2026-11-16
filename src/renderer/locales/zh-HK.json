@@ -3291,7 +3291,14 @@
     "import_empty": "此檔案中找不到會員",
     "strip_count": "劍道數目",
     "print_arena_qr": "列印劍道 QR 碼",
-    "photo": "相片"
+    "photo": "相片",
+    "birth_date": "出生日期",
+    "birth_date_of": "{{name}} 的出生日期",
+    "sort_by": "排序",
+    "sort_name": "姓名",
+    "sort_category": "年齡組別",
+    "cards_pdf": "將會員卡儲存為 PDF",
+    "arena_qr_pdf": "將劍道二維碼儲存為 PDF"
   },
   "clubTour": {
     "title": "歡迎使用會館模式",
@@ -3357,7 +3364,13 @@
     "remote_on": "已啟用：裁判平板連接至 {{url}}/areneN/arbitre。每場開始的對賽會傳送到平板，確認的比分會傳回此處。",
     "remote_off": "比分在此電腦輸入。啟用遠端輸入即可用平板執法。",
     "remote_busy": "此劍道的平板已有對賽進行中",
-    "remote_error": "無法啟動遠端輸入"
+    "remote_error": "無法啟動遠端輸入",
+    "lobby": "劍道大堂",
+    "lobby_copy": "複製大堂連結",
+    "lobby_copied": "已複製大堂連結",
+    "lobby_qr_alt": "劍道大堂二維碼",
+    "lobby_hint": "以平板掃描此二維碼，選擇劍道並執法。",
+    "remote_cards_hint": "平板會先後要求劍手 A 及劍手 B 的會員卡（可略過）：兩張卡均已識別時，比賽會記錄於課節中。"
   },
   "clubStats": {
     "period": "期間",
@@ -3444,7 +3457,20 @@
     "print": "列印",
     "export_plan": "匯出計劃",
     "import_plan": "匯入計劃",
-    "plan_exported": "計劃已匯出"
+    "plan_exported": "計劃已匯出",
+    "repeat": "重複此課節",
+    "every_days": "每（日）",
+    "repeat_end": "結束",
+    "repeat_count": "完成指定節數後",
+    "repeat_until": "於指定日期",
+    "occurrences": "節數",
+    "until_date": "直至",
+    "repeat_summary": "將建立課節：{{count}}（最後一節 {{last}}）",
+    "repeat_none": "沒有要建立的課節",
+    "series_created": "已準備課節：{{count}}",
+    "series_badge": "定期",
+    "series_history": "此系列其他課節（{{count}}）",
+    "series_empty": "空白教案"
   },
   "clubFeedback": {
     "title": "{{date}} 訓練總結",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "無法讀取檔案（JSON 無效）",
     "error_wrong_format": "檔案類型不正確",
     "error_empty": "檔案中沒有可匯入的內容"
+  },
+  "clubAge": {
+    "from": "由組別",
+    "to": "至組別",
+    "youngest": "最年輕",
+    "oldest": "最年長",
+    "category": "年齡組別",
+    "all": "全部",
+    "audience": "適用年齡組別",
+    "common": "所有組別通用",
+    "selected": "組別：{{count}}",
+    "course_for": "課程對象",
+    "only_course": "課程組別及通用練習"
+  },
+  "clubAttendance": {
+    "title": "點名 — 出席：{{count}}",
+    "button": "點名（{{count}}）",
+    "check_all": "全選",
+    "none": "這些組別沒有會員。"
   }
 }

@@ -1428,6 +1428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     refereeApp = new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
     window.refereeApp = refereeApp;
     window.BPRefereeLobby.install(window, () => refereeApp).catch(() => {}); // lobby entraînement (#1500) ; résolu par la délégation data-click (common.js)
+    window.BPRefereeClubCards?.install(window, () => refereeApp).catch(() => {}); // Mode Club : cartes des tireurs (#1872)
   } catch (e) {
     console.error('[RefereeApp] Erreur init:', e);
     const dot = document.getElementById('status-dot');

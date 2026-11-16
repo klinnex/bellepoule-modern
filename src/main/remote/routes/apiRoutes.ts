@@ -7,6 +7,7 @@ import type express from 'express';
 import type { Arena, ArenaMatch, OrgNote, RemoteSession } from '../../../shared/types/remote';
 import type { CustomScoringConfig } from '../../../shared/types';
 import type { MatchRouteContext } from './matchRoutes';
+import { registerClubRoutes } from './clubRoutes';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** État et opérations utilisés par l'API configuration / session / arènes / poules. */
@@ -57,6 +58,7 @@ export interface ApiRouteContext extends MatchRouteContext {
 
 /** Configuration, session, arènes et poules (API). */
 export function registerApiRoutes(ctx: ApiRouteContext): void {
+  registerClubRoutes(ctx); // Mode Club : cartes scannées sur la tablette arbitre (#1872)
   // Fallback /bp-sio.js : sert le client socket.io déjà chargé en mémoire au
   // démarrage. Normalement inutile (le client est injecté inline dans le HTML),
   // mais couvre le cas d'un HTML mis en cache par le service worker.

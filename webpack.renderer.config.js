@@ -153,6 +153,12 @@ module.exports = (env = {}) => ({
           to: '../remote/socket.io.min.js',
         },
         {
+          // jsQR : lecture des cartes de club par la caméra de la tablette arbitre (#1872),
+          // si le navigateur n'a pas BarcodeDetector
+          from: 'node_modules/jsqr/dist/jsQR.js',
+          to: '../remote/js/jsQR.js',
+        },
+        {
           // pdf.js (aperçu de la boîte d'impression, #1214) : chargé à la demande, hors bundle
           from: 'node_modules/pdfjs-dist/build/{pdf.min.mjs,pdf.worker.min.mjs}',
           to: 'pdfjs/[name][ext]',

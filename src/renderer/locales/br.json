@@ -3291,7 +3291,14 @@
     "import_empty": "Ezel ebet kavet er restr-mañ",
     "strip_count": "Niver a leurennoù",
     "print_arena_qr": "Moullañ kodoù QR al leurennoù",
-    "photo": "Luc'hskeudenn"
+    "photo": "Luc'hskeudenn",
+    "birth_date": "Deiziad ganedigezh",
+    "birth_date_of": "Deiziad ganedigezh {{name}}",
+    "sort_by": "Rummañ dre",
+    "sort_name": "Anv",
+    "sort_category": "Rummad oad",
+    "cards_pdf": "Enrollañ ar c'hartennoù e PDF",
+    "arena_qr_pdf": "Enrollañ QR ar pistoù e PDF"
   },
   "clubTour": {
     "title": "Degemer mat er Mod Klub",
@@ -3357,7 +3364,13 @@
     "remote_on": "Gweredekaet : an tabletennoù arbitr a gevreañ ouzh {{url}}/areneN/arbitre. Pep emgann loc'het a vez kaset di, ar skor kadarnaet a zistro amañ.",
     "remote_off": "Enankañ a reer ar skorioù war an urzhiataer-mañ. Gweredekait an enankañ a-bell evit arbitrañ war dablezenn.",
     "remote_busy": "Un emgann a zo o vont en-dro war tablezenn al leurenn-mañ dija",
-    "remote_error": "N'haller ket loc'hañ an enankañ a-bell"
+    "remote_error": "N'haller ket loc'hañ an enankañ a-bell",
+    "lobby": "Lobi ar pistoù",
+    "lobby_copy": "Eilskrivañ liamm al lobi",
+    "lobby_copied": "Liamm al lobi eilskrivet",
+    "lobby_qr_alt": "Kod QR lobi ar pistoù",
+    "lobby_hint": "Skanit ar c'hod QR-mañ gant un dablezenn evit dibab ur bistenn ha barnañ.",
+    "remote_cards_hint": "War an dablezenn e vez goulennet kartenn ar c'hleziad A ha goude hini ar c'hleziad B (dibar eo) : gant an div gartenn e vez enrollet an emgann en emvod."
   },
   "clubStats": {
     "period": "Prantad",
@@ -3444,7 +3457,20 @@
     "print": "Moullañ",
     "export_plan": "Ezporzhiañ ar steuñv",
     "import_plan": "Enporzhiañ ur steuñv",
-    "plan_exported": "Steuñv ezporzhiet"
+    "plan_exported": "Steuñv ezporzhiet",
+    "repeat": "Adober an emvod-mañ en-dro",
+    "every_days": "Bep (devezh)",
+    "repeat_end": "Fin",
+    "repeat_count": "Goude un niver a emvodoù",
+    "repeat_until": "D'un deiziad",
+    "occurrences": "Emvodoù",
+    "until_date": "Betek",
+    "repeat_summary": "Emvodoù krouet : {{count}} (an diwezhañ d'an {{last}})",
+    "repeat_none": "Emvod ebet da grouiñ",
+    "series_created": "Emvodoù prientet : {{count}}",
+    "series_badge": "Distro",
+    "series_history": "Emvodoù all an heuliad ({{count}})",
+    "series_empty": "Steuñv goullo"
   },
   "clubFeedback": {
     "title": "Bilañs an abadenn {{date}}",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "Restr dilennus (JSON direizh)",
     "error_wrong_format": "N'eo ket ar seurt restr a zere",
     "error_empty": "N'eus netra da enporzhiañ er restr"
+  },
+  "clubAge": {
+    "from": "Eus ar rummad",
+    "to": "Betek ar rummad",
+    "youngest": "An hini yaouankañ",
+    "oldest": "An hini koshañ",
+    "category": "Rummad oad",
+    "all": "An holl",
+    "audience": "Rummadoù oad pal",
+    "common": "Boutin d'an holl",
+    "selected": "Rummadoù : {{count}}",
+    "course_for": "Kentel evit",
+    "only_course": "Rummadoù ar gentel hag embregerezhioù boutin"
+  },
+  "clubAttendance": {
+    "title": "Merkañ — bezant : {{count}}",
+    "button": "Merkañ ({{count}})",
+    "check_all": "Merkañ an holl",
+    "none": "Ezel ebet er rummadoù-se."
   }
 }

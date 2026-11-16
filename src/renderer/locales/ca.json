@@ -3291,7 +3291,14 @@
     "import_empty": "No s'ha trobat cap soci en aquest fitxer",
     "strip_count": "Nombre de pistes",
     "print_arena_qr": "Imprimir els QR de les pistes",
-    "photo": "Foto"
+    "photo": "Foto",
+    "birth_date": "Data de naixement",
+    "birth_date_of": "Data de naixement de {{name}}",
+    "sort_by": "Ordena per",
+    "sort_name": "Nom",
+    "sort_category": "Categoria d'edat",
+    "cards_pdf": "Desa els carnets en PDF",
+    "arena_qr_pdf": "Desa els QR de les pistes en PDF"
   },
   "clubTour": {
     "title": "Benvingut al Mode Club",
@@ -3357,7 +3364,13 @@
     "remote_on": "Activa: les tauletes d'àrbitre es connecten a {{url}}/areneN/arbitre. Cada combat iniciat s'hi envia i la puntuació validada torna aquí.",
     "remote_off": "Les puntuacions s'introdueixen en aquest ordinador. Activeu l'entrada remota per arbitrar amb tauleta.",
     "remote_busy": "Ja hi ha un combat en curs a la tauleta d'aquesta pista",
-    "remote_error": "No es pot iniciar l'entrada remota"
+    "remote_error": "No es pot iniciar l'entrada remota",
+    "lobby": "Vestíbul de pistes",
+    "lobby_copy": "Copia l'enllaç del vestíbul",
+    "lobby_copied": "Enllaç del vestíbul copiat",
+    "lobby_qr_alt": "Codi QR del vestíbul de pistes",
+    "lobby_hint": "Escanegeu aquest codi QR amb una tauleta per triar una pista i arbitrar.",
+    "remote_cards_hint": "A la tauleta es demana el carnet del tirador A i després el del tirador B (identificació opcional): amb els dos carnets, l'assalt es desa a la sessió."
   },
   "clubStats": {
     "period": "Període",
@@ -3444,7 +3457,20 @@
     "print": "Imprimir",
     "export_plan": "Exportar el pla",
     "import_plan": "Importar un pla",
-    "plan_exported": "Pla exportat"
+    "plan_exported": "Pla exportat",
+    "repeat": "Repeteix aquesta sessió",
+    "every_days": "Cada (dies)",
+    "repeat_end": "Final",
+    "repeat_count": "Després d'un nombre de sessions",
+    "repeat_until": "En una data",
+    "occurrences": "Sessions",
+    "until_date": "Fins al",
+    "repeat_summary": "Sessions creades: {{count}} (darrera el {{last}})",
+    "repeat_none": "Cap sessió a crear",
+    "series_created": "Sessions preparades: {{count}}",
+    "series_badge": "Recurrent",
+    "series_history": "Altres sessions de la sèrie ({{count}})",
+    "series_empty": "Pla buit"
   },
   "clubFeedback": {
     "title": "Balanç de la sessió del {{date}}",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "Fitxer il·legible (JSON no vàlid)",
     "error_wrong_format": "Aquest fitxer no és del tipus correcte",
     "error_empty": "El fitxer no conté res per importar"
+  },
+  "clubAge": {
+    "from": "De la categoria",
+    "to": "A la categoria",
+    "youngest": "La més jove",
+    "oldest": "La més gran",
+    "category": "Categoria d'edat",
+    "all": "Totes",
+    "audience": "Categories d'edat destinatàries",
+    "common": "Comú a tothom",
+    "selected": "Categories: {{count}}",
+    "course_for": "Classe per a",
+    "only_course": "Categories de la classe i exercicis comuns"
+  },
+  "clubAttendance": {
+    "title": "Assistència — presents: {{count}}",
+    "button": "Assistència ({{count}})",
+    "check_all": "Marca-ho tot",
+    "none": "Cap membre en aquestes categories."
   }
 }

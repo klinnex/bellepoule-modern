@@ -17,6 +17,8 @@ export interface ClubMember {
   /** 'M' | 'F' | 'X' */
   gender?: string;
   birthYear?: number;
+  /** Date de naissance AAAA-MM-JJ (fixe aussi birthYear) ; catégorie d'âge calculée */
+  birthDate?: string;
   /** Armes pratiquées (vide = toutes) */
   weapons: Weapon[];
   laterality?: Laterality;
@@ -123,12 +125,14 @@ export interface ClubExercise {
   minutes: number;
   details?: string;
   images: string[];
+  /** Catégories d'âge visées (U9 … V4) ; vide = commun à tous */
+  ageCategories: string[];
   createdAt: string;
   updatedAt: string;
 }
 
 export type ClubExerciseInput = Pick<ClubExercise, 'title'> &
-  Partial<Pick<ClubExercise, 'category' | 'minutes' | 'details' | 'images'>>;
+  Partial<Pick<ClubExercise, 'category' | 'minutes' | 'details' | 'images' | 'ageCategories'>>;
 
 /** Séance d'entraînement (une date, N pistes) */
 export interface ClubSession {
@@ -154,6 +158,11 @@ export interface ClubSession {
   feedback?: ClubSessionFeedback;
   /** Remarque du maître d'armes par tireur présent (memberId → texte) */
   memberFeedback: Record<string, string>;
+  /** Catégories d'âge du cours (bornes incluses, U9 … V4) ; absentes = toutes */
+  ageFrom?: string;
+  ageTo?: string;
+  /** Série de séances récurrentes (même cours chaque semaine / tous les X jours) */
+  seriesId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -169,7 +178,26 @@ export interface ClubSessionInput {
   feedback?: ClubSessionFeedback | null;
   /** Préparée à l'avance (statut planned), ouverte plus tard avec startSession */
   planned?: boolean;
+  /** Catégories d'âge du cours ; null efface la borne */
+  ageFrom?: string | null;
+  ageTo?: string | null;
 }
+
+/** Répétition d'une séance préparée : tous les `everyDays` jours, `count` fois ou jusqu'à `until` */
+export interface ClubRecurrence {
+  everyDays: number;
+  count?: number;
+  until?: string;
+}
+
+/** Combat lancé depuis une tablette arbitre (cartes scannées) */
+export type ClubIdentifyResult =
+  | { ok: true; recorded: boolean; nameA: string; nameB: string }
+  | {
+      ok: false;
+      error: 'no_session' | 'no_arena' | 'busy' | 'unknown_card' | 'same_member';
+      side?: 'A' | 'B';
+    };
 
 export type ClubBoutStatus = 'pending' | 'in_progress' | 'finished' | 'cancelled';
 
@@ -290,6 +318,8 @@ export interface ClubAPI {
   remoteStatus: () => Promise<{ active: boolean; url: string | null; strips: number }>;
   /** Envoie le combat à la tablette arbitre de sa piste */
   pushBout: (boutId: string) => Promise<'ok' | 'no_server' | 'no_arena' | 'busy'>;
+  /** Séance dont les tablettes peuvent lancer des combats par scan des cartes (null = aucune) */
+  linkRemote: (sessionId: string | null) => Promise<void>;
   /** Combat annulé : libère l'arène */
   releaseBout: (boutId: string) => Promise<void>;
   /** Photos d'un ZIP (fichiers nommés par licence, comme en compétition) */
@@ -311,6 +341,12 @@ export interface ClubAPI {
   listSessions: (clubId: string, range?: { from?: string; to?: string }) => Promise<ClubSession[]>;
   getSession: (id: string) => Promise<ClubSession | null>;
   createSession: (clubId: string, data: ClubSessionInput) => Promise<ClubSession>;
+  /** Séances préparées répétées (même plan, une série) ; renvoie les séances créées */
+  createSeries: (
+    clubId: string,
+    data: ClubSessionInput,
+    recurrence: ClubRecurrence
+  ) => Promise<ClubSession[]>;
   updateSession: (id: string, data: Partial<ClubSessionInput>) => Promise<ClubSession | null>;
   /** Ferme la séance : combats non terminés annulés */
   closeSession: (id: string) => Promise<ClubSession | null>;

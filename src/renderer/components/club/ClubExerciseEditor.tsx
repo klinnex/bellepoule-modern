@@ -14,6 +14,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { ClubImagesField } from './ClubImagesField';
+import { AgeCategoryChecks } from './ClubAgeRange';
 
 interface ClubExerciseEditorProps {
   exercise?: ClubExercise | null;
@@ -61,6 +62,7 @@ export const ClubExerciseEditor: React.FC<ClubExerciseEditorProps> = ({
   const [minutes, setMinutes] = useState(exercise?.minutes ?? 10);
   const [details, setDetails] = useState(exercise?.details ?? '');
   const [images, setImages] = useState<string[]>(exercise?.images ?? []);
+  const [ageCategories, setAgeCategories] = useState<string[]>(exercise?.ageCategories ?? []);
 
   return (
     <Modal
@@ -74,7 +76,7 @@ export const ClubExerciseEditor: React.FC<ClubExerciseEditorProps> = ({
           <Button
             variant="primary"
             disabled={!title.trim()}
-            onClick={() => onSave({ title, category, minutes, details, images })}
+            onClick={() => onSave({ title, category, minutes, details, images, ageCategories })}
           >
             {t('actions.save')}
           </Button>
@@ -115,6 +117,7 @@ export const ClubExerciseEditor: React.FC<ClubExerciseEditorProps> = ({
           onChange={e => setDetails(e.target.value)}
         />
       </label>
+      <AgeCategoryChecks value={ageCategories} onChange={setAgeCategories} />
       <ClubImagesField images={images} onChange={setImages} label={t('clubImages.label')} />
     </Modal>
   );

@@ -3291,7 +3291,14 @@
     "import_empty": "Keine Mitglieder in dieser Datei gefunden",
     "strip_count": "Anzahl der Bahnen",
     "print_arena_qr": "Bahn-QR-Codes drucken",
-    "photo": "Foto"
+    "photo": "Foto",
+    "birth_date": "Geburtsdatum",
+    "birth_date_of": "Geburtsdatum von {{name}}",
+    "sort_by": "Sortieren nach",
+    "sort_name": "Name",
+    "sort_category": "Altersklasse",
+    "cards_pdf": "Karten als PDF speichern",
+    "arena_qr_pdf": "Bahn-QR-Codes als PDF speichern"
   },
   "clubTour": {
     "title": "Willkommen im Vereinsmodus",
@@ -3357,7 +3364,13 @@
     "remote_on": "Aktiv: Kampfrichter-Tablets verbinden sich mit {{url}}/areneN/arbitre. Jedes gestartete Gefecht wird dorthin gesendet, das bestätigte Ergebnis kommt hierher zurück.",
     "remote_off": "Ergebnisse werden an diesem Rechner eingegeben. Aktivieren Sie die Ferneingabe, um auf Tablets zu leiten.",
     "remote_busy": "Auf dem Tablet dieser Bahn läuft bereits ein Gefecht",
-    "remote_error": "Ferneingabe kann nicht gestartet werden"
+    "remote_error": "Ferneingabe kann nicht gestartet werden",
+    "lobby": "Bahn-Lobby",
+    "lobby_copy": "Lobby-Link kopieren",
+    "lobby_copied": "Lobby-Link kopiert",
+    "lobby_qr_alt": "QR-Code der Bahn-Lobby",
+    "lobby_hint": "Scannen Sie diesen QR-Code mit einem Tablet, um eine Bahn zu wählen und zu leiten.",
+    "remote_cards_hint": "Auf dem Tablet werden die Karte von Fechter A und dann von Fechter B abgefragt (Identifizierung optional): mit beiden Karten wird das Gefecht in der Einheit gespeichert."
   },
   "clubStats": {
     "period": "Zeitraum",
@@ -3444,7 +3457,20 @@
     "print": "Drucken",
     "export_plan": "Plan exportieren",
     "import_plan": "Plan importieren",
-    "plan_exported": "Plan exportiert"
+    "plan_exported": "Plan exportiert",
+    "repeat": "Diese Einheit wiederholen",
+    "every_days": "Alle (Tage)",
+    "repeat_end": "Ende",
+    "repeat_count": "Nach einer Anzahl Einheiten",
+    "repeat_until": "An einem Datum",
+    "occurrences": "Einheiten",
+    "until_date": "Bis",
+    "repeat_summary": "Erstellte Einheiten: {{count}} (letzte am {{last}})",
+    "repeat_none": "Keine Einheit zu erstellen",
+    "series_created": "Vorbereitete Einheiten: {{count}}",
+    "series_badge": "Wiederkehrend",
+    "series_history": "Weitere Einheiten der Serie ({{count}})",
+    "series_empty": "Leerer Plan"
   },
   "clubFeedback": {
     "title": "Trainingsbilanz vom {{date}}",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "Datei nicht lesbar (ungültiges JSON)",
     "error_wrong_format": "Diese Datei hat nicht den richtigen Typ",
     "error_empty": "Die Datei enthält nichts zum Importieren"
+  },
+  "clubAge": {
+    "from": "Von Altersklasse",
+    "to": "Bis Altersklasse",
+    "youngest": "Jüngste",
+    "oldest": "Älteste",
+    "category": "Altersklasse",
+    "all": "Alle",
+    "audience": "Ziel-Altersklassen",
+    "common": "Für alle",
+    "selected": "Altersklassen: {{count}}",
+    "course_for": "Kurs für",
+    "only_course": "Altersklassen des Kurses und gemeinsame Übungen"
+  },
+  "clubAttendance": {
+    "title": "Anwesenheit — anwesend: {{count}}",
+    "button": "Anwesenheit ({{count}})",
+    "check_all": "Alle markieren",
+    "none": "Keine Mitglieder in diesen Altersklassen."
   }
 }

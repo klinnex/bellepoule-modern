@@ -17,6 +17,7 @@ const member = {
   lastName: 'MARTIN',
   gender: 'F',
   birthYear: 2010,
+  birthDate: '2010-02-01',
   laterality: 'L' as const,
   license: '123',
   weapons: [],
@@ -56,7 +57,9 @@ describe('ClubView', () => {
     // Identité présentée comme dans la liste des tireurs d'une compétition
     expect(screen.getByText('MARTIN')).toHaveClass('font-medium');
     expect(screen.getByRole('columnheader', { name: 'Né(e)' })).toBeInTheDocument();
-    expect(screen.getByText('2010')).toBeInTheDocument();
+    expect(screen.getByLabelText('Date de naissance de Anne MARTIN')).toHaveValue('2010-02-01');
+    // Catégorie d'âge calculée d'après la date de naissance (saison en cours)
+    expect(screen.getAllByRole('columnheader', { name: "Catégorie d'âge" }).length).toBe(1);
     expect(screen.getByText('Gaucher')).toBeInTheDocument();
     expect(screen.getByText('Membres (1)')).toBeInTheDocument();
     expect(api.listMembers).toHaveBeenCalledWith('c1', false);

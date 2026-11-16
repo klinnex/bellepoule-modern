@@ -3291,7 +3291,14 @@
     "import_empty": "Nessun socio trovato in questo file",
     "strip_count": "Numero di pedane",
     "print_arena_qr": "Stampa i QR delle pedane",
-    "photo": "Foto"
+    "photo": "Foto",
+    "birth_date": "Data di nascita",
+    "birth_date_of": "Data di nascita di {{name}}",
+    "sort_by": "Ordina per",
+    "sort_name": "Nome",
+    "sort_category": "Categoria d'età",
+    "cards_pdf": "Salva le tessere in PDF",
+    "arena_qr_pdf": "Salva i QR delle pedane in PDF"
   },
   "clubTour": {
     "title": "Benvenuto nella modalità Club",
@@ -3357,7 +3364,13 @@
     "remote_on": "Attivo: i tablet arbitro si collegano a {{url}}/areneN/arbitre. Ogni assalto avviato viene inviato lì, il punteggio convalidato torna qui.",
     "remote_off": "I punteggi si inseriscono su questo computer. Attiva l'inserimento remoto per arbitrare su tablet.",
     "remote_busy": "Sul tablet di questa pedana c'è già un assalto in corso",
-    "remote_error": "Impossibile avviare l'inserimento remoto"
+    "remote_error": "Impossibile avviare l'inserimento remoto",
+    "lobby": "Lobby delle pedane",
+    "lobby_copy": "Copia il link della lobby",
+    "lobby_copied": "Link della lobby copiato",
+    "lobby_qr_alt": "Codice QR della lobby delle pedane",
+    "lobby_hint": "Scansiona questo codice QR con un tablet per scegliere una pedana e arbitrare.",
+    "remote_cards_hint": "Sul tablet vengono chieste la tessera dello schermidore A e poi quella dello schermidore B (identificazione facoltativa): con entrambe, l'assalto viene registrato nella sessione."
   },
   "clubStats": {
     "period": "Periodo",
@@ -3444,7 +3457,20 @@
     "print": "Stampa",
     "export_plan": "Esporta il piano",
     "import_plan": "Importa un piano",
-    "plan_exported": "Piano esportato"
+    "plan_exported": "Piano esportato",
+    "repeat": "Ripeti questa sessione",
+    "every_days": "Ogni (giorni)",
+    "repeat_end": "Fine",
+    "repeat_count": "Dopo un numero di sessioni",
+    "repeat_until": "A una data",
+    "occurrences": "Sessioni",
+    "until_date": "Fino al",
+    "repeat_summary": "Sessioni create: {{count}} (ultima il {{last}})",
+    "repeat_none": "Nessuna sessione da creare",
+    "series_created": "Sessioni preparate: {{count}}",
+    "series_badge": "Ricorrente",
+    "series_history": "Altre sessioni della serie ({{count}})",
+    "series_empty": "Piano vuoto"
   },
   "clubFeedback": {
     "title": "Bilancio della seduta del {{date}}",
@@ -3517,5 +3543,24 @@
     "error_invalid_json": "File illeggibile (JSON non valido)",
     "error_wrong_format": "Questo file non è del tipo giusto",
     "error_empty": "Il file non contiene nulla da importare"
+  },
+  "clubAge": {
+    "from": "Dalla categoria",
+    "to": "Alla categoria",
+    "youngest": "La più giovane",
+    "oldest": "La più anziana",
+    "category": "Categoria d'età",
+    "all": "Tutte",
+    "audience": "Categorie d'età destinatarie",
+    "common": "Comune a tutti",
+    "selected": "Categorie: {{count}}",
+    "course_for": "Corso per",
+    "only_course": "Categorie del corso ed esercizi comuni"
+  },
+  "clubAttendance": {
+    "title": "Presenze — presenti: {{count}}",
+    "button": "Presenze ({{count}})",
+    "check_all": "Seleziona tutti",
+    "none": "Nessun membro in queste categorie."
   }
 }

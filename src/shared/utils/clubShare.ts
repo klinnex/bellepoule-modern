@@ -5,6 +5,7 @@
  */
 import type { ClubExercise, ClubExerciseInput, ClubSession, ClubSessionInput } from '../types/club';
 import { oneWeaponCode } from './clubWeapon';
+import { normalizeAgeCategory } from './clubAge';
 import { cleanLongText, normalizeExerciseInput, normalizePlan } from './clubPlan';
 
 export const EXERCISES_FORMAT = 'bellepoule-club-exercises';
@@ -44,6 +45,7 @@ export function buildExercisesFile(list: readonly ClubExercise[]): string {
         minutes: e.minutes,
         details: e.details,
         images: e.images,
+        ...(e.ageCategories?.length ? { ageCategories: e.ageCategories } : {}),
       })),
     },
     null,
@@ -75,6 +77,8 @@ export function buildPlanFile(s: ClubSession): string {
         weapon: s.weapon,
         objectives: s.objectives,
         notes: s.notes,
+        ...(s.ageFrom ? { ageFrom: s.ageFrom } : {}),
+        ...(s.ageTo ? { ageTo: s.ageTo } : {}),
         items: s.plan.map(({ done: _done, ...it }) => it),
       },
     },
@@ -96,6 +100,8 @@ export function parsePlanFile(text: string): Omit<ClubSessionInput, 'date'> {
     weapon: oneWeaponCode(p.weapon),
     objectives,
     notes: cleanLongText(p.notes),
+    ...(normalizeAgeCategory(p.ageFrom) ? { ageFrom: normalizeAgeCategory(p.ageFrom) } : {}),
+    ...(normalizeAgeCategory(p.ageTo) ? { ageTo: normalizeAgeCategory(p.ageTo) } : {}),
     plan: items,
   };
 }

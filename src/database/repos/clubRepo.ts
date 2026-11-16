@@ -16,12 +16,19 @@ import type {
   ClubSession,
   ClubSessionInput,
   ClubSessionStatus,
+  ClubRecurrence,
   Club,
   ClubSummary,
   ClubUpdate,
   Laterality,
 } from '../../shared/types/club';
 import { normalizeCardCode } from '../../shared/utils/clubQr';
+import {
+  birthYearOfDate,
+  normalizeAgeCategories,
+  normalizeAgeCategory,
+  recurrenceDates,
+} from '../../shared/utils/clubAge';
 import {
   cleanLongText,
   normalizeCategory,
@@ -44,6 +51,7 @@ interface ExerciseRow {
   minutes: number | null;
   details: string | null;
   images: string | null;
+  age_categories: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +74,7 @@ interface MemberRow {
   license: string | null;
   gender: string | null;
   birth_year: number | null;
+  birth_date: string | null;
   weapons: string | null;
   laterality: string | null;
   category: string | null;
@@ -83,6 +92,9 @@ interface SessionRow {
   plan: string | null;
   notes: string | null;
   feedback: string | null;
+  age_from: string | null;
+  age_to: string | null;
+  series_id: string | null;
   club_id: string | null;
   date: string;
   label: string | null;
@@ -157,6 +169,7 @@ function rowToMember(r: MemberRow): ClubMember {
     license: opt(r.license),
     gender: opt(r.gender),
     birthYear: opt(r.birth_year),
+    birthDate: isIsoDate(r.birth_date) ? r.birth_date : undefined,
     weapons: parseWeapons(r.weapons),
     laterality: opt(laterality(r.laterality)),
     category: opt(r.category),
@@ -341,6 +354,12 @@ export class ClubRepo {
     if (data.license !== undefined) cols.license = str(data.license);
     if (data.gender !== undefined) cols.gender = str(data.gender);
     if (data.birthYear !== undefined) cols.birth_year = optInt(data.birthYear, 1900, 2100);
+    if (data.birthDate !== undefined) {
+      // Date de naissance : fixe aussi l'année (catégorie d'âge, import FFE)
+      const by = birthYearOfDate(data.birthDate);
+      cols.birth_date = by ? data.birthDate : null;
+      if (by) cols.birth_year = by;
+    }
     if (data.weapons !== undefined) cols.weapons = serializeWeapons(data.weapons);
     if (data.laterality !== undefined) cols.laterality = laterality(data.laterality);
     if (data.category !== undefined) cols.category = str(data.category);
@@ -506,6 +525,9 @@ export class ClubRepo {
       minutes: r.minutes ?? 0,
       details: opt(r.details),
       images: normalizeImages(safeJsonParse(r.images, [], 'club_exercises.images')),
+      ageCategories: normalizeAgeCategories(
+        safeJsonParse(r.age_categories, [], 'club_exercises.age_categories')
+      ),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -531,9 +553,20 @@ export class ClubRepo {
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
-      `INSERT INTO club_exercises (id, title, category, minutes, details, images, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, e.title, e.category, e.minutes, e.details ?? null, JSON.stringify(e.images), now, now]
+      `INSERT INTO club_exercises (id, title, category, minutes, details, images, age_categories,
+         created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        e.title,
+        e.category,
+        e.minutes,
+        e.details ?? null,
+        JSON.stringify(e.images),
+        JSON.stringify(e.ageCategories),
+        now,
+        now,
+      ]
     );
     return this.getExercise(id)!;
   }
@@ -545,7 +578,8 @@ export class ClubRepo {
     const e = normalizeExerciseInput({ ...cur, ...data });
     if (!e) throw new Error("Titre de l'exercice requis");
     this.sql.run(
-      `UPDATE club_exercises SET title = ?, category = ?, minutes = ?, details = ?, images = ?, updated_at = ?
+      `UPDATE club_exercises SET title = ?, category = ?, minutes = ?, details = ?, images = ?,
+         age_categories = ?, updated_at = ?
        WHERE id = ?`,
       [
         e.title,
@@ -553,6 +587,7 @@ export class ClubRepo {
         e.minutes,
         e.details ?? null,
         JSON.stringify(e.images),
+        JSON.stringify(e.ageCategories),
         new Date().toISOString(),
         id,
       ]
@@ -642,6 +677,9 @@ export class ClubRepo {
       notes: opt(r.notes),
       feedback: normalizeFeedback(safeJsonParse(r.feedback, null, 'club_sessions.feedback')),
       memberFeedback: this.memberFeedbackOf(r.id),
+      ageFrom: opt(normalizeAgeCategory(r.age_from) ?? null),
+      ageTo: opt(normalizeAgeCategory(r.age_to) ?? null),
+      seriesId: opt(r.series_id),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -675,7 +713,7 @@ export class ClubRepo {
     return r ? this.rowToSession(r) : null;
   }
 
-  public createSession(clubId: string, data: ClubSessionInput): ClubSession {
+  public createSession(clubId: string, data: ClubSessionInput, seriesId?: string): ClubSession {
     this.ensureOpen();
     const club = this.requireClub(clubId);
     if (!isIsoDate(data.date)) throw new Error(`Date de séance invalide : ${data.date}`);
@@ -683,8 +721,8 @@ export class ClubRepo {
     const now = new Date().toISOString();
     this.sql.run(
       `INSERT INTO club_sessions (id, club_id, date, label, weapon, strip_count, status,
-         objectives, plan, notes, opened_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         objectives, plan, notes, age_from, age_to, series_id, opened_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         clubId,
@@ -696,12 +734,51 @@ export class ClubRepo {
         cleanLongText(data.objectives) ?? null,
         JSON.stringify(normalizePlan(data.plan)),
         cleanLongText(data.notes) ?? null,
+        normalizeAgeCategory(data.ageFrom) ?? null,
+        normalizeAgeCategory(data.ageTo) ?? null,
+        seriesId ?? null,
         now,
         now,
         now,
       ]
     );
     return this.getSession(id)!;
+  }
+
+  /**
+   * Séance préparée répétée (tous les X jours, N fois ou jusqu'à une date) : une séance
+   * par date, même plan (copie indépendante, modifiable semaine après semaine), même série.
+   */
+  public createSeries(
+    clubId: string,
+    data: ClubSessionInput,
+    recurrence: ClubRecurrence
+  ): ClubSession[] {
+    this.ensureOpen();
+    if (!isIsoDate(data.date)) throw new Error(`Date de séance invalide : ${data.date}`);
+    const dates = recurrenceDates(data.date, recurrence?.everyDays, {
+      count: recurrence?.count,
+      until: recurrence?.until,
+    });
+    const seriesId = dates.length > 1 ? uuidv4() : undefined;
+    const out: ClubSession[] = [];
+    this.sql.transaction(() => {
+      for (const date of dates) {
+        out.push(
+          this.createSession(
+            clubId,
+            {
+              ...data,
+              date,
+              planned: true,
+              plan: normalizePlan(data.plan).map(it => ({ ...it, id: '', done: false })),
+            },
+            seriesId
+          )
+        );
+      }
+    });
+    return out;
   }
 
   public updateSession(id: string, updates: Partial<ClubSessionInput>): ClubSession | null {
@@ -737,6 +814,15 @@ export class ClubRepo {
       const fb = normalizeFeedback(updates.feedback);
       sets.push('feedback = ?');
       values.push(fb ? JSON.stringify(fb) : null);
+    }
+    for (const [key, col] of [
+      ['ageFrom', 'age_from'],
+      ['ageTo', 'age_to'],
+    ] as const) {
+      if (updates[key] !== undefined) {
+        sets.push(`${col} = ?`);
+        values.push(normalizeAgeCategory(updates[key]) ?? null);
+      }
     }
     if (updates.plan !== undefined) {
       sets.push('plan = ?');

@@ -17,6 +17,7 @@ const ex = (title: string, extra: Partial<ClubExercise> = {}): ClubExercise => (
   category: 'warmup',
   minutes: 10,
   images: [],
+  ageCategories: [],
   createdAt: '',
   updatedAt: '',
   ...extra,
@@ -29,15 +30,36 @@ describe('partage Mode Club (#1872)', () => {
       ex('Fentes', { category: 'physical' }),
     ]);
     expect(parseExercisesFile(text)).toEqual([
-      { title: 'Footing', category: 'warmup', minutes: 10, details: 'Lent', images: [PNG] },
-      { title: 'Fentes', category: 'physical', minutes: 10, details: undefined, images: [] },
+      {
+        title: 'Footing',
+        category: 'warmup',
+        minutes: 10,
+        details: 'Lent',
+        images: [PNG],
+        ageCategories: [],
+      },
+      {
+        title: 'Fentes',
+        category: 'physical',
+        minutes: 10,
+        details: undefined,
+        images: [],
+        ageCategories: [],
+      },
     ]);
     const hacked = JSON.stringify({
       format: 'bellepoule-club-exercises',
       exercises: [{ title: '' }, { title: 'X', category: 'zzz', images: ['javascript:1'] }],
     });
     expect(parseExercisesFile(hacked)).toEqual([
-      { title: 'X', category: 'other', minutes: 0, details: undefined, images: [] },
+      {
+        title: 'X',
+        category: 'other',
+        minutes: 0,
+        details: undefined,
+        images: [],
+        ageCategories: [],
+      },
     ]);
   });
 

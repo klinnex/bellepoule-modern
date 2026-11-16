@@ -11,6 +11,8 @@ import {
   FileDown,
   Lock,
   MessageSquare,
+  Network,
+  UserCheck,
   Pencil,
   Play,
   Printer,
@@ -30,8 +32,13 @@ import type {
   ClubSession,
   ClubSessionFeedback,
   ClubSessionInput,
+  ClubRecurrence,
   ClubSettings,
 } from '../../../shared/types/club';
+import { inAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
+import { AgeCategoryFilter, AgeRangeSelect, ageRangeText } from './ClubAgeRange';
+import { ClubAttendanceModal } from './ClubAttendanceModal';
+import { ClubLobbyQr } from './ClubLobbyQr';
 import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { MiniCalendar, type DayMark } from './MiniCalendar';
@@ -63,6 +70,18 @@ interface RemoteState {
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
+const ALL_INTERFACES = '0.0.0.0';
+/** Interface réseau mémorisée (partagée avec le mode entraînement) */
+const INTERFACE_STORAGE_KEY = 'bellepoule-training-interface';
+const loadInterface = (): string => {
+  try {
+    return localStorage.getItem(INTERFACE_STORAGE_KEY) ?? ALL_INTERFACES;
+  } catch {
+    return ALL_INTERFACES;
+  }
+};
+/** Séance pour la catégorie choisie : plage du cours contenant la catégorie ('' = toutes) */
+const forCategory = (s: ClubSession, cat: string) => !cat || inAgeRange(cat, s);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const isLive = (b: ClubBout) => b.status === 'pending' || b.status === 'in_progress';
 
@@ -191,6 +210,11 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     prefill?: Omit<ClubSessionInput, 'date'>;
   } | null>(null);
   const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const [openRange, setOpenRange] = useState<AgeRange>({});
+  const [listCategory, setListCategory] = useState('');
+  const [iface, setIface] = useState(loadInterface);
+  const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
   const [openDate, setOpenDate] = useState(today);
   // Arme de la séance à ouvrir : celle du club par défaut
   const [weaponChoice, setWeaponChoice] = useState<Weapon | undefined>(undefined);
@@ -213,6 +237,30 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     void load();
   }, [load]);
 
+  // Interfaces réseau proposées pour la saisie distante (comme le mode entraînement)
+  useEffect(() => {
+    window.electronAPI?.remote
+      ?.getNetworkInterfaces?.()
+      .then(res => {
+        const list = res?.success ? res.interfaces : undefined;
+        if (list?.length) {
+          setInterfaces(list);
+          setIface(prev => (list.some(i => i.address === prev) ? prev : ALL_INTERFACES));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const currentId = sessions.find(s => s.status === 'open')?.id ?? null;
+  // Saisie distante active : séance reliée (cartes scannées sur les tablettes) et
+  // rafraîchissement régulier (combats lancés ou terminés depuis les tablettes)
+  useEffect(() => {
+    if (!api || !remote.active || !currentId) return;
+    void api.linkRemote(currentId);
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, [api, remote.active, currentId, load]);
+
   // Score validé sur une tablette arbitre : la séance se met à jour
   useEffect(() => window.electronAPI?.onTrainingMatchFinished?.(() => void load()), [load]);
 
@@ -234,18 +282,26 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   if (!api) return null;
 
   const planned = sessions
-    .filter(s => s.status === 'planned')
+    .filter(s => s.status === 'planned' && forCategory(s, listCategory))
     .sort((a, b) => a.date.localeCompare(b.date));
-  const past = sessions.filter(s => s.status === 'closed');
+  const past = sessions.filter(s => s.status === 'closed' && forCategory(s, listCategory));
+  /** Intitulé + catégories du cours + série */
+  const sessionLabel = (s: ClubSession) =>
+    [s.label ?? '', ageRangeText(s, t), s.seriesId ? t('clubPlan.series_badge') : '']
+      .filter(Boolean)
+      .join(' · ');
 
-  const savePlan = (data: ClubSessionInput) => {
+  const savePlan = (data: ClubSessionInput, recurrence?: ClubRecurrence) => {
     const target = planner?.session;
     setPlanner(null);
-    void run(() =>
-      target
-        ? api.updateSession(target.id, data)
-        : api.createSession(clubId, { ...data, planned: true, stripCount: settings.stripCount })
-    );
+    const input = { ...data, planned: true, stripCount: settings.stripCount };
+    void run(async () => {
+      if (target) await api.updateSession(target.id, data);
+      else if (recurrence) {
+        const created = await api.createSeries(clubId, input, recurrence);
+        showToast(t('clubPlan.series_created', { count: created.length }), 'success');
+      } else await api.createSession(clubId, input);
+    });
   };
 
   const removePlanned = async (s: ClubSession) => {
@@ -334,6 +390,11 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const plannerModal = planner && (
     <ClubSessionPlanner
       session={planner.session}
+      series={
+        planner.session?.seriesId
+          ? sessions.filter(s => s.seriesId === planner.session?.seriesId)
+          : []
+      }
       prefill={planner.prefill}
       defaultDate={today()}
       defaultWeapon={settings.weapon}
@@ -350,7 +411,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           <h2 id="club-open-title" className="club-card-title">
             {t('clubSession.open_title')}
           </h2>
-          <div className="club-row club-row--top">
+          <div className="club-open-form">
             <div className="form-label">
               {t('clubPlan.date')}
               <MiniCalendar
@@ -361,35 +422,44 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                 onChange={setOpenDate}
               />
             </div>
-            <label className="form-label club-grow">
-              {t('clubSession.label')}
-              <input
-                className="form-input"
-                value={label}
-                maxLength={100}
-                placeholder={t('clubSession.label_ph')}
-                onChange={e => setLabel(e.target.value)}
-              />
-            </label>
-            <ClubWeaponSelect value={openWeapon} onChange={setOpenWeapon} />
-            <Button
-              variant="primary"
-              data-tour="club-open-session"
-              icon={<CalendarPlus size={15} aria-hidden="true" />}
-              onClick={() =>
-                void run(async () => {
-                  await api.createSession(clubId, {
-                    date: openDate,
-                    label,
-                    weapon: openWeapon,
-                    stripCount: settings.stripCount,
-                  });
-                  setLabel('');
-                })
-              }
-            >
-              {t('clubSession.open')}
-            </Button>
+            <div className="club-open-fields">
+              <label className="form-label">
+                {t('clubSession.label')}
+                <input
+                  className="form-input"
+                  value={label}
+                  maxLength={100}
+                  placeholder={t('clubSession.label_ph')}
+                  onChange={e => setLabel(e.target.value)}
+                />
+              </label>
+              <div className="club-row">
+                <ClubWeaponSelect value={openWeapon} onChange={setOpenWeapon} />
+                <AgeRangeSelect value={openRange} onChange={setOpenRange} />
+              </div>
+              <div className="club-open-actions">
+                <Button
+                  variant="primary"
+                  data-tour="club-open-session"
+                  icon={<CalendarPlus size={15} aria-hidden="true" />}
+                  onClick={() =>
+                    void run(async () => {
+                      await api.createSession(clubId, {
+                        date: openDate,
+                        label,
+                        weapon: openWeapon,
+                        stripCount: settings.stripCount,
+                        ageFrom: openRange.ageFrom,
+                        ageTo: openRange.ageTo,
+                      });
+                      setLabel('');
+                    })
+                  }
+                >
+                  {t('clubSession.open')}
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
         <section className="club-card" aria-labelledby="club-planned-title">
@@ -397,6 +467,11 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             <h2 id="club-planned-title" className="club-card-title">
               {t('clubPlan.upcoming')}
             </h2>
+            <AgeCategoryFilter
+              value={listCategory}
+              onChange={setListCategory}
+              label={t('clubAge.course_for')}
+            />
             <Button
               icon={<Upload size={15} aria-hidden="true" />}
               onClick={() => void importPlan()}
@@ -419,7 +494,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                 {planned.map(s => (
                   <tr key={s.id}>
                     <td className="font-medium">{s.date}</td>
-                    <td>{s.label ?? ''}</td>
+                    <td>{sessionLabel(s)}</td>
                     <td className="text-sm text-muted">
                       {t('clubPlan.summary', {
                         count: s.plan.length,
@@ -494,7 +569,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                 {past.slice(0, 20).map(s => (
                   <tr key={s.id}>
                     <td className="font-medium">{s.date}</td>
-                    <td>{s.label ?? ''}</td>
+                    <td>{sessionLabel(s)}</td>
                     <td className="text-sm text-muted">
                       {t('clubSession.present_count', { count: s.attendeeIds.length })}
                       {s.feedback?.rating ? ` · ${'★'.repeat(s.feedback.rating)}` : ''}
@@ -541,7 +616,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     if (!training) return;
     setRemoteBusy(true);
     try {
-      const srv = await training.startServer(undefined, undefined, true);
+      const srv = await training.startServer(undefined, iface, true);
       if (!srv.success && srv.error !== 'training_already_started') {
         throw new Error(srv.error ?? t('clubSession.remote_error'));
       }
@@ -552,6 +627,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
       if (!ses.success && !(await api.remoteStatus()).active) {
         throw new Error(ses.error ?? t('clubSession.remote_error'));
       }
+      await api.linkRemote(current.id);
       for (const b of bouts.filter(isLive)) await api.pushBout(b.id);
     } catch (e) {
       showToast(errText(e), 'error');
@@ -565,6 +641,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     const training = window.electronAPI?.training;
     if (!training) return;
     setRemoteBusy(true);
+    await api.linkRemote(null).catch(() => undefined);
     await training.stopSession().catch(() => undefined);
     await training.stopServer().catch(() => undefined);
     setRemoteBusy(false);
@@ -595,6 +672,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           <h2 className="club-card-title">
             {t('clubSession.current', { date: current.date })}
             {current.label ? ` · ${current.label}` : ''}
+            {ageRangeText(current, t) ? ` · ${ageRangeText(current, t)}` : ''}
             {current.weapon ? ` · ${weaponLabel(current.weapon, t)}` : ''}
           </h2>
           <Button
@@ -604,6 +682,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             onClick={() => setScanOpen(true)}
           >
             {t('clubSession.scan')}
+          </Button>
+          <Button
+            icon={<UserCheck size={15} aria-hidden="true" />}
+            data-tour="club-attendance"
+            onClick={() => setAttendanceOpen(true)}
+          >
+            {t('clubAttendance.button', { count: present.size })}
           </Button>
           <Button
             icon={<MessageSquare size={15} aria-hidden="true" />}
@@ -661,15 +746,44 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
               </Button>
             </>
           ) : (
-            <Button
-              variant="primary"
-              data-tour="club-remote"
-              icon={<Radio size={15} aria-hidden="true" />}
-              loading={remoteBusy}
-              onClick={() => void startRemote()}
-            >
-              {t('clubSession.remote_start')}
-            </Button>
+            <div className="club-row">
+              <label className="form-label">
+                <span>
+                  <Network size={13} aria-hidden="true" /> {t('trainingLauncher.network')}
+                </span>
+                <select
+                  className="form-input"
+                  value={iface}
+                  disabled={remoteBusy}
+                  onChange={e => {
+                    setIface(e.target.value);
+                    try {
+                      localStorage.setItem(INTERFACE_STORAGE_KEY, e.target.value);
+                    } catch {
+                      /* stockage indisponible */
+                    }
+                  }}
+                >
+                  <option value={ALL_INTERFACES}>{t('trainingLauncher.all_interfaces')}</option>
+                  {interfaces
+                    .filter(i => i.address !== ALL_INTERFACES)
+                    .map(i => (
+                      <option key={i.address} value={i.address}>
+                        {i.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <Button
+                variant="primary"
+                data-tour="club-remote"
+                icon={<Radio size={15} aria-hidden="true" />}
+                loading={remoteBusy}
+                onClick={() => void startRemote()}
+              >
+                {t('clubSession.remote_start')}
+              </Button>
+            </div>
           )}
         </div>
         <p className="club-muted">
@@ -677,6 +791,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             ? t('clubSession.remote_on', { url: remote.url })
             : t('clubSession.remote_off')}
         </p>
+        {remote.active && remote.url && (
+          <>
+            <p className="club-muted">{t('clubSession.remote_cards_hint')}</p>
+            <ClubLobbyQr url={`${remote.url}/entrainement-lobby`} />
+          </>
+        )}
       </section>
 
       <section className="club-card" aria-labelledby="club-strips-title">
@@ -684,7 +804,9 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           {t('clubSession.strips')}
         </h2>
         {candidates.length < 2 && live.length === 0 && (
-          <p className="club-muted">{t('clubSession.need_two')}</p>
+          <p className="club-muted">
+            {members.length === 0 ? t('club.no_members_desc') : t('clubSession.need_two')}
+          </p>
         )}
         <ul className="club-strips">
           {strips.map(n => {
@@ -731,30 +853,6 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
         </ul>
       </section>
 
-      <section className="club-card" aria-labelledby="club-attendance-title">
-        <h2 id="club-attendance-title" className="club-card-title">
-          {t('clubSession.attendance', { count: present.size })}
-        </h2>
-        {members.length === 0 ? (
-          <p className="club-muted">{t('club.no_members_desc')}</p>
-        ) : (
-          <div className="club-attendance">
-            {members.map(m => (
-              <label key={m.id} className="club-nowrap">
-                <input
-                  type="checkbox"
-                  checked={present.has(m.id)}
-                  onChange={e =>
-                    void run(() => api.setAttendance(current.id, m.id, e.target.checked))
-                  }
-                />{' '}
-                {m.lastName} {m.firstName}
-              </label>
-            ))}
-          </div>
-        )}
-      </section>
-
       <section className="club-card" aria-labelledby="club-results-title">
         <h2 id="club-results-title" className="club-card-title">
           {t('clubSession.results', { count: finished.length })}
@@ -793,6 +891,19 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
 
       {plannerModal}
       {feedbackModal}
+      {attendanceOpen && (
+        <ClubAttendanceModal
+          session={current}
+          members={members}
+          onToggle={(memberId, on) => void run(() => api.setAttendance(current.id, memberId, on))}
+          onRangeChange={r =>
+            void run(() =>
+              api.updateSession(current.id, { ageFrom: r.ageFrom ?? null, ageTo: r.ageTo ?? null })
+            )
+          }
+          onClose={() => setAttendanceOpen(false)}
+        />
+      )}
       {scanOpen && (
         <ClubScanModal
           session={current}
