@@ -47,7 +47,7 @@
 
           # Hash des dépendances npm (à régénérer à chaque changement de package-lock.json :
           # `nix run nixpkgs#prefetch-npm-deps -- package-lock.json`).
-          npmDepsHash = "sha256-3QA4UgSZjJTyyb/CL0NQHsoPeasfGb3KIEHZ78uf7iE=";
+          npmDepsHash = "sha256-bof6mf3CKqU7EnAqYmEomk44vqBQqr7lvL6ND9NzPQg=";
 
           # Pas de scripts d'installation : le postinstall d'Electron télécharge un
           # binaire (refusé dans le sandbox Nix) ; better-sqlite3 est recompilé plus bas.
