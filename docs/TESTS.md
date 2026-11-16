@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
 | `src/shared/utils/` | 73 | 816 |
-| `src/shared/services/` | 8 | 92 |
+| `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 234 |
-| `src/main/` | 83 | 665 |
+| `src/main/` | 84 | 668 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 110 | 556 |
+| `src/renderer/components/` | 111 | 558 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **436** | **3301** |
+| **Total** | **438** | **3309** |
 
-Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1684,7 +1684,7 @@ Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/services/performanceService.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/services/performanceService.test.ts</code> — 18 tests</summary>
 
 - **CacheService**
   - stocke et relit une valeur
@@ -1705,6 +1705,9 @@ Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - borne endIndex au dernier élément
 - **debounce**
   - ne déclenche qu’après le délai et une seule fois
+  - transmet les arguments du dernier appel
+  - cancel() abandonne l’appel en attente
+  - flush() exécute immédiatement, une seule fois
 - **throttle**
   - exécute immédiatement puis limite les appels
 
@@ -3387,6 +3390,16 @@ Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - rejette un JSON falsifié (champs manquants / invalide)
   - rejette des droits trop larges
   - nom aléatoire sans traversal
+
+</details>
+
+<details>
+<summary><code>src/main/preloadApi/subscribe.test.ts</code> — 3 tests</summary>
+
+- **subscribe (préload)**
+  - transmet les arguments sans l'événement Electron
+  - pas de double écouteur après deux abonnements suivis de deux désabonnements
+  - le désabonnement ne retire que son propre écouteur
 
 </details>
 
@@ -5608,6 +5621,14 @@ Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/pool/PoolSignaturesModal.test.tsx</code> — 1 test</summary>
+
+- **PoolSignaturesModal**
+  - liste les tireurs, signature affichée ou « non signé », sans édition
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/pool/PoolStripButton.test.tsx</code> — 2 tests</summary>
 
 - **PoolStripButton**
@@ -5687,11 +5708,12 @@ Unitaires : 426 fichiers, 3262 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 15 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 16 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
   - Imprimer : envoie les réglages choisis puis ferme et mémorise (sans pages)
+  - réglages mémorisés sans imprimer, même si la fenêtre est fermée (#1826)
   - échelle : saisie libre, validée à la sortie du champ (#1826)
   - plage invalide ou hors document : impression bloquée
   - échec d’impression : message affiché, boîte conservée
