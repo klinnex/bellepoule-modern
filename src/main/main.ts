@@ -35,11 +35,12 @@ import { getVersionInfo } from './versionInfo';
 import { readUpdaterSettings, resolveChannel } from './updaterSettings';
 import { applyStoredProxySettings, registerProxyHandlers } from './ipc/proxyHandlers';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
-import { remoteServers, stopRemoteServer } from './remoteRegistry';
+import { remoteServers, stopRemoteServer, getRemoteServersMap } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
 import { PisteHub } from './cyrano/pisteHub';
+import type { ArenaUpdate } from '../shared/types/remote';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 import { parseCliArgs } from './cliArgs';
 
@@ -108,12 +109,7 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 const cyranoServer = new CyranoServer();
 const pisteHub = new PisteHub(
   cyranoServer,
-  () => {
-    for (const { server } of remoteServers.values()) {
-      if (server.hasSession()) return server;
-    }
-    return null;
-  },
+  getRemoteServersMap,
   {
     // Numéros de poule / de match du DISP lus en base
     coordsSource: db,
@@ -139,7 +135,7 @@ registerRemoteServerHandlers({
   db,
   getMainWindow: () => mainWindow,
   onServerCreated: server => {
-    server.cyranoHook = pisteHub.onArenaUpdate;
+    server.cyranoHook = (arenaId: string, update: ArenaUpdate) => pisteHub.onArenaUpdate(server, arenaId, update);
   },
 });
 
