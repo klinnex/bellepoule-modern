@@ -30,7 +30,7 @@
    * Charge session, poules/classements (ou historique entraînement), arènes et matchs suivants.
    * Chaque rappel est appelé dès que sa réponse est reçue (rendu progressif).
    * @param {Function} fetchFn fetch
-   * @param {{onSession, onTraining, onPools, onArenas, onUpcoming}} h
+   * @param {{onSession, onTraining, onLobby?, onPools, onArenas, onUpcoming}} h
    * @returns {Promise<boolean>} false si pas de session active
    */
   async function loadKioskData(fetchFn, h) {
@@ -42,6 +42,11 @@
     if (session.competitionId === '__training__') {
       const histRes = await fetchFn('/api/training/history');
       if (histRes.ok) h.onTraining((await histRes.json()).history || []);
+      // Occupation des pistes par le lobby : pistes libres marquées « Libre » (#1500)
+      if (h.onLobby) {
+        const lobbyRes = await fetchFn('/api/training/lobby');
+        if (lobbyRes.ok) h.onLobby((await lobbyRes.json()).arenas || []);
+      }
     } else {
       const poolsRes = await fetchFn(
         '/api/competitions/' + session.competitionId + '/results-data'

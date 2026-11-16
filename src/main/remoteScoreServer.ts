@@ -97,11 +97,7 @@ import {
   getPublicTeamArenaState,
   type TeamArenaContext,
 } from './remote/teamArena';
-import {
-  startTrainingSession,
-  createTrainingMatch,
-  type TrainingSessionContext,
-} from './remote/trainingSession';
+import { startTrainingSession, createTrainingMatch, type TrainingSessionContext } from './remote/trainingSession';
 import type { DemoPlayer } from './remote/demoMode';
 import { finishArenaMatch, recallPrevMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
@@ -230,6 +226,7 @@ export class RemoteScoreServer {
   private kioskThemeVariables: Record<string, string> | null = null; // Thème CSS vars pour le kiosk
   private orgNote: OrgNote | null = null; // Note d'organisation affichée sur le kiosk
   private isTrainingMode: boolean = false;
+  public trainingTheme: string = 'dark'; // Thème des écrans d'entraînement, lu par le lobby (#1500)
   /** Arbitre virtuel du mode démo (null hors démo) */
   private demoPlayer: DemoPlayer | null = null;
   private trainingHistory: Array<{
@@ -1038,7 +1035,7 @@ export class RemoteScoreServer {
           'sessionPoolArenas',
           'sessionMatches',
           'sessionMatchScores',
-          'trainingHistory',
+          'trainingHistory', 'trainingTheme',
           'demoPlayer',
           'registrationEnabled',
           'checkinEnabled',
@@ -1121,7 +1118,7 @@ export class RemoteScoreServer {
           'startArenaMatch',
           'stopSession',
           'toPublicArena',
-          'updateArenaScore',
+          'updateArenaScore', 'notifyKioskData',
         ]
       ),
       {

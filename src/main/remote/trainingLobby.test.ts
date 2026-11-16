@@ -131,6 +131,28 @@ describe('routes du lobby entraînement (#1500)', () => {
     ]);
   });
 
+  it('transmet le thème des écrans d’entraînement (défaut sombre)', () => {
+    const r1 = res();
+    makeRoutes().routes.get('GET /api/training/lobby')!({ query: {} }, r1);
+    expect(r1.body).toMatchObject({ theme: 'dark' });
+    const r2 = res();
+    makeRoutes({ trainingTheme: 'musketeers' }).routes.get('GET /api/training/lobby')!(
+      { query: {} },
+      r2
+    );
+    expect(r2.body).toMatchObject({ theme: 'musketeers' });
+  });
+
+  it('prévient le kiosk quand une piste est prise puis libérée', () => {
+    const notifyKioskData = vi.fn();
+    const { routes } = makeRoutes({ notifyKioskData });
+    routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: A } }, res());
+    routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: A } }, res());
+    expect(notifyKioskData).toHaveBeenCalledTimes(1); // rafraîchissement d'activité : silencieux
+    routes.get('POST /api/training/lobby/release')!({ body: { arena: 1, clientId: A } }, res());
+    expect(notifyKioskData).toHaveBeenCalledTimes(2);
+  });
+
   it('piste occupée : 409 arena_occupied pour un autre client', () => {
     const { routes } = makeRoutes();
     routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: A } }, res());

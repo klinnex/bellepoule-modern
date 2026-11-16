@@ -68,6 +68,21 @@ describe('kioskArenas.js gabarit', () => {
     expect(html).toContain('[kiosk.no_assigned]');
   });
 
+  it('entraînement : piste non tenue dans le lobby marquée « Libre » (#1500)', () => {
+    const idle = { ...arena('1', 0, 0), status: 'ready', number: 1 };
+    const free = K.renderArenasHtml([idle], { ...ctx, freeArenas: new Set([1]) });
+    expect(free).toContain('arena-status-pill free');
+    expect(free).toContain('[traininglobby.free]');
+    expect(K.renderArenasHtml([idle], { ...ctx, freeArenas: new Set([2]) })).toContain(
+      '[kiosk.status_assigned]'
+    );
+    // Match en cours : « En cours » prime
+    const live = { ...arena('1', 1, 0), number: 1 };
+    expect(K.renderArenasHtml([live], { ...ctx, freeArenas: new Set([1]) })).toContain(
+      '[kiosk.status_ongoing]'
+    );
+  });
+
   it('match en cours : B rouge à gauche, A vert à droite', () => {
     const html = K.renderArenasHtml([arena('1', 7, 3)], ctx);
     expect(html).toContain('arena-card match-active');

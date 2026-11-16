@@ -16,8 +16,10 @@ vi.mock('../remoteScoreServer', () => ({
     setTtsConfig = vi.fn();
     getServerUrl = () => 'http://127.0.0.1:8066';
     getLocalIPAddress = () => '127.0.0.1';
-    updateTheme = updateThemeSpy;
   },
+}));
+vi.mock('../remote/trainingTheme', () => ({
+  applyTrainingTheme: (_server: unknown, theme: string) => updateThemeSpy(theme),
 }));
 vi.mock('../certManager', () => ({ ensureCert: vi.fn() }));
 vi.mock('../mainWindowRef', () => ({ setSharedMainWindow: vi.fn() }));
@@ -50,6 +52,11 @@ describe('training:setTheme', () => {
   it('applique un thème intégré au serveur d’entraînement', async () => {
     expect(await handlers.get('training:setTheme')!({}, 'neon')).toEqual({ success: true });
     expect(updateThemeSpy).toHaveBeenCalledWith('neon');
+  });
+
+  it('accepte le thème Mousquetaires (#1500)', async () => {
+    expect(await handlers.get('training:setTheme')!({}, 'musketeers')).toEqual({ success: true });
+    expect(updateThemeSpy).toHaveBeenCalledWith('musketeers');
   });
 
   it('refuse un thème inconnu ou personnalisé', async () => {

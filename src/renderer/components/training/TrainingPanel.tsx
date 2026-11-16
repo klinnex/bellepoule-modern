@@ -18,15 +18,15 @@ import type { TrainingMatchRecord } from '../../../shared/types/preload';
 import TrainingPrintModal from './TrainingPrintModal';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 import { Button } from '../common/Button';
+import type { TrainingTheme } from '../../../shared/utils/trainingThemes';
 
-type TrainingTheme = 'dark' | 'light' | 'neon' | 'unicorn';
-
-// Thèmes intégrés (pas de thème personnalisé en entraînement)
+// Thèmes intégrés (pas de thème personnalisé en entraînement) : piste, kiosk, arbitre et lobby
 const TRAINING_THEME_OPTIONS: { value: TrainingTheme; labelKey?: string; label?: string }[] = [
   { value: 'dark', labelKey: 'rsm.theme_dark' },
   { value: 'light', labelKey: 'rsm.theme_light' },
   { value: 'neon', labelKey: 'rsm.theme_neon' },
   { value: 'unicorn', label: 'Unicorn' },
+  { value: 'musketeers', labelKey: 'rsm.theme_musketeers' },
 ];
 
 const WEAPON_LABELS: Record<string, string> = {
@@ -128,7 +128,6 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
           <Tooltip content={t('trainingPanel.copy_url')}>
             <button
               onClick={handleCopy}
-
               aria-label={t('trainingPanel.copy_url')}
               className={`training-copy-btn${copied ? ' is-copied' : ''}`}
             >

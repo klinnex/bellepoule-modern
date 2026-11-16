@@ -22,6 +22,7 @@ const state = {
   upcomingData: [],
   overallRanking: [],
   trainingHistory: [],
+  freeArenas: null, // entraînement : n° des pistes non tenues dans le lobby (#1500)
   lastUpdate: null,
   prevArenaScores: {},
   bracketData: null,
@@ -303,6 +304,9 @@ async function fetchData() {
         state.trainingHistory = history;
         renderRanking();
       },
+      onLobby: lobbyArenas => {
+        state.freeArenas = new Set(lobbyArenas.filter(a => !a.occupied).map(a => a.number));
+      },
       onPools: (pools, overallRanking) => {
         state.poolsData = pools;
         if (overallRanking) state.overallRanking = overallRanking;
@@ -458,6 +462,7 @@ function renderArenas() {
     tk,
     escHtml,
     arenaLabel: window.getArenaLabel(),
+    freeArenas: state.session?.competitionId === '__training__' ? state.freeArenas : null,
   });
 
   // ── Appliquer les animations après reconstruction du DOM ─────────────
