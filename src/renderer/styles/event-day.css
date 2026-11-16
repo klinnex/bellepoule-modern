@@ -96,3 +96,32 @@
   background: #fffbeb;
   color: #92400e;
 }
+
+/* Pistes en temps réel : propositions et réservation (#1878) */
+.event-day-strip-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.event-day-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+.event-day-strip-actions select {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+.event-day-strip-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+.event-day-check {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}

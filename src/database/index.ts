@@ -17,6 +17,7 @@ import { MatchRepo } from './repos/matchRepo';
 import { PoolRepo } from './repos/poolRepo';
 import { RefereeRepo } from './repos/refereeRepo';
 import { EventDayRepo } from './repos/eventDayRepo';
+import { StripRuleRepo } from './repos/stripRuleRepo';
 import { TeamRepo } from './repos/teamRepo';
 import { OrganisationRepo } from './repos/organisationRepo';
 import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
@@ -60,6 +61,8 @@ export class DatabaseManager {
   private readonly cyrano = new CyranoRepo(this.sql);
   /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
   public readonly eventDays = new EventDayRepo(this.sql);
+  /** Journée multi-épreuves : réservation des pistes, affectation automatique (#1878) */
+  public readonly stripRules = new StripRuleRepo(this.sql);
   /** Mode Club : membres, séances, combats libres (#1872) */
   public readonly club = new ClubRepo(this.sql);
   /** Mode Club : inventaire du matériel et prêts aux tireurs */

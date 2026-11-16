@@ -19,6 +19,7 @@ import { createMainWindow } from './mainWindow';
 import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './splash';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { registerEventDayHandlers } from './ipc/eventDayHandlers';
+import { registerDayStripHandlers } from './ipc/dayStripHandlers';
 import { registerClubHandlers } from './ipc/clubHandlers';
 import { applyStoredPrivacySettings, createPrivacyHandlers } from './ipc/privacyHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
@@ -90,6 +91,7 @@ const buildMenu = (language?: string): void =>
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
 registerEventDayHandlers({ db });
+registerDayStripHandlers({ db, getServer: id => remoteServers.get(id)?.server });
 registerClubHandlers({ db });
 privacyHandlers.register();
 registerFileHandlers({ db, getMainWindow: () => mainWindow });

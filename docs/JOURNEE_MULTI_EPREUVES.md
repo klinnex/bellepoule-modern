@@ -63,14 +63,36 @@ IPC : `window.electronAPI.eventDay.*` (`src/main/ipc/eventDayHandlers.ts`), dép
 ## Pistes de la journée
 
 L'onglet **Pistes** dans la fenêtre Journées affiche l'état de chaque piste numérotée (1 à N,
-N = nombre de pistes de la salle) :
+N = nombre de pistes de la salle), rafraîchi toutes les 5 s.
 
-- **Libre** : aucune poule ou match de tableau en cours sur cette piste.
-- **Poule N · Épreuve** / **Match N · Épreuve** : occupation en temps réel.
+**Saisie distante ouverte** (au moins une épreuve) — temps réel, lu sur les serveurs distants
+des épreuves (#1878) :
 
-Rafraîchi à la même fréquence que les arbitres (10 s).
+- **occupée** : une épreuve a une affectation en cours sur la piste (match non terminé, ou
+  match suivant en file) ;
+- **libre** : la piste est proposée au **travail en attente** des épreuves : poule sans piste,
+  poule ou match de tableau en file derrière une piste occupée. Liste triée : travail sans piste,
+  puis poules, puis les plus petits tableaux. **Affecter** installe la poule (tous ses matchs
+  restants) ou le match sur la piste ; une piste occupée n'est jamais interrompue.
+- **Affecter automatiquement les pistes libérées** (case, par journée) : toutes les 5 s, chaque
+  piste libre reçoit la première proposition autorisée.
+- **Réservation** par piste : épreuves autorisées, poules oui / non, tableau oui / non et
+  « tableau de N et moins » (piste de finale). Par défaut tout est autorisé. Le clic et
+  l'affectation automatique respectent la réservation.
 
-IPC : `window.electronAPI.eventDay.getStripOccupation(dayId)`.
+Sans saisie distante ouverte : occupation prévue en base (poules en cours), sans proposition.
+
+Une poule déplacée garde sa piste quand le renderer renvoie la répartition des poules
+(surcharge par match, `forcedPoolArena`). Tablettes et écrans restent ceux de l'épreuve (un
+serveur par épreuve) ; les appareils Cyrano suivent l'épreuve de l'affectation (CYRANO.md § 2
+quinquies).
+
+Données : migration 37, `event_day_strip_rules` (`event_day_id`, `strip`, `rule` JSON) et
+`event_days.auto_assign`. IPC : `eventDay.getStripBoard`, `assignStrip`, `setStripRule`,
+`setAutoAssign` (`src/main/ipc/dayStripHandlers.ts`) ; logique `src/main/remote/dayStripBoard.ts`
+et `stripHandover.ts` ; règles pures `src/shared/utils/stripRules.ts`.
+
+IPC (occupation en base) : `window.electronAPI.eventDay.getStripOccupation(dayId)`.
 
 ## Kiosk journée
 

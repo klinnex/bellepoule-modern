@@ -1231,6 +1231,15 @@ export interface EventDayAPI {
   getOverview: (dayId: string) => Promise<EventDayOverview>;
   getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
   getStripOccupation: (dayId: string) => Promise<import('./eventDay').DayStripStatus[]>;
+  /** Pistes en temps réel : occupation, réservation, propositions (#1878) */
+  getStripBoard: (dayId: string) => Promise<import('./eventDay').DayStripBoard | null>;
+  assignStrip: (dayId: string, strip: number, key: string) => Promise<boolean>;
+  setStripRule: (
+    dayId: string,
+    strip: number,
+    rule: import('./eventDay').StripRule | null
+  ) => Promise<boolean>;
+  setAutoAssign: (dayId: string, on: boolean) => Promise<boolean>;
 }
 
 export interface EventDayOverview {
