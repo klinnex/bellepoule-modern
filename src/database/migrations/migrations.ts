@@ -1048,4 +1048,24 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 37,
+    description:
+      'Journée multi-épreuves : réservation des pistes et affectation automatique des pistes libérées (#1878)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_day_strip_rules (
+          event_day_id TEXT NOT NULL,
+          strip INTEGER NOT NULL,
+          rule TEXT NOT NULL,
+          PRIMARY KEY (event_day_id, strip)
+        )
+      `);
+      try {
+        db.run(`ALTER TABLE event_days ADD COLUMN auto_assign INTEGER NOT NULL DEFAULT 0`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

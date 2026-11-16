@@ -165,6 +165,9 @@ export class EventDayRepo {
       );
       this.sql.run('UPDATE competitions SET event_day_id = NULL WHERE event_day_id = ?', [id]);
       this.sql.run('DELETE FROM event_day_referees WHERE event_day_id = ?', [id]);
+      // Réservation des pistes et table Cyrano de la salle (#1878)
+      this.sql.run('DELETE FROM event_day_strip_rules WHERE event_day_id = ?', [id]);
+      this.sql.run('DELETE FROM cyrano_pistes WHERE competition_id = ?', [`day:${id}`]);
       this.sql.run('DELETE FROM event_days WHERE id = ?', [id]);
     });
   }

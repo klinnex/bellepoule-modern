@@ -215,6 +215,13 @@ const electronApi = {
     getBusyElsewhere: (competitionId: string) =>
       ipcRenderer.invoke('eventDay:getBusyElsewhere', competitionId),
     getStripOccupation: (dayId: string) => ipcRenderer.invoke('eventDay:getStripOccupation', dayId),
+    getStripBoard: (dayId: string) => ipcRenderer.invoke('eventDay:getStripBoard', dayId),
+    assignStrip: (dayId: string, strip: number, key: string) =>
+      ipcRenderer.invoke('eventDay:assignStrip', dayId, strip, key),
+    setStripRule: (dayId: string, strip: number, rule: unknown) =>
+      ipcRenderer.invoke('eventDay:setStripRule', dayId, strip, rule),
+    setAutoAssign: (dayId: string, on: boolean) =>
+      ipcRenderer.invoke('eventDay:setAutoAssign', dayId, on),
   },
 
   // Mode Club (#1872)
@@ -484,6 +491,9 @@ const electronApi = {
     loadPistes: (competitionId: string) => ipcRenderer.invoke('cyrano:loadPistes', competitionId),
     savePistes: (competitionId: string, pistes: unknown[]) =>
       ipcRenderer.invoke('cyrano:savePistes', competitionId, pistes),
+    getPistesScope: (competitionId: string) =>
+      ipcRenderer.invoke('cyrano:getPistesScope', competitionId),
+    getRoutes: () => ipcRenderer.invoke('cyrano:getRoutes'),
   },
 
   // Language injected before renderer loads (avoids race with localStorage read)

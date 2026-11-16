@@ -136,6 +136,7 @@ import {
   persistArenaState,
   type ArenaBroadcastContext,
 } from './remote/arenaBroadcast';
+import { listWaitingWork, movePoolToArena, type WaitingWork } from './remote/stripHandover';
 import {
   assignMatchToArena,
   startArenaMatch,
@@ -1415,13 +1416,12 @@ export class RemoteScoreServer {
     logger.info(NET, `[RemoteScoreServer] ${arenaCount} arènes initialisées avec succès ✓`);
   }
 
-  public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void {
-    return resetPoolMatch(this.poolSyncCtx, ...args);
-  }
+  public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void { return resetPoolMatch(this.poolSyncCtx, ...args); }
+  /** Journée multi-épreuves (#1878) : travail en attente d'une piste, et son déplacement vers la piste `n` (créée au besoin) */
+  public getWaitingWork(): WaitingWork[] { return listWaitingWork(this.arenaQueueCtx); }
+  public moveWorkToArena(w: WaitingWork, n: number): boolean { if (!this.arenas.has(`arena${n}`)) return false; if (w.kind === 'pool') return movePoolToArena(this.arenaQueueCtx, w.poolId, `arena${n}`); this.updateMatchArena(w.matchId, w.fromArena, n); return true; }
 
-  public finishPoolMatch(...args: Tail<Parameters<typeof finishPoolMatch>>): void {
-    return finishPoolMatch(this.poolSyncCtx, ...args);
-  }
+  public finishPoolMatch(...args: Tail<Parameters<typeof finishPoolMatch>>): void { return finishPoolMatch(this.poolSyncCtx, ...args); }
 
   public setLanguage(lang: string): void {
     this.currentLang = lang;
@@ -1595,9 +1595,9 @@ export class RemoteScoreServer {
     return resolveDeMatchReferee(this.refereeResolverCtx, m);
   }
 
-  private peekNextMatch(arenaId: string): ArenaMatch | null {
-    return peekNextMatch(this.arenaQueueCtx, arenaId);
-  }
+  private peekNextMatch(arenaId: string): ArenaMatch | null { return peekNextMatch(this.arenaQueueCtx, arenaId); }
+  /** Affectation en cours sur l'arène (match non terminé ou suivant en file) : routage Cyrano (#1878) */
+  public hasArenaAssignment(arenaId: string): boolean { const a = this.arenas.get(arenaId); return !!a && ((!!a.currentMatch && a.status !== 'finished' && a.currentMatch.status !== 'finished') || this.peekNextMatch(arenaId) !== null); }
 
   public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
   public hasSession(): boolean { return this.session !== null; }

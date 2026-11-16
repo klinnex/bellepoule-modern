@@ -92,8 +92,11 @@ const mockDb = {
   getSessionState: vi.fn().mockReturnValue(null),
 };
 
-/** Attend qu'une condition soit vraie (polling sur la vraie horloge, UDP réel). */
-async function until(cond: () => boolean, ms = 4000): Promise<void> {
+/**
+ * Attend qu'une condition soit vraie (polling sur la vraie horloge, UDP réel). Délai large :
+ * la suite complète tourne en parallèle et peut ralentir la boucle d'événements.
+ */
+async function until(cond: () => boolean, ms = 15000): Promise<void> {
   const t0 = Date.now();
   while (!cond()) {
     if (Date.now() - t0 > ms) throw new Error('délai dépassé en attendant la trame UDP');
@@ -101,7 +104,7 @@ async function until(cond: () => boolean, ms = 4000): Promise<void> {
   }
 }
 
-describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', () => {
+describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', { timeout: 30_000 }, () => {
   let cyrano: CyranoServer;
   let remote: RemoteScoreServer;
   let device: InstanceType<typeof CyranoDevice>;
@@ -174,15 +177,28 @@ describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', () => {
     await until(() => acks >= 1);
     expect(arena().currentMatch?.scoreA).toBe(2);
     expect(arena().status).toBe('finished');
+    // L'ACK doit avoir atteint l'appareil (retour au repos) : PREV n'agit qu'en attente (W).
+    // Sans cette attente, sous charge, la touche PREV suivante était ignorée (test instable).
+    await until(() => device.snapshot().state === 'W');
   });
 
   it('PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés', async () => {
+    // DISP reçus par l'appareil (écouteur ajouté après le sien : il a déjà traité la trame).
+    // Le score de l'appareil vaut déjà 2 avant le DISP : sans ce compteur, un DISP tardif
+    // arrivait après BEGIN du test suivant et écrasait la correction (test instable).
+    let disps = 0;
+    const onFrame = (buf: Buffer) => {
+      if (buf.toString('latin1').includes('|DISP|')) disps++;
+    };
+    device.sock.on('message', onFrame);
     device.command('prev');
     // Attendre le rappel (arène prête, match terminé remis) et le DISP reçu par l'appareil
     await until(
       () => arena().status === 'ready' && arena().currentMatch?.id === pm(1, ID.ef, ID.ab).id
     );
-    await until(() => device.snapshot().right.score === 2);
+    await until(() => disps > 0);
+    device.sock.off('message', onFrame);
+    expect(device.snapshot().right.score).toBe(2);
     expect(arena().currentMatch).toMatchObject({ scoreA: 2, scoreB: 0, status: 'not_started' });
     expect(remote.arenaCards.get('arena1')?.cardsB).toContain('yellow');
   });
