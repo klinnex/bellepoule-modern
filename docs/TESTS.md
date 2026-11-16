@@ -89,7 +89,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 |---|---:|---:|
 | `src/shared/utils/` | 58 | 723 |
 | `src/shared/services/` | 8 | 92 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 27 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **392** | **2994** |
+| **Total** | **392** | **2997** |
 
-Unitaires : 382 fichiers, 2955 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 382 fichiers, 2958 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1602,7 +1602,7 @@ Unitaires : 382 fichiers, 2955 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 12 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 15 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1624,6 +1624,10 @@ Unitaires : 382 fichiers, 2955 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - aucun match : zéros
 - **organisationKpis.lastEndAt (#1817)**
   - fin du dernier match horodaté
+- **bandeau Organisation poules / compétition (#1817)**
+  - tableauWaves : exempts déduits, tours successifs
+  - poules en cours : fin des poules + tableau projeté
+  - poules finies : fin réelle des poules, tableau généré = ETA globale
 
 </details>
 
