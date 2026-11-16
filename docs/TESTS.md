@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 14 | 228 |
+| `src/database/` | 14 | 231 |
 | `src/main/` | 78 | 635 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 109 | 548 |
+| `src/renderer/components/` | 109 | 550 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **428** | **3251** |
+| **Total** | **428** | **3256** |
 
-Unitaires : 418 fichiers, 3212 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 418 fichiers, 3217 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2495,7 +2495,7 @@ Unitaires : 418 fichiers, 3212 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 23 tests</summary>
+<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 26 tests</summary>
 
 - **ClubInventoryRepo (inventaire du club)**
   - crée une fiche complète avec achat, garantie et emplacement
@@ -2522,6 +2522,10 @@ Unitaires : 418 fichiers, 3212 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - refuse de supprimer une catégorie utilisée, supprime une catégorie libre
     - une fiche ne peut utiliser qu’une catégorie de son propre club
     - la suppression du club efface ses catégories
+  - **verrou et marques**
+    - inventaire verrouillé : consultation oui, toute modification refusée
+    - déverrouillé : les modifications reviennent
+    - catalogue de marques : doublon refusé, renommage propagé aux fiches, suppression si libre
 
 </details>
 
@@ -5164,13 +5168,15 @@ Unitaires : 418 fichiers, 3212 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 6 tests</summary>
 
 - **ClubInventoryPanel (inventaire du club)**
   - affiche le matériel actif, la synthèse et le prêt en retard ; les réformés sont masqués
   - prête un exemplaire à un tireur
   - refuse de supprimer du matériel prêté (bouton désactivé)
   - enregistre le retour avec l’état constaté
+  - mode consultation : verrou affiché, ajout et actions désactivés, export disponible
+  - le bouton Verrouiller bascule l’inventaire en consultation seule
 
 </details>
 
