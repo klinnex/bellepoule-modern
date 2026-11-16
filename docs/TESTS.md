@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 62 | 746 |
+| `src/shared/utils/` | 63 | 752 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 181 |
-| `src/main/` | 72 | 602 |
+| `src/database/` | 12 | 187 |
+| `src/main/` | 73 | 607 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 101 | 510 |
+| `src/renderer/components/` | 106 | 527 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **401** | **3063** |
+| **Total** | **408** | **3097** |
 
-Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 398 fichiers, 3058 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -268,11 +268,12 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/clubImport.test.ts</code> — 2 tests</summary>
+<summary><code>src/shared/utils/clubImport.test.ts</code> — 3 tests</summary>
 
 - **import des membres du club (#1872)**
   - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
   - dédoublonne par licence puis nom (accents/casse), complète sans écraser
+  - statut par ligne, dans l’ordre du fichier
 
 </details>
 
@@ -283,6 +284,18 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - membre : aller-retour, casse tolérée
   - piste : aller-retour, bornes 1..99
   - rejette tout autre contenu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubScanFlow.test.ts</code> — 5 tests</summary>
+
+- **scan webcam : piste puis 2 cartes (#1872)**
+  - piste puis tireurs → complet
+  - ordre libre : tireurs puis piste
+  - erreurs : piste hors séance, même tireur deux fois
+  - troisième carte : remplace le second tireur ; nouvelle piste : change la piste
+  - anti-répétition du même QR
 
 </details>
 
@@ -2353,7 +2366,7 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 23 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 29 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2367,8 +2380,14 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - code carte unique à la création, retrouvé par code (actifs)
     - régénération : ancienne carte invalide
     - code non modifiable via updateMember
-    - nom + logo, logo validé, null efface
+    - nom + logo + pistes du club, logo validé, null efface
     - migration 26 : codes générés pour les membres existants
+  - **plusieurs clubs**
+    - membres, séances et combats cloisonnés par club ; résumé pour l’accueil
+    - suppression d’un club : toutes ses données, pas celles des autres
+    - création : nom requis, club inconnu refusé
+    - migration 28 : le club unique devient « club-default »
+    - migration 28 sans données : aucun club créé
   - **séances**
     - crée avec pistes bornées, date validée
     - liste filtrée par plage, plus récente d’abord
@@ -2380,6 +2399,7 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - contrôles à la création
     - cycle : départ, score en cours, fin
     - correction après coup + vainqueur explicite
+    - piste occupée : second combat refusé, libérée une fois terminé
     - annulé : non terminable
     - filtres : membre, plage, arme, terminés seuls par défaut
     - suppression
@@ -2794,15 +2814,16 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 7 tests</summary>
 
 - **handlers club:\* (#1872)**
   - enregistre tous les canaux club:\*
   - booléens stricts et filtres par défaut
-  - paramètres : objet vide par défaut
+  - club : objets vides par défaut
   - classement : force les combats terminés
   - fiche membre : stats, face-à-face, progression par trimestre
   - période inconnue → mois
+  - score de la tablette → combat club terminé (saisie arbitre), autres matchs ignorés
 
 </details>
 
@@ -3175,6 +3196,17 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - blocage exponentiel après 5 échecs, alerte opérateur, levé par un succès
 - **MinuteRateLimiter**
   - limite par clé sur une minute
+
+</details>
+
+<details>
+<summary><code>src/main/remote/clubArena.test.ts</code> — 4 tests</summary>
+
+- **saisie distante Mode Club (#1872)**
+  - identifiant de match club
+  - match d’arène aux noms des membres
+  - envoi : arène libre, occupée, sans serveur
+  - libération : match d’entraînement libre remis si pas en cours
 
 </details>
 
@@ -4844,6 +4876,60 @@ Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **WeaponStatsCard (#1817)**
   - armes olympiques : écart, cartons/match, abandons, temps limite
   - sabre laser : indicateurs historiques
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubImportModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubImportModal (#1872)**
+  - coche par défaut nouveaux et à compléter, décoche, importe la sélection
+  - tout décocher / tout cocher (lignes filtrées)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubPicker.test.tsx</code> — 4 tests</summary>
+
+- **ClubsHomeSection (Général)**
+  - liste les clubs, ouvre le club choisi
+  - aucun club : rien n’est affiché
+- **ClubPicker (onglet Club)**
+  - choisir un club existant ou en créer un
+  - premier club : message d’accueil
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubScanModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubScanModal**
+  - piste puis 2 cartes : pointe, crée et lance le combat
+  - messages : QR inconnu, carte inconnue, piste hors séance
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 6 tests</summary>
+
+- **ClubSessionsPanel**
+  - sans séance ouverte : ouvre la séance du jour avec les pistes du club
+  - combat en cours sur la piste 1 : saisie du score et fin
+  - piste 2 libre : appariement manuel parmi les présents
+  - pointage et fermeture
+  - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
+  - annuler un combat libère la tablette
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubStatsPanel.test.tsx</code> — 3 tests</summary>
+
+- **scopeFilter**
+  - saison, trimestre, mois, séance, tout
+- **ClubStatsPanel**
+  - classement de la saison, changement de période
+  - fiche membre : progression par trimestre et face-à-face
 
 </details>
 
