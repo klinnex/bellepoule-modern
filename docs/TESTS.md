@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 58 | 723 |
+| `src/shared/utils/` | 59 | 735 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,8 +100,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 11 | 158 |
-| `src/main/` | 71 | 596 |
+| `src/database/` | 12 | 174 |
+| `src/main/` | 72 | 601 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 98 | 496 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **392** | **2997** |
+| **Total** | **395** | **3030** |
 
-Unitaires : 382 fichiers, 2958 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -264,6 +264,26 @@ Unitaires : 382 fichiers, 2958 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **weaponLabel / genderLabel**
   - traduit les codes arme et genre
   - laisse un code inconnu tel quel
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubStats.test.ts</code> — 12 tests</summary>
+
+- **Mode Club : périodes (#1872)**
+  - valide les dates ISO
+  - jour, mois, trimestre, année
+  - saison sportive septembre → août
+  - rejette une date invalide
+- **Mode Club : statistiques (#1872)**
+  - V/D/nul, touches, indice, séances
+  - membre sans combat : zéros
+  - vainqueur explicite prime sur le score
+  - classement : % victoires puis indice
+  - face-à-face trié par nombre de combats
+  - progression par trimestre, chronologique
+  - progression par saison : un seul groupe
+  - winnerFromScore
 
 </details>
 
@@ -2300,6 +2320,32 @@ Unitaires : 382 fichiers, 2958 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 16 tests</summary>
+
+- **ClubRepo (#1872)**
+  - **membres**
+    - crée, normalise et liste par nom
+    - nom requis
+    - archive : masqué par défaut, visible avec includeInactive
+    - suppression RGPD : combats et présences effacés
+  - **séances**
+    - crée avec pistes bornées, date validée
+    - liste filtrée par plage, plus récente d’abord
+    - pointage idempotent, dépointage
+    - changer la date répercute sur les combats
+    - fermeture : combats en cours annulés, création refusée
+    - suppression : combats et présences effacés
+  - **combats**
+    - contrôles à la création
+    - cycle : départ, score en cours, fin
+    - correction après coup + vainqueur explicite
+    - annulé : non terminable
+    - filtres : membre, plage, arme, terminés seuls par défaut
+    - suppression
+
+</details>
+
+<details>
 <summary><code>src/database/repos/cyranoRepo.test.ts</code> — 3 tests</summary>
 
 - **CyranoRepo (#1829)**
@@ -2703,6 +2749,18 @@ Unitaires : 382 fichiers, 2958 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - snapshot vide avant toute mesure
   - détecte un blocage synchrone et se remet à zéro
   - start/stop idempotents
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 5 tests</summary>
+
+- **handlers club:\* (#1872)**
+  - enregistre tous les canaux club:\*
+  - booléens stricts et filtres par défaut
+  - classement : force les combats terminés
+  - fiche membre : stats, face-à-face, progression par trimestre
+  - période inconnue → mois
 
 </details>
 
