@@ -881,7 +881,12 @@ export const ALL_MIGRATIONS: Migration[] = [
       } catch {
         /* colonne déjà présente */
       }
-      // Arme pratiquée par défaut du club (règles de la saisie distante des séances)
+    },
+  },
+  {
+    version: 30,
+    description: 'Mode Club : arme par défaut du club (règles de la saisie distante) (#1872)',
+    up(db) {
       try {
         db.run(`ALTER TABLE clubs ADD COLUMN weapon TEXT`);
       } catch {
