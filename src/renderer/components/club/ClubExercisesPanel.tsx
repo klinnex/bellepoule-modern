@@ -4,6 +4,9 @@
  * exportable / importable (fichier JSON) pour l'échange entre utilisateurs.
  * Licensed under GPL-3.0
  */
+import { exerciseMatchesRange } from '../../../shared/utils/clubAge';
+import { categoryLabel } from '../../../shared/utils/categoryLabel';
+import { AgeCategoryFilter } from './ClubAgeRange';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import type { ClubExercise, ClubExerciseCategory } from '../../../shared/types/club';
@@ -32,6 +35,7 @@ export const ClubExercisesPanel: React.FC = () => {
   const [list, setList] = useState<ClubExercise[]>([]);
   const [category, setCategory] = useState<ClubExerciseCategory | 'all'>('all');
   const [search, setSearch] = useState('');
+  const [ageCategory, setAgeCategory] = useState('');
   const [editing, setEditing] = useState<{ exercise: ClubExercise | null } | null>(null);
 
   const load = useCallback(async () => {
@@ -47,9 +51,11 @@ export const ClubExercisesPanel: React.FC = () => {
     return list.filter(
       e =>
         (category === 'all' || e.category === category) &&
+        // Catégorie d'âge : exercices visant cette catégorie et exercices communs à tous
+        exerciseMatchesRange(e.ageCategories, { ageFrom: ageCategory, ageTo: ageCategory }) &&
         (!q || `${e.title} ${e.details ?? ''}`.toLowerCase().includes(q))
     );
-  }, [list, category, search]);
+  }, [list, category, search, ageCategory]);
 
   if (!api) return null;
 
@@ -142,6 +148,7 @@ export const ClubExercisesPanel: React.FC = () => {
               ))}
             </select>
           </label>
+          <AgeCategoryFilter value={ageCategory} onChange={setAgeCategory} />
           <input
             className="form-input club-grow"
             type="search"
@@ -163,7 +170,13 @@ export const ClubExercisesPanel: React.FC = () => {
                 <div className="club-grow">
                   <span className="font-medium">{e.title}</span>{' '}
                   <span className="badge">{t(`clubExercises.cat_${e.category}`)}</span>{' '}
-                  <span className="club-muted">{formatMinutes(e.minutes)}</span>
+                  <span className="club-muted">{formatMinutes(e.minutes)}</span>{' '}
+                  <span className="club-muted">
+                    ·{' '}
+                    {!e.ageCategories?.length
+                      ? t('clubAge.common')
+                      : e.ageCategories.map(c => categoryLabel(c, t)).join(', ')}
+                  </span>
                   {e.details && <p className="club-plan-details">{e.details}</p>}
                   {e.images.length > 0 && (
                     <div className="club-images">

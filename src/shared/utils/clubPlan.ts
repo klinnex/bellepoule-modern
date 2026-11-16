@@ -3,6 +3,7 @@
  * durées, consignes). Normalisation des données reçues du renderer, durée totale.
  * Licensed under GPL-3.0
  */
+import { normalizeAgeCategories } from './clubAge';
 import type {
   ClubExerciseCategory,
   ClubExerciseInput,
@@ -40,7 +41,9 @@ export const normalizeCategory = (v: unknown): ClubExerciseCategory | undefined 
 export function normalizeExerciseInput(
   raw: unknown
 ):
-  | (Required<Pick<ClubExerciseInput, 'title' | 'category' | 'minutes' | 'images'>> &
+  | (Required<
+      Pick<ClubExerciseInput, 'title' | 'category' | 'minutes' | 'images' | 'ageCategories'>
+    > &
       Pick<ClubExerciseInput, 'details'>)
   | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -53,6 +56,7 @@ export function normalizeExerciseInput(
     minutes: Math.min(Math.max(Math.round(Number(o.minutes) || 0), 0), 600),
     details: cleanLongText(o.details, 2000),
     images: normalizeImages(o.images),
+    ageCategories: normalizeAgeCategories(o.ageCategories),
   };
 }
 

@@ -10,7 +10,7 @@ import type { ClubMember, ClubSettings } from '../../types/club';
 export type ClubIdentity = Pick<ClubSettings, 'name' | 'logo'>;
 import { arenaQrPayload, memberQrPayload } from '../clubQr';
 import { escHtml as esc } from './bookToc';
-import { pdfLang, pdfT, savePDF } from './core';
+import { pdfLang, pdfT, printHTML, savePDF } from './core';
 
 export const CARDS_PER_PAGE = 10;
 
@@ -133,6 +133,15 @@ export async function exportClubCardsToPDF(
   await savePDF(html, 'cartes-club.pdf');
 }
 
+/** Cartes envoyées à la boîte de dialogue d'impression (et non enregistrées en PDF) */
+export async function printClubCards(
+  members: readonly ClubMember[],
+  settings: ClubIdentity,
+  opts: ClubCardsOptions = {}
+): Promise<void> {
+  await printHTML(await buildClubCardsHTML(members, settings, opts));
+}
+
 // ─── QR des pistes (#1872) : 2 par A4, à afficher sur chaque piste ───────────
 
 const ARENA_CSS = `
@@ -188,7 +197,7 @@ export function generateArenaQrHTML(
   <body>${sheets.join('')}</body></html>`;
 }
 
-export async function exportArenaQrToPDF(count: number, settings: ClubIdentity): Promise<void> {
+async function buildArenaQrHTML(count: number, settings: ClubIdentity): Promise<string> {
   const QRCode = (await import('qrcode')).default;
   const qrs: Record<number, string> = {};
   for (const n of arenaNumbers(count)) {
@@ -199,5 +208,14 @@ export async function exportArenaQrToPDF(count: number, settings: ClubIdentity):
       color: { dark: '#000', light: '#fff' },
     });
   }
-  await savePDF(generateArenaQrHTML(count, settings, qrs), 'qr-pistes.pdf');
+  return generateArenaQrHTML(count, settings, qrs);
+}
+
+export async function exportArenaQrToPDF(count: number, settings: ClubIdentity): Promise<void> {
+  await savePDF(await buildArenaQrHTML(count, settings), 'qr-pistes.pdf');
+}
+
+/** QR des pistes envoyés à la boîte de dialogue d'impression */
+export async function printArenaQr(count: number, settings: ClubIdentity): Promise<void> {
+  await printHTML(await buildArenaQrHTML(count, settings));
 }

@@ -526,3 +526,107 @@
   display: block;
   margin-left: 0;
 }
+/* Ouverture de séance : calendrier à gauche, champs puis bouton aligné à droite (#1872) */
+.club-open-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.club-open-fields {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.club-open-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+/* Catégories d'âge : plage début / fin, cases du public visé */
+.club-age-range {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.club-age-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+.club-age-checks legend {
+  padding: 0 0.25rem;
+}
+.club-date-input {
+  width: auto;
+  min-width: 9.5rem;
+  padding: 0.15rem 0.35rem;
+}
+/* Pointage des présents */
+.club-attendance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.25rem 1rem;
+}
+.club-attendance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.club-attendance-row:hover {
+  background: var(--color-surface-hover, var(--color-surface));
+}
+/* Séances récurrentes */
+.club-repeat {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-series-history summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.club-series-history ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+/* Lobby des pistes (saisie distante en séance) */
+.club-lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-lobby-url {
+  font-size: var(--fs-sm, 0.875rem);
+  word-break: break-all;
+}
+.club-lobby-qr {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.club-lobby-qr img {
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+}

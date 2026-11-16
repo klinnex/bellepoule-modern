@@ -3287,7 +3287,14 @@
     "import_empty": "Aucun membre trouvé dans ce fichier",
     "strip_count": "Nombre de pistes",
     "print_arena_qr": "Imprimer les QR des pistes",
-    "photo": "Photo"
+    "photo": "Photo",
+    "birth_date": "Date de naissance",
+    "birth_date_of": "Date de naissance de {{name}}",
+    "sort_by": "Trier par",
+    "sort_name": "Nom",
+    "sort_category": "Catégorie d'âge",
+    "cards_pdf": "Enregistrer les cartes en PDF",
+    "arena_qr_pdf": "Enregistrer les QR des pistes en PDF"
   },
   "clubTour": {
     "title": "Bienvenue dans le Mode Club",
@@ -3353,7 +3360,13 @@
     "remote_on": "Active : les tablettes arbitre se connectent à {{url}}/areneN/arbitre. Chaque combat lancé y est envoyé, le score validé revient ici.",
     "remote_off": "Les scores se saisissent sur ce poste. Activez la saisie distante pour arbitrer sur tablette.",
     "remote_busy": "Un match est déjà en cours sur la tablette de cette piste",
-    "remote_error": "Impossible de démarrer la saisie distante"
+    "remote_error": "Impossible de démarrer la saisie distante",
+    "lobby": "Lobby des pistes",
+    "lobby_copy": "Copier le lien du lobby",
+    "lobby_copied": "Lien du lobby copié",
+    "lobby_qr_alt": "QR code du lobby des pistes",
+    "lobby_hint": "Scannez ce QR code avec une tablette pour choisir une piste et arbitrer.",
+    "remote_cards_hint": "Sur la tablette, la carte du tireur A puis celle du tireur B sont demandées (identification facultative) : avec les deux cartes, le combat est enregistré dans la séance."
   },
   "clubStats": {
     "period": "Période",
@@ -3440,7 +3453,20 @@
     "print": "Imprimer",
     "export_plan": "Exporter le plan",
     "import_plan": "Importer un plan",
-    "plan_exported": "Plan exporté"
+    "plan_exported": "Plan exporté",
+    "repeat": "Répéter cette séance",
+    "every_days": "Tous les (jours)",
+    "repeat_end": "Fin",
+    "repeat_count": "Après un nombre de séances",
+    "repeat_until": "À une date",
+    "occurrences": "Séances",
+    "until_date": "Jusqu'au",
+    "repeat_summary": "Séances créées : {{count}} (dernière le {{last}})",
+    "repeat_none": "Aucune séance à créer",
+    "series_created": "Séances préparées : {{count}}",
+    "series_badge": "Récurrente",
+    "series_history": "Autres séances de la série ({{count}})",
+    "series_empty": "Plan vide"
   },
   "clubFeedback": {
     "title": "Bilan de la séance du {{date}}",
@@ -3513,5 +3539,24 @@
     "error_invalid_json": "Fichier illisible (JSON invalide)",
     "error_wrong_format": "Ce fichier n'est pas du bon type",
     "error_empty": "Le fichier ne contient rien à importer"
+  },
+  "clubAge": {
+    "from": "De la catégorie",
+    "to": "À la catégorie",
+    "youngest": "La plus jeune",
+    "oldest": "La plus âgée",
+    "category": "Catégorie d'âge",
+    "all": "Toutes",
+    "audience": "Catégories d'âge visées",
+    "common": "Commun à tous",
+    "selected": "Catégories : {{count}}",
+    "course_for": "Cours pour",
+    "only_course": "Catégories du cours et exercices communs"
+  },
+  "clubAttendance": {
+    "title": "Pointage — présents : {{count}}",
+    "button": "Pointage ({{count}})",
+    "check_all": "Tout cocher",
+    "none": "Aucun membre dans ces catégories."
   }
 }

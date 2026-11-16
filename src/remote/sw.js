@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-const CACHE_NAME = 'bellepoule-referee-v11';
+const CACHE_NAME = 'bellepoule-referee-v12';
 // Seuls les fichiers réellement servis (pas de /styles.css ni /app.js qui sont inline)
 // Modules /js/* des pages arbitre et arène (#1600) : cache granulaire, une modification n'invalide qu'un fichier
 const ASSETS = [
@@ -32,6 +32,7 @@ const ASSETS = [
   '/js/refereeFeedback.js',
   '/js/refereeLists.js',
   '/js/refereeLobby.js',
+  '/js/refereeClubCards.js',
   '/js/refereeScoring.js',
   '/js/refereeTimer.js',
   '/js/refereeTts.js',

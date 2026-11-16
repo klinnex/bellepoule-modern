@@ -8,7 +8,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Archive,
   ArchiveRestore,
+  FileDown,
   IdCard,
+  Printer,
   ImageUp,
   QrCode,
   Plus,
@@ -30,7 +32,12 @@ import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/f
 import {
   exportArenaQrToPDF,
   exportClubCardsToPDF,
+  printArenaQr,
+  printClubCards,
 } from '../../../shared/utils/pdfExport/clubCardsPdf';
+import { compareByAgeCategory, memberAgeCategory } from '../../../shared/utils/clubAge';
+import { categoryLabel } from '../../../shared/utils/categoryLabel';
+import { AgeCategoryFilter } from './ClubAgeRange';
 import { FencerPhoto } from '../FencerPhoto';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -71,7 +78,9 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   // null = nom enregistré (pas d'édition en cours)
   const [nameEdit, setNameEdit] = useState<string | null>(null);
   const clubName = nameEdit ?? settings.name;
-  const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '' });
+  const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '', birthDate: '' });
+  const [ageFilter, setAgeFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
   const [printing, setPrinting] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
   const [importDraft, setImportDraft] = useState<{
@@ -100,13 +109,23 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     }
   };
 
+  /** Catégorie d'âge de chaque membre (date de naissance, saison en cours) */
+  const ageCat = useMemo(() => new Map(members.map(m => [m.id, memberAgeCategory(m)])), [members]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return members;
-    return members.filter(m =>
-      `${m.lastName} ${m.firstName} ${m.license ?? ''} ${m.cardCode}`.toLowerCase().includes(q)
+    const list = members.filter(
+      m =>
+        (!q ||
+          `${m.lastName} ${m.firstName} ${m.license ?? ''} ${m.cardCode}`
+            .toLowerCase()
+            .includes(q)) &&
+        (!ageFilter || ageCat.get(m.id) === ageFilter)
     );
-  }, [members, search]);
+    return sortBy === 'category'
+      ? [...list].sort(compareByAgeCategory(m => ageCat.get(m.id)))
+      : list;
+  }, [members, search, ageFilter, sortBy, ageCat]);
 
   if (!api) return null;
 
@@ -141,8 +160,9 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     e.preventDefault();
     if (!draft.firstName.trim() && !draft.lastName.trim()) return;
     void run(async () => {
-      await api.createMember(clubId, draft);
-      setDraft({ firstName: '', lastName: '', license: '' });
+      const { birthDate, ...rest } = draft;
+      await api.createMember(clubId, birthDate ? { ...rest, birthDate } : rest);
+      setDraft({ firstName: '', lastName: '', license: '', birthDate: '' });
     });
   };
 
@@ -193,9 +213,10 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   const saveStrips = (n: number) => run(async () => saveClub({ stripCount: n }));
 
-  const printArenas = async () => {
+  const printArenas = async (mode: 'print' | 'pdf') => {
     try {
-      await exportArenaQrToPDF(settings.stripCount, settings);
+      if (mode === 'pdf') await exportArenaQrToPDF(settings.stripCount, settings);
+      else await printArenaQr(settings.stripCount, settings);
     } catch (e) {
       showToast(errText(e), 'error');
     }
@@ -217,12 +238,15 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
   };
 
-  const printCards = async () => {
+  /** Cartes des membres affichés : boîte d'impression, ou fichier PDF */
+  const printCards = async (mode: 'print' | 'pdf') => {
     const list = filtered.filter(m => m.active);
     if (list.length === 0) return;
     setPrinting(true);
     try {
-      await exportClubCardsToPDF(list, settings, { season: periodOf(today(), 'season').key });
+      const opts = { season: periodOf(today(), 'season').key };
+      if (mode === 'pdf') await exportClubCardsToPDF(list, settings, opts);
+      else await printClubCards(list, settings, opts);
       onCardsPrinted?.();
     } catch (e) {
       showToast(errText(e), 'error');
@@ -291,10 +315,17 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           <Button
             icon={<QrCode size={15} aria-hidden="true" />}
             data-tour="club-arena-qr"
-            onClick={() => void printArenas()}
+            onClick={() => void printArenas('print')}
           >
             {t('club.print_arena_qr')}
           </Button>
+          <Button
+            variant="ghost"
+            icon={<FileDown size={15} aria-hidden="true" />}
+            aria-label={t('club.arena_qr_pdf')}
+            title={t('club.arena_qr_pdf')}
+            onClick={() => void printArenas('pdf')}
+          />
         </div>
       </section>
 
@@ -330,13 +361,21 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           <Button
             variant="primary"
             data-tour="club-print-cards"
-            icon={<IdCard size={15} aria-hidden="true" />}
+            icon={<Printer size={15} aria-hidden="true" />}
             loading={printing}
             disabled={!filtered.some(m => m.active)}
-            onClick={() => void printCards()}
+            onClick={() => void printCards('print')}
           >
             {t('club.print_cards')}
           </Button>
+          <Button
+            variant="ghost"
+            icon={<IdCard size={15} aria-hidden="true" />}
+            aria-label={t('club.cards_pdf')}
+            title={t('club.cards_pdf')}
+            disabled={printing || !filtered.some(m => m.active)}
+            onClick={() => void printCards('pdf')}
+          />
         </div>
 
         <form className="club-row club-row--end" onSubmit={addMember}>
@@ -366,6 +405,16 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
               onChange={e => setDraft(d => ({ ...d, license: e.target.value }))}
             />
           </label>
+          <label className="form-label">
+            {t('club.birth_date')}
+            <input
+              className="form-input"
+              type="date"
+              value={draft.birthDate}
+              max={today()}
+              onChange={e => setDraft(d => ({ ...d, birthDate: e.target.value }))}
+            />
+          </label>
           <Button
             type="submit"
             variant="success"
@@ -385,6 +434,18 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             aria-label={t('club.search')}
             onChange={e => setSearch(e.target.value)}
           />
+          <AgeCategoryFilter value={ageFilter} onChange={setAgeFilter} />
+          <label className="form-label">
+            {t('club.sort_by')}
+            <select
+              className="form-input"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as 'name' | 'category')}
+            >
+              <option value="name">{t('club.sort_name')}</option>
+              <option value="category">{t('club.sort_category')}</option>
+            </select>
+          </label>
           <label className="club-nowrap">
             <input
               type="checkbox"
@@ -407,6 +468,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
                 <th scope="col">{t('fencerList.col_last_name')}</th>
                 <th scope="col">{t('fencerList.col_first_name')}</th>
                 <th scope="col">{t('fencerList.col_birth')}</th>
+                <th scope="col">{t('clubAge.category')}</th>
                 <th scope="col">{t('fencerList.col_handedness')}</th>
                 <th scope="col">{t('fencer.license')}</th>
                 <th scope="col">{t('club.card_code')}</th>
@@ -432,7 +494,28 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
                   </td>
                   <td className="font-medium">{m.lastName}</td>
                   <td>{m.firstName}</td>
-                  <td className="text-sm text-muted">{m.birthYear ?? '-'}</td>
+                  <td className="text-sm text-muted">
+                    <input
+                      className="form-input club-date-input"
+                      type="date"
+                      value={m.birthDate ?? ''}
+                      max={today()}
+                      title={
+                        m.birthDate ? undefined : m.birthYear ? String(m.birthYear) : undefined
+                      }
+                      aria-label={t('club.birth_date_of', { name: `${m.firstName} ${m.lastName}` })}
+                      onChange={e =>
+                        e.target.value &&
+                        void run(() => api.updateMember(m.id, { birthDate: e.target.value }))
+                      }
+                    />
+                    {!m.birthDate && m.birthYear ? (
+                      <span className="club-muted"> {m.birthYear}</span>
+                    ) : null}
+                  </td>
+                  <td className="text-sm">
+                    {ageCat.get(m.id) ? categoryLabel(ageCat.get(m.id), t) : '-'}
+                  </td>
                   <td className="text-sm text-muted">
                     {m.laterality
                       ? t(m.laterality === 'L' ? 'addFencer.left' : 'addFencer.right')

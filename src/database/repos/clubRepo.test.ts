@@ -536,4 +536,53 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.getBout(bt.id)).toBeNull();
     });
   });
+
+  describe('catégories d’âge et séances récurrentes', () => {
+    it('date de naissance : année déduite, date invalide ignorée', () => {
+      const m = member('Ader', { birthDate: '2014-05-06' });
+      expect(m).toMatchObject({ birthDate: '2014-05-06', birthYear: 2014 });
+      expect(repo.updateMember(m.id, { birthDate: '2014-02-31' })?.birthDate).toBeUndefined();
+    });
+
+    it('séance : catégories du cours (codes reconnus), effaçables', () => {
+      const s = repo.createSession(cid, { date: '2026-11-18', ageFrom: 'M11', ageTo: 'U13' });
+      expect(s).toMatchObject({ ageFrom: 'U11', ageTo: 'U13' });
+      const u = repo.updateSession(s.id, { ageFrom: null, ageTo: 'zz' });
+      expect(u?.ageFrom).toBeUndefined();
+      expect(u?.ageTo).toBeUndefined();
+    });
+
+    it('série : une séance préparée par date, plan copié sans cases cochées', () => {
+      const list = repo.createSeries(
+        cid,
+        {
+          date: '2026-11-18',
+          label: 'Poussins',
+          ageFrom: 'U9',
+          plan: [{ id: 'x', title: 'Fentes', minutes: 10, done: true }],
+        },
+        { everyDays: 7, count: 3 }
+      );
+      expect(list.map(s => s.date)).toEqual(['2026-11-18', '2026-11-25', '2026-12-02']);
+      expect(new Set(list.map(s => s.seriesId)).size).toBe(1);
+      expect(list[0].seriesId).toBeTruthy();
+      expect(list.every(s => s.status === 'planned' && s.ageFrom === 'U9')).toBe(true);
+      expect(list[1].plan[0]).toMatchObject({ title: 'Fentes' });
+      expect(list[1].plan[0].done).toBeUndefined();
+      // Plans indépendants : modifier une semaine ne change pas les autres
+      repo.updateSession(list[1].id, { plan: [{ id: 'y', title: 'Assauts', minutes: 20 }] });
+      expect(repo.getSession(list[2].id)?.plan[0].title).toBe('Fentes');
+      // Sans répétition : séance seule, hors série
+      const one = repo.createSeries(cid, { date: '2026-12-20' }, { everyDays: 0 });
+      expect(one).toHaveLength(1);
+      expect(one[0].seriesId).toBeUndefined();
+    });
+
+    it('exercice : catégories visées (vide = commun à tous)', () => {
+      const e = repo.createExercise({ title: 'Jeu', ageCategories: ['U9', 'bad', 'U11'] });
+      expect(e.ageCategories).toEqual(['U9', 'U11']);
+      expect(repo.createExercise({ title: 'Footing' }).ageCategories).toEqual([]);
+      expect(repo.updateExercise(e.id, { ageCategories: [] })?.ageCategories).toEqual([]);
+    });
+  });
 });

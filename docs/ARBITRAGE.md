@@ -280,6 +280,10 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 
 Appareils de piste (Favero, SG…) via le protocole Cyrano : voir [CYRANO.md](CYRANO.md).
 
+Mode Club en séance (#1872) : en arrivant sur la piste, la tablette demande la carte de club du
+tireur A puis du tireur B (caméra ou code en clair, chaque carte peut être passée) ; bouton
+**Cartes** pour recommencer. Voir [MODE_CLUB.md](MODE_CLUB.md).
+
 ---
 
 ## 7. Protocole (référence technique)

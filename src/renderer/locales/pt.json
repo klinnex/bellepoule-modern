@@ -3287,7 +3287,14 @@
     "import_empty": "Nenhum sócio encontrado neste ficheiro",
     "strip_count": "Número de pistas",
     "print_arena_qr": "Imprimir os QR das pistas",
-    "photo": "Fotografia"
+    "photo": "Fotografia",
+    "birth_date": "Data de nascimento",
+    "birth_date_of": "Data de nascimento de {{name}}",
+    "sort_by": "Ordenar por",
+    "sort_name": "Nome",
+    "sort_category": "Escalão etário",
+    "cards_pdf": "Guardar os cartões em PDF",
+    "arena_qr_pdf": "Guardar os QR das pistas em PDF"
   },
   "clubTour": {
     "title": "Bem-vindo ao Modo Clube",
@@ -3353,7 +3360,13 @@
     "remote_on": "Ativa: os tablets de árbitro ligam-se a {{url}}/areneN/arbitre. Cada assalto iniciado é enviado para lá e o resultado validado volta aqui.",
     "remote_off": "Os resultados são introduzidos neste computador. Ative a introdução remota para arbitrar em tablet.",
     "remote_busy": "Já há um assalto em curso no tablet desta pista",
-    "remote_error": "Não foi possível iniciar a introdução remota"
+    "remote_error": "Não foi possível iniciar a introdução remota",
+    "lobby": "Lobby das pistas",
+    "lobby_copy": "Copiar a ligação do lobby",
+    "lobby_copied": "Ligação do lobby copiada",
+    "lobby_qr_alt": "Código QR do lobby das pistas",
+    "lobby_hint": "Leia este código QR com um tablet para escolher uma pista e arbitrar.",
+    "remote_cards_hint": "No tablet são pedidos o cartão do atirador A e depois o do atirador B (identificação opcional): com os dois cartões, o assalto é registado na sessão."
   },
   "clubStats": {
     "period": "Período",
@@ -3440,7 +3453,20 @@
     "print": "Imprimir",
     "export_plan": "Exportar o plano",
     "import_plan": "Importar um plano",
-    "plan_exported": "Plano exportado"
+    "plan_exported": "Plano exportado",
+    "repeat": "Repetir esta sessão",
+    "every_days": "A cada (dias)",
+    "repeat_end": "Fim",
+    "repeat_count": "Após um número de sessões",
+    "repeat_until": "Numa data",
+    "occurrences": "Sessões",
+    "until_date": "Até",
+    "repeat_summary": "Sessões criadas: {{count}} (última a {{last}})",
+    "repeat_none": "Nenhuma sessão a criar",
+    "series_created": "Sessões preparadas: {{count}}",
+    "series_badge": "Recorrente",
+    "series_history": "Outras sessões da série ({{count}})",
+    "series_empty": "Plano vazio"
   },
   "clubFeedback": {
     "title": "Balanço da sessão de {{date}}",
@@ -3513,5 +3539,24 @@
     "error_invalid_json": "Ficheiro ilegível (JSON inválido)",
     "error_wrong_format": "Este ficheiro não é do tipo certo",
     "error_empty": "O ficheiro não contém nada para importar"
+  },
+  "clubAge": {
+    "from": "Do escalão",
+    "to": "Ao escalão",
+    "youngest": "O mais novo",
+    "oldest": "O mais velho",
+    "category": "Escalão etário",
+    "all": "Todos",
+    "audience": "Escalões etários visados",
+    "common": "Comum a todos",
+    "selected": "Escalões: {{count}}",
+    "course_for": "Aula para",
+    "only_course": "Escalões da aula e exercícios comuns"
+  },
+  "clubAttendance": {
+    "title": "Presenças — presentes: {{count}}",
+    "button": "Presenças ({{count}})",
+    "check_all": "Marcar todos",
+    "none": "Nenhum membro nestes escalões."
   }
 }

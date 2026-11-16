@@ -915,4 +915,28 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 32,
+    description:
+      "Mode Club : date de naissance, catégories d'âge des séances et exercices, séances récurrentes (#1872)",
+    up(db) {
+      const cols: Array<[string, string]> = [
+        ['club_members', 'birth_date'],
+        ['club_sessions', 'age_from'],
+        ['club_sessions', 'age_to'],
+        ['club_sessions', 'series_id'],
+        ['club_exercises', 'age_categories'],
+      ];
+      for (const [table, col] of cols) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN ${col} TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_sessions_series ON club_sessions(series_id, date)`
+      );
+    },
+  },
 ];

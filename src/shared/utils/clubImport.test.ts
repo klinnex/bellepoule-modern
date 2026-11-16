@@ -30,7 +30,14 @@ describe('import des membres du club (#1872)', () => {
       { lastName: '', firstName: '' },
     ] as Partial<Fencer>[]);
     expect(rows).toEqual([
-      { lastName: 'MARTIN', firstName: 'Anne', license: '123', gender: 'F', birthYear: 2010 },
+      {
+        lastName: 'MARTIN',
+        firstName: 'Anne',
+        license: '123',
+        gender: 'F',
+        birthYear: 2010,
+        birthDate: '2010-02-01',
+      },
       { lastName: 'DURAND', firstName: 'Paul' },
     ]);
   });

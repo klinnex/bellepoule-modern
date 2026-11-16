@@ -37,6 +37,16 @@ function birthYearOf(d: unknown): number | undefined {
   return y >= 1900 && y <= 2100 ? y : undefined;
 }
 
+/** Date de naissance AAAA-MM-JJ (composantes locales, comme l'année) */
+function birthDateOf(d: unknown): string | undefined {
+  const date = d instanceof Date ? d : typeof d === 'string' && d ? new Date(d) : null;
+  if (!date || Number.isNaN(date.getTime())) return undefined;
+  const y = date.getFullYear();
+  if (y < 1900 || y > 2100) return undefined;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${y}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 /** Tireurs du fichier → membres (lignes sans nom ignorées) */
 export function fencersToClubMembers(fencers: readonly Partial<Fencer>[]): ClubMemberInput[] {
   const out: ClubMemberInput[] = [];
@@ -49,6 +59,8 @@ export function fencersToClubMembers(fencers: readonly Partial<Fencer>[]): ClubM
     if (f.gender === 'M' || f.gender === 'F') m.gender = f.gender;
     const by = birthYearOf(f.birthDate);
     if (by) m.birthYear = by;
+    const bd = birthDateOf(f.birthDate);
+    if (bd) m.birthDate = bd;
     out.push(m);
   }
   return out;
@@ -86,6 +98,7 @@ export function classifyClubImport(
     if (m.license && !match.license) data.license = m.license;
     if (m.gender && !match.gender) data.gender = m.gender;
     if (m.birthYear && !match.birthYear) data.birthYear = m.birthYear;
+    if (m.birthDate && !match.birthDate) data.birthDate = m.birthDate;
     return Object.keys(data).length > 0
       ? { kind: 'update', id: match.id, data }
       : { kind: 'present', id: match.id };

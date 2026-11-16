@@ -201,6 +201,7 @@ const electronApi = {
     deleteClub: (id: string) => ipcRenderer.invoke('club:deleteClub', id),
     remoteStatus: () => ipcRenderer.invoke('club:remoteStatus'),
     pushBout: (boutId: string) => ipcRenderer.invoke('club:pushBout', boutId),
+    linkRemote: (sessionId: string | null) => ipcRenderer.invoke('club:linkRemote', sessionId),
     releaseBout: (boutId: string) => ipcRenderer.invoke('club:releaseBout', boutId),
     importPhotos: (clubId: string, filepath: string) => {
       if (!filepath || typeof filepath !== 'string') throw new Error('Filepath is required');
@@ -222,6 +223,8 @@ const electronApi = {
     getSession: (id: string) => ipcRenderer.invoke('club:getSession', id),
     createSession: (clubId: string, data: unknown) =>
       ipcRenderer.invoke('club:createSession', clubId, data),
+    createSeries: (clubId: string, data: unknown, recurrence: unknown) =>
+      ipcRenderer.invoke('club:createSeries', clubId, data, recurrence),
     updateSession: (id: string, data: unknown) =>
       ipcRenderer.invoke('club:updateSession', id, data),
     closeSession: (id: string) => ipcRenderer.invoke('club:closeSession', id),

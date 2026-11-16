@@ -77,6 +77,8 @@ beforeEach(() => {
     setMemberFeedback: vi.fn(),
     pushBout: vi.fn().mockResolvedValue('ok'),
     releaseBout: vi.fn(),
+    linkRemote: vi.fn().mockResolvedValue(undefined),
+    createSeries: vi.fn().mockResolvedValue([{ id: 'x1' }, { id: 'x2' }]),
   };
   training = {
     startServer: vi.fn().mockResolvedValue({ success: true }),
@@ -133,10 +135,27 @@ describe('ClubSessionsPanel', () => {
     await waitFor(() => expect(api.startBout).toHaveBeenCalledWith('bt2'));
   });
 
-  it('pointage et fermeture', async () => {
+  it('pointage (fenêtre, catégories du cours) et fermeture', async () => {
+    api.listMembers.mockResolvedValue([
+      { ...m('a', 'ALPHA'), birthYear: 2015 },
+      { ...m('b', 'BRAVO'), birthYear: 2015 },
+      { ...m('c', 'CHARLIE'), birthYear: 2015 },
+      { ...m('d', 'DELTA'), birthYear: 1980 },
+    ]);
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);
-    fireEvent.click(await screen.findByRole('checkbox', { name: 'CHARLIE X' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Pointage (2)' }));
+    expect(await screen.findByRole('checkbox', { name: /DELTA X/ })).toBeInTheDocument();
+    // Plage de catégories : DELTA (vétéran) disparaît, la plage est retenue pour la séance
+    fireEvent.change(screen.getByLabelText('De la catégorie'), { target: { value: 'U9' } });
+    fireEvent.change(screen.getByLabelText('À la catégorie'), { target: { value: 'U15' } });
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: /DELTA X/ })).toBeNull());
+    await waitFor(() =>
+      expect(api.updateSession).toHaveBeenLastCalledWith('s1', { ageFrom: 'U9', ageTo: 'U15' })
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: /CHARLIE X/ }));
     await waitFor(() => expect(api.setAttendance).toHaveBeenCalledWith('s1', 'c', true));
+    const closeButtons = screen.getAllByRole('button', { name: 'Fermer' });
+    fireEvent.click(closeButtons[closeButtons.length - 1]);
     fireEvent.click(screen.getByRole('button', { name: 'Fermer la séance' }));
     await waitFor(() => expect(api.closeSession).toHaveBeenCalledWith('s1'));
   });
@@ -147,8 +166,9 @@ describe('ClubSessionsPanel', () => {
     api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
     fireEvent.click(start);
     await waitFor(() =>
-      expect(training.startServer).toHaveBeenCalledWith(undefined, undefined, true)
+      expect(training.startServer).toHaveBeenCalledWith(undefined, '0.0.0.0', true)
     );
+    await waitFor(() => expect(api.linkRemote).toHaveBeenCalledWith('s1'));
     expect(training.startSession).toHaveBeenCalledWith(2, 'E');
     await waitFor(() => expect(api.pushBout).toHaveBeenCalledWith('bt1'));
     expect(
@@ -161,6 +181,52 @@ describe('ClubSessionsPanel', () => {
     await waitFor(() => expect(api.pushBout).toHaveBeenCalledWith('bt2'));
     fireEvent.click(screen.getByRole('button', { name: 'Désactiver' }));
     await waitFor(() => expect(training.stopServer).toHaveBeenCalled());
+    expect(api.linkRemote).toHaveBeenCalledWith(null);
+  });
+
+  it('saisie distante active : lobby des pistes', async () => {
+    api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    expect(await screen.findByText('https://10.0.0.2:8066/entrainement-lobby')).toBeInTheDocument();
+    await waitFor(() => expect(api.linkRemote).toHaveBeenCalledWith('s1'));
+  });
+
+  it('ouverture avec les catégories d’âge du cours', async () => {
+    api.listSessions.mockResolvedValue([]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    fireEvent.change(await screen.findByLabelText('De la catégorie'), {
+      target: { value: 'U11' },
+    });
+    fireEvent.change(screen.getByLabelText('À la catégorie'), { target: { value: 'U13' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir la séance' }));
+    await waitFor(() =>
+      expect(api.createSession).toHaveBeenCalledWith(
+        'c1',
+        expect.objectContaining({ ageFrom: 'U11', ageTo: 'U13' })
+      )
+    );
+  });
+
+  it('séance préparée répétée chaque semaine', async () => {
+    api.listSessions.mockResolvedValue([]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Préparer une séance' }))[0]);
+    fireEvent.change(await screen.findByLabelText('Exercice 1'), { target: { value: 'Fentes' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Répéter cette séance/ }));
+    fireEvent.change(screen.getByLabelText('Séances'), { target: { value: '4' } });
+    expect(screen.getByText(/Séances créées : 4/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
+    await waitFor(() =>
+      expect(api.createSeries).toHaveBeenCalledWith(
+        'c1',
+        expect.objectContaining({
+          planned: true,
+          plan: [expect.objectContaining({ title: 'Fentes' })],
+        }),
+        { everyDays: 7, count: 4 }
+      )
+    );
+    expect(api.createSession).not.toHaveBeenCalled();
   });
 
   it('annuler un combat libère la tablette', async () => {

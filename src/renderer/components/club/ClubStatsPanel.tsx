@@ -17,6 +17,13 @@ import type {
   ClubSession,
 } from '../../../shared/types/club';
 import { periodOf } from '../../../shared/utils/clubStats';
+import {
+  inAgeRange,
+  memberAgeCategory,
+  rangesOverlap,
+  type AgeRange,
+} from '../../../shared/utils/clubAge';
+import { AgeRangeSelect, ageRangeText } from './ClubAgeRange';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -77,6 +84,8 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   const [groupBy, setGroupBy] = useState<ClubPeriodKind>('month');
   const [report, setReport] = useState<ClubMemberReport | null>(null);
   const [remarks, setRemarks] = useState<ClubMemberFeedback[]>([]);
+  // Catégories d'âge suivies (cours) : classement et séances de ces catégories
+  const [range, setRange] = useState<AgeRange>({});
 
   const filter = useMemo(
     () => ({ ...scopeFilter(scope, sessionId), clubId }),
@@ -115,6 +124,15 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   }, [api, selected]);
 
   const byId = useMemo(() => new Map(members.map(m => [m.id, m])), [members]);
+  const rows = useMemo(
+    () =>
+      board.filter(st => {
+        const m = byId.get(st.memberId);
+        return inAgeRange(m ? memberAgeCategory(m) : undefined, range);
+      }),
+    [board, byId, range]
+  );
+  const sessionChoices = sessions.filter(s => rangesOverlap(s, range));
   const name = (id: string) => {
     const m = byId.get(id);
     return m ? `${m.lastName} ${m.firstName}` : '?';
@@ -144,6 +162,7 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
           <option value="all">{t('clubStats.scope_all')}</option>
         </select>
       </label>
+      <AgeRangeSelect value={range} onChange={setRange} />
       {scope === 'session' && (
         <label className="form-label">
           {t('clubStats.session')}
@@ -152,10 +171,11 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
             value={sessionId}
             onChange={e => setSessionId(e.target.value)}
           >
-            {sessions.map(s => (
+            {sessionChoices.map(s => (
               <option key={s.id} value={s.id}>
                 {s.date}
                 {s.label ? ` · ${s.label}` : ''}
+                {ageRangeText(s, t) ? ` · ${ageRangeText(s, t)}` : ''}
               </option>
             ))}
           </select>
@@ -310,7 +330,7 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
           {t('clubStats.leaderboard')}
         </h2>
         {scopeBar}
-        {board.length === 0 ? (
+        {rows.length === 0 ? (
           <EmptyState title={t('clubStats.no_bouts')} description={t('clubStats.no_bouts_desc')} />
         ) : (
           <table className="table">
@@ -324,7 +344,7 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
               </tr>
             </thead>
             <tbody>
-              {board.map((s, i) => {
+              {rows.map((s, i) => {
                 const m = byId.get(s.memberId);
                 return (
                   <tr

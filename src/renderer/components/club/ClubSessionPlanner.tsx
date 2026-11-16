@@ -5,13 +5,20 @@
  */
 
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, BookmarkPlus, Library, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, BookmarkPlus, Library, Plus, Repeat, Trash2 } from 'lucide-react';
 import type {
   ClubExercise,
   ClubPlanItem,
+  ClubRecurrence,
   ClubSession,
   ClubSessionInput,
 } from '../../../shared/types/club';
+import {
+  MAX_SERIES_OCCURRENCES,
+  recurrenceDates,
+  type AgeRange,
+} from '../../../shared/utils/clubAge';
+import { AgeRangeSelect } from './ClubAgeRange';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -33,7 +40,10 @@ interface ClubSessionPlannerProps {
   defaultWeapon?: Weapon;
   /** Jours déjà occupés par une séance (marqués dans le calendrier) */
   marks?: Readonly<Record<string, DayMark>>;
-  onSave: (data: ClubSessionInput) => void;
+  /** Séances de la même série (suivi des exercices d'une semaine à l'autre) */
+  series?: readonly ClubSession[];
+  /** recurrence : nouvelle séance répétée (série) */
+  onSave: (data: ClubSessionInput, recurrence?: ClubRecurrence) => void;
   onClose: () => void;
 }
 
@@ -50,6 +60,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   defaultDate,
   defaultWeapon,
   marks,
+  series = [],
   onSave,
   onClose,
 }) => {
@@ -62,6 +73,30 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   const [notes, setNotes] = useState(src?.notes ?? '');
   const [plan, setPlan] = useState<ClubPlanItem[]>(src?.plan?.length ? src.plan : [newItem()]);
   const [picker, setPicker] = useState(false);
+  const [range, setRange] = useState<AgeRange>({
+    ageFrom: src?.ageFrom ?? undefined,
+    ageTo: src?.ageTo ?? undefined,
+  });
+  // Répétition (nouvelle séance seulement) : tous les N jours, N fois ou jusqu'à une date
+  const [repeat, setRepeat] = useState(false);
+  const [everyDays, setEveryDays] = useState(7);
+  const [repeatEnd, setRepeatEnd] = useState<'count' | 'until'>('count');
+  const [count, setCount] = useState(10);
+  const [until, setUntil] = useState('');
+  const recurrence: ClubRecurrence | undefined =
+    repeat && !session
+      ? repeatEnd === 'count'
+        ? { everyDays, count }
+        : { everyDays, until }
+      : undefined;
+  const occurrences =
+    recurrence && (repeatEnd === 'count' || until)
+      ? recurrenceDates(date, everyDays, recurrence)
+      : [];
+  /** Autres séances de la série, de la plus récente à la plus ancienne */
+  const history = series
+    .filter(x => x.id !== session?.id)
+    .sort((a, b) => b.date.localeCompare(a.date));
   const { showToast } = useToast();
 
   /** Exercices de la bibliothèque ajoutés au plan (ligne vide initiale remplacée) */
@@ -117,16 +152,21 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
           <Button onClick={onClose}>{t('actions.cancel')}</Button>
           <Button
             variant="primary"
-            disabled={!date}
+            disabled={!date || (!!recurrence && occurrences.length === 0)}
             onClick={() =>
-              onSave({
-                date,
-                label,
-                weapon,
-                objectives,
-                notes,
-                plan: plan.filter(it => it.title.trim()),
-              })
+              onSave(
+                {
+                  date,
+                  label,
+                  weapon,
+                  objectives,
+                  notes,
+                  ageFrom: range.ageFrom ?? null,
+                  ageTo: range.ageTo ?? null,
+                  plan: plan.filter(it => it.title.trim()),
+                },
+                recurrence
+              )
             }
           >
             {t('actions.save')}
@@ -157,6 +197,91 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
           />
         </label>
       </div>
+      <AgeRangeSelect value={range} onChange={setRange} />
+      {!session && (
+        <fieldset className="club-repeat">
+          <label className="club-nowrap">
+            <input type="checkbox" checked={repeat} onChange={e => setRepeat(e.target.checked)} />{' '}
+            <Repeat size={14} aria-hidden="true" /> {t('clubPlan.repeat')}
+          </label>
+          {repeat && (
+            <div className="club-row">
+              <label className="form-label">
+                {t('clubPlan.every_days')}
+                <input
+                  className="form-input club-score-input"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={everyDays}
+                  onChange={e => setEveryDays(Number(e.target.value))}
+                />
+              </label>
+              <label className="form-label">
+                {t('clubPlan.repeat_end')}
+                <select
+                  className="form-input"
+                  value={repeatEnd}
+                  onChange={e => setRepeatEnd(e.target.value as 'count' | 'until')}
+                >
+                  <option value="count">{t('clubPlan.repeat_count')}</option>
+                  <option value="until">{t('clubPlan.repeat_until')}</option>
+                </select>
+              </label>
+              {repeatEnd === 'count' ? (
+                <label className="form-label">
+                  {t('clubPlan.occurrences')}
+                  <input
+                    className="form-input club-score-input"
+                    type="number"
+                    min={1}
+                    max={MAX_SERIES_OCCURRENCES}
+                    value={count}
+                    onChange={e => setCount(Number(e.target.value))}
+                  />
+                </label>
+              ) : (
+                <label className="form-label">
+                  {t('clubPlan.until_date')}
+                  <input
+                    className="form-input"
+                    type="date"
+                    min={date}
+                    value={until}
+                    onChange={e => setUntil(e.target.value)}
+                  />
+                </label>
+              )}
+              <span className="club-muted">
+                {occurrences.length > 0
+                  ? t('clubPlan.repeat_summary', {
+                      count: occurrences.length,
+                      last: occurrences[occurrences.length - 1],
+                    })
+                  : t('clubPlan.repeat_none')}
+              </span>
+            </div>
+          )}
+        </fieldset>
+      )}
+      {history.length > 0 && (
+        <details className="club-series-history">
+          <summary>{t('clubPlan.series_history', { count: history.length })}</summary>
+          <ul>
+            {history.slice(0, 12).map(x => (
+              <li key={x.id}>
+                <span className="font-medium">{x.date}</span>{' '}
+                <span className="club-muted">
+                  {x.plan.length === 0
+                    ? t('clubPlan.series_empty')
+                    : x.plan.map(it => `${it.title} (${formatMinutes(it.minutes)})`).join(' · ')}
+                </span>
+                {x.notes ? <span className="club-plan-details">{x.notes}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <label className="form-label">
         {t('clubPlan.objectives')}
         <textarea
@@ -275,6 +400,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
       {picker && (
         <ClubExercisePicker
           initialCategory={plan.some(it => it.title.trim()) ? 'all' : 'warmup'}
+          ageRange={range}
           onPick={addFromLibrary}
           onClose={() => setPicker(false)}
         />

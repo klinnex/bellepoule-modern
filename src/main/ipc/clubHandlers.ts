@@ -8,7 +8,13 @@ import { readPhotosZip } from './fileHandlers';
 import { remoteServers } from '../remoteRegistry';
 import { TRAINING_ID } from './trainingHandlers';
 import { trainingFinishListeners, type TrainingFinishRecord } from '../remote/matchFinish';
-import { clubBoutIdOf, pushClubBout, releaseClubBout } from '../remote/clubArena';
+import {
+  clubBoutIdOf,
+  linkedClubSession,
+  pushClubBout,
+  releaseClubBout,
+  setLinkedClubSession,
+} from '../remote/clubArena';
 import type { DatabaseManager } from '../../database';
 import type {
   ClubBoutFilter,
@@ -18,6 +24,7 @@ import type {
   ClubMemberInput,
   ClubMemberReport,
   ClubPeriodKind,
+  ClubRecurrence,
   ClubSessionInput,
   ClubUpdate,
 } from '../../shared/types/club';
@@ -88,6 +95,9 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
       repo.getMember(bout.memberBId)
     );
   });
+  ipcMain.handle('club:linkRemote', (_, sessionId: string | null) =>
+    setLinkedClubSession(typeof sessionId === 'string' ? sessionId : null)
+  );
   ipcMain.handle('club:releaseBout', (_, boutId: string) =>
     releaseClubBout(trainingServer()?.server, boutId)
   );
@@ -134,7 +144,16 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   ipcMain.handle('club:updateSession', (_, id: string, data: Partial<ClubSessionInput>) =>
     repo.updateSession(id, data)
   );
-  ipcMain.handle('club:closeSession', (_, id: string) => repo.closeSession(id));
+  ipcMain.handle(
+    'club:createSeries',
+    (_, clubId: string, data: ClubSessionInput, recurrence: ClubRecurrence) =>
+      repo.createSeries(clubId, data, recurrence ?? { everyDays: 0 })
+  );
+  ipcMain.handle('club:closeSession', (_, id: string) => {
+    // Séance fermée : les tablettes ne lancent plus de combats pour elle
+    if (linkedClubSession() === id) setLinkedClubSession(null);
+    return repo.closeSession(id);
+  });
   ipcMain.handle('club:reopenSession', (_, id: string) => repo.reopenSession(id));
   ipcMain.handle('club:startSession', (_, id: string) => repo.startSession(id));
   ipcMain.handle('club:setMemberFeedback', (_, sessionId: string, memberId: string, text: string) =>

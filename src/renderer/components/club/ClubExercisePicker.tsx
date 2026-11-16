@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { ClubExercise, ClubExerciseCategory } from '../../../shared/types/club';
 import { EXERCISE_CATEGORIES, formatMinutes } from '../../../shared/utils/clubPlan';
+import { exerciseMatchesRange, hasAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
@@ -13,12 +14,15 @@ import { Modal } from '../common/Modal';
 interface ClubExercisePickerProps {
   /** Famille affichée à l'ouverture (ex. échauffement) */
   initialCategory?: ClubExerciseCategory | 'all';
+  /** Catégories d'âge du cours : exercices de ces catégories et communs à tous */
+  ageRange?: AgeRange;
   onPick: (exercises: ClubExercise[]) => void;
   onClose: () => void;
 }
 
 export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
   initialCategory = 'all',
+  ageRange,
   onPick,
   onClose,
 }) => {
@@ -27,6 +31,7 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
   const [category, setCategory] = useState<ClubExerciseCategory | 'all'>(initialCategory);
   const [search, setSearch] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
+  const [forCourse, setForCourse] = useState(hasAgeRange(ageRange));
 
   useEffect(() => {
     void window.electronAPI?.club?.listExercises().then(setAll);
@@ -37,9 +42,10 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
     return (all ?? []).filter(
       e =>
         (category === 'all' || e.category === category) &&
+        (!forCourse || exerciseMatchesRange(e.ageCategories, ageRange)) &&
         (!q || `${e.title} ${e.details ?? ''}`.toLowerCase().includes(q))
     );
-  }, [all, category, search]);
+  }, [all, category, search, forCourse, ageRange]);
 
   const toggle = (id: string) =>
     setPicked(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]));
@@ -87,6 +93,16 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
           aria-label={t('club.search')}
           onChange={e => setSearch(e.target.value)}
         />
+        {hasAgeRange(ageRange) && (
+          <label className="club-nowrap">
+            <input
+              type="checkbox"
+              checked={forCourse}
+              onChange={e => setForCourse(e.target.checked)}
+            />{' '}
+            {t('clubAge.only_course')}
+          </label>
+        )}
       </div>
       {all !== null && visible.length === 0 ? (
         <p className="club-muted">{t('clubExercises.none_found')}</p>
