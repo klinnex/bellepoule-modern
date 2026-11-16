@@ -68,6 +68,7 @@ describe('refereeUpdate.js', () => {
         scoreA: { value: 2 },
         scoreB: { value: 3 },
         status: 'in_progress',
+        serverTimer: null,
       },
     });
     expect(U.planStatusTransition({ ...idle, currentMatchId: 'm1' }, data).action).toBe('none');
@@ -75,6 +76,35 @@ describe('refereeUpdate.js', () => {
       'none'
     );
     expect(U.planStatusTransition(idle, { status: 'in_progress' }).action).toBe('none');
+  });
+
+  it('in_progress : chrono sauvegardé par le serveur joint à la reprise (#1829)', () => {
+    const data = {
+      status: 'in_progress',
+      match: { id: 'm1', poolId: 'p1', fencerA: fa, fencerB: fb },
+      time: 97.5,
+      timerStatus: 'paused',
+      suddenDeath: true,
+      overtimeType: 'supplementary',
+    };
+    expect(U.planStatusTransition(idle, data).match.serverTimer).toEqual({
+      time: 97.5,
+      isSuddenDeath: true,
+      overtimeType: 'supplementary',
+    });
+  });
+
+  it('serverTimerOf : seulement un chrono à l’arrêt et plausible', () => {
+    expect(U.serverTimerOf({ time: 60, timerStatus: 'paused' })).toEqual({
+      time: 60,
+      isSuddenDeath: false,
+      overtimeType: null,
+    });
+    expect(U.serverTimerOf({ time: 60, timerStatus: 'running' })).toBeNull();
+    expect(U.serverTimerOf({ time: -1, timerStatus: 'paused' })).toBeNull();
+    expect(U.serverTimerOf({ time: 4000, timerStatus: 'paused' })).toBeNull();
+    expect(U.serverTimerOf({ timerStatus: 'paused' })).toBeNull();
+    expect(U.serverTimerOf(null)).toBeNull();
   });
 
   it('in_progress : tireurs du match en repli', () => {

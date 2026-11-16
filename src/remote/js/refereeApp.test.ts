@@ -236,3 +236,112 @@ describe('tournoi des rapières : même vue arbitre que les armes olympiques (#1
     expect(app.customScoring).not.toBeNull();
   });
 });
+
+describe('appareil de piste maître (#1829) : chrono du serveur et cartons verrouillés', () => {
+  type App = {
+    matches: Array<Record<string, unknown>>;
+    currentMatch: { id: string } | null;
+    matchStatus: string;
+    isModernFencing: boolean;
+    cardAnnounceEnabled: boolean;
+    timerRunning: boolean;
+    cardsA: string[];
+    cardsB: string[];
+    _timerCs: number;
+    cyranoMasterLock: boolean;
+    selectMatch: (id: string) => void;
+    handleArenaUpdate: (data: Record<string, unknown>) => void;
+    handleCardButtonPress: (fencer: string, cardType: string) => void;
+    addPassivityCard: () => void;
+    requestBlackCard: (fencer: string) => void;
+    removeCardFromButton: (config: { fencer: string; cardType: string }) => void;
+  };
+  const fencer = (id: string) => ({ id, firstName: id, lastName: id, club: '' });
+  const resumed = (serverTimer: unknown) => ({
+    id: 'm1',
+    poolId: 'p1',
+    fencerA: fencer('a'),
+    fencerB: fencer('b'),
+    scoreA: { value: 2 },
+    scoreB: { value: 1 },
+    status: 'in_progress',
+    serverTimer,
+  });
+
+  it('reprise après redémarrage sans chrono local : temps du serveur, chrono à l’arrêt', async () => {
+    const { dom, emittedData, errors } = await loadReferee();
+    const app = (dom.window as unknown as { refereeApp: App }).refereeApp;
+    app.matches = [resumed({ time: 72.5, isSuddenDeath: false, overtimeType: null })];
+    app.selectMatch('m1');
+    expect(app._timerCs).toBe(7250);
+    expect(app.timerRunning).toBe(false);
+    expect(app.matchStatus).toBe('in_progress');
+    const actions = emittedData.map(d => (d as { action?: string } | undefined)?.action);
+    expect(actions.indexOf('start')).toBeGreaterThan(actions.indexOf('select_match'));
+    expect(actions).toContain('pause_timer');
+    expect(errors).toEqual([]);
+  });
+
+  it('chrono local prioritaire sur celui du serveur', async () => {
+    const { dom } = await loadReferee();
+    const w = dom.window as unknown as { refereeApp: App; localStorage: Storage };
+    w.localStorage.setItem(
+      'bp_referee_timer_arena1',
+      JSON.stringify({ matchId: 'm1', cs: 6000, savedAt: Date.now() })
+    );
+    const app = w.refereeApp;
+    app.matches = [resumed({ time: 90, isSuddenDeath: false, overtimeType: null })];
+    app.selectMatch('m1');
+    expect(app._timerCs).toBe(6000);
+  });
+
+  const lockedApp = async () => {
+    const loaded = await loadReferee();
+    const app = (loaded.dom.window as unknown as { refereeApp: App }).refereeApp;
+    app.currentMatch = { id: 'm1' };
+    app.matchStatus = 'in_progress';
+    app.timerRunning = false;
+    app.cardAnnounceEnabled = false;
+    app.handleArenaUpdate({ cyrano: { piste: '1', mode: 'master', online: true } });
+    loaded.emittedData.length = 0;
+    return { app, ...loaded };
+  };
+
+  it('maître en ligne : ajout de carton bloqué (classique, P, noir), rien n’est envoyé', async () => {
+    const { app, dom, emittedData, errors } = await lockedApp();
+    expect(app.cyranoMasterLock).toBe(true);
+    app.isModernFencing = false;
+    app.handleCardButtonPress('A', 'yellow');
+    app.handleCardButtonPress('B', 'red');
+    app.isModernFencing = true;
+    app.handleCardButtonPress('A', 'white'); // carton P
+    app.addPassivityCard();
+    app.requestBlackCard('A');
+    expect(app.cardsA).toEqual([]);
+    expect(app.cardsB).toEqual([]);
+    const modal = dom.window.document.getElementById('black-card-modal')!;
+    expect(modal.classList.contains('active')).toBe(false);
+    expect(emittedData).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it('maître en ligne : retrait d’un carton permis pour corriger', async () => {
+    const { app, emittedData } = await lockedApp();
+    app.isModernFencing = true;
+    // Bouton de gauche ou de droite : le côté réel dépend de l'orientation de la vue
+    app.cardsA = ['yellow'];
+    app.cardsB = ['yellow'];
+    app.removeCardFromButton({ fencer: 'A', cardType: 'yellow' });
+    expect([...app.cardsA, ...app.cardsB]).toEqual(['yellow']);
+    expect(emittedData).toContainEqual(expect.objectContaining({ action: 'update_score' }));
+  });
+
+  it('appareil hors ligne : ajout de carton de nouveau permis', async () => {
+    const { app } = await lockedApp();
+    app.handleArenaUpdate({ cyrano: { piste: '1', mode: 'master', online: false } });
+    expect(app.cyranoMasterLock).toBe(false);
+    app.isModernFencing = true;
+    app.handleCardButtonPress('A', 'yellow');
+    expect([...app.cardsA, ...app.cardsB]).toEqual(['yellow']);
+  });
+});

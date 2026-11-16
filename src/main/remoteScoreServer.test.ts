@@ -1120,6 +1120,29 @@ describe('RemoteScoreServer', () => {
       expect(saved.scoreA.isVictory).toBe(false);
     });
 
+    it('appareil de piste maître en ligne : carton noir de la tablette refusé (#1829)', async () => {
+      const internals = server as unknown as {
+        arenas: Map<string, { cyrano?: unknown }>;
+        finishArenaMatch: ReturnType<typeof vi.fn>;
+      };
+      internals.arenas.get('arena1')!.cyrano = { piste: '1', mode: 'master', online: true };
+      const finish = internals.finishArenaMatch;
+      finish.mockClear();
+      const res = makeRes();
+      await findHandler('post', '/api/matches/:matchId/finish')(
+        makeReq({
+          method: 'POST',
+          params: { matchId: 'm1' },
+          body: { scoreA: 3, scoreB: 2, blackCardFencer: 'A' },
+        }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({ error: 'cyrano_master_lock' });
+      expect(finish).not.toHaveBeenCalled();
+    });
+
     it("liste le carton noir de l'arène", async () => {
       await giveBlackCard();
       const res = makeRes();

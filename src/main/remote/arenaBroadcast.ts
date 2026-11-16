@@ -8,6 +8,7 @@ import { getSharedMainWindow } from '../mainWindowRef';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 import { needsLeftHandedSwap } from '../../shared/utils/handedness';
+import { timerForMatch, withSavedTimer } from './arenaTimer';
 
 type S = RemoteScoreServer;
 
@@ -137,7 +138,8 @@ export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): 
     if (!arena) return;
     ctx.db.saveArenaState(arenaId, {
       competitionId: ctx.session.competitionId,
-      currentMatch: arena.currentMatch,
+      // Chrono du match joint (reprise au redémarrage, #1829)
+      currentMatch: withSavedTimer(arena.currentMatch, timerForMatch(arena)),
       matchQueue: ctx.arenaMatchQueue.get(arenaId) ?? [],
       settings: arena.settings,
       status: arena.status,

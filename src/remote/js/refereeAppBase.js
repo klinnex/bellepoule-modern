@@ -759,18 +759,26 @@ class RefereeAppBase {
   }
 
   // Reprise d'un match en cours après rafraîchissement : chrono restauré, à l'arrêt (#1717).
-  // « Démarrer » reprend alors le chrono au lieu de relancer le match.
+  // « Démarrer » reprend alors le chrono au lieu de relancer le match. Sans chrono local
+  // (autre tablette, stockage vidé), chrono sauvegardé par le serveur (redémarrage, #1829).
   restoreTimerState(match) {
     const storage = this._timerStorage();
-    if (!storage) return false;
-    const saved =
-      match.status === 'in_progress'
+    const local =
+      storage && match.status === 'in_progress'
         ? BPRefereeTimer.loadTimerState(storage, this.arenaId, match.id, Date.now())
         : null;
-    if (!saved) {
-      BPRefereeTimer.clearTimerState(storage, this.arenaId);
-      return false;
-    }
+    if (!local && storage) BPRefereeTimer.clearTimerState(storage, this.arenaId);
+    const server =
+      match.status === 'in_progress' && match.serverTimer
+        ? {
+            cs: Math.max(0, Math.round(match.serverTimer.time * 100)),
+            isSuddenDeath: match.serverTimer.isSuddenDeath === true,
+            overtimeType: match.serverTimer.overtimeType ?? null,
+            isResting: false,
+          }
+        : null;
+    const saved = local || server;
+    if (!saved) return false;
     this._timerCs = saved.cs;
     this.isSuddenDeath = saved.isSuddenDeath;
     this.overtimeType = saved.overtimeType;
@@ -869,8 +877,17 @@ class RefereeAppBase {
     this.saveScore();
   }
 
+  // Appareil de piste en maître et en ligne : les cartons viennent de l'appareil ; la tablette ne
+  // fait que corriger par retrait (#1829). Vrai (et notification) si l'ajout est bloqué.
+  cyranoCardLocked() {
+    if (!this.cyranoMasterLock) return false;
+    this.showNotification(window.T('referee.cyrano_master_card_lock'));
+    return true;
+  }
+
   addCard(fencer, cardType) {
     if (!this.currentMatch) return;
+    if (this.cyranoCardLocked()) return;
     if (this.matchStatus === 'not_started') {
       this.showNotification(window.T('referee.start_first'));
       return;
@@ -907,6 +924,7 @@ class RefereeAppBase {
   // ── Gestion carton avec sélecteur de raison ──────────────────────────
 
   handleCardButtonPress(fencer, cardType) {
+    if (this.cyranoCardLocked()) return;
     const ef = this._effectiveFencer(fencer);
     if (this.isModernFencing) {
       if (cardType === 'white') {
@@ -947,6 +965,7 @@ class RefereeAppBase {
   // P-rouge : un point à chaque tireur ; P-noir : fin du combat (#1026)
   addPassivityCard() {
     if (!this.currentMatch) return;
+    if (this.cyranoCardLocked()) return;
     if (this.matchStatus === 'not_started') {
       this.showNotification(window.T('referee.start_first'));
       return;
@@ -1078,6 +1097,10 @@ class RefereeAppBase {
   }
 
   confirmReasonSelector(reason, group, fencer) {
+    if (this.cyranoCardLocked()) {
+      document.getElementById('reason-selector-overlay').classList.remove('open');
+      return;
+    }
     const cardType = this.determineCardFromGroup(group, fencer);
     const history = fencer === 'A' ? this.faultHistoryA : this.faultHistoryB;
     const prevCount = history[group] || 0;
@@ -1122,6 +1145,7 @@ class RefereeAppBase {
   // Carton noir direct (bouton N) : fencer = position affichée
   requestBlackCard(fencer) {
     if (!this.blackCardEnabled || !this.currentMatch) return;
+    if (this.cyranoCardLocked()) return;
     if (this.matchStatus === 'not_started') {
       this.showNotification(window.T('referee.start_first'));
       return;
@@ -1149,6 +1173,7 @@ class RefereeAppBase {
     this._pendingBlackCardFencer = null;
     document.getElementById('black-card-modal').classList.remove('active');
     if (!ef || !this.currentMatch) return;
+    if (this.cyranoCardLocked()) return;
 
     const cards = ef === 'A' ? this.cardsA : this.cardsB;
     cards.push('black'); // carton noir : pas de points, fin du combat

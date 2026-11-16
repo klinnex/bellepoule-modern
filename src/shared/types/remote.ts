@@ -99,6 +99,20 @@ export interface ArenaCyranoLink {
   online: boolean;
 }
 
+/**
+ * Dernier chrono connu d'une arène pour son match (#1829) : sauvegardé avec l'état de l'arène,
+ * rendu au redémarrage (toujours à l'arrêt).
+ */
+export interface ArenaTimerSnapshot {
+  matchId: string;
+  /** Secondes restantes */
+  time: number;
+  suddenDeath?: boolean;
+  overtimeType?: string | null;
+  /** Chrono en marche à la dernière mise à jour (jamais vrai après une reprise) */
+  running?: boolean;
+}
+
 export interface Arena {
   id: string;
   name: string;
@@ -117,6 +131,8 @@ export interface Arena {
   cyrano?: ArenaCyranoLink | null;
   /** Minute de repos sur l'appareil (état P, #1829) */
   resting?: boolean;
+  /** Dernier chrono connu du match en cours, sauvegardé avec l'arène (reprise, #1829) */
+  timer?: ArenaTimerSnapshot | null;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';

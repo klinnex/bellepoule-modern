@@ -10,6 +10,8 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import { recordRemoteEvent } from './remoteEvents';
+import { recordArenaTimer } from './arenaTimer';
+import { addsCard, isCyranoMasterOnline, isDeviceSocket } from './cyranoLock';
 
 type S = RemoteScoreServer;
 
@@ -34,6 +36,7 @@ export interface ArenaControlContext {
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
+  readonly persistArenaState: S['persistArenaState'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
   readonly logDiag: S['logDiag'];
@@ -93,7 +96,9 @@ export function handleArenaControl(
   if (typeof data.resting === 'boolean') arena.resting = data.resting;
 
   // Appareil de piste Cyrano (pseudo-socket `cyrano:<piste>`, #1720) : tablettes en miroir
-  const source = socket.id?.startsWith('cyrano:') ? { source: 'device' as const } : {};
+  const source = isDeviceSocket(socket.id) ? { source: 'device' as const } : {};
+  // Appareil maître et en ligne : la tablette ne peut pas ajouter de carton, seulement en retirer (#1829)
+  const cardLock = !('source' in source) && isCyranoMasterOnline(arena);
 
   switch (data.action) {
     case 'select_match':
@@ -125,6 +130,7 @@ export function handleArenaControl(
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
         ctx.arenaExits.set(data.arenaId, []);
         ctx.arenaEventTimes.delete(data.arenaId);
+        arena.timer = null;
       }
       break;
     case 'release_match':
@@ -275,6 +281,27 @@ export function handleArenaControl(
           'source' in source ? 'device' : 'referee'
         );
       }
+      // Carton ajouté depuis la tablette alors que l'appareil fait foi : cartons refusés, la
+      // tablette est resynchronisée sur les cartons de l'arène (le reste de la mise à jour passe)
+      if (cardLock) {
+        const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+        if (addsCard(held.cardsA, data.cardsA) || addsCard(held.cardsB, data.cardsB)) {
+          ctx.logDiag(`[Cyrano] arène ${data.arenaId} : carton ajouté par la tablette refusé`);
+          data.cardsA = undefined;
+          data.cardsB = undefined;
+          socket.emit(`arena:${data.arenaId}:update`, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: arena.currentMatch?.scoreA,
+            scoreB: arena.currentMatch?.scoreB,
+            cardsA: held.cardsA,
+            cardsB: held.cardsB,
+            status: arena.status,
+            cyrano: arena.cyrano ?? null,
+            source: 'device',
+          });
+        }
+      }
       // Mettre à jour aussi les cartons si fournis
       if (data.cardsA !== undefined || data.cardsB !== undefined) {
         const currentCards = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
@@ -313,7 +340,11 @@ export function handleArenaControl(
       break;
     }
     case 'add_card':
-      // Gestion des cartons
+      // Gestion des cartons (refusée quand l'appareil maître fait foi, #1829)
+      if (cardLock) {
+        ctx.logDiag(`[Cyrano] arène ${data.arenaId} : add_card de la tablette refusé`);
+        break;
+      }
       if (data.fencer && data.cardType) {
         const currentCards = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
         const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
@@ -413,6 +444,21 @@ export function handleArenaControl(
       if (timerSuddenDeath) {
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
       }
+      // Dernier chrono connu, sauvegardé avec l'arène pour la reprise au redémarrage (#1829)
+      if (
+        recordArenaTimer(
+          arena,
+          {
+            time: data.time,
+            timerStatus: data.timerStatus,
+            suddenDeath: ctx.arenaSuddenDeath.get(data.arenaId) ?? false,
+            overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
+            resting: arena.resting === true,
+          },
+          Date.now()
+        )
+      )
+        ctx.persistArenaState(data.arenaId);
       ctx.broadcastArenaUpdate(data.arenaId, {
         arenaId: data.arenaId,
         match: arena.currentMatch,

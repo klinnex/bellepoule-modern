@@ -17,6 +17,7 @@ import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 import { recordRemoteEvent } from '../remoteEvents';
+import { isCyranoMasterOnline } from '../cyranoLock';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -288,6 +289,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       if (!dbMatch && !inMemoryMatch) {
         ctx.logDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
         return res.status(404).json({ error: 'match_not_found' });
+      }
+
+      // Carton noir donné par la tablette alors que l'appareil maître fait foi : refusé (#1829)
+      if (
+        (blackCardFencer === 'A' || blackCardFencer === 'B') &&
+        [...ctx.arenas.values()].some(
+          a => a.currentMatch?.id === matchId && isCyranoMasterOnline(a)
+        )
+      ) {
+        ctx.logDiag(`[REST /finish] carton noir refusé : appareil maître en ligne (${matchId})`);
+        return res.status(409).json({ error: 'cyrano_master_lock' });
       }
 
       // Carton noir : le combattant fautif est exclu de la compétition
