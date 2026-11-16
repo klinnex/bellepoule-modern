@@ -116,12 +116,8 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 const cyranoServer = new CyranoServer();
 const pisteHub = new PisteHub(
   cyranoServer,
-  () => {
-    for (const { server } of remoteServers.values()) {
-      if (server.hasSession()) return server;
-    }
-    return null;
-  },
+  // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
+  () => [...remoteServers.values()].map(entry => entry.server),
   {
     // Numéros de poule / de match du DISP lus en base
     coordsSource: db,
@@ -147,7 +143,7 @@ registerRemoteServerHandlers({
   db,
   getMainWindow: () => mainWindow,
   onServerCreated: server => {
-    server.cyranoHook = pisteHub.onArenaUpdate;
+    server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
   },
 });
 

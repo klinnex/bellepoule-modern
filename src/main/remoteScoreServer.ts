@@ -1595,9 +1595,9 @@ export class RemoteScoreServer {
     return resolveDeMatchReferee(this.refereeResolverCtx, m);
   }
 
-  private peekNextMatch(arenaId: string): ArenaMatch | null {
-    return peekNextMatch(this.arenaQueueCtx, arenaId);
-  }
+  private peekNextMatch(arenaId: string): ArenaMatch | null { return peekNextMatch(this.arenaQueueCtx, arenaId); }
+  /** Affectation en cours sur l'arène (match non terminé ou suivant en file) : routage Cyrano (#1878) */
+  public hasArenaAssignment(arenaId: string): boolean { const a = this.arenas.get(arenaId); return !!a && ((!!a.currentMatch && a.status !== 'finished' && a.currentMatch.status !== 'finished') || this.peekNextMatch(arenaId) !== null); }
 
   public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
   public hasSession(): boolean { return this.session !== null; }

@@ -252,9 +252,16 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
     return [...this.pistes.values()].filter(p => p.arena === arena).map(p => this.view(p));
   }
 
-  /** Envoie un match à afficher. Sans tireurs : DISP « vide » (aucun match disponible). */
-  sendDisp(piste: string, disp: Omit<CyranoMessage, 'protocol' | 'command' | 'piste' | 'compe'>) {
-    return this.send(piste, { ...disp, command: 'DISP' });
+  /**
+   * Envoie un match à afficher. Sans tireurs : DISP « vide » (aucun match disponible).
+   * `compe` : identifiant de l'épreuve du match (pistes partagées, #1878) ; à défaut celui du serveur.
+   */
+  sendDisp(
+    piste: string,
+    disp: Omit<CyranoMessage, 'protocol' | 'command' | 'piste' | 'compe'>,
+    compe?: string
+  ) {
+    return this.send(piste, { ...disp, command: 'DISP' }, compe);
   }
 
   sendAck(piste: string): boolean {
@@ -280,7 +287,8 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
 
   private send(
     piste: string,
-    partial: Omit<CyranoMessage, 'protocol' | 'piste' | 'compe'>
+    partial: Omit<CyranoMessage, 'protocol' | 'piste' | 'compe'>,
+    compe?: string
   ): boolean {
     const p = [...this.pistes.values()].find(e => e.piste === piste);
     if (!p || !this.socket) return false;
@@ -288,7 +296,7 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
       ...partial,
       protocol: this.protocolFor(p),
       piste: p.piste,
-      compe: this.opts.compe,
+      compe: compe !== undefined ? sanitizeField(compe, 8) : this.opts.compe,
     };
     const raw = buildCyrano(msg);
     const port = p.port ?? CYRANO_DEFAULT_PORT;
