@@ -16,8 +16,10 @@ vi.mock('../remoteScoreServer', () => ({
     setTtsConfig = vi.fn();
     getServerUrl = () => 'http://127.0.0.1:8066';
     getLocalIPAddress = () => '127.0.0.1';
-    applyTrainingTheme = updateThemeSpy;
   },
+}));
+vi.mock('../remote/trainingTheme', () => ({
+  applyTrainingTheme: (_server: unknown, theme: string) => updateThemeSpy(theme),
 }));
 vi.mock('../certManager', () => ({ ensureCert: vi.fn() }));
 vi.mock('../mainWindowRef', () => ({ setSharedMainWindow: vi.fn() }));

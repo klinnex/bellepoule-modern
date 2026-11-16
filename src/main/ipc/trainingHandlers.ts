@@ -13,6 +13,7 @@ import { findAvailablePort, remoteServers, usedPorts } from '../remoteRegistry';
 import { setSharedMainWindow } from '../mainWindowRef';
 import { closeDemoScreens, openDemoScreens } from '../demoScreens';
 import { isTrainingTheme } from '../../shared/utils/trainingThemes';
+import { applyTrainingTheme } from '../remote/trainingTheme';
 
 const TRAINING_ID = '__training__';
 
@@ -168,7 +169,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
       }
       const entry = remoteServers.get(TRAINING_ID);
       if (!entry) return { success: false, error: 'training_not_started' };
-      entry.server.applyTrainingTheme(theme);
+      applyTrainingTheme(entry.server, theme);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };

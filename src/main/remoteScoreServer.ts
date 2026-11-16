@@ -25,8 +25,7 @@ import {
   CustomScoringConfig,
   Match,
   MatchStatus,
-  FencerStatus,
-  Fencer,
+  FencerStatus, Fencer,
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import {
@@ -36,13 +35,7 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type {
-  BlackCardRecord,
-  RendererMatch,
-  SessionMatch,
-  SessionScore,
-  TeamArenaState,
-} from './remote/types';
+import type { BlackCardRecord, RendererMatch, SessionMatch, SessionScore, TeamArenaState } from './remote/types';
 import type { PhaseEtaSummary } from './remote/routes/context';
 import {
   LoginGuard,
@@ -68,12 +61,7 @@ import {
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
-import {
-  createHttpListener,
-  createHttpStack,
-  startCleanupTimer,
-  isAllowedOrigin,
-} from './remote/serverSetup';
+import { createHttpListener, createHttpStack, startCleanupTimer, isAllowedOrigin } from './remote/serverSetup';
 import {
   buildPage,
   sendStored,
@@ -82,7 +70,6 @@ import {
   type StoredPage,
 } from './remote/pageStore';
 import { registerPageRoutes } from './remote/routes/pageRoutes';
-import { resolveTrainingTheme, type TrainingTheme } from '../shared/utils/trainingThemes';
 import { registerResultsRoutes } from './remote/routes/resultsRoutes';
 import { registerRegistrationRoutes } from './remote/routes/registrationRoutes';
 import { registerPoolRoutes } from './remote/routes/poolRoutes';
@@ -110,11 +97,7 @@ import {
   getPublicTeamArenaState,
   type TeamArenaContext,
 } from './remote/teamArena';
-import {
-  startTrainingSession,
-  createTrainingMatch,
-  type TrainingSessionContext,
-} from './remote/trainingSession';
+import { startTrainingSession, createTrainingMatch, type TrainingSessionContext } from './remote/trainingSession';
 import type { DemoPlayer } from './remote/demoMode';
 import { finishArenaMatch, recallPrevMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
@@ -226,10 +209,7 @@ export class RemoteScoreServer {
   private arenaMatchQueue: Map<string, ArenaMatch[]> = new Map(); // File d'attente DE par arène
   private poolMatchArenaOverrides: Map<string, string> = new Map(); // matchId → arenaId (réassignation piste poule)
   private poolFencersCache: Map<string, Fencer[]> = new Map(); // Tireurs par poolId (depuis le renderer)
-  private sessionMatchScores: Map<
-    string,
-    { scoreA: SessionScore; scoreB: SessionScore; status: string }
-  > = new Map(); // Scores en mémoire
+  private sessionMatchScores: Map<string, { scoreA: SessionScore; scoreB: SessionScore; status: string }> = new Map(); // Scores en mémoire
   private sessionShowPhotos: boolean = false; // Afficher les photos des combattants avant le combat
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
@@ -246,8 +226,7 @@ export class RemoteScoreServer {
   private kioskThemeVariables: Record<string, string> | null = null; // Thème CSS vars pour le kiosk
   private orgNote: OrgNote | null = null; // Note d'organisation affichée sur le kiosk
   private isTrainingMode: boolean = false;
-  /** Thème des écrans d'entraînement (piste, kiosk, arbitre, lobby) (#1500) */
-  private trainingTheme: TrainingTheme = 'dark';
+  public trainingTheme: string = 'dark'; // Thème des écrans d'entraînement, lu par le lobby (#1500)
   /** Arbitre virtuel du mode démo (null hors démo) */
   private demoPlayer: DemoPlayer | null = null;
   private trainingHistory: Array<{
@@ -1056,8 +1035,7 @@ export class RemoteScoreServer {
           'sessionPoolArenas',
           'sessionMatches',
           'sessionMatchScores',
-          'trainingHistory',
-          'trainingTheme',
+          'trainingHistory', 'trainingTheme',
           'demoPlayer',
           'registrationEnabled',
           'checkinEnabled',
@@ -1140,8 +1118,7 @@ export class RemoteScoreServer {
           'startArenaMatch',
           'stopSession',
           'toPublicArena',
-          'updateArenaScore',
-          'notifyKioskData',
+          'updateArenaScore', 'notifyKioskData',
         ]
       ),
       {
@@ -1622,17 +1599,9 @@ export class RemoteScoreServer {
     return peekNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  public loadNextMatch(arenaId: string, prev = false): void {
-    return prev
-      ? void recallPrevMatch(this.matchFinishCtx, arenaId)
-      : loadNextMatch(this.arenaQueueCtx, arenaId);
-  }
-  public hasSession(): boolean {
-    return this.session !== null;
-  }
-  public getSessionWeapon(): string | null {
-    return this.sessionWeapon;
-  }
+  public loadNextMatch(arenaId: string, prev = false): void { return prev ? void recallPrevMatch(this.matchFinishCtx, arenaId) : loadNextMatch(this.arenaQueueCtx, arenaId); }
+  public hasSession(): boolean { return this.session !== null; }
+  public getSessionWeapon(): string | null { return this.sessionWeapon; }
 
   private buildDashboardSnapshot(
     ...args: Tail<Parameters<typeof buildDashboardSnapshot>>
@@ -1782,9 +1751,7 @@ export class RemoteScoreServer {
 
   /** Rechargement à chaud (port / interface / HTTPS), session conservée (lifecycle.ts) */
   public restart(port: number, host: string, tlsOptions?: { cert: string; key: string }) {
-    return restartServer(this.lifecycleCtx, { port, host, tlsOptions }, tls =>
-      createHttpListener(this.app, tls)
-    );
+    return restartServer(this.lifecycleCtx, { port, host, tlsOptions }, tls => createHttpListener(this.app, tls));
   }
 
   /** Signale aux kiosques que les données ont changé (regroupé sur 300 ms) */
@@ -1858,22 +1825,6 @@ export class RemoteScoreServer {
 
   public updateTheme(theme: DisplayTheme): void {
     return updateTheme(this.sessionSettingsCtx, theme);
-  }
-
-  /** Applique un thème d'entraînement à tous les écrans : piste, kiosk, arbitre, lobby (#1500) */
-  public applyTrainingTheme(theme: TrainingTheme): void {
-    const targets = resolveTrainingTheme(theme);
-    this.trainingTheme = theme;
-    this.updateTheme(targets.arena.theme === 'custom' ? 'dark' : targets.arena.theme);
-    for (const arena of this.arenas.values()) {
-      if (targets.arena.customTheme) {
-        this.updateArenaTheme(arena.id, 'custom', targets.arena.customTheme);
-      } else if (this.arenaThemeOverrides.has(arena.id)) {
-        this.clearArenaThemeOverride(arena.id);
-      }
-      this.updateArenaScreenTheme(arena.id, 'referee', targets.referee);
-    }
-    this.updateKioskTheme(targets.kiosk);
   }
 
   public updateArenaTheme(arenaId: string, theme: DisplayTheme, customTheme?: CustomTheme): void {
