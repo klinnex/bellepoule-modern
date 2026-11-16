@@ -84,6 +84,14 @@ button,
   }
   .fencers-container .fencer-box {
     grid-row: 2;
+    padding: 0.75rem 0.4rem;
+  }
+  /* Cartes A/B agrandies avec la hauteur d'écran : zone de touche (case score) plus large (#1808) */
+  .score-display {
+    font-size: clamp(4.5rem, 11vh, 6.5rem);
+    line-height: 1.1;
+    padding: 0.2rem 0;
+    margin-bottom: 0.3rem;
   }
   .timer-row {
     display: flex;

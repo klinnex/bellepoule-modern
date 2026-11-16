@@ -12,7 +12,7 @@ const read = (name: string) => fs.readFileSync(path.join(REMOTE_DIR, name), 'utf
 
 type Handler = (data?: unknown) => void;
 
-async function loadReferee() {
+async function loadReferee(session: Record<string, unknown> = {}) {
   // Via jsdom (pas de regex sur le HTML, cf. CLAUDE.md) : scripts /js/* et common.js intégrés inline
   const prep = new JSDOM(read('referee.html'));
   for (const s of Array.from(prep.window.document.querySelectorAll('script[src]'))) {
@@ -54,7 +54,11 @@ async function loadReferee() {
       w.io = () => socket;
       w.T = (k: string) => k;
       w.initRemoteI18n = async () => {};
-      w.fetch = async () => ({ ok: true, json: async () => ({}), text: async () => '' });
+      w.fetch = async (url: string) => ({
+        ok: true,
+        json: async () => (url === '/api/session' ? session : {}),
+        text: async () => '',
+      });
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
       w.scrollTo = () => {};
     },
@@ -203,5 +207,32 @@ describe('armes olympiques : point au clic sur la case score (#1713)', () => {
     expect(app.scoreA + app.scoreB).toBe(before + 1);
     expect(app.timerRunning).toBe(false);
     expect(errors).toEqual([]);
+  });
+});
+
+describe('tournoi des rapières : même vue arbitre que les armes olympiques (#1808)', () => {
+  it('arme C sans barème (pool/de vides) : +1/+3/+5 masqués, point au clic sur la case score', async () => {
+    const { dom, errors } = await loadReferee({
+      weapon: 'C',
+      modernRules: true,
+      customScoring: { pool: undefined, de: undefined },
+    });
+    const doc = dom.window.document;
+    const app = (dom.window as unknown as { refereeApp: { customScoring: unknown } }).refereeApp;
+    expect(app.customScoring).toBeNull();
+    for (const id of ['btn-plus-1-a', 'btn-plus-3-b', 'btn-plus-5-a'])
+      expect(doc.getElementById(id)!.style.display).toBe('none');
+    expect((doc.getElementById('score-a') as HTMLElement).dataset.tapBound).toBe('1');
+    expect(errors).toEqual([]);
+  });
+
+  it('arme C avec barème de formule : boutons de zones conservés', async () => {
+    const { dom } = await loadReferee({
+      weapon: 'C',
+      modernRules: true,
+      customScoring: { pool: { type: 'zones', zones: [{ label: 'A', points: 1 }] } },
+    });
+    const app = (dom.window as unknown as { refereeApp: { customScoring: unknown } }).refereeApp;
+    expect(app.customScoring).not.toBeNull();
   });
 });
