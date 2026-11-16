@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 59 | 735 |
+| `src/shared/utils/` | 61 | 741 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 174 |
-| `src/main/` | 72 | 601 |
+| `src/database/` | 12 | 179 |
+| `src/main/` | 72 | 602 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 98 | 496 |
+| `src/renderer/components/` | 101 | 508 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **395** | **3030** |
+| **Total** | **400** | **3054** |
 
-Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -264,6 +264,16 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **weaponLabel / genderLabel**
   - traduit les codes arme et genre
   - laisse un code inconnu tel quel
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubQr.test.ts</code> — 3 tests</summary>
+
+- **QR Mode Club (#1872)**
+  - membre : aller-retour, casse tolérée
+  - piste : aller-retour, bornes 1..99
+  - rejette tout autre contenu
 
 </details>
 
@@ -805,6 +815,16 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - sommaire avec numéros de page
   - sans comptage : pas de numéros
   - ordre et inclusion des sections
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/clubCardsPdf.test.ts</code> — 3 tests</summary>
+
+- **cartes de membre (#1872)**
+  - 10 cartes par page, nom en majuscules, code en clair
+  - échappe les textes, refuse logo/QR non data:image
+  - QR réels : payload BPC1:M:\<code\>
 
 </details>
 
@@ -2320,7 +2340,7 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 16 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 21 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2328,6 +2348,12 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - nom requis
     - archive : masqué par défaut, visible avec includeInactive
     - suppression RGPD : combats et présences effacés
+  - **cartes et identité du club**
+    - code carte unique à la création, retrouvé par code (actifs)
+    - régénération : ancienne carte invalide
+    - code non modifiable via updateMember
+    - nom + logo, logo validé, null efface
+    - migration 26 : codes générés pour les membres existants
   - **séances**
     - crée avec pistes bornées, date validée
     - liste filtrée par plage, plus récente d’abord
@@ -2753,11 +2779,12 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 6 tests</summary>
 
 - **handlers club:\* (#1872)**
   - enregistre tous les canaux club:\*
   - booléens stricts et filtres par défaut
+  - paramètres : objet vide par défaut
   - classement : force les combats terminés
   - fiche membre : stats, face-à-face, progression par trimestre
   - période inconnue → mois
@@ -4802,6 +4829,39 @@ Unitaires : 385 fichiers, 2991 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **WeaponStatsCard (#1817)**
   - armes olympiques : écart, cartons/match, abandons, temps limite
   - sabre laser : indicateurs historiques
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubTour.test.tsx</code> — 4 tests</summary>
+
+- **ClubTour**
+  - attend le chargement avant de démarrer
+  - démarre seul sur un club vide, met en évidence le nom
+  - suit l’état réel, Suivant / Retour, passer
+  - terminé puis relancé par le bouton Guide
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 4 tests</summary>
+
+- **ClubView**
+  - affiche le club, ses sous-onglets et les membres
+  - ajoute un membre
+  - archive un membre, affiche les archivés
+  - enregistre le nom du club
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/clubTourFlags.test.ts</code> — 4 tests</summary>
+
+- **parcours Mode Club (#1872)**
+  - progression : nom → logo → membres → cartes
+  - logo facultatif : validé par les membres
+  - démarrage auto : club vide jamais guidé
+  - 4 étapes
 
 </details>
 
