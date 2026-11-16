@@ -55,19 +55,23 @@ beforeEach(() => {
       }),
     ]),
     listLoans: vi.fn().mockResolvedValue([loan()]),
-    listCategories: vi
-      .fn()
-      .mockResolvedValue([
-        {
-          key: 'custom:c1',
-          id: 'c1',
-          clubId: 'c',
-          name: 'Lames de rechange',
-          itemCount: 0,
-          createdAt: '',
-          updatedAt: '',
-        },
-      ]),
+    listCategories: vi.fn().mockResolvedValue([
+      {
+        key: 'custom:c1',
+        id: 'c1',
+        clubId: 'c',
+        name: 'Lames de rechange',
+        itemCount: 0,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]),
+    listBrands: vi.fn().mockResolvedValue([]),
+    createBrand: vi.fn().mockResolvedValue({}),
+    renameBrand: vi.fn().mockResolvedValue({}),
+    deleteBrand: vi.fn().mockResolvedValue(undefined),
+    getInventoryLock: vi.fn().mockResolvedValue(false),
+    setInventoryLock: vi.fn().mockImplementation(async (_c: string, locked: boolean) => locked),
     createCategory: vi.fn().mockResolvedValue({}),
     renameCategory: vi.fn().mockResolvedValue({}),
     deleteCategory: vi.fn().mockResolvedValue(undefined),
@@ -138,5 +142,24 @@ describe('ClubInventoryPanel (inventaire du club)', () => {
     await waitFor(() =>
       expect(api.returnLoan).toHaveBeenCalledWith('l1', { conditionIn: 'worn', notes: undefined })
     );
+  });
+
+  it('mode consultation : verrou affiché, ajout et actions désactivés, export disponible', async () => {
+    api.getInventoryLock.mockResolvedValue(true);
+    render(<ClubInventoryPanel clubId="c" />);
+    await screen.findByText('Masque');
+    expect(screen.getByText('Consultation seule')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ajouter du matériel/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Importer/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Modifier' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Exporter \(CSV\)/ })).toBeEnabled();
+  });
+
+  it('le bouton Verrouiller bascule l’inventaire en consultation seule', async () => {
+    render(<ClubInventoryPanel clubId="c" />);
+    await screen.findByText('Masque');
+    fireEvent.click(screen.getByRole('button', { name: 'Verrouiller' }));
+    await waitFor(() => expect(api.setInventoryLock).toHaveBeenCalledWith('c', true));
+    expect(await screen.findByText('Consultation seule')).toBeInTheDocument();
   });
 });

@@ -231,6 +231,16 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     inv.renameCategory(id, name)
   );
   ipcMain.handle('club:deleteCategory', (_, id: string) => inv.deleteCategory(id));
+  ipcMain.handle('club:listBrands', (_, clubId: string) => inv.listBrands(clubId));
+  ipcMain.handle('club:createBrand', (_, clubId: string, name: string) =>
+    inv.createBrand(clubId, name)
+  );
+  ipcMain.handle('club:renameBrand', (_, id: string, name: string) => inv.renameBrand(id, name));
+  ipcMain.handle('club:deleteBrand', (_, id: string) => inv.deleteBrand(id));
+  ipcMain.handle('club:getInventoryLock', (_, clubId: string) => inv.isInventoryLocked(clubId));
+  ipcMain.handle('club:setInventoryLock', (_, clubId: string, locked: boolean) =>
+    inv.setInventoryLock(clubId, locked === true)
+  );
   ipcMain.handle('club:importItems', (_, clubId: string, list: ClubItemInput[]) =>
     inv.importItems(clubId, Array.isArray(list) ? list : [])
   );

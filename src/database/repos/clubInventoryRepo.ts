@@ -7,6 +7,7 @@ import { Weapon } from '../../shared/types';
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemBrandDef,
   ClubItemCategoryDef,
   ClubItemCondition,
   ClubItemInput,
@@ -48,6 +49,15 @@ interface ItemRow {
   notes: string | null;
   retired: number;
   lent: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BrandRow {
+  id: string;
+  club_id: string;
+  name: string;
+  item_count: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -187,6 +197,7 @@ export class ClubInventoryRepo {
 
   public createItem(clubId: string, data: ClubItemInput): ClubItem {
     this.ensureOpen();
+    this.assertUnlocked(clubId);
     const e = normalizeItemInput(data);
     this.assertCategory(clubId, e.category);
     const id = uuidv4();
@@ -229,6 +240,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const cur = this.getItem(id);
     if (!cur) return null;
+    this.assertUnlocked(cur.clubId);
     const e = normalizeItemInput({ ...this.toInput(cur), ...updates });
     this.assertCategory(cur.clubId, e.category);
     if (e.quantity < cur.lentQuantity) {
@@ -295,6 +307,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const item = this.getItem(id);
     if (!item) return;
+    this.assertUnlocked(item.clubId);
     if (item.lentQuantity > 0) {
       throw new Error('Matériel encore prêté : rendez-le avant de le supprimer');
     }
@@ -351,6 +364,7 @@ export class ClubInventoryRepo {
   public lendItem(data: ClubLoanInput): ClubLoan {
     this.ensureOpen();
     const item = this.requireItem(data?.itemId);
+    this.assertUnlocked(item.clubId);
     if (item.retired) throw new Error('Matériel réformé : prêt impossible');
     const member = this.sql.queryOne<{ club_id: string; active: number }>(
       'SELECT club_id, active FROM club_members WHERE id = ?',
@@ -403,6 +417,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const cur = this.getLoan(id);
     if (!cur) return null;
+    this.assertUnlocked(cur.clubId);
     if (cur.returnedAt) throw new Error('Prêt déjà rendu');
     const returnedAt = data.returnedAt ?? new Date().toISOString();
     if (Number.isNaN(Date.parse(returnedAt))) throw new Error('Date de retour invalide');
@@ -440,6 +455,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const cur = this.getLoan(id);
     if (!cur) return;
+    this.assertUnlocked(cur.clubId);
     if (!cur.returnedAt) throw new Error('Prêt en cours : rendez-le avant de le supprimer');
     this.sql.run('DELETE FROM club_loans WHERE id = ?', [id]);
   }
@@ -453,6 +469,7 @@ export class ClubInventoryRepo {
     inputs: ClubItemInput[]
   ): { created: number; skipped: number } {
     this.ensureOpen();
+    this.assertUnlocked(clubId);
     if (!Array.isArray(inputs) || inputs.length > 2000) {
       throw new Error('Import limité à 2000 fiches');
     }
@@ -526,6 +543,7 @@ export class ClubInventoryRepo {
 
   public createCategory(clubId: string, name: string): ClubItemCategoryDef {
     this.ensureOpen();
+    this.assertUnlocked(clubId);
     const clean = this.checkCategoryName(clubId, name);
     const id = uuidv4();
     const now = new Date().toISOString();
@@ -540,6 +558,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const cur = this.getCategory(id);
     if (!cur) return null;
+    this.assertUnlocked(cur.clubId);
     const clean = this.checkCategoryName(cur.clubId, name, id);
     this.sql.run('UPDATE club_item_categories SET name = ?, updated_at = ? WHERE id = ?', [
       clean,
@@ -554,6 +573,7 @@ export class ClubInventoryRepo {
     this.ensureOpen();
     const cur = this.getCategory(id);
     if (!cur) return;
+    this.assertUnlocked(cur.clubId);
     if (cur.itemCount > 0) {
       throw new Error(
         `Catégorie utilisée par ${cur.itemCount} fiche(s) : changez-les avant de la supprimer`
@@ -571,5 +591,118 @@ export class ClubInventoryRepo {
       [id, clubId]
     );
     if (!ok) throw new Error('Catégorie inconnue dans ce club');
+  }
+
+  // ─── Verrou de l'inventaire ──────────────────────────────────────────────────
+
+  /** Inventaire verrouillé : consultation et export seulement (modifications refusées) */
+  public isInventoryLocked(clubId: string): boolean {
+    if (!this.sql.db) return false;
+    const r = this.sql.queryOne<{ inventory_locked: number | null }>(
+      'SELECT inventory_locked FROM clubs WHERE id = ?',
+      [clubId]
+    );
+    return (r?.inventory_locked ?? 0) !== 0;
+  }
+
+  public setInventoryLock(clubId: string, locked: boolean): boolean {
+    this.ensureOpen();
+    this.sql.run('UPDATE clubs SET inventory_locked = ? WHERE id = ?', [locked ? 1 : 0, clubId]);
+    return this.isInventoryLocked(clubId);
+  }
+
+  private assertUnlocked(clubId: string): void {
+    if (this.isInventoryLocked(clubId)) {
+      throw new Error('Inventaire verrouillé : déverrouillez-le pour le modifier');
+    }
+  }
+
+  // ─── Catalogue de marques du club ────────────────────────────────────────────
+
+  private brandSelect(where: string, params: unknown[]): ClubItemBrandDef[] {
+    return this.sql
+      .queryAll<BrandRow>(
+        `SELECT b.*, (SELECT COUNT(*) FROM club_items i
+            WHERE i.club_id = b.club_id AND i.brand = b.name COLLATE NOCASE) AS item_count
+         FROM club_item_brands b WHERE ${where} ORDER BY b.name COLLATE NOCASE`,
+        params
+      )
+      .map(r => ({
+        id: r.id,
+        clubId: r.club_id,
+        name: r.name,
+        itemCount: r.item_count ?? 0,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+  }
+
+  /** Marques du club, par nom */
+  public listBrands(clubId: string): ClubItemBrandDef[] {
+    if (!this.sql.db) return [];
+    return this.brandSelect('b.club_id = ?', [clubId]);
+  }
+
+  private getBrand(id: string): ClubItemBrandDef | null {
+    return this.brandSelect('b.id = ?', [id])[0] ?? null;
+  }
+
+  private checkBrandName(clubId: string, name: unknown, exceptId?: string): string {
+    const clean = typeof name === 'string' ? name.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+    if (!clean) throw new Error('Nom de marque requis');
+    const dup = this.sql.queryOne<{ id: string }>(
+      'SELECT id FROM club_item_brands WHERE club_id = ? AND name = ? COLLATE NOCASE',
+      [clubId, clean]
+    );
+    if (dup && dup.id !== exceptId) throw new Error('Cette marque existe déjà');
+    return clean;
+  }
+
+  public createBrand(clubId: string, name: string): ClubItemBrandDef {
+    this.ensureOpen();
+    this.assertUnlocked(clubId);
+    const clean = this.checkBrandName(clubId, name);
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    this.sql.run(
+      'INSERT INTO club_item_brands (id, club_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      [id, clubId, clean, now, now]
+    );
+    return this.getBrand(id)!;
+  }
+
+  /** Renommage : les fiches portant l'ancienne marque prennent le nouveau nom */
+  public renameBrand(id: string, name: string): ClubItemBrandDef | null {
+    this.ensureOpen();
+    const cur = this.getBrand(id);
+    if (!cur) return null;
+    this.assertUnlocked(cur.clubId);
+    const clean = this.checkBrandName(cur.clubId, name, id);
+    this.sql.transaction(() => {
+      this.sql.run('UPDATE club_item_brands SET name = ?, updated_at = ? WHERE id = ?', [
+        clean,
+        new Date().toISOString(),
+        id,
+      ]);
+      this.sql.run(
+        'UPDATE club_items SET brand = ?, updated_at = ? WHERE club_id = ? AND brand = ? COLLATE NOCASE',
+        [clean, new Date().toISOString(), cur.clubId, cur.name]
+      );
+    });
+    return this.getBrand(id);
+  }
+
+  /** Refusée tant qu'une fiche porte la marque */
+  public deleteBrand(id: string): void {
+    this.ensureOpen();
+    const cur = this.getBrand(id);
+    if (!cur) return;
+    this.assertUnlocked(cur.clubId);
+    if (cur.itemCount > 0) {
+      throw new Error(
+        `Marque utilisée par ${cur.itemCount} fiche(s) : changez-les avant de la supprimer`
+      );
+    }
+    this.sql.run('DELETE FROM club_item_brands WHERE id = ?', [id]);
   }
 }

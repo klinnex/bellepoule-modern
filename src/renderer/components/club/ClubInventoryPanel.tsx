@@ -9,16 +9,19 @@ import {
   BookOpen,
   Download,
   HandCoins,
+  Lock,
   Pencil,
   Plus,
   Tags,
   Trash2,
   Undo2,
+  Unlock,
   Upload,
 } from 'lucide-react';
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemBrandDef,
   ClubItemCategoryDef,
   ClubItemInput,
   ClubLoan,
@@ -44,7 +47,7 @@ import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
-import { ClubCategoriesModal } from './ClubCategoriesModal';
+import { ClubListModal } from './ClubListModal';
 import { ClubItemEditor } from './ClubItemEditor';
 import { ClubLoanModal } from './ClubLoanModal';
 import { openInventoryFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
@@ -76,18 +79,26 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   const [editing, setEditing] = useState<{ item: ClubItem | null } | null>(null);
   const [categories, setCategories] = useState<ClubItemCategoryDef[]>([]);
   const [showCategories, setShowCategories] = useState(false);
+  const [brands, setBrands] = useState<ClubItemBrandDef[]>([]);
+  const [showBrands, setShowBrands] = useState(false);
+  /** Inventaire verrouillé : consultation et export seulement */
+  const [locked, setLocked] = useState(false);
   const [lending, setLending] = useState<LendTarget>(null);
   const [returning, setReturning] = useState<ReturnTarget>(null);
   const [showHistory, setShowHistory] = useState(false);
 
   const load = useCallback(async () => {
     if (!api) return;
-    const [i, l, m, c] = await Promise.all([
+    const [i, l, m, c, b, lk] = await Promise.all([
       api.listItems(clubId, true),
       api.listLoans(clubId),
       api.listMembers(clubId),
       api.listCategories(clubId),
+      api.listBrands(clubId),
+      api.getInventoryLock(clubId),
     ]);
+    setBrands(b);
+    setLocked(lk);
     setItems(i);
     setLoans(l);
     setMembers(m);
@@ -145,6 +156,14 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
       await api.createItem(clubId, data);
     }
     await load();
+  };
+
+  const toggleLock = async () => {
+    try {
+      setLocked(await api.setInventoryLock(clubId, !locked));
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
   };
 
   const removeItem = async (item: ClubItem) => {
@@ -248,6 +267,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           <Button
             size="sm"
             variant="primary"
+            disabled={locked}
             icon={<Undo2 size={14} aria-hidden="true" />}
             onClick={() => setReturning({ loan: l })}
           >
@@ -258,6 +278,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
             size="sm"
             variant="ghost"
             aria-label={t('actions.delete')}
+            disabled={locked}
             icon={<Trash2 size={14} aria-hidden="true" />}
             onClick={() => void removeLoan(l)}
           />
@@ -273,7 +294,28 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           <h2 id="club-inventory-title" className="club-card-title">
             {t('clubInventory.title', { n: summary.lines })}
           </h2>
-          <Button icon={<Upload size={15} aria-hidden="true" />} onClick={() => void importFile()}>
+          <Button
+            variant={locked ? 'warning' : 'ghost'}
+            icon={
+              locked ? (
+                <Lock size={15} aria-hidden="true" />
+              ) : (
+                <Unlock size={15} aria-hidden="true" />
+              )
+            }
+            aria-pressed={locked}
+            onClick={() => void toggleLock()}
+          >
+            {t(locked ? 'clubInventory.unlock_button' : 'clubInventory.lock_button')}
+          </Button>
+          {locked && (
+            <span className="club-badge club-badge--warn">{t('clubInventory.locked_badge')}</span>
+          )}
+          <Button
+            icon={<Upload size={15} aria-hidden="true" />}
+            disabled={locked}
+            onClick={() => void importFile()}
+          >
             {t('clubInventory.import')}
           </Button>
           <Button
@@ -292,13 +334,22 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           </Button>
           <Button
             icon={<Tags size={15} aria-hidden="true" />}
+            disabled={locked}
             onClick={() => setShowCategories(true)}
           >
             {t('clubInventory.categories_button')}
           </Button>
           <Button
+            icon={<Tags size={15} aria-hidden="true" />}
+            disabled={locked}
+            onClick={() => setShowBrands(true)}
+          >
+            {t('clubInventory.brands_button')}
+          </Button>
+          <Button
             variant="primary"
             icon={<Plus size={15} aria-hidden="true" />}
+            disabled={locked}
             onClick={() => setEditing({ item: null })}
           >
             {t('clubInventory.add')}
@@ -461,7 +512,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                         variant="ghost"
                         aria-label={t('clubInventory.lend_action')}
                         title={t('clubInventory.lend_action')}
-                        disabled={i.retired || i.availableQuantity === 0}
+                        disabled={locked || i.retired || i.availableQuantity === 0}
                         icon={<HandCoins size={14} aria-hidden="true" />}
                         onClick={() => setLending({ item: i })}
                       />
@@ -470,6 +521,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                         variant="ghost"
                         aria-label={t('actions.edit')}
                         icon={<Pencil size={14} aria-hidden="true" />}
+                        disabled={locked}
                         onClick={() => setEditing({ item: i })}
                       />
                       <Button
@@ -484,13 +536,14 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                             <Archive size={14} aria-hidden="true" />
                           )
                         }
+                        disabled={locked}
                         onClick={() => void toggleRetired(i)}
                       />
                       <Button
                         size="sm"
                         variant="ghost"
                         aria-label={t('actions.delete')}
-                        disabled={i.lentQuantity > 0}
+                        disabled={locked || i.lentQuantity > 0}
                         icon={<Trash2 size={14} aria-hidden="true" />}
                         onClick={() => void removeItem(i)}
                       />
@@ -567,16 +620,47 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
         <ClubItemEditor
           item={editing.item}
           customCategories={categories}
+          brands={brands.map(b => b.name)}
           onSave={saveItem}
           onClose={() => setEditing(null)}
         />
       )}
       {showCategories && (
-        <ClubCategoriesModal
-          clubId={clubId}
-          categories={categories}
+        <ClubListModal
+          title={t('clubInventory.categories_title')}
+          help={t('clubInventory.categories_help')}
+          newLabel={t('clubInventory.categories_new')}
+          placeholder={t('clubInventory.categories_placeholder')}
+          emptyText={t('clubInventory.categories_empty')}
+          inUseHint={t('clubInventory.categories_in_use')}
+          countLabel={n => t('clubInventory.categories_count', { n })}
+          deleteMessage={name => t('clubInventory.categories_delete_confirm', { name })}
+          items={categories.map(c => ({ id: c.id, name: c.name, itemCount: c.itemCount }))}
+          readOnly={locked}
+          onCreate={name => api.createCategory(clubId, name)}
+          onRename={(id, name) => api.renameCategory(id, name)}
+          onDelete={id => api.deleteCategory(id)}
           onChanged={load}
           onClose={() => setShowCategories(false)}
+        />
+      )}
+      {showBrands && (
+        <ClubListModal
+          title={t('clubInventory.brands_title')}
+          help={t('clubInventory.brands_help')}
+          newLabel={t('clubInventory.brands_new')}
+          placeholder={t('clubInventory.brands_placeholder')}
+          emptyText={t('clubInventory.brands_empty')}
+          inUseHint={t('clubInventory.categories_in_use')}
+          countLabel={n => t('clubInventory.categories_count', { n })}
+          deleteMessage={name => t('clubInventory.brands_delete_confirm', { name })}
+          items={brands.map(b => ({ id: b.id, name: b.name, itemCount: b.itemCount }))}
+          readOnly={locked}
+          onCreate={name => api.createBrand(clubId, name)}
+          onRename={(id, name) => api.renameBrand(id, name)}
+          onDelete={id => api.deleteBrand(id)}
+          onChanged={load}
+          onClose={() => setShowBrands(false)}
         />
       )}
       {lending && (

@@ -125,6 +125,12 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
   Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
   quantité 1 à 999.
+- **Marques** : catalogue propre au club (bouton **Marques** : ajout, renommage, suppression).
+  Le champ Marque de la fiche propose ces marques (saisie libre toujours possible). Renommer une
+  marque met à jour les fiches ; suppression refusée tant qu'une fiche la porte.
+- **Verrou** (bouton **Verrouiller** / **Déverrouiller**) : inventaire en consultation seule. Tant
+  qu'il est verrouillé, aucune fiche, prêt, retour, import, catégorie ou marque ne peut être modifié
+  (refusé côté base aussi). Consultation et export restent possibles. Le verrou est propre au club.
 - **Réformer** retire la fiche des prêts sans l'effacer (historique conservé) ; **Remettre en
   service** l'inverse. Affichage des réformés : case à cocher.
 - **Prêter** : choix du tireur (membres actifs du club uniquement), quantité (dans la limite des
@@ -153,6 +159,7 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
 
 Dépôt : `src/database/repos/clubInventoryRepo.ts` (tables `club_items`, `club_loans`, migration 34).
 Catégories : table `club_item_categories` (migration 35), clé d'affectation `custom:<id>`.
+Marques : table `club_item_brands` ; verrou : colonne `clubs.inventory_locked` (migration 36).
 Règles pures (validation, retards, garanties, synthèse, CSV) : `src/shared/utils/clubInventory.ts`.
 Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEditor.tsx`,
 `ClubLoanModal.tsx`. API IPC : `club.listItems`, `createItem`, `updateItem`, `deleteItem`,

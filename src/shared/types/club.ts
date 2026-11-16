@@ -451,6 +451,17 @@ export interface ClubLoanFilter {
   open?: boolean;
 }
 
+/** Marque du catalogue du club, réutilisable dans les fiches de matériel */
+export interface ClubItemBrandDef {
+  id: string;
+  clubId: string;
+  name: string;
+  /** Nombre de fiches portant la marque (calculé) */
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Mode Club : membres, séances, combats libres, statistiques (#1872) */
 export interface ClubAPI {
   /** Clubs avec effectif et séance ouverte (accueil) */
@@ -547,6 +558,16 @@ export interface ClubAPI {
   renameCategory: (id: string, name: string) => Promise<ClubItemCategoryDef | null>;
   /** Refusé si des fiches utilisent la catégorie */
   deleteCategory: (id: string) => Promise<void>;
+  /** Catalogue de marques (triées par nom) */
+  listBrands: (clubId: string) => Promise<ClubItemBrandDef[]>;
+  createBrand: (clubId: string, name: string) => Promise<ClubItemBrandDef>;
+  /** Les fiches portant l'ancienne marque prennent le nouveau nom */
+  renameBrand: (id: string, name: string) => Promise<ClubItemBrandDef | null>;
+  /** Refusé si des fiches portent la marque */
+  deleteBrand: (id: string) => Promise<void>;
+  /** Verrou : inventaire en consultation seule (true) ou modifiable (false) */
+  getInventoryLock: (clubId: string) => Promise<boolean>;
+  setInventoryLock: (clubId: string, locked: boolean) => Promise<boolean>;
   /** Import CSV / Excel : fiches ajoutées ; doublons de n° de série ignorés */
   importItems: (clubId: string, items: ClubItemInput[]) => Promise<{ created: number; skipped: number }>;
 }

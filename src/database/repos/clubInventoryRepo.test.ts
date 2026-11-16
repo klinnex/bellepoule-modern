@@ -285,4 +285,50 @@ describe.skipIf(!DatabaseSync)('ClubInventoryRepo (inventaire du club)', () => {
       expect(inv.listCategories(cid)).toHaveLength(0);
     });
   });
+
+  describe('verrou et marques', () => {
+    it('inventaire verrouillé : consultation oui, toute modification refusée', () => {
+      const it = masks();
+      const loan = inv.lendItem({ itemId: it.id, memberId: m1 });
+      const cat = inv.createCategory(cid, 'Sacs');
+      expect(inv.setInventoryLock(cid, true)).toBe(true);
+      expect(inv.isInventoryLocked(cid)).toBe(true);
+      // Lectures et export restent possibles
+      expect(inv.listItems(cid)).toHaveLength(1);
+      expect(inv.listLoans(cid)).toHaveLength(1);
+      const locked = 'Inventaire verrouillé';
+      expect(() => inv.createItem(cid, { name: 'X', category: 'mask' })).toThrow(locked);
+      expect(() => inv.updateItem(it.id, { location: 'Sac 1' })).toThrow(locked);
+      expect(() => inv.deleteItem(it.id)).toThrow(locked);
+      expect(() => inv.lendItem({ itemId: it.id, memberId: m2 })).toThrow(locked);
+      expect(() => inv.returnLoan(loan.id)).toThrow(locked);
+      expect(() => inv.deleteLoan(loan.id)).toThrow(locked);
+      expect(() => inv.importItems(cid, [{ name: 'Y', category: 'mask' }])).toThrow(locked);
+      expect(() => inv.createCategory(cid, 'Autre')).toThrow(locked);
+      expect(() => inv.renameCategory(cat.id, 'Autre')).toThrow(locked);
+      expect(() => inv.deleteCategory(cat.id)).toThrow(locked);
+      expect(() => inv.createBrand(cid, 'Uhlmann')).toThrow(locked);
+      expect(inv.listItems(cid)[0].location).toBeUndefined();
+    });
+
+    it('déverrouillé : les modifications reviennent', () => {
+      inv.setInventoryLock(cid, true);
+      inv.setInventoryLock(cid, false);
+      expect(inv.createItem(cid, { name: 'Ok', category: 'mask' }).name).toBe('Ok');
+    });
+
+    it('catalogue de marques : doublon refusé, renommage propagé aux fiches, suppression si libre', () => {
+      const b = inv.createBrand(cid, '  Uhlmann ');
+      expect(b.name).toBe('Uhlmann');
+      expect(() => inv.createBrand(cid, 'UHLMANN')).toThrow('existe déjà');
+      const it = masks({ brand: 'uhlmann' });
+      expect(inv.listBrands(cid)[0].itemCount).toBe(1);
+      inv.renameBrand(b.id, 'Allstar');
+      expect(inv.getItem(it.id)!.brand).toBe('Allstar');
+      expect(() => inv.deleteBrand(b.id)).toThrow('utilisée');
+      inv.updateItem(it.id, { brand: 'Autre' });
+      inv.deleteBrand(b.id);
+      expect(inv.listBrands(cid)).toHaveLength(0);
+    });
+  });
 });

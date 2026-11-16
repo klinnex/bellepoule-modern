@@ -28,6 +28,8 @@ interface ClubItemEditorProps {
   item: ClubItem | null;
   /** Catégories créées par le club, proposées après les standard */
   customCategories: ClubItemCategoryDef[];
+  /** Catalogue de marques du club : suggestions (saisie libre aussi possible) */
+  brands: string[];
   /** Lève une erreur (affichée) si l'enregistrement échoue */
   onSave: (data: ClubItemInput) => Promise<void>;
   onClose: () => void;
@@ -38,6 +40,7 @@ const numberOrUndef = (v: string): number | undefined => (v.trim() === '' ? unde
 export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
   item,
   customCategories,
+  brands,
   onSave,
   onClose,
 }) => {
@@ -167,7 +170,17 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         </label>
         <label className="form-label">
           {t('clubInventory.brand')}
-          <input className="form-input" value={brand} onChange={e => setBrand(e.target.value)} />
+          <input
+            className="form-input"
+            list="club-item-brands"
+            value={brand}
+            onChange={e => setBrand(e.target.value)}
+          />
+          <datalist id="club-item-brands">
+            {brands.map(b => (
+              <option key={b} value={b} />
+            ))}
+          </datalist>
         </label>
         <label className="form-label">
           {t('clubInventory.model')}

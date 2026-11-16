@@ -1025,4 +1025,27 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 36,
+    description: 'Mode Club : catalogue de marques du matériel et verrou de l’inventaire',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_item_brands (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_club_item_brands_name ON club_item_brands(club_id, name COLLATE NOCASE)`
+      );
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN inventory_locked INTEGER NOT NULL DEFAULT 0`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

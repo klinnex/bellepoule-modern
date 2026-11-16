@@ -280,6 +280,14 @@ const electronApi = {
     renameCategory: (id: string, name: string) =>
       ipcRenderer.invoke('club:renameCategory', id, name),
     deleteCategory: (id: string) => ipcRenderer.invoke('club:deleteCategory', id),
+    listBrands: (clubId: string) => ipcRenderer.invoke('club:listBrands', clubId),
+    createBrand: (clubId: string, name: string) =>
+      ipcRenderer.invoke('club:createBrand', clubId, name),
+    renameBrand: (id: string, name: string) => ipcRenderer.invoke('club:renameBrand', id, name),
+    deleteBrand: (id: string) => ipcRenderer.invoke('club:deleteBrand', id),
+    getInventoryLock: (clubId: string) => ipcRenderer.invoke('club:getInventoryLock', clubId),
+    setInventoryLock: (clubId: string, locked: boolean) =>
+      ipcRenderer.invoke('club:setInventoryLock', clubId, locked),
     importItems: (clubId: string, list: unknown[]) =>
       ipcRenderer.invoke('club:importItems', clubId, list),
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
