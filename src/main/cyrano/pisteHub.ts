@@ -163,7 +163,7 @@ export class PisteHub {
    * sinon le seul serveur en séance (une seule épreuve). Changer d'épreuve oublie l'état connu
    * de l'appareil : le prochain DISP part avec l'arme et l'épreuve du nouveau match.
    */
-  private remoteFor(piste: CyranoPisteStatus | string): RemoteScoreServer | null {
+  private remoteFor(piste: CyranoPisteStatus | string, commit = true): RemoteScoreServer | null {
     const status = typeof piste === 'string' ? this.cyrano.findPiste(piste) : piste;
     if (!status) return null;
     const all = this.remotes();
@@ -181,7 +181,7 @@ export class PisteHub {
       const open = all.filter(r => r.hasSession());
       chosen = open.length === 1 ? open[0] : null;
     }
-    if (chosen && chosen !== previous) {
+    if (commit && chosen && chosen !== previous) {
       if (previous) {
         logger.info(
           LogCategory.NETWORK,
@@ -199,7 +199,7 @@ export class PisteHub {
   getRoutes(): Record<string, string | null> {
     const out: Record<string, string | null> = {};
     for (const p of this.cyrano.getStatuses())
-      out[p.piste] = this.remoteFor(p)?.getSession()?.competitionId ?? null;
+      out[p.piste] = this.remoteFor(p, false)?.getSession()?.competitionId ?? null;
     return out;
   }
 
@@ -422,7 +422,8 @@ export class PisteHub {
     this.cyrano.sendDisp(
       piste,
       this.buildDispFor(match, scoreA, scoreB, status, remote),
-      remote?.getSession()?.competitionId ?? undefined
+      // Champ Compe : seulement entre plusieurs épreuves (sinon celui du serveur Cyrano)
+      this.remotes().length > 1 ? (remote?.getSession()?.competitionId ?? undefined) : undefined
     );
     logger.info(LogCategory.NETWORK, `Cyrano: DISP → ${piste} (match ${match.id})`);
   }

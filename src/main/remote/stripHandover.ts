@@ -116,11 +116,14 @@ export function movePoolToArena(ctx: ArenaQueueContext, poolId: string, arenaId:
   for (const m of matches) ctx.poolMatchArenaOverrides.set(m.id, arenaId);
   for (const [id, queue] of ctx.arenaMatchQueue) {
     const kept = queue.filter(m => m.poolId !== poolId);
-    if (kept.length !== queue.length) ctx.arenaMatchQueue.set(id, kept);
+    if (kept.length === queue.length) continue;
+    ctx.arenaMatchQueue.set(id, kept);
+    ctx.persistArenaState(id);
   }
   const first = matches.find(m => m.fencerA && m.fencerB);
   if (!first) {
     if (!arena.currentMatch) arena.activePoolId = poolId;
+    ctx.persistArenaState(arenaId);
     return true;
   }
   const arenaMatch: ArenaMatch = {
@@ -136,6 +139,7 @@ export function movePoolToArena(ctx: ArenaQueueContext, poolId: string, arenaId:
   };
   if (busy(ctx, arenaId)) {
     ctx.arenaMatchQueue.set(arenaId, [arenaMatch, ...(ctx.arenaMatchQueue.get(arenaId) || [])]);
+    ctx.persistArenaState(arenaId);
     return true;
   }
   arena.activePoolId = poolId;

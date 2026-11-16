@@ -98,7 +98,7 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
     server = makeServer();
   });
 
-  it('poule sans piste : proposée, puis installée sur la piste libre (créée au besoin)', async () => {
+  it('poule sans piste : proposée ; jamais déplacée vers une piste hors de l’épreuve', async () => {
     await server.startSession('c1', 2, [
       poolMarker('p1', 1, 1),
       poolMatch('p1', 1, 'a', 'b'),
@@ -106,30 +106,51 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
       poolMatch('p2', 1, 'c', 'd'),
       poolMarker('p3', 3),
       poolMatch('p3', 1, 'e', 'f'),
-      poolMatch('p3', 2, 'e', 'g'),
     ] as never);
     const waiting = server.getWaitingWork();
     expect(waiting).toEqual([{ kind: 'pool', poolId: 'p3', poolNumber: 3, fromArena: null }]);
-    expect(server.hasArenaAssignment('arena4')).toBe(false);
+    // Piste 4 inexistante dans cette épreuve (ni mot de passe ni écran configurés) : refus
+    expect(server.moveWorkToArena(waiting[0], 4)).toBe(false);
+    expect(server.getArena('arena4')).toBeNull();
+  });
 
-    expect(server.moveWorkToArena(waiting[0], 4)).toBe(true);
-    expect(server.getArena('arena4')?.currentMatch).toMatchObject({ id: 'p3-m1', poolId: 'p3' });
-    expect(server.hasArenaAssignment('arena4')).toBe(true);
+  it('poule en file derrière une piste occupée : installée sur la piste libre, qui la garde', async () => {
+    await server.startSession('c1', 3, [
+      poolMarker('p1', 1, 1),
+      poolMatch('p1', 1, 'a', 'b'),
+      poolMarker('p2', 2, 2),
+      poolMatch('p2', 1, 'c', 'd'),
+      poolMarker('p3', 3, 2),
+      poolMatch('p3', 1, 'e', 'f'),
+      poolMatch('p3', 2, 'e', 'g'),
+    ] as never);
+    // Piste 3 libérée (poule terminée ailleurs) : vidée pour le test
+    server.updateArena('arena3', { status: 'idle', currentMatch: null });
+    const arena3 = server.getArena('arena3')!;
+    arena3.currentMatch = null;
+    arena3.activePoolId = undefined;
+    const waiting = server.getWaitingWork();
+    expect(waiting).toEqual([{ kind: 'pool', poolId: 'p3', poolNumber: 3, fromArena: 2 }]);
+
+    expect(server.moveWorkToArena(waiting[0], 3)).toBe(true);
+    expect(server.getArena('arena3')?.currentMatch).toMatchObject({ id: 'p3-m1', poolId: 'p3' });
+    expect(server.hasArenaAssignment('arena3')).toBe(true);
     expect(server.getWaitingWork()).toEqual([]);
+    expect(db.saveArenaState).toHaveBeenCalledWith('arena2', expect.anything());
+    expect(db.saveArenaState).toHaveBeenCalledWith('arena3', expect.anything());
 
-    // Répartition des poules renvoyée par le renderer (poule 3 toujours sans piste) : la piste
-    // libérée est conservée
+    // Répartition renvoyée par le renderer (poule 3 toujours sur la piste 2) : la piste 3 reste
     server.assignPools([
       { poolId: 'p1', poolNumber: 1, strip: 1, matches: [poolMatch('p1', 1, 'a', 'b')] },
       { poolId: 'p2', poolNumber: 2, strip: 2, matches: [poolMatch('p2', 1, 'c', 'd')] },
       {
         poolId: 'p3',
         poolNumber: 3,
-        strip: null,
+        strip: 2,
         matches: [poolMatch('p3', 1, 'e', 'f'), poolMatch('p3', 2, 'e', 'g')],
       },
     ] as never);
-    expect(server.getArena('arena4')?.currentMatch?.poolId).toBe('p3');
+    expect(server.getArena('arena3')?.currentMatch?.poolId).toBe('p3');
   });
 
   it('match de tableau en file derrière une piste occupée : déplacé sur la piste libre', async () => {

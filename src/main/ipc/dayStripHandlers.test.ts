@@ -23,6 +23,7 @@ function setup() {
   const server = {
     hasSession: () => true,
     hasArenaAssignment: (id: string) => occupied.has(Number(id.replace('arena', ''))),
+    getArena: (id: string) => (Number(id.replace('arena', '')) <= 3 ? {} : null),
     getWaitingWork: () => waiting,
     moveWorkToArena: vi.fn((w: WaitingWork, n: number) => {
       occupied.add(n);

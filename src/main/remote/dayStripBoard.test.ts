@@ -18,6 +18,7 @@ function fakeEvent(competitionId: string, busy: number[], waiting: WaitingWork[]
     server: {
       hasSession: () => true,
       hasArenaAssignment: id => occupied.has(Number(id.replace('arena', ''))),
+      getArena: id => (Number(id.replace('arena', '')) <= 4 ? {} : null),
       getWaitingWork: () => queue,
       moveWorkToArena: (work, strip) => {
         moves.push({ work, strip });

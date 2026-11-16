@@ -19,6 +19,8 @@ import type { WaitingWork } from './stripHandover';
 export interface DayStripServer {
   hasSession(): boolean;
   hasArenaAssignment(arenaId: string): boolean;
+  /** Arène existante (piste dans la plage de l'épreuve : mot de passe et écrans configurés) */
+  getArena(arenaId: string): unknown;
   getWaitingWork(): WaitingWork[];
   moveWorkToArena(work: WaitingWork, strip: number): boolean;
 }
@@ -109,7 +111,10 @@ export function buildStripBoard(
       candidates: owner
         ? []
         : all
-            .filter(c => c.fromStrip !== n && stripAllows(rule, c))
+            .filter(
+              c =>
+                c.fromStrip !== n && !!c.event.server.getArena(`arena${n}`) && stripAllows(rule, c)
+            )
             .map(({ event: _e, work: _w, ...c }) => c),
     });
   }
@@ -130,6 +135,7 @@ export function assignStrip(
   if (!Number.isInteger(strip) || strip < 1 || ownerOf(events, strip)) return false;
   const target = candidatesOf(events, coords).find(c => c.key === key);
   if (!target || !stripAllows(rule ?? DEFAULT_STRIP_RULE, target)) return false;
+  if (!target.event.server.getArena(`arena${strip}`)) return false;
   return target.event.server.moveWorkToArena(target.work, strip);
 }
 

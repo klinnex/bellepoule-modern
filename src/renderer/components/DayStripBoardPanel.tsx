@@ -155,8 +155,7 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
 
   if (!board || !api) return null;
 
-  const assign = async (strip: number, fallback: string | undefined) => {
-    const key = choice[strip] ?? fallback;
+  const assign = async (strip: number, key: string | undefined) => {
     if (key) await api.assignStrip(dayId, strip, key);
     await load();
   };
@@ -190,6 +189,10 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
                 t
               );
           const busy = !!s.competitionId || !!planned;
+          // Choix encore proposé ? sinon la première proposition (liste rafraîchie)
+          const picked = s.candidates.some(c => c.key === choice[s.strip])
+            ? choice[s.strip]
+            : s.candidates[0]?.key;
           return (
             <li key={s.strip} className={`event-day-strip${busy ? ' event-day-strip--busy' : ''}`}>
               <strong>{t('eventDay.strip', { n: s.strip })}</strong>
@@ -205,7 +208,7 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
                   <select
                     className="form-input"
                     aria-label={t('eventDay.waiting_label', { n: s.strip })}
-                    value={choice[s.strip] ?? s.candidates[0].key}
+                    value={picked}
                     onChange={e => setChoice({ ...choice, [s.strip]: e.target.value })}
                   >
                     {s.candidates.map(c => (
@@ -214,11 +217,7 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
                       </option>
                     ))}
                   </select>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={() => void assign(s.strip, s.candidates[0].key)}
-                  >
+                  <Button size="sm" variant="primary" onClick={() => void assign(s.strip, picked)}>
                     {t('eventDay.assign')}
                   </Button>
                 </div>
