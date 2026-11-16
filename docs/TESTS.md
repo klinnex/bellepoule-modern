@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 68 | 776 |
+| `src/shared/utils/` | 69 | 784 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 192 |
-| `src/main/` | 74 | 611 |
+| `src/database/` | 12 | 196 |
+| `src/main/` | 74 | 615 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 107 | 539 |
+| `src/renderer/components/` | 107 | 542 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 57 | 378 |
+| `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **415** | **3143** |
+| **Total** | **417** | **3167** |
 
-Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 407 fichiers, 3128 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -264,6 +264,22 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **weaponLabel / genderLabel**
   - traduit les codes arme et genre
   - laisse un code inconnu tel quel
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubAge.test.ts</code> — 8 tests</summary>
+
+- **catégories d’âge (#1872)**
+  - jeunes : âge atteint l’année de fin de saison ; vétérans : année de début
+  - membre : date, puis année de naissance, sinon catégorie saisie
+  - codes reconnus, listes nettoyées et ordonnées
+  - plages : bornes incluses, dans les deux sens, ouvertes
+  - exercices : aucune catégorie = commun à tous
+  - tri par catégorie puis nom, inconnues à la fin
+- **séances récurrentes (#1872)**
+  - tous les N jours, N fois ou jusqu’à une date (incluse)
+  - bornes : 60 séances au plus, pas invalide = une seule date, date invalide = aucune
 
 </details>
 
@@ -2426,7 +2442,7 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 34 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 38 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2470,6 +2486,11 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - annulé : non terminable
     - filtres : membre, plage, arme, terminés seuls par défaut
     - suppression
+  - **catégories d’âge et séances récurrentes**
+    - date de naissance : année déduite, date invalide ignorée
+    - séance : catégories du cours (codes reconnus), effaçables
+    - série : une séance préparée par date, plan copié sans cases cochées
+    - exercice : catégories visées (vide = commun à tous)
 
 </details>
 
@@ -3278,13 +3299,18 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/clubArena.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/remote/clubArena.test.ts</code> — 8 tests</summary>
 
 - **saisie distante Mode Club (#1872)**
   - identifiant de match club
   - match d’arène aux noms des membres
   - envoi : arène libre, occupée, sans serveur
   - libération : match d’entraînement libre remis si pas en cours
+- **cartes scannées sur la tablette arbitre (#1872)**
+  - sans séance reliée : refusé
+  - deux cartes : présents pointés, combat enregistré et placé sur la piste
+  - une carte passée : combat libre non enregistré, nom connu affiché
+  - erreurs : carte inconnue, même tireur, piste occupée ou absente
 
 </details>
 
@@ -4999,14 +5025,17 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 14 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
   - combat en cours sur la piste 1 : saisie du score et fin
   - piste 2 libre : appariement manuel parmi les présents
-  - pointage et fermeture
+  - pointage (fenêtre, catégories du cours) et fermeture
   - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
+  - saisie distante active : lobby des pistes
+  - ouverture avec les catégories d’âge du cours
+  - séance préparée répétée chaque semaine
   - annuler un combat libère la tablette
   - séance en cours : exercice coché, notes enregistrées
   - fermeture : bilan proposé, note et remarque par tireur
@@ -6295,6 +6324,18 @@ Unitaires : 405 fichiers, 3104 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - nextPassivityCard : rouge, noir, puis plus rien
   - passivityWinner : score, puis classement initial, puis tirage
   - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 5 tests</summary>
+
+- **refereeClubCards (#1872)**
+  - lit le QR de la carte ou le code en clair
+  - piste de l’URL, identification déjà faite
+  - messages d’erreur du serveur
+  - hors Mode Club : rien n’est installé
+  - séance reliée : bouton « Cartes » à côté de Retour
 
 </details>
 
