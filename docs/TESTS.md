@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 70 | 786 |
+| `src/shared/utils/` | 72 | 808 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 13 | 205 |
-| `src/main/` | 77 | 632 |
+| `src/database/` | 14 | 223 |
+| `src/main/` | 78 | 635 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 108 | 544 |
+| `src/renderer/components/` | 109 | 548 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **423** | **3197** |
+| **Total** | **428** | **3244** |
 
-Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 418 fichiers, 3205 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -290,6 +290,47 @@ Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
   - dédoublonne par licence puis nom (accents/casse), complète sans écraser
   - statut par ligne, dans l’ordre du fichier
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubInventory.test.ts</code> — 13 tests</summary>
+
+- **normalizeItemInput**
+  - exige un nom
+  - applique les valeurs par défaut et nettoie le texte
+  - borne la quantité et arrondit le prix
+  - refuse un prix négatif ou absurde
+  - refuse une date mal formée
+  - refuse une garantie qui finit avant l’achat
+  - ignore une arme inconnue
+- **dates et retards**
+  - localIsoDate formate en AAAA-MM-JJ local
+  - addDays gère les fins de mois
+  - un prêt est en retard après l’échéance, jamais une fois rendu
+  - alerte garantie : expire dans les 90 jours, pas si déjà expirée
+- **computeInventorySummary**
+  - compte hors réformés, valeur et prêts
+- **toCsv**
+  - séparateur ;, BOM, virgule décimale et échappement
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubInventoryIO.test.ts</code> — 9 tests</summary>
+
+- **parseDelimited**
+  - lit le CSV « ; » avec guillemets, retours ligne et BOM
+  - détecte la virgule si c’est le séparateur
+  - ignore les lignes vides
+- **toIsoDate**
+  - accepte ISO, dd/mm/aaaa et numéro de série Excel
+- **itemsToRows / rowsToItems**
+  - aller-retour sans perte des champs utiles
+  - accepte les libellés français, les codes internes et les colonnes dans un ordre quelconque
+  - signale les lignes invalides sans bloquer les autres
+  - refuse un fichier sans colonne Nom
+  - convertit les dates Excel numériques des colonnes de date
 
 </details>
 
@@ -2451,6 +2492,31 @@ Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 18 tests</summary>
+
+- **ClubInventoryRepo (inventaire du club)**
+  - crée une fiche complète avec achat, garantie et emplacement
+  - refuse une fiche sans nom ou avec une date invalide
+  - prête des exemplaires et décompte les disponibles
+  - refuse un prêt au-delà des disponibles
+  - refuse le prêt à un tireur d’un autre club ou archivé, et le matériel réformé
+  - refuse une échéance passée
+  - rend un prêt : état mis à jour sur le matériel, disponibilité rétablie
+  - refuse un retour antérieur au prêt
+  - signale les prêts en retard tant qu’ils ne sont pas rendus
+  - liste les prêts d’un tireur et les filtre par statut
+  - empêche de réduire la quantité sous le nombre prêté
+  - met à jour partiellement sans perdre les autres champs
+  - réforme sans supprimer : disparaît du prêt, reste dans l’historique
+  - supprimer du matériel prêté est refusé ; une fois rendu, la fiche et son historique partent
+  - supprime un prêt rendu, pas un prêt en cours
+  - effacement RGPD d’un tireur : son prêt reste compté, sans identité
+  - effacement d’un club : matériel et prêts supprimés
+  - import en lot : ignore les n° de série déjà présents ou répétés dans le fichier
+
+</details>
+
+<details>
 <summary><code>src/database/repos/clubRepo.test.ts</code> — 38 tests</summary>
 
 - **ClubRepo (#1872)**
@@ -2951,10 +3017,11 @@ Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 8 tests</summary>
 
 - **handlers club:\* (#1872)**
   - enregistre tous les canaux club:\*
+  - inventaire : délègue au dépôt, filtres et booléens par défaut
   - booléens stricts et filtres par défaut
   - club : objets vides par défaut
   - classement : force les combats terminés
@@ -3820,6 +3887,15 @@ Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **mode démo (session d’entraînement)**
   - joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique
   - simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5
+
+</details>
+
+<details>
+<summary><code>src/main/rowsToXlsx.test.ts</code> — 2 tests</summary>
+
+- **rowsToXlsx**
+  - aller-retour : texte avec caractères spéciaux, nombres et cellules vides
+  - retire les caractères interdits en XML
 
 </details>
 
@@ -5075,6 +5151,17 @@ Unitaires : 413 fichiers, 3158 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **ClubImportModal (#1872)**
   - coche par défaut nouveaux et à compléter, décoche, importe la sélection
   - tout décocher / tout cocher (lignes filtrées)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 4 tests</summary>
+
+- **ClubInventoryPanel (inventaire du club)**
+  - affiche le matériel actif, la synthèse et le prêt en retard ; les réformés sont masqués
+  - prête un exemplaire à un tireur
+  - refuse de supprimer du matériel prêté (bouton désactivé)
+  - enregistre le retour avec l’état constaté
 
 </details>
 
