@@ -3,7 +3,58 @@
  * durées, consignes). Normalisation des données reçues du renderer, durée totale.
  * Licensed under GPL-3.0
  */
-import type { ClubPlanItem, ClubSessionFeedback } from '../types/club';
+import type {
+  ClubExerciseCategory,
+  ClubExerciseInput,
+  ClubPlanItem,
+  ClubSessionFeedback,
+} from '../types/club';
+
+export const EXERCISE_CATEGORIES: ClubExerciseCategory[] = [
+  'warmup',
+  'technique',
+  'tactics',
+  'bouts',
+  'physical',
+  'cooldown',
+  'other',
+];
+
+export const MAX_IMAGES = 3;
+/** ≈ 1 Mo d'image en base64 */
+const MAX_IMAGE_LENGTH = 1_400_000;
+const IMAGE_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+
+/** Image acceptée dans un plan / un exercice */
+export const isValidImage = (v: unknown): v is string =>
+  typeof v === 'string' && v.length <= MAX_IMAGE_LENGTH && IMAGE_RE.test(v);
+
+export function normalizeImages(raw: unknown): string[] {
+  return Array.isArray(raw) ? raw.filter(isValidImage).slice(0, MAX_IMAGES) : [];
+}
+
+export const normalizeCategory = (v: unknown): ClubExerciseCategory | undefined =>
+  EXERCISE_CATEGORIES.includes(v as ClubExerciseCategory) ? (v as ClubExerciseCategory) : undefined;
+
+/** Exercice de bibliothèque valide (titre requis), sinon null */
+export function normalizeExerciseInput(
+  raw: unknown
+):
+  | (Required<Pick<ClubExerciseInput, 'title' | 'category' | 'minutes' | 'images'>> &
+      Pick<ClubExerciseInput, 'details'>)
+  | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const title = cleanLongText(o.title, 120);
+  if (!title) return null;
+  return {
+    title: title.replace(/\n/g, ' '),
+    category: normalizeCategory(o.category) ?? 'other',
+    minutes: Math.min(Math.max(Math.round(Number(o.minutes) || 0), 0), 600),
+    details: cleanLongText(o.details, 2000),
+    images: normalizeImages(o.images),
+  };
+}
 
 export const MAX_PLAN_ITEMS = 50;
 export const MAX_NOTE_LENGTH = 5000;
@@ -36,6 +87,10 @@ export function normalizePlan(raw: unknown): ClubPlanItem[] {
     const details = cleanLongText(o.details, 2000);
     if (details) item.details = details;
     if (o.done === true) item.done = true;
+    const category = normalizeCategory(o.category);
+    if (category) item.category = category;
+    const images = normalizeImages(o.images);
+    if (images.length) item.images = images;
     out.push(item);
   }
   return out;

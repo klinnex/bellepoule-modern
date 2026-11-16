@@ -246,6 +246,47 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
   });
 
+  describe('bibliothèque d’exercices', () => {
+    it('CRUD, tri par famille, import sans doublon', () => {
+      const png = 'data:image/png;base64,iVBORw0KGgo=';
+      const a = repo.createExercise({
+        title: 'Footing',
+        category: 'warmup',
+        minutes: 10,
+        images: [png],
+      });
+      expect(a).toMatchObject({ title: 'Footing', category: 'warmup', images: [png] });
+      repo.createExercise({ title: 'Fentes', category: 'physical', minutes: 5 });
+      expect(repo.listExercises().map(e => e.title)).toEqual(['Fentes', 'Footing']);
+      expect(repo.updateExercise(a.id, { minutes: 12, images: [] })).toMatchObject({
+        minutes: 12,
+        images: [],
+      });
+      expect(() => repo.createExercise({ title: ' ' })).toThrow();
+      expect(
+        repo.importExercises([
+          { title: 'footing', category: 'warmup' },
+          { title: 'Footing', category: 'cooldown' },
+          { title: '' },
+        ])
+      ).toEqual({ created: 1, skipped: 2 });
+      repo.deleteExercise(a.id);
+      expect(repo.getExercise(a.id)).toBeNull();
+    });
+
+    it('plan de séance : images et famille conservées', () => {
+      const png = 'data:image/png;base64,iVBORw0KGgo=';
+      const s = repo.createSession(cid, {
+        date: '2026-11-20',
+        planned: true,
+        plan: [
+          { id: 'e1', title: 'Schéma', minutes: 5, category: 'tactics', images: [png, 'bad'] },
+        ],
+      });
+      expect(s.plan[0]).toMatchObject({ category: 'tactics', images: [png] });
+    });
+  });
+
   describe('plusieurs clubs', () => {
     it('membres, séances et combats cloisonnés par club ; résumé pour l’accueil', () => {
       const other = repo.createClub({ name: 'Autre salle', stripCount: 3 }).id;

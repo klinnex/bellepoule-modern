@@ -44,6 +44,14 @@ const longDate = (iso: string): string => {
 
 const multiline = (s: string) => esc(s).replace(/\n/g, '<br>');
 
+/** Schémas / photos de l'exercice (data:image uniquement) */
+const imagesHtml = (images: string[] | undefined): string => {
+  const ok = (images ?? []).filter(src => IMG_RE.test(src));
+  return ok.length
+    ? `<div class="ex-images">${ok.map(src => `<img src="${src}" alt="">`).join('')}</div>`
+    : '';
+};
+
 const CSS = `
   .plan-head { display: flex; align-items: center; gap: 5mm; padding-bottom: 4mm;
     border-bottom: 0.8mm solid var(--navy); margin-bottom: 5mm; }
@@ -72,6 +80,9 @@ const CSS = `
   .box { display: inline-block; width: 4.5mm; height: 4.5mm; border: 0.35mm solid var(--navy); border-radius: 0.8mm; }
   .ex-title { font-weight: 700; font-size: 10.5pt; }
   .ex-details { margin-top: 1mm; color: var(--gray-dark); font-size: 9pt; }
+  .ex-images { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 2mm; }
+  .ex-images img { max-height: 42mm; max-width: 80mm; object-fit: contain;
+    border: 0.2mm solid var(--border); border-radius: 1mm; background: var(--white); }
   .plan-empty { color: var(--gray-dark); font-style: italic; margin-bottom: 6mm; }
   .plan-notes { border: 0.3mm solid var(--border); border-radius: 1mm; padding: 3mm 4mm; page-break-inside: avoid; }
   .plan-notes p { margin-bottom: 2mm; }
@@ -94,7 +105,7 @@ export function generateClubPlanHTML(session: ClubSession, opts: ClubPlanPdfOpti
         <td class="col-time">${esc(from)} – ${esc(to)}</td>
         <td><div class="ex-title">${esc(it.title)}</div>${
           it.details ? `<div class="ex-details">${multiline(it.details)}</div>` : ''
-        }</td>
+        }${imagesHtml(it.images)}</td>
         <td class="col-dur">${esc(formatMinutes(it.minutes))}</td>
         <td class="col-check"><span class="box"></span></td>
       </tr>`;

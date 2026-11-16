@@ -3437,7 +3437,10 @@
     "start": "Starten",
     "delete_confirm": "Das für {{date}} geplante Training löschen?",
     "export_pdf": "Als PDF exportieren",
-    "print": "Drucken"
+    "print": "Drucken",
+    "export_plan": "Plan exportieren",
+    "import_plan": "Plan importieren",
+    "plan_exported": "Plan exportiert"
   },
   "clubFeedback": {
     "title": "Trainingsbilanz vom {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "geplantes Training",
     "mark_open": "laufendes Training",
     "mark_closed": "vergangenes Training"
+  },
+  "clubImages": {
+    "label": "Bilder",
+    "label_n": "Bilder zu Übung {{n}}",
+    "add": "Bild hinzufügen",
+    "remove": "Bild {{n}} entfernen",
+    "invalid": "Bild nicht unterstützt (PNG, JPEG oder WebP, max. 1 MB)"
+  },
+  "clubExercises": {
+    "tab": "Übungen",
+    "title": "Übungsbibliothek ({{count}})",
+    "help": "Ihre Aufwärm-, Technik- und Taktikübungen, in allen Trainingsplänen wiederverwendbar und per Datei teilbar.",
+    "category": "Kategorie",
+    "cat_all": "Alle",
+    "cat_warmup": "Aufwärmen",
+    "cat_technique": "Technik",
+    "cat_tactics": "Taktik",
+    "cat_bouts": "Gefechte",
+    "cat_physical": "Athletik",
+    "cat_cooldown": "Abwärmen",
+    "cat_other": "Sonstiges",
+    "add": "Neue Übung",
+    "import": "Importieren",
+    "export": "Exportieren",
+    "exported": "Exportierte Übungen: {{count}}",
+    "imported": "Import abgeschlossen: {{created}} hinzugefügt, {{skipped}} bereits vorhanden",
+    "delete_confirm": "Übung « {{title}} » aus der Bibliothek löschen?",
+    "empty": "Keine Übungen",
+    "empty_desc": "Legen Sie Übungen an oder importieren Sie eine von einem anderen Verein geteilte Datei.",
+    "edit_title": "Übung bearbeiten",
+    "new_title": "Neue Übung",
+    "title_label": "Titel",
+    "details": "Anweisungen, Material, Varianten",
+    "pick_title": "Aus der Bibliothek wählen",
+    "pick_n": "Hinzufügen ({{count}})",
+    "none_found": "Keine passende Übung.",
+    "from_library": "Aus der Bibliothek",
+    "save_to_library": "Zur Bibliothek hinzufügen",
+    "saved_to_library": "« {{title}} » zur Bibliothek hinzugefügt"
+  },
+  "clubShare": {
+    "error_invalid_json": "Datei nicht lesbar (ungültiges JSON)",
+    "error_wrong_format": "Diese Datei hat nicht den richtigen Typ",
+    "error_empty": "Die Datei enthält nichts zum Importieren"
   }
 }

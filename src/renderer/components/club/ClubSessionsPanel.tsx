@@ -14,6 +14,8 @@ import {
   Pencil,
   Play,
   Printer,
+  Share2,
+  Upload,
   QrCode,
   Radio,
   ScanLine,
@@ -33,6 +35,13 @@ import type {
 import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { MiniCalendar, type DayMark } from './MiniCalendar';
+import { openTextFile, saveTextFile } from './clubFiles';
+import {
+  ClubShareError,
+  buildPlanFile,
+  parsePlanFile,
+  shareFileName,
+} from '../../../shared/utils/clubShare';
 import { exportClubPlanToPDF, printClubPlan } from '../../../shared/utils/pdfExport/clubPlanPdf';
 import { Weapon } from '../../../shared/types';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
@@ -177,7 +186,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const [remote, setRemote] = useState<RemoteState>({ active: false, url: null, strips: 0 });
   const [remoteBusy, setRemoteBusy] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
-  const [planner, setPlanner] = useState<{ session: ClubSession | null } | null>(null);
+  const [planner, setPlanner] = useState<{
+    session: ClubSession | null;
+    prefill?: Omit<ClubSessionInput, 'date'>;
+  } | null>(null);
   const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
   const [openDate, setOpenDate] = useState(today);
   // Arme de la séance à ouvrir : celle du club par défaut
@@ -286,6 +298,34 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
     }
   };
 
+  /** Plan partageable (fichier JSON sans date, présents ni bilan) */
+  const exportPlan = async (s: ClubSession) => {
+    try {
+      if (
+        await saveTextFile(
+          shareFileName('plan', s.label),
+          buildPlanFile(s),
+          t('clubPlan.export_plan')
+        )
+      ) {
+        showToast(t('clubPlan.plan_exported'), 'success');
+      }
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
+  /** Plan reçu d'un autre utilisateur : ouvert dans l'éditeur pour choisir la date */
+  const importPlan = async () => {
+    try {
+      const text = await openTextFile(t('clubPlan.import_plan'));
+      if (text === null) return;
+      setPlanner({ session: null, prefill: parsePlanFile(text) });
+    } catch (e) {
+      showToast(e instanceof ClubShareError ? t(`clubShare.error_${e.code}`) : errText(e), 'error');
+    }
+  };
+
   /** Jours ayant déjà une séance, marqués dans les calendriers */
   const dayMarks: Record<string, DayMark> = {};
   for (const s of sessions)
@@ -294,6 +334,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const plannerModal = planner && (
     <ClubSessionPlanner
       session={planner.session}
+      prefill={planner.prefill}
       defaultDate={today()}
       defaultWeapon={settings.weapon}
       marks={dayMarks}
@@ -357,6 +398,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
               {t('clubPlan.upcoming')}
             </h2>
             <Button
+              icon={<Upload size={15} aria-hidden="true" />}
+              onClick={() => void importPlan()}
+            >
+              {t('clubPlan.import_plan')}
+            </Button>
+            <Button
               data-tour="club-plan-session"
               icon={<ClipboardList size={15} aria-hidden="true" />}
               onClick={() => setPlanner({ session: null })}
@@ -395,6 +442,14 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
                         aria-label={t('clubPlan.export_pdf')}
                         title={t('clubPlan.export_pdf')}
                         onClick={() => void planOutput(s, 'pdf')}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Share2 size={14} aria-hidden="true" />}
+                        aria-label={t('clubPlan.export_plan')}
+                        title={t('clubPlan.export_plan')}
+                        onClick={() => void exportPlan(s)}
                       />
                       <Button
                         size="sm"
@@ -572,6 +627,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
         onEdit={() => setPlanner({ session: current })}
         onExportPdf={() => void planOutput(current, 'pdf')}
         onPrint={() => void planOutput(current, 'print')}
+        onExportPlan={() => void exportPlan(current)}
         onToggle={(itemId, done) =>
           void run(() =>
             api.updateSession(current.id, {

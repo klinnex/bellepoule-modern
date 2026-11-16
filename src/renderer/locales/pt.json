@@ -3437,7 +3437,10 @@
     "start": "Iniciar",
     "delete_confirm": "Eliminar a sessão prevista para {{date}}?",
     "export_pdf": "Exportar em PDF",
-    "print": "Imprimir"
+    "print": "Imprimir",
+    "export_plan": "Exportar o plano",
+    "import_plan": "Importar um plano",
+    "plan_exported": "Plano exportado"
   },
   "clubFeedback": {
     "title": "Balanço da sessão de {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "sessão prevista",
     "mark_open": "sessão em curso",
     "mark_closed": "sessão passada"
+  },
+  "clubImages": {
+    "label": "Imagens",
+    "label_n": "Imagens do exercício {{n}}",
+    "add": "Adicionar imagem",
+    "remove": "Remover a imagem {{n}}",
+    "invalid": "Imagem não suportada (PNG, JPEG ou WebP, máx. 1 MB)"
+  },
+  "clubExercises": {
+    "tab": "Exercícios",
+    "title": "Biblioteca de exercícios ({{count}})",
+    "help": "Os seus aquecimentos e exercícios técnicos e táticos, reutilizáveis em todos os planos e partilháveis por ficheiro.",
+    "category": "Família",
+    "cat_all": "Todas",
+    "cat_warmup": "Aquecimento",
+    "cat_technique": "Técnica",
+    "cat_tactics": "Tática",
+    "cat_bouts": "Assaltos",
+    "cat_physical": "Preparação física",
+    "cat_cooldown": "Retorno à calma",
+    "cat_other": "Outro",
+    "add": "Novo exercício",
+    "import": "Importar",
+    "export": "Exportar",
+    "exported": "Exercícios exportados: {{count}}",
+    "imported": "Importação concluída: {{created}} adicionado(s), {{skipped}} já existente(s)",
+    "delete_confirm": "Eliminar o exercício « {{title}} » da biblioteca?",
+    "empty": "Nenhum exercício",
+    "empty_desc": "Crie os seus exercícios ou importe um ficheiro partilhado por outro clube.",
+    "edit_title": "Editar o exercício",
+    "new_title": "Novo exercício",
+    "title_label": "Título",
+    "details": "Instruções, material, variantes",
+    "pick_title": "Escolher na biblioteca",
+    "pick_n": "Adicionar ({{count}})",
+    "none_found": "Nenhum exercício corresponde.",
+    "from_library": "Da biblioteca",
+    "save_to_library": "Adicionar à biblioteca",
+    "saved_to_library": "« {{title}} » adicionado à biblioteca"
+  },
+  "clubShare": {
+    "error_invalid_json": "Ficheiro ilegível (JSON inválido)",
+    "error_wrong_format": "Este ficheiro não é do tipo certo",
+    "error_empty": "O ficheiro não contém nada para importar"
   }
 }

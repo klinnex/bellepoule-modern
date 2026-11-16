@@ -9,6 +9,7 @@ import {
   ArrowLeftRight,
   BarChart3,
   CalendarDays,
+  Dumbbell,
   Shield,
   Sparkles,
   Trash2,
@@ -22,10 +23,11 @@ import { Button } from '../common/Button';
 import { ClubMembersPanel } from './ClubMembersPanel';
 import { ClubSessionsPanel } from './ClubSessionsPanel';
 import { ClubStatsPanel } from './ClubStatsPanel';
+import { ClubExercisesPanel } from './ClubExercisesPanel';
 import { ClubTour } from './ClubTour';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
-type ClubTab = 'members' | 'sessions' | 'stats';
+type ClubTab = 'members' | 'sessions' | 'stats' | 'exercises';
 
 const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'members', icon: <Users size={15} aria-hidden="true" />, labelKey: 'club.tab_members' },
@@ -35,6 +37,11 @@ const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
     labelKey: 'club.tab_sessions',
   },
   { id: 'stats', icon: <BarChart3 size={15} aria-hidden="true" />, labelKey: 'club.tab_stats' },
+  {
+    id: 'exercises',
+    icon: <Dumbbell size={15} aria-hidden="true" />,
+    labelKey: 'clubExercises.tab',
+  },
 ];
 
 interface ClubViewProps {
@@ -158,6 +165,7 @@ const ClubSpace: React.FC<{
         )}
         {tab === 'sessions' && <ClubSessionsPanel clubId={clubId} settings={settings} />}
         {tab === 'stats' && <ClubStatsPanel clubId={clubId} />}
+        {tab === 'exercises' && <ClubExercisesPanel />}
       </section>
 
       <ClubTour

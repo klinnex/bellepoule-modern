@@ -3437,7 +3437,10 @@
     "start": "Avvia",
     "delete_confirm": "Eliminare la seduta prevista del {{date}}?",
     "export_pdf": "Esporta in PDF",
-    "print": "Stampa"
+    "print": "Stampa",
+    "export_plan": "Esporta il piano",
+    "import_plan": "Importa un piano",
+    "plan_exported": "Piano esportato"
   },
   "clubFeedback": {
     "title": "Bilancio della seduta del {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "seduta prevista",
     "mark_open": "seduta in corso",
     "mark_closed": "seduta passata"
+  },
+  "clubImages": {
+    "label": "Immagini",
+    "label_n": "Immagini dell'esercizio {{n}}",
+    "add": "Aggiungi immagine",
+    "remove": "Rimuovi l'immagine {{n}}",
+    "invalid": "Immagine non supportata (PNG, JPEG o WebP, max 1 MB)"
+  },
+  "clubExercises": {
+    "tab": "Esercizi",
+    "title": "Libreria di esercizi ({{count}})",
+    "help": "I tuoi riscaldamenti ed esercizi tecnici e tattici, riutilizzabili in tutti i piani e condivisibili via file.",
+    "category": "Famiglia",
+    "cat_all": "Tutte",
+    "cat_warmup": "Riscaldamento",
+    "cat_technique": "Tecnica",
+    "cat_tactics": "Tattica",
+    "cat_bouts": "Assalti",
+    "cat_physical": "Preparazione fisica",
+    "cat_cooldown": "Defaticamento",
+    "cat_other": "Altro",
+    "add": "Nuovo esercizio",
+    "import": "Importa",
+    "export": "Esporta",
+    "exported": "Esercizi esportati: {{count}}",
+    "imported": "Importazione completata: {{created}} aggiunto/i, {{skipped}} già presente/i",
+    "delete_confirm": "Eliminare l'esercizio « {{title}} » dalla libreria?",
+    "empty": "Nessun esercizio",
+    "empty_desc": "Crea i tuoi esercizi o importa un file condiviso da un altro club.",
+    "edit_title": "Modifica esercizio",
+    "new_title": "Nuovo esercizio",
+    "title_label": "Titolo",
+    "details": "Istruzioni, materiale, varianti",
+    "pick_title": "Scegli dalla libreria",
+    "pick_n": "Aggiungi ({{count}})",
+    "none_found": "Nessun esercizio corrispondente.",
+    "from_library": "Dalla libreria",
+    "save_to_library": "Aggiungi alla libreria",
+    "saved_to_library": "« {{title}} » aggiunto alla libreria"
+  },
+  "clubShare": {
+    "error_invalid_json": "File illeggibile (JSON non valido)",
+    "error_wrong_format": "Questo file non è del tipo giusto",
+    "error_empty": "Il file non contiene nulla da importare"
   }
 }
