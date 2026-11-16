@@ -183,12 +183,22 @@ describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', { timeout:
   });
 
   it('PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés', async () => {
+    // DISP reçus par l'appareil (écouteur ajouté après le sien : il a déjà traité la trame).
+    // Le score de l'appareil vaut déjà 2 avant le DISP : sans ce compteur, un DISP tardif
+    // arrivait après BEGIN du test suivant et écrasait la correction (test instable).
+    let disps = 0;
+    const onFrame = (buf: Buffer) => {
+      if (buf.toString('latin1').includes('|DISP|')) disps++;
+    };
+    device.sock.on('message', onFrame);
     device.command('prev');
     // Attendre le rappel (arène prête, match terminé remis) et le DISP reçu par l'appareil
     await until(
       () => arena().status === 'ready' && arena().currentMatch?.id === pm(1, ID.ef, ID.ab).id
     );
-    await until(() => device.snapshot().right.score === 2);
+    await until(() => disps > 0);
+    device.sock.off('message', onFrame);
+    expect(device.snapshot().right.score).toBe(2);
     expect(arena().currentMatch).toMatchObject({ scoreA: 2, scoreB: 0, status: 'not_started' });
     expect(remote.arenaCards.get('arena1')?.cardsB).toContain('yellow');
   });
