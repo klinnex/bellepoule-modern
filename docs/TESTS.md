@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 61 | 741 |
+| `src/shared/utils/` | 62 | 746 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 179 |
+| `src/database/` | 12 | 181 |
 | `src/main/` | 72 | 602 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 101 | 508 |
+| `src/renderer/components/` | 101 | 510 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **400** | **3054** |
+| **Total** | **401** | **3063** |
 
-Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 391 fichiers, 3024 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -264,6 +264,15 @@ Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **weaponLabel / genderLabel**
   - traduit les codes arme et genre
   - laisse un code inconnu tel quel
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubImport.test.ts</code> — 2 tests</summary>
+
+- **import des membres du club (#1872)**
+  - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
+  - dédoublonne par licence puis nom (accents/casse), complète sans écraser
 
 </details>
 
@@ -819,12 +828,16 @@ Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/clubCardsPdf.test.ts</code> — 3 tests</summary>
+<summary><code>src/shared/utils/pdfExport/clubCardsPdf.test.ts</code> — 6 tests</summary>
 
 - **cartes de membre (#1872)**
   - 10 cartes par page, nom en majuscules, code en clair
   - échappe les textes, refuse logo/QR non data:image
   - QR réels : payload BPC1:M:\<code\>
+  - photo du membre sur la carte (data:image seulement)
+- **QR des pistes (#1872)**
+  - bornes 0..99
+  - 2 pistes par page, titre, payload BPC1:A:n, nom échappé
 
 </details>
 
@@ -2340,11 +2353,13 @@ Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 21 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 23 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
     - crée, normalise et liste par nom
+    - import en lot : création, complément, doublons
+    - photo : validée, effaçable, import par licence
     - nom requis
     - archive : masqué par défaut, visible avec includeInactive
     - suppression RGPD : combats et présences effacés
@@ -4844,13 +4859,15 @@ Unitaires : 390 fichiers, 3015 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 6 tests</summary>
 
 - **ClubView**
   - affiche le club, ses sous-onglets et les membres
   - ajoute un membre
   - archive un membre, affiche les archivés
   - enregistre le nom du club
+  - importe un fichier FFE .fff
+  - nombre de pistes enregistré, import des photos ZIP
 
 </details>
 
