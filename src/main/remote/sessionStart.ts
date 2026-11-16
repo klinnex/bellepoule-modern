@@ -5,6 +5,7 @@
  */
 import { RemoteSession, ArenaMatch } from '../../shared/types/remote';
 import { Weapon, type Fencer } from '../../shared/types';
+import { getActiveFormula } from '../../shared/utils/customFormulaSettings';
 import type { RendererMatch, SessionMatch } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
@@ -76,13 +77,13 @@ export async function startSession(
 
   // Stocker le type d'arme pour l'arrêt automatique à 15 points en Laser Sabre
   ctx.sessionWeapon = competition.weapon || null;
-  const formulaPhases = competition.settings?.customFormula?.phases ?? [];
+  // Rapières (mode spécial) : pas de barème personnalisé, vue arbitre olympique (#1808)
+  const formulaPhases = getActiveFormula(competition.weapon, competition.settings)?.phases ?? [];
+  const poolScoring = formulaPhases.find(p => p.type === 'pool_round')?.config.scoring;
+  const deScoring = formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring;
   ctx.sessionCustomScoring =
-    ctx.sessionWeapon === Weapon.CUSTOM
-      ? {
-          pool: formulaPhases.find(p => p.type === 'pool_round')?.config.scoring,
-          de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
-        }
+    ctx.sessionWeapon === Weapon.CUSTOM && (poolScoring || deScoring)
+      ? { pool: poolScoring, de: deScoring }
       : null;
   ctx.applyCompetitionSettings(competition);
   logger.info(

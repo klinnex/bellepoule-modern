@@ -129,7 +129,9 @@ class RefereeAppBase {
         if (s) {
           this.weapon = s.weapon || null; // placement gaucher/droitier (#1439)
           this.isLaserSabre = s.weapon === 'L';
-          this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
+          // Sans barème de poule ni de tableau (rapières) : vue olympique standard (#1808)
+          const cs = s.weapon === 'C' ? s.customScoring : null;
+          this.customScoring = cs && (cs.pool || cs.de) ? cs : null;
           this.applyScoringButtons();
           // Formule personnalisée : règles choisies dans la formule (#1125)
           this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true;
