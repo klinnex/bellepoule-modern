@@ -593,7 +593,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
               />
             </div>
           )}
-        {isExpert && fold('cyrano')(<CyranoPanel />)}
+        {isExpert && fold('cyrano')(<CyranoPanel competitionId={competition.id} />)}
 
         {/* ── Section : Écrans connectés (+ modale kiosk) — dans le même conteneur que les autres volets ── */}
         {fold('screens')(

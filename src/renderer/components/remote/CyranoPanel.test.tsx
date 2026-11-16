@@ -4,14 +4,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { CyranoPanel } from './CyranoPanel';
-import { useCompetitionStore } from '../../../features/competition/hooks/useCompetitionStore';
 
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 
 describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
   beforeEach(() => {
     localStorage.clear();
-    useCompetitionStore.setState({ currentCompetition: { id: 'c1' } } as never);
     (window as any).electronAPI = {
       cyrano: {
         loadPistes: vi.fn().mockResolvedValue([
@@ -40,7 +38,7 @@ describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
   });
 
   it('signale la piste dont l’appareil affiche un autre match', async () => {
-    render(<CyranoPanel />);
+    render(<CyranoPanel competitionId="c1" />);
     const badge = await screen.findByText('BAD MATCH');
     expect(badge.closest('.cyrano-alert')).toHaveAttribute(
       'title',
@@ -52,7 +50,6 @@ describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
 describe('CyranoPanel — secours et journal (#1829)', () => {
   beforeEach(() => {
     localStorage.clear();
-    useCompetitionStore.setState({ currentCompetition: { id: 'c1' } } as never);
     (window as unknown as { electronAPI: unknown }).electronAPI = {
       cyrano: {
         loadPistes: vi.fn().mockResolvedValue([
@@ -93,7 +90,7 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
   });
 
   it('actions de secours envoyées pour la piste', async () => {
-    render(<CyranoPanel />);
+    render(<CyranoPanel competitionId="c1" />);
     fireEvent.click(await screen.findByText('ACK'));
     expect(
       (window as unknown as { electronAPI: { cyrano: { pisteAction: unknown } } }).electronAPI
@@ -102,7 +99,7 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
   });
 
   it('journal affiché à la demande ; interfaces proposées', async () => {
-    render(<CyranoPanel />);
+    render(<CyranoPanel competitionId="c1" />);
     fireEvent.click(await screen.findByText('Journal des trames'));
     expect(await screen.findByText(/\|EFP1\.1\|INFO\|1\|/)).toBeInTheDocument();
     expect(await screen.findByText('10.1.1.1 (eth0)')).toBeInTheDocument();
