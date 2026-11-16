@@ -3385,5 +3385,18 @@
     "status_update": "Por completar",
     "status_present": "Ya presente",
     "status_duplicate": "Duplicado en el archivo"
+  },
+  "clubs": {
+    "title": "Clubes",
+    "choose": "Elija un club o cree uno nuevo.",
+    "first_club": "Cree su primer club: socios, sesiones y estadísticas estarán vinculados a él.",
+    "switch": "Cambiar de club",
+    "delete": "Eliminar el club",
+    "delete_confirm": "¿Eliminar definitivamente el club « {{name}} » con sus socios, sesiones y asaltos?",
+    "members_n": "Socios: {{count}}",
+    "open_session": "Sesión abierta ({{date}})",
+    "new_name": "Nombre del nuevo club",
+    "new_name_ph": "Club de esgrima",
+    "create": "Crear el club"
   }
 }

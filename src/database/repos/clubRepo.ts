@@ -13,7 +13,9 @@ import type {
   ClubSession,
   ClubSessionInput,
   ClubSessionStatus,
-  ClubSettings,
+  Club,
+  ClubSummary,
+  ClubUpdate,
   Laterality,
 } from '../../shared/types/club';
 import { normalizeCardCode } from '../../shared/utils/clubQr';
@@ -23,8 +25,18 @@ import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
 import { sanitizeText } from '../validation';
 import type { SqlExecutor } from './sqlExecutor';
 
+interface ClubRow {
+  id: string;
+  name: string | null;
+  logo: string | null;
+  strip_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface MemberRow {
   id: string;
+  club_id: string | null;
   first_name: string | null;
   last_name: string | null;
   license: string | null;
@@ -43,6 +55,7 @@ interface MemberRow {
 
 interface SessionRow {
   id: string;
+  club_id: string | null;
   date: string;
   label: string | null;
   weapon: string | null;
@@ -110,6 +123,7 @@ const validPhoto = (p: unknown): p is string =>
 function rowToMember(r: MemberRow): ClubMember {
   return {
     id: r.id,
+    clubId: r.club_id ?? '',
     firstName: r.first_name ?? '',
     lastName: r.last_name ?? '',
     license: opt(r.license),
@@ -161,60 +175,122 @@ export class ClubRepo {
     if (!this.sql.db) throw new Error('Database not open');
   }
 
-  // ─── Identité du club ────────────────────────────────────────────────────────
+  // ─── Clubs ───────────────────────────────────────────────────────────────────
 
-  public getSettings(): ClubSettings {
-    if (!this.sql.db) return { name: '', stripCount: 1 };
-    const rows = this.sql.queryAll<{ key: string; value: string | null }>(
-      'SELECT key, value FROM club_settings'
-    );
-    const get = (k: string) => rows.find(r => r.key === k)?.value ?? null;
+  private rowToClub(r: ClubRow): Club {
     return {
-      name: get('name') ?? '',
-      logo: opt(get('logo')),
-      stripCount: clampInt(get('strip_count') ?? 1, 1, MAX_STRIPS, 1),
+      id: r.id,
+      name: r.name ?? '',
+      logo: opt(r.logo),
+      stripCount: clampInt(r.strip_count ?? 1, 1, MAX_STRIPS, 1),
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
     };
   }
 
-  /** logo: null efface le logo ; logo invalide refusé */
-  public updateSettings(data: {
-    name?: string;
-    logo?: string | null;
-    stripCount?: number;
-  }): ClubSettings {
+  /** Clubs par nom, avec effectif actif et date de la séance ouverte */
+  public listClubs(): ClubSummary[] {
+    if (!this.sql.db) return [];
+    return this.sql
+      .queryAll<ClubRow & { members_count: number; open_date: string | null }>(
+        `SELECT c.*,
+           (SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id AND m.active = 1) AS members_count,
+           (SELECT MAX(s.date) FROM club_sessions s WHERE s.club_id = c.id AND s.status = 'open') AS open_date
+         FROM clubs c ORDER BY c.name COLLATE NOCASE, c.created_at`
+      )
+      .map(r => ({
+        ...this.rowToClub(r),
+        membersCount: r.members_count ?? 0,
+        openSessionDate: r.open_date ?? null,
+      }));
+  }
+
+  public getClub(id: string): Club | null {
+    if (!this.sql.db) return null;
+    const r = this.sql.queryOne<ClubRow>('SELECT * FROM clubs WHERE id = ?', [id]);
+    return r ? this.rowToClub(r) : null;
+  }
+
+  private requireClub(id: string): Club {
+    const c = this.getClub(id);
+    if (!c) throw new Error('Club inconnu');
+    return c;
+  }
+
+  public createClub(data: { name: string; stripCount?: number }): Club {
     this.ensureOpen();
-    const set = (key: string, value: string | null) =>
-      this.sql.run(
-        'INSERT INTO club_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
-        [key, value]
-      );
-    if (data.logo !== undefined && data.logo !== null) {
+    const name = str(data?.name);
+    if (!name) throw new Error('Nom du club requis');
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    this.sql.run(
+      'INSERT INTO clubs (id, name, logo, strip_count, created_at, updated_at) VALUES (?, ?, NULL, ?, ?, ?)',
+      [id, name, clampInt(data.stripCount ?? 1, 1, MAX_STRIPS, 1), now, now]
+    );
+    return this.getClub(id)!;
+  }
+
+  /** logo: null efface le logo ; logo invalide refusé ; nom vide refusé */
+  public updateClub(id: string, data: ClubUpdate): Club | null {
+    this.ensureOpen();
+    const sets: string[] = [];
+    const values: unknown[] = [];
+    if (data.name !== undefined) {
+      const name = str(data.name);
+      if (!name) throw new Error('Nom du club requis');
+      sets.push('name = ?');
+      values.push(name);
+    }
+    if (data.logo !== undefined) {
       if (
-        typeof data.logo !== 'string' ||
-        data.logo.length > MAX_LOGO_LENGTH ||
-        !LOGO_RE.test(data.logo)
+        data.logo !== null &&
+        (typeof data.logo !== 'string' ||
+          data.logo.length > MAX_LOGO_LENGTH ||
+          !LOGO_RE.test(data.logo))
       ) {
         throw new Error('Logo invalide (image PNG, JPEG, WebP ou SVG, 2 Mo max)');
       }
+      sets.push('logo = ?');
+      values.push(data.logo);
     }
+    if (data.stripCount !== undefined) {
+      sets.push('strip_count = ?');
+      values.push(clampInt(data.stripCount, 1, MAX_STRIPS, 1));
+    }
+    if (sets.length > 0) {
+      this.sql.run(`UPDATE clubs SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`, [
+        ...values,
+        new Date().toISOString(),
+        id,
+      ]);
+    }
+    return this.getClub(id);
+  }
+
+  /** Suppression définitive : club, membres, séances, présences, combats */
+  public deleteClub(id: string): void {
+    this.ensureOpen();
     this.sql.transaction(() => {
-      if (data.name !== undefined) set('name', str(data.name) ?? '');
-      if (data.logo !== undefined) set('logo', data.logo);
-      if (data.stripCount !== undefined) {
-        set('strip_count', String(clampInt(data.stripCount, 1, MAX_STRIPS, 1)));
-      }
+      this.sql.run(
+        'DELETE FROM club_attendance WHERE session_id IN (SELECT id FROM club_sessions WHERE club_id = ?)',
+        [id]
+      );
+      this.sql.run('DELETE FROM club_bouts WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM club_sessions WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM club_members WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM clubs WHERE id = ?', [id]);
     });
-    return this.getSettings();
   }
 
   // ─── Membres ─────────────────────────────────────────────────────────────────
 
-  public listMembers(includeInactive = false): ClubMember[] {
+  public listMembers(clubId: string, includeInactive = false): ClubMember[] {
     if (!this.sql.db) return [];
     return this.sql
       .queryAll<MemberRow>(
-        `SELECT * FROM club_members ${includeInactive ? '' : 'WHERE active = 1'}
-         ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE`
+        `SELECT * FROM club_members WHERE club_id = ? ${includeInactive ? '' : 'AND active = 1'}
+         ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE`,
+        [clubId]
       )
       .map(rowToMember);
   }
@@ -250,13 +326,21 @@ export class ClubRepo {
     return cols;
   }
 
-  public createMember(data: ClubMemberInput): ClubMember {
+  public createMember(clubId: string, data: ClubMemberInput): ClubMember {
     this.ensureOpen();
+    this.requireClub(clubId);
     const cols = this.memberColumns({ weapons: [], active: true, ...data });
     if (!cols.first_name && !cols.last_name) throw new Error('Nom du membre requis');
     const id = uuidv4();
     const now = new Date().toISOString();
-    const all = { id, ...cols, card_code: this.uniqueCardCode(), created_at: now, updated_at: now };
+    const all = {
+      id,
+      club_id: clubId,
+      ...cols,
+      card_code: this.uniqueCardCode(),
+      created_at: now,
+      updated_at: now,
+    };
     const keys = Object.keys(all);
     this.sql.run(
       `INSERT INTO club_members (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
@@ -286,7 +370,7 @@ export class ClubRepo {
   }
 
   /** Membre actif correspondant au code de carte lu (QR ou saisie) */
-  public findMemberByCardCode(code: string): ClubMember | null {
+  public findMemberByCardCode(code: string, clubId?: string): ClubMember | null {
     if (!this.sql.db) return null;
     const c = normalizeCardCode(code);
     if (!c) return null;
@@ -294,7 +378,8 @@ export class ClubRepo {
       'SELECT * FROM club_members WHERE card_code = ? AND active = 1',
       [c]
     );
-    return r ? rowToMember(r) : null;
+    if (!r || (clubId && r.club_id !== clubId)) return null;
+    return rowToMember(r);
   }
 
   /** Carte perdue : nouveau code, l'ancienne carte n'est plus reconnue */
@@ -309,7 +394,10 @@ export class ClubRepo {
   }
 
   /** Photos par licence (ZIP) : membres actifs ou archivés, licence identique */
-  public setPhotosByLicense(photos: { license: string; photo: string }[]): {
+  public setPhotosByLicense(
+    clubId: string,
+    photos: { license: string; photo: string }[]
+  ): {
     matched: number;
     total: number;
   } {
@@ -321,8 +409,8 @@ export class ClubRepo {
         const lic = typeof license === 'string' ? license.trim() : '';
         if (!lic || !validPhoto(photo)) continue;
         const r = this.sql.run(
-          'UPDATE club_members SET photo = ?, updated_at = ? WHERE license = ?',
-          [photo, now, lic]
+          'UPDATE club_members SET photo = ?, updated_at = ? WHERE club_id = ? AND license = ?',
+          [photo, now, clubId, lic]
         );
         if (r.changes > 0) matched++;
       }
@@ -331,16 +419,17 @@ export class ClubRepo {
   }
 
   /** Import en lot (fichier FFE…) : crée les nouveaux, complète les existants, ignore les doublons */
-  public importMembers(inputs: ClubMemberInput[]): ClubImportResult {
+  public importMembers(clubId: string, inputs: ClubMemberInput[]): ClubImportResult {
     this.ensureOpen();
+    this.requireClub(clubId);
     const list = Array.isArray(inputs) ? inputs.slice(0, 5000) : [];
-    const plan = planClubImport(this.listMembers(true), list);
+    const plan = planClubImport(this.listMembers(clubId, true), list);
     let created = 0;
     let skipped = plan.skipped;
     this.sql.transaction(() => {
       for (const m of plan.create) {
         try {
-          this.createMember(m);
+          this.createMember(clubId, m);
           created++;
         } catch {
           skipped++; // ligne sans nom exploitable
@@ -375,6 +464,7 @@ export class ClubRepo {
   private rowToSession(r: SessionRow): ClubSession {
     return {
       id: r.id,
+      clubId: r.club_id ?? '',
       date: r.date,
       label: opt(r.label),
       weapon: opt(oneWeapon(r.weapon)),
@@ -389,10 +479,10 @@ export class ClubRepo {
   }
 
   /** Séances, plus récentes d'abord ; bornes from/to incluses (AAAA-MM-JJ) */
-  public listSessions(range: { from?: string; to?: string } = {}): ClubSession[] {
+  public listSessions(clubId: string, range: { from?: string; to?: string } = {}): ClubSession[] {
     if (!this.sql.db) return [];
-    const where: string[] = [];
-    const params: unknown[] = [];
+    const where: string[] = ['club_id = ?'];
+    const params: unknown[] = [clubId];
     if (isIsoDate(range.from)) {
       where.push('date >= ?');
       params.push(range.from);
@@ -403,7 +493,7 @@ export class ClubRepo {
     }
     return this.sql
       .queryAll<SessionRow>(
-        `SELECT * FROM club_sessions ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+        `SELECT * FROM club_sessions WHERE ${where.join(' AND ')}
          ORDER BY date DESC, opened_at DESC`,
         params
       )
@@ -416,20 +506,22 @@ export class ClubRepo {
     return r ? this.rowToSession(r) : null;
   }
 
-  public createSession(data: ClubSessionInput): ClubSession {
+  public createSession(clubId: string, data: ClubSessionInput): ClubSession {
     this.ensureOpen();
+    const club = this.requireClub(clubId);
     if (!isIsoDate(data.date)) throw new Error(`Date de séance invalide : ${data.date}`);
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
-      `INSERT INTO club_sessions (id, date, label, weapon, strip_count, status, opened_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'open', ?, ?, ?)`,
+      `INSERT INTO club_sessions (id, club_id, date, label, weapon, strip_count, status, opened_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)`,
       [
         id,
+        clubId,
         data.date,
         str(data.label),
         oneWeapon(data.weapon),
-        clampInt(data.stripCount ?? 1, 1, MAX_STRIPS, 1),
+        clampInt(data.stripCount ?? club.stripCount, 1, MAX_STRIPS, 1),
         now,
         now,
         now,
@@ -514,7 +606,9 @@ export class ClubRepo {
   public setAttendance(sessionId: string, memberId: string, present: boolean): string[] {
     this.ensureOpen();
     if (present) {
-      if (!this.getMember(memberId)) throw new Error('Membre inconnu');
+      const m = this.getMember(memberId);
+      const s = this.getSession(sessionId);
+      if (!m || !s || m.clubId !== s.clubId) throw new Error('Membre inconnu');
       this.sql.run(
         'INSERT OR IGNORE INTO club_attendance (session_id, member_id, checked_in_at) VALUES (?, ?, ?)',
         [sessionId, memberId, new Date().toISOString()]
@@ -540,6 +634,10 @@ export class ClubRepo {
     if (!this.sql.db) return [];
     const where: string[] = [];
     const params: unknown[] = [];
+    if (filter.clubId) {
+      where.push('club_id = ?');
+      params.push(filter.clubId);
+    }
     if (filter.sessionId) {
       where.push('session_id = ?');
       params.push(filter.sessionId);
@@ -578,7 +676,9 @@ export class ClubRepo {
     if (!session) throw new Error('Séance inconnue');
     if (session.status !== 'open') throw new Error('Séance fermée');
     if (data.memberAId === data.memberBId) throw new Error('Un membre ne peut pas se combattre');
-    if (!this.getMember(data.memberAId) || !this.getMember(data.memberBId)) {
+    const ma = this.getMember(data.memberAId);
+    const mb = this.getMember(data.memberBId);
+    if (!ma || !mb || ma.clubId !== session.clubId || mb.clubId !== session.clubId) {
       throw new Error('Membre inconnu');
     }
     const strip = optInt(data.strip, 1, session.stripCount);
@@ -594,11 +694,12 @@ export class ClubRepo {
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
-      `INSERT INTO club_bouts (id, session_id, date, strip, member_a_id, member_b_id, max_score,
+      `INSERT INTO club_bouts (id, club_id, session_id, date, strip, member_a_id, member_b_id, max_score,
          status, entry_mode, weapon, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
       [
         id,
+        session.clubId,
         session.id,
         session.date,
         strip,

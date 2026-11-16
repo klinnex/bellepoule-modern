@@ -3385,5 +3385,18 @@
     "status_update": "A completar",
     "status_present": "Ja present",
     "status_duplicate": "Duplicat al fitxer"
+  },
+  "clubs": {
+    "title": "Clubs",
+    "choose": "Trieu un club o creeu-ne un de nou.",
+    "first_club": "Creeu el vostre primer club: socis, sessions i estadístiques en formaran part.",
+    "switch": "Canviar de club",
+    "delete": "Suprimir el club",
+    "delete_confirm": "Suprimir definitivament el club « {{name}} » amb els seus socis, sessions i combats?",
+    "members_n": "Socis: {{count}}",
+    "open_session": "Sessió oberta ({{date}})",
+    "new_name": "Nom del nou club",
+    "new_name_ph": "Club d'esgrima",
+    "create": "Crear el club"
   }
 }

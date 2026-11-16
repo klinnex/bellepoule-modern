@@ -79,7 +79,7 @@ export const ClubScanModal: React.FC<ClubScanModalProps> = ({ session, onClose, 
         if (data.kind === 'arena') {
           input = { kind: 'arena' as const, number: data.number };
         } else {
-          const m = await api.findMemberByCardCode(data.code);
+          const m = await api.findMemberByCardCode(data.code, session.clubId);
           if (!m) {
             setMessage({ text: t('clubSession.scan_member_unknown'), ok: false });
             return;

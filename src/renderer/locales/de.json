@@ -3385,5 +3385,18 @@
     "status_update": "Zu ergänzen",
     "status_present": "Bereits vorhanden",
     "status_duplicate": "Doppelt in der Datei"
+  },
+  "clubs": {
+    "title": "Vereine",
+    "choose": "Wählen Sie einen Verein oder legen Sie einen neuen an.",
+    "first_club": "Legen Sie Ihren ersten Verein an: Mitglieder, Trainings und Statistiken gehören dazu.",
+    "switch": "Verein wechseln",
+    "delete": "Verein löschen",
+    "delete_confirm": "Den Verein « {{name}} » samt Mitgliedern, Trainings und Gefechten endgültig löschen?",
+    "members_n": "Mitglieder: {{count}}",
+    "open_session": "Training offen ({{date}})",
+    "new_name": "Name des neuen Vereins",
+    "new_name_ph": "Fechtverein",
+    "create": "Verein anlegen"
   }
 }

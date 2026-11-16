@@ -18,6 +18,7 @@ import type {
   ClubMemberReport,
   ClubPeriodKind,
   ClubSessionInput,
+  ClubUpdate,
 } from '../../shared/types/club';
 import {
   computeHeadToHead,
@@ -90,35 +91,45 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     releaseClubBout(trainingServer()?.server, boutId)
   );
   // Identité du club + cartes
-  ipcMain.handle('club:getSettings', () => repo.getSettings());
-  ipcMain.handle(
-    'club:updateSettings',
-    (_, data: { name?: string; logo?: string | null; stripCount?: number }) =>
-      repo.updateSettings(data ?? {})
+  // Clubs
+  ipcMain.handle('club:listClubs', () => repo.listClubs());
+  ipcMain.handle('club:getClub', (_, id: string) => repo.getClub(id));
+  ipcMain.handle('club:createClub', (_, data: { name: string; stripCount?: number }) =>
+    repo.createClub(data ?? { name: '' })
   );
-  ipcMain.handle('club:importPhotos', async (_, filepath: string) =>
-    repo.setPhotosByLicense(await readPhotosZip(filepath))
+  ipcMain.handle('club:updateClub', (_, id: string, data: ClubUpdate) =>
+    repo.updateClub(id, data ?? {})
   );
-  ipcMain.handle('club:findMemberByCardCode', (_, code: string) => repo.findMemberByCardCode(code));
+  ipcMain.handle('club:deleteClub', (_, id: string) => repo.deleteClub(id));
+  ipcMain.handle('club:importPhotos', async (_, clubId: string, filepath: string) =>
+    repo.setPhotosByLicense(clubId, await readPhotosZip(filepath))
+  );
+  ipcMain.handle('club:findMemberByCardCode', (_, code: string, clubId?: string) =>
+    repo.findMemberByCardCode(code, typeof clubId === 'string' ? clubId : undefined)
+  );
   ipcMain.handle('club:regenerateCardCode', (_, id: string) => repo.regenerateCardCode(id));
   // Membres
-  ipcMain.handle('club:listMembers', (_, includeInactive?: boolean) =>
-    repo.listMembers(includeInactive === true)
+  ipcMain.handle('club:listMembers', (_, clubId: string, includeInactive?: boolean) =>
+    repo.listMembers(clubId, includeInactive === true)
   );
-  ipcMain.handle('club:createMember', (_, data: ClubMemberInput) => repo.createMember(data));
+  ipcMain.handle('club:createMember', (_, clubId: string, data: ClubMemberInput) =>
+    repo.createMember(clubId, data)
+  );
   ipcMain.handle('club:updateMember', (_, id: string, data: Partial<ClubMemberInput>) =>
     repo.updateMember(id, data)
   );
   ipcMain.handle('club:deleteMember', (_, id: string) => repo.deleteMember(id));
-  ipcMain.handle('club:importMembers', (_, inputs: ClubMemberInput[]) =>
-    repo.importMembers(Array.isArray(inputs) ? inputs : [])
+  ipcMain.handle('club:importMembers', (_, clubId: string, inputs: ClubMemberInput[]) =>
+    repo.importMembers(clubId, Array.isArray(inputs) ? inputs : [])
   );
   // Séances
-  ipcMain.handle('club:listSessions', (_, range?: { from?: string; to?: string }) =>
-    repo.listSessions(range ?? {})
+  ipcMain.handle('club:listSessions', (_, clubId: string, range?: { from?: string; to?: string }) =>
+    repo.listSessions(clubId, range ?? {})
   );
   ipcMain.handle('club:getSession', (_, id: string) => repo.getSession(id));
-  ipcMain.handle('club:createSession', (_, data: ClubSessionInput) => repo.createSession(data));
+  ipcMain.handle('club:createSession', (_, clubId: string, data: ClubSessionInput) =>
+    repo.createSession(clubId, data)
+  );
   ipcMain.handle('club:updateSession', (_, id: string, data: Partial<ClubSessionInput>) =>
     repo.updateSession(id, data)
   );

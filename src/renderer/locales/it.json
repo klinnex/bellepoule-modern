@@ -3385,5 +3385,18 @@
     "status_update": "Da completare",
     "status_present": "Già presente",
     "status_duplicate": "Duplicato nel file"
+  },
+  "clubs": {
+    "title": "Club",
+    "choose": "Scegli un club o creane uno nuovo.",
+    "first_club": "Crea il tuo primo club: soci, sedute e statistiche saranno collegati a esso.",
+    "switch": "Cambia club",
+    "delete": "Elimina il club",
+    "delete_confirm": "Eliminare definitivamente il club « {{name}} » con soci, sedute e assalti?",
+    "members_n": "Soci: {{count}}",
+    "open_session": "Seduta aperta ({{date}})",
+    "new_name": "Nome del nuovo club",
+    "new_name_ph": "Circolo di scherma",
+    "create": "Crea il club"
   }
 }

@@ -5,6 +5,7 @@ import { classifyClubImport, fencersToClubMembers, planClubImport } from './club
 
 const existing = (id: string, extra: Partial<ClubMember>): ClubMember => ({
   id,
+  clubId: 'c1',
   firstName: '',
   lastName: '',
   weapons: [],

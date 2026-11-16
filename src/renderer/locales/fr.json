@@ -3385,5 +3385,18 @@
     "status_update": "À compléter",
     "status_present": "Déjà présent",
     "status_duplicate": "Doublon du fichier"
+  },
+  "clubs": {
+    "title": "Clubs",
+    "choose": "Choisissez un club ou créez-en un nouveau.",
+    "first_club": "Créez votre premier club : membres, séances et statistiques lui seront rattachés.",
+    "switch": "Changer de club",
+    "delete": "Supprimer le club",
+    "delete_confirm": "Supprimer définitivement le club « {{name}} » avec ses membres, séances et combats ?",
+    "members_n": "Membres : {{count}}",
+    "open_session": "Séance ouverte ({{date}})",
+    "new_name": "Nom du nouveau club",
+    "new_name_ph": "Cercle d'escrime",
+    "create": "Créer le club"
   }
 }

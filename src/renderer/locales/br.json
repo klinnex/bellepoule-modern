@@ -3385,5 +3385,18 @@
     "status_update": "Da glokaat",
     "status_present": "Amañ dija",
     "status_duplicate": "Doubl er restr"
+  },
+  "clubs": {
+    "title": "Klubioù",
+    "choose": "Dibabit ur c'hlub pe krouit unan nevez.",
+    "first_club": "Krouit ho klub kentañ : an izili, an abadennoù hag ar stadegoù a vo stag outañ.",
+    "switch": "Cheñch klub",
+    "delete": "Dilemel ar c'hlub",
+    "delete_confirm": "Dilemel da viken ar c'hlub « {{name}} » gant e izili, abadennoù hag emgannoù ?",
+    "members_n": "Izili : {{count}}",
+    "open_session": "Abadenn digor ({{date}})",
+    "new_name": "Anv ar c'hlub nevez",
+    "new_name_ph": "Klub skrim",
+    "create": "Krouiñ ar c'hlub"
   }
 }

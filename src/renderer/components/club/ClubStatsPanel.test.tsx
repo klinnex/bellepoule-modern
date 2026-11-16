@@ -84,18 +84,20 @@ describe('scopeFilter', () => {
 
 describe('ClubStatsPanel', () => {
   it('classement de la saison, changement de période', async () => {
-    render(<ClubStatsPanel />);
+    render(<ClubStatsPanel clubId="c1" />);
     expect(await screen.findByText('ALPHA')).toBeInTheDocument();
     expect(screen.getByText('75 %')).toBeInTheDocument();
     expect(api.getLeaderboard).toHaveBeenCalledWith(
       expect.objectContaining({ from: expect.stringMatching(/-09-01$/) })
     );
     fireEvent.change(screen.getByLabelText('Période'), { target: { value: 'session' } });
-    await waitFor(() => expect(api.getLeaderboard).toHaveBeenLastCalledWith({ sessionId: 's1' }));
+    await waitFor(() =>
+      expect(api.getLeaderboard).toHaveBeenLastCalledWith({ sessionId: 's1', clubId: 'c1' })
+    );
   });
 
   it('fiche membre : progression par trimestre et face-à-face', async () => {
-    render(<ClubStatsPanel />);
+    render(<ClubStatsPanel clubId="c1" />);
     fireEvent.click(await screen.findByText('ALPHA'));
     expect(await screen.findByText('2026-11')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Face-à-face' })).toBeInTheDocument();

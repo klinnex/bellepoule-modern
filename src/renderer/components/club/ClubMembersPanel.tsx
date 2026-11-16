@@ -43,6 +43,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 interface ClubMembersPanelProps {
+  clubId: string;
   settings: ClubSettings;
   onSettingsChange: (s: ClubSettings) => void;
   /** Nombre de membres actifs après chaque chargement (parcours guidé) */
@@ -52,6 +53,7 @@ interface ClubMembersPanelProps {
 }
 
 export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
+  clubId,
   settings,
   onSettingsChange,
   onMembersLoaded,
@@ -79,10 +81,10 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   const load = useCallback(async () => {
     if (!api) return;
-    const list = await api.listMembers(showArchived);
+    const list = await api.listMembers(clubId, showArchived);
     setMembers(list);
     onMembersLoaded?.(list.filter(m => m.active).length);
-  }, [api, showArchived, onMembersLoaded]);
+  }, [api, clubId, showArchived, onMembersLoaded]);
 
   useEffect(() => {
     void load();
@@ -107,9 +109,15 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   if (!api) return null;
 
+  /** Enregistre l'identité du club (nom, logo, pistes) et la remonte à la vue */
+  const saveClub = async (data: Parameters<typeof api.updateClub>[1]) => {
+    const club = await api.updateClub(clubId, data);
+    if (club) onSettingsChange(club);
+  };
+
   const saveName = () =>
     run(async () => {
-      onSettingsChange(await api.updateSettings({ name: clubName }));
+      await saveClub({ name: clubName });
       setNameEdit(null);
       showToast(t('club.settings_saved'), 'success');
     });
@@ -123,7 +131,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     const reader = new FileReader();
     reader.onload = () =>
       void run(async () => {
-        onSettingsChange(await api.updateSettings({ logo: String(reader.result) }));
+        await saveClub({ logo: String(reader.result) });
       });
     reader.readAsDataURL(file);
   };
@@ -132,7 +140,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     e.preventDefault();
     if (!draft.firstName.trim() && !draft.lastName.trim()) return;
     void run(async () => {
-      await api.createMember(draft);
+      await api.createMember(clubId, draft);
       setDraft({ firstName: '', lastName: '', license: '' });
     });
   };
@@ -167,7 +175,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         return;
       }
       // Sélection des personnes à importer (statut calculé sur tout l'annuaire, archivés compris)
-      const statuses = classifyClubImport(await api.listMembers(true), rows);
+      const statuses = classifyClubImport(await api.listMembers(clubId, true), rows);
       setImportDraft({ fileName: file.name, rows, statuses });
     } catch (e) {
       showToast(errText(e), 'error');
@@ -177,13 +185,12 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const confirmImport = (selectedRows: ClubMemberInput[]) => {
     setImportDraft(null);
     void run(async () => {
-      const r = await api.importMembers(selectedRows);
+      const r = await api.importMembers(clubId, selectedRows);
       showToast(t('club.import_done', { ...r }), 'success');
     });
   };
 
-  const saveStrips = (n: number) =>
-    run(async () => onSettingsChange(await api.updateSettings({ stripCount: n })));
+  const saveStrips = (n: number) => run(async () => saveClub({ stripCount: n }));
 
   const printArenas = async () => {
     try {
@@ -201,7 +208,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
     if (!result?.filePath) return;
     await run(async () => {
-      const { matched, total } = await api.importPhotos(result.filePath);
+      const { matched, total } = await api.importPhotos(clubId, result.filePath);
       showToast(
         t('fencerList.photos_imported', { count: total, matched: String(matched) }),
         'success'
@@ -257,9 +264,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <Button
               variant="ghost"
               icon={<Trash2 size={15} aria-hidden="true" />}
-              onClick={() =>
-                void run(async () => onSettingsChange(await api.updateSettings({ logo: null })))
-              }
+              onClick={() => void run(async () => saveClub({ logo: null }))}
             >
               {t('club.logo_remove')}
             </Button>

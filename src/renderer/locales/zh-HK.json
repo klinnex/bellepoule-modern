@@ -3385,5 +3385,18 @@
     "status_update": "待補充",
     "status_present": "已存在",
     "status_duplicate": "檔案內重複"
+  },
+  "clubs": {
+    "title": "會館",
+    "choose": "選擇會館或建立新會館。",
+    "first_club": "建立你的第一個會館：會員、訓練及統計都會歸屬於它。",
+    "switch": "切換會館",
+    "delete": "刪除會館",
+    "delete_confirm": "永久刪除會館「{{name}}」及其會員、訓練和對賽？",
+    "members_n": "會員：{{count}}",
+    "open_session": "訓練進行中（{{date}}）",
+    "new_name": "新會館名稱",
+    "new_name_ph": "劍擊會",
+    "create": "建立會館"
   }
 }

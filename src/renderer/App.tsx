@@ -33,10 +33,22 @@ import { BrandLogo } from './components/common/BrandLogo';
 const DEMO_STRIPS = 2;
 /** Onglet Club ouvert (#1872), mémorisé localement */
 const CLUB_TAB_KEY = 'bp_club_tab_open';
+/** Club affiché dans l'onglet Club (plusieurs clubs possibles) */
+const CLUB_ACTIVE_KEY = 'bp_club_active';
+const readActiveClub = (): string | null => {
+  try {
+    return localStorage.getItem(CLUB_ACTIVE_KEY);
+  } catch {
+    return null;
+  }
+};
 
 const DemoLauncherModal = React.lazy(() => import('./components/training/DemoLauncherModal'));
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
 const ClubView = React.lazy(() => import('./components/club/ClubView'));
+const ClubsHomeSection = React.lazy(() =>
+  import('./components/club/ClubPicker').then(m => ({ default: m.ClubsHomeSection }))
+);
 const CommandPalette = React.lazy(() => import('./components/CommandPalette'));
 const NewCompetitionModal = React.lazy(() => import('./components/NewCompetitionModal'));
 const ReportIssueModal = React.lazy(() => import('./components/ReportIssueModal'));
@@ -124,6 +136,16 @@ const AppContent: React.FC = () => {
       else localStorage.removeItem(CLUB_TAB_KEY);
     } catch {
       /* stockage indisponible : onglet non mémorisé */
+    }
+  }, []);
+  const [activeClubId, setActiveClubIdState] = useState<string | null>(readActiveClub);
+  const setActiveClubId = useCallback((id: string | null) => {
+    setActiveClubIdState(id);
+    try {
+      if (id) localStorage.setItem(CLUB_ACTIVE_KEY, id);
+      else localStorage.removeItem(CLUB_ACTIVE_KEY);
+    } catch {
+      /* stockage indisponible */
     }
   }, []);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
@@ -561,6 +583,15 @@ const AppContent: React.FC = () => {
     setActiveTabId(null);
     setView('club');
   }, [setClubTabOpen, setActiveTabId, setView]);
+
+  /** Ouvre l'onglet Club sur un club donné (null : choix / création) — accueil */
+  const openClubById = useCallback(
+    (id: string | null) => {
+      setActiveClubId(id);
+      openClub();
+    },
+    [setActiveClubId, openClub]
+  );
 
   const handleStartDemo = useCallback(() => {
     if (window.electronAPI?.training) setShowDemoModal(true);
@@ -1083,6 +1114,9 @@ const AppContent: React.FC = () => {
                 </div>
               }
             >
+              <Suspense fallback={null}>
+                <ClubsHomeSection onOpenClub={openClubById} />
+              </Suspense>
               <CompetitionList
                 competitions={competitions}
                 isLoading={isLoading}
@@ -1109,7 +1143,7 @@ const AppContent: React.FC = () => {
               }
             >
               <Suspense fallback={null}>
-                <ClubView />
+                <ClubView clubId={activeClubId} onSelectClub={setActiveClubId} />
               </Suspense>
             </ErrorBoundary>
           )}

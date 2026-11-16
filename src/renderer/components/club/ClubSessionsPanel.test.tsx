@@ -24,6 +24,7 @@ const m = (id: string, lastName: string) => ({
 });
 const session = {
   id: 's1',
+  clubId: 'c1',
   date: '2026-11-16',
   stripCount: 2,
   status: 'open',
@@ -82,17 +83,18 @@ beforeEach(() => {
 describe('ClubSessionsPanel', () => {
   it('sans séance ouverte : ouvre la séance du jour avec les pistes du club', async () => {
     api.listSessions.mockResolvedValue([]);
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir la séance du jour' }));
     await waitFor(() =>
       expect(api.createSession).toHaveBeenCalledWith(
+        'c1',
         expect.objectContaining({ stripCount: 2, label: '' })
       )
     );
   });
 
   it('combat en cours sur la piste 1 : saisie du score et fin', async () => {
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     expect(await screen.findByText('Piste 1')).toBeInTheDocument();
     const inputs = screen.getAllByRole('spinbutton');
     fireEvent.change(inputs[0], { target: { value: '5' } });
@@ -104,7 +106,7 @@ describe('ClubSessionsPanel', () => {
   });
 
   it('piste 2 libre : appariement manuel parmi les présents', async () => {
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     const a = await screen.findByLabelText('Tireur 1 — piste 2');
     // Seuls les présents (ALPHA, BRAVO) sont proposés
     expect(screen.queryAllByRole('option', { name: 'CHARLIE X' })).toHaveLength(0);
@@ -123,7 +125,7 @@ describe('ClubSessionsPanel', () => {
   });
 
   it('pointage et fermeture', async () => {
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     fireEvent.click(await screen.findByRole('checkbox', { name: 'CHARLIE X' }));
     await waitFor(() => expect(api.setAttendance).toHaveBeenCalledWith('s1', 'c', true));
     fireEvent.click(screen.getByRole('button', { name: 'Fermer la séance' }));
@@ -131,7 +133,7 @@ describe('ClubSessionsPanel', () => {
   });
 
   it('saisie distante : démarre le serveur, envoie les combats en cours aux tablettes', async () => {
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     const start = await screen.findByRole('button', { name: 'Activer la saisie distante' });
     api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
     fireEvent.click(start);
@@ -153,7 +155,7 @@ describe('ClubSessionsPanel', () => {
   });
 
   it('annuler un combat libère la tablette', async () => {
-    render(<ClubSessionsPanel settings={settings} />);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Annuler le combat' }));
     await waitFor(() => expect(api.releaseBout).toHaveBeenCalledWith('bt1'));
   });

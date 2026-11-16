@@ -36,6 +36,7 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const isLive = (b: ClubBout) => b.status === 'pending' || b.status === 'in_progress';
 
 interface ClubSessionsPanelProps {
+  clubId: string;
   settings: ClubSettings;
 }
 
@@ -140,7 +141,7 @@ const FreeStrip: React.FC<{
   );
 };
 
-export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }) => {
+export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, settings }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -159,13 +160,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
 
   const load = useCallback(async () => {
     if (!api) return;
-    const [list, mem] = await Promise.all([api.listSessions(), api.listMembers()]);
+    const [list, mem] = await Promise.all([api.listSessions(clubId), api.listMembers(clubId)]);
     setSessions(list);
     setMembers(mem);
     const open = list.find(s => s.status === 'open');
     setBouts(open ? await api.listBouts({ sessionId: open.id, includeUnfinished: true }) : []);
     setRemote(await api.remoteStatus());
-  }, [api]);
+  }, [api, clubId]);
 
   useEffect(() => {
     void load();
@@ -215,7 +216,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ settings }
               icon={<CalendarPlus size={15} aria-hidden="true" />}
               onClick={() =>
                 void run(async () => {
-                  await api.createSession({
+                  await api.createSession(clubId, {
                     date: today(),
                     label,
                     stripCount: settings.stripCount,

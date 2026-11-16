@@ -30,6 +30,7 @@ const member = (id: string, code: string, lastName: string) => ({
 });
 const session = {
   id: 's1',
+  clubId: 'c1',
   date: '2026-11-16',
   stripCount: 3,
   status: 'open' as const,
@@ -47,7 +48,7 @@ beforeEach(() => {
     BBBBBBBBBB: member('b', 'BBBBBBBBBB', 'BRAVO'),
   };
   api = {
-    findMemberByCardCode: vi.fn(async (code: string) => members[code] ?? null),
+    findMemberByCardCode: vi.fn(async (code: string, _clubId?: string) => members[code] ?? null),
     setAttendance: vi.fn(),
     createBout: vi.fn().mockResolvedValue({ id: 'bt1' }),
     startBout: vi.fn(),

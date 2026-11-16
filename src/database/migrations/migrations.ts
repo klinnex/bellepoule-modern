@@ -822,4 +822,46 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 28,
+    description:
+      'Mode Club : plusieurs clubs (table clubs, club_id), club existant conservé (#1872)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS clubs (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL DEFAULT '',
+          logo TEXT,
+          strip_count INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      for (const table of ['club_members', 'club_sessions', 'club_bouts']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN club_id TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      // Club unique des versions 25-27 : devient le club « club-default » s'il a des données
+      db.run(`
+        INSERT OR IGNORE INTO clubs (id, name, logo, strip_count, created_at, updated_at)
+        SELECT 'club-default',
+          COALESCE((SELECT value FROM club_settings WHERE key = 'name'), ''),
+          (SELECT value FROM club_settings WHERE key = 'logo'),
+          COALESCE(CAST((SELECT value FROM club_settings WHERE key = 'strip_count') AS INTEGER), 1),
+          strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+        WHERE EXISTS (SELECT 1 FROM club_settings)
+           OR EXISTS (SELECT 1 FROM club_members)
+           OR EXISTS (SELECT 1 FROM club_sessions)
+      `);
+      for (const table of ['club_members', 'club_sessions', 'club_bouts']) {
+        db.run(`UPDATE ${table} SET club_id = 'club-default' WHERE club_id IS NULL`);
+      }
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_members_club ON club_members(club_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_sessions_club ON club_sessions(club_id, date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_club ON club_bouts(club_id, date)`);
+    },
+  },
 ];

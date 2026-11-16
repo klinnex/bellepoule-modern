@@ -3385,5 +3385,18 @@
     "status_update": "To complete",
     "status_present": "Already present",
     "status_duplicate": "Duplicate in file"
+  },
+  "clubs": {
+    "title": "Clubs",
+    "choose": "Choose a club or create a new one.",
+    "first_club": "Create your first club: members, sessions and statistics will belong to it.",
+    "switch": "Switch club",
+    "delete": "Delete club",
+    "delete_confirm": "Permanently delete the club « {{name}} » with its members, sessions and bouts?",
+    "members_n": "Members: {{count}}",
+    "open_session": "Session open ({{date}})",
+    "new_name": "New club name",
+    "new_name_ph": "Fencing club",
+    "create": "Create club"
   }
 }

@@ -64,7 +64,7 @@ const StatHeaders: React.FC = () => {
   );
 };
 
-export const ClubStatsPanel: React.FC = () => {
+export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   const { t } = useTranslation();
   const api = window.electronAPI?.club;
   const [scope, setScope] = useState<Scope>('season');
@@ -76,17 +76,23 @@ export const ClubStatsPanel: React.FC = () => {
   const [groupBy, setGroupBy] = useState<ClubPeriodKind>('month');
   const [report, setReport] = useState<ClubMemberReport | null>(null);
 
-  const filter = useMemo(() => scopeFilter(scope, sessionId), [scope, sessionId]);
+  const filter = useMemo(
+    () => ({ ...scopeFilter(scope, sessionId), clubId }),
+    [scope, sessionId, clubId]
+  );
 
   useEffect(() => {
     if (!api) return;
     void (async () => {
-      const [list, mem] = await Promise.all([api.listSessions(), api.listMembers(true)]);
+      const [list, mem] = await Promise.all([
+        api.listSessions(clubId),
+        api.listMembers(clubId, true),
+      ]);
       setSessions(list);
       setMembers(mem);
-      setSessionId(prev => prev || list[0]?.id || '');
+      setSessionId(list[0]?.id ?? '');
     })();
-  }, [api]);
+  }, [api, clubId]);
 
   const loadBoard = useCallback(async () => {
     if (api) setBoard(await api.getLeaderboard(filter));
