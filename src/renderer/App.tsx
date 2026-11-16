@@ -1114,23 +1114,26 @@ const AppContent: React.FC = () => {
                 </div>
               }
             >
-              <Suspense fallback={null}>
-                <ClubsHomeSection onOpenClub={openClubById} />
-              </Suspense>
-              <CompetitionList
-                competitions={competitions}
-                isLoading={isLoading}
-                onSelect={handleSelectCompetition}
-                onDelete={handleDeleteCompetition}
-                onExport={handleExportCompetition}
-                onNewCompetition={() => setShowNewCompetitionModal(true)}
-                onStartDemo={window.electronAPI?.training ? handleStartDemo : undefined}
-                onOpenFile={
-                  window.electronAPI?.file?.openDialog
-                    ? () => void window.electronAPI.file.openDialog()
-                    : undefined
-                }
-              />
+              {/* Accueil : compétitions puis section Clubs en dessous (une seule zone défilante) */}
+              <div className="home-stack">
+                <CompetitionList
+                  competitions={competitions}
+                  isLoading={isLoading}
+                  onSelect={handleSelectCompetition}
+                  onDelete={handleDeleteCompetition}
+                  onExport={handleExportCompetition}
+                  onNewCompetition={() => setShowNewCompetitionModal(true)}
+                  onStartDemo={window.electronAPI?.training ? handleStartDemo : undefined}
+                  onOpenFile={
+                    window.electronAPI?.file?.openDialog
+                      ? () => void window.electronAPI.file.openDialog()
+                      : undefined
+                  }
+                />
+                <Suspense fallback={null}>
+                  <ClubsHomeSection onOpenClub={openClubById} />
+                </Suspense>
+              </div>
             </ErrorBoundary>
           )}
 
