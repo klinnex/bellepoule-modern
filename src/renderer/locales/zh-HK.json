@@ -2090,7 +2090,8 @@
     "nat": "國籍",
     "reg": "地區",
     "change_pool": "更換小組",
-    "change_pool_aria": "將 {{name}} 調往其他小組"
+    "change_pool_aria": "將 {{name}} 調往其他小組",
+    "cat": "組別"
   },
   "competitionView": {
     "no_pools": "沒有小組",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "正在載入淘汰賽表…",
     "readonly": "淘汰賽表唯讀 — 已產生最終結果。",
     "edit_confirm": "編輯淘汰賽表會清除最終結果，是否繼續？",
-    "edit_tableau": "編輯淘汰賽表"
+    "edit_tableau": "編輯淘汰賽表",
+    "numbering": "編號",
+    "numbering_title": "圓圈：顯示小組內的位置編號而非姓名縮寫"
   },
   "trainingPanel": {
     "copy_url": "複製網址",
@@ -2983,7 +2986,8 @@
     "col_region": "地區",
     "col_lastName": "姓",
     "col_firstName": "名",
-    "col_matches": "比賽"
+    "col_matches": "比賽",
+    "col_category": "組別"
   },
   "fencerStats": {
     "loading": "載入中…",

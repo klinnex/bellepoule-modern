@@ -137,6 +137,7 @@ const PoolsPhase: React.FC<PoolsPhaseProps> = ({
           )}
           <PoolsToolbar
             isLaserSabre={isLaserSabre}
+            isRapieres={isRapieres}
             poolCardSize={poolCardSize}
             onPoolCardSizeChange={onPoolCardSizeChange}
             poolsViewMode={poolsViewMode}

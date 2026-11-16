@@ -2090,7 +2090,8 @@
     "nat": "Nat",
     "reg": "Reg",
     "change_pool": "Change pool",
-    "change_pool_aria": "Move {{name}} to another pool"
+    "change_pool_aria": "Move {{name}} to another pool",
+    "cat": "Cat"
   },
   "competitionView": {
     "no_pools": "No pools",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "Loading bracket…",
     "readonly": "Read-only bracket — final results generated.",
     "edit_confirm": "Editing the bracket will erase the final results. Continue?",
-    "edit_tableau": "Edit the bracket"
+    "edit_tableau": "Edit the bracket",
+    "numbering": "Numbering",
+    "numbering_title": "Bubbles: position number in the pool instead of initials"
   },
   "trainingPanel": {
     "copy_url": "Copy URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Region",
     "col_lastName": "Last name",
     "col_firstName": "First name",
-    "col_matches": "Bouts"
+    "col_matches": "Bouts",
+    "col_category": "Category"
   },
   "fencerStats": {
     "loading": "Loading…",

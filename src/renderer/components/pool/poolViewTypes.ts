@@ -56,6 +56,8 @@ export interface PoolViewProps {
   onAutoFillReferees?: (assignments: Map<string, Referee>) => void;
   /** Tournoi des rapières : matchs de la vague en cours (surbrillance violette) */
   waveMatchIds?: ReadonlySet<string>;
+  /** Tournoi des rapières : catégorie d'âge abrégée de l'équipe (colonne « Cat. », #1864) */
+  categoryOf?: (fencer: Fencer) => string;
 }
 
 export type ViewMode = 'grid' | 'matches';

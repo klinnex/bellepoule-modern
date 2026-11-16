@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   rapieresBirthYear,
+  rapieresCategoryAbbr,
   rapieresCategoryFromBirthYear,
   rapieresTeamCategory,
   rapieresTeamGender,
@@ -76,5 +77,12 @@ describe('rapieresAge', () => {
     expect(rapieresTeamGender(team({ gender: 'F' }, { gender: 'F' }))).toBe('F');
     expect(rapieresTeamGender(team({ gender: 'F' }, { gender: 'M' }))).toBe('MIXED');
     expect(rapieresTeamGender(team({ gender: 'F' }, {}))).toBeUndefined();
+  });
+
+  it('abréviation de catégorie pour la colonne « Cat. » des poules (#1864)', () => {
+    expect(rapieresCategoryAbbr('SENIOR')).toBe('Sen');
+    expect(rapieresCategoryAbbr('V1')).toBe('V1');
+    expect(rapieresCategoryAbbr('M20')).toBe('M20');
+    expect(rapieresCategoryAbbr('HANDI')).toBe('Hand');
   });
 });

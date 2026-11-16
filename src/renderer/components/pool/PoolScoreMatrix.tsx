@@ -9,6 +9,7 @@ import {
 } from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
 import { useTranslation } from '../../hooks/useTranslation';
+import { usePoolNumbering } from '../../hooks/usePoolNumbering';
 import { findNeighbourCell, isArrowKey } from './poolMatrixNav';
 import { ArrowLeftRight } from 'lucide-react';
 import { Icon } from '../common/Icon';
@@ -36,6 +37,8 @@ interface PoolScoreMatrixProps {
   onInlineSingleScoreChange?: (value: string) => void;
   onInlineSubmit?: () => void;
   onInlineCancel?: () => void;
+  /** Tournoi des rapières : abréviation de catégorie d'âge de l'équipe (colonne « Cat. », #1864) */
+  categoryOf?: (fencer: Fencer) => string;
 }
 
 interface ScoreCellProps {
@@ -283,8 +286,11 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   onInlineSingleScoreChange,
   onInlineSubmit,
   onInlineCancel,
+  categoryOf,
 }) => {
   const { t } = useTranslation();
+  const { numbering } = usePoolNumbering();
+  const showCategory = !!categoryOf && isVisible('category');
   const fencers = pool.fencers;
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const prevMatchesRef = useRef<typeof pool.matches>(pool.matches);
@@ -512,7 +518,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
         )}
         {isVisible('club') && (
           <div
-            className="pool-cell pool-cell-header"
+            className="pool-cell pool-cell-header pool-cell-club"
             onContextMenu={e => {
               e.preventDefault();
               toggleColumn('pool', 'club');
@@ -544,6 +550,18 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
             title={t('poolMatrix.right_click_hide')}
           >
             {t('poolMatrix.reg')}
+          </div>
+        )}
+        {showCategory && (
+          <div
+            className="pool-cell pool-cell-header"
+            onContextMenu={e => {
+              e.preventDefault();
+              toggleColumn('pool', 'category');
+            }}
+            title={t('poolMatrix.right_click_hide')}
+          >
+            {t('poolMatrix.cat')}
           </div>
         )}
       </div>
@@ -578,8 +596,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               {(() => {
                 const avatarColor =
                   rankRatio <= 0.4 ? '#059669' : rankRatio <= 0.75 ? '#3b82f6' : '#dc2626';
-                const initials =
-                  `${rowFencer.firstName?.charAt(0) ?? ''}${rowFencer.lastName?.charAt(0) ?? ''}`.toUpperCase();
+                // Numérotage : placement dans la poule au lieu des initiales (#1864)
+                const initials = numbering
+                  ? String(rowIndex + 1)
+                  : `${rowFencer.firstName?.charAt(0) ?? ''}${rowFencer.lastName?.charAt(0) ?? ''}`.toUpperCase();
                 return (
                   <div
                     style={{
@@ -591,7 +611,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.6rem',
+                      fontSize: numbering ? '0.75rem' : '0.6rem',
                       fontWeight: 700,
                       flexShrink: 0,
                     }}
@@ -707,12 +727,19 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
             {isVisible('rank') && (
               <div className="pool-cell is-5c05f4">{rankEntry?.rank || '-'}</div>
             )}
-            {isVisible('club') && <div className="pool-cell is-935fcc">{rowFencer.club ?? ''}</div>}
+            {isVisible('club') && (
+              <div className="pool-cell pool-cell-club is-935fcc" title={rowFencer.club ?? ''}>
+                <span>{rowFencer.club ?? ''}</span>
+              </div>
+            )}
             {isVisible('nation') && (
               <div className="pool-cell is-d3c128">{rowFencer.nationality ?? ''}</div>
             )}
             {isVisible('region') && (
               <div className="pool-cell is-935fcc">{rowFencer.region ?? ''}</div>
+            )}
+            {showCategory && (
+              <div className="pool-cell is-d3c128">{categoryOf?.(rowFencer) ?? ''}</div>
             )}
           </div>
         );
