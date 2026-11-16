@@ -1290,7 +1290,10 @@
     "zone_c_label": "Rumpf oder Kopf",
     "club_card_title": "Mitgliedsausweis",
     "club_cards_title": "Mitgliedsausweise",
-    "club_card_season": "Saison {{season}}"
+    "club_card_season": "Saison {{season}}",
+    "club_arena_title": "Bahn {{n}}",
+    "club_arena_hint": "Diesen QR-Code und dann die Ausweise beider Fechter scannen, um das Gefecht zu starten",
+    "club_arenas_title": "Bahn-QR-Codes"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -3274,7 +3277,14 @@
     "card_code": "Ausweiscode",
     "actions": "Aktionen",
     "archive": "Archivieren",
-    "unarchive": "Reaktivieren"
+    "unarchive": "Reaktivieren",
+    "import": "Importieren (.fff)",
+    "import_confirm": "{{count}} Mitglied(er) aus « {{file}} » importieren? Bereits vorhandene Mitglieder (gleiche Lizenz oder gleicher Vor- und Nachname) werden ergänzt, nicht doppelt angelegt.",
+    "import_done": "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} ergänzt, {{skipped}} bereits vorhanden",
+    "import_empty": "Keine Mitglieder in dieser Datei gefunden",
+    "strip_count": "Anzahl der Bahnen",
+    "print_arena_qr": "Bahn-QR-Codes drucken",
+    "photo": "Foto"
   },
   "clubTour": {
     "title": "Willkommen im Vereinsmodus",
@@ -3292,7 +3302,7 @@
     "step_cards": "Ausweise drucken",
     "hint_identity": "Geben Sie den Vereinsnamen ein und klicken Sie auf « Speichern ». Er erscheint auf den Mitgliedsausweisen.",
     "hint_logo": "Wählen Sie ein Bild (PNG, JPEG, WebP oder SVG). Optionaler Schritt: mit « Weiter » überspringen.",
-    "hint_members": "Vorname, Nachname und Lizenz eingeben, dann « Hinzufügen ». Jedes Mitglied erhält einen eindeutigen Ausweiscode.",
+    "hint_members": "Vorname, Nachname und Lizenz eingeben, dann « Hinzufügen ». Jedes Mitglied erhält einen eindeutigen Ausweiscode. Sie können auch eine FFE-Datei (.fff) über « Importieren (.fff) » importieren.",
     "hint_cards": "« Ausweise drucken » erstellt ein PDF mit 10 Ausweisen pro Seite: Logo, Name und QR-Code zum Ausschneiden."
   }
 }

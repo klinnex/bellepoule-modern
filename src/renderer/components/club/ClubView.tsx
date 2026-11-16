@@ -29,7 +29,7 @@ const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
 export const ClubView: React.FC = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ClubTab>('members');
-  const [settings, setSettings] = useState<ClubSettings>({ name: '' });
+  const [settings, setSettings] = useState<ClubSettings>({ name: '', stripCount: 1 });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [membersCount, setMembersCount] = useState<number | null>(null);
   const [cardsPrinted, setCardsPrinted] = useState(readCardsPrinted);

@@ -811,4 +811,15 @@ export const ALL_MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    version: 27,
+    description: 'Mode Club : photo des membres (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_members ADD COLUMN photo TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import { ipcMain } from 'electron';
+import { readPhotosZip } from './fileHandlers';
 import type { DatabaseManager } from '../../database';
 import type {
   ClubBoutFilter,
@@ -46,8 +47,13 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   const repo = db.club;
   // Identité du club + cartes
   ipcMain.handle('club:getSettings', () => repo.getSettings());
-  ipcMain.handle('club:updateSettings', (_, data: { name?: string; logo?: string | null }) =>
-    repo.updateSettings(data ?? {})
+  ipcMain.handle(
+    'club:updateSettings',
+    (_, data: { name?: string; logo?: string | null; stripCount?: number }) =>
+      repo.updateSettings(data ?? {})
+  );
+  ipcMain.handle('club:importPhotos', async (_, filepath: string) =>
+    repo.setPhotosByLicense(await readPhotosZip(filepath))
   );
   ipcMain.handle('club:findMemberByCardCode', (_, code: string) => repo.findMemberByCardCode(code));
   ipcMain.handle('club:regenerateCardCode', (_, id: string) => repo.regenerateCardCode(id));
@@ -60,6 +66,9 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     repo.updateMember(id, data)
   );
   ipcMain.handle('club:deleteMember', (_, id: string) => repo.deleteMember(id));
+  ipcMain.handle('club:importMembers', (_, inputs: ClubMemberInput[]) =>
+    repo.importMembers(Array.isArray(inputs) ? inputs : [])
+  );
   // Séances
   ipcMain.handle('club:listSessions', (_, range?: { from?: string; to?: string }) =>
     repo.listSessions(range ?? {})

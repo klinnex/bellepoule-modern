@@ -1290,7 +1290,10 @@
     "zone_c_label": "Torso or head",
     "club_card_title": "Membership card",
     "club_cards_title": "Membership cards",
-    "club_card_season": "Season {{season}}"
+    "club_card_season": "Season {{season}}",
+    "club_arena_title": "Strip {{n}}",
+    "club_arena_hint": "Scan this QR code, then both fencers' cards, to start the bout",
+    "club_arenas_title": "Strip QR codes"
   },
   "rsm": {
     "strip_plan": "Strip map",
@@ -3274,7 +3277,14 @@
     "card_code": "Card code",
     "actions": "Actions",
     "archive": "Archive",
-    "unarchive": "Reactivate"
+    "unarchive": "Reactivate",
+    "import": "Import (.fff)",
+    "import_confirm": "Import {{count}} member(s) from « {{file}} »? Members already present (same licence, or same first and last name) are completed, not duplicated.",
+    "import_done": "Import done: {{created}} added, {{updated}} completed, {{skipped}} already present",
+    "import_empty": "No members found in this file",
+    "strip_count": "Number of strips",
+    "print_arena_qr": "Print strip QR codes",
+    "photo": "Photo"
   },
   "clubTour": {
     "title": "Welcome to Club mode",
@@ -3292,7 +3302,7 @@
     "step_cards": "Print cards",
     "hint_identity": "Enter the club name and click « Save ». It appears on membership cards.",
     "hint_logo": "Choose an image (PNG, JPEG, WebP or SVG). Optional step: click « Next » to skip it.",
-    "hint_members": "Enter first name, last name and licence, then « Add ». Each member gets a unique card code.",
+    "hint_members": "Enter first name, last name and licence, then « Add ». Each member gets a unique card code. You can also import an FFE file (.fff) with « Import (.fff) ».",
     "hint_cards": "« Print cards » creates a PDF with 10 cards per page: logo, name and identification QR code, ready to cut out."
   }
 }

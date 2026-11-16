@@ -25,15 +25,19 @@ export interface ClubMember {
   active: boolean;
   /** Code de la carte de club (QR `BPC1:M:<code>`), 10 hex ; régénérable si carte perdue */
   cardCode: string;
+  /** Photo en data URL image (png, jpeg, webp) ; absente = initiales */
+  photo?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type ClubMemberInput = Partial<
-  Omit<ClubMember, 'id' | 'cardCode' | 'createdAt' | 'updatedAt'>
+  Omit<ClubMember, 'id' | 'cardCode' | 'photo' | 'createdAt' | 'updatedAt'>
 > & {
   firstName: string;
   lastName: string;
+  /** null efface la photo */
+  photo?: string | null;
 };
 
 /** Identité du club : en-tête des cartes de membre */
@@ -41,6 +45,8 @@ export interface ClubSettings {
   name: string;
   /** Logo en data URL image (png, jpeg, webp, svg) ; absent = pas de logo */
   logo?: string;
+  /** Nombre de pistes de la salle (QR des pistes, séances) ; 1 par défaut */
+  stripCount: number;
 }
 
 export type ClubSessionStatus = 'open' | 'closed';
@@ -177,7 +183,13 @@ export interface ClubMemberReport {
 export interface ClubAPI {
   getSettings: () => Promise<ClubSettings>;
   /** logo: null efface le logo */
-  updateSettings: (data: { name?: string; logo?: string | null }) => Promise<ClubSettings>;
+  updateSettings: (data: {
+    name?: string;
+    logo?: string | null;
+    stripCount?: number;
+  }) => Promise<ClubSettings>;
+  /** Photos d'un ZIP (fichiers nommés par licence, comme en compétition) */
+  importPhotos: (filepath: string) => Promise<{ matched: number; total: number }>;
   listMembers: (includeInactive?: boolean) => Promise<ClubMember[]>;
   /** Membre d'après le code lu sur sa carte (actifs seulement) */
   findMemberByCardCode: (code: string) => Promise<ClubMember | null>;
@@ -187,6 +199,10 @@ export interface ClubAPI {
   updateMember: (id: string, data: Partial<ClubMemberInput>) => Promise<ClubMember | null>;
   /** Effacement définitif (RGPD) : présences et combats compris ; archiver = active:false */
   deleteMember: (id: string) => Promise<void>;
+  /** Import en lot : nouveaux créés, existants complétés (licence puis nom), doublons ignorés */
+  importMembers: (
+    inputs: ClubMemberInput[]
+  ) => Promise<import('../utils/clubImport').ClubImportResult>;
   listSessions: (range?: { from?: string; to?: string }) => Promise<ClubSession[]>;
   getSession: (id: string) => Promise<ClubSession | null>;
   createSession: (data: ClubSessionInput) => Promise<ClubSession>;

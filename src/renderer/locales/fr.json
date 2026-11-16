@@ -1290,7 +1290,10 @@
     "zone_c_label": "Tronc ou tête",
     "club_card_title": "Carte de membre",
     "club_cards_title": "Cartes de membre",
-    "club_card_season": "Saison {{season}}"
+    "club_card_season": "Saison {{season}}",
+    "club_arena_title": "Piste {{n}}",
+    "club_arena_hint": "Scannez ce QR code puis les cartes des deux tireurs pour lancer le combat",
+    "club_arenas_title": "QR des pistes"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",
@@ -3274,7 +3277,14 @@
     "card_code": "Code carte",
     "actions": "Actions",
     "archive": "Archiver",
-    "unarchive": "Réactiver"
+    "unarchive": "Réactiver",
+    "import": "Importer (.fff)",
+    "import_confirm": "Importer {{count}} membre(s) depuis « {{file}} » ? Les membres déjà présents (même licence, ou même nom et prénom) sont complétés, pas dupliqués.",
+    "import_done": "Import terminé : {{created}} ajouté(s), {{updated}} complété(s), {{skipped}} déjà présent(s)",
+    "import_empty": "Aucun membre trouvé dans ce fichier",
+    "strip_count": "Nombre de pistes",
+    "print_arena_qr": "Imprimer les QR des pistes",
+    "photo": "Photo"
   },
   "clubTour": {
     "title": "Bienvenue dans le Mode Club",
@@ -3292,7 +3302,7 @@
     "step_cards": "Imprimer les cartes",
     "hint_identity": "Saisissez le nom du club puis cliquez sur « Sauvegarder ». Il apparaît sur les cartes de membre.",
     "hint_logo": "Choisissez une image (PNG, JPEG, WebP ou SVG). Étape facultative : cliquez sur « Suivant » pour la passer.",
-    "hint_members": "Renseignez prénom, nom et licence, puis « Ajouter ». Chaque membre reçoit un code de carte unique.",
+    "hint_members": "Renseignez prénom, nom et licence, puis « Ajouter ». Chaque membre reçoit un code de carte unique. Vous pouvez aussi importer un fichier FFE (.fff) avec « Importer (.fff) ».",
     "hint_cards": "« Imprimer les cartes » crée un PDF de 10 cartes par page : logo, nom et QR code d'identification à découper."
   }
 }

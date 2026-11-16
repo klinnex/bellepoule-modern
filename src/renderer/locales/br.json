@@ -1290,7 +1290,10 @@
     "zone_c_label": "Kof pe penn",
     "club_card_title": "Kartenn ezel",
     "club_cards_title": "Kartennoù ezel",
-    "club_card_season": "Koulzad {{season}}"
+    "club_card_season": "Koulzad {{season}}",
+    "club_arena_title": "Leurenn {{n}}",
+    "club_arena_hint": "Skanit ar c'hod QR-mañ ha goude kartennoù an daou skrimer evit loc'hañ an emgann",
+    "club_arenas_title": "Kodoù QR al leurennoù"
   },
   "rsm": {
     "strip_plan": "Plan ar pistennoù",
@@ -3274,7 +3277,14 @@
     "card_code": "Kod karten",
     "actions": "Oberoù",
     "archive": "Dielloù",
-    "unarchive": "Adweredekaat"
+    "unarchive": "Adweredekaat",
+    "import": "Enporzhiañ (.fff)",
+    "import_confirm": "Enporzhiañ {{count}} ezel eus « {{file}} » ? An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, ket eilet.",
+    "import_done": "Enporzhiañ echu : {{created}} ouzhpennet, {{updated}} klokaet, {{skipped}} a oa dija",
+    "import_empty": "Ezel ebet kavet er restr-mañ",
+    "strip_count": "Niver a leurennoù",
+    "print_arena_qr": "Moullañ kodoù QR al leurennoù",
+    "photo": "Luc'hskeudenn"
   },
   "clubTour": {
     "title": "Degemer mat er Mod Klub",
@@ -3292,7 +3302,7 @@
     "step_cards": "Moullañ ar c'hartennoù",
     "hint_identity": "Skrivit anv ar c'hlub ha klikit war « Enrollañ ». War ar c'hartennoù ezel e vo.",
     "hint_logo": "Dibabit ur skeudenn (PNG, JPEG, WebP pe SVG). Pazenn diret : klikit war « War-lerc'h » evit he zremen.",
-    "hint_members": "Leunit an anv-bihan, an anv hag al lañvaz, ha goude « Ouzhpenn ». Ur c'hod karten unel a vez roet da bep ezel.",
+    "hint_members": "Leunit an anv-bihan, an anv hag al lañvaz, ha goude « Ouzhpenn ». Ur c'hod karten unel a vez roet da bep ezel. Gallout a rit ivez enporzhiañ ur restr FFE (.fff) gant « Enporzhiañ (.fff) ».",
     "hint_cards": "« Moullañ ar c'hartennoù » a grou ur PDF gant 10 karten dre bajenn : logo, anv ha kod QR, da droc'hañ."
   }
 }

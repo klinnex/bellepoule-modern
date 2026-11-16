@@ -1290,7 +1290,10 @@
     "zone_c_label": "Tronco o cabeza",
     "club_card_title": "Carné de socio",
     "club_cards_title": "Carnés de socio",
-    "club_card_season": "Temporada {{season}}"
+    "club_card_season": "Temporada {{season}}",
+    "club_arena_title": "Pista {{n}}",
+    "club_arena_hint": "Escanee este código QR y luego los carnés de los dos tiradores para iniciar el asalto",
+    "club_arenas_title": "QR de las pistas"
   },
   "rsm": {
     "strip_plan": "Plano de pistas",
@@ -3274,7 +3277,14 @@
     "card_code": "Código de carné",
     "actions": "Acciones",
     "archive": "Archivar",
-    "unarchive": "Reactivar"
+    "unarchive": "Reactivar",
+    "import": "Importar (.fff)",
+    "import_confirm": "¿Importar {{count}} socio(s) desde « {{file}} »? Los socios ya presentes (misma licencia, o mismo nombre y apellido) se completan, no se duplican.",
+    "import_done": "Importación terminada: {{created}} añadido(s), {{updated}} completado(s), {{skipped}} ya presente(s)",
+    "import_empty": "No se ha encontrado ningún socio en este archivo",
+    "strip_count": "Número de pistas",
+    "print_arena_qr": "Imprimir los QR de las pistas",
+    "photo": "Foto"
   },
   "clubTour": {
     "title": "Bienvenido al Modo Club",
@@ -3292,7 +3302,7 @@
     "step_cards": "Imprimir los carnés",
     "hint_identity": "Escriba el nombre del club y haga clic en « Guardar ». Aparece en los carnés de socio.",
     "hint_logo": "Elija una imagen (PNG, JPEG, WebP o SVG). Paso opcional: haga clic en « Siguiente » para omitirlo.",
-    "hint_members": "Rellene nombre, apellido y licencia, y luego « Agregar ». Cada socio recibe un código de carné único.",
+    "hint_members": "Rellene nombre, apellido y licencia, y luego « Agregar ». Cada socio recibe un código de carné único. También puede importar un archivo FFE (.fff) con « Importar (.fff) ».",
     "hint_cards": "« Imprimir los carnés » crea un PDF de 10 carnés por página: logotipo, nombre y código QR de identificación para recortar."
   }
 }

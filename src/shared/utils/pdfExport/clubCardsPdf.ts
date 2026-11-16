@@ -5,7 +5,10 @@
  * Licensed under GPL-3.0
  */
 import type { ClubMember, ClubSettings } from '../../types/club';
-import { memberQrPayload } from '../clubQr';
+
+/** Identité imprimée (nom + logo) */
+export type ClubIdentity = Pick<ClubSettings, 'name' | 'logo'>;
+import { arenaQrPayload, memberQrPayload } from '../clubQr';
 import { escHtml as esc } from './bookToc';
 import { pdfLang, pdfT, savePDF } from './core';
 
@@ -22,11 +25,12 @@ export interface ClubCardsOptions {
 
 function cardHTML(
   m: ClubMember,
-  settings: ClubSettings,
+  settings: ClubIdentity,
   qr: string | null,
   opts: ClubCardsOptions
 ): string {
   const logo = safeImg(settings.logo);
+  const photo = safeImg(m.photo);
   const sub = opts.season
     ? `${pdfT('club_card_title', 'Carte de membre')} · ${pdfT('club_card_season', 'Saison {{season}}', { season: opts.season })}`
     : pdfT('club_card_title', 'Carte de membre');
@@ -39,6 +43,7 @@ function cardHTML(
       </div>
     </div>
     <div class="body">
+      ${photo ? `<img class="photo" src="${photo}" alt="">` : ''}
       <div class="who">
         <div class="last">${esc(m.lastName.toUpperCase())}</div>
         <div class="first">${esc(m.firstName)}</div>
@@ -69,6 +74,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; background
 .sub { font-size: 6.5pt; color: #555; text-transform: uppercase; letter-spacing: 0.3pt; }
 .body { flex: 1; display: flex; align-items: center; gap: 3mm; padding-top: 2mm; }
 .who { flex: 1; min-width: 0; }
+.photo { width: 18mm; height: 23mm; object-fit: cover; border-radius: 1mm; flex-shrink: 0; }
 .last { font-size: 13pt; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
 .first { font-size: 11pt; line-height: 1.2; overflow-wrap: anywhere; }
 .lic { font-size: 7pt; color: #555; margin-top: 1.5mm; }
@@ -82,7 +88,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; background
  */
 export function generateClubCardsHTML(
   members: readonly ClubMember[],
-  settings: ClubSettings,
+  settings: ClubIdentity,
   qrByMemberId: Readonly<Record<string, string>>,
   opts: ClubCardsOptions = {}
 ): string {
@@ -101,7 +107,7 @@ export function generateClubCardsHTML(
 /** QR codes générés (niveau de correction M, lisible par webcam) puis HTML */
 export async function buildClubCardsHTML(
   members: readonly ClubMember[],
-  settings: ClubSettings,
+  settings: ClubIdentity,
   opts: ClubCardsOptions = {}
 ): Promise<string> {
   const QRCode = (await import('qrcode')).default;
@@ -120,9 +126,78 @@ export async function buildClubCardsHTML(
 
 export async function exportClubCardsToPDF(
   members: readonly ClubMember[],
-  settings: ClubSettings,
+  settings: ClubIdentity,
   opts: ClubCardsOptions = {}
 ): Promise<void> {
   const html = await buildClubCardsHTML(members, settings, opts);
   await savePDF(html, 'cartes-club.pdf');
+}
+
+// ─── QR des pistes (#1872) : 2 par A4, à afficher sur chaque piste ───────────
+
+const ARENA_CSS = `
+@page { size: A4 portrait; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; background: #fff; }
+.sheet { width: 210mm; height: 297mm; page-break-after: always; }
+.sheet:last-child { page-break-after: auto; }
+.arena { height: 148.5mm; padding: 10mm 15mm; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4mm; border-bottom: 0.2mm dashed #999; }
+.arena:last-child { border-bottom: none; }
+.head { display: flex; align-items: center; gap: 3mm; }
+.logo { max-height: 14mm; max-width: 30mm; object-fit: contain; }
+.club-name { font-size: 14pt; font-weight: 700; }
+.title { font-size: 40pt; font-weight: 800; letter-spacing: 1pt; }
+.qr { width: 85mm; height: 85mm; image-rendering: pixelated; }
+.hint { font-size: 10pt; color: #555; }
+.code { font-family: 'Courier New', monospace; font-size: 9pt; color: #555; }
+`;
+
+/** Pistes 1..count, bornées à 1..99 */
+export function arenaNumbers(count: number): number[] {
+  const n = Math.min(Math.max(Math.floor(Number(count)) || 0, 0), 99);
+  return Array.from({ length: n }, (_, i) => i + 1);
+}
+
+/** HTML des QR de pistes (pur, testable). `qrByArena` : data URL PNG par numéro */
+export function generateArenaQrHTML(
+  count: number,
+  settings: ClubIdentity,
+  qrByArena: Readonly<Record<number, string>>
+): string {
+  const logo = safeImg(settings.logo);
+  const blocks = arenaNumbers(count).map(n => {
+    const qr = safeImg(qrByArena[n]);
+    return `<div class="arena">
+      <div class="head">
+        ${logo ? `<img class="logo" src="${logo}" alt="">` : ''}
+        ${settings.name ? `<div class="club-name">${esc(settings.name)}</div>` : ''}
+      </div>
+      <div class="title">${esc(pdfT('club_arena_title', 'Piste {{n}}', { n }))}</div>
+      ${qr ? `<img class="qr" src="${qr}" alt="">` : ''}
+      <div class="hint">${esc(pdfT('club_arena_hint', 'Scannez ce QR code puis les cartes des deux tireurs pour lancer le combat'))}</div>
+      <div class="code">${esc(arenaQrPayload(n))}</div>
+    </div>`;
+  });
+  const sheets: string[] = [];
+  for (let i = 0; i < blocks.length; i += 2) {
+    sheets.push(`<section class="sheet">${blocks.slice(i, i + 2).join('')}</section>`);
+  }
+  return `<!DOCTYPE html><html lang="${esc(pdfLang())}"><head><meta charset="utf-8">
+  <title>${esc(pdfT('club_arenas_title', 'QR des pistes'))}</title><style>${ARENA_CSS}</style></head>
+  <body>${sheets.join('')}</body></html>`;
+}
+
+export async function exportArenaQrToPDF(count: number, settings: ClubIdentity): Promise<void> {
+  const QRCode = (await import('qrcode')).default;
+  const qrs: Record<number, string> = {};
+  for (const n of arenaNumbers(count)) {
+    qrs[n] = await QRCode.toDataURL(arenaQrPayload(n), {
+      errorCorrectionLevel: 'M',
+      width: 600,
+      margin: 1,
+      color: { dark: '#000', light: '#fff' },
+    });
+  }
+  await savePDF(generateArenaQrHTML(count, settings, qrs), 'qr-pistes.pdf');
 }
