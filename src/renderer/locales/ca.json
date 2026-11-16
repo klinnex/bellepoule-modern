@@ -16,7 +16,10 @@
     "tools": "Eines",
     "wifi_qr": "Codi QR WiFi",
     "tv_remote": "Comandament de TV",
-    "guided_tour": "Recorregut guiat"
+    "guided_tour": "Recorregut guiat",
+    "club": "Club",
+    "club_open": "Obrir l'espai del club",
+    "club_close": "Tancar la pestanya Club"
   },
   "menu": {
     "new_competition": "Nova Competició",
@@ -1284,7 +1287,10 @@
     "victories_defeats": "V / D",
     "zone_a_label": "Mà + empunyadura del sabre",
     "zone_b_label": "Braç o cama",
-    "zone_c_label": "Tronc o cap"
+    "zone_c_label": "Tronc o cap",
+    "club_card_title": "Carnet de soci",
+    "club_cards_title": "Carnets de soci",
+    "club_card_season": "Temporada {{season}}"
   },
   "rsm": {
     "strip_plan": "Pla de pistes",
@@ -3235,5 +3241,58 @@
     "eta_projected": "Quadre projectat (no generat)",
     "planned_projected": "Previst (poules + quadre projectat): {{time}}",
     "planned_estimate": "Referència (1a estimació): {{time}}"
+  },
+  "club": {
+    "tab_members": "Socis",
+    "tab_sessions": "Sessions",
+    "tab_stats": "Estadístiques",
+    "default_name": "El meu club",
+    "subtitle": "Mode Club · espai permanent",
+    "nav_label": "Seccions del club",
+    "sessions_soon": "Sessions: aviat disponible",
+    "sessions_soon_desc": "L'obertura de sessions, el registre i els combats a les pistes arriben al pas següent.",
+    "stats_soon": "Estadístiques: aviat disponible",
+    "stats_soon_desc": "El balanç per sessió, mes, trimestre i temporada arriba aviat.",
+    "settings_saved": "Identitat del club desada",
+    "logo_too_big": "Logotip massa gran (2 MB màxim)",
+    "delete_confirm": "Esborrar definitivament {{name}} amb els seus combats i assistències?",
+    "regenerate_confirm": "Generar un codi nou per a {{name}}? El seu carnet antic deixarà de ser reconegut.",
+    "regenerate": "Codi de carnet nou",
+    "identity": "Identitat del club",
+    "name": "Nom del club",
+    "logo": "Logotip del club",
+    "logo_remove": "Treure el logotip",
+    "members_count": "Socis ({{count}})",
+    "print_cards": "Imprimir els carnets",
+    "first_name": "Nom",
+    "last_name": "Cognom",
+    "license": "Llicència",
+    "search": "Cercar un soci",
+    "show_archived": "Mostrar els arxivats",
+    "no_members": "Cap soci",
+    "no_members_desc": "Afegiu els socis del club per imprimir els seus carnets.",
+    "card_code": "Codi de carnet",
+    "actions": "Accions",
+    "archive": "Arxivar",
+    "unarchive": "Reactivar"
+  },
+  "clubTour": {
+    "title": "Benvingut al Mode Club",
+    "skip": "Ometre la guia",
+    "next": "Següent",
+    "back": "Enrere",
+    "close": "Acabar",
+    "restart": "Guia",
+    "welcome": "L'espai Club és permanent: socis, sessions i estadístiques es mantenen d'una temporada a l'altra. Quatre passos per començar.",
+    "finished_title": "El vostre club està a punt!",
+    "finished_hint": "Pas següent: les sessions, per registrar els presents i llançar combats a les pistes. Torneu a obrir aquesta guia amb el botó « Guia ».",
+    "step_identity": "Posar nom al club",
+    "step_logo": "Afegir el logotip (opcional)",
+    "step_members": "Afegir els socis",
+    "step_cards": "Imprimir els carnets",
+    "hint_identity": "Escriviu el nom del club i feu clic a « Desar ». Apareix als carnets de soci.",
+    "hint_logo": "Trieu una imatge (PNG, JPEG, WebP o SVG). Pas opcional: feu clic a « Següent » per ometre'l.",
+    "hint_members": "Ompliu nom, cognom i llicència, i després « Afegir ». Cada soci rep un codi de carnet únic.",
+    "hint_cards": "« Imprimir els carnets » crea un PDF de 10 carnets per pàgina: logotip, nom i codi QR d'identificació per retallar."
   }
 }

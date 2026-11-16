@@ -9,7 +9,6 @@ import { Check, X, Sparkles } from 'lucide-react';
 import { MatchStatus } from '../../shared/types';
 import {
   TOUR_RESTART_EVENT,
-  TourHaloKey,
   tourHaloKey,
   TOUR_STEP_HALOS,
   TOUR_STEP_PHASE,
@@ -23,6 +22,7 @@ import {
   writeTourFlag,
 } from './guidedTourFlags';
 import { Button } from './common/Button';
+import { useTourHalos } from './useTourHalos';
 
 interface GuidedTourProps extends Omit<
   TourState,
@@ -72,48 +72,6 @@ const RemoteMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
     </div>
   </div>
 );
-
-const HALO_CLASS = 'tour-halo';
-const HALO_GREEN_CLASS = 'tour-halo-green';
-
-/** Entoure d'un halo pulsé les boutons utiles à l'étape (suit les changements du DOM) */
-function useTourHalos(step: TourHaloKey | null): void {
-  useEffect(() => {
-    if (!step) return;
-    const halos = TOUR_STEP_HALOS[step];
-    if (halos.length === 0) return;
-    const marked = new Set<Element>();
-    const apply = () => {
-      const wanted = new Set<Element>();
-      for (const h of halos) {
-        const found = h.first
-          ? [document.querySelector(h.selector)].filter((e): e is Element => e !== null)
-          : Array.from(document.querySelectorAll(h.selector));
-        for (const el of found) {
-          wanted.add(el);
-          if (!marked.has(el)) {
-            el.classList.add(HALO_CLASS);
-            if (h.green) el.classList.add(HALO_GREEN_CLASS);
-            marked.add(el);
-          }
-        }
-      }
-      marked.forEach(el => {
-        if (!wanted.has(el)) {
-          el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS);
-          marked.delete(el);
-        }
-      });
-    };
-    apply();
-    const observer = new MutationObserver(apply);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      observer.disconnect();
-      marked.forEach(el => el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS));
-    };
-  }, [step]);
-}
 
 const GuidedTour: React.FC<GuidedTourProps> = ({
   t,
@@ -174,7 +132,8 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     return () => onHighlightPhase(null);
   }, [active, current, onHighlightPhase]);
 
-  useTourHalos(active ? tourHaloKey(current, prepOpen) : null);
+  const haloKey = active ? tourHaloKey(current, prepOpen) : null;
+  useTourHalos(haloKey ? TOUR_STEP_HALOS[haloKey] : null);
 
   const close = useCallback(() => {
     writeTourFlag('done');

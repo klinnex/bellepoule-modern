@@ -54,7 +54,10 @@
     "tools": "Werkzeuge",
     "wifi_qr": "WLAN-QR-Code",
     "tv_remote": "TV-Fernbedienung",
-    "guided_tour": "Geführte Tour"
+    "guided_tour": "Geführte Tour",
+    "club": "Verein",
+    "club_open": "Vereinsbereich öffnen",
+    "club_close": "Vereins-Tab schließen"
   },
   "cardGroups": {
     "GROUP_1": "Gruppe 1 (Weiß → Gelb → Gelb)",
@@ -1284,7 +1287,10 @@
     "victories_defeats": "S / N",
     "zone_a_label": "Hand + Säbelgriff",
     "zone_b_label": "Arm oder Bein",
-    "zone_c_label": "Rumpf oder Kopf"
+    "zone_c_label": "Rumpf oder Kopf",
+    "club_card_title": "Mitgliedsausweis",
+    "club_cards_title": "Mitgliedsausweise",
+    "club_card_season": "Saison {{season}}"
   },
   "rsm": {
     "strip_plan": "Bahnplan",
@@ -3235,5 +3241,58 @@
     "eta_projected": "Hochgerechnetes Tableau (nicht erstellt)",
     "planned_projected": "Geplant (Pools + hochgerechnetes Tableau): {{time}}",
     "planned_estimate": "Referenz (erste Schätzung): {{time}}"
+  },
+  "club": {
+    "tab_members": "Mitglieder",
+    "tab_sessions": "Trainings",
+    "tab_stats": "Statistiken",
+    "default_name": "Mein Verein",
+    "subtitle": "Vereinsmodus · dauerhafter Bereich",
+    "nav_label": "Vereinsbereiche",
+    "sessions_soon": "Trainings: bald verfügbar",
+    "sessions_soon_desc": "Trainings eröffnen, Anwesenheit und Gefechte auf den Bahnen folgen im nächsten Schritt.",
+    "stats_soon": "Statistiken: bald verfügbar",
+    "stats_soon_desc": "Auswertung nach Training, Monat, Quartal und Saison folgt bald.",
+    "settings_saved": "Vereinsdaten gespeichert",
+    "logo_too_big": "Logo zu groß (max. 2 MB)",
+    "delete_confirm": "{{name}} samt Gefechten und Anwesenheiten endgültig löschen?",
+    "regenerate_confirm": "Neuen Code für {{name}} erzeugen? Der alte Ausweis wird nicht mehr erkannt.",
+    "regenerate": "Neuer Ausweiscode",
+    "identity": "Vereinsdaten",
+    "name": "Vereinsname",
+    "logo": "Vereinslogo",
+    "logo_remove": "Logo entfernen",
+    "members_count": "Mitglieder ({{count}})",
+    "print_cards": "Ausweise drucken",
+    "first_name": "Vorname",
+    "last_name": "Nachname",
+    "license": "Lizenz",
+    "search": "Mitglied suchen",
+    "show_archived": "Archivierte anzeigen",
+    "no_members": "Keine Mitglieder",
+    "no_members_desc": "Fügen Sie Vereinsmitglieder hinzu, um ihre Ausweise zu drucken.",
+    "card_code": "Ausweiscode",
+    "actions": "Aktionen",
+    "archive": "Archivieren",
+    "unarchive": "Reaktivieren"
+  },
+  "clubTour": {
+    "title": "Willkommen im Vereinsmodus",
+    "skip": "Anleitung überspringen",
+    "next": "Weiter",
+    "back": "Zurück",
+    "close": "Fertig",
+    "restart": "Anleitung",
+    "welcome": "Der Vereinsbereich ist dauerhaft: Mitglieder, Trainings und Statistiken bleiben von Saison zu Saison erhalten. Vier Schritte zum Start.",
+    "finished_title": "Ihr Verein ist bereit!",
+    "finished_hint": "Nächster Schritt: Trainings, um Anwesenheit zu erfassen und Gefechte auf den Bahnen zu starten. Starten Sie diese Anleitung erneut über « Anleitung ».",
+    "step_identity": "Verein benennen",
+    "step_logo": "Logo hinzufügen (optional)",
+    "step_members": "Mitglieder hinzufügen",
+    "step_cards": "Ausweise drucken",
+    "hint_identity": "Geben Sie den Vereinsnamen ein und klicken Sie auf « Speichern ». Er erscheint auf den Mitgliedsausweisen.",
+    "hint_logo": "Wählen Sie ein Bild (PNG, JPEG, WebP oder SVG). Optionaler Schritt: mit « Weiter » überspringen.",
+    "hint_members": "Vorname, Nachname und Lizenz eingeben, dann « Hinzufügen ». Jedes Mitglied erhält einen eindeutigen Ausweiscode.",
+    "hint_cards": "« Ausweise drucken » erstellt ein PDF mit 10 Ausweisen pro Seite: Logo, Name und QR-Code zum Ausschneiden."
   }
 }

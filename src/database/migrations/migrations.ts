@@ -789,4 +789,26 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_b ON club_bouts(member_b_id, date)`);
     },
   },
+  {
+    version: 26,
+    description: 'Mode Club : code de carte de membre (QR) et identité du club (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_members ADD COLUMN card_code TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      // Membres existants : code aléatoire 10 hex (40 bits)
+      db.run(
+        `UPDATE club_members SET card_code = upper(hex(randomblob(5))) WHERE card_code IS NULL`
+      );
+      db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_club_members_card ON club_members(card_code)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        )
+      `);
+    },
+  },
 ];

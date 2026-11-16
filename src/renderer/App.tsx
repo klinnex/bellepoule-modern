@@ -19,6 +19,7 @@ import {
   Tv2,
   Sparkles,
   PlayCircle,
+  Shield,
   HelpCircle,
   Search,
 } from 'lucide-react';
@@ -30,9 +31,12 @@ import CompetitionList from './components/CompetitionList';
 import { BrandLogo } from './components/common/BrandLogo';
 /** Démo autonome : nombre d'arènes jouées par l'arbitre virtuel */
 const DEMO_STRIPS = 2;
+/** Onglet Club ouvert (#1872), mémorisé localement */
+const CLUB_TAB_KEY = 'bp_club_tab_open';
 
 const DemoLauncherModal = React.lazy(() => import('./components/training/DemoLauncherModal'));
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
+const ClubView = React.lazy(() => import('./components/club/ClubView'));
 const CommandPalette = React.lazy(() => import('./components/CommandPalette'));
 const NewCompetitionModal = React.lazy(() => import('./components/NewCompetitionModal'));
 const ReportIssueModal = React.lazy(() => import('./components/ReportIssueModal'));
@@ -105,6 +109,23 @@ const AppContent: React.FC = () => {
   const [trainingStrips, setTrainingStrips] = useState(1);
   const [trainingWeapon, setTrainingWeapon] = useState('');
   const [trainingLaunching, setTrainingLaunching] = useState(false);
+  // Mode Club (#1872) : onglet permanent, mémorisé entre les sessions
+  const [clubTabOpen, setClubTabOpenState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(CLUB_TAB_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setClubTabOpen = useCallback((open: boolean) => {
+    setClubTabOpenState(open);
+    try {
+      if (open) localStorage.setItem(CLUB_TAB_KEY, '1');
+      else localStorage.removeItem(CLUB_TAB_KEY);
+    } catch {
+      /* stockage indisponible : onglet non mémorisé */
+    }
+  }, []);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const toolsBtnRef = useRef<HTMLButtonElement>(null);
   const toolsPanelRef = useRef<HTMLDivElement>(null);
@@ -535,6 +556,12 @@ const AppContent: React.FC = () => {
 
   // Démo autonome : entraînement en mode démo (arbitre virtuel) + écrans distants ouverts
   // Toujours proposer l'arme, même si un entraînement / une démo tourne déjà (relancé au choix)
+  const openClub = useCallback(() => {
+    setClubTabOpen(true);
+    setActiveTabId(null);
+    setView('club');
+  }, [setClubTabOpen, setActiveTabId, setView]);
+
   const handleStartDemo = useCallback(() => {
     if (window.electronAPI?.training) setShowDemoModal(true);
   }, []);
@@ -656,7 +683,7 @@ const AppContent: React.FC = () => {
             />
           </Tooltip>
           <div className="header-nav">
-            {openCompetitions.length > 0 && view === 'competition' && (
+            {(openCompetitions.length > 0 || clubTabOpen) && view !== 'home' && (
               <Button
                 className="btn-icon-label"
                 onClick={() => {
@@ -680,6 +707,15 @@ const AppContent: React.FC = () => {
               </Button>
             )}
             <UpdateMenuButton />
+            <Button
+              variant={view === 'club' ? 'primary' : 'secondary'}
+              className="btn-icon-label"
+              onClick={openClub}
+              title={t('app.club_open')}
+            >
+              <Shield size={15} />
+              <span className="header-btn-label">{t('app.club')}</span>
+            </Button>
             <Button
               variant={trainingActive ? 'danger' : 'secondary'}
               className="btn-icon-label"
@@ -818,8 +854,8 @@ const AppContent: React.FC = () => {
           </div>
         </header>
 
-        {/* Onglets des compétitions ouvertes */}
-        {openCompetitions.length > 0 && (
+        {/* Onglets des compétitions ouvertes (+ onglet Club permanent) */}
+        {(openCompetitions.length > 0 || clubTabOpen) && (
           <div
             className="tabs-container"
             style={{
@@ -879,6 +915,37 @@ const AppContent: React.FC = () => {
                 <Home size={13} /> {t('app.home')}
               </span>
             </div>
+
+            {clubTabOpen && (
+              <div
+                className={`club-tab ${view === 'club' ? 'club-tab--active' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={openClub}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openClub();
+                  }
+                }}
+              >
+                <Shield size={13} aria-hidden="true" />
+                <span className="club-tab-label">{t('app.club')}</span>
+                <Tooltip content={t('app.club_close')}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<X size={12} aria-hidden="true" />}
+                    aria-label={t('app.club_close')}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setClubTabOpen(false);
+                      if (view === 'club') setView('home');
+                    }}
+                  />
+                </Tooltip>
+              </div>
+            )}
 
             {openCompetitions.map(openComp => (
               <div
@@ -1030,6 +1097,20 @@ const AppContent: React.FC = () => {
                     : undefined
                 }
               />
+            </ErrorBoundary>
+          )}
+
+          {view === 'club' && (
+            <ErrorBoundary
+              fallback={
+                <div className="club-view">
+                  <h3>{t('app.load_error_title')}</h3>
+                </div>
+              }
+            >
+              <Suspense fallback={null}>
+                <ClubView />
+              </Suspense>
             </ErrorBoundary>
           )}
 

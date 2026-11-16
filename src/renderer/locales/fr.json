@@ -16,7 +16,10 @@
     "tools": "Outils",
     "wifi_qr": "QR Code WiFi",
     "tv_remote": "Télécommande TV",
-    "guided_tour": "Parcours guidé"
+    "guided_tour": "Parcours guidé",
+    "club": "Club",
+    "club_open": "Ouvrir l'espace Club",
+    "club_close": "Fermer l'onglet Club"
   },
   "menu": {
     "new_competition": "Nouvelle compétition",
@@ -1284,7 +1287,10 @@
     "victories_defeats": "V / D",
     "zone_a_label": "Main + manche du sabre",
     "zone_b_label": "Bras ou jambe",
-    "zone_c_label": "Tronc ou tête"
+    "zone_c_label": "Tronc ou tête",
+    "club_card_title": "Carte de membre",
+    "club_cards_title": "Cartes de membre",
+    "club_card_season": "Saison {{season}}"
   },
   "rsm": {
     "strip_plan": "Plan des pistes",
@@ -3235,5 +3241,58 @@
     "eta_projected": "Tableau projeté (non généré)",
     "planned_projected": "Prévu (poules + tableau projeté) : {{time}}",
     "planned_estimate": "Référence (1re estimation) : {{time}}"
+  },
+  "club": {
+    "tab_members": "Membres",
+    "tab_sessions": "Séances",
+    "tab_stats": "Statistiques",
+    "default_name": "Mon club",
+    "subtitle": "Mode Club · espace permanent",
+    "nav_label": "Sections du club",
+    "sessions_soon": "Séances : bientôt disponible",
+    "sessions_soon_desc": "Ouverture des séances, pointage et combats sur les pistes arrivent à l'étape suivante.",
+    "stats_soon": "Statistiques : bientôt disponible",
+    "stats_soon_desc": "Bilan par séance, mois, trimestre et saison arrive bientôt.",
+    "settings_saved": "Identité du club enregistrée",
+    "logo_too_big": "Logo trop lourd (2 Mo maximum)",
+    "delete_confirm": "Effacer définitivement {{name}} ainsi que ses combats et présences ?",
+    "regenerate_confirm": "Générer un nouveau code pour {{name}} ? Son ancienne carte ne sera plus reconnue.",
+    "regenerate": "Nouveau code carte",
+    "identity": "Identité du club",
+    "name": "Nom du club",
+    "logo": "Logo du club",
+    "logo_remove": "Retirer le logo",
+    "members_count": "Membres ({{count}})",
+    "print_cards": "Imprimer les cartes",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "license": "Licence",
+    "search": "Rechercher un membre",
+    "show_archived": "Afficher les archivés",
+    "no_members": "Aucun membre",
+    "no_members_desc": "Ajoutez les membres du club pour imprimer leurs cartes.",
+    "card_code": "Code carte",
+    "actions": "Actions",
+    "archive": "Archiver",
+    "unarchive": "Réactiver"
+  },
+  "clubTour": {
+    "title": "Bienvenue dans le Mode Club",
+    "skip": "Passer le guide",
+    "next": "Suivant",
+    "back": "Retour",
+    "close": "Terminer",
+    "restart": "Guide",
+    "welcome": "L'espace Club est permanent : vos membres, séances et statistiques restent d'une saison à l'autre. Quatre étapes pour démarrer.",
+    "finished_title": "Votre club est prêt !",
+    "finished_hint": "Prochaine étape : les séances, pour pointer les présents et lancer des combats sur les pistes. Relancez ce guide avec le bouton « Guide ».",
+    "step_identity": "Nommer le club",
+    "step_logo": "Ajouter le logo (facultatif)",
+    "step_members": "Ajouter les membres",
+    "step_cards": "Imprimer les cartes",
+    "hint_identity": "Saisissez le nom du club puis cliquez sur « Sauvegarder ». Il apparaît sur les cartes de membre.",
+    "hint_logo": "Choisissez une image (PNG, JPEG, WebP ou SVG). Étape facultative : cliquez sur « Suivant » pour la passer.",
+    "hint_members": "Renseignez prénom, nom et licence, puis « Ajouter ». Chaque membre reçoit un code de carte unique.",
+    "hint_cards": "« Imprimer les cartes » crée un PDF de 10 cartes par page : logo, nom et QR code d'identification à découper."
   }
 }

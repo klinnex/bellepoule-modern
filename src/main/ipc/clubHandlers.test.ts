@@ -34,6 +34,7 @@ describe('handlers club:* (#1872)', () => {
     setAttendance: vi.fn(() => ['a']),
     listBouts: vi.fn(() => bouts),
     listSessions: vi.fn(() => []),
+    updateSettings: vi.fn(() => ({ name: '' })),
   };
 
   beforeEach(() => {
@@ -46,7 +47,7 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(21);
+    expect(handlers.size).toBe(25);
   });
 
   it('booléens stricts et filtres par défaut', () => {
@@ -56,6 +57,11 @@ describe('handlers club:* (#1872)', () => {
     expect(repo.setAttendance).toHaveBeenCalledWith('s', 'a', false);
     call('club:listSessions');
     expect(repo.listSessions).toHaveBeenCalledWith({});
+  });
+
+  it('paramètres : objet vide par défaut', () => {
+    call('club:updateSettings');
+    expect(repo.updateSettings).toHaveBeenCalledWith({});
   });
 
   it('classement : force les combats terminés', () => {

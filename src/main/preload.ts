@@ -194,6 +194,10 @@ const electronApi = {
 
   // Mode Club (#1872)
   club: {
+    getSettings: () => ipcRenderer.invoke('club:getSettings'),
+    updateSettings: (data: unknown) => ipcRenderer.invoke('club:updateSettings', data),
+    findMemberByCardCode: (code: string) => ipcRenderer.invoke('club:findMemberByCardCode', code),
+    regenerateCardCode: (id: string) => ipcRenderer.invoke('club:regenerateCardCode', id),
     listMembers: (includeInactive?: boolean) =>
       ipcRenderer.invoke('club:listMembers', includeInactive),
     createMember: (data: unknown) => ipcRenderer.invoke('club:createMember', data),
