@@ -2090,7 +2090,8 @@
     "nat": "Nac",
     "reg": "Reg",
     "change_pool": "Canvia de poule",
-    "change_pool_aria": "Canvia {{name}} de poule"
+    "change_pool_aria": "Canvia {{name}} de poule",
+    "cat": "Cat"
   },
   "competitionView": {
     "no_pools": "Sense poules",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "S'està carregant el quadre…",
     "readonly": "Quadre de només lectura: resultats finals generats.",
     "edit_confirm": "Modificar el quadre esborrarà els resultats finals. Voleu continuar?",
-    "edit_tableau": "Modifica el quadre"
+    "edit_tableau": "Modifica el quadre",
+    "numbering": "Numeració",
+    "numbering_title": "Bombolles: número de posició a la poule en lloc de les inicials"
   },
   "trainingPanel": {
     "copy_url": "Copia l'URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Regió",
     "col_lastName": "Cognom",
     "col_firstName": "Nom",
-    "col_matches": "Combats"
+    "col_matches": "Combats",
+    "col_category": "Categoria"
   },
   "fencerStats": {
     "loading": "Carregant…",

@@ -2090,7 +2090,8 @@
     "nat": "Nat",
     "reg": "Rég",
     "change_pool": "Changer de poule",
-    "change_pool_aria": "Changer {{name}} de poule"
+    "change_pool_aria": "Changer {{name}} de poule",
+    "cat": "Cat"
   },
   "competitionView": {
     "no_pools": "Pas de poules",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "Chargement tableau…",
     "readonly": "Tableau en lecture seule — résultats finaux générés.",
     "edit_confirm": "Modifier le tableau effacera les résultats finaux. Continuer ?",
-    "edit_tableau": "Modifier le tableau"
+    "edit_tableau": "Modifier le tableau",
+    "numbering": "Numérotage",
+    "numbering_title": "Bulles : numéro de placement dans la poule au lieu des initiales"
   },
   "trainingPanel": {
     "copy_url": "Copier l'URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Région",
     "col_lastName": "Nom",
     "col_firstName": "Prénom",
-    "col_matches": "Matchs"
+    "col_matches": "Matchs",
+    "col_category": "Catégorie"
   },
   "fencerStats": {
     "loading": "Chargement…",

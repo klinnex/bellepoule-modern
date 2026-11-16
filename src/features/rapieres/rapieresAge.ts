@@ -59,6 +59,13 @@ export function rapieresTeamCategory(
   return info.fencers.find(f => f.category)?.category ?? 'SENIOR';
 }
 
+/** Abréviation de catégorie (colonne « Cat. » des poules, #1864) */
+export function rapieresCategoryAbbr(category: RapieresAgeCategory): string {
+  if (category === 'SENIOR') return 'Sen';
+  if (category === 'HANDI') return 'Hand';
+  return category;
+}
+
 /** Sexe d'une équipe ; undefined si un des deux sexes n'est pas renseigné */
 export function rapieresTeamGender(info: RapieresTeamInfo): RapieresTeamGender | undefined {
   const [a, b] = info.fencers.map(f => f.gender);

@@ -15,6 +15,7 @@ vi.mock('../../hooks/useTranslation', () => ({
   }),
 }));
 import PoolScoreMatrix from './PoolScoreMatrix';
+import { setPoolNumbering } from '../../hooks/usePoolNumbering';
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
@@ -57,6 +58,13 @@ const pool = (m: Match): Pool => ({
   ranking: [],
   createdAt: new Date(),
   updatedAt: new Date(),
+});
+
+const renderProps = () => ({
+  isLaserSabre: false,
+  isVisible: (col: string) => col === 'victories',
+  toggleColumn: vi.fn(),
+  onCellClick: vi.fn(),
 });
 
 const renderMatrix = (m: Match, over: Partial<Record<string, any>> = {}) => {
@@ -112,5 +120,39 @@ describe('PoolScoreMatrix', () => {
     expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toMatch(
       /#7c3aed|rgb\(124, 58, 237\)/i
     );
+  });
+
+  it('numérotage : bulles = placement dans la poule au lieu des initiales (#1864)', () => {
+    setPoolNumbering(false);
+    const { unmount } = render(
+      <PoolScoreMatrix
+        {...({ ...renderProps(), pool: pool(match(MatchStatus.NOT_STARTED)) } as any)}
+      />
+    );
+    expect(screen.getAllByText('FD')).toHaveLength(1);
+    unmount();
+    setPoolNumbering(true);
+    renderMatrix(match(MatchStatus.NOT_STARTED));
+    expect(screen.queryByText('FD')).toBeNull();
+    expect(screen.getAllByText('2').length).toBeGreaterThan(1); // en-tête + bulle
+    setPoolNumbering(false);
+  });
+
+  it('rapières : colonne « Cat. » en dernier, seulement avec categoryOf (#1864)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), {
+      isVisible: (col: string) => col === 'club' || col === 'category',
+    });
+    expect(screen.queryByText('poolMatrix.cat')).toBeNull();
+  });
+
+  it('rapières : colonne « Cat. » affiche la catégorie abrégée (#1864)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), {
+      isVisible: (col: string) => col === 'club' || col === 'category',
+      categoryOf: (f: Fencer) => (f.id === '1' ? 'V1' : 'Sen'),
+    });
+    const headers = Array.from(document.querySelectorAll('.pool-row-sticky .pool-cell'));
+    expect(headers[headers.length - 1].textContent).toBe('poolMatrix.cat');
+    expect(screen.getByText('V1')).toBeInTheDocument();
+    expect(screen.getByText('Sen')).toBeInTheDocument();
   });
 });

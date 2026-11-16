@@ -14,9 +14,14 @@ import { Button } from '../common/Button';
 
 interface GlobalPoolColumnsMenuProps {
   isLaserSabre: boolean;
+  /** Tournoi des rapières : colonne « Cat. » proposée (#1864) */
+  hasCategory?: boolean;
 }
 
-const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSabre }) => {
+const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({
+  isLaserSabre,
+  hasCategory = false,
+}) => {
   const { t } = useTranslation();
   const { visibility, setAllPoolColumns } = useColumnVisibility();
   const [open, setOpen] = useState(false);
@@ -54,7 +59,9 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
     };
   }, [open, updatePos]);
 
-  const columns = POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre);
+  const columns = POOL_COLUMNS.filter(
+    col => (col.id !== 'quest' || isLaserSabre) && (col.id !== 'category' || hasCategory)
+  );
   // Colonne masquée → bordure orange (#1032)
   const filterEdited = columns.some(col => !visibility.pool.includes(col.id));
 
@@ -68,7 +75,6 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <Button
         ref={btnRef}
-
         onClick={() => setOpen(o => !o)}
         style={{
           display: 'inline-flex',

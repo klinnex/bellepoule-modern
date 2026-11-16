@@ -2090,7 +2090,8 @@
     "nat": "Broad",
     "reg": "Rann",
     "change_pool": "Cheñch poulenn",
-    "change_pool_aria": "Cheñch poulenn evit {{name}}"
+    "change_pool_aria": "Cheñch poulenn evit {{name}}",
+    "cat": "Rumm"
   },
   "competitionView": {
     "no_pools": "Poulenn ebet",
@@ -2109,7 +2110,9 @@
     "loading_tableau": "O kargañ an daolenn…",
     "readonly": "Taolenn lenn hepken — disoc'hoù diwezhañ genelet.",
     "edit_confirm": "Kemmañ an daolenn a ziverko an disoc'hoù diwezhañ. Kenderc'hel ?",
-    "edit_tableau": "Kemmañ an daolenn"
+    "edit_tableau": "Kemmañ an daolenn",
+    "numbering": "Niverenniñ",
+    "numbering_title": "Bouloù : niverenn al lec'h er poull e-lec'h al lizherennoù-penn"
   },
   "trainingPanel": {
     "copy_url": "Eilañ an URL",
@@ -2983,7 +2986,8 @@
     "col_region": "Rannvro",
     "col_lastName": "Anv",
     "col_firstName": "Anv-bihan",
-    "col_matches": "Emgannoù"
+    "col_matches": "Emgannoù",
+    "col_category": "Rummad"
   },
   "fencerStats": {
     "loading": "O kargañ…",
