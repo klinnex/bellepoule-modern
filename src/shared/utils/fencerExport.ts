@@ -90,6 +90,44 @@ export function exportFencersToFFF(competition: Competition, fencers: Fencer[]):
   return lines.join('\n');
 }
 
+/** Membre du Mode Club exportable (sous-ensemble de ClubMember, #1872) */
+export interface ClubMemberForFFF {
+  firstName: string;
+  lastName: string;
+  license?: string;
+  gender?: string;
+  /** AAAA-MM-JJ */
+  birthDate?: string;
+}
+
+/**
+ * Exporte l'annuaire du club au format FFF (UTF-8), réimportable par « Importer » :
+ *   ligne 1 : FFF;UTF8;COMPETITION;<club>
+ *   lignes  : NOM,Prénom,date,sexe,FRA;;licence,,club,,,;<position>,
+ */
+export function exportClubMembersToFFF(
+  clubName: string | undefined,
+  members: ClubMemberForFFF[]
+): string {
+  const club = fffField(clubName);
+  const lines = [`FFF;UTF8;COMPETITION;${club}`];
+  members.forEach((m, index) => {
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(m.birthDate ?? '');
+    const date = ymd ? `${Number(ymd[3])}/${Number(ymd[2])}/${ymd[1]}` : '';
+    const gender = m.gender === 'M' || m.gender === 'F' ? m.gender : '';
+    const general = [
+      fffField(m.lastName).toUpperCase(),
+      fffField(m.firstName),
+      date,
+      gender,
+      'FRA',
+    ];
+    const national = [fffField(m.license), '', club, '', '', ''];
+    lines.push(`${general.join(',')};;${national.join(',')};${index + 1},`);
+  });
+  return lines.join('\n');
+}
+
 /**
  * Exporte la liste des tireurs au format TXT (texte lisible)
  * Format tabulaire avec colonnes alignees

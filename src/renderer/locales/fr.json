@@ -3287,6 +3287,8 @@
     "archive": "Archiver",
     "unarchive": "Réactiver",
     "import": "Importer (.fff)",
+    "export": "Exporter (.fff)",
+    "export_done": "{{count}} membre(s) exporté(s)",
     "import_done": "Import terminé : {{created}} ajouté(s), {{updated}} complété(s), {{skipped}} déjà présent(s)",
     "import_empty": "Aucun membre trouvé dans ce fichier",
     "strip_count": "Nombre de pistes",

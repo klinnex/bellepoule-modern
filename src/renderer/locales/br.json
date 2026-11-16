@@ -3287,6 +3287,8 @@
     "archive": "Dielloù",
     "unarchive": "Adweredekaat",
     "import": "Enporzhiañ (.fff)",
+    "export": "Ezporzhiañ (.fff)",
+    "export_done": "{{count}} ezel ezporzhiet",
     "import_done": "Enporzhiañ echu : {{created}} ouzhpennet, {{updated}} klokaet, {{skipped}} a oa dija",
     "import_empty": "Ezel ebet kavet er restr-mañ",
     "strip_count": "Niver a leurennoù",

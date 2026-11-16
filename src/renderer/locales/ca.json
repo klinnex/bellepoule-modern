@@ -3287,6 +3287,8 @@
     "archive": "Arxivar",
     "unarchive": "Reactivar",
     "import": "Importar (.fff)",
+    "export": "Exportar (.fff)",
+    "export_done": "{{count}} membre(s) exportat(s)",
     "import_done": "Importació acabada: {{created}} afegit(s), {{updated}} completat(s), {{skipped}} ja present(s)",
     "import_empty": "No s'ha trobat cap soci en aquest fitxer",
     "strip_count": "Nombre de pistes",
