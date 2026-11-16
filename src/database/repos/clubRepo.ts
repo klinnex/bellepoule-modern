@@ -9,6 +9,7 @@ import type {
   ClubBoutStatus,
   ClubEntryMode,
   ClubMember,
+  ClubMemberFeedback,
   ClubMemberInput,
   ClubSession,
   ClubSessionInput,
@@ -19,6 +20,8 @@ import type {
   Laterality,
 } from '../../shared/types/club';
 import { normalizeCardCode } from '../../shared/utils/clubQr';
+import { cleanLongText, normalizeFeedback, normalizePlan } from '../../shared/utils/clubPlan';
+import { safeJsonParse } from './dbUtils';
 import { planClubImport, type ClubImportResult } from '../../shared/utils/clubImport';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
@@ -55,6 +58,10 @@ interface MemberRow {
 
 interface SessionRow {
   id: string;
+  objectives: string | null;
+  plan: string | null;
+  notes: string | null;
+  feedback: string | null;
   club_id: string | null;
   date: string;
   label: string | null;
@@ -452,6 +459,46 @@ export class ClubRepo {
 
   // ─── Séances ─────────────────────────────────────────────────────────────────
 
+  private memberFeedbackOf(sessionId: string): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const r of this.sql.queryAll<{ member_id: string; feedback: string | null }>(
+      'SELECT member_id, feedback FROM club_attendance WHERE session_id = ? AND feedback IS NOT NULL',
+      [sessionId]
+    )) {
+      if (r.feedback) out[r.member_id] = r.feedback;
+    }
+    return out;
+  }
+
+  /** Remarque pour un tireur présent à la séance ; texte vide = effacée */
+  public setMemberFeedback(sessionId: string, memberId: string, text: string): void {
+    this.ensureOpen();
+    const r = this.sql.run(
+      'UPDATE club_attendance SET feedback = ? WHERE session_id = ? AND member_id = ?',
+      [cleanLongText(text, 1000) ?? null, sessionId, memberId]
+    );
+    if (r.changes === 0) throw new Error('Tireur absent de la séance');
+  }
+
+  /** Remarques reçues par un tireur, plus récentes d'abord */
+  public getMemberFeedback(memberId: string): ClubMemberFeedback[] {
+    if (!this.sql.db) return [];
+    return this.sql
+      .queryAll<{ session_id: string; date: string; label: string | null; feedback: string }>(
+        `SELECT a.session_id, s.date, s.label, a.feedback
+         FROM club_attendance a JOIN club_sessions s ON s.id = a.session_id
+         WHERE a.member_id = ? AND a.feedback IS NOT NULL AND a.feedback <> ''
+         ORDER BY s.date DESC, s.opened_at DESC`,
+        [memberId]
+      )
+      .map(r => ({
+        sessionId: r.session_id,
+        date: r.date,
+        label: opt(r.label),
+        text: r.feedback,
+      }));
+  }
+
   private attendees(sessionId: string): string[] {
     return this.sql
       .queryAll<{ member_id: string }>(
@@ -469,10 +516,15 @@ export class ClubRepo {
       label: opt(r.label),
       weapon: opt(oneWeapon(r.weapon)),
       stripCount: r.strip_count ?? 1,
-      status: (r.status === 'closed' ? 'closed' : 'open') as ClubSessionStatus,
+      status: (['planned', 'closed'].includes(r.status) ? r.status : 'open') as ClubSessionStatus,
       openedAt: r.opened_at,
       closedAt: opt(r.closed_at),
       attendeeIds: this.attendees(r.id),
+      objectives: opt(r.objectives),
+      plan: normalizePlan(safeJsonParse(r.plan, [], 'club_sessions.plan')),
+      notes: opt(r.notes),
+      feedback: normalizeFeedback(safeJsonParse(r.feedback, null, 'club_sessions.feedback')),
+      memberFeedback: this.memberFeedbackOf(r.id),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -513,8 +565,9 @@ export class ClubRepo {
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
-      `INSERT INTO club_sessions (id, club_id, date, label, weapon, strip_count, status, opened_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)`,
+      `INSERT INTO club_sessions (id, club_id, date, label, weapon, strip_count, status,
+         objectives, plan, notes, opened_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         clubId,
@@ -522,6 +575,10 @@ export class ClubRepo {
         str(data.label),
         oneWeapon(data.weapon),
         clampInt(data.stripCount ?? club.stripCount, 1, MAX_STRIPS, 1),
+        data.planned ? 'planned' : 'open',
+        cleanLongText(data.objectives) ?? null,
+        JSON.stringify(normalizePlan(data.plan)),
+        cleanLongText(data.notes) ?? null,
         now,
         now,
         now,
@@ -550,6 +607,23 @@ export class ClubRepo {
     if (updates.stripCount !== undefined) {
       sets.push('strip_count = ?');
       values.push(clampInt(updates.stripCount, 1, MAX_STRIPS, 1));
+    }
+    if (updates.objectives !== undefined) {
+      sets.push('objectives = ?');
+      values.push(cleanLongText(updates.objectives) ?? null);
+    }
+    if (updates.notes !== undefined) {
+      sets.push('notes = ?');
+      values.push(cleanLongText(updates.notes) ?? null);
+    }
+    if (updates.feedback !== undefined) {
+      const fb = normalizeFeedback(updates.feedback);
+      sets.push('feedback = ?');
+      values.push(fb ? JSON.stringify(fb) : null);
+    }
+    if (updates.plan !== undefined) {
+      sets.push('plan = ?');
+      values.push(JSON.stringify(normalizePlan(updates.plan)));
     }
     if (sets.length === 0) return this.getSession(id);
     this.sql.transaction(() => {
@@ -581,6 +655,27 @@ export class ClubRepo {
         [now, now, id]
       );
     });
+    return this.getSession(id);
+  }
+
+  /** Séance préparée → ouverte maintenant ; refusé si une autre séance du club est ouverte */
+  public startSession(id: string): ClubSession | null {
+    this.ensureOpen();
+    const s = this.getSession(id);
+    if (!s || s.status !== 'planned') return s;
+    if (
+      this.sql.queryOne(
+        `SELECT 1 FROM club_sessions WHERE club_id = ? AND status = 'open' AND id <> ?`,
+        [s.clubId, id]
+      )
+    ) {
+      throw new Error('Une séance est déjà ouverte');
+    }
+    const now = new Date().toISOString();
+    this.sql.run(
+      `UPDATE club_sessions SET status = 'open', opened_at = ?, updated_at = ? WHERE id = ?`,
+      [now, now, id]
+    );
     return this.getSession(id);
   }
 

@@ -226,6 +226,10 @@ const electronApi = {
       ipcRenderer.invoke('club:updateSession', id, data),
     closeSession: (id: string) => ipcRenderer.invoke('club:closeSession', id),
     reopenSession: (id: string) => ipcRenderer.invoke('club:reopenSession', id),
+    startSession: (id: string) => ipcRenderer.invoke('club:startSession', id),
+    setMemberFeedback: (sessionId: string, memberId: string, text: string) =>
+      ipcRenderer.invoke('club:setMemberFeedback', sessionId, memberId, text),
+    getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
     deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
     setAttendance: (sessionId: string, memberId: string, present: boolean) =>
       ipcRenderer.invoke('club:setAttendance', sessionId, memberId, present),

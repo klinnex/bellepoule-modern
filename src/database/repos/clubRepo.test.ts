@@ -195,6 +195,57 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
   });
 
+  describe('préparation et bilan des séances', () => {
+    it('séance préparée : plan, objectifs, démarrage, une seule ouverte', () => {
+      const s = repo.createSession(cid, {
+        date: '2026-11-20',
+        label: 'Parades',
+        planned: true,
+        objectives: 'Parade de quarte',
+        plan: [
+          { id: 'e1', title: 'Échauffement', minutes: 15 },
+          { id: 'e2', title: 'Assauts', minutes: 30, details: 'Touches à 5' },
+        ],
+      });
+      expect(s).toMatchObject({ status: 'planned', objectives: 'Parade de quarte' });
+      expect(s.plan.map(p => p.title)).toEqual(['Échauffement', 'Assauts']);
+      // Pas de combat sur une séance seulement préparée
+      const [a, b] = [member('A'), member('B')];
+      expect(() =>
+        repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id })
+      ).toThrow();
+      const other = repo.createSession(cid, { date: '2026-11-16' });
+      expect(() => repo.startSession(s.id)).toThrow('Une séance est déjà ouverte');
+      repo.closeSession(other.id);
+      expect(repo.startSession(s.id)!.status).toBe('open');
+      const done = repo.updateSession(s.id, {
+        plan: s.plan.map(p => ({ ...p, done: p.id === 'e1' })),
+        notes: 'Bonne énergie',
+      })!;
+      expect(done.plan.find(p => p.id === 'e1')!.done).toBe(true);
+      expect(done.notes).toBe('Bonne énergie');
+    });
+
+    it('bilan de séance et remarques par tireur', () => {
+      const [a, b] = [member('A'), member('B')];
+      const s = repo.createSession(cid, { date: '2026-11-16', label: 'Soir' });
+      repo.setAttendance(s.id, a.id, true);
+      expect(
+        repo.updateSession(s.id, { feedback: { rating: 4, wentWell: 'Rythme', toImprove: '' } })!
+          .feedback
+      ).toEqual({ rating: 4, wentWell: 'Rythme' });
+      repo.setMemberFeedback(s.id, a.id, 'Bonne parade');
+      expect(() => repo.setMemberFeedback(s.id, b.id, 'Absent')).toThrow();
+      expect(repo.getSession(s.id)!.memberFeedback).toEqual({ [a.id]: 'Bonne parade' });
+      expect(repo.getMemberFeedback(a.id)).toEqual([
+        { sessionId: s.id, date: '2026-11-16', label: 'Soir', text: 'Bonne parade' },
+      ]);
+      repo.setMemberFeedback(s.id, a.id, '  ');
+      expect(repo.getMemberFeedback(a.id)).toEqual([]);
+      expect(repo.updateSession(s.id, { feedback: null })!.feedback).toBeUndefined();
+    });
+  });
+
   describe('plusieurs clubs', () => {
     it('membres, séances et combats cloisonnés par club ; résumé pour l’accueil', () => {
       const other = repo.createClub({ name: 'Autre salle', stripCount: 3 }).id;

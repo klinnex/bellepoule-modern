@@ -864,4 +864,23 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_club ON club_bouts(club_id, date)`);
     },
   },
+  {
+    version: 29,
+    description:
+      'Mode Club : préparation des séances (objectifs, plan, notes) et bilan (séance, par tireur) (#1872)',
+    up(db) {
+      for (const col of ['objectives', 'plan', 'notes', 'feedback']) {
+        try {
+          db.run(`ALTER TABLE club_sessions ADD COLUMN ${col} TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      try {
+        db.run(`ALTER TABLE club_attendance ADD COLUMN feedback TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

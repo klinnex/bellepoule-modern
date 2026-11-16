@@ -135,6 +135,13 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   );
   ipcMain.handle('club:closeSession', (_, id: string) => repo.closeSession(id));
   ipcMain.handle('club:reopenSession', (_, id: string) => repo.reopenSession(id));
+  ipcMain.handle('club:startSession', (_, id: string) => repo.startSession(id));
+  ipcMain.handle('club:setMemberFeedback', (_, sessionId: string, memberId: string, text: string) =>
+    repo.setMemberFeedback(sessionId, memberId, typeof text === 'string' ? text : '')
+  );
+  ipcMain.handle('club:getMemberFeedback', (_, memberId: string) =>
+    repo.getMemberFeedback(memberId)
+  );
   ipcMain.handle('club:deleteSession', (_, id: string) => repo.deleteSession(id));
   ipcMain.handle('club:setAttendance', (_, sessionId: string, memberId: string, present: boolean) =>
     repo.setAttendance(sessionId, memberId, present === true)

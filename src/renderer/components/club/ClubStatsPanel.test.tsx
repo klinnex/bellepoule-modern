@@ -41,6 +41,11 @@ beforeEach(() => {
       .mockResolvedValue([{ id: 's1', date: '2026-11-16', label: 'Soir', attendeeIds: [] }]),
     listMembers: vi.fn().mockResolvedValue([member('a', 'ALPHA'), member('b', 'BRAVO')]),
     getLeaderboard: vi.fn().mockResolvedValue([stats('a', 3, 1), stats('b', 1, 3)]),
+    getMemberFeedback: vi
+      .fn()
+      .mockResolvedValue([
+        { sessionId: 's1', date: '2026-11-16', label: 'Soir', text: 'Bonne parade' },
+      ]),
     getMemberReport: vi.fn().mockResolvedValue({
       stats: stats('a', 3, 1),
       headToHead: [
@@ -101,6 +106,7 @@ describe('ClubStatsPanel', () => {
     fireEvent.click(await screen.findByText('ALPHA'));
     expect(await screen.findByText('2026-11')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Face-à-face' })).toBeInTheDocument();
+    expect(await screen.findByText('Bonne parade')).toBeInTheDocument();
     expect(screen.getByText('BRAVO X')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Regrouper par'), { target: { value: 'quarter' } });
     await waitFor(() =>

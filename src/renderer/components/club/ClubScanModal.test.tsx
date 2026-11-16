@@ -36,6 +36,8 @@ const session = {
   status: 'open' as const,
   openedAt: '',
   attendeeIds: [],
+  plan: [],
+  memberFeedback: {},
   createdAt: '',
   updatedAt: '',
 };
