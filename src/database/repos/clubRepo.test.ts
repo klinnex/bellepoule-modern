@@ -298,6 +298,18 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.finishBout(bt.id, { scoreA: 3, scoreB: 3, winnerId: 'x' })!.winnerId).toBeNull();
     });
 
+    it('piste occupée : second combat refusé, libérée une fois terminé', () => {
+      const c = member('C').id;
+      const bt = repo.createBout({ sessionId: sid, memberAId: a, memberBId: b, strip: 2 });
+      expect(() =>
+        repo.createBout({ sessionId: sid, memberAId: a, memberBId: c, strip: 2 })
+      ).toThrow('Piste 2 occupée');
+      repo.finishBout(bt.id, { scoreA: 5, scoreB: 3 });
+      expect(repo.createBout({ sessionId: sid, memberAId: a, memberBId: c, strip: 2 }).strip).toBe(
+        2
+      );
+    });
+
     it('annulé : non terminable', () => {
       const bt = repo.createBout({ sessionId: sid, memberAId: a, memberBId: b });
       repo.cancelBout(bt.id);

@@ -11,6 +11,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { ClubMembersPanel } from './ClubMembersPanel';
+import { ClubSessionsPanel } from './ClubSessionsPanel';
 import { ClubTour } from './ClubTour';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
@@ -97,13 +98,7 @@ export const ClubView: React.FC = () => {
             onCardsPrinted={onCardsPrinted}
           />
         )}
-        {tab === 'sessions' && (
-          <EmptyState
-            icon={<CalendarDays size={32} aria-hidden="true" />}
-            title={t('club.sessions_soon')}
-            description={t('club.sessions_soon_desc')}
-          />
-        )}
+        {tab === 'sessions' && <ClubSessionsPanel settings={settings} />}
         {tab === 'stats' && (
           <EmptyState
             icon={<BarChart3 size={32} aria-hidden="true" />}

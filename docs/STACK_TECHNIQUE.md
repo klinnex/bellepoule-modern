@@ -45,6 +45,7 @@ reste est intégré par Webpack.
 | pdfjs-dist | 6.4.299 | Aperçu de la boîte d'impression (`components/print/pdfjsLoader.ts`, copié dans `dist/renderer/pdfjs`). |
 | jszip | 3.10.2 | Archives tireurs/photos. |
 | qrcode | 1.5.4 | QR codes (chargé à la demande). |
+| jsqr | 1.4.0 | Lecture des QR codes à la webcam, Mode Club (repli si `BarcodeDetector` absent ; chunk à la demande). |
 | tesseract.js | 7.0.0 | OCR des feuilles de poule (chargé à la demande, hors asar). |
 | uuid | 14.0.3 | Identifiants (renderer : build navigateur `dist/index.js` aliasé dans Webpack). |
 

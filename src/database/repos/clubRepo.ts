@@ -581,6 +581,16 @@ export class ClubRepo {
     if (!this.getMember(data.memberAId) || !this.getMember(data.memberBId)) {
       throw new Error('Membre inconnu');
     }
+    const strip = optInt(data.strip, 1, session.stripCount);
+    if (
+      strip !== null &&
+      this.sql.queryOne(
+        `SELECT 1 FROM club_bouts WHERE session_id = ? AND strip = ? AND status IN ('pending', 'in_progress')`,
+        [session.id, strip]
+      )
+    ) {
+      throw new Error(`Piste ${strip} occupée`);
+    }
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
@@ -591,7 +601,7 @@ export class ClubRepo {
         id,
         session.id,
         session.date,
-        optInt(data.strip, 1, session.stripCount),
+        strip,
         data.memberAId,
         data.memberBId,
         clampInt(data.maxScore ?? 5, 1, MAX_SCORE, 5),

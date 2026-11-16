@@ -32,6 +32,7 @@ beforeEach(() => {
     importPhotos: vi.fn().mockResolvedValue({ matched: 2, total: 3 }),
     updateSettings: vi.fn().mockResolvedValue({ name: 'Nouveau nom' }),
     listMembers: vi.fn().mockResolvedValue([member]),
+    listSessions: vi.fn().mockResolvedValue([]),
     createMember: vi.fn().mockResolvedValue(member),
     updateMember: vi.fn().mockResolvedValue(member),
     deleteMember: vi.fn(),
@@ -57,7 +58,9 @@ describe('ClubView', () => {
     expect(screen.getByText('Membres (1)')).toBeInTheDocument();
     expect(api.listMembers).toHaveBeenCalledWith(false);
     fireEvent.click(screen.getByRole('button', { name: 'Séances' }));
-    expect(screen.getByText('Séances : bientôt disponible')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Ouvrir la séance du jour' })
+    ).toBeInTheDocument();
   });
 
   it('ajoute un membre', async () => {
