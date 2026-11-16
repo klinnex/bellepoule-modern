@@ -619,6 +619,19 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(lastDisp()).toMatchObject({ right: { score: 4 }, left: { score: 0 } });
     });
 
+    it('afficheur partageant l’arène du maître : reçoit aussi les scores de la tablette', () => {
+      cyrano.setPistes([
+        { piste: '1', ip: DEVICE_IP, port: 50101, arena: 1, mode: 'master' },
+        { piste: '2', ip: '10.0.0.9', port: 50101, arena: 1, mode: 'display' },
+      ]);
+      hub.syncPisteModes();
+      disps = [];
+      updateScore(4, 0);
+      // Un DISP par piste liée à l'arène : le maître et l'afficheur
+      expect(disps).toHaveLength(2);
+      expect(disps.every(d => d.right?.score === 4 && d.left?.score === 0)).toBe(true);
+    });
+
     it('manuel : aucun DISP envoyé, INFO ignorés, END refusé, resynchronisation refusée', () => {
       setMode('manual');
       disps = [];

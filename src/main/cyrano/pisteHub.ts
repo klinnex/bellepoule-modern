@@ -259,8 +259,14 @@ export class PisteHub {
   onArenaUpdate = (arenaId: string, update: ArenaUpdate): void => {
     const arenaNumber = parseInt(arenaId.replace(/^arena/, ''), 10);
     if (isNaN(arenaNumber)) return;
-    const piste = this.cyrano.findByArena(arenaNumber);
-    if (!piste || this.modeOf(piste) === 'manual') return;
+    // Toutes les pistes de l'arène : maître et afficheurs qui la partagent reçoivent le DISP
+    for (const piste of this.cyrano.findAllByArena(arenaNumber)) {
+      this.displayArenaUpdate(piste, update);
+    }
+  };
+
+  private displayArenaUpdate(piste: CyranoPisteStatus, update: ArenaUpdate): void {
+    if (this.modeOf(piste) === 'manual') return;
 
     const match = update.match;
     const view = this.device.get(piste.piste);
@@ -276,7 +282,7 @@ export class PisteHub {
     const scoreB = update.scoreB ?? match.scoreB;
     if (view?.matchId === match.id && view.scoreA === scoreA && view.scoreB === scoreB) return;
     this.sendMatch(piste.piste, match, scoreA, scoreB);
-  };
+  }
 
   /**
    * Actions de secours depuis le poste (#1829), par piste :
