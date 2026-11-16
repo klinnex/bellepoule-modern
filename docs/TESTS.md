@@ -100,7 +100,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 189 |
+| `src/database/` | 12 | 190 |
 | `src/main/` | 73 | 607 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **409** | **3105** |
+| **Total** | **409** | **3106** |
 
-Unitaires : 399 fichiers, 3066 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 399 fichiers, 3067 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2376,7 +2376,7 @@ Unitaires : 399 fichiers, 3066 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 31 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 32 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2398,6 +2398,7 @@ Unitaires : 399 fichiers, 3066 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - **plusieurs clubs**
     - membres, séances et combats cloisonnés par club ; résumé pour l’accueil
     - suppression d’un club : toutes ses données, pas celles des autres
+    - arme du club : par défaut des nouvelles séances, remplaçable
     - création : nom requis, club inconnu refusé
     - migration 28 : le club unique devient « club-default »
     - migration 28 sans données : aucun club créé
@@ -4926,7 +4927,7 @@ Unitaires : 399 fichiers, 3066 tests. E2E : 10 fichiers, 39 tests (comptage stat
 <summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 9 tests</summary>
 
 - **ClubSessionsPanel**
-  - sans séance ouverte : ouvre la séance du jour avec les pistes du club
+  - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
   - combat en cours sur la piste 1 : saisie du score et fin
   - piste 2 libre : appariement manuel parmi les présents
   - pointage et fermeture
