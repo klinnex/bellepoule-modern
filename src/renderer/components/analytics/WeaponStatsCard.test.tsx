@@ -51,6 +51,40 @@ describe('WeaponStatsCard (#1817)', () => {
     expect(text).toContain('1 (50%)');
   });
 
+  it("tournoi des rapières : mêmes indicateurs que l'épée", () => {
+    const { getByTestId } = render(
+      <TranslationProvider>
+        <WeaponStatsCard
+          competition={
+            { weapon: Weapon.CUSTOM, settings: { specialMode: 'rapieres' } } as Competition
+          }
+          poolMatches={[m(5, 1), m(3, 2)]}
+          tableauMatches={[]}
+          fencers={[]}
+          fencerStats={[cards]}
+          legacy={legacy}
+        />
+      </TranslationProvider>
+    );
+    expect(getByTestId('weapon-stats-olympic').textContent).toContain('1 (50%)');
+  });
+
+  it('arme personnalisée hors rapières : indicateurs historiques', () => {
+    const { queryByTestId } = render(
+      <TranslationProvider>
+        <WeaponStatsCard
+          competition={{ weapon: Weapon.CUSTOM } as Competition}
+          poolMatches={[]}
+          tableauMatches={[]}
+          fencers={[]}
+          fencerStats={[]}
+          legacy={legacy}
+        />
+      </TranslationProvider>
+    );
+    expect(queryByTestId('weapon-stats-olympic')).toBeNull();
+  });
+
   it('sabre laser : indicateurs historiques', () => {
     const { queryByTestId, container } = render(
       <TranslationProvider>
