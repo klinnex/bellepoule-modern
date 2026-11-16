@@ -89,7 +89,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 |---|---:|---:|
 | `src/shared/utils/` | 58 | 723 |
 | `src/shared/services/` | 8 | 92 |
-| Feature `analytics` (`src/features/analytics/`) | 3 | 21 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 27 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 71 | 596 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 97 | 491 |
+| `src/renderer/components/` | 98 | 494 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **390** | **2983** |
+| **Total** | **392** | **2992** |
 
-Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 382 fichiers, 2953 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1602,7 +1602,7 @@ Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 9 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 12 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1619,6 +1619,21 @@ Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tout terminé → pas d’estimation
 - **averageMatchSeconds**
   - temps de combat si connu, sinon début → fin
+- **weaponKpis (#1817)**
+  - écart moyen, cartons par match, temps limite, statuts
+  - aucun match : zéros
+- **organisationKpis.lastEndAt (#1817)**
+  - fin du dernier match horodaté
+
+</details>
+
+<details>
+<summary><code>src/features/analytics/services/scheduleBaseline.test.ts</code> — 3 tests</summary>
+
+- **scheduleBaseline**
+  - fin planifiée par phase, repli sur la 1re estimation
+  - écart final mémorisé puis effacé
+  - JSON corrompu : valeurs vides
 
 </details>
 
@@ -4696,13 +4711,15 @@ Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 4 tests</summary>
 
 - **AnalyticsCharts — zones données / reçues**
   - affiche les mannequins des touches données et reçues, filtrables par tireur
   - filtre par club
 - **AnalyticsCharts — armes olympiques (#1817)**
   - Global en tête, indice moyen, KPI du tireur sélectionné à la place du classement
+- **AnalyticsCharts — motifs de cartons traduits (#1817)**
+  - libellé français + infobulle
 
 </details>
 
@@ -4714,6 +4731,15 @@ Unitaires : 380 fichiers, 2944 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - zone sans touche = none ; deux zones touchées = foncé / clair
 - **TouchZoneHeatmap**
   - affiche les trois zones, dont C, avec leur classe de rang
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/WeaponStatsCard.test.tsx</code> — 2 tests</summary>
+
+- **WeaponStatsCard (#1817)**
+  - armes olympiques : écart, cartons/match, abandons, temps limite
+  - sabre laser : indicateurs historiques
 
 </details>
 
