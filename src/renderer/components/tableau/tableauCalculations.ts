@@ -734,9 +734,13 @@ export const calculateFinalResults = (
     losersData.sort((a, b) => a.poolRank - b.poolRank);
 
     // Issue #60: Assigner des rangs distincts (pas le même rang pour tous)
+    // #1864 : sans petite finale jouée, les deux perdants des demi-finales sont 3es ex æquo
+    // (pas de 4e place, on passe directement à la 5e)
+    const tiedThird = round === 4 && !thirdPlaceMatch?.winner;
+    const firstRank = currentRank;
     for (const loserData of losersData) {
       results.push({
-        rank: currentRank,
+        rank: tiedThird ? firstRank : currentRank,
         fencer: loserData.fencer,
         eliminatedAt: getRoundName(round),
         poolTouches: loserData.poolTouches,
