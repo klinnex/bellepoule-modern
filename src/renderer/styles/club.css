@@ -235,7 +235,8 @@
 /* Plusieurs clubs : tuiles (onglet Club, accueil) */
 .club-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  /* Largeur fixe comme les cartes de compétition : pas d'étirement au redimensionnement (#1826) */
+  grid-template-columns: repeat(auto-fill, 300px);
   gap: 0.75rem;
 }
 .club-tile {
@@ -269,9 +270,8 @@
 }
 .club-tile-name {
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Nom complet sur plusieurs lignes (« Cercle d'escrime de Saint Gratien », #1826) */
+  overflow-wrap: anywhere;
 }
 .club-tile-meta {
   display: flex;

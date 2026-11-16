@@ -75,6 +75,9 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html: sourceHtml, onDone }) =
   const docRef = useRef<PdfDocument | null>(null);
   const taskRef = useRef<PdfLoadingTask | null>(null);
 
+  // Réglages mémorisés dès qu'ils changent, même sans impression ni fermeture (#1826)
+  useEffect(() => saveSettings(settings), [settings]);
+
   const update = <K extends keyof PrintDialogSettings>(key: K, value: PrintDialogSettings[K]) =>
     setSettings(prev => ({ ...prev, [key]: value }));
 

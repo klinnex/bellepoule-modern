@@ -29,6 +29,7 @@ import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { PoolStripButton } from './pool/PoolStripButton';
 import { PoolRefereeModal } from './pool/PoolRefereeModal';
+import { PoolSignaturesModal } from './pool/PoolSignaturesModal';
 import { MatchAuditLog } from './MatchAuditLog';
 import type { PoolViewProps } from './pool/poolViewTypes';
 import { usePoolScoreModal } from '../hooks/poolView/usePoolScoreModal';
@@ -84,7 +85,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
     handleAutoFillScores,
     handlePrintPool,
     isRemoteActive,
-    remoteServerUrl,
     defaultArena,
     competitionId,
     setShowAddFencerModal,
@@ -146,6 +146,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
     setShowFinishedLog,
     showFinishedLog,
   } = { ...props, ...poolViewState, ...poolViewInput, ...poolViewActions, ...poolScoreModal };
+  // Consultation des signatures depuis la pastille x/x (#1826)
+  const [showSignatures, setShowSignatures] = React.useState(false);
 
   // Modale de désignation du combattant pour abandon / forfait / exclusion.
   // Un bouton par combattant + un bouton Annuler (les erreurs, ça arrive).
@@ -321,7 +323,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
               const allSigned = signed === total && total > 0;
               const noneSigned = signed === 0;
               return (
-                <span
+                <button
+                  type="button"
+                  onClick={() => setShowSignatures(true)}
+                  aria-label={t('poolView.signatures')}
                   title={
                     allSigned
                       ? t('poolView.all_signed')
@@ -330,7 +335,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
                   className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
                 >
                   <Icon icon={PenLine} /> {signed}/{total}
-                </span>
+                </button>
               );
             })()}
             <button
@@ -395,23 +400,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
             >
               <Icon icon={Printer} />
             </TipButton>
-            {pool.isComplete && isRemoteActive && remoteServerUrl && (
-              <TipButton
-                onClick={() => {
-                  const url = `${remoteServerUrl}/arene${defaultArena}/poule`;
-                  if (window.electronAPI?.openExternal) {
-                    window.electronAPI.openExternal(url);
-                  } else {
-                    window.open(url, '_blank');
-                  }
-                }}
-                className="pv-icon-btn is-indigo"
-                tip={t('poolView.signatures_title', { arena: defaultArena })}
-                aria-label={t('poolView.signatures')}
-              >
-                <Icon icon={PenLine} />
-              </TipButton>
-            )}
             {competitionId && (
               <TipButton
                 onClick={() => setShowAddFencerModal(true)}
@@ -519,6 +507,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
           {renderScoreModal()}
         </div>
       </div>
+      {showSignatures && (
+        <PoolSignaturesModal
+          poolId={pool.id}
+          poolNumber={pool.number}
+          fencers={pool.fencers}
+          onClose={() => setShowSignatures(false)}
+        />
+      )}
       {showAddFencerModal && competitionId && (
         <AddFencerToPoolModal
           pool={pool}
