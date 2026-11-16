@@ -246,6 +246,12 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
     return entry ? this.view(entry) : undefined;
   }
 
+  /** Toutes les pistes liées à une arène : un afficheur peut partager l'arène d'un maître. */
+  findAllByArena(arena: number): CyranoPisteStatus[] {
+    this.refreshStatuses();
+    return [...this.pistes.values()].filter(p => p.arena === arena).map(p => this.view(p));
+  }
+
   /** Envoie un match à afficher. Sans tireurs : DISP « vide » (aucun match disponible). */
   sendDisp(piste: string, disp: Omit<CyranoMessage, 'protocol' | 'command' | 'piste' | 'compe'>) {
     return this.send(piste, { ...disp, command: 'DISP' });
