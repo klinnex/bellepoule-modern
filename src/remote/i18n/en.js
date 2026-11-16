@@ -701,7 +701,6 @@
   'results.match_won': 'Won',
   'results.match_lost': 'Lost',
   'results.match_pending': 'Upcoming',
-  'results.fencer_follow': 'Detailed fencer tracking',
   'selfCheckin.page_title': 'Check-in – BellePoule',
   'selfCheckin.title': 'Check-in',
   'selfCheckin.intro': 'Enter your licence number and date of birth to confirm you are present.',

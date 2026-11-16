@@ -694,7 +694,6 @@
   'results.match_won': 'Trec\'h',
   'results.match_lost': 'Kollet',
   'results.match_pending': 'Da zont',
-  'results.fencer_follow': 'Heuliañ ar c\'hoarier',
   'selfCheckin.page_title': 'Enrolladur – BellePoule',
   'selfCheckin.title': 'Enrolladur',
   'selfCheckin.intro': 'Roit ho niverenn lañvaz hag ho teiziad ganedigezh evit kadarnaat emaoc\'h amañ.',

@@ -694,7 +694,6 @@
   'results.match_won': 'Sieg',
   'results.match_lost': 'Niederlage',
   'results.match_pending': 'Ausstehend',
-  'results.fencer_follow': 'Detaillierte Fechterübersicht',
   'selfCheckin.page_title': 'Check-in – BellePoule',
   'selfCheckin.title': 'Check-in',
   'selfCheckin.intro': 'Lizenznummer und Geburtsdatum eingeben, um die Anwesenheit zu bestätigen.',

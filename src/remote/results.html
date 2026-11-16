@@ -9,48 +9,222 @@
     <script src="/i18n.js"></script>
     <link rel="stylesheet" href="/tokens.css" />
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: system-ui, sans-serif; background: var(--slate-900); color: var(--tw-slate-200); padding: 1rem; }
-      header { text-align: center; padding: 1.5rem 0 1rem; }
-      header h1 { font-size: 1.5rem; color: var(--slate-50); }
-      header p { color: var(--slate-400); font-size: 0.875rem; margin-top: 0.25rem; }
-      .pool { background: var(--slate-800); border-radius: 10px; margin: 1rem 0; overflow: hidden; }
-      .pool-title { background: var(--blue-500); color: white; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.95rem; }
-      table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-      th { background: var(--slate-900); color: var(--slate-400); padding: 0.5rem 0.75rem; text-align: left; font-weight: 500; }
-      td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-700); }
-      tr:last-child td { border-bottom: none; }
-      tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
-      .rank { color: var(--slate-400); width: 2rem; }
-      .name { font-weight: 600; }
-      .club { color: var(--slate-400); font-size: 0.8rem; }
-      .num { text-align: center; }
-      .pos { color: var(--tw-green-400); }
-      .neg { color: var(--tw-red-400); }
-      .loading { text-align: center; padding: 3rem; color: var(--slate-400); }
-      .empty { text-align: center; color: var(--slate-400); padding: 2rem; }
-      .error { background: var(--tw-red-950); color: var(--red-200); padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-      .toolbar { display: flex; justify-content: flex-start; margin-bottom: 0.5rem; }
-      .toolbar select { max-width: 100%; min-width: 16rem; padding: 0.5rem 0.75rem; border-radius: 8px;
-        background: var(--slate-800); color: var(--slate-100); border: 1px solid var(--slate-700); font-size: 0.9rem; }
-      .section-title { color: var(--slate-50); font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
-      .round-title { background: var(--slate-700); }
-      .win { color: var(--tw-green-400); font-weight: 700; }
-      .score { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
-      .fencer-card { background: var(--slate-800); border: 2px solid var(--blue-500); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
-      .fencer-card h2 { font-size: 1.15rem; color: var(--slate-50); }
-      .fencer-card .stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0.75rem 0; font-size: 0.9rem; }
-      .fencer-card .stats b { color: var(--slate-50); }
-      .fencer-card a { color: var(--blue-400); }
-      .hl td { background: rgba(59,130,246,0.18) !important; }
-      .refresh { position: fixed; bottom: 1rem; right: 1rem; background: var(--blue-500); color: white;
-        border: none; border-radius: 50%; width: 3rem; height: 3rem; font-size: 1.2rem;
-        cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--slate-900);
+        color: var(--tw-slate-200);
+        padding: 1rem;
+      }
+      header {
+        text-align: center;
+        padding: 1.5rem 0 1rem;
+      }
+      header h1 {
+        font-size: 1.5rem;
+        color: var(--slate-50);
+      }
+      header p {
+        color: var(--slate-400);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+      .pool {
+        background: var(--slate-800);
+        border-radius: 10px;
+        margin: 1rem 0;
+        overflow: hidden;
+      }
+      .pool-title {
+        background: var(--blue-500);
+        color: white;
+        padding: 0.6rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th {
+        background: var(--slate-900);
+        color: var(--slate-400);
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+        font-weight: 500;
+      }
+      td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--slate-700);
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .rank {
+        color: var(--slate-400);
+        width: 2rem;
+      }
+      .name {
+        font-weight: 600;
+      }
+      .club {
+        color: var(--slate-400);
+        font-size: 0.8rem;
+      }
+      .num {
+        text-align: center;
+      }
+      .pos {
+        color: var(--tw-green-400);
+      }
+      .neg {
+        color: var(--tw-red-400);
+      }
+      .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--slate-400);
+      }
+      .empty {
+        text-align: center;
+        color: var(--slate-400);
+        padding: 2rem;
+      }
+      .error {
+        background: var(--tw-red-950);
+        color: var(--red-200);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+      .toolbar {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 0.5rem;
+      }
+      .toolbar select {
+        max-width: 100%;
+        min-width: 16rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background: var(--slate-800);
+        color: var(--slate-100);
+        border: 1px solid var(--slate-700);
+        font-size: 0.9rem;
+      }
+      .section-title {
+        color: var(--slate-50);
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      .round-title {
+        background: var(--slate-700);
+      }
+      summary.pool-title {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        user-select: none;
+      }
+      summary.pool-title::-webkit-details-marker {
+        display: none;
+      }
+      summary.pool-title::before {
+        content: '▾';
+        transition: transform 0.15s;
+      }
+      details.pool:not([open]) > summary.pool-title::before {
+        transform: rotate(-90deg);
+      }
+      /* Tableau : 3 colonnes alignées (tireur A | score | tireur B) */
+      table.bout {
+        table-layout: fixed;
+      }
+      table.bout col.side {
+        width: 42%;
+      }
+      table.bout col.mid {
+        width: 16%;
+      }
+      table.bout td.a {
+        text-align: right;
+      }
+      table.bout td.b {
+        text-align: left;
+      }
+      table.bout td.a,
+      table.bout td.b {
+        overflow-wrap: anywhere;
+      }
+      .win {
+        color: var(--tw-green-400);
+        font-weight: 700;
+      }
+      .score {
+        text-align: center;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .fencer-card {
+        background: var(--slate-800);
+        border: 2px solid var(--blue-500);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+      .fencer-card h2 {
+        font-size: 1.15rem;
+        color: var(--slate-50);
+      }
+      .fencer-card .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.25rem;
+        margin: 0.75rem 0;
+        font-size: 0.9rem;
+      }
+      .fencer-card .stats b {
+        color: var(--slate-50);
+      }
+      .fencer-card a {
+        color: var(--blue-400);
+      }
+      .hl td {
+        background: rgba(59, 130, 246, 0.18) !important;
+      }
+      .refresh {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        background: var(--blue-500);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
     </style>
   </head>
   <body>
-    <div id="app"><div class="loading" data-i18n="results.loading">Chargement des résultats…</div></div>
-    <button class="refresh" id="refresh-btn" data-i18n-title="results.refresh" title="Actualiser">↻</button>
+    <div id="app">
+      <div class="loading" data-i18n="results.loading">Chargement des résultats…</div>
+    </div>
+    <button class="refresh" id="refresh-btn" data-i18n-title="results.refresh" title="Actualiser">
+      ↻
+    </button>
     <script>
       (function () {
         const tk = (key, params) => (window.T ? window.T(key, params) : key);
@@ -61,7 +235,9 @@
 
         async function load() {
           try {
-            const r = await fetch('/api/competitions/' + encodeURIComponent(competitionId) + '/results-data');
+            const r = await fetch(
+              '/api/competitions/' + encodeURIComponent(competitionId) + '/results-data'
+            );
             if (!r.ok) throw new Error(tk('results.not_found'));
             render(await r.json());
             return true;
@@ -78,6 +254,22 @@
 
         let selectedId = '';
         let lastData = null;
+        // Cartes repliées (tours de tableau, poules), conservées entre deux rafraîchissements (#1858)
+        const collapsed = new Set();
+
+        function cardOpen(key, title, titleCls) {
+          return (
+            '<details class="pool" data-key="' +
+            esc(key) +
+            '"' +
+            (collapsed.has(key) ? '' : ' open') +
+            '><summary class="pool-title ' +
+            titleCls +
+            '">' +
+            esc(title) +
+            '</summary>'
+          );
+        }
         const fullName = f =>
           f ? esc(String(f.lastName || '').toUpperCase()) + ' ' + esc(f.firstName || '') : '';
 
@@ -174,13 +366,8 @@
             }
           }
           if (rows.length) html += '<table><tbody>' + rows.join('') + '</tbody></table>';
-          html +=
-            '<p><a href="/tireur/' +
-            encodeURIComponent(f.id) +
-            '">' +
-            esc(tk('results.fencer_follow')) +
-            '</a></p></section>';
-          return html;
+          // Pas de lien vers /tireur/:id : suivi strictement personnel au tireur (#1858)
+          return html + '</section>';
         }
 
         function tableauHtml(data) {
@@ -188,9 +375,8 @@
           let html = '<h2 class="section-title">' + esc(tk('results.tableau_title')) + '</h2>';
           for (const r of data.tableau) {
             html +=
-              '<div class="pool"><div class="pool-title round-title">' +
-              esc(roundLabel(r.round)) +
-              '</div><table><tbody>';
+              cardOpen('round-' + r.round, roundLabel(r.round), 'round-title') +
+              '<table class="bout"><colgroup><col class="side" /><col class="mid" /><col class="side" /></colgroup><tbody>';
             for (const m of r.matches) {
               const cls = id => (m.finished && m.winnerId === id ? 'win' : '');
               const hl =
@@ -200,7 +386,7 @@
               html +=
                 '<tr' +
                 (hl ? ' class="hl"' : '') +
-                '><td class="' +
+                '><td class="a ' +
                 cls(m.fencerA && m.fencerA.id) +
                 '">' +
                 fullName(m.fencerA) +
@@ -210,13 +396,13 @@
                   ? esc(m.scoreA ?? '') + ' – ' + esc(m.scoreB ?? '')
                   : esc(tk('results.match_pending'))) +
                 '</td>' +
-                '<td class="' +
+                '<td class="b ' +
                 cls(m.fencerB && m.fencerB.id) +
                 '">' +
                 fullName(m.fencerB) +
                 '</td></tr>';
             }
-            html += '</tbody></table></div>';
+            html += '</tbody></table></details>';
           }
           return html;
         }
@@ -296,9 +482,8 @@
               html += '<h2 class="section-title">' + esc(tk('results.pools_title')) + '</h2>';
             for (const pool of data.pools) {
               html +=
-                '<div class="pool"><div class="pool-title">' +
-                esc(pool.name) +
-                '</div><table>' +
+                cardOpen('pool-' + pool.name, pool.name, '') +
+                '<table>' +
                 '<thead><tr><th class="rank">#</th><th>' +
                 esc(tk('results.col_fencer')) +
                 '</th>' +
@@ -345,7 +530,7 @@
                   esc(ind) +
                   '</td></tr>';
               });
-              html += '</tbody></table></div>';
+              html += '</tbody></table></details>';
             }
           }
           document.getElementById('app').innerHTML = html;
@@ -360,6 +545,18 @@
             if (s) s.focus();
           }
         });
+
+        // toggle ne remonte pas : écoute en capture
+        document.getElementById('app').addEventListener(
+          'toggle',
+          e => {
+            const d = e.target;
+            if (!d || d.tagName !== 'DETAILS' || !d.dataset.key) return;
+            if (d.open) collapsed.delete(d.dataset.key);
+            else collapsed.add(d.dataset.key);
+          },
+          true
+        );
 
         // Polling suspendu onglet masqué, backoff 30 s -> 2 min après erreur (#1345)
         let poll = null;

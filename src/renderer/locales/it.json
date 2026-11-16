@@ -1684,7 +1684,7 @@
     "pool_n": "Girone {{n}}",
     "weapon_stats": "Statistiche dell'arma",
     "total_matches": "Totale incontri",
-    "avg_margin": "Scarto medio di vittoria",
+    "avg_margin": "Scarto medio per vittoria",
     "most_touching": "Incontro più combattuto",
     "competition": "Competizione",
     "tab_organisation": "Organizzazione",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "stocc./assalto",
     "touches_per_match_title": "Media di stoccate date per assalto",
     "cards_per_match": "Cartellini per assalto",
-    "withdrawals": "Abbandoni / esclusioni / forfait",
+    "withdrawals": "Medico / esclusioni / forfait",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assalti al tempo limite",
     "time_limit_hint": "Assalti disputati terminati senza che nessuno raggiunga il punteggio massimo"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Risincronizzazione punteggio fallita",
     "ended_at": "Terminato alle {{time}}",
     "final_deviation": "Scostamento finale dal programma",
+    "eta_pools": "Fine stimata dei gironi",
+    "deviation_pools": "Scostamento dei gironi dal programma",
+    "eta_competition": "Fine stimata della gara",
+    "eta_projected": "Tabellone stimato (non generato)",
+    "planned_projected": "Previsto (gironi + tabellone stimato): {{time}}",
     "planned_estimate": "Riferimento (1ª stima): {{time}}"
   }
 }

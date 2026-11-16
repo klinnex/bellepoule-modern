@@ -1684,7 +1684,7 @@
     "pool_n": "Poule {{n}}",
     "weapon_stats": "Statistiques de l'arme",
     "total_matches": "Total des matchs",
-    "avg_margin": "Écart moyen de victoire",
+    "avg_margin": "Moyenne écart par victoire",
     "most_touching": "Match le plus disputé",
     "competition": "Compétition",
     "tab_organisation": "Organisation",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "TD/match",
     "touches_per_match_title": "Moyenne de touches données par match",
     "cards_per_match": "Cartons par match",
-    "withdrawals": "Abandons / exclusions / forfaits",
+    "withdrawals": "Médical / exclusions / forfaits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Matchs au temps limite",
     "time_limit_hint": "Matchs disputés terminés sans qu'aucun tireur n'atteigne le score maximum"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Échec de resynchronisation d’un score",
     "ended_at": "Terminé à {{time}}",
     "final_deviation": "Écart final au planning",
+    "eta_pools": "Fin estimée des poules",
+    "deviation_pools": "Écart au planning des poules",
+    "eta_competition": "Fin estimée de la compétition",
+    "eta_projected": "Tableau projeté (non généré)",
+    "planned_projected": "Prévu (poules + tableau projeté) : {{time}}",
     "planned_estimate": "Référence (1re estimation) : {{time}}"
   }
 }

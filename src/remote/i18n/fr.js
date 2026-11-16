@@ -702,7 +702,6 @@
   'results.match_won': 'Victoire',
   'results.match_lost': 'Défaite',
   'results.match_pending': 'À venir',
-  'results.fencer_follow': 'Suivi détaillé du tireur',
   'selfCheckin.page_title': 'Pointage – BellePoule',
   'selfCheckin.title': 'Pointage',
   'selfCheckin.intro': 'Saisissez votre numéro de licence et votre date de naissance pour confirmer votre présence.',

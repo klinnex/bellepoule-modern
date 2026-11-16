@@ -1684,7 +1684,7 @@
     "pool_n": "Pool {{n}}",
     "weapon_stats": "Waffenstatistik",
     "total_matches": "Gefechte insgesamt",
-    "avg_margin": "Ø Siegvorsprung",
+    "avg_margin": "Ø Vorsprung pro Sieg",
     "most_touching": "Gefecht mit den meisten Treffern",
     "competition": "Wettkampf",
     "tab_organisation": "Organisation",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "Tr./Gefecht",
     "touches_per_match_title": "Durchschnittlich gesetzte Treffer pro Gefecht",
     "cards_per_match": "Karten pro Gefecht",
-    "withdrawals": "Aufgaben / Ausschlüsse / Forfaits",
+    "withdrawals": "Medizinisch / Ausschlüsse / Forfaits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Gefechte bis Zeitablauf",
     "time_limit_hint": "Ausgetragene Gefechte, in denen kein Fechter die Höchstpunktzahl erreicht hat"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "Ergebnis-Nachsynchronisierung fehlgeschlagen",
     "ended_at": "Beendet um {{time}}",
     "final_deviation": "Endgültige Planabweichung",
+    "eta_pools": "Voraussichtliches Ende der Pools",
+    "deviation_pools": "Planabweichung der Pools",
+    "eta_competition": "Voraussichtliches Wettkampfende",
+    "eta_projected": "Hochgerechnetes Tableau (nicht erstellt)",
+    "planned_projected": "Geplant (Pools + hochgerechnetes Tableau): {{time}}",
     "planned_estimate": "Referenz (erste Schätzung): {{time}}"
   }
 }

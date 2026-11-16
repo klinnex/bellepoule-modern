@@ -552,11 +552,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                 />
               )}
               {activeTab === 'organisation' && (
-                <OrganisationPanel
-                  competitionId={competition.id}
-                  kpis={orgKpis}
-                  phase={tableauCounts.total > 0 ? 'tableau' : 'pools'}
-                />
+                <OrganisationPanel competitionId={competition.id} kpis={orgKpis} />
               )}
               {activeTab === 'journal' && (
                 <Suspense fallback={null}>

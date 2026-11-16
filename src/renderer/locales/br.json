@@ -1684,7 +1684,7 @@
     "pool_n": "Poulenn {{n}}",
     "weapon_stats": "Stadegoù an arm",
     "total_matches": "Emgannoù en holl",
-    "avg_margin": "Diforc'h trec'h keitat",
+    "avg_margin": "Diforc'h keitat dre drec'h",
     "most_touching": "Emgann gant ar muiañ a daolioù",
     "competition": "Kevezadeg",
     "tab_organisation": "Aozadur",
@@ -1695,7 +1695,7 @@
     "touches_per_match": "taolioù/emgann",
     "touches_per_match_title": "Keitad an taolioù roet dre emgann",
     "cards_per_match": "Kartennoù dre emgann",
-    "withdrawals": "Dilezadennoù / ermaeziadennoù / forfedoù",
+    "withdrawals": "Yec'hed / ermaeziadennoù / forfedoù",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Emgannoù betek an amzer bevenn",
     "time_limit_hint": "Emgannoù echu hep na vefe tizhet ar skor uhelañ gant hini ebet"
@@ -3229,6 +3229,11 @@
     "issue_sync_error": "C’hwitadenn oc’h adkempredañ ur skor",
     "ended_at": "Echu da {{time}}",
     "final_deviation": "Diforc'h diwezhañ gant ar steuñv",
+    "eta_pools": "Fin diouzh ar jedadenn ar poulennoù",
+    "deviation_pools": "Diforc'h ar poulennoù gant ar steuñv",
+    "eta_competition": "Fin diouzh ar jedadenn ar genstrivadeg",
+    "eta_projected": "Taolenn rakwelet (n'eo ket bet krouet)",
+    "planned_projected": "Raktreset (poulennoù + taolenn rakwelet) : {{time}}",
     "planned_estimate": "Dave (priziadur kentañ) : {{time}}"
   }
 }

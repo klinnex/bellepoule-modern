@@ -88,8 +88,9 @@ button,
   }
   /* Cartes A/B agrandies avec la hauteur d'écran : zone de touche (case score) plus large (#1808) */
   .score-display {
-    font-size: clamp(4.5rem, 11vh, 6.5rem);
-    line-height: 1.1;
+    /* Chiffres agrandis dans la case (#1808) : bornés par la largeur pour « 15 » */
+    font-size: min(clamp(5.5rem, 13vh, 8rem), 34vw);
+    line-height: 1;
     padding: 0.2rem 0;
     margin-bottom: 0.3rem;
   }

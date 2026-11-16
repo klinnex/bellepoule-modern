@@ -65,7 +65,7 @@ export const WeaponStatsCard: React.FC<{
       <h3 className="text-lg font-semibold mb-4">{t('analytics.weapon_stats')}</h3>
       {olympic ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-testid="weapon-stats-olympic">
-          <Stat label={t('analytics.avg_margin')}>{kpis.averageMargin.toFixed(1)}</Stat>
+          <Stat label={t('analytics.avg_margin')}>{`+${kpis.averageMargin.toFixed(1)}`}</Stat>
           <Stat label={t('analytics.cards_per_match')}>{kpis.cardsPerMatch.toFixed(2)}</Stat>
           <Stat label={t('analytics.withdrawals')}>
             {t('analytics.withdrawals_value', {
@@ -82,7 +82,9 @@ export const WeaponStatsCard: React.FC<{
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Stat label={t('analytics.total_matches')}>{legacy.totalMatches}</Stat>
-          <Stat label={t('analytics.avg_margin')}>{legacy.averageVictoryMargin.toFixed(1)}</Stat>
+          <Stat
+            label={t('analytics.avg_margin')}
+          >{`+${legacy.averageVictoryMargin.toFixed(1)}`}</Stat>
           <Stat label={t('analytics.most_touching')}>{legacy.mostTouchingMatch}</Stat>
           <Stat label={t('analytics.competition')}>{weapon}</Stat>
         </div>

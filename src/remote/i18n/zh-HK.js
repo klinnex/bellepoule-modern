@@ -696,7 +696,6 @@
   'results.match_won': '勝',
   'results.match_lost': '負',
   'results.match_pending': '待賽',
-  'results.fencer_follow': '劍手詳細進度',
   'selfCheckin.page_title': '報到 – BellePoule',
   'selfCheckin.title': '報到',
   'selfCheckin.intro': '輸入會員編號及出生日期以確認出席。',

@@ -262,6 +262,16 @@ export interface OrganisationKpis {
   /** Fin estimée (ms) ; null si rien à estimer */
   etaAt: number | null;
   etaBasis: 'measured' | 'default' | null;
+  /** Fin estimée des poules (ms) ; null si poules terminées ou absentes (#1817) */
+  poolsEtaAt: number | null;
+  /** Fin réelle des poules (ms) : dernier match de poule terminé, une fois toutes les poules finies */
+  poolsEndAt: number | null;
+  /** Fin estimée de la compétition (ms) : tableau projeté tant qu'il n'est pas généré */
+  competitionEtaAt: number | null;
+  /** Durée projetée du tableau (ms) tant qu'il n'est pas généré ; null sinon */
+  tableauProjectionMs: number | null;
+  /** Tableau généré */
+  hasTableau: boolean;
   /** Fin du dernier match terminé (ms) ; null si aucun horodatage */
   lastEndAt: number | null;
   /** Instant du calcul (ms) */
@@ -375,6 +385,46 @@ export function organisationKpis(input: {
     etaBasis = eta.basis;
   }
 
+  // Fin des poules seule (#1817) : bandeau Organisation séparé poules / compétition
+  const poolRemainingTotal = poolTotal - poolDone;
+  let poolsEtaAt: number | null = null;
+  let perMatchMs = 0;
+  if (poolTotal > 0) {
+    const eta = estimatePhaseEta({
+      durationsMs: wallMs.map(x => x.ms),
+      remainingMatches: poolRemainingTotal,
+      sequentialGroups: poolRows.map(p => p.total - p.done).filter(n => n > 0),
+      activeArenas: parallel,
+      now,
+    });
+    perMatchMs = eta.perMatchMs;
+    if (poolRemainingTotal > 0) poolsEtaAt = eta.finishAt;
+  }
+  const poolEnds = finishedTimed
+    .filter(t => poolMatchIds.has(t.matchId))
+    .map(t => time(t.endTime))
+    .filter(Boolean);
+  const poolsEndAt =
+    poolTotal > 0 && poolRemainingTotal === 0 && poolEnds.length ? Math.max(...poolEnds) : null;
+
+  // Tableau non généré : projection d'un tableau à élimination directe des tireurs de poule
+  const hasTableau = tableauMatches.length > 0;
+  let tableauProjectionMs: number | null = null;
+  if (!hasTableau && poolTotal > 0) {
+    const fencerIds = new Set<string>();
+    for (const p of pools)
+      for (const m of p.matches ?? []) {
+        if (m.fencerA?.id) fencerIds.add(m.fencerA.id);
+        if (m.fencerB?.id) fencerIds.add(m.fencerB.id);
+      }
+    tableauProjectionMs = tableauWaves(fencerIds.size, parallel) * perMatchMs;
+  }
+  const competitionEtaAt = hasTableau
+    ? etaAt
+    : tableauProjectionMs != null
+      ? (poolsEtaAt ?? poolsEndAt ?? now) + tableauProjectionMs
+      : etaAt;
+
   const ends = finishedTimed.map(t => time(t.endTime)).filter(Boolean);
   const starts = timings.map(t => time(t.startTime)).filter(Boolean);
   const firstStart = starts.length ? Math.min(...starts) : 0;
@@ -413,6 +463,11 @@ export function organisationKpis(input: {
     inProgress,
     etaAt,
     etaBasis,
+    poolsEtaAt,
+    poolsEndAt,
+    competitionEtaAt,
+    tableauProjectionMs,
+    hasTableau,
     lastEndAt: ends.length ? Math.max(...ends) : null,
     now,
     lastHourThroughput: ends.filter(e => e > now - 3_600_000 && e <= now).length,
@@ -433,6 +488,19 @@ export function organisationKpis(input: {
       .slice(-8)
       .reverse(),
   };
+}
+
+/**
+ * Vagues d'un tableau à élimination directe de n tireurs sur `arenas` pistes :
+ * 1er tour = n − 2^(k−1) matchs (exempts déduits), puis 2^(k−2), …, 1 (#1817).
+ */
+export function tableauWaves(n: number, arenas: number): number {
+  if (n < 2) return 0;
+  const a = Math.max(1, Math.floor(arenas));
+  const size = 2 ** Math.ceil(Math.log2(n));
+  let waves = Math.ceil((n - size / 2) / a);
+  for (let m = size / 4; m >= 1; m /= 2) waves += Math.ceil(m / a);
+  return waves;
 }
 
 /** Durée moyenne (s) des matchs terminés : temps de combat si connu, sinon début → fin. */

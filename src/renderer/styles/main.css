@@ -1244,6 +1244,7 @@ body {
 }
 
 .comparison__selectors .form-group {
+  min-width: 0;
   flex: 1;
   margin-bottom: 0;
 }
@@ -1252,6 +1253,15 @@ body {
 .comparison__selectors .form-label {
   display: block;
   text-align: center;
+}
+
+/* Listes de sélection pleine largeur, centrées sous leur libellé (#1858) */
+.comparison__selectors .form-control {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  text-align-last: center;
 }
 
 .comparison__vs {
