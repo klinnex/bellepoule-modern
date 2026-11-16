@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 71 | 596 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 98 | 494 |
+| `src/renderer/components/` | 98 | 496 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **392** | **2992** |
+| **Total** | **392** | **2994** |
 
-Unitaires : 382 fichiers, 2953 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 382 fichiers, 2955 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5309,12 +5309,15 @@ Unitaires : 382 fichiers, 2953 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 6 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
 - **calculateFinalResults - abandon / forfait / exclusion (#1012)**
   - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **calculateFinalResults - 3e place non jouée (#1864)**
+  - deux 3es ex æquo, pas de 4e, puis 5e
+  - petite finale jouée : 3e et 4e distincts
 - **generateFIESeeding (#1080)**
   - tables en dur identiques à la construction FIE générique
   - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
