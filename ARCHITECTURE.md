@@ -97,7 +97,7 @@ bellepoule-modern/
 │   │       │                     # rankingParser, common
 │   │       ├── pdfExport/        # core, poolPdf, tableauPdf, bracketTreePdf, rankingPdf,
 │   │       │                     # resultsPdf, fullCompetitionPdf, appelPdf, refereeCommentsPdf
-│   │       ├── poolCalculations, tableCalculations, scoreValidation, suddenDeath
+│   │       ├── poolCalculations, tableCalculations, matchEndValidation, suddenDeath
 │   │       ├── cardSystem, touchSystem, customTouchSystem, customRankingCalculator
 │   │       ├── questScheduler, splitCompetition, tournamentTemplates
 │   │       ├── fencerStatsCalculator, refereeStats, postTournamentReport

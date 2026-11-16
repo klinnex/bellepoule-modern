@@ -6,8 +6,10 @@
 > PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
 > dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
 > import / export de la liste.
-> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, validation
-> de fin unifiée, test de bout en bout en CI.
+> Validation de fin unifiée : règles uniques dans `src/shared/utils/matchEndValidation.ts`,
+> partagées par l'appareil, la tablette et la fin de match d'arène.
+> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, test de bout
+> en bout en CI.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -34,7 +36,7 @@ EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono 
 | `codec.ts` | `parseCyrano(raw)` / `buildCyrano(msg)` : 3 zones, champs de fin omis, `\|` et `%` retirés des valeurs (pas d'échappement dans le protocole), troncature aux longueurs maximales de la spécification, carton P omis en EFP1. |
 | `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
 | `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
-| `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**. |
+| `endValidation.ts` | Adaptateur vers `shared/utils/matchEndValidation.ts` (#1829). `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoEndOutcome(info, côtés)` → vainqueur imposé par l'appareil (abandon, exclusion, V / D ou priorité à égalité), rapporté aux tireurs A / B par **Id**. |
 | `deviceState.ts` | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
 | `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
 | `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
@@ -218,8 +220,11 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
      (`PisteState`, `PisteInput`, `PisteCommand`) et pilotes déclarant leurs capacités
      (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoServer` devient le premier
      pilote ; RS422-FPA, Favero série (lecture seule) et OPP2/MQTT suivront sans toucher aux arènes.
-   - **Une seule validation de fin** : `endValidation.ts`, `scoreValidation.ts` et le calcul du
-     vainqueur de `matchRoutes.ts` fusionnés ; contrôle de la limite de score de l'épreuve.
+   - **Une seule validation de fin** (fait, #1829) : `shared/utils/matchEndValidation.ts`
+     (`validateMatchEnd`, `decideMatchWinner`, `resolveScoreLimit`, `passivityWinner`,
+     `crossedSabreBreak`) utilisé par `endValidation.ts`, `matchRoutes.ts`, `matchFinish.ts` et
+     `arenaOps.ts` ; `scoreValidation.ts` (jamais appelé) supprimé. Pause sabre à 8 touches :
+     règle fournie, non branchée (périodes de la tablette au temps).
    - **Reprise de l'état des arènes** au redémarrage (`saveArenaState` est écrit mais jamais relu).
    - **Chrono tenu côté serveur** en individuel, alimenté par la source maîtresse (appareil ou
      tablette) : référence pour la tablette en miroir.

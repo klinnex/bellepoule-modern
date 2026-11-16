@@ -17,6 +17,7 @@ import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 import { recordRemoteEvent } from '../remoteEvents';
+import { decideMatchWinner, isAcceptableScore } from '../../../shared/utils/matchEndValidation';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -263,18 +264,11 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       } = req.body;
       const fightSeconds = Number(rawFight);
 
-      const scoreA = Number(rawA);
-      const scoreB = Number(rawB);
-      if (
-        !Number.isInteger(scoreA) ||
-        !Number.isInteger(scoreB) ||
-        scoreA < 0 ||
-        scoreB < 0 ||
-        scoreA > 50 ||
-        scoreB > 50
-      ) {
+      if (!isAcceptableScore(rawA) || !isAcceptableScore(rawB)) {
         return res.status(400).json({ error: 'invalid_scores' });
       }
+      const scoreA = Number(rawA);
+      const scoreB = Number(rawB);
 
       logger.info(LogCategory.NETWORK, `[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
       logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Score final: ${scoreA}-${scoreB}`);
@@ -306,19 +300,16 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           ? 'B'
           : null;
 
-      // Déterminer le vainqueur : carton noir → adversaire du fautif,
-      // scores égaux + tirage au sort → utiliser winnerOverride
-      const winner = blackCarded
-        ? blackCarded === 'A'
-          ? 'B'
-          : 'A'
-        : scoreA > scoreB
-          ? 'A'
-          : scoreB > scoreA
-            ? 'B'
-            : winnerOverride === 'A' || winnerOverride === 'B'
-              ? winnerOverride
-              : priorityWinner;
+      // Vainqueur (règles uniques, #1829) : carton noir → adversaire du fautif, puis score,
+      // puis à égalité tirage au sort / P-noir (winnerOverride), puis priorité
+      const { winner } = decideMatchWinner({
+        scoreA,
+        scoreB,
+        statusA: blackCarded === 'A' ? 'exclusion' : 'normal',
+        statusB: blackCarded === 'B' ? 'exclusion' : 'normal',
+        override: winnerOverride === 'A' || winnerOverride === 'B' ? winnerOverride : null,
+        priority: priorityWinner,
+      });
 
       // Arène du match (capturée avant que finishArenaMatch ne charge le match suivant)
       const blackCardArenaId = blackCarded
@@ -562,16 +553,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       const scoreUpdate: RemoteScoreUpdate = req.body;
       // Validation des scores si présents dans le body
       if (scoreUpdate.scoreA !== undefined && scoreUpdate.scoreB !== undefined) {
-        const sA = Number(scoreUpdate.scoreA);
-        const sB = Number(scoreUpdate.scoreB);
-        if (
-          !Number.isInteger(sA) ||
-          !Number.isInteger(sB) ||
-          sA < 0 ||
-          sB < 0 ||
-          sA > 50 ||
-          sB > 50
-        ) {
+        if (!isAcceptableScore(scoreUpdate.scoreA) || !isAcceptableScore(scoreUpdate.scoreB)) {
           return res.status(400).json({ error: 'invalid_scores' });
         }
       }
