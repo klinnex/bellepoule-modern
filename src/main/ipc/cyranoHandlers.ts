@@ -79,6 +79,8 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
           (p as { piste: string }).piste.length > 0 &&
           (p as { piste: string }).piste.length <= 16
       )
+      // Doublon de numéro de piste : garde la première (clé primaire competition_id + piste)
+      .filter((p, i, all) => all.findIndex(q => q.piste === p.piste) === i)
       .slice(0, 64)
       .map(p => ({ piste: p.piste, config: p }));
     db.replaceCyranoPistes(competitionId, rows);
