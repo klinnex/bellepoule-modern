@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 196 |
-| `src/main/` | 74 | 615 |
+| `src/database/` | 13 | 205 |
+| `src/main/` | 77 | 631 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 107 | 542 |
+| `src/renderer/components/` | 108 | 544 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **418** | **3169** |
+| **Total** | **423** | **3196** |
 
-Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 413 fichiers, 3157 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2538,6 +2538,23 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/privacyRepo.test.ts</code> — 9 tests</summary>
+
+- **identityKey / scrubIdentityInJson**
+  - regroupe par licence, sinon par nom sans accents
+  - remplace l'identité des tireurs visés à toute profondeur, sans muter
+- **PrivacyRepo (#1882)**
+  - retrouve une personne dans toutes les compétitions et le club (licence)
+  - exporte toutes les données de la personne (accès / portabilité)
+  - anonymise : identité remplacée partout, résultats conservés
+  - efface la personne de toutes les compétitions et du club
+  - liste les compétitions et membres au-delà de la durée de conservation
+  - anonymise une compétition échue, qui sort de la liste des candidats
+  - supprime une compétition sans laisser de données orphelines
+
+</details>
+
+<details>
 <summary><code>src/database/repos/refereeRepo.test.ts</code> — 1 test</summary>
 
 - **RefereeRepo.getMatchesWithReferees**
@@ -2700,6 +2717,17 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **handleAllWindowsClosed**
   - macOS : la base reste ouverte et l’app ne quitte pas
   - Windows / Linux : ferme la base puis quitte
+
+</details>
+
+<details>
+<summary><code>src/main/bpmCrypto.test.ts</code> — 4 tests</summary>
+
+- **bpmCrypto**
+  - chiffre puis déchiffre à l’identique
+  - refuse un mauvais mot de passe et un fichier altéré
+  - refuse un mot de passe trop court
+  - chiffre un fichier en place et le détecte
 
 </details>
 
@@ -3016,6 +3044,19 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 5 tests</summary>
+
+- **applyRetention**
+  - anonymise par défaut, supprime sur demande
+  - restreint à la sélection
+- **handlers privacy:\***
+  - enregistre et applique les réglages (noms abrégés à chaud)
+  - filtre les entrées non fiables
+  - archive chiffrée : mot de passe trop court, aucun fichier en attente
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/remoteClientsHandlers.test.ts</code> — 4 tests</summary>
 
 - **registerRemoteClientsHandlers (#1341)**
@@ -3230,6 +3271,16 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - rend avec les réglages puis écrit au chemin choisi
   - annulation du dialogue : rien n’est rendu ni écrit
   - erreur d’écriture remontée, HTML vide refusé
+
+</details>
+
+<details>
+<summary><code>src/main/privacySettings.test.ts</code> — 3 tests</summary>
+
+- **privacySettings**
+  - ignore les valeurs invalides
+  - persiste dans userData, défaut si absent ou corrompu
+  - calcule la date limite (0 = illimitée)
 
 </details>
 
@@ -3488,7 +3539,7 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/publicDto.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/publicDto.test.ts</code> — 11 tests</summary>
 
 - **stripPersonalData**
   - retire date de naissance, licence et photo à toute profondeur, sans muter
@@ -3501,6 +3552,10 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+- **masquage des noms (RGPD, #1882)**
+  - « initial » : NOM P. ; « initials » : N. P. ; « full » inchangé
+  - nom complet sans majuscules : dernier mot gardé
+  - réglage global appliqué par défaut
 
 </details>
 
@@ -3548,11 +3603,12 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 9 tests</summary>
 
 - **POST /api/register**
   - refuse un champ texte de plus de 200 caractères sans le traiter
   - retire chevrons et caractères de contrôle, garde apostrophes et &
+  - photo conservée seulement avec consentement coché (RGPD, #1882)
   - ignore les champs non textuels sans planter
 - **pointage autonome /api/competitions/:id/self-checkin (#1858)**
   - sert la page /competition/:id/checkin
@@ -4784,6 +4840,15 @@ Unitaires : 408 fichiers, 3130 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
   - feuille signée par tous : bandeau de verrouillage et saisie bloquée
   - tireur abandonné : case de la matrice marquée comme statut spécial
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PrivacySettingsSection.test.tsx</code> — 2 tests</summary>
+
+- **PrivacySettingsSection**
+  - trouve une personne et l’anonymise après confirmation
+  - archive chiffrée : refuse des mots de passe différents
 
 </details>
 
