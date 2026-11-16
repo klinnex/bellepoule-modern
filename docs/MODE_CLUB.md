@@ -116,8 +116,11 @@ exercices communs. Export / import JSON (doublons titre + famille ignorés).
 Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exemplaires) et par
 **prêts** à un tireur du club.
 
-- **Fiche** : nom, catégorie (arme, lame, masque, veste, plastron, gant, culotte, câble,
-  électrique, sac, autre), arme, marque, modèle, numéro de série, taille, couleur, quantité,
+- **Catégories** : les standard (arme, lame, masque, veste, plastron, gant, culotte, câble,
+  électrique, sac, autre) plus celles créées par le club (bouton **Catégories** : ajout, renommage,
+  suppression). Une catégorie du club apparaît dans les menus de la fiche et du filtre, et est
+  propre au club ; elle ne peut pas être supprimée tant qu'une fiche l'utilise.
+- **Fiche** : nom, catégorie, arme, marque, modèle, numéro de série, taille, couleur, quantité,
   **date d'achat**, **prix unitaire** (€), fournisseur, référence de facture, **fin de garantie**,
   **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
   Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
@@ -149,6 +152,7 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   prêté reste compté (« Tireur effacé »). **Effacement d'un club** : matériel et prêts supprimés.
 
 Dépôt : `src/database/repos/clubInventoryRepo.ts` (tables `club_items`, `club_loans`, migration 34).
+Catégories : table `club_item_categories` (migration 35), clé d'affectation `custom:<id>`.
 Règles pures (validation, retards, garanties, synthèse, CSV) : `src/shared/utils/clubInventory.ts`.
 Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEditor.tsx`,
 `ClubLoanModal.tsx`. API IPC : `club.listItems`, `createItem`, `updateItem`, `deleteItem`,

@@ -305,7 +305,8 @@ export interface ClubMemberReport {
 }
 
 /** Catégorie de matériel (inventaire du club) */
-export type ClubItemCategory =
+/** Catégorie standard (fixe) */
+export type ClubItemCategoryStandard =
   | 'weapon'
   | 'blade'
   | 'mask'
@@ -317,6 +318,25 @@ export type ClubItemCategory =
   | 'electric'
   | 'bag'
   | 'other';
+
+/** Catégorie propre au club, clé `custom:<id>` (voir ClubItemCategoryDef) */
+export type ClubItemCategoryCustom = `custom:${string}`;
+
+/** Catégorie de matériel : standard ou propre au club */
+export type ClubItemCategory = ClubItemCategoryStandard | ClubItemCategoryCustom;
+
+/** Catégorie créée par le club, réutilisable dans les menus de l'inventaire */
+export interface ClubItemCategoryDef {
+  /** Clé d'affectation : `custom:${id}` */
+  key: ClubItemCategoryCustom;
+  id: string;
+  clubId: string;
+  name: string;
+  /** Nombre de fiches rangées dans cette catégorie (calculé) */
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 /** État physique d'un matériel (à l'achat, au retour de prêt, à la réforme) */
 export type ClubItemCondition = 'new' | 'good' | 'worn' | 'damaged' | 'out_of_service';
@@ -520,6 +540,13 @@ export interface ClubAPI {
   returnLoan: (id: string, data?: ClubLoanReturn) => Promise<ClubLoan | null>;
   /** Supprime un prêt rendu (correction de saisie) ; un prêt en cours se rend d'abord */
   deleteLoan: (id: string) => Promise<void>;
+  /** Catégories créées par le club (triées par nom) */
+  listCategories: (clubId: string) => Promise<ClubItemCategoryDef[]>;
+  /** Nom unique dans le club (sans tenir compte de la casse) */
+  createCategory: (clubId: string, name: string) => Promise<ClubItemCategoryDef>;
+  renameCategory: (id: string, name: string) => Promise<ClubItemCategoryDef | null>;
+  /** Refusé si des fiches utilisent la catégorie */
+  deleteCategory: (id: string) => Promise<void>;
   /** Import CSV / Excel : fiches ajoutées ; doublons de n° de série ignorés */
   importItems: (clubId: string, items: ClubItemInput[]) => Promise<{ created: number; skipped: number }>;
 }

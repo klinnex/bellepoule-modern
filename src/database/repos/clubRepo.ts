@@ -325,6 +325,7 @@ export class ClubRepo {
       this.sql.run('DELETE FROM club_sessions WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_loans WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_items WHERE club_id = ?', [id]);
+      this.sql.run('DELETE FROM club_item_categories WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_members WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM clubs WHERE id = ?', [id]);
     });

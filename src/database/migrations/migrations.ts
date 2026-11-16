@@ -1007,4 +1007,22 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_club ON club_loans(club_id, lent_at)`);
     },
   },
+  {
+    version: 35,
+    description: 'Mode Club : catégories de matériel créées par le club (club_item_categories)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_item_categories (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_club_item_categories_name ON club_item_categories(club_id, name COLLATE NOCASE)`
+      );
+    },
+  },
 ];

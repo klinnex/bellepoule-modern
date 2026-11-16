@@ -242,4 +242,47 @@ describe.skipIf(!DatabaseSync)('ClubInventoryRepo (inventaire du club)', () => {
     expect(r).toEqual({ created: 3, skipped: 2 });
     expect(inv.listItems(cid)).toHaveLength(4);
   });
+
+  describe('catégories du club', () => {
+    it('crée, liste avec le nombre de fiches, renomme', () => {
+      const c = inv.createCategory(cid, '  Lames   de rechange ');
+      expect(c.name).toBe('Lames de rechange');
+      expect(c.key).toBe(`custom:${c.id}`);
+      masks({ category: c.key });
+      expect(inv.listCategories(cid)[0].itemCount).toBe(1);
+      const r = inv.renameCategory(c.id, 'Lames');
+      expect(r!.name).toBe('Lames');
+      expect(inv.getItem(inv.listItems(cid)[0].id)!.category).toBe(c.key);
+    });
+
+    it('refuse un nom vide ou déjà pris, sans tenir compte de la casse', () => {
+      inv.createCategory(cid, 'Sacs');
+      expect(() => inv.createCategory(cid, '   ')).toThrow('requis');
+      expect(() => inv.createCategory(cid, 'SACS')).toThrow('existe déjà');
+      const other = inv.createCategory(cid, 'Gants');
+      expect(() => inv.renameCategory(other.id, 'sacs')).toThrow('existe déjà');
+    });
+
+    it('refuse de supprimer une catégorie utilisée, supprime une catégorie libre', () => {
+      const c = inv.createCategory(cid, 'Câbles spéciaux');
+      const it = masks({ category: c.key });
+      expect(() => inv.deleteCategory(c.id)).toThrow('utilisée');
+      inv.updateItem(it.id, { category: 'cable' });
+      inv.deleteCategory(c.id);
+      expect(inv.getCategory(c.id)).toBeNull();
+    });
+
+    it('une fiche ne peut utiliser qu’une catégorie de son propre club', () => {
+      const other = club.createClub({ name: 'Autre' }).id;
+      const foreign = inv.createCategory(other, 'Étranger');
+      expect(() => masks({ category: foreign.key })).toThrow('inconnue');
+      expect(() => masks({ category: 'custom:inexistante' })).toThrow('inconnue');
+    });
+
+    it('la suppression du club efface ses catégories', () => {
+      inv.createCategory(cid, 'Temporaire');
+      club.deleteClub(cid);
+      expect(inv.listCategories(cid)).toHaveLength(0);
+    });
+  });
 });

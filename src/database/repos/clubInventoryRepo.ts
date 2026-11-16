@@ -7,6 +7,7 @@ import { Weapon } from '../../shared/types';
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemCategoryDef,
   ClubItemCondition,
   ClubItemInput,
   ClubLoan,
@@ -15,6 +16,7 @@ import type {
   ClubLoanReturn,
 } from '../../shared/types/club';
 import {
+  isCustomCategoryKey,
   isItemCondition,
   isLoanOverdue,
   localIsoDate,
@@ -46,6 +48,15 @@ interface ItemRow {
   notes: string | null;
   retired: number;
   lent: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CategoryRow {
+  id: string;
+  club_id: string;
+  name: string;
+  item_count: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -177,6 +188,7 @@ export class ClubInventoryRepo {
   public createItem(clubId: string, data: ClubItemInput): ClubItem {
     this.ensureOpen();
     const e = normalizeItemInput(data);
+    this.assertCategory(clubId, e.category);
     const id = uuidv4();
     const now = new Date().toISOString();
     this.sql.run(
@@ -218,6 +230,7 @@ export class ClubInventoryRepo {
     const cur = this.getItem(id);
     if (!cur) return null;
     const e = normalizeItemInput({ ...this.toInput(cur), ...updates });
+    this.assertCategory(cur.clubId, e.category);
     if (e.quantity < cur.lentQuantity) {
       throw new Error(`${cur.lentQuantity} exemplaire(s) encore prêté(s) : quantité minimale`);
     }
@@ -444,7 +457,9 @@ export class ClubInventoryRepo {
       throw new Error('Import limité à 2000 fiches');
     }
     const seen = new Set(
-      this.listItems(clubId).map(i => i.serialNumber?.trim().toLowerCase()).filter(Boolean)
+      this.listItems(clubId)
+        .map(i => i.serialNumber?.trim().toLowerCase())
+        .filter(Boolean)
     );
     let created = 0;
     let skipped = 0;
@@ -461,5 +476,100 @@ export class ClubInventoryRepo {
       }
     });
     return { created, skipped };
+  }
+
+  // ─── Catégories du club ──────────────────────────────────────────────────────
+
+  private rowToCategory(r: CategoryRow): ClubItemCategoryDef {
+    return {
+      key: `custom:${r.id}`,
+      id: r.id,
+      clubId: r.club_id,
+      name: r.name,
+      itemCount: r.item_count ?? 0,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
+  private categorySelect(where: string, params: unknown[]): ClubItemCategoryDef[] {
+    return this.sql
+      .queryAll<CategoryRow>(
+        `SELECT c.*, (SELECT COUNT(*) FROM club_items i WHERE i.category = 'custom:' || c.id) AS item_count
+         FROM club_item_categories c WHERE ${where} ORDER BY c.name COLLATE NOCASE`,
+        params
+      )
+      .map(r => this.rowToCategory(r));
+  }
+
+  public listCategories(clubId: string): ClubItemCategoryDef[] {
+    if (!this.sql.db) return [];
+    return this.categorySelect('c.club_id = ?', [clubId]);
+  }
+
+  public getCategory(id: string): ClubItemCategoryDef | null {
+    if (!this.sql.db) return null;
+    return this.categorySelect('c.id = ?', [id])[0] ?? null;
+  }
+
+  /** Nom nettoyé (1 à 60 caractères) et unique dans le club, sans tenir compte de la casse */
+  private checkCategoryName(clubId: string, name: unknown, exceptId?: string): string {
+    const clean = typeof name === 'string' ? name.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+    if (!clean) throw new Error('Nom de catégorie requis');
+    const dup = this.sql.queryOne<{ id: string }>(
+      'SELECT id FROM club_item_categories WHERE club_id = ? AND name = ? COLLATE NOCASE',
+      [clubId, clean]
+    );
+    if (dup && dup.id !== exceptId) throw new Error('Cette catégorie existe déjà');
+    return clean;
+  }
+
+  public createCategory(clubId: string, name: string): ClubItemCategoryDef {
+    this.ensureOpen();
+    const clean = this.checkCategoryName(clubId, name);
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    this.sql.run(
+      'INSERT INTO club_item_categories (id, club_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      [id, clubId, clean, now, now]
+    );
+    return this.getCategory(id)!;
+  }
+
+  public renameCategory(id: string, name: string): ClubItemCategoryDef | null {
+    this.ensureOpen();
+    const cur = this.getCategory(id);
+    if (!cur) return null;
+    const clean = this.checkCategoryName(cur.clubId, name, id);
+    this.sql.run('UPDATE club_item_categories SET name = ?, updated_at = ? WHERE id = ?', [
+      clean,
+      new Date().toISOString(),
+      id,
+    ]);
+    return this.getCategory(id);
+  }
+
+  /** Refusée tant qu'une fiche utilise la catégorie */
+  public deleteCategory(id: string): void {
+    this.ensureOpen();
+    const cur = this.getCategory(id);
+    if (!cur) return;
+    if (cur.itemCount > 0) {
+      throw new Error(
+        `Catégorie utilisée par ${cur.itemCount} fiche(s) : changez-les avant de la supprimer`
+      );
+    }
+    this.sql.run('DELETE FROM club_item_categories WHERE id = ?', [id]);
+  }
+
+  /** Une clé `custom:<id>` doit désigner une catégorie du même club */
+  private assertCategory(clubId: string, category: string): void {
+    if (!isCustomCategoryKey(category)) return;
+    const id = category.slice('custom:'.length);
+    const ok = this.sql.queryOne<{ id: string }>(
+      'SELECT id FROM club_item_categories WHERE id = ? AND club_id = ?',
+      [id, clubId]
+    );
+    if (!ok) throw new Error('Catégorie inconnue dans ce club');
   }
 }

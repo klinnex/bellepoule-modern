@@ -6,6 +6,8 @@
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemCategoryCustom,
+  ClubItemCategoryStandard,
   ClubItemCondition,
   ClubItemInput,
   ClubLoan,
@@ -13,7 +15,7 @@ import type {
 import { Weapon } from '../types';
 import { isIsoDate } from './clubStats';
 
-export const ITEM_CATEGORIES: readonly ClubItemCategory[] = [
+export const ITEM_CATEGORIES: readonly ClubItemCategoryStandard[] = [
   'weapon',
   'blade',
   'mask',
@@ -60,8 +62,16 @@ const intIn = (v: unknown, min: number, max: number, fallback: number): number =
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
 
-export const isItemCategory = (v: unknown): v is ClubItemCategory =>
+export const isItemCategory = (v: unknown): v is ClubItemCategoryStandard =>
   typeof v === 'string' && (ITEM_CATEGORIES as readonly string[]).includes(v);
+
+/** Clé d'une catégorie propre au club : `custom:<id>` */
+export const isCustomCategoryKey = (v: unknown): v is ClubItemCategoryCustom =>
+  typeof v === 'string' && /^custom:[A-Za-z0-9-]{1,64}$/.test(v);
+
+/** Catégorie standard ou propre au club (l'existence dans le club est vérifiée par le dépôt) */
+export const isItemCategoryKey = (v: unknown): v is ClubItemCategory =>
+  isItemCategory(v) || isCustomCategoryKey(v);
 
 export const isItemCondition = (v: unknown): v is ClubItemCondition =>
   typeof v === 'string' && (ITEM_CONDITIONS as readonly string[]).includes(v);
@@ -82,7 +92,7 @@ export type NormalizedItemInput = ClubItemInput & {
 export function normalizeItemInput(data: Partial<ClubItemInput>): NormalizedItemInput {
   const name = text(data?.name);
   if (!name) throw new Error('Nom du matériel requis');
-  const category = isItemCategory(data.category) ? data.category : 'other';
+  const category: ClubItemCategory = isItemCategoryKey(data.category) ? data.category : 'other';
 
   const purchaseDate = data.purchaseDate ? String(data.purchaseDate) : undefined;
   if (purchaseDate !== undefined && !isIsoDate(purchaseDate)) {
@@ -168,7 +178,7 @@ export interface InventorySummary {
   /** Garanties qui expirent sous WARRANTY_ALERT_DAYS jours */
   warrantyAlerts: number;
   /** Exemplaires par catégorie (hors réformés) */
-  byCategory: Partial<Record<ClubItemCategory, number>>;
+  byCategory: Record<string, number>;
 }
 
 /** Synthèse de l'inventaire à partir des fiches et des prêts en cours */
@@ -178,7 +188,7 @@ export function computeInventorySummary(
   today: string = localIsoDate()
 ): InventorySummary {
   const active = items.filter(i => !i.retired);
-  const byCategory: Partial<Record<ClubItemCategory, number>> = {};
+  const byCategory: Record<string, number> = {};
   let units = 0;
   let value = 0;
   let valued = 0;

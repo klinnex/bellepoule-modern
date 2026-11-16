@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemCategoryDef,
   ClubItemCondition,
   ClubItemInput,
 } from '../../../shared/types/club';
@@ -25,6 +26,8 @@ const WEAPONS: Weapon[] = [Weapon.FOIL, Weapon.EPEE, Weapon.SABRE, Weapon.LASER]
 
 interface ClubItemEditorProps {
   item: ClubItem | null;
+  /** Catégories créées par le club, proposées après les standard */
+  customCategories: ClubItemCategoryDef[];
   /** Lève une erreur (affichée) si l'enregistrement échoue */
   onSave: (data: ClubItemInput) => Promise<void>;
   onClose: () => void;
@@ -32,7 +35,12 @@ interface ClubItemEditorProps {
 
 const numberOrUndef = (v: string): number | undefined => (v.trim() === '' ? undefined : Number(v));
 
-export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({ item, onSave, onClose }) => {
+export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
+  item,
+  customCategories,
+  onSave,
+  onClose,
+}) => {
   const { t } = useTranslation();
   const [name, setName] = useState(item?.name ?? '');
   const [category, setCategory] = useState<ClubItemCategory>(item?.category ?? 'mask');
@@ -128,11 +136,22 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({ item, onSave, on
             value={category}
             onChange={e => setCategory(e.target.value as ClubItemCategory)}
           >
-            {ITEM_CATEGORIES.map(c => (
-              <option key={c} value={c}>
-                {t(`clubInventory.cat_${c}`)}
-              </option>
-            ))}
+            <optgroup label={t('clubInventory.categories_group_standard')}>
+              {ITEM_CATEGORIES.map(c => (
+                <option key={c} value={c}>
+                  {t(`clubInventory.cat_${c}`)}
+                </option>
+              ))}
+            </optgroup>
+            {customCategories.length > 0 && (
+              <optgroup label={t('clubInventory.categories_group_custom')}>
+                {customCategories.map(c => (
+                  <option key={c.key} value={c.key}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </label>
         <label className="form-label">

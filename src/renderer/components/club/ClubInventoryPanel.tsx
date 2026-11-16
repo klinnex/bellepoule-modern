@@ -11,6 +11,7 @@ import {
   HandCoins,
   Pencil,
   Plus,
+  Tags,
   Trash2,
   Undo2,
   Upload,
@@ -18,6 +19,7 @@ import {
 import type {
   ClubItem,
   ClubItemCategory,
+  ClubItemCategoryDef,
   ClubItemInput,
   ClubLoan,
   ClubMember,
@@ -30,13 +32,19 @@ import {
   localIsoDate,
 } from '../../../shared/utils/clubInventory';
 import { toCsv } from '../../../shared/utils/clubInventory';
-import { parseDelimited, itemsToRows, rowsToItems } from '../../../shared/utils/clubInventoryIO';
+import {
+  itemsToRows,
+  normKey,
+  parseDelimited,
+  rowsToItems,
+} from '../../../shared/utils/clubInventoryIO';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
+import { ClubCategoriesModal } from './ClubCategoriesModal';
 import { ClubItemEditor } from './ClubItemEditor';
 import { ClubLoanModal } from './ClubLoanModal';
 import { openInventoryFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
@@ -66,20 +74,24 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   const [category, setCategory] = useState<ClubItemCategory | 'all'>('all');
   const [showRetired, setShowRetired] = useState(false);
   const [editing, setEditing] = useState<{ item: ClubItem | null } | null>(null);
+  const [categories, setCategories] = useState<ClubItemCategoryDef[]>([]);
+  const [showCategories, setShowCategories] = useState(false);
   const [lending, setLending] = useState<LendTarget>(null);
   const [returning, setReturning] = useState<ReturnTarget>(null);
   const [showHistory, setShowHistory] = useState(false);
 
   const load = useCallback(async () => {
     if (!api) return;
-    const [i, l, m] = await Promise.all([
+    const [i, l, m, c] = await Promise.all([
       api.listItems(clubId, true),
       api.listLoans(clubId),
       api.listMembers(clubId),
+      api.listCategories(clubId),
     ]);
     setItems(i);
     setLoans(l);
     setMembers(m);
+    setCategories(c);
   }, [api, clubId]);
 
   useEffect(() => {
@@ -106,6 +118,13 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
             .includes(q))
     );
   }, [items, search, category, showRetired]);
+
+  /** Nom des catégories du club, par clé `custom:<id>` */
+  const customLabels = Object.fromEntries(categories.map(c => [c.key, c.name]));
+  const labelOf = (c: ClubItemCategory): string =>
+    c.startsWith('custom:')
+      ? (customLabels[c] ?? t('clubInventory.cat_other'))
+      : t(`clubInventory.cat_${c}`);
 
   if (!api) return null;
 
@@ -151,7 +170,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   };
 
   const exportFile = async (kind: 'csv' | 'xlsx') => {
-    const rows = itemsToRows(visible);
+    const rows = itemsToRows(visible, customLabels);
     try {
       const name = `inventaire-${today}.${kind}`;
       const title = t('clubInventory.export');
@@ -171,7 +190,8 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
     try {
       const file = await openInventoryFile(t('clubInventory.import'));
       if (!file) return;
-      const { items, errors } = rowsToItems(parseDelimited(file.content));
+      const customKeys = new Map(categories.map(c => [normKey(c.name), c.key] as const));
+      const { items, errors } = rowsToItems(parseDelimited(file.content), customKeys);
       if (items.length === 0) {
         showToast(t('clubInventory.import_empty'), 'error');
         return;
@@ -271,6 +291,12 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
             {t('clubInventory.export_excel')}
           </Button>
           <Button
+            icon={<Tags size={15} aria-hidden="true" />}
+            onClick={() => setShowCategories(true)}
+          >
+            {t('clubInventory.categories_button')}
+          </Button>
+          <Button
             variant="primary"
             icon={<Plus size={15} aria-hidden="true" />}
             onClick={() => setEditing({ item: null })}
@@ -335,11 +361,22 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
               onChange={e => setCategory(e.target.value as ClubItemCategory | 'all')}
             >
               <option value="all">{t('clubInventory.all_categories')}</option>
-              {ITEM_CATEGORIES.map(c => (
-                <option key={c} value={c}>
-                  {t(`clubInventory.cat_${c}`)}
-                </option>
-              ))}
+              <optgroup label={t('clubInventory.categories_group_standard')}>
+                {ITEM_CATEGORIES.map(c => (
+                  <option key={c} value={c}>
+                    {t(`clubInventory.cat_${c}`)}
+                  </option>
+                ))}
+              </optgroup>
+              {categories.length > 0 && (
+                <optgroup label={t('clubInventory.categories_group_custom')}>
+                  {categories.map(c => (
+                    <option key={c.key} value={c.key}>
+                      {c.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </label>
           <label className="form-label club-row">
@@ -391,7 +428,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                       )}
                     </td>
                     <td>
-                      {t(`clubInventory.cat_${i.category}`)}
+                      {labelOf(i.category)}
                       {i.weapon && <div className="club-muted">{weaponLabel(i.weapon, t)}</div>}
                     </td>
                     <td>
@@ -527,7 +564,20 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
       </section>
 
       {editing && (
-        <ClubItemEditor item={editing.item} onSave={saveItem} onClose={() => setEditing(null)} />
+        <ClubItemEditor
+          item={editing.item}
+          customCategories={categories}
+          onSave={saveItem}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {showCategories && (
+        <ClubCategoriesModal
+          clubId={clubId}
+          categories={categories}
+          onChanged={load}
+          onClose={() => setShowCategories(false)}
+        />
       )}
       {lending && (
         <ClubLoanModal

@@ -4,9 +4,15 @@
  * à l'import, codes internes et libellés français sont tous acceptés.
  * Licensed under GPL-3.0
  */
-import type { ClubItem, ClubItemCategory, ClubItemCondition, ClubItemInput } from '../types/club';
+import type {
+  ClubItem,
+  ClubItemCategory,
+  ClubItemCategoryCustom,
+  ClubItemCondition,
+  ClubItemInput,
+} from '../types/club';
 import { Weapon } from '../types';
-import { normalizeItemInput } from './clubInventory';
+import { isItemCategoryKey, normalizeItemInput } from './clubInventory';
 
 /** Nombre maximal de lignes importées d'un coup */
 export const MAX_IMPORT_ROWS = 2000;
@@ -91,12 +97,18 @@ const cell = (v: string | number | undefined | null): string | number =>
   v === undefined || v === null ? '' : v;
 
 /** Lignes d'échange : en-têtes puis une ligne par fiche (valeurs brutes, dates ISO) */
-export function itemsToRows(items: ClubItem[]): (string | number)[][] {
+/** Libellés des catégories du club (clé `custom:<id>` → nom), écrits tels quels à l'export */
+export function itemsToRows(
+  items: ClubItem[],
+  customLabels: Record<string, string> = {}
+): (string | number)[][] {
   return [
     [...INVENTORY_HEADERS],
     ...items.map(i => [
       i.name,
-      CATEGORY_FR[i.category] ?? CATEGORY_FR.other,
+      CATEGORY_FR[i.category as keyof typeof CATEGORY_FR] ??
+        customLabels[i.category] ??
+        CATEGORY_FR.other,
       i.weapon ? WEAPON_FR[i.weapon] : '',
       cell(i.brand),
       cell(i.model),
@@ -177,6 +189,20 @@ export function toIsoDate(raw: string): string | undefined {
 
 const yes = (v: string) => ['oui', 'yes', 'x', '1', 'true', 'o', 'y'].includes(normKey(v));
 
+/** Libellé français, code interne ou nom d'une catégorie du club → clé de catégorie */
+const categoryOf = (
+  raw: string,
+  customKeys: Map<string, ClubItemCategoryCustom>
+): ClubItemCategory => {
+  const k = normKey(raw);
+  if (!k) return 'other';
+  const byLabel = CATEGORY_BY_LABEL[k];
+  if (byLabel) return byLabel as ClubItemCategory;
+  const custom = customKeys.get(k);
+  if (custom) return custom;
+  return isItemCategoryKey(raw.trim()) ? (raw.trim() as ClubItemCategory) : 'other';
+};
+
 /** Prix : « 12,5 » ou « 12.5 » ; vide = absent */
 const price = (v: string): number | undefined => {
   const t = v.replace(/\s/g, '').replace(',', '.');
@@ -202,7 +228,14 @@ export interface InventoryImportResult {
  * La colonne « Nom » est obligatoire ; les autres colonnes sont optionnelles et
  * reconnues par leur intitulé (sans accents ni casse).
  */
-export function rowsToItems(rows: string[][]): InventoryImportResult {
+/**
+ * `customKeys` : nom normalisé d'une catégorie du club → clé `custom:<id>`. Une catégorie
+ * inconnue est rangée dans « Autre ».
+ */
+export function rowsToItems(
+  rows: string[][],
+  customKeys: Map<string, ClubItemCategoryCustom> = new Map()
+): InventoryImportResult {
   const [header, ...data] = rows;
   if (!header) return { items: [], errors: [{ line: 1, message: 'Fichier vide' }] };
   if (data.length > MAX_IMPORT_ROWS) {
@@ -236,8 +269,7 @@ export function rowsToItems(rows: string[][]): InventoryImportResult {
       items.push(
         normalizeItemInput({
           name: at(r, 'Nom'),
-          category: (CATEGORY_BY_LABEL[normKey(catRaw)] ??
-            (catRaw ? catRaw : 'other')) as ClubItemCategory,
+          category: categoryOf(catRaw, customKeys),
           weapon: weaponRaw ? WEAPON_BY_LABEL[normKey(weaponRaw)] : undefined,
           brand: at(r, 'Marque'),
           model: at(r, 'Modèle'),

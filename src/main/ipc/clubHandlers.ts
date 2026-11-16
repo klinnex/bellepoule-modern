@@ -223,6 +223,14 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     inv.returnLoan(id, data ?? {})
   );
   ipcMain.handle('club:deleteLoan', (_, id: string) => inv.deleteLoan(id));
+  ipcMain.handle('club:listCategories', (_, clubId: string) => inv.listCategories(clubId));
+  ipcMain.handle('club:createCategory', (_, clubId: string, name: string) =>
+    inv.createCategory(clubId, name)
+  );
+  ipcMain.handle('club:renameCategory', (_, id: string, name: string) =>
+    inv.renameCategory(id, name)
+  );
+  ipcMain.handle('club:deleteCategory', (_, id: string) => inv.deleteCategory(id));
   ipcMain.handle('club:importItems', (_, clubId: string, list: ClubItemInput[]) =>
     inv.importItems(clubId, Array.isArray(list) ? list : [])
   );

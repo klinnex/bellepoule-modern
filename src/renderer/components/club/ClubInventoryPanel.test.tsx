@@ -43,34 +43,46 @@ let api: Record<string, ReturnType<typeof vi.fn>>;
 
 beforeEach(() => {
   api = {
-    listItems: vi
-      .fn()
-      .mockResolvedValue([
-        item(),
-        item({
-          id: 'i2',
-          name: 'Veste vieille',
-          category: 'jacket',
-          retired: true,
-          lentQuantity: 0,
-          availableQuantity: 0,
-        }),
-      ]),
+    listItems: vi.fn().mockResolvedValue([
+      item(),
+      item({
+        id: 'i2',
+        name: 'Veste vieille',
+        category: 'jacket',
+        retired: true,
+        lentQuantity: 0,
+        availableQuantity: 0,
+      }),
+    ]),
     listLoans: vi.fn().mockResolvedValue([loan()]),
-    listMembers: vi
+    listCategories: vi
       .fn()
       .mockResolvedValue([
         {
-          id: 'm1',
-          firstName: 'Ada',
-          lastName: 'Lovelace',
-          active: true,
-          weapons: [],
-          cardCode: 'A',
+          key: 'custom:c1',
+          id: 'c1',
+          clubId: 'c',
+          name: 'Lames de rechange',
+          itemCount: 0,
           createdAt: '',
           updatedAt: '',
         },
       ]),
+    createCategory: vi.fn().mockResolvedValue({}),
+    renameCategory: vi.fn().mockResolvedValue({}),
+    deleteCategory: vi.fn().mockResolvedValue(undefined),
+    listMembers: vi.fn().mockResolvedValue([
+      {
+        id: 'm1',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        active: true,
+        weapons: [],
+        cardCode: 'A',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]),
     createItem: vi.fn().mockResolvedValue({}),
     updateItem: vi.fn().mockResolvedValue({}),
     deleteItem: vi.fn().mockResolvedValue(undefined),

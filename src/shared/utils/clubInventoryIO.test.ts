@@ -130,3 +130,26 @@ describe('itemsToRows / rowsToItems', () => {
     expect(items[0].purchaseDate).toBe('2026-09-01');
   });
 });
+
+describe('catégories du club dans l’échange', () => {
+  it('écrit le nom de la catégorie propre et la relit vers sa clé', () => {
+    const rows = itemsToRows([item({ category: 'custom:c1' })], {
+      'custom:c1': 'Lames de rechange',
+    });
+    expect(rows[1][1]).toBe('Lames de rechange');
+    const { items, errors } = rowsToItems(
+      parseDelimited(toCsv(rows)),
+      new Map([['lamesderechange', 'custom:c1']])
+    );
+    expect(errors).toEqual([]);
+    expect(items[0].category).toBe('custom:c1');
+  });
+
+  it('une catégorie inconnue retombe sur « Autre »', () => {
+    const { items } = rowsToItems([
+      ['Nom', 'Catégorie'],
+      ['X', 'Inconnue'],
+    ]);
+    expect(items[0].category).toBe('other');
+  });
+});

@@ -274,6 +274,12 @@ const electronApi = {
     lendItem: (data: unknown) => ipcRenderer.invoke('club:lendItem', data),
     returnLoan: (id: string, data?: unknown) => ipcRenderer.invoke('club:returnLoan', id, data),
     deleteLoan: (id: string) => ipcRenderer.invoke('club:deleteLoan', id),
+    listCategories: (clubId: string) => ipcRenderer.invoke('club:listCategories', clubId),
+    createCategory: (clubId: string, name: string) =>
+      ipcRenderer.invoke('club:createCategory', clubId, name),
+    renameCategory: (id: string, name: string) =>
+      ipcRenderer.invoke('club:renameCategory', id, name),
+    deleteCategory: (id: string) => ipcRenderer.invoke('club:deleteCategory', id),
     importItems: (clubId: string, list: unknown[]) =>
       ipcRenderer.invoke('club:importItems', clubId, list),
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
