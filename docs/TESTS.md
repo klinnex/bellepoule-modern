@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 66 | 764 |
+| `src/shared/utils/` | 67 | 769 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 12 | 190 |
+| `src/database/` | 12 | 192 |
 | `src/main/` | 73 | 607 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 106 | 531 |
+| `src/renderer/components/` | 107 | 534 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 57 | 378 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **411** | **3116** |
+| **Total** | **413** | **3126** |
 
-Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 403 fichiers, 3087 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -306,6 +306,17 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - erreurs : piste hors séance, même tireur deux fois
   - troisième carte : remplace le second tireur ; nouvelle piste : change la piste
   - anti-répétition du même QR
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubShare.test.ts</code> — 4 tests</summary>
+
+- **partage Mode Club (#1872)**
+  - exercices : aller-retour, images conservées, entrées invalides ignorées
+  - erreurs : JSON invalide, mauvais format, vide
+  - plan : sans date ni cases cochées, arme et images conservées
+  - noms de fichiers
 
 </details>
 
@@ -877,13 +888,14 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/clubPlanPdf.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/pdfExport/clubPlanPdf.test.ts</code> — 5 tests</summary>
 
 - **plan de cours PDF (#1872)**
   - en-tête, déroulé chronologique, durée totale, cases à cocher
   - heure de début : horaires réels
   - textes échappés, logo non data:image refusé, plan vide
   - sans intitulé : titre « Plan de cours »
+  - images des exercices sous les consignes
 
 </details>
 
@@ -2399,7 +2411,7 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 32 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 34 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2418,6 +2430,9 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - **préparation et bilan des séances**
     - séance préparée : plan, objectifs, démarrage, une seule ouverte
     - bilan de séance et remarques par tireur
+  - **bibliothèque d’exercices**
+    - CRUD, tri par famille, import sans doublon
+    - plan de séance : images et famille conservées
   - **plusieurs clubs**
     - membres, séances et combats cloisonnés par club ; résumé pour l’accueil
     - suppression d’un club : toutes ses données, pas celles des autres
@@ -4917,6 +4932,15 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/club/ClubExercisesPanel.test.tsx</code> — 2 tests</summary>
+
+- **ClubExercisesPanel (#1872)**
+  - liste, filtre par famille, création
+  - export des exercices affichés et import d’un fichier partagé
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/club/ClubImportModal.test.tsx</code> — 2 tests</summary>
 
 - **ClubImportModal (#1872)**
@@ -4947,7 +4971,7 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 10 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 11 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
@@ -4960,6 +4984,7 @@ Unitaires : 401 fichiers, 3077 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - fermeture : bilan proposé, note et remarque par tireur
   - préparer une séance à l’avance puis la démarrer
   - ouverture : date choisie dans le mini-calendrier
+  - plan : exercices ajoutés depuis la bibliothèque (échauffement proposé d’abord)
 
 </details>
 
