@@ -299,8 +299,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       // Minute prioritaire (#1442) : égalité finale sans override → tireur prioritaire tiré
       const prevScores = ctx.sessionMatchScores.get(matchId) as
-        | { scoreA?: { isPriority?: boolean }; scoreB?: { isPriority?: boolean } }
-        | undefined;
+        { scoreA?: { isPriority?: boolean }; scoreB?: { isPriority?: boolean } } | undefined;
       const priorityWinner: 'A' | 'B' | null = prevScores?.scoreA?.isPriority
         ? 'A'
         : prevScores?.scoreB?.isPriority
