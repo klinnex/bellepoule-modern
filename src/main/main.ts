@@ -41,6 +41,10 @@ import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
 import { PisteHub } from './cyrano/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
+import { parseCliArgs } from './cliArgs';
+
+// --headless : process main sans fenêtre (#1880)
+const cli = parseCliArgs(process.argv, process.env);
 
 // Database instance
 const db = new DatabaseManager();
@@ -203,18 +207,7 @@ if (process.platform === 'linux' && process.env.BELLEPOULE_SW_RENDER === '1') {
   app.commandLine.appendSwitch('use-gl', 'swiftshader');
 }
 
-app.whenReady().then(async () => {
-  eventLoopMonitor.start();
-  // Proxy réseau choisi dans les Paramètres, avant tout accès réseau
-  await applyStoredProxySettings();
-  // Afficher le splash immédiatement pendant que tout le reste charge
-  createSplashWindow();
-
-  // Cache V8 bytecode désactivé : session.setCodeCachePath provoque un crash natif
-  // (access violation dans electron.exe) au démarrage sous Windows avec Electron 44.
-
-  prewarmRendererChunks();
-
+async function openDatabase(): Promise<void> {
   // Initialize database dans un répertoire inscriptible (userData)
   // Sur Windows, process.cwd() peut pointer vers C:\Windows\System32 (non inscriptible)
   const userDataPath = app.getPath('userData');
@@ -232,14 +225,63 @@ app.whenReady().then(async () => {
     }
   }
 
+  await db.open(dbPath);
+  logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
+}
+
+// Autosave every 2 minutes
+let autosaveInterval: NodeJS.Timeout | null = null;
+
+let autosaveInFlight = false;
+const startAutosave = () => {
+  if (autosaveInterval) clearInterval(autosaveInterval);
+  autosaveInterval = setInterval(
+    async () => {
+      if (autosaveInFlight) return; // éviter l'empilement si la sauvegarde précédente traîne
+      autosaveInFlight = true;
+      try {
+        await db.saveAsync(); // async I/O — ne bloque pas le main thread
+        logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
+        mainWindow?.webContents.send('autosave:completed');
+      } catch (error) {
+        logger.error(LogCategory.SYSTEM, 'Autosave failed:', toError(error));
+        mainWindow?.webContents.send('autosave:failed');
+      } finally {
+        autosaveInFlight = false;
+      }
+    },
+    2 * 60 * 1000
+  ); // 2 minutes
+};
+
+app.whenReady().then(async () => {
+  eventLoopMonitor.start();
+  // Proxy réseau choisi dans les Paramètres, avant tout accès réseau
+  await applyStoredProxySettings();
+
+  if (cli.headless) {
+    app.dock?.hide();
+    await openDatabase();
+    startAutosave();
+    logger.info(LogCategory.SYSTEM, '[Headless] Prêt, sans fenêtre');
+    return;
+  }
+
+  // Afficher le splash immédiatement pendant que tout le reste charge
+  createSplashWindow();
+
+  // Cache V8 bytecode désactivé : session.setCodeCachePath provoque un crash natif
+  // (access violation dans electron.exe) au démarrage sous Windows avec Electron 44.
+
+  prewarmRendererChunks();
+
   // Attendre que l'utilisateur confirme la langue dans le splash
   const confirmedLang = await splashConfirmPromise;
 
   // Créer la fenêtre principale avec la langue choisie
   createWindow(confirmedLang);
 
-  await db.open(dbPath);
-  logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
+  await openDatabase();
 
   // Signaler au renderer que la DB est prête
   mainWindow?.webContents.send('db:ready');
@@ -286,31 +328,6 @@ app.whenReady().then(async () => {
     });
   }
 
-  // Autosave every 2 minutes
-  let autosaveInterval: NodeJS.Timeout | null = null;
-
-  let autosaveInFlight = false;
-  const startAutosave = () => {
-    if (autosaveInterval) clearInterval(autosaveInterval);
-    autosaveInterval = setInterval(
-      async () => {
-        if (autosaveInFlight) return; // éviter l'empilement si la sauvegarde précédente traîne
-        autosaveInFlight = true;
-        try {
-          await db.saveAsync(); // async I/O — ne bloque pas le main thread
-          logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
-          mainWindow?.webContents.send('autosave:completed');
-        } catch (error) {
-          logger.error(LogCategory.SYSTEM, 'Autosave failed:', toError(error));
-          mainWindow?.webContents.send('autosave:failed');
-        } finally {
-          autosaveInFlight = false;
-        }
-      },
-      2 * 60 * 1000
-    ); // 2 minutes
-  };
-
   startAutosave();
 
   app.on('activate', () => {
@@ -319,6 +336,11 @@ app.whenReady().then(async () => {
     }
   });
 });
+
+// Arrêt propre en --headless (Ctrl+C, service)
+if (cli.headless) {
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => app.quit());
+}
 
 app.on('window-all-closed', () => {
   // macOS : la base reste ouverte (l'app vit dans le Dock, cf. appLifecycle.ts)

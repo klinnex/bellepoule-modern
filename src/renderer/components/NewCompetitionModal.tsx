@@ -15,11 +15,10 @@ import {
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
-import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { Button } from './common/Button';
-import { getDefaultMaxScores, isOlympicWeapon } from '../../shared/utils/defaultMaxScores';
+import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
@@ -56,64 +55,17 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const teamSettings = {
-      minTeamSize: teamSize,
+    const settings = buildDefaultCompetitionSettings({
+      weapon,
+      category,
+      isTeamEvent,
+      teamSize,
       teamReserveCount,
-      ...(weapon === Weapon.LASER ? { laserTeamMode, teamFormat } : {}),
-    };
-
-    const settings =
-      weapon === Weapon.CUSTOM
-        ? {
-            defaultPoolMaxScore: 5,
-            defaultTableMaxScore: 15,
-            defaultPoolTimerSeconds: 180,
-            defaultTableTimerSeconds: 180,
-            poolRounds: 1,
-            hasDirectElimination: true,
-            thirdPlaceMatch: true,
-            manualRanking: false,
-            defaultRanking: 9999,
-            randomScore: false,
-            customFormula,
-            ...teamSettings,
-            // Réglages issus de la formule personnalisée (#1125)
-            ...deriveSettingsFromFormula(customFormula),
-            ...(specialMode ? { specialMode } : {}),
-          }
-        : isTeamEvent
-          ? {
-              defaultPoolMaxScore: 5,
-              defaultTableMaxScore: 15,
-              defaultPoolTimerSeconds: 180,
-              defaultTableTimerSeconds: 180,
-              poolRounds: 1,
-              hasDirectElimination: true,
-              thirdPlaceMatch: false,
-              manualRanking: false,
-              defaultRanking: 9999,
-              randomScore: false,
-              ...teamSettings,
-            }
-          : isOlympicWeapon(weapon)
-            ? (() => {
-                // Scores par défaut selon la catégorie (#1826)
-                const scores = getDefaultMaxScores(weapon, category);
-                return {
-                  defaultPoolMaxScore: scores.pool,
-                  defaultTableMaxScore: scores.table,
-                  defaultPoolTimerSeconds: 180,
-                  defaultTableTimerSeconds: 180,
-                  poolRounds: 1,
-                  hasDirectElimination: true,
-                  thirdPlaceMatch: false,
-                  manualRanking: false,
-                  defaultRanking: 9999,
-                  randomScore: false,
-                  minTeamSize: 3,
-                };
-              })()
-            : undefined;
+      laserTeamMode,
+      teamFormat,
+      customFormula,
+      specialMode,
+    });
 
     onCreate({
       title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,
