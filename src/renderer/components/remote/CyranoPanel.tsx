@@ -378,7 +378,7 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
                   <td>
                     <input
                       type="number"
-                      className="form-input cyrano-input cyrano-w-sm"
+                      className="form-input cyrano-input cyrano-w-port-cell"
                       min={1}
                       max={65535}
                       value={row.port ?? DEFAULT_PORT}
