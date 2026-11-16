@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 67 | 769 |
+| `src/shared/utils/` | 68 | 775 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 12 | 192 |
-| `src/main/` | 73 | 607 |
+| `src/main/` | 74 | 611 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 107 | 534 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **413** | **3126** |
+| **Total** | **415** | **3136** |
 
-Unitaires : 403 fichiers, 3087 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 405 fichiers, 3097 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -460,6 +460,19 @@ Unitaires : 403 fichiers, 3087 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - n’est pas complet en dessous du maxScore
 - **getDefaultZones**
   - retourne 3 zones avec des points décroissants
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/defaultCompetitionSettings.test.ts</code> — 6 tests</summary>
+
+- **buildDefaultCompetitionSettings**
+  - arme olympique individuelle : scores selon la catégorie
+  - M9 : 3 touches en poule, 6 au tableau
+  - équipe : taille et remplaçants repris
+  - Sabre Laser équipe : mode et format
+  - Sabre Laser individuel : aucun réglage imposé
+  - arme personnalisée : formule et réglages dérivés
 
 </details>
 
@@ -2664,6 +2677,17 @@ Unitaires : 403 fichiers, 3087 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/cliArgs.test.ts</code> — 4 tests</summary>
+
+- **parseCliArgs**
+  - sans option : mode fenêtré
+  - --headless
+  - BELLEPOULE\_HEADLESS=1
+  - arguments inconnus ignorés
 
 </details>
 
