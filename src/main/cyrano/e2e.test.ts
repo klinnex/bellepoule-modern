@@ -92,8 +92,11 @@ const mockDb = {
   getSessionState: vi.fn().mockReturnValue(null),
 };
 
-/** Attend qu'une condition soit vraie (polling sur la vraie horloge, UDP réel). */
-async function until(cond: () => boolean, ms = 4000): Promise<void> {
+/**
+ * Attend qu'une condition soit vraie (polling sur la vraie horloge, UDP réel). Délai large :
+ * la suite complète tourne en parallèle et peut ralentir la boucle d'événements.
+ */
+async function until(cond: () => boolean, ms = 15000): Promise<void> {
   const t0 = Date.now();
   while (!cond()) {
     if (Date.now() - t0 > ms) throw new Error('délai dépassé en attendant la trame UDP');
@@ -101,7 +104,7 @@ async function until(cond: () => boolean, ms = 4000): Promise<void> {
   }
 }
 
-describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', () => {
+describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', { timeout: 30_000 }, () => {
   let cyrano: CyranoServer;
   let remote: RemoteScoreServer;
   let device: InstanceType<typeof CyranoDevice>;
@@ -174,6 +177,9 @@ describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', () => {
     await until(() => acks >= 1);
     expect(arena().currentMatch?.scoreA).toBe(2);
     expect(arena().status).toBe('finished');
+    // L'ACK doit avoir atteint l'appareil (retour au repos) : PREV n'agit qu'en attente (W).
+    // Sans cette attente, sous charge, la touche PREV suivante était ignorée (test instable).
+    await until(() => device.snapshot().state === 'W');
   });
 
   it('PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés', async () => {
