@@ -894,4 +894,25 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 31,
+    description: "Mode Club : bibliothèque d'exercices (échauffements, technique…) (#1872)",
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_exercises (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          category TEXT NOT NULL DEFAULT 'other',
+          minutes INTEGER NOT NULL DEFAULT 0,
+          details TEXT,
+          images TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_exercises_cat ON club_exercises(category, title)`
+      );
+    },
+  },
 ];

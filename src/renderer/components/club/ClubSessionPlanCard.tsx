@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { ClipboardList, FileDown, Pencil, Printer, Save } from 'lucide-react';
+import { ClipboardList, FileDown, Pencil, Printer, Save, Share2 } from 'lucide-react';
 import type { ClubSession } from '../../../shared/types/club';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -18,6 +18,7 @@ interface ClubSessionPlanCardProps {
   onEdit: () => void;
   onExportPdf: () => void;
   onPrint: () => void;
+  onExportPlan: () => void;
 }
 
 export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
@@ -27,6 +28,7 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
   onEdit,
   onExportPdf,
   onPrint,
+  onExportPlan,
 }) => {
   const { t } = useTranslation();
   // null = notes enregistrées (pas d'édition en cours)
@@ -53,6 +55,9 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
           </Button>
           <Button icon={<Printer size={15} aria-hidden="true" />} onClick={onPrint}>
             {t('clubPlan.print')}
+          </Button>
+          <Button icon={<Share2 size={15} aria-hidden="true" />} onClick={onExportPlan}>
+            {t('clubPlan.export_plan')}
           </Button>
           <Button icon={<Pencil size={15} aria-hidden="true" />} onClick={onEdit}>
             {t('clubPlan.edit')}
@@ -81,6 +86,13 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
                 <span className="club-muted">{formatMinutes(it.minutes)}</span>
               </label>
               {it.details && <p className="club-plan-details">{it.details}</p>}
+              {it.images && it.images.length > 0 && (
+                <div className="club-images club-plan-images">
+                  {it.images.map((src, i) => (
+                    <img key={i} className="club-exercise-thumb" src={src} alt="" />
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ol>

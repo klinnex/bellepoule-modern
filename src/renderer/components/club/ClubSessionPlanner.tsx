@@ -5,19 +5,30 @@
  */
 
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
-import type { ClubPlanItem, ClubSession, ClubSessionInput } from '../../../shared/types/club';
+import { ArrowDown, ArrowUp, BookmarkPlus, Library, Plus, Trash2 } from 'lucide-react';
+import type {
+  ClubExercise,
+  ClubPlanItem,
+  ClubSession,
+  ClubSessionInput,
+} from '../../../shared/types/club';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { ClubImagesField } from './ClubImagesField';
+import { ClubExercisePicker } from './ClubExercisePicker';
+import { CategorySelect } from './ClubExerciseEditor';
+import { useToast } from '../Toast';
 import { MiniCalendar, type DayMark } from './MiniCalendar';
 import type { Weapon } from '../../../shared/types';
 
 interface ClubSessionPlannerProps {
   /** Séance à modifier ; absente = nouvelle séance préparée */
   session?: ClubSession | null;
+  /** Nouvelle séance pré-remplie (plan importé d'un fichier partagé) */
+  prefill?: Omit<ClubSessionInput, 'date'> | null;
   defaultDate: string;
   defaultWeapon?: Weapon;
   /** Jours déjà occupés par une séance (marqués dans le calendrier) */
@@ -35,6 +46,7 @@ const newItem = (): ClubPlanItem => ({
 
 export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   session,
+  prefill,
   defaultDate,
   defaultWeapon,
   marks,
@@ -43,13 +55,43 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
 }) => {
   const { t } = useTranslation();
   const [date, setDate] = useState(session?.date ?? defaultDate);
-  const [label, setLabel] = useState(session?.label ?? '');
-  const [weapon, setWeapon] = useState<Weapon | undefined>(session?.weapon ?? defaultWeapon);
-  const [objectives, setObjectives] = useState(session?.objectives ?? '');
-  const [notes, setNotes] = useState(session?.notes ?? '');
-  const [plan, setPlan] = useState<ClubPlanItem[]>(
-    session?.plan.length ? session.plan : [newItem()]
-  );
+  const src = session ?? prefill ?? null;
+  const [label, setLabel] = useState(src?.label ?? '');
+  const [weapon, setWeapon] = useState<Weapon | undefined>(src?.weapon ?? defaultWeapon);
+  const [objectives, setObjectives] = useState(src?.objectives ?? '');
+  const [notes, setNotes] = useState(src?.notes ?? '');
+  const [plan, setPlan] = useState<ClubPlanItem[]>(src?.plan?.length ? src.plan : [newItem()]);
+  const [picker, setPicker] = useState(false);
+  const { showToast } = useToast();
+
+  /** Exercices de la bibliothèque ajoutés au plan (ligne vide initiale remplacée) */
+  const addFromLibrary = (list: ClubExercise[]) => {
+    setPicker(false);
+    const items = list.map(e => ({
+      ...newItem(),
+      title: e.title,
+      minutes: e.minutes,
+      category: e.category,
+      ...(e.details ? { details: e.details } : {}),
+      ...(e.images.length ? { images: [...e.images] } : {}),
+    }));
+    setPlan(cur => [...cur.filter(it => it.title.trim()), ...items]);
+  };
+
+  const saveToLibrary = async (it: ClubPlanItem) => {
+    try {
+      await window.electronAPI?.club?.createExercise({
+        title: it.title,
+        category: it.category ?? 'other',
+        minutes: it.minutes,
+        details: it.details,
+        images: it.images ?? [],
+      });
+      showToast(t('clubExercises.saved_to_library', { title: it.title }), 'success');
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : String(e), 'error');
+    }
+  };
 
   const patch = (i: number, p: Partial<ClubPlanItem>) =>
     setPlan(list => list.map((it, j) => (j === i ? { ...it, ...p } : it)));
@@ -157,6 +199,10 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
                   onChange={e => patch(i, { minutes: Number(e.target.value) })}
                 />
               </label>
+              <CategorySelect
+                value={it.category ?? 'other'}
+                onChange={c => patch(i, { category: c })}
+              />
               <Button
                 size="sm"
                 variant="ghost"
@@ -192,15 +238,47 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
               aria-label={t('clubPlan.details_n', { n: i + 1 })}
               onChange={e => patch(i, { details: e.target.value })}
             />
+            <div className="club-row club-row--between">
+              <ClubImagesField
+                images={it.images ?? []}
+                onChange={images => patch(i, { images })}
+                label={t('clubImages.label_n', { n: i + 1 })}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<BookmarkPlus size={14} aria-hidden="true" />}
+                disabled={!it.title.trim()}
+                onClick={() => void saveToLibrary(it)}
+              >
+                {t('clubExercises.save_to_library')}
+              </Button>
+            </div>
           </li>
         ))}
       </ol>
-      <Button
-        icon={<Plus size={15} aria-hidden="true" />}
-        onClick={() => setPlan(list => [...list, newItem()])}
-      >
-        {t('clubPlan.add_exercise')}
-      </Button>
+      <div className="club-row">
+        <Button
+          icon={<Plus size={15} aria-hidden="true" />}
+          onClick={() => setPlan(list => [...list, newItem()])}
+        >
+          {t('clubPlan.add_exercise')}
+        </Button>
+        <Button
+          variant="primary"
+          icon={<Library size={15} aria-hidden="true" />}
+          onClick={() => setPicker(true)}
+        >
+          {t('clubExercises.from_library')}
+        </Button>
+      </div>
+      {picker && (
+        <ClubExercisePicker
+          initialCategory={plan.some(it => it.title.trim()) ? 'all' : 'warmup'}
+          onPick={addFromLibrary}
+          onClose={() => setPicker(false)}
+        />
+      )}
 
       <label className="form-label club-notes-label">
         {t('clubPlan.notes')}

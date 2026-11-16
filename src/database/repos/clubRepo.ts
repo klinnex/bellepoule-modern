@@ -9,6 +9,8 @@ import type {
   ClubBoutStatus,
   ClubEntryMode,
   ClubMember,
+  ClubExercise,
+  ClubExerciseInput,
   ClubMemberFeedback,
   ClubMemberInput,
   ClubSession,
@@ -20,13 +22,31 @@ import type {
   Laterality,
 } from '../../shared/types/club';
 import { normalizeCardCode } from '../../shared/utils/clubQr';
-import { cleanLongText, normalizeFeedback, normalizePlan } from '../../shared/utils/clubPlan';
+import {
+  cleanLongText,
+  normalizeCategory,
+  normalizeExerciseInput,
+  normalizeFeedback,
+  normalizeImages,
+  normalizePlan,
+} from '../../shared/utils/clubPlan';
 import { safeJsonParse } from './dbUtils';
 import { planClubImport, type ClubImportResult } from '../../shared/utils/clubImport';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
 import { sanitizeText } from '../validation';
 import type { SqlExecutor } from './sqlExecutor';
+
+interface ExerciseRow {
+  id: string;
+  title: string;
+  category: string;
+  minutes: number | null;
+  details: string | null;
+  images: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface ClubRow {
   id: string;
@@ -474,6 +494,97 @@ export class ClubRepo {
       if (r.feedback) out[r.member_id] = r.feedback;
     }
     return out;
+  }
+
+  // ─── Bibliothèque d'exercices (partagée entre clubs) ─────────────────────────
+
+  private rowToExercise(r: ExerciseRow): ClubExercise {
+    return {
+      id: r.id,
+      title: r.title,
+      category: normalizeCategory(r.category) ?? 'other',
+      minutes: r.minutes ?? 0,
+      details: opt(r.details),
+      images: normalizeImages(safeJsonParse(r.images, [], 'club_exercises.images')),
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
+  public listExercises(): ClubExercise[] {
+    if (!this.sql.db) return [];
+    return this.sql
+      .queryAll<ExerciseRow>('SELECT * FROM club_exercises ORDER BY category, title COLLATE NOCASE')
+      .map(r => this.rowToExercise(r));
+  }
+
+  public getExercise(id: string): ClubExercise | null {
+    if (!this.sql.db) return null;
+    const r = this.sql.queryOne<ExerciseRow>('SELECT * FROM club_exercises WHERE id = ?', [id]);
+    return r ? this.rowToExercise(r) : null;
+  }
+
+  public createExercise(data: ClubExerciseInput): ClubExercise {
+    this.ensureOpen();
+    const e = normalizeExerciseInput(data);
+    if (!e) throw new Error("Titre de l'exercice requis");
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    this.sql.run(
+      `INSERT INTO club_exercises (id, title, category, minutes, details, images, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, e.title, e.category, e.minutes, e.details ?? null, JSON.stringify(e.images), now, now]
+    );
+    return this.getExercise(id)!;
+  }
+
+  public updateExercise(id: string, data: Partial<ClubExerciseInput>): ClubExercise | null {
+    this.ensureOpen();
+    const cur = this.getExercise(id);
+    if (!cur) return null;
+    const e = normalizeExerciseInput({ ...cur, ...data });
+    if (!e) throw new Error("Titre de l'exercice requis");
+    this.sql.run(
+      `UPDATE club_exercises SET title = ?, category = ?, minutes = ?, details = ?, images = ?, updated_at = ?
+       WHERE id = ?`,
+      [
+        e.title,
+        e.category,
+        e.minutes,
+        e.details ?? null,
+        JSON.stringify(e.images),
+        new Date().toISOString(),
+        id,
+      ]
+    );
+    return this.getExercise(id);
+  }
+
+  public deleteExercise(id: string): void {
+    this.ensureOpen();
+    this.sql.run('DELETE FROM club_exercises WHERE id = ?', [id]);
+  }
+
+  /** Import partagé : même titre (casse ignorée) et même famille = doublon ignoré */
+  public importExercises(list: ClubExerciseInput[]): { created: number; skipped: number } {
+    this.ensureOpen();
+    const key = (title: string, cat: string) => `${cat}|${title.trim().toLowerCase()}`;
+    const seen = new Set(this.listExercises().map(e => key(e.title, e.category)));
+    let created = 0;
+    let skipped = 0;
+    this.sql.transaction(() => {
+      for (const raw of (Array.isArray(list) ? list : []).slice(0, 1000)) {
+        const e = normalizeExerciseInput(raw);
+        if (!e || seen.has(key(e.title, e.category))) {
+          skipped++;
+          continue;
+        }
+        this.createExercise(e);
+        seen.add(key(e.title, e.category));
+        created++;
+      }
+    });
+    return { created, skipped };
   }
 
   /** Remarque pour un tireur présent à la séance ; texte vide = effacée */

@@ -3437,7 +3437,10 @@
     "start": "Kregiñ",
     "delete_confirm": "Dilemel an abadenn rakwelet d'an {{date}} ?",
     "export_pdf": "Ezporzhiañ e PDF",
-    "print": "Moullañ"
+    "print": "Moullañ",
+    "export_plan": "Ezporzhiañ ar steuñv",
+    "import_plan": "Enporzhiañ ur steuñv",
+    "plan_exported": "Steuñv ezporzhiet"
   },
   "clubFeedback": {
     "title": "Bilañs an abadenn {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "abadenn rakwelet",
     "mark_open": "abadenn o vont en-dro",
     "mark_closed": "abadenn tremenet"
+  },
+  "clubImages": {
+    "label": "Skeudennoù",
+    "label_n": "Skeudennoù ar boelladenn {{n}}",
+    "add": "Ouzhpennañ ur skeudenn",
+    "remove": "Lemel ar skeudenn {{n}}",
+    "invalid": "Skeudenn n'eo ket degemeret (PNG, JPEG pe WebP, 1 Mo d'ar muiañ)"
+  },
+  "clubExercises": {
+    "tab": "Poelladennoù",
+    "title": "Levraoueg poelladennoù ({{count}})",
+    "help": "Ho tommadurioù, poelladennoù teknikel ha taktikel, d'adimplijout en holl steuñvioù ha da rannañ dre restr.",
+    "category": "Familh",
+    "cat_all": "Holl",
+    "cat_warmup": "Tommañ",
+    "cat_technique": "Teknik",
+    "cat_tactics": "Taktik",
+    "cat_bouts": "Emgannoù",
+    "cat_physical": "Prientiñ korf",
+    "cat_cooldown": "Distreiñ d'ar sioulder",
+    "cat_other": "All",
+    "add": "Poelladenn nevez",
+    "import": "Enporzhiañ",
+    "export": "Ezporzhiañ",
+    "exported": "Poelladennoù ezporzhiet : {{count}}",
+    "imported": "Enporzhiañ echu : {{created}} ouzhpennet, {{skipped}} a oa dija",
+    "delete_confirm": "Dilemel ar boelladenn « {{title}} » eus al levraoueg ?",
+    "empty": "Poelladenn ebet",
+    "empty_desc": "Krouit ho poelladennoù pe enporzhiit ur restr rannet gant ur c'hlub all.",
+    "edit_title": "Kemmañ ar boelladenn",
+    "new_title": "Poelladenn nevez",
+    "title_label": "Titl",
+    "details": "Kemennadurioù, dafar, adstummoù",
+    "pick_title": "Dibab el levraoueg",
+    "pick_n": "Ouzhpennañ ({{count}})",
+    "none_found": "Poelladenn ebet o klotañ.",
+    "from_library": "Eus al levraoueg",
+    "save_to_library": "Ouzhpennañ d'al levraoueg",
+    "saved_to_library": "« {{title}} » ouzhpennet d'al levraoueg"
+  },
+  "clubShare": {
+    "error_invalid_json": "Restr dilennus (JSON direizh)",
+    "error_wrong_format": "N'eo ket ar seurt restr a zere",
+    "error_empty": "N'eus netra da enporzhiañ er restr"
   }
 }

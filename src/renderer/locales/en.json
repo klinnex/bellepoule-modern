@@ -3437,7 +3437,10 @@
     "start": "Start",
     "delete_confirm": "Delete the session planned for {{date}}?",
     "export_pdf": "Export to PDF",
-    "print": "Print"
+    "print": "Print",
+    "export_plan": "Export plan",
+    "import_plan": "Import a plan",
+    "plan_exported": "Plan exported"
   },
   "clubFeedback": {
     "title": "Session review — {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "planned session",
     "mark_open": "session in progress",
     "mark_closed": "past session"
+  },
+  "clubImages": {
+    "label": "Images",
+    "label_n": "Images for exercise {{n}}",
+    "add": "Add image",
+    "remove": "Remove image {{n}}",
+    "invalid": "Unsupported image (PNG, JPEG or WebP, 1 MB max)"
+  },
+  "clubExercises": {
+    "tab": "Exercises",
+    "title": "Exercise library ({{count}})",
+    "help": "Your warm-ups, technical and tactical drills, reusable in every session plan and shareable as a file.",
+    "category": "Category",
+    "cat_all": "All",
+    "cat_warmup": "Warm-up",
+    "cat_technique": "Technique",
+    "cat_tactics": "Tactics",
+    "cat_bouts": "Bouts",
+    "cat_physical": "Fitness",
+    "cat_cooldown": "Cool-down",
+    "cat_other": "Other",
+    "add": "New exercise",
+    "import": "Import",
+    "export": "Export",
+    "exported": "Exercises exported: {{count}}",
+    "imported": "Import done: {{created}} added, {{skipped}} already present",
+    "delete_confirm": "Delete the exercise « {{title}} » from the library?",
+    "empty": "No exercises",
+    "empty_desc": "Create your exercises or import a file shared by another club.",
+    "edit_title": "Edit exercise",
+    "new_title": "New exercise",
+    "title_label": "Title",
+    "details": "Instructions, equipment, variations",
+    "pick_title": "Choose from the library",
+    "pick_n": "Add ({{count}})",
+    "none_found": "No matching exercise.",
+    "from_library": "From library",
+    "save_to_library": "Add to library",
+    "saved_to_library": "« {{title}} » added to the library"
+  },
+  "clubShare": {
+    "error_invalid_json": "Unreadable file (invalid JSON)",
+    "error_wrong_format": "This file is not of the right type",
+    "error_empty": "The file contains nothing to import"
   }
 }

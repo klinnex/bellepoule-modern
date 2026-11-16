@@ -3437,7 +3437,10 @@
     "start": "Iniciar",
     "delete_confirm": "Suprimir la sessió prevista del {{date}}?",
     "export_pdf": "Exportar en PDF",
-    "print": "Imprimir"
+    "print": "Imprimir",
+    "export_plan": "Exportar el pla",
+    "import_plan": "Importar un pla",
+    "plan_exported": "Pla exportat"
   },
   "clubFeedback": {
     "title": "Balanç de la sessió del {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "sessió prevista",
     "mark_open": "sessió en curs",
     "mark_closed": "sessió passada"
+  },
+  "clubImages": {
+    "label": "Imatges",
+    "label_n": "Imatges de l'exercici {{n}}",
+    "add": "Afegir una imatge",
+    "remove": "Treure la imatge {{n}}",
+    "invalid": "Imatge no admesa (PNG, JPEG o WebP, 1 MB màx.)"
+  },
+  "clubExercises": {
+    "tab": "Exercicis",
+    "title": "Biblioteca d'exercicis ({{count}})",
+    "help": "Els vostres escalfaments i exercicis tècnics i tàctics, reutilitzables en tots els plans i compartibles per fitxer.",
+    "category": "Família",
+    "cat_all": "Totes",
+    "cat_warmup": "Escalfament",
+    "cat_technique": "Tècnica",
+    "cat_tactics": "Tàctica",
+    "cat_bouts": "Assalts",
+    "cat_physical": "Preparació física",
+    "cat_cooldown": "Tornada a la calma",
+    "cat_other": "Altres",
+    "add": "Nou exercici",
+    "import": "Importar",
+    "export": "Exportar",
+    "exported": "Exercicis exportats: {{count}}",
+    "imported": "Importació acabada: {{created}} afegit(s), {{skipped}} ja present(s)",
+    "delete_confirm": "Suprimir l'exercici « {{title}} » de la biblioteca?",
+    "empty": "Cap exercici",
+    "empty_desc": "Creeu els vostres exercicis o importeu un fitxer compartit per un altre club.",
+    "edit_title": "Modificar l'exercici",
+    "new_title": "Nou exercici",
+    "title_label": "Títol",
+    "details": "Consignes, material, variants",
+    "pick_title": "Triar a la biblioteca",
+    "pick_n": "Afegir ({{count}})",
+    "none_found": "Cap exercici coincideix.",
+    "from_library": "Des de la biblioteca",
+    "save_to_library": "Afegir a la biblioteca",
+    "saved_to_library": "« {{title}} » afegit a la biblioteca"
+  },
+  "clubShare": {
+    "error_invalid_json": "Fitxer il·legible (JSON no vàlid)",
+    "error_wrong_format": "Aquest fitxer no és del tipus correcte",
+    "error_empty": "El fitxer no conté res per importar"
   }
 }

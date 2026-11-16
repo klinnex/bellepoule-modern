@@ -229,6 +229,12 @@ const electronApi = {
     startSession: (id: string) => ipcRenderer.invoke('club:startSession', id),
     setMemberFeedback: (sessionId: string, memberId: string, text: string) =>
       ipcRenderer.invoke('club:setMemberFeedback', sessionId, memberId, text),
+    listExercises: () => ipcRenderer.invoke('club:listExercises'),
+    createExercise: (data: unknown) => ipcRenderer.invoke('club:createExercise', data),
+    updateExercise: (id: string, data: unknown) =>
+      ipcRenderer.invoke('club:updateExercise', id, data),
+    deleteExercise: (id: string) => ipcRenderer.invoke('club:deleteExercise', id),
+    importExercises: (list: unknown[]) => ipcRenderer.invoke('club:importExercises', list),
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
     deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
     setAttendance: (sessionId: string, memberId: string, present: boolean) =>

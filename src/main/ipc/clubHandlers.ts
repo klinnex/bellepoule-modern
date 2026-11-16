@@ -14,6 +14,7 @@ import type {
   ClubBoutFilter,
   ClubBoutInput,
   ClubBoutResult,
+  ClubExerciseInput,
   ClubMemberInput,
   ClubMemberReport,
   ClubPeriodKind,
@@ -138,6 +139,18 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   ipcMain.handle('club:startSession', (_, id: string) => repo.startSession(id));
   ipcMain.handle('club:setMemberFeedback', (_, sessionId: string, memberId: string, text: string) =>
     repo.setMemberFeedback(sessionId, memberId, typeof text === 'string' ? text : '')
+  );
+  // Bibliothèque d'exercices
+  ipcMain.handle('club:listExercises', () => repo.listExercises());
+  ipcMain.handle('club:createExercise', (_, data: ClubExerciseInput) =>
+    repo.createExercise(data ?? { title: '' })
+  );
+  ipcMain.handle('club:updateExercise', (_, id: string, data: Partial<ClubExerciseInput>) =>
+    repo.updateExercise(id, data ?? {})
+  );
+  ipcMain.handle('club:deleteExercise', (_, id: string) => repo.deleteExercise(id));
+  ipcMain.handle('club:importExercises', (_, list: ClubExerciseInput[]) =>
+    repo.importExercises(Array.isArray(list) ? list : [])
   );
   ipcMain.handle('club:getMemberFeedback', (_, memberId: string) =>
     repo.getMemberFeedback(memberId)

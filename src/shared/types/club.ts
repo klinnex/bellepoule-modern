@@ -105,7 +105,30 @@ export interface ClubPlanItem {
   details?: string;
   /** Coché pendant la séance */
   done?: boolean;
+  /** Famille d'exercice (reprise de la bibliothèque) */
+  category?: ClubExerciseCategory;
+  /** Schémas / photos (data URL png, jpeg, webp ; 3 max) */
+  images?: string[];
 }
+
+/** Familles d'exercices de la bibliothèque */
+export type ClubExerciseCategory =
+  'warmup' | 'technique' | 'tactics' | 'bouts' | 'physical' | 'cooldown' | 'other';
+
+/** Exercice de la bibliothèque (partagée entre clubs, exportable / importable) */
+export interface ClubExercise {
+  id: string;
+  title: string;
+  category: ClubExerciseCategory;
+  minutes: number;
+  details?: string;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClubExerciseInput = Pick<ClubExercise, 'title'> &
+  Partial<Pick<ClubExercise, 'category' | 'minutes' | 'details' | 'images'>>;
 
 /** Séance d'entraînement (une date, N pistes) */
 export interface ClubSession {
@@ -296,6 +319,13 @@ export interface ClubAPI {
   setMemberFeedback: (sessionId: string, memberId: string, text: string) => Promise<void>;
   /** Remarques reçues par un tireur, plus récentes d'abord */
   getMemberFeedback: (memberId: string) => Promise<ClubMemberFeedback[]>;
+  /** Bibliothèque d'exercices */
+  listExercises: () => Promise<ClubExercise[]>;
+  createExercise: (data: ClubExerciseInput) => Promise<ClubExercise>;
+  updateExercise: (id: string, data: Partial<ClubExerciseInput>) => Promise<ClubExercise | null>;
+  deleteExercise: (id: string) => Promise<void>;
+  /** Import d'un fichier partagé : doublons (même titre et famille) ignorés */
+  importExercises: (list: ClubExerciseInput[]) => Promise<{ created: number; skipped: number }>;
   /** Séance préparée → ouverte (une seule séance ouverte par club) */
   startSession: (id: string) => Promise<ClubSession | null>;
   deleteSession: (id: string) => Promise<void>;

@@ -67,4 +67,18 @@ describe('plan de cours PDF (#1872)', () => {
     const doc = parse(generateClubPlanHTML(session({ label: undefined }), { clubName: '' }));
     expect(doc.querySelector('.plan-title')!.textContent).toBe('Plan de cours');
   });
+
+  it('images des exercices sous les consignes', () => {
+    const doc = parse(
+      generateClubPlanHTML(
+        session({
+          plan: [{ id: 'a', title: 'Schéma', minutes: 5, images: [PNG, 'javascript:x'] }],
+        }),
+        { clubName: '' }
+      )
+    );
+    const imgs = doc.querySelectorAll('.ex-images img');
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0].getAttribute('src')).toBe(PNG);
+  });
 });

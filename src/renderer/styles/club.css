@@ -472,3 +472,57 @@
 .mini-cal-day.is-selected::after {
   background: #fff;
 }
+/* Images des exercices, bibliothèque */
+.club-images {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.club-image-thumb {
+  position: relative;
+  display: inline-block;
+}
+.club-image-thumb img,
+.club-exercise-thumb {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.club-image-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--color-surface);
+  border-radius: 50%;
+}
+.club-plan-images {
+  margin: 0.25rem 0 0 1.6rem;
+}
+.club-exercise-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-exercise-item,
+.club-exercise-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.club-exercise-pick {
+  cursor: pointer;
+}
+.club-exercise-pick .club-plan-details {
+  display: block;
+  margin-left: 0;
+}

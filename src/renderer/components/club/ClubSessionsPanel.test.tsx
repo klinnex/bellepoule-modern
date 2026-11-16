@@ -249,4 +249,45 @@ describe('ClubSessionsPanel', () => {
       )
     );
   });
+
+  it('plan : exercices ajoutés depuis la bibliothèque (échauffement proposé d’abord)', async () => {
+    api.listSessions.mockResolvedValue([]);
+    api.listExercises = vi.fn().mockResolvedValue([
+      {
+        id: 'w',
+        title: 'Footing',
+        category: 'warmup',
+        minutes: 12,
+        images: [],
+        createdAt: '',
+        updatedAt: '',
+      },
+      {
+        id: 't',
+        title: 'Parade',
+        category: 'technique',
+        minutes: 20,
+        images: [],
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Préparer une séance' }))[0]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Depuis la bibliothèque' }));
+    // Plan vide : la famille « Échauffement » est proposée d'abord
+    expect(await screen.findByText('Footing')).toBeInTheDocument();
+    expect(screen.queryByText('Parade')).toBeNull();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Footing/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter (1)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
+    await waitFor(() =>
+      expect(api.createSession).toHaveBeenCalledWith(
+        'c1',
+        expect.objectContaining({
+          plan: [expect.objectContaining({ title: 'Footing', minutes: 12, category: 'warmup' })],
+        })
+      )
+    );
+  });
 });

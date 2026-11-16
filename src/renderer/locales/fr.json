@@ -3437,7 +3437,10 @@
     "start": "Démarrer",
     "delete_confirm": "Supprimer la séance prévue du {{date}} ?",
     "export_pdf": "Exporter en PDF",
-    "print": "Imprimer"
+    "print": "Imprimer",
+    "export_plan": "Exporter le plan",
+    "import_plan": "Importer un plan",
+    "plan_exported": "Plan exporté"
   },
   "clubFeedback": {
     "title": "Bilan de la séance du {{date}}",
@@ -3466,5 +3469,49 @@
     "mark_planned": "séance prévue",
     "mark_open": "séance en cours",
     "mark_closed": "séance passée"
+  },
+  "clubImages": {
+    "label": "Images",
+    "label_n": "Images de l'exercice {{n}}",
+    "add": "Ajouter une image",
+    "remove": "Retirer l'image {{n}}",
+    "invalid": "Image non prise en charge (PNG, JPEG ou WebP, 1 Mo max)"
+  },
+  "clubExercises": {
+    "tab": "Exercices",
+    "title": "Bibliothèque d'exercices ({{count}})",
+    "help": "Vos échauffements, exercices techniques et tactiques, réutilisables dans tous les plans de séance et partageables par fichier.",
+    "category": "Famille",
+    "cat_all": "Toutes",
+    "cat_warmup": "Échauffement",
+    "cat_technique": "Technique",
+    "cat_tactics": "Tactique",
+    "cat_bouts": "Assauts",
+    "cat_physical": "Préparation physique",
+    "cat_cooldown": "Retour au calme",
+    "cat_other": "Autre",
+    "add": "Nouvel exercice",
+    "import": "Importer",
+    "export": "Exporter",
+    "exported": "Exercices exportés : {{count}}",
+    "imported": "Import terminé : {{created}} ajouté(s), {{skipped}} déjà présent(s)",
+    "delete_confirm": "Supprimer l'exercice « {{title}} » de la bibliothèque ?",
+    "empty": "Aucun exercice",
+    "empty_desc": "Créez vos exercices ou importez un fichier partagé par un autre club.",
+    "edit_title": "Modifier l'exercice",
+    "new_title": "Nouvel exercice",
+    "title_label": "Titre",
+    "details": "Consignes, matériel, variantes",
+    "pick_title": "Choisir dans la bibliothèque",
+    "pick_n": "Ajouter ({{count}})",
+    "none_found": "Aucun exercice ne correspond.",
+    "from_library": "Depuis la bibliothèque",
+    "save_to_library": "Ajouter à la bibliothèque",
+    "saved_to_library": "« {{title}} » ajouté à la bibliothèque"
+  },
+  "clubShare": {
+    "error_invalid_json": "Fichier illisible (JSON invalide)",
+    "error_wrong_format": "Ce fichier n'est pas du bon type",
+    "error_empty": "Le fichier ne contient rien à importer"
   }
 }
