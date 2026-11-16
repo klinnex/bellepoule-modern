@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Archive,
   ArchiveRestore,
+  Download,
   FileDown,
   IdCard,
   Printer,
@@ -29,6 +30,7 @@ import {
 import { ClubImportModal } from './ClubImportModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
 import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
+import { exportClubMembersToFFF } from '../../../shared/utils/fencerExport';
 import {
   exportArenaQrToPDF,
   exportClubCardsToPDF,
@@ -238,6 +240,25 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
   };
 
+  /** Membres affichés (filtres appliqués) → fichier FFF réimportable */
+  const exportMembers = async () => {
+    const dialog = window.electronAPI?.dialog;
+    const file = window.electronAPI?.file;
+    if (!dialog?.saveFile || !file?.writeContent || filtered.length === 0) return;
+    try {
+      const r = await dialog.saveFile({
+        title: t('club.export'),
+        defaultPath: `${(settings.name || 'club').replace(/[^\p{L}\p{N}_-]+/gu, '_')}-membres.fff`,
+        filters: [{ name: 'FFF', extensions: ['fff'] }],
+      });
+      if (!r || r.canceled || !r.filePath) return;
+      await file.writeContent(r.filePath, exportClubMembersToFFF(settings.name, filtered));
+      showToast(t('club.export_done', { count: filtered.length }), 'success');
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
   /** Cartes des membres affichés : boîte d'impression, ou fichier PDF */
   const printCards = async (mode: 'print' | 'pdf') => {
     const list = filtered.filter(m => m.active);
@@ -357,6 +378,13 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             onClick={() => importInput.current?.click()}
           >
             {t('club.import')}
+          </Button>
+          <Button
+            icon={<Download size={15} aria-hidden="true" />}
+            disabled={filtered.length === 0}
+            onClick={() => void exportMembers()}
+          >
+            {t('club.export')}
           </Button>
           <Button
             variant="primary"
