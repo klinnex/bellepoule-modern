@@ -35,8 +35,10 @@ describe('previewPdf (#1214)', () => {
     expect(p).toBe(file);
     expect(title).toBe('Poule 1');
     handlers.onClosed();
-    await new Promise(r => setTimeout(r, 20));
-    expect(fs.existsSync(path.dirname(file))).toBe(false);
+    // Suppression asynchrone : attente bornée plutôt qu'un délai fixe (instable sous charge)
+    await vi.waitFor(() => expect(fs.existsSync(path.dirname(file))).toBe(false), {
+      timeout: 5000,
+    });
     expect(deps.openExternal).not.toHaveBeenCalled();
   });
 
