@@ -5,12 +5,21 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { RotateCcw, TriangleAlert } from 'lucide-react';
 import { Icon } from '../common/Icon';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Donut } from './AnalyticsCharts';
 import type { OrganisationKpis } from '../../../features/analytics/services/competitionKpis';
+import {
+  getFinalDeviation,
+  getPlannedEnd,
+  hasPlannedEnd,
+  setFinalDeviation,
+  setPlannedEnd,
+  type FinalDeviation,
+  type SchedulePhase,
+} from '../../../features/analytics/services/scheduleBaseline';
 
 function fmtDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '—';
@@ -24,21 +33,13 @@ function fmtDuration(seconds: number): string {
 const fmtClock = (ms: number) =>
   new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-const baselineKey = (competitionId: string) => `bp-org-baseline-${competitionId}`;
+const legacyKey = (competitionId: string) => `bp-org-baseline-${competitionId}`;
 
-function readBaseline(competitionId: string): number | null {
+/** Sans planning : la première fin estimée sert de référence (mémorisée sur le poste) */
+function rememberFirstEstimate(competitionId: string, value: number) {
   try {
-    const v = Number(localStorage.getItem(baselineKey(competitionId)));
-    return Number.isFinite(v) && v > 0 ? v : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeBaseline(competitionId: string, value: number | null) {
-  try {
-    if (value == null) localStorage.removeItem(baselineKey(competitionId));
-    else localStorage.setItem(baselineKey(competitionId), String(value));
+    if (!localStorage.getItem(legacyKey(competitionId)))
+      localStorage.setItem(legacyKey(competitionId), String(value));
   } catch {
     /* stockage indisponible */
   }
@@ -59,17 +60,41 @@ const Tile: React.FC<{ label: string; value: React.ReactNode; sub?: React.ReactN
 export const OrganisationPanel: React.FC<{
   competitionId: string;
   kpis: OrganisationKpis;
-}> = ({ competitionId, kpis }) => {
+  /** Phase en cours : choisit l'heure de fin planifiée (poules ou tableau) */
+  phase?: SchedulePhase;
+}> = ({ competitionId, kpis, phase = 'pools' }) => {
   const { t } = useTranslation();
-  const [stored, setBaseline] = useState<number | null>(() => readBaseline(competitionId));
-  // Heure de fin initiale = première estimation calculée (planning de référence)
-  const baseline = stored ?? kpis.etaAt;
+  const [, setRev] = useState(0);
+  // Heure de fin planifiée = calculée par l'assistant de planning ; repli : 1re fin estimée
+  const planned = getPlannedEnd(competitionId, phase);
+  const fromPlanning = hasPlannedEnd(competitionId, phase);
+  const baseline = planned ?? kpis.etaAt;
   useEffect(() => {
-    if (stored == null && baseline != null) writeBaseline(competitionId, baseline);
-  }, [stored, baseline, competitionId]);
+    if (planned == null && kpis.etaAt != null) rememberFirstEstimate(competitionId, kpis.etaAt);
+  }, [planned, kpis.etaAt, competitionId]);
 
-  const deviationMin =
-    baseline != null && kpis.etaAt != null ? Math.round((kpis.etaAt - baseline) / 60_000) : null;
+  // Compétition terminée : retard / avance final figé (#1817)
+  const finished = kpis.total > 0 && kpis.done >= kpis.total;
+  const storedFinal = finished ? getFinalDeviation(competitionId) : null;
+  const final = useMemo<FinalDeviation | null>(() => {
+    if (storedFinal) return storedFinal;
+    if (!finished || baseline == null) return null;
+    const endAt = kpis.lastEndAt ?? kpis.now;
+    return { endAt, plannedAt: baseline, deviationMin: Math.round((endAt - baseline) / 60_000) };
+  }, [storedFinal, finished, baseline, kpis.lastEndAt, kpis.now]);
+  useEffect(() => {
+    if (finished && final && !storedFinal) setFinalDeviation(competitionId, final);
+    // Matchs ajoutés ou annulés après la fin : l'écart redevient vivant
+    if (!finished && kpis.total > 0 && getFinalDeviation(competitionId))
+      setFinalDeviation(competitionId, null);
+  }, [finished, final, storedFinal, kpis.total, competitionId]);
+
+  const deviationMin = final
+    ? final.deviationMin
+    : baseline != null && kpis.etaAt != null
+      ? Math.round((kpis.etaAt - baseline) / 60_000)
+      : null;
+  const shownPlanned = final ? final.plannedAt : baseline;
   const pct = kpis.total ? (kpis.done / kpis.total) * 100 : 0;
 
   return (
@@ -83,9 +108,11 @@ export const OrganisationPanel: React.FC<{
           <div className="org-eta__time">
             {kpis.etaAt != null
               ? fmtClock(kpis.etaAt)
-              : kpis.total > 0
-                ? t('organisation.all_done')
-                : '—'}
+              : final
+                ? t('organisation.ended_at', { time: fmtClock(final.endAt) })
+                : kpis.total > 0
+                  ? t('organisation.all_done')
+                  : '—'}
           </div>
           {kpis.etaBasis === 'default' && (
             <div className="text-xs text-gray-400">{t('organisation.eta_default')}</div>
@@ -93,7 +120,7 @@ export const OrganisationPanel: React.FC<{
         </div>
         <div>
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            {t('organisation.deviation')}
+            {t(final ? 'organisation.final_deviation' : 'organisation.deviation')}
           </div>
           <div
             className={`org-eta__deviation ${deviationMin == null ? '' : deviationMin > 0 ? 'is-late' : 'is-ahead'}`}
@@ -106,21 +133,25 @@ export const OrganisationPanel: React.FC<{
                     n: Math.abs(deviationMin),
                   })}
           </div>
-          {baseline != null && (
+          {shownPlanned != null && (
             <div className="text-xs text-gray-400 flex items-center gap-1">
-              {t('organisation.planned', { time: fmtClock(baseline) })}
-              <button
-                type="button"
-                className="btn-link"
-                title={t('organisation.reset_baseline')}
-                aria-label={t('organisation.reset_baseline')}
-                onClick={() => {
-                  writeBaseline(competitionId, kpis.etaAt);
-                  setBaseline(kpis.etaAt);
-                }}
-              >
-                <Icon icon={RotateCcw} />
-              </button>
+              {t(fromPlanning || final ? 'organisation.planned' : 'organisation.planned_estimate', {
+                time: fmtClock(shownPlanned),
+              })}
+              {!final && kpis.etaAt != null && (
+                <button
+                  type="button"
+                  className="btn-link"
+                  title={t('organisation.reset_baseline')}
+                  aria-label={t('organisation.reset_baseline')}
+                  onClick={() => {
+                    if (kpis.etaAt != null) setPlannedEnd(competitionId, phase, kpis.etaAt);
+                    setRev(r => r + 1);
+                  }}
+                >
+                  <Icon icon={RotateCcw} />
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -48,6 +48,8 @@ interface BarItem {
   value: number;
   color: string;
   sublabel?: string;
+  /** Infobulle : libellé complet si tronqué */
+  title?: string;
 }
 
 const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = ({
@@ -64,7 +66,10 @@ const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = (
       <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0">
+            <div
+              className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0"
+              title={item.title ?? item.label}
+            >
               {item.label}
             </div>
             <div className="flex-1 h-5 bg-gray-100 rounded overflow-hidden">
@@ -424,13 +429,12 @@ const CardsByReason: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
 
   if (entries.length === 0) return null;
 
+  // Motifs stockés en minuscules (early_start), clés de traduction en majuscules (#1817)
   const items: BarItem[] = entries.map(([reason, count]) => {
-    const label = t(`cardReasons.${reason}`);
-    return {
-      label: label.startsWith('cardReasons.') ? reason : label,
-      value: count,
-      color: '#f59e0b',
-    };
+    const key = `cardReasons.${reason.toUpperCase()}`;
+    const translated = t(key);
+    const label = translated.startsWith('cardReasons.') ? reason : translated;
+    return { label, title: label, value: count, color: '#f59e0b' };
   });
 
   return <HBar items={items} title={t('analyticsCharts.cards_by_reason')} />;

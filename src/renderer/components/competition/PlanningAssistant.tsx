@@ -20,6 +20,11 @@ import { getActiveLocale } from '../../../shared/utils/localeFormat';
 import { Button } from '../common/Button';
 import { TriangleAlert } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import {
+  getPlannedEnd,
+  hasPlannedEnd,
+  setPlannedEnd,
+} from '../../../features/analytics/services/scheduleBaseline';
 
 interface PlanningAssistantProps {
   competition: Competition;
@@ -92,6 +97,21 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
     };
   }, [manager, competition, pools, arenas, isTableau]);
 
+  // Heure de fin planifiée de l'onglet Organisation (#1817) : 1er calcul retenu d'office
+  const phase = isTableau ? 'tableau' : 'pools';
+  const finishAt = isTableau
+    ? (tableauResult?.estimatedFinishTime.getTime() ?? null)
+    : (insights?.estimatedFinishTime.getTime() ?? null);
+  const [, setRev] = useState(0);
+  const stored = hasPlannedEnd(competition.id, phase) ? getPlannedEnd(competition.id, phase) : null;
+  const valid = finishAt != null && Number.isFinite(finishAt);
+  const planned = stored ?? (valid ? finishAt : null);
+  useEffect(() => {
+    if (stored == null && valid && finishAt != null) setPlannedEnd(competition.id, phase, finishAt);
+  }, [stored, valid, finishAt, competition.id, phase]);
+  const fmt = (ms: number) =>
+    new Date(ms).toLocaleTimeString(getActiveLocale(), { hour: '2-digit', minute: '2-digit' });
+
   const remainingMatches = pools.reduce(
     (sum, p) => sum + p.matches.filter(m => m.status !== MatchStatus.FINISHED).length,
     0
@@ -106,6 +126,24 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       elevated
       footer={
         <>
+          {finishAt != null && Number.isFinite(finishAt) && (
+            <span className="u-hint">
+              {planned != null && t('planning.planned_end', { time: fmt(planned) })}{' '}
+              {planned !== finishAt && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setPlannedEnd(competition.id, phase, finishAt);
+                    setRev(r => r + 1);
+                  }}
+                >
+                  {t('planning.set_planned_end')}
+                </Button>
+              )}
+            </span>
+          )}
           <Button type="button" variant="primary" onClick={onClose}>
             {t('actions.close')}
           </Button>

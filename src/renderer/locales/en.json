@@ -1693,7 +1693,12 @@
     "dt_calls": "DT calls",
     "black_cards": "Black cards",
     "touches_per_match": "hits/bout",
-    "touches_per_match_title": "Average hits scored per bout"
+    "touches_per_match_title": "Average hits scored per bout",
+    "cards_per_match": "Cards per bout",
+    "withdrawals": "Withdrawals / exclusions / forfeits",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "Bouts reaching time limit",
+    "time_limit_hint": "Fenced bouts ending without either fencer reaching the maximum score"
   },
   "refereeManager": {
     "title": "Referee management",
@@ -2148,7 +2153,9 @@
     "computing": "Computing…",
     "error": "Calculation failed: {{error}}",
     "remaining": "Remaining bouts:",
-    "wait": "Wait between two bouts (largest pool, official order): average {{avg}} min, max {{max}} min"
+    "wait": "Wait between two bouts (largest pool, official order): average {{avg}} min, max {{max}} min",
+    "planned_end": "Planned end kept: {{time}}",
+    "set_planned_end": "Keep as planned end"
   },
   "scoreAudit": {
     "title": "Score history",
@@ -3219,6 +3226,9 @@
     "sync_errors": "Sync failures",
     "dt_calls": "DT calls",
     "issue_disconnect": "Referee tablet disconnected (strip {{arena}})",
-    "issue_sync_error": "Score resync failed"
+    "issue_sync_error": "Score resync failed",
+    "ended_at": "Ended at {{time}}",
+    "final_deviation": "Final schedule deviation",
+    "planned_estimate": "Reference (first estimate): {{time}}"
   }
 }

@@ -1693,7 +1693,12 @@
     "dt_calls": "技術主任召喚",
     "black_cards": "黑牌",
     "touches_per_match": "擊中/場",
-    "touches_per_match_title": "每場平均擊中數"
+    "touches_per_match_title": "每場平均擊中數",
+    "cards_per_match": "每場牌數",
+    "withdrawals": "退賽 / 驅逐 / 棄權",
+    "withdrawals_value": "{{a}} / {{x}} / {{f}}",
+    "time_limit": "打滿時間的比賽",
+    "time_limit_hint": "已進行的比賽中，雙方均未達到最高分即結束"
   },
   "refereeManager": {
     "title": "裁判管理",
@@ -2148,7 +2153,9 @@
     "computing": "計算中…",
     "error": "無法計算：{{error}}",
     "remaining": "餘下比賽：",
-    "wait": "兩場比賽之間的等候（最大小組，官方次序）：平均 {{avg}} 分鐘，最長 {{max}} 分鐘"
+    "wait": "兩場比賽之間的等候（最大小組，官方次序）：平均 {{avg}} 分鐘，最長 {{max}} 分鐘",
+    "planned_end": "計劃完結時間：{{time}}",
+    "set_planned_end": "設為計劃完結時間"
   },
   "scoreAudit": {
     "title": "分數紀錄",
@@ -3219,6 +3226,9 @@
     "sync_errors": "同步失敗",
     "dt_calls": "技術主任召喚",
     "issue_disconnect": "裁判平板已斷線（劍道 {{arena}}）",
-    "issue_sync_error": "比分重新同步失敗"
+    "issue_sync_error": "比分重新同步失敗",
+    "ended_at": "於 {{time}} 結束",
+    "final_deviation": "最終進度偏差",
+    "planned_estimate": "參考（首次估算）：{{time}}"
   }
 }
