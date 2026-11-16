@@ -30,6 +30,8 @@ import type {
   DaySyncResult,
   EventDay,
 } from './eventDay';
+import type { ClubAPI } from './club';
+export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -1395,6 +1397,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   remote: RemoteServerAPI & import('./remote').RemoteFirewallAPI;
   training: TrainingAPI;
   eventDay: EventDayAPI;
+  club: ClubAPI;
   cyrano: CyranoAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;

@@ -192,6 +192,36 @@ const electronApi = {
     getStripOccupation: (dayId: string) => ipcRenderer.invoke('eventDay:getStripOccupation', dayId),
   },
 
+  // Mode Club (#1872)
+  club: {
+    listMembers: (includeInactive?: boolean) =>
+      ipcRenderer.invoke('club:listMembers', includeInactive),
+    createMember: (data: unknown) => ipcRenderer.invoke('club:createMember', data),
+    updateMember: (id: string, data: unknown) => ipcRenderer.invoke('club:updateMember', id, data),
+    deleteMember: (id: string) => ipcRenderer.invoke('club:deleteMember', id),
+    listSessions: (range?: unknown) => ipcRenderer.invoke('club:listSessions', range),
+    getSession: (id: string) => ipcRenderer.invoke('club:getSession', id),
+    createSession: (data: unknown) => ipcRenderer.invoke('club:createSession', data),
+    updateSession: (id: string, data: unknown) =>
+      ipcRenderer.invoke('club:updateSession', id, data),
+    closeSession: (id: string) => ipcRenderer.invoke('club:closeSession', id),
+    reopenSession: (id: string) => ipcRenderer.invoke('club:reopenSession', id),
+    deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
+    setAttendance: (sessionId: string, memberId: string, present: boolean) =>
+      ipcRenderer.invoke('club:setAttendance', sessionId, memberId, present),
+    listBouts: (filter?: unknown) => ipcRenderer.invoke('club:listBouts', filter),
+    createBout: (data: unknown) => ipcRenderer.invoke('club:createBout', data),
+    startBout: (id: string) => ipcRenderer.invoke('club:startBout', id),
+    updateBoutScore: (id: string, scoreA: number, scoreB: number) =>
+      ipcRenderer.invoke('club:updateBoutScore', id, scoreA, scoreB),
+    finishBout: (id: string, result: unknown) => ipcRenderer.invoke('club:finishBout', id, result),
+    cancelBout: (id: string) => ipcRenderer.invoke('club:cancelBout', id),
+    deleteBout: (id: string) => ipcRenderer.invoke('club:deleteBout', id),
+    getLeaderboard: (filter?: unknown) => ipcRenderer.invoke('club:getLeaderboard', filter),
+    getMemberReport: (memberId: string, filter?: unknown, groupBy?: string) =>
+      ipcRenderer.invoke('club:getMemberReport', memberId, filter, groupBy),
+  },
+
   training: {
     startServer: (port?: number, host?: string, useHttps?: boolean) =>
       ipcRenderer.invoke('training:startServer', port, host, useHttps),

@@ -20,6 +20,7 @@ import { EventDayRepo } from './repos/eventDayRepo';
 import { TeamRepo } from './repos/teamRepo';
 import { OrganisationRepo } from './repos/organisationRepo';
 import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
+import { ClubRepo } from './repos/clubRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -57,6 +58,8 @@ export class DatabaseManager {
   private readonly cyrano = new CyranoRepo(this.sql);
   /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
   public readonly eventDays = new EventDayRepo(this.sql);
+  /** Mode Club : membres, séances, combats libres (#1872) */
+  public readonly club = new ClubRepo(this.sql);
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');
