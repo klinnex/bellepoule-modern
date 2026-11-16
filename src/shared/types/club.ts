@@ -72,7 +72,36 @@ export interface ClubSettings {
   stripCount: number;
 }
 
-export type ClubSessionStatus = 'open' | 'closed';
+/** planned : préparée à l'avance ; open : en cours ; closed : terminée */
+export type ClubSessionStatus = 'planned' | 'open' | 'closed';
+
+/** Bilan d'une séance : ressenti global et pistes d'amélioration */
+export interface ClubSessionFeedback {
+  /** Note de la séance, 1 à 5 */
+  rating?: number;
+  wentWell?: string;
+  toImprove?: string;
+}
+
+/** Remarque reçue par un tireur lors d'une séance */
+export interface ClubMemberFeedback {
+  sessionId: string;
+  date: string;
+  label?: string;
+  text: string;
+}
+
+/** Exercice du plan de cours d'une séance */
+export interface ClubPlanItem {
+  id: string;
+  title: string;
+  /** Durée prévue en minutes */
+  minutes: number;
+  /** Consignes, matériel, variantes */
+  details?: string;
+  /** Coché pendant la séance */
+  done?: boolean;
+}
 
 /** Séance d'entraînement (une date, N pistes) */
 export interface ClubSession {
@@ -88,6 +117,16 @@ export interface ClubSession {
   closedAt?: string;
   /** Membres pointés présents */
   attendeeIds: string[];
+  /** Objectifs pédagogiques de la séance */
+  objectives?: string;
+  /** Plan de cours */
+  plan: ClubPlanItem[];
+  /** Notes / compte rendu du maître d'armes */
+  notes?: string;
+  /** Bilan de la séance */
+  feedback?: ClubSessionFeedback;
+  /** Remarque du maître d'armes par tireur présent (memberId → texte) */
+  memberFeedback: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,6 +136,12 @@ export interface ClubSessionInput {
   label?: string;
   weapon?: Weapon;
   stripCount?: number;
+  objectives?: string;
+  plan?: ClubPlanItem[];
+  notes?: string;
+  feedback?: ClubSessionFeedback | null;
+  /** Préparée à l'avance (statut planned), ouverte plus tard avec startSession */
+  planned?: boolean;
 }
 
 export type ClubBoutStatus = 'pending' | 'in_progress' | 'finished' | 'cancelled';
@@ -243,6 +288,12 @@ export interface ClubAPI {
   /** Ferme la séance : combats non terminés annulés */
   closeSession: (id: string) => Promise<ClubSession | null>;
   reopenSession: (id: string) => Promise<ClubSession | null>;
+  /** Remarque pour un tireur présent (vide = effacée) */
+  setMemberFeedback: (sessionId: string, memberId: string, text: string) => Promise<void>;
+  /** Remarques reçues par un tireur, plus récentes d'abord */
+  getMemberFeedback: (memberId: string) => Promise<ClubMemberFeedback[]>;
+  /** Séance préparée → ouverte (une seule séance ouverte par club) */
+  startSession: (id: string) => Promise<ClubSession | null>;
   deleteSession: (id: string) => Promise<void>;
   /** Renvoie les présents de la séance */
   setAttendance: (sessionId: string, memberId: string, present: boolean) => Promise<string[]>;

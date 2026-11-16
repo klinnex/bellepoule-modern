@@ -284,3 +284,82 @@
 .club-home {
   padding-bottom: 0;
 }
+/* Préparation des séances : plan de cours */
+.club-textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+}
+.club-plan-edit {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.club-plan-edit-item {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.club-notes-label {
+  display: block;
+  margin-top: 1rem;
+}
+.club-plan {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.club-plan li.is-done .font-medium {
+  text-decoration: line-through;
+  color: var(--color-text-light);
+}
+.club-plan-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-plan-details {
+  margin: 0.15rem 0 0 1.6rem;
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+}
+.club-objectives {
+  margin: 0;
+  white-space: pre-wrap;
+}
+/* Bilan de séance */
+.club-rating {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+.club-star {
+  color: var(--color-text-light);
+}
+.club-star.is-on {
+  color: var(--color-warning, #d97706);
+}
+.club-star.is-on svg {
+  fill: currentColor;
+}
+.club-feedback-list,
+.club-remarks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

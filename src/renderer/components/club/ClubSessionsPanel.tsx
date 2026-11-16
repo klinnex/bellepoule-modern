@@ -7,16 +7,31 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalendarPlus,
+  ClipboardList,
   Lock,
+  MessageSquare,
+  Pencil,
   Play,
   QrCode,
   Radio,
   ScanLine,
+  Trash2,
   Unlock,
   WifiOff,
   X,
 } from 'lucide-react';
-import type { ClubBout, ClubMember, ClubSession, ClubSettings } from '../../../shared/types/club';
+import type {
+  ClubBout,
+  ClubMember,
+  ClubSession,
+  ClubSessionFeedback,
+  ClubSessionInput,
+  ClubSettings,
+} from '../../../shared/types/club';
+import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
+import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
+import { ClubSessionPlanner } from './ClubSessionPlanner';
+import { ClubSessionPlanCard } from './ClubSessionPlanCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -155,6 +170,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   const [remote, setRemote] = useState<RemoteState>({ active: false, url: null, strips: 0 });
   const [remoteBusy, setRemoteBusy] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [planner, setPlanner] = useState<{ session: ClubSession | null } | null>(null);
+  const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
 
   const current = sessions.find(s => s.status === 'open') ?? null;
 
@@ -191,6 +208,65 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
   };
 
   if (!api) return null;
+
+  const planned = sessions
+    .filter(s => s.status === 'planned')
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const past = sessions.filter(s => s.status === 'closed');
+
+  const savePlan = (data: ClubSessionInput) => {
+    const target = planner?.session;
+    setPlanner(null);
+    void run(() =>
+      target
+        ? api.updateSession(target.id, data)
+        : api.createSession(clubId, { ...data, planned: true, stripCount: settings.stripCount })
+    );
+  };
+
+  const removePlanned = async (s: ClubSession) => {
+    const ok = await confirm({
+      message: t('clubPlan.delete_confirm', { date: s.date }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (ok) await run(() => api.deleteSession(s.id));
+  };
+
+  const saveFeedback = (
+    s: ClubSession,
+    feedback: ClubSessionFeedback,
+    perMember: Record<string, string>
+  ) => {
+    setFeedbackFor(null);
+    void run(async () => {
+      await api.updateSession(s.id, { feedback });
+      for (const memberId of s.attendeeIds) {
+        const text = (perMember[memberId] ?? '').trim();
+        if (text !== (s.memberFeedback[memberId] ?? '')) {
+          await api.setMemberFeedback(s.id, memberId, text);
+        }
+      }
+      showToast(t('clubFeedback.saved'), 'success');
+    });
+  };
+
+  const feedbackModal = feedbackFor && (
+    <ClubSessionFeedbackModal
+      session={feedbackFor}
+      members={members}
+      onSave={(fb, per) => saveFeedback(feedbackFor, fb, per)}
+      onClose={() => setFeedbackFor(null)}
+    />
+  );
+
+  const plannerModal = planner && (
+    <ClubSessionPlanner
+      session={planner.session}
+      defaultDate={today()}
+      onSave={savePlan}
+      onClose={() => setPlanner(null)}
+    />
+  );
 
   if (!current) {
     return (
@@ -229,23 +305,92 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             </Button>
           </div>
         </section>
+        <section className="club-card" aria-labelledby="club-planned-title">
+          <div className="club-row club-row--between">
+            <h2 id="club-planned-title" className="club-card-title">
+              {t('clubPlan.upcoming')}
+            </h2>
+            <Button
+              data-tour="club-plan-session"
+              icon={<ClipboardList size={15} aria-hidden="true" />}
+              onClick={() => setPlanner({ session: null })}
+            >
+              {t('clubPlan.prepare')}
+            </Button>
+          </div>
+          {planned.length === 0 ? (
+            <p className="club-muted">{t('clubPlan.none_planned')}</p>
+          ) : (
+            <table className="table">
+              <tbody>
+                {planned.map(s => (
+                  <tr key={s.id}>
+                    <td className="font-medium">{s.date}</td>
+                    <td>{s.label ?? ''}</td>
+                    <td className="text-sm text-muted">
+                      {t('clubPlan.summary', {
+                        count: s.plan.length,
+                        duration: formatMinutes(planDuration(s.plan)),
+                      })}
+                    </td>
+                    <td className="club-actions">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Pencil size={14} aria-hidden="true" />}
+                        onClick={() => setPlanner({ session: s })}
+                      >
+                        {t('clubPlan.edit')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        icon={<Play size={14} aria-hidden="true" />}
+                        onClick={() => void run(() => api.startSession(s.id))}
+                      >
+                        {t('clubPlan.start')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Trash2 size={14} aria-hidden="true" />}
+                        aria-label={t('actions.delete')}
+                        title={t('actions.delete')}
+                        onClick={() => void removePlanned(s)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
         <section className="club-card" aria-labelledby="club-past-title">
           <h2 id="club-past-title" className="club-card-title">
             {t('clubSession.past')}
           </h2>
-          {sessions.length === 0 ? (
+          {past.length === 0 ? (
             <EmptyState title={t('clubSession.none')} />
           ) : (
             <table className="table">
               <tbody>
-                {sessions.slice(0, 20).map(s => (
+                {past.slice(0, 20).map(s => (
                   <tr key={s.id}>
                     <td className="font-medium">{s.date}</td>
                     <td>{s.label ?? ''}</td>
                     <td className="text-sm text-muted">
                       {t('clubSession.present_count', { count: s.attendeeIds.length })}
+                      {s.feedback?.rating ? ` · ${'★'.repeat(s.feedback.rating)}` : ''}
                     </td>
                     <td className="club-actions">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<MessageSquare size={14} aria-hidden="true" />}
+                        onClick={() => setFeedbackFor(s)}
+                      >
+                        {t('clubFeedback.button')}
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -261,6 +406,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             </table>
           )}
         </section>
+        {plannerModal}
+        {feedbackModal}
       </div>
     );
   }
@@ -315,7 +462,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
       message: t('clubSession.close_confirm', { count: live.length }),
       confirmLabel: t('clubSession.close'),
     });
-    if (ok) await run(() => api.closeSession(current.id));
+    if (!ok) return;
+    await run(() => api.closeSession(current.id));
+    // Fin de séance : proposer le bilan
+    setFeedbackFor({ ...current, status: 'closed' });
   };
 
   return (
@@ -335,6 +485,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
             {t('clubSession.scan')}
           </Button>
           <Button
+            icon={<MessageSquare size={15} aria-hidden="true" />}
+            onClick={() => setFeedbackFor(current)}
+          >
+            {t('clubFeedback.button')}
+          </Button>
+          <Button
             variant="ghost"
             icon={<Lock size={15} aria-hidden="true" />}
             onClick={() => void closeSession()}
@@ -343,6 +499,20 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
           </Button>
         </div>
       </section>
+
+      <ClubSessionPlanCard
+        key={current.id}
+        session={current}
+        onEdit={() => setPlanner({ session: current })}
+        onToggle={(itemId, done) =>
+          void run(() =>
+            api.updateSession(current.id, {
+              plan: current.plan.map(it => (it.id === itemId ? { ...it, done } : it)),
+            })
+          )
+        }
+        onSaveNotes={notes => void run(() => api.updateSession(current.id, { notes }))}
+      />
 
       <section className="club-card" aria-labelledby="club-remote-title">
         <div className="club-row club-row--between">
@@ -497,6 +667,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
         )}
       </section>
 
+      {plannerModal}
+      {feedbackModal}
       {scanOpen && (
         <ClubScanModal
           session={current}

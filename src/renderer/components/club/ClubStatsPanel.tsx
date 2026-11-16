@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import type {
   ClubBoutFilter,
   ClubMember,
+  ClubMemberFeedback,
   ClubMemberReport,
   ClubMemberStats,
   ClubPeriodKind,
@@ -75,6 +76,7 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState<ClubPeriodKind>('month');
   const [report, setReport] = useState<ClubMemberReport | null>(null);
+  const [remarks, setRemarks] = useState<ClubMemberFeedback[]>([]);
 
   const filter = useMemo(
     () => ({ ...scopeFilter(scope, sessionId), clubId }),
@@ -106,6 +108,11 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
     if (!api || !selected) return;
     void api.getMemberReport(selected, filter, groupBy).then(setReport);
   }, [api, selected, filter, groupBy]);
+
+  useEffect(() => {
+    if (!api || !selected) return;
+    void api.getMemberFeedback(selected).then(setRemarks);
+  }, [api, selected]);
 
   const byId = useMemo(() => new Map(members.map(m => [m.id, m])), [members]);
   const name = (id: string) => {
@@ -235,6 +242,27 @@ export const ClubStatsPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
                 ))}
               </tbody>
             </table>
+          )}
+        </section>
+
+        <section className="club-card" aria-labelledby="club-remarks-title">
+          <h2 id="club-remarks-title" className="club-card-title">
+            {t('clubFeedback.remarks')}
+          </h2>
+          {remarks.length === 0 ? (
+            <p className="club-muted">{t('clubFeedback.no_remarks')}</p>
+          ) : (
+            <ul className="club-remarks">
+              {remarks.map(r => (
+                <li key={r.sessionId}>
+                  <span className="text-sm text-muted">
+                    {r.date}
+                    {r.label ? ` · ${r.label}` : ''}
+                  </span>
+                  <p className="club-objectives">{r.text}</p>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
