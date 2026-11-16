@@ -19,6 +19,7 @@ import { createMainWindow } from './mainWindow';
 import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './splash';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { registerEventDayHandlers } from './ipc/eventDayHandlers';
+import { registerClubHandlers } from './ipc/clubHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
 import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
@@ -78,6 +79,7 @@ const buildMenu = (language?: string): void =>
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
 registerEventDayHandlers({ db });
+registerClubHandlers({ db });
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
 
 // File handlers

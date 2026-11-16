@@ -712,4 +712,81 @@ export const ALL_MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    version: 25,
+    description:
+      'Mode Club : membres, séances, présences et combats libres conservés sur la saison (#1872)',
+    up(db) {
+      // weapons = codes d'arme séparés par des virgules ; vide = toutes armes
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_members (
+          id TEXT PRIMARY KEY,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          license TEXT,
+          gender TEXT,
+          birth_year INTEGER,
+          weapons TEXT NOT NULL DEFAULT '',
+          laterality TEXT,
+          category TEXT,
+          notes TEXT,
+          active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_members_name ON club_members(last_name, first_name)`
+      );
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_sessions (
+          id TEXT PRIMARY KEY,
+          date TEXT NOT NULL,
+          label TEXT,
+          weapon TEXT,
+          strip_count INTEGER NOT NULL DEFAULT 1,
+          status TEXT NOT NULL DEFAULT 'open',
+          opened_at TEXT NOT NULL,
+          closed_at TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_sessions_date ON club_sessions(date)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_attendance (
+          session_id TEXT NOT NULL,
+          member_id TEXT NOT NULL,
+          checked_in_at TEXT NOT NULL,
+          PRIMARY KEY (session_id, member_id)
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_bouts (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          strip INTEGER,
+          member_a_id TEXT NOT NULL,
+          member_b_id TEXT NOT NULL,
+          score_a INTEGER NOT NULL DEFAULT 0,
+          score_b INTEGER NOT NULL DEFAULT 0,
+          max_score INTEGER NOT NULL DEFAULT 5,
+          winner_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          entry_mode TEXT NOT NULL DEFAULT 'master',
+          weapon TEXT,
+          started_at TEXT,
+          finished_at TEXT,
+          duration INTEGER,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_session ON club_bouts(session_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_date ON club_bouts(date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_a ON club_bouts(member_a_id, date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_b ON club_bouts(member_b_id, date)`);
+    },
+  },
 ];

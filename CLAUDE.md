@@ -98,7 +98,7 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), cyranoHandlers (cyrano:*, #1720) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), cyranoHandlers (cyrano:*, #1720), clubHandlers (club:*, Mode Club #1872) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
@@ -197,7 +197,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
-├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
+├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
 └── migrations/          # Schema migrations (index.ts runner + migrations.ts, 22 versions)
 ```
@@ -223,6 +223,7 @@ Database (src/database/)
    - `crypto.*` – safeStorage protect/unprotect
    - `themes.*` – Screen themes
    - `cyrano.*` – Appareils de piste Cyrano : start/stop UDP, pistes, statuts, log (#1720)
+   - `club.*` – Mode Club : membres, séances, pointage, combats libres, stats par période (#1872)
    - `notifyLanguageChanged(lang)` – Rebuild native menu when UI language changes
 
 ## TypeScript Configuration
