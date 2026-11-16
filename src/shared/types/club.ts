@@ -187,6 +187,10 @@ export interface ClubAPI {
   updateMember: (id: string, data: Partial<ClubMemberInput>) => Promise<ClubMember | null>;
   /** Effacement définitif (RGPD) : présences et combats compris ; archiver = active:false */
   deleteMember: (id: string) => Promise<void>;
+  /** Import en lot : nouveaux créés, existants complétés (licence puis nom), doublons ignorés */
+  importMembers: (
+    inputs: ClubMemberInput[]
+  ) => Promise<import('../utils/clubImport').ClubImportResult>;
   listSessions: (range?: { from?: string; to?: string }) => Promise<ClubSession[]>;
   getSession: (id: string) => Promise<ClubSession | null>;
   createSession: (data: ClubSessionInput) => Promise<ClubSession>;

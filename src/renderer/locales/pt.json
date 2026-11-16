@@ -3274,7 +3274,11 @@
     "card_code": "Código do cartão",
     "actions": "Ações",
     "archive": "Arquivar",
-    "unarchive": "Reativar"
+    "unarchive": "Reativar",
+    "import": "Importar (.fff)",
+    "import_confirm": "Importar {{count}} sócio(s) de « {{file}} »? Os sócios já existentes (mesma licença, ou mesmo nome e apelido) são completados, não duplicados.",
+    "import_done": "Importação concluída: {{created}} adicionado(s), {{updated}} completado(s), {{skipped}} já existente(s)",
+    "import_empty": "Nenhum sócio encontrado neste ficheiro"
   },
   "clubTour": {
     "title": "Bem-vindo ao Modo Clube",
@@ -3292,7 +3296,7 @@
     "step_cards": "Imprimir os cartões",
     "hint_identity": "Escreva o nome do clube e clique em « Guardar ». Aparece nos cartões de sócio.",
     "hint_logo": "Escolha uma imagem (PNG, JPEG, WebP ou SVG). Passo opcional: clique em « Seguinte » para o saltar.",
-    "hint_members": "Preencha nome próprio, apelido e licença, depois « Adicionar ». Cada sócio recebe um código de cartão único.",
+    "hint_members": "Preencha nome próprio, apelido e licença, depois « Adicionar ». Cada sócio recebe um código de cartão único. Também pode importar um ficheiro FFE (.fff) com « Importar (.fff) ».",
     "hint_cards": "« Imprimir cartões » cria um PDF com 10 cartões por página: logótipo, nome e código QR de identificação para recortar."
   }
 }

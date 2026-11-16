@@ -3274,7 +3274,11 @@
     "card_code": "Ausweiscode",
     "actions": "Aktionen",
     "archive": "Archivieren",
-    "unarchive": "Reaktivieren"
+    "unarchive": "Reaktivieren",
+    "import": "Importieren (.fff)",
+    "import_confirm": "{{count}} Mitglied(er) aus « {{file}} » importieren? Bereits vorhandene Mitglieder (gleiche Lizenz oder gleicher Vor- und Nachname) werden ergänzt, nicht doppelt angelegt.",
+    "import_done": "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} ergänzt, {{skipped}} bereits vorhanden",
+    "import_empty": "Keine Mitglieder in dieser Datei gefunden"
   },
   "clubTour": {
     "title": "Willkommen im Vereinsmodus",
@@ -3292,7 +3296,7 @@
     "step_cards": "Ausweise drucken",
     "hint_identity": "Geben Sie den Vereinsnamen ein und klicken Sie auf « Speichern ». Er erscheint auf den Mitgliedsausweisen.",
     "hint_logo": "Wählen Sie ein Bild (PNG, JPEG, WebP oder SVG). Optionaler Schritt: mit « Weiter » überspringen.",
-    "hint_members": "Vorname, Nachname und Lizenz eingeben, dann « Hinzufügen ». Jedes Mitglied erhält einen eindeutigen Ausweiscode.",
+    "hint_members": "Vorname, Nachname und Lizenz eingeben, dann « Hinzufügen ». Jedes Mitglied erhält einen eindeutigen Ausweiscode. Sie können auch eine FFE-Datei (.fff) über « Importieren (.fff) » importieren.",
     "hint_cards": "« Ausweise drucken » erstellt ein PDF mit 10 Ausweisen pro Seite: Logo, Name und QR-Code zum Ausschneiden."
   }
 }

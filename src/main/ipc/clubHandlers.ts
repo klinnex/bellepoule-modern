@@ -60,6 +60,9 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     repo.updateMember(id, data)
   );
   ipcMain.handle('club:deleteMember', (_, id: string) => repo.deleteMember(id));
+  ipcMain.handle('club:importMembers', (_, inputs: ClubMemberInput[]) =>
+    repo.importMembers(Array.isArray(inputs) ? inputs : [])
+  );
   // Séances
   ipcMain.handle('club:listSessions', (_, range?: { from?: string; to?: string }) =>
     repo.listSessions(range ?? {})

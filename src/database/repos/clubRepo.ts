@@ -17,6 +17,7 @@ import type {
   Laterality,
 } from '../../shared/types/club';
 import { normalizeCardCode } from '../../shared/utils/clubQr';
+import { planClubImport, type ClubImportResult } from '../../shared/utils/clubImport';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
 import { sanitizeText } from '../validation';
@@ -281,6 +282,27 @@ export class ClubRepo {
       id,
     ]);
     return this.getMember(id);
+  }
+
+  /** Import en lot (fichier FFE…) : crée les nouveaux, complète les existants, ignore les doublons */
+  public importMembers(inputs: ClubMemberInput[]): ClubImportResult {
+    this.ensureOpen();
+    const list = Array.isArray(inputs) ? inputs.slice(0, 5000) : [];
+    const plan = planClubImport(this.listMembers(true), list);
+    let created = 0;
+    let skipped = plan.skipped;
+    this.sql.transaction(() => {
+      for (const m of plan.create) {
+        try {
+          this.createMember(m);
+          created++;
+        } catch {
+          skipped++; // ligne sans nom exploitable
+        }
+      }
+      for (const u of plan.update) this.updateMember(u.id, u.data);
+    });
+    return { created, updated: plan.update.length, skipped };
   }
 
   /** Effacement définitif (RGPD) : membre, présences et combats */

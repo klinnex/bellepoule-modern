@@ -203,6 +203,7 @@ const electronApi = {
     createMember: (data: unknown) => ipcRenderer.invoke('club:createMember', data),
     updateMember: (id: string, data: unknown) => ipcRenderer.invoke('club:updateMember', id, data),
     deleteMember: (id: string) => ipcRenderer.invoke('club:deleteMember', id),
+    importMembers: (inputs: unknown[]) => ipcRenderer.invoke('club:importMembers', inputs),
     listSessions: (range?: unknown) => ipcRenderer.invoke('club:listSessions', range),
     getSession: (id: string) => ipcRenderer.invoke('club:getSession', id),
     createSession: (data: unknown) => ipcRenderer.invoke('club:createSession', data),

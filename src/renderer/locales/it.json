@@ -3274,7 +3274,11 @@
     "card_code": "Codice tessera",
     "actions": "Azioni",
     "archive": "Archivia",
-    "unarchive": "Riattiva"
+    "unarchive": "Riattiva",
+    "import": "Importa (.fff)",
+    "import_confirm": "Importare {{count}} socio/i da « {{file}} »? I soci già presenti (stessa licenza, o stesso nome e cognome) vengono completati, non duplicati.",
+    "import_done": "Importazione completata: {{created}} aggiunto/i, {{updated}} completato/i, {{skipped}} già presente/i",
+    "import_empty": "Nessun socio trovato in questo file"
   },
   "clubTour": {
     "title": "Benvenuto nella modalità Club",
@@ -3292,7 +3296,7 @@
     "step_cards": "Stampa le tessere",
     "hint_identity": "Inserisci il nome del club e fai clic su « Salva ». Compare sulle tessere socio.",
     "hint_logo": "Scegli un'immagine (PNG, JPEG, WebP o SVG). Passo facoltativo: fai clic su « Avanti » per saltarlo.",
-    "hint_members": "Inserisci nome, cognome e licenza, poi « Aggiungi ». Ogni socio riceve un codice tessera unico.",
+    "hint_members": "Inserisci nome, cognome e licenza, poi « Aggiungi ». Ogni socio riceve un codice tessera unico. Puoi anche importare un file FFE (.fff) con « Importa (.fff) ».",
     "hint_cards": "« Stampa tessere » crea un PDF con 10 tessere per pagina: logo, nome e codice QR di identificazione da ritagliare."
   }
 }

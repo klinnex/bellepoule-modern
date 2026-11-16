@@ -4,10 +4,22 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Archive, ArchiveRestore, IdCard, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Archive,
+  ArchiveRestore,
+  IdCard,
+  Plus,
+  RefreshCw,
+  Save,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import type { ClubMember, ClubSettings } from '../../../shared/types/club';
 import { periodOf } from '../../../shared/utils/clubStats';
+import { fencersToClubMembers } from '../../../shared/utils/clubImport';
+import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
+import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import { exportClubCardsToPDF } from '../../../shared/utils/pdfExport/clubCardsPdf';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -47,6 +59,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const clubName = nameEdit ?? settings.name;
   const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '' });
   const [printing, setPrinting] = useState(false);
+  const importInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     if (!api) return;
@@ -124,6 +137,33 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     if (ok) await run(() => api.regenerateCardCode(m.id));
   };
 
+  const importFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const content = decodeTextFile(new Uint8Array(await file.arrayBuffer()));
+      const parsed =
+        resolveFencerFileFormat('fff', content) === 'xml'
+          ? parseXMLFile(content)
+          : parseFFEFile(content);
+      const rows = fencersToClubMembers(parsed.fencers);
+      if (rows.length === 0) {
+        showToast(parsed.errors[0] ?? t('club.import_empty'), 'error');
+        return;
+      }
+      const ok = await confirm({
+        message: t('club.import_confirm', { count: rows.length, file: file.name }),
+        confirmLabel: t('actions.import'),
+      });
+      if (!ok) return;
+      await run(async () => {
+        const r = await api.importMembers(rows);
+        showToast(t('club.import_done', { ...r }), 'success');
+      });
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
   const printCards = async () => {
     const list = filtered.filter(m => m.active);
     if (list.length === 0) return;
@@ -187,6 +227,24 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           <h2 id="club-members-title" className="club-card-title">
             {t('club.members_count', { count: members.length })}
           </h2>
+          <input
+            ref={importInput}
+            className="sr-only"
+            type="file"
+            accept=".fff,.csv,.txt,.xml"
+            aria-label={t('club.import')}
+            onChange={e => {
+              void importFile(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <Button
+            icon={<Upload size={15} aria-hidden="true" />}
+            data-tour="club-import"
+            onClick={() => importInput.current?.click()}
+          >
+            {t('club.import')}
+          </Button>
           <Button
             variant="primary"
             data-tour="club-print-cards"
@@ -205,6 +263,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <input
               className="form-input"
               value={draft.firstName}
+              placeholder={t('addFencer.first_name_ph')}
               onChange={e => setDraft(d => ({ ...d, firstName: e.target.value }))}
             />
           </label>
@@ -213,6 +272,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <input
               className="form-input"
               value={draft.lastName}
+              placeholder={t('addFencer.last_name_ph')}
               onChange={e => setDraft(d => ({ ...d, lastName: e.target.value }))}
             />
           </label>
@@ -256,12 +316,14 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         {filtered.length === 0 ? (
           <EmptyState title={t('club.no_members')} description={t('club.no_members_desc')} />
         ) : (
-          <table className="club-table">
+          <table className="table">
             <thead>
               <tr>
-                <th scope="col">{t('club.last_name')}</th>
-                <th scope="col">{t('club.first_name')}</th>
-                <th scope="col">{t('club.license')}</th>
+                <th scope="col">{t('fencerList.col_last_name')}</th>
+                <th scope="col">{t('fencerList.col_first_name')}</th>
+                <th scope="col">{t('fencerList.col_birth')}</th>
+                <th scope="col">{t('fencerList.col_handedness')}</th>
+                <th scope="col">{t('fencer.license')}</th>
                 <th scope="col">{t('club.card_code')}</th>
                 <th scope="col">
                   <span className="sr-only">{t('club.actions')}</span>
@@ -271,10 +333,17 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <tbody>
               {filtered.map(m => (
                 <tr key={m.id} className={m.active ? undefined : 'club-row-archived'}>
-                  <td className="club-strong">{m.lastName.toUpperCase()}</td>
+                  {/* Même présentation de l'identité que la liste des tireurs d'une compétition */}
+                  <td className="font-medium">{m.lastName}</td>
                   <td>{m.firstName}</td>
-                  <td>{m.license ?? ''}</td>
-                  <td className="club-mono">{m.cardCode}</td>
+                  <td className="text-sm text-muted">{m.birthYear ?? '-'}</td>
+                  <td className="text-sm text-muted">
+                    {m.laterality
+                      ? t(m.laterality === 'L' ? 'addFencer.left' : 'addFencer.right')
+                      : '-'}
+                  </td>
+                  <td className="text-sm text-muted">{m.license || '-'}</td>
+                  <td className="text-sm club-mono">{m.cardCode}</td>
                   <td className="club-actions">
                     <Button
                       size="sm"

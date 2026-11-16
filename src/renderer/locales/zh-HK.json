@@ -3274,7 +3274,11 @@
     "card_code": "會員證代碼",
     "actions": "操作",
     "archive": "封存",
-    "unarchive": "重新啟用"
+    "unarchive": "重新啟用",
+    "import": "匯入 (.fff)",
+    "import_confirm": "從「{{file}}」匯入 {{count}} 位會員？已存在的會員（相同牌照，或相同姓名）會被補充資料，不會重複。",
+    "import_done": "匯入完成：新增 {{created}}，補充 {{updated}}，已存在 {{skipped}}",
+    "import_empty": "此檔案中找不到會員"
   },
   "clubTour": {
     "title": "歡迎使用會館模式",
@@ -3292,7 +3296,7 @@
     "step_cards": "列印會員證",
     "hint_identity": "輸入會館名稱，然後按「儲存」。名稱會印在會員證上。",
     "hint_logo": "選擇圖片（PNG、JPEG、WebP 或 SVG）。可選步驟：按「下一步」略過。",
-    "hint_members": "輸入名字、姓氏及牌照，然後按「新增」。每位會員會獲得獨一無二的會員證代碼。",
+    "hint_members": "輸入名字、姓氏及牌照，然後按「新增」。每位會員會獲得獨一無二的會員證代碼。 你亦可以用「匯入 (.fff)」匯入 FFE 檔案 (.fff)。",
     "hint_cards": "「列印會員證」會產生每頁 10 張的 PDF：標誌、姓名及識別 QR 碼，可剪下使用。"
   }
 }

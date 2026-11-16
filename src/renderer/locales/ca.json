@@ -3274,7 +3274,11 @@
     "card_code": "Codi de carnet",
     "actions": "Accions",
     "archive": "Arxivar",
-    "unarchive": "Reactivar"
+    "unarchive": "Reactivar",
+    "import": "Importar (.fff)",
+    "import_confirm": "Importar {{count}} soci(s) des de « {{file}} »? Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, no es dupliquen.",
+    "import_done": "Importació acabada: {{created}} afegit(s), {{updated}} completat(s), {{skipped}} ja present(s)",
+    "import_empty": "No s'ha trobat cap soci en aquest fitxer"
   },
   "clubTour": {
     "title": "Benvingut al Mode Club",
@@ -3292,7 +3296,7 @@
     "step_cards": "Imprimir els carnets",
     "hint_identity": "Escriviu el nom del club i feu clic a « Desar ». Apareix als carnets de soci.",
     "hint_logo": "Trieu una imatge (PNG, JPEG, WebP o SVG). Pas opcional: feu clic a « Següent » per ometre'l.",
-    "hint_members": "Ompliu nom, cognom i llicència, i després « Afegir ». Cada soci rep un codi de carnet únic.",
+    "hint_members": "Ompliu nom, cognom i llicència, i després « Afegir ». Cada soci rep un codi de carnet únic. També podeu importar un fitxer FFE (.fff) amb « Importar (.fff) ».",
     "hint_cards": "« Imprimir els carnets » crea un PDF de 10 carnets per pàgina: logotip, nom i codi QR d'identificació per retallar."
   }
 }
