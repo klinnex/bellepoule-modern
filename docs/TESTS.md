@@ -98,7 +98,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 8 | 55 |
+| Feature `rapieres` (`src/features/rapieres/`) | 8 | 57 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 11 | 158 |
 | `src/main/` | 71 | 593 |
@@ -106,13 +106,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 29 | 144 |
 | `src/renderer/components/` | 97 | 491 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 57 | 375 |
+| `src/remote/` | 57 | 377 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **389** | **2971** |
+| **Total** | **389** | **2975** |
 
-Unitaires : 379 fichiers, 2932 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 379 fichiers, 2936 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1951,12 +1951,14 @@ Unitaires : 379 fichiers, 2932 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 5 tests</summary>
+<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 7 tests</summary>
 
 - **rapieresAge**
   - lit l’année de naissance depuis AAAA-MM-JJ
   - applique les tranches d’âge de la saison (1er septembre)
   - catégorie d’équipe = moyenne des années de naissance des deux tireurs
+  - âge moyen décimal arrondi au-dessus (#1864)
+  - année de naissance seule compte, pas la date (#1864)
   - une seule date connue : elle sert ; aucune : catégorie saisie
   - sexe d’équipe : M, F, mixte ; indéterminé si un sexe manque
 
@@ -5896,7 +5898,7 @@ Unitaires : 379 fichiers, 2932 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 7 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 9 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
@@ -5908,6 +5910,9 @@ Unitaires : 379 fichiers, 2932 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - retour à la liste (fin de match) : sauvegarde du chrono effacée
 - **armes olympiques : point au clic sur la case score (#1713)**
   - le +1 est masqué et un clic sur la case score ajoute 1 point, chrono arrêté
+- **tournoi des rapières : même vue arbitre que les armes olympiques (#1808)**
+  - arme C sans barème (pool/de vides) : +1/+3/+5 masqués, point au clic sur la case score
+  - arme C avec barème de formule : boutons de zones conservés
 
 </details>
 
