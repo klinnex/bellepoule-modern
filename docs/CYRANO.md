@@ -106,7 +106,10 @@ Réglages mémorisés dans le navigateur de l'application (`localStorage`) : tab
 
 `persistArenaState` sauvegarde chaque arène. Au démarrage de la séance de saisie distante, une
 arène sauvegardée **en cours** reprend son match et son score, si ce match n'est pas terminé en base ;
-la file DE sauvegardée est rétablie. Le chrono n'est pas restauré.
+la file DE sauvegardée est rétablie. Le chrono aussi : la dernière valeur envoyée par la tablette
+(`update_timer`, `pause_timer`, `reset_timer`) est gardée dans `currentMatch.clockSeconds`,
+persistée à chaque pause et au plus toutes les 15 s en marche, puis renvoyée en pause aux écrans
+qui rejoignent l'arène. La tablette garde de son côté son propre chrono (#1717).
 
 ### 2 quinquies. Pistes partagées entre épreuves (#1878)
 
