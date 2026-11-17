@@ -7,7 +7,8 @@
  * - fin d'un relais (pas le dernier) : toujours correcte → ACK, relais enregistré, puis
  *   affichage du relais suivant avec les scores cumulés ; dernier relais : règles de fin
  *   individuelles du module partagé ;
- * - remplaçant demandé (`reserve`) : accepté une fois par équipe, pour les relais suivants ;
+ * - remplaçant demandé (`reserve`) : accepté une fois par équipe, à la fin du relais, pour les
+ *   relais suivants (annulable pendant le relais) ;
  * - NEXT ne saute jamais un relais ; PREV rappelle le relais précédent tant que le relais en
  *   cours n'a pas commencé (ou après la fin de la rencontre).
  * Format « arène laser » (assauts indépendants) : non raccordé.
@@ -62,9 +63,6 @@ const relayKey = (matchId: string, bout: Pick<TeamArenaBout, 'boutOrder'>) =>
   `team:${matchId}#${bout.boutOrder}`;
 
 export class TeamRelayPiste {
-  /** Demande de remplaçant déjà traitée, par piste et côté (répétée dans chaque état) */
-  private reserveSeen = new Map<string, string>();
-
   constructor(private readonly host: TeamPisteHost) {}
 
   /** Relais FIE en direct sur l'arène équipe de la piste ; null sinon. */
@@ -230,7 +228,6 @@ export class TeamRelayPiste {
       return;
     }
     this.host.clearAlert(piste);
-    this.substitutions(link, sides, remote, view);
     if (!this.apply(link, state, sides, remote, view)) this.display(link, remote, view);
   }
 
@@ -261,7 +258,10 @@ export class TeamRelayPiste {
     return accepted;
   }
 
-  /** Remplaçant : demande traitée une fois par tireur sorti ; refus tracé. */
+  /**
+   * Remplaçant demandé (`reserve`) : pris en compte à la fin acquittée du relais, car la demande
+   * peut être annulée pendant le relais où elle est posée (spéc. Cyrano § 4). Refus tracé.
+   */
   private substitutions(
     link: PisteLink,
     sides: PisteSides,
@@ -271,15 +271,8 @@ export class TeamRelayPiste {
     const ctx = teamCtx(remote);
     if (!ctx || !view.bout) return;
     for (const side of ['A', 'B'] as const) {
-      const seenKey = `${link.piste}:${side}`;
-      if (!sides[side].reserve) {
-        this.reserveSeen.delete(seenKey);
-        continue;
-      }
+      if (!sides[side].reserve) continue;
       const out = side === 'A' ? view.bout.fencerAId : view.bout.fencerBId;
-      const request = `${view.state.matchId}:${out}`;
-      if (this.reserveSeen.get(seenKey) === request) continue;
-      this.reserveSeen.set(seenKey, request);
       const result = substituteRelayFencer(ctx, String(link.arena), side, out);
       if (result.ok)
         logger.info(
@@ -361,6 +354,8 @@ export class TeamRelayPiste {
     this.send(piste, 'ack');
     this.host.acked.set(piste, key);
     logger.info(LogCategory.NETWORK, `Cyrano: ACK → ${piste} (relais ${bout.boutOrder})`);
+    // Remplaçant toujours demandé à la fin du relais : inséré dans les relais suivants
+    this.substitutions(link, sides, remote, view);
     if (out && (out.status === 'abandon' || out.status === 'exclusion')) {
       logger.warn(
         LogCategory.NETWORK,

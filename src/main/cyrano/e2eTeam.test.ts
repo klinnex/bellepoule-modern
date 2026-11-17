@@ -182,23 +182,24 @@ describe('Cyrano bout en bout : relais par équipes, UDP réel (#1829)', { timeo
     });
   });
 
-  it('relais 2 : BEGIN sans remise à zéro, remplaçant demandé (RESERVE) puis accepté', async () => {
+  it('relais 2 : BEGIN sans remise à zéro, remplaçant demandé (RESERVE), pas encore pris en compte', async () => {
     device.command('begin');
     device.command('resr');
-    await until(() => mockDb.setTeamBoutFencer.mock.calls.length > 0);
-    // A2 tire les relais 2, 5 et 8 (ordre de l'application) : remplacé dans 5 et 8
-    expect(mockDb.setTeamBoutFencer.mock.calls).toEqual([
-      ['bout5', 'A', A[3]],
-      ['bout8', 'A', A[3]],
-    ]);
     device.command('l+');
     await until(() => team().liveScoreB === 1);
     expect(team().liveScoreA).toBe(0);
+    // Annulable pendant le relais (spéc. § 4) : rien n'est changé avant la fin du relais
+    expect(mockDb.setTeamBoutFencer).not.toHaveBeenCalled();
   });
 
   it('VALIDATE → relais 3 ; PREV avant BEGIN → relais 2 rappelé aux mêmes cumuls', async () => {
     device.command('validate');
     await until(() => acks >= 2 && snap().relay === 3 && snap().state === 'W');
+    // Remplaçant accepté à la fin du relais : A2 tire les relais 2, 5 et 8, remplacé dans 5 et 8
+    expect(mockDb.setTeamBoutFencer.mock.calls).toEqual([
+      ['bout5', 'A', A[3]],
+      ['bout8', 'A', A[3]],
+    ]);
     expect(snap()).toMatchObject({ right: { score: 5 }, left: { score: 3 } });
     device.command('prev');
     await until(() => snap().relay === 2);

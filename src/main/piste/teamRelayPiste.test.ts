@@ -417,16 +417,30 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
         [5, 2],
         [5, 5],
       ]); // relais 3 : A3 – B3
+      // Demande posée pendant le relais : rien n'est encore changé (annulable, spéc. § 4)
       device(info('H', 3, { id: A[2], score: 10, reserve: true }, { id: B[2], score: 7 }));
-      // A3 tire aussi les relais 6 et 9 (ordre de l'application)
+      expect(mockDb.setTeamBoutFencer).not.toHaveBeenCalled();
+      // Fin du relais acquittée avec la demande : A3 tire aussi les relais 6 et 9
+      device(info('E', 3, { id: A[2], score: 11, reserve: true }, { id: B[2], score: 7 }));
       expect(mockDb.setTeamBoutFencer.mock.calls).toEqual([
         ['bout6', 'A', A[3]],
         ['bout9', 'A', A[3]],
       ]);
       expect(team().bouts[5]).toMatchObject({ fencerAId: A[3], fencerAName: 'Petit Hugo' });
-      // Demande répétée dans chaque INFO : traitée une seule fois
-      device(info('H', 3, { id: A[2], score: 11, reserve: true }, { id: B[2], score: 7 }));
+      // END répété (ACK perdu) : pas de second remplacement
+      device(info('E', 3, { id: A[2], score: 11, reserve: true }, { id: B[2], score: 7 }));
       expect(mockDb.setTeamBoutFencer).toHaveBeenCalledTimes(2);
+    });
+
+    it('annulé pendant le relais : aucun remplacement', () => {
+      start(2, [
+        [5, 2],
+        [5, 5],
+      ]);
+      device(info('H', 3, { id: A[2], score: 10, reserve: true }, { id: B[2], score: 7 }));
+      device(info('H', 3, { id: A[2], score: 10 }, { id: B[2], score: 7 }));
+      device(info('E', 3, { id: A[2], score: 12 }, { id: B[2], score: 7 }));
+      expect(mockDb.setTeamBoutFencer).not.toHaveBeenCalled();
     });
 
     it('refusé : équipe sans remplaçant, remplaçant déjà utilisé (tracé)', () => {
@@ -435,13 +449,14 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
         [5, 2],
         [5, 5],
       ]);
-      device(info('H', 3, { id: A[2], score: 10 }, { id: B[2], score: 7, reserve: true }));
+      // Relais 3 : les deux équipes demandent ; B n'a pas de remplaçant
+      device(
+        info('E', 3, { id: A[2], score: 15, reserve: true }, { id: B[2], score: 7, reserve: true })
+      );
       expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('no_reserve'));
-      device(info('H', 3, { id: A[2], score: 10, reserve: true }, { id: B[2], score: 7 }));
       expect(mockDb.setTeamBoutFencer).toHaveBeenCalledTimes(2);
       // Relais 4 : A1 sort ; le remplaçant figure déjà dans la rencontre
-      device(info('E', 3, { id: A[2], score: 15 }, { id: B[2], score: 7 }));
-      device(info('H', 4, { id: A[0], score: 15, reserve: true }, { id: B[1], score: 7 }));
+      device(info('E', 4, { id: A[0], score: 17, reserve: true }, { id: B[1], score: 9 }));
       expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('reserve_used'));
       expect(mockDb.setTeamBoutFencer).toHaveBeenCalledTimes(2);
       warn.mockRestore();
