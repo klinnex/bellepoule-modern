@@ -29,6 +29,7 @@ import { registerEventDayHandlers } from './ipc/eventDayHandlers';
 import { registerDayStripHandlers } from './ipc/dayStripHandlers';
 import { dayStripServer } from './remote/stripHandover';
 import { registerClubHandlers } from './ipc/clubHandlers';
+import { registerClubSyncHandlers, stopClubSync } from './ipc/clubSyncHandlers';
 import { applyStoredPrivacySettings, createPrivacyHandlers } from './ipc/privacyHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
@@ -130,6 +131,7 @@ registerDayStripHandlers({
   },
 });
 registerClubHandlers({ db });
+registerClubSyncHandlers({ db, userDataPath: app.getPath('userData') });
 privacyHandlers.register();
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
 
@@ -522,6 +524,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   void mcp.stop();
+  stopClubSync();
   shutdownDb(db); // no-op si déjà fermé
 });
 

@@ -209,6 +209,14 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
   Salle d'une séance inconnue sur ce poste : retirée de la séance. Tout ou rien (transaction).
 - Fichier refusé s'il n'est pas une sauvegarde de club ou s'il vient d'une version plus récente.
 - Données personnelles : le fichier n'est pas chiffré, le conserver en lieu sûr (docs/RGPD.md).
+- **Synchronisation vers un dossier** (bouton **Synchronisation** de l'en-tête) : le club est
+  écrit dans `<dossier>/<club>-<id>.bpclub`, dossier choisi sur le poste (Google Drive, Dropbox…,
+  via leur client de bureau). Reprise automatique toutes les 30 s dans les deux sens : un
+  changement d'un seul côté l'emporte ; si le fichier **et** le poste ont changé depuis la dernière
+  synchro, rien n'est écrasé et deux choix sont proposés (garder le fichier / garder ce poste).
+  Plusieurs postes peuvent pointer le même dossier. Dossier absent (disque ou Drive non monté) :
+  erreur signalée, rien n'est recréé. Réglages par poste : `<userData>/club-sync.json`.
+  Fichier non chiffré (voir ci-dessus).
 
 ## 9. Code
 
@@ -221,5 +229,6 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 | Utilitaires             | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan)                                                                                                     |
 | PDF                     | `src/shared/utils/pdfExport/clubCardsPdf.ts`, `clubPlanPdf.ts`                                                                                                                |
 | Inventaire              | `src/database/repos/clubInventoryRepo.ts`, `src/shared/utils/clubInventory.ts`, `src/renderer/components/club/ClubInventoryPanel.tsx` (tables `club_items`, `club_loans`)     |
+| Synchronisation dossier | `src/main/clubSync.ts` (décision pure `decideSync`, service), `src/main/ipc/clubSyncHandlers.ts` (IPC `club:sync*`), `src/renderer/components/club/ClubSyncModal.tsx`         |
 | Sauvegarde              | `src/database/repos/clubBackupRepo.ts`, `src/main/clubBackupFile.ts`, `src/renderer/components/club/clubBackup.ts` (IPC `club:exportBackup`, `club:importBackup`)             |
 | Interface               | `src/renderer/components/club/`                                                                                                                                               |

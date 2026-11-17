@@ -336,6 +336,17 @@ const electronApi = {
       ipcRenderer.invoke('club:exportBackup', clubId, filePath),
     importBackup: (filePath: string, replace?: boolean) =>
       ipcRenderer.invoke('club:importBackup', filePath, replace),
+    syncStatus: (clubId: string) => ipcRenderer.invoke('club:syncStatus', clubId),
+    syncEnable: (clubId: string) => ipcRenderer.invoke('club:syncEnable', clubId),
+    syncDisable: (clubId: string) => ipcRenderer.invoke('club:syncDisable', clubId),
+    syncNow: (clubId: string) => ipcRenderer.invoke('club:syncNow', clubId),
+    syncResolve: (clubId: string, keep: 'file' | 'app') =>
+      ipcRenderer.invoke('club:syncResolve', clubId, keep),
+    onSynced: (callback: (clubId: string) => void) => {
+      const handler = (_: IpcRendererEvent, clubId: string) => callback(clubId);
+      ipcRenderer.on('club:synced', handler);
+      return () => ipcRenderer.removeListener('club:synced', handler);
+    },
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
     deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
     setAttendance: (sessionId: string, memberId: string, present: boolean) =>

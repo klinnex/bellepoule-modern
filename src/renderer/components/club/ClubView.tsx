@@ -12,6 +12,7 @@ import {
   Dumbbell,
   GraduationCap,
   Package,
+  RefreshCw,
   Save,
   Shield,
   Sparkles,
@@ -21,6 +22,7 @@ import {
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { exportClubBackup } from './clubBackup';
+import { ClubSyncModal } from './ClubSyncModal';
 import { ClubPicker } from './ClubPicker';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -87,6 +89,7 @@ const ClubSpace: React.FC<{
   const [cardsPrinted, setCardsPrinted] = useState(readCardsPrinted);
   // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
   const [menuRevision, setMenuRevision] = useState(0);
+  const [syncOpen, setSyncOpen] = useState(false);
   const [panelRevision, setPanelRevision] = useState(0);
   const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
   const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
@@ -141,6 +144,16 @@ const ClubSpace: React.FC<{
     void loadSettings();
   }, [loadSettings]);
 
+  // Reprise d'un fichier modifié sur un autre poste : recharger le club et ses panneaux
+  useEffect(() => {
+    const off = window.electronAPI?.club?.onSynced?.(id => {
+      if (id !== clubId) return;
+      void loadSettings();
+      bumpPanel();
+    });
+    return () => off?.();
+  }, [clubId, loadSettings, bumpPanel]);
+
   return (
     <div className="club-view">
       <header className="club-header">
@@ -171,6 +184,14 @@ const ClubSpace: React.FC<{
           {t('clubTour.restart')}
         </Button>
         <Button
+          variant="ghost"
+          icon={<RefreshCw size={15} aria-hidden="true" />}
+          title={t('clubs.sync_button_help')}
+          onClick={() => setSyncOpen(true)}
+        >
+          {t('clubs.sync_button')}
+        </Button>
+        <Button
           icon={<Save size={15} aria-hidden="true" />}
           title={t('clubs.backup_export_help')}
           onClick={() => void saveBackup()}
@@ -192,6 +213,10 @@ const ClubSpace: React.FC<{
           onClick={() => void deleteClub()}
         />
       </header>
+
+      {syncOpen && (
+        <ClubSyncModal clubId={clubId} onChanged={bumpPanel} onClose={() => setSyncOpen(false)} />
+      )}
 
       <nav className="club-nav" aria-label={t('club.nav_label')}>
         {TABS.map(item => (

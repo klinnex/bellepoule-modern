@@ -624,4 +624,25 @@ export interface ClubAPI {
     filePath: string,
     replace?: boolean
   ) => Promise<{ clubId: string; clubName: string; replaced: boolean; rows: number }>;
+  /** Synchronisation vers un dossier (Drive, Dropbox…) : état d'un club */
+  syncStatus: (clubId: string) => Promise<ClubSyncStatus>;
+  /** Sélecteur de dossier puis activation ; null si annulé */
+  syncEnable: (clubId: string) => Promise<ClubSyncStatus | null>;
+  syncDisable: (clubId: string) => Promise<ClubSyncStatus>;
+  syncNow: (clubId: string) => Promise<ClubSyncStatus>;
+  /** Conflit : « file » garde le fichier, « app » garde ce poste */
+  syncResolve: (clubId: string, keep: 'file' | 'app') => Promise<ClubSyncStatus>;
+  /** Reprise du fichier par synchro : la vue doit se recharger. Renvoie la désinscription. */
+  onSynced: (callback: (clubId: string) => void) => () => void;
+}
+
+export type ClubSyncState = 'off' | 'synced' | 'conflict' | 'error';
+
+export interface ClubSyncStatus {
+  clubId: string;
+  state: ClubSyncState;
+  dir: string | null;
+  fileName: string | null;
+  lastSync: string | null;
+  error: string | null;
 }
