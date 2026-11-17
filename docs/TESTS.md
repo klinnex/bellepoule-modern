@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 17 | 245 |
-| `src/main/` | 103 | 835 |
+| `src/main/` | 104 | 842 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 599 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **476** | **3582** |
+| **Total** | **477** | **3589** |
 
-Unitaires : 466 fichiers, 3543 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 467 fichiers, 3550 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2904,6 +2904,21 @@ Unitaires : 466 fichiers, 3543 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **handleAllWindowsClosed**
   - macOS : la base reste ouverte et l’app ne quitte pas
   - Windows / Linux : ferme la base puis quitte
+
+</details>
+
+<details>
+<summary><code>src/main/autosaveBackup.test.ts</code> — 7 tests</summary>
+
+- **runBackupAutosave**
+  - écrit la base complète dans le dossier global
+  - utilise le dossier global réglé par l’utilisateur
+  - une compétition avec dossier dédié est copiée seule dans ce dossier
+  - un dossier dédié invalide (relatif) est ignoré
+  - un échec sur une compétition n’empêche pas les autres
+- **competitionAutosaveName**
+  - assainit le titre et ajoute un suffixe d’id
+  - titre vide → « competition »
 
 </details>
 
