@@ -826,6 +826,11 @@ export interface DatabaseAPI {
     }>
   >;
 
+  /** Cartons de plusieurs matchs (feuilles imprimées, #1829) */
+  getCardsByMatchIds: (
+    matchIds: string[]
+  ) => Promise<Array<{ matchId: string; fencerId: string; cardType: string }>>;
+
   // Session State
   saveSessionState: (competitionId: string, state: SessionState) => Promise<void>;
   saveSessionStateSync: (competitionId: string, state: unknown) => boolean;

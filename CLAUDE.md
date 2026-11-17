@@ -173,7 +173,7 @@ Shared (src/shared/)
     ├── fencerDetailPdfExport.ts  # Per-fencer PDF export
     ├── tableCalculations.ts      # Direct elimination bracket logic
     ├── cardSystem.ts             # Yellow/red/black card rules
-    ├── scoreValidation.ts        # Score validation rules
+    ├── matchEndValidation.ts     # Fin de match unifiée (#1829) : fin valide, vainqueur, score limite, P-noir, pause sabre
     ├── suddenDeath.ts            # Overtime / sudden death logic
     ├── touchSystem.ts            # Sabre Laser touch zones (A=1pt, B=3pt, C=5pt)
     ├── customTouchSystem.ts      # Custom touch zone configuration

@@ -595,7 +595,8 @@ describe('RemoteScoreServer', () => {
       }
       const res = await attempt('secret123', '192.168.3.1');
       expect(res.status).toHaveBeenCalledWith(429);
-    });
+      // 21 vérifications de mot de passe (dérivation lente) : délai large sous charge
+    }, 30_000);
 
     it("blocage progressif après 5 échecs, même après la fenêtre d'une minute", async () => {
       const diag = vi.spyOn(server as any, 'logDiag').mockImplementation(() => {});

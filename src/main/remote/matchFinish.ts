@@ -13,6 +13,7 @@ import { logger, LogCategory } from '../../shared/services/logger';
 import type { SessionScore } from './types';
 import { checkPrevEligibility, restoreForCorrection, type LastFinishedSnapshot } from './prevMatch';
 import type { ArenaMatch } from '../../shared/types/remote';
+import { winnerByScore } from '../../shared/utils/matchEndValidation';
 
 type S = RemoteScoreServer;
 
@@ -416,12 +417,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     scoreA: finishedMatch.scoreA,
     scoreB: finishedMatch.scoreB,
     winner:
-      finishedMatch.deviceEnd?.winner ??
-      (finishedMatch.scoreA > finishedMatch.scoreB
-        ? 'A'
-        : finishedMatch.scoreB > finishedMatch.scoreA
-          ? 'B'
-          : null),
+      finishedMatch.deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB),
     duration: finishedMatch.duration ?? null,
     timestamp: new Date().toISOString(),
     // Compatibilité Slack/Discord : champ text en clair
@@ -448,12 +444,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
         // Fin validée sur l'appareil de piste (#1720) : priorité, abandon, exclusion
         const deviceEnd = finishedMatch.deviceEnd;
         let winner: 'A' | 'B' | null =
-          deviceEnd?.winner ??
-          (finishedMatch.scoreA > finishedMatch.scoreB
-            ? 'A'
-            : finishedMatch.scoreB > finishedMatch.scoreA
-              ? 'B'
-              : null);
+          deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB);
         if (!winner) {
           const mem = ctx.sessionMatchScores.get(finishedMatch.id);
           if (isVictory(mem?.scoreA)) winner = 'A';
@@ -512,12 +503,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
   if (mainWindow && !ctx.isTrainingMode) {
     // Dériver le vainqueur depuis la DB pour gérer le cas tirage au sort (scores égaux)
     let winnerForRenderer: 'A' | 'B' | null =
-      finishedMatch.deviceEnd?.winner ??
-      (finishedMatch.scoreA > finishedMatch.scoreB
-        ? 'A'
-        : finishedMatch.scoreB > finishedMatch.scoreA
-          ? 'B'
-          : null);
+      finishedMatch.deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB);
     if (!winnerForRenderer) {
       try {
         const dbM = ctx.db.getMatch(finishedMatch.id);

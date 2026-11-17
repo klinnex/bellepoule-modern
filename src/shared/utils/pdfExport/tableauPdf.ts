@@ -15,6 +15,7 @@ import {
   pdfT,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { cardsSummaryHTML, isPCard } from './poolPdf';
 
 // ─── Export Tableau Élimination Directe ──────────────────────────────────────
 
@@ -45,6 +46,22 @@ export interface TableauSheetOptions {
   continuous?: boolean;
   /** Feuilles seules : ni bandeau de titre ni pied de page (feuilles de vague des rapières, #1441) */
   sheetsOnly?: boolean;
+  /** Cartons du match par tireur : matchId → { A, B } (types `yellow`, `red`, `p-red`…, #1829) */
+  cards?: Record<string, { A?: string[]; B?: string[] }>;
+}
+
+/**
+ * Cartons d'un tireur sur la feuille de match (#1829) : mêmes libellés et même décompte que la
+ * feuille de poule, cartons de faute puis cartons P à part (t.124.3.e). Vide sans carton
+ * enregistré (case à remplir à la main).
+ */
+export function matchCardsCellHTML(types: readonly string[] | undefined): string {
+  const standard = (types ?? []).filter(t => !isPCard(t));
+  const p = (types ?? []).filter(isPCard);
+  return [
+    standard.length > 0 ? `<div class="cards-std">${cardsSummaryHTML(standard)}</div>` : '',
+    p.length > 0 ? `<div class="cards-p">${cardsSummaryHTML(p)}</div>` : '',
+  ].join('');
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -103,6 +120,10 @@ export function generateTableauHTML(
         : '';
     const sigCellA = sigImg(sig?.A);
     const sigCellB = sigImg(sig?.B);
+    // Cartons (#1829) : comme sur la feuille de poule, cartons P à part (FIE t.124.3.e)
+    const matchCards = options?.cards?.[match.id];
+    const cardsCellA = matchCardsCellHTML(matchCards?.A);
+    const cardsCellB = matchCardsCellHTML(matchCards?.B);
     return `
 <div class="match-card">
   <div class="match-card-header">
@@ -114,6 +135,7 @@ export function generateTableauHTML(
       <col class="col-rank">
       <col class="col-name">
       <col class="col-score">
+      <col class="col-cards">
       <col class="col-sig">
     </colgroup>
     <thead>
@@ -121,6 +143,7 @@ export function generateTableauHTML(
         <th></th>
         <th style="text-align:left">${pdfT('fencer', 'Tireur')}</th>
         <th>${pdfT('score', 'Score')}</th>
+        <th>${pdfT('cards_title', 'Cartons')}</th>
         <th>${pdfT('signature', 'Signature')}</th>
       </tr>
     </thead>
@@ -129,12 +152,14 @@ export function generateTableauHTML(
         <td class="row-letter">A</td>
         <td class="fencer-name">${nameA}${clubA ? `<br><span class="fencer-club">${clubA}</span>` : ''}</td>
         <td class="score-box">${scoreCellA}</td>
+        <td class="cards-box">${cardsCellA}</td>
         <td class="sig-box">${sigCellA}</td>
       </tr>
       <tr class="row-b">
         <td class="row-letter">B</td>
         <td class="fencer-name">${nameB}${clubB ? `<br><span class="fencer-club">${clubB}</span>` : ''}</td>
         <td class="score-box">${scoreCellB}</td>
+        <td class="cards-box">${cardsCellB}</td>
         <td class="sig-box">${sigCellB}</td>
       </tr>
     </tbody>
@@ -335,6 +360,7 @@ export function generateTableauHTML(
     col.col-rank  { width: 8mm; }
     col.col-name  { width: auto; }
     col.col-score { width: 18mm; }
+    col.col-cards { width: 34mm; }
     col.col-sig   { width: 38mm; }
     .match-table thead th {
       background: var(--gray-xlight);
@@ -379,6 +405,19 @@ export function generateTableauHTML(
       text-align: center;
     }
     .sig-box { height: 16mm; vertical-align: middle; }
+    .cards-box {
+      border-right: 1px solid var(--border);
+      padding: 1mm 1.5mm;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 7.5pt;
+    }
+    /* Cartons P à part des cartons de faute (t.124.3.e) */
+    .cards-box .cards-std + .cards-p {
+      border-top: 1px dashed var(--border);
+      margin-top: 0.8mm;
+      padding-top: 0.8mm;
+    }
     .match-card-footer {
       background: var(--gray-xlight);
       border-top: 1px solid var(--border);

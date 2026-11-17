@@ -69,6 +69,8 @@
   /**
    * P-noir : vainqueur = score le plus haut ; à égalité, le mieux classé au départ ;
    * sans classement, tirage au sort.
+   * Copie servie telle quelle aux tablettes de `passivityWinner`
+   * (src/shared/utils/matchEndValidation.ts, #1829) : parité vérifiée par refereeCards.test.ts.
    * @returns {{action: 'finish', winner: 'A'|'B', reasonKey: string}|{action: 'tiebreak'}}
    */
   function passivityWinner(s) {

@@ -159,6 +159,24 @@ const CARD_LABELS: Record<string, [string, string]> = {
   'p-black': ['card_p_black', 'Noir P'],
 };
 
+/** Carton P (non-combativité, t.124) : inscrit à part des cartons de faute (t.124.3.e) */
+export const isPCard = (type: string): boolean => type.startsWith('p-');
+
+/**
+ * Décompte lisible d'une liste de cartons, « Jaune, Rouge ×2 » : même libellé sur la feuille
+ * de poule et sur la feuille de match de tableau.
+ */
+export function cardsSummaryHTML(types: readonly string[]): string {
+  const counts = new Map<string, number>();
+  for (const t of types) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return [...counts]
+    .map(([t, n]) => {
+      const [key, fr] = CARD_LABELS[t] ?? [t, t];
+      return `${escHtml(pdfT(key, fr))}${n > 1 ? ` ×${n}` : ''}`;
+    })
+    .join(', ');
+}
+
 /**
  * Cartons reçus en poule, par tireur (#1829) : cartons de faute d'un côté, cartons P
  * (non-combativité, t.124) inscrits séparément comme l'exige t.124.3.e. Vide sans carton.
@@ -168,21 +186,12 @@ export function poolCardsSectionHTML(pool: Pool): string {
   for (const m of pool.matches ?? []) {
     for (const c of m.cards ?? []) {
       const entry = byFencer.get(c.fencerId) ?? { standard: [], p: [] };
-      (c.type.startsWith('p-') ? entry.p : entry.standard).push(c.type);
+      (isPCard(c.type) ? entry.p : entry.standard).push(c.type);
       byFencer.set(c.fencerId, entry);
     }
   }
   if (byFencer.size === 0) return '';
-  const summary = (types: string[]): string => {
-    const counts = new Map<string, number>();
-    for (const t of types) counts.set(t, (counts.get(t) ?? 0) + 1);
-    return [...counts]
-      .map(([t, n]) => {
-        const [key, fr] = CARD_LABELS[t] ?? [t, t];
-        return `${escHtml(pdfT(key, fr))}${n > 1 ? ` ×${n}` : ''}`;
-      })
-      .join(', ');
-  };
+  const summary = cardsSummaryHTML;
   const rows = (pool.fencers ?? [])
     .filter(f => byFencer.has(f.id))
     .map(f => {

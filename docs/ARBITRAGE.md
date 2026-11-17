@@ -145,6 +145,9 @@ Premier écran affiché à l'ouverture.
 
 - **Appui long** sur un bouton carton : retire le dernier carton du tireur et restitue
   les points accordés. Appui long sur **P** : retire le dernier carton de passivité.
+- **Vainqueur du P-noir** : meilleur score ; à égalité, le mieux classé au départ ; sinon
+  tirage au sort (`passivityWinner`, `src/shared/utils/matchEndValidation.ts` ; copie servie
+  aux tablettes dans `src/remote/js/refereeCards.js`, parité testée).
 - **Carton noir** : visible seulement si `blackCardEnabled` (paramètre compétition,
   désactivé par défaut). Fenêtre de confirmation → match perdu, tireur **exclu** de la
   compétition (statut `EXCLUDED`, motif enregistré), **DT appelé automatiquement**.
@@ -181,7 +184,10 @@ pas de blanc. Le motif est annoncé sur l'écran d'arène (`card_announcement`),
 - Rafraîchissement de la page pendant un match (veille, fausse manipulation, **← Retour**) :
   le temps restant est mémorisé sur la tablette (`localStorage bp_referee_timer_<arène>`, 6 h max).
   En rouvrant le même match, le chrono reprend au temps restant, à l'arrêt : **▶️** le relance.
-  Pas de reprise sur un autre appareil.
+- Redémarrage de l'application pendant un match : le serveur rend le dernier chrono sauvegardé de
+  l'arène (à l'arrêt, jamais relancé). L'écran d'arène l'affiche ; une tablette sans chrono
+  mémorisé (autre tablette, page rechargée ailleurs) le reprend en rouvrant le match
+  ([CYRANO.md](CYRANO.md) § 2 quater).
 
 ### 3.6 Fin de temps, temps supplémentaire, mort subite
 
@@ -224,9 +230,12 @@ cartons, historique des fautes, état mort subite. Jusqu'à **10** actions.
 le score (rouge – vert).
 
 - **Annuler** : reprise du chrono si il tournait.
-- **Confirmer** : `POST /api/matches/:id/finish` → vainqueur = meilleur score →
-  enregistrement en base, mise à jour de la poule/du tableau dans l'application,
-  diffusion `match_finished`.
+- **Confirmer** : `POST /api/matches/:id/finish` → vainqueur (`decideMatchWinner`,
+  `src/shared/utils/matchEndValidation.ts`, règles communes avec l'appareil Cyrano) :
+  adversaire du tireur au carton noir, sinon meilleur score, sinon tirage au sort / P-noir,
+  sinon priorité → enregistrement en base, mise à jour de la poule/du tableau dans
+  l'application, diffusion `match_finished`. Scores hors 0–50 refusés (`invalid_scores`).
+  Un match validé par erreur se rappelle par PREV.
 - Retour automatique à la liste après 2 s.
 - **Tableau** + option `signTableauMatches` : écran **✍️ Signature des combattants**
   (deux zones de signature) avant le match suivant.
@@ -283,6 +292,11 @@ Dernier match de la poule terminé → overlay plein écran **POULE TERMINÉE** 
 | `/lobby` | Salle d'attente (page d'accueil `/`). |
 
 Appareils de piste (Favero, SG…) via le protocole Cyrano : voir [CYRANO.md](CYRANO.md).
+Appareil **maître et en ligne** : l'appareil fait foi. La tablette ne peut plus ajouter ni points
+ni cartons (jaune, rouge, noir, P) ; une notification l'explique. Le retrait (appui long sur le
+bouton carton, −1) reste permis pour corriger. Le serveur refuse aussi tout point ou carton ajouté
+depuis la tablette ; un carton noir refusé (appareil passé en ligne entre-temps) est retiré et le
+combat continue.
 
 Mode Club en séance (#1872) : en arrivant sur la piste, la tablette demande la carte de club du
 tireur A puis du tireur B (caméra ou code en clair, chaque carte peut être passée) ; bouton
@@ -299,11 +313,11 @@ d'arène, sauf `toggle_swap`).
 |---|---|---|
 | `select_match` | tablette | Assigne le match à l'arène, remet cartons/touches/sorties à zéro. |
 | `start` / `pause` | tablette | Statut de l'arène. |
-| `update_score` | tablette | Scores, cartons, zones touchées, état mort subite (anti-rebond). |
-| `update_timer` / `pause_timer` / `reset_timer` | tablette | Diffusion du chrono. |
+| `update_score` | tablette | Scores, cartons, zones touchées, état mort subite (anti-rebond). Appareil maître en ligne : cartons ajoutés ignorés, tablette resynchronisée. |
+| `update_timer` / `pause_timer` / `reset_timer` | tablette | Diffusion du chrono ; dernier chrono sauvegardé avec l'arène (reprise au redémarrage). |
 | `waiting_overtime` | tablette | Égalité en attente de temps supplémentaire. |
 | `coin_flip` | tablette | Animation de tirage au sort sur l'arène. |
-| `add_card`, `arena_exit` | tablette | Cartons / sorties. |
+| `add_card`, `arena_exit` | tablette | Cartons / sorties (`add_card` refusé si l'appareil maître est en ligne). |
 | `card_announcement`, `exit_announcement` | tablette | Annonce à l'écran d'arène. |
 | `dt_call` / `dt_cancel` | tablette | Notification DT dans l'application. |
 | `change_referee` | tablette | Change l'arbitre du match. |

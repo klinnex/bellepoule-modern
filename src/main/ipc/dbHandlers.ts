@@ -279,6 +279,13 @@ export function registerDbHandlers({
   ipcMain.handle('db:getCards', async (_, matchId) => {
     return db.getCards(matchId);
   });
+  // Cartons de plusieurs matchs pour les feuilles imprimées (#1829)
+  ipcMain.handle('db:getCardsByMatchIds', async (_, matchIds: unknown) => {
+    if (!Array.isArray(matchIds)) return [];
+    return db.getCardsByMatchIds(
+      matchIds.filter((id): id is string => typeof id === 'string').slice(0, 5000)
+    );
+  });
 
   // Statistiques combattants
   ipcMain.handle('db:saveTouch', async (_, touch) => {

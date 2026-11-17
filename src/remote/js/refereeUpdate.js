@@ -24,6 +24,21 @@
   }
 
   /**
+   * Chrono connu du serveur pour un match en cours (`clockSeconds` du match, renvoyé à l'arrêt
+   * à qui rejoint l'arène ; reprise au redémarrage, #1829) :
+   * { time, isSuddenDeath, overtimeType } ou null. Jamais un chrono en marche.
+   */
+  function serverTimerOf(data) {
+    if (!data || typeof data.time !== 'number' || !Number.isFinite(data.time)) return null;
+    if (data.time < 0 || data.time > 3600 || data.timerStatus !== 'paused') return null;
+    return {
+      time: data.time,
+      isSuddenDeath: data.suddenDeath === true,
+      overtimeType: typeof data.overtimeType === 'string' ? data.overtimeType : null,
+    };
+  }
+
+  /**
    * Transition selon `data.status`.
    * @param {{currentMatchId?: string, matchStatus: string}} s
    * @returns {{action: 'none'|'poolComplete'|'closedByApp'|'idleClear'|'resume'|'notifyNextAfter'|'newMatch',
@@ -48,6 +63,7 @@
           scoreA: { value: scoreValue(data.scoreA) },
           scoreB: { value: scoreValue(data.scoreB) },
           status: 'in_progress',
+          serverTimer: serverTimerOf(data),
         },
       };
     }
@@ -122,6 +138,7 @@
 
   const api = {
     scoreValue,
+    serverTimerOf,
     leftHandedSwap,
     shouldReloadForRules,
     planStatusTransition,

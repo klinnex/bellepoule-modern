@@ -147,4 +147,28 @@ describe.skipIf(!DatabaseSync)('Touches données / reçues par zone', () => {
     expect([b.receivedZoneB, b.yellowCards, b.touchesZoneA]).toEqual([0, 0, 1]);
     expect(fencers.getFencerCompetitionStats('a').totalDurationSeconds).toBe(0);
   });
+
+  it('getCardsByMatchIds : cartons de plusieurs matchs en ordre chronologique (feuilles, #1829)', () => {
+    const card = (id: string, matchId: string, fencerId: string, cardType: string, ts: string) =>
+      matches.saveCard({
+        id,
+        matchId,
+        fencerId,
+        cardType,
+        reason: 'unknown',
+        cardGroup: 1,
+        timestamp: ts,
+        pointsAwarded: 0,
+      });
+    card('k2', 'm1', 'a', 'red', '2026-11-13T10:02:00.000Z');
+    card('k1', 'm1', 'a', 'yellow', '2026-11-13T10:01:00.000Z');
+    card('k3', 'm2', 'c', 'p-red', '2026-11-13T10:03:00.000Z');
+    card('k4', 'm3', 'b', 'black', '2026-11-13T10:04:00.000Z');
+    expect(matches.getCardsByMatchIds(['m1', 'm2', 'm1', ''])).toEqual([
+      { matchId: 'm1', fencerId: 'a', cardType: 'yellow' },
+      { matchId: 'm1', fencerId: 'a', cardType: 'red' },
+      { matchId: 'm2', fencerId: 'c', cardType: 'p-red' },
+    ]);
+    expect(matches.getCardsByMatchIds([])).toEqual([]);
+  });
 });

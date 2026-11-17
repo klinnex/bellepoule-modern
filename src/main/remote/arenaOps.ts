@@ -7,6 +7,7 @@ import { Arena, ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { crossedScoreLimit, resolveScoreLimit } from '../../shared/utils/matchEndValidation';
 
 type S = RemoteScoreServer;
 
@@ -170,14 +171,14 @@ export function updateArenaScore(
 
 /** Score max du match : paramètres de la compétition / formule (#1125 #1134), 15 en Laser Sabre */
 export function getScoreLimit(ctx: ArenaOpsContext, match: ArenaMatch): number {
-  if (ctx.sessionWeapon === Weapon.LASER) return 15;
   const sessionMatch = ctx.sessionMatches.find(m => m.id === match.id);
-  const isTableau = match.isTableau || sessionMatch?.isTableau;
-  const max = isTableau
-    ? ctx.sessionTableMaxScore
-    : (ctx.sessionPoolMaxScore ?? sessionMatch?.maxScore);
-  if (typeof max !== 'number') return 15;
-  return max <= 0 || max >= 999 ? Infinity : max;
+  return resolveScoreLimit({
+    isLaser: ctx.sessionWeapon === Weapon.LASER,
+    isTableau: !!(match.isTableau || sessionMatch?.isTableau),
+    poolMaxScore: ctx.sessionPoolMaxScore,
+    tableMaxScore: ctx.sessionTableMaxScore,
+    matchMaxScore: sessionMatch?.maxScore,
+  });
 }
 
 function checkAndAutoFinishMatch(
@@ -193,9 +194,11 @@ function checkAndAutoFinishMatch(
 
   // Notifier la tablette arbitre uniquement quand un tireur franchit le seuil de 15 points
   const SCORE_LIMIT = getScoreLimit(ctx, arena.currentMatch);
-  const justCrossed =
-    (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
-    (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
+  const justCrossed = crossedScoreLimit(
+    { scoreA: previousScoreA, scoreB: previousScoreB },
+    { scoreA, scoreB },
+    SCORE_LIMIT
+  );
   if (justCrossed) {
     logger.info(
       LogCategory.NETWORK,

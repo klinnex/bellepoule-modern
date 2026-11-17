@@ -2,12 +2,17 @@
 
 > État (#1720, #1829) : codec, serveur UDP, supervision, simulateur, panneau de configuration,
 > raccordement aux arènes, **modes par piste** (appareil maître, afficheur, manuel), bascule en
-> manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage.
+> manuel si l'appareil tombe, notification BAD MATCH, reprise des arènes au redémarrage (chrono
+> compris), saisie de la tablette verrouillée (points et cartons) quand l'appareil maître fait foi,
+> cartons sur les feuilles imprimées.
 > PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
 > dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
 > import / export de la liste.
-> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, validation
-> de fin unifiée, test de bout en bout en CI.
+> Validation de fin unifiée : règles uniques dans `src/shared/utils/matchEndValidation.ts`,
+> partagées par l'appareil, la tablette et la fin de match d'arène.
+> Cartons P (EFP1.1) lus sur l'appareil et repris dans le `DISP` ; test de bout en bout
+> (`e2e.test.ts`, UDP réel, lancé avec les tests unitaires en CI).
+> Restent : bouton PREV de la tablette, équipes, couche multi-protocole.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -34,7 +39,7 @@ EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono 
 | `codec.ts` | `parseCyrano(raw)` / `buildCyrano(msg)` : 3 zones, champs de fin omis, `\|` et `%` retirés des valeurs (pas d'échappement dans le protocole), troncature aux longueurs maximales de la spécification, carton P omis en EFP1. |
 | `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
 | `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
-| `endValidation.ts` | `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoResult(info)` → scores et vainqueur **par Id**. |
+| `endValidation.ts` | Adaptateur vers `shared/utils/matchEndValidation.ts` (#1829). `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoEndOutcome(info, côtés)` → vainqueur imposé par l'appareil (abandon, exclusion, V / D ou priorité à égalité), rapporté aux tireurs A / B par **Id**. |
 | `deviceState.ts` | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
 | `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
 | `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
@@ -55,6 +60,19 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 | `PREV` | rappel du dernier match terminé de l'arène pour correction (`recallPrevMatch`, 3 min après sa fin) : `DISP` avec ses scores et cartons, puis nouvelle validation (`END` → `ACK`) qui le réenregistre ; un match de tableau non commencé repasse en tête de file. Refus (combat en cours, rien à rappeler, délai dépassé) : `DISP` du match courant (ou affichage vide). Sans effet en afficheur |
 | Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
 | Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
+
+**L'appareil fait foi** (appareil maître et en ligne, décision de l'auteur du ticket) : sur la
+tablette, l'ajout de points **et** de cartons (jaune, rouge, noir, P) est bloqué, avec une
+notification ; le retrait reste permis pour corriger. Côté serveur, une action de la tablette qui
+**ajoute** un carton ou un point est refusée : `update_score` dont les cartons s'allongent
+(comptage par type, `cyranoLock.ts`) → ajouts ignorés, retraits gardés (`keepRemovals` : remplacer
+un jaune par un rouge garde le retrait du jaune), la tablette reçoit en retour les cartons de
+l'arène (`source: 'device'`) ; scores bornés aux scores actuels (`lockedScore`) ; `add_card`
+refusé ; carton noir pris en compte envoyé avec la fin de match (`POST /api/matches/:id/finish`,
+`blackCardFencer`) → `409 cyrano_master_lock`, la tablette retire alors le carton et le combat
+continue. Les entrées
+de l'appareil (`cyrano:<piste>`) passent toujours. Appareil hors ligne, piste en afficheur ou en
+manuel : saisie libre sur la tablette.
 
 Un `DISP` du match courant porte aussi les cartons déjà donnés (champs jaune / rouge des zones
 tireurs, omis à zéro) : sans eux, le premier `INFO` d'un appareil qui reprend un match (PREV,
@@ -111,6 +129,15 @@ la file DE sauvegardée est rétablie. Le chrono aussi : la dernière valeur env
 persistée à chaque pause et au plus toutes les 15 s en marche, puis renvoyée en pause aux écrans
 qui rejoignent l'arène. La tablette garde de son côté son propre chrono (#1717).
 
+- **Minute de repos de l'appareil** (état `P`, `arena.resting`) : le décompte reçu est celui du
+  repos, il ne remplace pas `clockSeconds` ; le chrono du combat est de nouveau suivi à la fin du
+  repos.
+- **Tablette sans chrono local** (autre tablette, stockage vidé) : en rouvrant le match, elle
+  reprend le chrono renvoyé par le serveur (`serverTimer`, `refereeUpdate.js`), toujours à
+  l'arrêt, jamais relancé automatiquement ; son chrono local (`localStorage`, #1717) reste
+  prioritaire.
+- **`reset_scores`** efface `clockSeconds` avec les scores (en mémoire et dans l'état sauvegardé).
+
 ### 2 quinquies. Pistes partagées entre épreuves (#1878)
 
 Journée multi-épreuves : un serveur distant par épreuve, un seul serveur Cyrano. L'arène N de
@@ -133,6 +160,19 @@ terminé sur l'arène, ou match suivant en file) :
   de la journée (clé `day:<id>` dans `cyrano_pistes`), partagée par toutes ses épreuves ; tant
   qu'elle est vide, la table propre de l'épreuve est reprise. Le panneau l'indique et signale
   les pistes suivies par une autre épreuve (`cyrano:getPistesScope`, `cyrano:getRoutes`).
+
+### 2 sexies. Cartons sur les feuilles imprimées (#1829)
+
+Les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
+figurent sur les feuilles imprimées ou exportées en PDF, par tireur. Même décompte sur les deux
+feuilles (`cardsSummaryHTML`, `poolPdf.ts`) : libellés traduits (`pdf.card_*` : Blanc, Jaune,
+Rouge, Noir, Jaune P, Rouge P, Noir P), nombre si plus d'un (« Rouge ×2 »), et **cartons P à
+part** des cartons de faute, comme le veut le règlement FIE (t.124.3.e).
+
+| Feuille | Lecture | Rendu |
+|---|---|---|
+| Feuille de poule (impression d'une poule, impression ou PDF de toutes) | `withMatchCards` (`renderer/services/poolCards.ts`) : cartons des matchs terminés joints aux matchs (`db.getCards`) | `poolCardsSectionHTML` : section « Cartons » (élément `cards` des modèles, imprimée même avec un modèle antérieur), une ligne par tireur sanctionné, colonnes « Cartons » et « Cartons P (non-combativité) » |
+| Feuille de match de tableau (feuilles d'arbitrage) | `loadDECards` (`tableauDialogState.ts`) : une requête (`db.getCardsByMatchIds`) ; un match saisi à distance est relu sous son id composite `<compétition>-<match>` | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur : cartons de faute, puis cartons P dessous ; vide (à remplir à la main) sans carton enregistré |
 
 ### Supervision
 
@@ -244,8 +284,11 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
      (`PisteState`, `PisteInput`, `PisteCommand`) et pilotes déclarant leurs capacités
      (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoServer` devient le premier
      pilote ; RS422-FPA, Favero série (lecture seule) et OPP2/MQTT suivront sans toucher aux arènes.
-   - **Une seule validation de fin** : `endValidation.ts`, `scoreValidation.ts` et le calcul du
-     vainqueur de `matchRoutes.ts` fusionnés ; contrôle de la limite de score de l'épreuve.
+   - **Une seule validation de fin** (fait, #1829) : `shared/utils/matchEndValidation.ts`
+     (`validateMatchEnd`, `decideMatchWinner`, `resolveScoreLimit`, `passivityWinner`,
+     `crossedSabreBreak`) utilisé par `endValidation.ts`, `matchRoutes.ts`, `matchFinish.ts` et
+     `arenaOps.ts` ; `scoreValidation.ts` (jamais appelé) supprimé. Pause sabre à 8 touches :
+     règle fournie, non branchée (périodes de la tablette au temps).
    - **Reprise de l'état des arènes** au redémarrage (`saveArenaState` est écrit mais jamais relu).
    - **Chrono tenu côté serveur** en individuel, alimenté par la source maîtresse (appareil ou
      tablette) : référence pour la tablette en miroir.
@@ -266,8 +309,9 @@ Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise de
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
 base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
 
-Livré ensuite (#1829) : cartons de la feuille de poule imprimée, **cartons P à part**
-(t.124.3.e) ; reprise du chrono au redémarrage (§ 2 quater) ; **rapport d'exclusion pré-rempli**
+Livré ensuite (#1829) : cartons de la feuille de poule et de la feuille de match de tableau
+imprimées, **cartons P à part** (t.124.3.e, § 2 sexies) ; reprise du chrono au redémarrage
+(§ 2 quater) ; **rapport d'exclusion pré-rempli**
 pour la FFE (carton noir, annexe 14 : Résultats → Export → « Rapport FFE (carton noir) »).
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;

@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
+import { passivityWinner as sharedPassivityWinner } from '../../shared/utils/matchEndValidation';
 
 const req = createRequire(import.meta.url);
 const C = req('./refereeCards.js');
@@ -99,6 +100,39 @@ describe('refereeCards.js passivité', () => {
     expect(
       C.passivityWinner({ scoreA: 2, scoreB: 2, fencerA: { ranking: 3 }, fencerB: { ranking: 3 } })
     ).toEqual({ action: 'tiebreak' });
+  });
+
+  it('passivityWinner : parité avec le module partagé (matchEndValidation.ts, #1829)', () => {
+    const fencers = [
+      undefined,
+      null,
+      {},
+      { ranking: 1 },
+      { ranking: 3 },
+      { initialRanking: 2 },
+      { initialRanking: 2, ranking: 9 },
+      { initialRanking: null, ranking: 4 },
+      { initialRanking: '5' },
+      { ranking: 0 },
+      { ranking: -2 },
+      { ranking: 'abc' },
+    ];
+    const scores = [
+      [0, 0],
+      [2, 2],
+      [3, 1],
+      [1, 3],
+      [14, 14],
+    ];
+    let count = 0;
+    for (const [scoreA, scoreB] of scores)
+      for (const fencerA of fencers)
+        for (const fencerB of fencers) {
+          const s = { scoreA, scoreB, fencerA, fencerB };
+          expect(C.passivityWinner(s)).toEqual(sharedPassivityWinner(s));
+          count++;
+        }
+    expect(count).toBe(scores.length * fencers.length * fencers.length);
   });
 
   it('referee.html charge le module et délègue', () => {

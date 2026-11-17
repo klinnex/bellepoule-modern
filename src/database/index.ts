@@ -490,6 +490,12 @@ export class DatabaseManager {
     return this.matches.getCards(...args);
   }
 
+  public getCardsByMatchIds(
+    ...args: Parameters<MatchRepo['getCardsByMatchIds']>
+  ): ReturnType<MatchRepo['getCardsByMatchIds']> {
+    return this.matches.getCardsByMatchIds(...args);
+  }
+
   public saveTouch(
     ...args: Parameters<MatchRepo['saveTouch']>
   ): ReturnType<MatchRepo['saveTouch']> {

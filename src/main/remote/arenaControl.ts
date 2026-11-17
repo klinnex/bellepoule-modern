@@ -10,6 +10,13 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import { recordRemoteEvent } from './remoteEvents';
+import {
+  addsCard,
+  keepRemovals,
+  lockedScore,
+  isCyranoMasterOnline,
+  isDeviceSocket,
+} from './cyranoLock';
 
 type S = RemoteScoreServer;
 
@@ -98,7 +105,9 @@ export function handleArenaControl(
   if (typeof data.resting === 'boolean') arena.resting = data.resting;
 
   // Appareil de piste Cyrano (pseudo-socket `cyrano:<piste>`, #1720) : tablettes en miroir
-  const source = socket.id?.startsWith('cyrano:') ? { source: 'device' as const } : {};
+  const source = isDeviceSocket(socket.id) ? { source: 'device' as const } : {};
+  // Appareil maître et en ligne : la tablette ne peut pas ajouter de carton, seulement en retirer (#1829)
+  const cardLock = !('source' in source) && isCyranoMasterOnline(arena);
 
   switch (data.action) {
     case 'select_match':
@@ -278,6 +287,11 @@ export function handleArenaControl(
       if (data.overtimeType !== undefined) {
         ctx.arenaOvertimeType.set(data.arenaId, data.overtimeType);
       }
+      // Appareil maître en ligne : la tablette ne peut que retirer des points (#1829)
+      if (cardLock && data.scoreA !== undefined && data.scoreB !== undefined) {
+        data.scoreA = lockedScore(arena.currentMatch?.scoreA, data.scoreA);
+        data.scoreB = lockedScore(arena.currentMatch?.scoreB, data.scoreB);
+      }
       if (data.scoreA !== undefined && data.scoreB !== undefined) {
         ctx.updateArenaScore(
           data.arenaId,
@@ -285,6 +299,28 @@ export function handleArenaControl(
           data.scoreB,
           'source' in source ? 'device' : 'referee'
         );
+      }
+      // Carton ajouté depuis la tablette alors que l'appareil fait foi : cartons refusés, la
+      // tablette est resynchronisée sur les cartons de l'arène (le reste de la mise à jour passe)
+      if (cardLock) {
+        const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+        if (addsCard(held.cardsA, data.cardsA) || addsCard(held.cardsB, data.cardsB)) {
+          ctx.logDiag(`[Cyrano] arène ${data.arenaId} : carton ajouté par la tablette refusé`);
+          // Ajouts ignorés, retraits gardés (remplacement d'un carton : le retrait passe)
+          if (data.cardsA !== undefined) data.cardsA = keepRemovals(held.cardsA, data.cardsA);
+          if (data.cardsB !== undefined) data.cardsB = keepRemovals(held.cardsB, data.cardsB);
+          socket.emit(`arena:${data.arenaId}:update`, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: arena.currentMatch?.scoreA,
+            scoreB: arena.currentMatch?.scoreB,
+            cardsA: data.cardsA ?? held.cardsA,
+            cardsB: data.cardsB ?? held.cardsB,
+            status: arena.status,
+            cyrano: arena.cyrano ?? null,
+            source: 'device',
+          });
+        }
       }
       // Mettre à jour aussi les cartons si fournis
       if (data.cardsA !== undefined || data.cardsB !== undefined) {
@@ -324,7 +360,11 @@ export function handleArenaControl(
       break;
     }
     case 'add_card':
-      // Gestion des cartons
+      // Gestion des cartons (refusée quand l'appareil maître fait foi, #1829)
+      if (cardLock) {
+        ctx.logDiag(`[Cyrano] arène ${data.arenaId} : add_card de la tablette refusé`);
+        break;
+      }
       if (data.fencer && data.cardType) {
         const currentCards = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
         const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
@@ -359,6 +399,11 @@ export function handleArenaControl(
         ctx.arenaSuddenDeath.set(data.arenaId, false);
         ctx.arenaOvertimeType.set(data.arenaId, null);
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
+        // Chrono mémorisé du match effacé avec les scores (#1829)
+        if (arena.currentMatch.clockSeconds !== undefined) {
+          delete arena.currentMatch.clockSeconds;
+          ctx.persistArenaState(data.arenaId);
+        }
         ctx.updateArenaScore(data.arenaId, 0, 0);
         ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -425,8 +470,15 @@ export function handleArenaControl(
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
       }
       // Reprise du chrono au redémarrage (#1829) : dernière valeur gardée avec le match,
-      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche
-      if (arena.currentMatch && typeof data.time === 'number' && data.time >= 0) {
+      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche.
+      // Minute de repos de l'appareil de piste (état P, `arena.resting`) : le décompte reçu est
+      // celui du repos, il ne remplace pas le chrono du combat.
+      if (
+        arena.currentMatch &&
+        typeof data.time === 'number' &&
+        data.time >= 0 &&
+        arena.resting !== true
+      ) {
         arena.currentMatch.clockSeconds = data.time;
         const now = Date.now();
         const last = clockPersistedAt.get(data.arenaId) ?? 0;

@@ -15,7 +15,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaMatch, ArenaUpdate } from '../../shared/types/remote';
 import { CyranoServer, type CyranoPisteMode, type CyranoPisteStatus } from './server';
 import type { CyranoMessage } from './codec';
-import { validateCyranoEnd } from './endValidation';
+import { cyranoEndOutcome, validateCyranoEnd } from './endValidation';
 import { resolveCyranoCoords, type MatchCoordsSource } from './matchCoords';
 import { buildDisp, EMPTY_DISP, type CyranoDispFencer, type CyranoDispMatch } from './disp';
 import { pickCyranoNat, type CyranoNameLength, type CyranoNatSource } from './names';
@@ -49,29 +49,6 @@ export interface PisteAlert {
   arena: string;
   /** Noms affichés par l'appareil (droite – gauche) */
   device: string;
-}
-
-/** Issue d'une fin de match acceptée, rapportée aux tireurs A / B de l'arène. */
-export function cyranoEndOutcome(
-  msg: CyranoMessage,
-  sides: CyranoSides
-): NonNullable<ArenaMatch['deviceEnd']> {
-  const out = (s?: string) => s === 'A' || s === 'E';
-  const outA = out(sides.A.status);
-  const outB = out(sides.B.status);
-  if (outA !== outB) {
-    const loser = outA ? sides.A : sides.B;
-    return { winner: outA ? 'B' : 'A', reason: loser.status === 'A' ? 'abandon' : 'exclusion' };
-  }
-  if (outA || sides.A.score !== sides.B.score) return {};
-  // Égalité : statut V / D de l'appareil, sinon priorité (côté appareil → tireur)
-  if (sides.A.status === 'V' || sides.B.status === 'D') return { winner: 'A', reason: 'priority' };
-  if (sides.B.status === 'V' || sides.A.status === 'D') return { winner: 'B', reason: 'priority' };
-  if (msg.priority === 'R' || msg.priority === 'L') {
-    const aHasPriority = (msg.priority === 'R') === sides.aOnRight;
-    return { winner: aHasPriority ? 'A' : 'B', reason: 'priority' };
-  }
-  return {};
 }
 
 /** Dernier état connu de l'appareil (DISP envoyé ou INFO reçu) : évite les échos. */

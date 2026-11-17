@@ -957,6 +957,64 @@ describe('RemoteScoreServer', () => {
       expect(saved.scoreA.isVictory).toBe(false);
     });
 
+    it('vainqueur et bornes via les règles partagées (#1829)', async () => {
+      const finish = async (body: Record<string, unknown>) => {
+        const res = makeRes();
+        await findHandler('post', '/api/matches/:matchId/finish')(
+          makeReq({ method: 'POST', params: { matchId: 'm1' }, body }),
+          res,
+          vi.fn()
+        );
+        return res;
+      };
+      // Tirage au sort / P-noir à égalité : vainqueur désigné, prioritaire sur la priorité
+      const scores = (server as unknown as { sessionMatchScores: Map<string, unknown> })
+        .sessionMatchScores;
+      scores.set('m1', {
+        scoreA: { value: 0, isVictory: false, isPriority: false },
+        scoreB: { value: 0, isVictory: false, isPriority: true },
+        status: 'in_progress',
+      });
+      let res = await finish({ scoreA: 2, scoreB: 2, winner: 'A' });
+      expect(res.json.mock.calls[0][0]).toMatchObject({ success: true, winner: 'A' });
+      // Carton noir (activé dans beforeEach) : l'adversaire du fautif gagne même mené au score
+      mockDb.getFencer.mockReturnValueOnce({ id: 'b', status: 'Q' });
+      res = await finish({ scoreA: 1, scoreB: 4, blackCardFencer: 'B' });
+      expect(res.json.mock.calls[0][0]).toMatchObject({ success: true, winner: 'A' });
+      // Score hors bornes (0–50) ou non entier : refusé
+      for (const body of [
+        { scoreA: 51, scoreB: 2 },
+        { scoreA: -1, scoreB: 2 },
+        { scoreA: 2.5, scoreB: 2 },
+      ]) {
+        res = await finish(body);
+        expect(res.status).toHaveBeenCalledWith(400);
+      }
+    });
+
+    it('appareil de piste maître en ligne : carton noir de la tablette refusé (#1829)', async () => {
+      const internals = server as unknown as {
+        arenas: Map<string, { cyrano?: unknown }>;
+        finishArenaMatch: ReturnType<typeof vi.fn>;
+      };
+      internals.arenas.get('arena1')!.cyrano = { piste: '1', mode: 'master', online: true };
+      const finish = internals.finishArenaMatch;
+      finish.mockClear();
+      const res = makeRes();
+      await findHandler('post', '/api/matches/:matchId/finish')(
+        makeReq({
+          method: 'POST',
+          params: { matchId: 'm1' },
+          body: { scoreA: 3, scoreB: 2, blackCardFencer: 'A' },
+        }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({ error: 'cyrano_master_lock' });
+      expect(finish).not.toHaveBeenCalled();
+    });
+
     it("liste le carton noir de l'arène", async () => {
       await giveBlackCard();
       const res = makeRes();

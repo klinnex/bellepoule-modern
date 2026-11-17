@@ -745,4 +745,121 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(cyrano.findPiste('1')?.mode).toBe('master');
     });
   });
+
+  describe('verrou des cartons et chrono sauvegardé (#1829)', () => {
+    // Un id de socket par appel : l'anti-rebond d'update_score est par socket
+    let n = 0;
+    const tablet = (data: Record<string, unknown>) => {
+      const emit = vi.fn();
+      type Ctl = Parameters<RemoteScoreServer['handleArenaControl']>;
+      remote.handleArenaControl(
+        { id: `tablet-${++n}`, emit } as unknown as Ctl[0],
+        {
+          arenaId: 'arena1',
+          ...data,
+        } as Ctl[1]
+      );
+      return emit;
+    };
+    const tabletCards = (cardsA: string[], cardsB: string[] = []) =>
+      tablet({
+        action: 'update_score',
+        scoreA: arena().currentMatch!.scoreA,
+        scoreB: arena().currentMatch!.scoreB,
+        cardsA,
+        cardsB,
+      });
+    const heldCards = () => remote.arenaCards.get('arena1');
+
+    it('maître en ligne : carton ajouté par la tablette refusé et tablette resynchronisée', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      expect(arena().cyrano).toEqual({ piste: '1', mode: 'master', online: true });
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+
+      const emit = tabletCards(['yellow', 'red'], ['p-red']);
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+      // La tablette reçoit les cartons de l'arène, comme une mise à jour de l'appareil
+      expect(emit).toHaveBeenCalledWith(
+        'arena:arena1:update',
+        expect.objectContaining({ source: 'device', cardsA: ['yellow'], cardsB: [] })
+      );
+      // Ancienne action add_card : refusée aussi
+      tablet({ action: 'add_card', fencer: 'B', cardType: 'red' });
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: [] });
+    });
+
+    it('maître en ligne : retrait permis depuis la tablette, cartons de l’appareil toujours appliqués', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      const emit = tabletCards([]);
+      expect(heldCards()).toEqual({ cardsA: [], cardsB: [] });
+      expect(emit).not.toHaveBeenCalled();
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0, r: 1 }));
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
+    });
+
+    it('maître en ligne : remplacement d’un carton — l’ajout est refusé, le retrait passe', () => {
+      device(info('H', { id: short(ID.ef), score: 1, y: 1 }, { id: short(ID.ab), score: 0 }));
+      tabletCards(['red']);
+      expect(heldCards()).toEqual({ cardsA: [], cardsB: [] });
+    });
+
+    it('maître en ligne : la tablette ne peut que retirer des points', () => {
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 1 }));
+      tablet({ action: 'update_score', scoreA: 4, scoreB: 1 });
+      expect(arena().currentMatch).toMatchObject({ scoreA: 3, scoreB: 1 });
+      tablet({ action: 'update_score', scoreA: 2, scoreB: 2 });
+      expect(arena().currentMatch).toMatchObject({ scoreA: 2, scoreB: 1 });
+    });
+
+    it('piste en manuel (ou appareil hors ligne) : la tablette ajoute librement', () => {
+      device(info('H', { id: short(ID.ef), score: 1 }, { id: short(ID.ab), score: 0 }));
+      setMode('manual');
+      expect(arena().cyrano?.mode).toBe('manual');
+      tabletCards(['yellow'], ['red']);
+      expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
+    });
+
+    it('minute de repos de l’appareil (état P) : le décompte du repos n’écrase pas le chrono du combat', () => {
+      const clock = () => arena().currentMatch?.clockSeconds;
+      device(info('H', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
+      expect(clock()).toBe(180);
+      mockDb.saveArenaState.mockClear();
+      device(
+        info(
+          'P',
+          { id: short(ID.ef), score: 2 },
+          { id: short(ID.ab), score: 1 },
+          { stopwatch: '0:42' }
+        )
+      );
+      expect(arena().resting).toBe(true);
+      expect(clock()).toBe(180);
+      // Rien de neuf à sauvegarder pendant le repos
+      expect(mockDb.saveArenaState).not.toHaveBeenCalled();
+      // Fin du repos : le chrono du combat est de nouveau suivi
+      device(
+        info(
+          'H',
+          { id: short(ID.ef), score: 2 },
+          { id: short(ID.ab), score: 1 },
+          { stopwatch: '2:30' }
+        )
+      );
+      expect(arena().resting).toBe(false);
+      expect(clock()).toBe(150);
+    });
+
+    it('reset_scores : chrono mémorisé du match effacé, en mémoire et en base', () => {
+      tablet({ action: 'start' });
+      tablet({ action: 'pause_timer', time: 125.5, timerStatus: 'paused' });
+      expect(arena().currentMatch?.clockSeconds).toBe(125.5);
+      expect(lastCall(mockDb.saveArenaState)[1].currentMatch).toMatchObject({
+        clockSeconds: 125.5,
+      });
+
+      tablet({ action: 'reset_scores' });
+      expect(arena().currentMatch).not.toHaveProperty('clockSeconds');
+      expect(lastCall(mockDb.saveArenaState)[1].currentMatch).not.toHaveProperty('clockSeconds');
+    });
+  });
 });
