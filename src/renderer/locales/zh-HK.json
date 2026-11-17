@@ -3631,6 +3631,8 @@
     "size": "尺寸",
     "color": "顏色",
     "quantity": "數量",
+    "columns": "欄位",
+    "columns_title": "顯示／隱藏欄位",
     "series_toggle": "批量新增（每項一件，自動編號）",
     "series_count": "項目數量",
     "series_preview": "將建立：{{names}}",

@@ -3631,6 +3631,8 @@
     "size": "Hed",
     "color": "Liv",
     "quantity": "Niver",
+    "columns": "Bannoù",
+    "columns_title": "Diskouez/kuzhat ar bannoù",
     "series_toggle": "Ouzhpennañ e steudad (un elfenn dre fichenn, niverennet)",
     "series_count": "Niver a fichennoù",
     "series_preview": "A vo krouet : {{names}}",

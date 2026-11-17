@@ -3631,6 +3631,8 @@
     "size": "Taille",
     "color": "Couleur",
     "quantity": "Quantité",
+    "columns": "Colonnes",
+    "columns_title": "Afficher/masquer les colonnes",
     "series_toggle": "Ajouter en série (un exemplaire par fiche, numérotées)",
     "series_count": "Nombre de fiches",
     "series_preview": "Seront créées : {{names}}",

@@ -3631,6 +3631,8 @@
     "size": "Size",
     "color": "Colour",
     "quantity": "Quantity",
+    "columns": "Columns",
+    "columns_title": "Show/hide columns",
     "series_toggle": "Add as a series (one unit per record, numbered)",
     "series_count": "Number of records",
     "series_preview": "Will be created: {{names}}",

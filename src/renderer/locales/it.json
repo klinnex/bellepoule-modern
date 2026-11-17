@@ -3631,6 +3631,8 @@
     "size": "Taglia",
     "color": "Colore",
     "quantity": "Quantità",
+    "columns": "Colonne",
+    "columns_title": "Mostra/nascondi colonne",
     "series_toggle": "Aggiungi in serie (un pezzo per scheda, numerate)",
     "series_count": "Numero di schede",
     "series_preview": "Saranno create: {{names}}",

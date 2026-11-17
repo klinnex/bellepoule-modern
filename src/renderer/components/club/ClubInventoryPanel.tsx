@@ -3,10 +3,11 @@
  * emplacements) et prêts aux tireurs (retours, retards, historique). Export CSV.
  * Licensed under GPL-3.0
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   BookOpen,
+  Columns3,
   Download,
   HandCoins,
   Lock,
@@ -31,7 +32,6 @@ import {
   ITEM_CATEGORIES,
   WARRANTY_ALERT_DAYS,
   computeInventorySummary,
-  isWarrantyAlert,
   localIsoDate,
 } from '../../../shared/utils/clubInventory';
 import { toCsv } from '../../../shared/utils/clubInventory';
@@ -41,7 +41,6 @@ import {
   parseDelimited,
   rowsToItems,
 } from '../../../shared/utils/clubInventoryIO';
-import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -51,16 +50,18 @@ import { ClubListModal } from './ClubListModal';
 import { ClubItemEditor } from './ClubItemEditor';
 import { ClubLoanModal } from './ClubLoanModal';
 import { openInventoryFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
+import {
+  INVENTORY_COLUMNS,
+  INVENTORY_COLUMN_LABEL,
+  fmtDate,
+  fmtMoney,
+  type InventoryColumn,
+  inventoryCell,
+  loadInventoryColumns,
+  saveInventoryColumns,
+} from './InventoryColumns';
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
-
-const fmtDate = (iso?: string | null) => {
-  if (!iso) return '';
-  const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString();
-};
-
-const fmtMoney = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
 
 type LendTarget = { item: ClubItem } | null;
 type ReturnTarget = { loan: ClubLoan } | null;
@@ -86,6 +87,34 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   const [lending, setLending] = useState<LendTarget>(null);
   const [returning, setReturning] = useState<ReturnTarget>(null);
   const [showHistory, setShowHistory] = useState(false);
+  /** Colonnes affichées du tableau du matériel (le nom l'est toujours) */
+  const [cols, setCols] = useState<Set<InventoryColumn>>(loadInventoryColumns);
+  const [colMenuOpen, setColMenuOpen] = useState(false);
+  const colMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!colMenuOpen) return;
+    // Fermeture au clic hors du menu ou à Échap
+    const onDown = (e: MouseEvent) => {
+      if (!colMenuRef.current?.contains(e.target as Node)) setColMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setColMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [colMenuOpen]);
+  const toggleCol = (c: InventoryColumn) =>
+    setCols(prev => {
+      const next = new Set(prev);
+      if (next.has(c)) next.delete(c);
+      else next.add(c);
+      saveInventoryColumns(next);
+      return next;
+    });
 
   const load = useCallback(async () => {
     if (!api) return;
@@ -137,6 +166,17 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
       ? (customLabels[c] ?? t('clubInventory.cat_other'))
       : t(`clubInventory.cat_${c}`);
 
+  /** Marque, modèle, n° de série sous le nom quand leur colonne est masquée */
+  const nameDetails = (i: ClubItem): string =>
+    [
+      !cols.has('brand') && i.brand,
+      !cols.has('model') && i.model,
+      !cols.has('serial') && i.serialNumber && `S/N ${i.serialNumber}`,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+  const cellCtx = { t, cols, today, labelOf };
   if (!api) return null;
 
   const run = async (fn: () => Promise<unknown>, okMsg?: string) => {
@@ -444,6 +484,30 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
             />
             {t('clubInventory.show_retired')}
           </label>
+          <div className="club-columns" ref={colMenuRef}>
+            <Button
+              title={t('clubInventory.columns_title')}
+              aria-expanded={colMenuOpen}
+              icon={<Columns3 size={14} aria-hidden="true" />}
+              onClick={() => setColMenuOpen(o => !o)}
+            >
+              {t('clubInventory.columns')}
+            </Button>
+            {colMenuOpen && (
+              <div
+                className="club-columns-menu"
+                role="group"
+                aria-label={t('clubInventory.columns_title')}
+              >
+                {INVENTORY_COLUMNS.map(c => (
+                  <label key={c} className="club-nowrap">
+                    <input type="checkbox" checked={cols.has(c)} onChange={() => toggleCol(c)} />
+                    {t(INVENTORY_COLUMN_LABEL[c])}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {visible.length === 0 ? (
@@ -457,12 +521,11 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
               <thead>
                 <tr>
                   <th scope="col">{t('clubInventory.name')}</th>
-                  <th scope="col">{t('clubInventory.category')}</th>
-                  <th scope="col">{t('clubInventory.quantity')}</th>
-                  <th scope="col">{t('clubInventory.condition')}</th>
-                  <th scope="col">{t('clubInventory.location')}</th>
-                  <th scope="col">{t('clubInventory.purchase')}</th>
-                  <th scope="col">{t('clubInventory.warranty_until')}</th>
+                  {INVENTORY_COLUMNS.filter(c => cols.has(c)).map(c => (
+                    <th key={c} scope="col">
+                      {t(INVENTORY_COLUMN_LABEL[c])}
+                    </th>
+                  ))}
                   <th scope="col">
                     <span className="sr-only">{t('actions.edit')}</span>
                   </th>
@@ -473,45 +536,14 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                   <tr key={i.id} className={i.retired ? 'club-row-archived' : undefined}>
                     <td>
                       <strong>{i.name}</strong>
-                      {(i.brand || i.model || i.serialNumber) && (
-                        <div className="club-muted">
-                          {[i.brand, i.model, i.serialNumber && `S/N ${i.serialNumber}`]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </div>
-                      )}
+                      {nameDetails(i) && <div className="club-muted">{nameDetails(i)}</div>}
                       {i.retired && (
                         <span className="club-badge">{t('clubInventory.status_retired')}</span>
                       )}
                     </td>
-                    <td>
-                      {labelOf(i.category)}
-                      {i.weapon && <div className="club-muted">{weaponLabel(i.weapon, t)}</div>}
-                    </td>
-                    <td>
-                      {i.quantity}
-                      {i.lentQuantity > 0 && (
-                        <div className="club-muted">
-                          {t('clubInventory.lent_short', { n: i.lentQuantity })}
-                        </div>
-                      )}
-                    </td>
-                    <td>{t(`clubInventory.cond_${i.condition}`)}</td>
-                    <td>{i.location ?? ''}</td>
-                    <td>
-                      {fmtDate(i.purchaseDate)}
-                      {i.purchasePrice !== undefined && (
-                        <div className="club-muted">{fmtMoney(i.purchasePrice)}</div>
-                      )}
-                    </td>
-                    <td>
-                      {fmtDate(i.warrantyUntil)}
-                      {isWarrantyAlert(i.warrantyUntil, today) && (
-                        <span className="club-badge club-badge--warn">
-                          {t('clubInventory.warranty_soon')}
-                        </span>
-                      )}
-                    </td>
+                    {INVENTORY_COLUMNS.filter(c => cols.has(c)).map(c => (
+                      <td key={c}>{inventoryCell(i, c, cellCtx)}</td>
+                    ))}
                     <td className="club-row club-row--end">
                       <Button
                         size="sm"

@@ -3631,6 +3631,8 @@
     "size": "Größe",
     "color": "Farbe",
     "quantity": "Menge",
+    "columns": "Spalten",
+    "columns_title": "Spalten ein-/ausblenden",
     "series_toggle": "Als Serie hinzufügen (ein Stück pro Eintrag, nummeriert)",
     "series_count": "Anzahl der Einträge",
     "series_preview": "Wird erstellt: {{names}}",

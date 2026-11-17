@@ -3631,6 +3631,8 @@
     "size": "Talla",
     "color": "Color",
     "quantity": "Cantidad",
+    "columns": "Columnas",
+    "columns_title": "Mostrar/ocultar columnas",
     "series_toggle": "Añadir en serie (una unidad por ficha, numeradas)",
     "series_count": "Número de fichas",
     "series_preview": "Se crearán: {{names}}",
