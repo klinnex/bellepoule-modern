@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 17 | 245 |
-| `src/main/` | 104 | 842 |
+| `src/main/` | 105 | 853 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 600 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **477** | **3590** |
+| **Total** | **478** | **3601** |
 
-Unitaires : 467 fichiers, 3551 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 468 fichiers, 3562 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3532,6 +3532,23 @@ Unitaires : 467 fichiers, 3551 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **mainWindowRef**
   - renvoie null par défaut puis la fenêtre définie
   - renvoie null si la fenêtre est détruite
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpClubTools.test.ts</code> — 11 tests</summary>
+
+- sont déclarés en lecture et en écriture
+- liste les clubs et refuse un club inconnu
+- crée une séance ouverte, puis la prépare si planned est vrai
+- valide la date, l’arme et les pistes à la création
+- dryRun décrit sans écrire
+- ouvre une séance préparée, puis refuse de la rouvrir sans la fermer
+- ferme une séance, annule ses combats en cours et la délie du serveur d’entraînement
+- pointe et dépointe les membres ; refuse un membre d’un autre club
+- met à jour le bilan et les notes ; refuse une mise à jour vide
+- refuse les écritures quand l’écriture n’est pas autorisée
+- liste les séances avec filtres de période et de statut
 
 </details>
 
