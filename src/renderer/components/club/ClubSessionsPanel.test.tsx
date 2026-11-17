@@ -301,6 +301,20 @@ describe('ClubSessionsPanel', () => {
     );
   });
 
+  it('séance ouverte : bascule vers une séance prévue (fermeture puis démarrage)', async () => {
+    const planned = { ...session, id: 'p1', status: 'planned', date: '2026-11-20', plan: [] };
+    api.listSessions.mockResolvedValue([session, planned]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    const select = await screen.findByLabelText('Passer à la séance…');
+    fireEvent.change(select, { target: { value: 'p1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Changer de séance' }));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('p1'));
+    expect(api.closeSession).toHaveBeenCalledWith('s1');
+    expect(api.closeSession.mock.invocationCallOrder[0]).toBeLessThan(
+      api.startSession.mock.invocationCallOrder[0]
+    );
+  });
+
   it('ouverture : date choisie dans le mini-calendrier', async () => {
     api.listSessions.mockResolvedValue([]);
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);

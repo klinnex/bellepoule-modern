@@ -6,6 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ArrowRightLeft,
   CalendarPlus,
   ClipboardList,
   FileDown,
@@ -57,6 +58,7 @@ import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
 import { ClubCoachPicker, coachNames } from './ClubCoachPicker';
 import { ClubSessionPlanCard } from './ClubSessionPlanCard';
+import { switchClubSession } from './clubSessionSwitch';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -225,6 +227,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const [feedbackFor, setFeedbackFor] = useState<ClubSession | null>(null);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
   const [openRange, setOpenRange] = useState<AgeRange>({});
+  const [switchTo, setSwitchTo] = useState('');
   const [listCategory, setListCategory] = useState('');
   const [iface, setIface] = useState(loadInterface);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
@@ -692,6 +695,30 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     setFeedbackFor({ ...current, status: 'closed' });
   };
 
+  /** Autres séances vers lesquelles basculer : prévues (par date) puis passées récentes */
+  const switchTargets = [
+    ...sessions.filter(s => s.status === 'planned').sort((a, b) => a.date.localeCompare(b.date)),
+    ...sessions
+      .filter(s => s.status === 'closed')
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10),
+  ];
+
+  const switchSession = async () => {
+    const target = sessions.find(s => s.id === switchTo);
+    if (!target) return;
+    const ok = await confirm({
+      message: `${t('clubSessionMenu.switch_confirm', { from: current.date, to: target.date })}\n${t(
+        'clubSession.close_confirm',
+        { count: live.length }
+      )}`,
+      confirmLabel: t('clubSessionMenu.switch'),
+    });
+    if (!ok) return;
+    setSwitchTo('');
+    await run(() => switchClubSession(api, current, target));
+  };
+
   return (
     <div className="club-members">
       <section className="club-card">
@@ -732,6 +759,32 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             {t('clubSession.close')}
           </Button>
         </div>
+        {switchTargets.length > 0 && (
+          <div className="club-row">
+            <select
+              className="form-input"
+              value={switchTo}
+              aria-label={t('clubSessionMenu.switch_to')}
+              onChange={e => setSwitchTo(e.target.value)}
+            >
+              <option value="">{t('clubSessionMenu.switch_to')}</option>
+              {switchTargets.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.date}
+                  {sessionLabel(s) ? ` · ${sessionLabel(s)}` : ''}
+                  {s.status === 'closed' ? ` (${t('clubSessionMenu.past_tag')})` : ''}
+                </option>
+              ))}
+            </select>
+            <Button
+              icon={<ArrowRightLeft size={15} aria-hidden="true" />}
+              disabled={!switchTo}
+              onClick={() => void switchSession()}
+            >
+              {t('clubSessionMenu.switch')}
+            </Button>
+          </div>
+        )}
       </section>
 
       <ClubSessionPlanCard

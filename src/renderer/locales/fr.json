@@ -3892,6 +3892,9 @@
     "open": "Ouvrir",
     "today": "aujourd'hui",
     "opened": "Séance du {{date}} ouverte",
-    "switch_confirm": "Fermer la séance du {{from}} et ouvrir celle du {{to}} ?"
+    "switch_confirm": "Fermer la séance du {{from}} et ouvrir celle du {{to}} ?",
+    "switch": "Changer de séance",
+    "switch_to": "Passer à la séance…",
+    "past_tag": "passée"
   }
 }

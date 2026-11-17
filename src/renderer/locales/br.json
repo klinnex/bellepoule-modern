@@ -3892,6 +3892,9 @@
     "open": "Digeriñ",
     "today": "hiziv",
     "opened": "Emgav an {{date}} digoret",
-    "switch_confirm": "Serriñ emgav an {{from}} ha digeriñ hini an {{to}}?"
+    "switch_confirm": "Serriñ emgav an {{from}} ha digeriñ hini an {{to}}?",
+    "switch": "Cheñch emgav",
+    "switch_to": "Mont d'an emgav…",
+    "past_tag": "tremenet"
   }
 }

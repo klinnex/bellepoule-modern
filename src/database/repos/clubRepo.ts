@@ -1058,8 +1058,19 @@ export class ClubRepo {
     return this.getSession(id);
   }
 
+  /** Séance fermée → rouverte ; refusé si une autre séance du club est ouverte */
   public reopenSession(id: string): ClubSession | null {
     this.ensureOpen();
+    const s = this.getSession(id);
+    if (!s || s.status !== 'closed') return s;
+    if (
+      this.sql.queryOne(
+        `SELECT 1 FROM club_sessions WHERE club_id = ? AND status = 'open' AND id <> ?`,
+        [s.clubId, id]
+      )
+    ) {
+      throw new Error('Une séance est déjà ouverte');
+    }
     this.sql.run(
       `UPDATE club_sessions SET status = 'open', closed_at = NULL, updated_at = ? WHERE id = ?`,
       [new Date().toISOString(), id]

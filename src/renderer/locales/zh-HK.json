@@ -3892,6 +3892,9 @@
     "open": "開始",
     "today": "今天",
     "opened": "{{date}} 課堂已開始",
-    "switch_confirm": "結束 {{from}} 的課堂並開始 {{to}} 的課堂？"
+    "switch_confirm": "結束 {{from}} 的課堂並開始 {{to}} 的課堂？",
+    "switch": "切換課堂",
+    "switch_to": "切換至課堂…",
+    "past_tag": "已結束"
   }
 }
