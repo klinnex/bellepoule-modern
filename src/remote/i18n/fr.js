@@ -398,6 +398,8 @@
   'team.reset_bout': "Réinitialiser l'assaut",
   'team.next_relay': 'Relais suivant →',
   'team.all_bouts_played': 'Rencontre terminée — tous les assauts ont été joués.',
+  'team.cyrano_master_relay_lock': "Relais verrouillé : l'appareil de piste est en mode maître et valide la fin du relais.",
+  'team.touch_remove': 'Retirer une touche (côté {{side}})',
   'team.touch_side': '+ Touche (côté {{side}})',
   'team.card_title': 'Carton {{type}} E',
   'team.cards_label': 'Cartons équipe « E » — {{team}}',

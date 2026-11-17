@@ -396,6 +396,8 @@
   'team.reset_bout': 'Gefecht zurücksetzen',
   'team.next_relay': 'Nächste Staffel →',
   'team.all_bouts_played': 'Begegnung beendet — alle Gefechte wurden ausgetragen.',
+  'team.cyrano_master_relay_lock': 'Staffel gesperrt: Der Meldeapparat ist im Master-Modus und bestätigt das Ende der Staffel.',
+  'team.touch_remove': 'Treffer entfernen (Seite {{side}})',
   'team.touch_side': '+ Treffer (Seite {{side}})',
   'team.card_title': 'Karte {{type}} M',
   'team.cards_label': 'Mannschaftskarten „M“ — {{team}}',

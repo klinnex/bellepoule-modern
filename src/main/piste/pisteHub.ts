@@ -355,13 +355,14 @@ export class PisteHub {
   /** Bandeau appareil côté arbitre : mode et liaison de la piste reliée à l'arène (#1829). */
   private syncArenaLink(piste: PisteLink): void {
     if (!piste.arena) return;
-    this.remoteFor(piste)?.updateArena(`arena${piste.arena}`, {
-      cyrano: {
-        piste: piste.piste,
-        mode: this.modeOf(piste),
-        online: piste.status === 'online',
-      },
+    const remote = this.remoteFor(piste);
+    if (!remote) return;
+    const mode = this.modeOf(piste, remote);
+    remote.updateArena(`arena${piste.arena}`, {
+      cyrano: { piste: piste.piste, mode, online: piste.status === 'online' },
     });
+    // Arène équipe de même numéro : même verrou de la tablette
+    this.team.syncLink(piste, remote, mode);
   }
 
   /** Match courant de l'arène (ou affichage vide) ; sans effet en manuel. */
@@ -413,7 +414,9 @@ export class PisteHub {
       const followed = source && this.routes.get(piste.piste) === source ? source : null;
       const remote = this.remoteFor(piste) ?? followed;
       if (!remote || (source && remote !== source)) continue;
-      if (this.modeOf(piste, remote) === 'manual') continue;
+      const mode = this.modeOf(piste, remote);
+      this.team.syncLink(piste, remote, mode);
+      if (mode === 'manual') continue;
       this.team.refresh(piste, remote);
     }
   };

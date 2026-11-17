@@ -180,6 +180,7 @@ export function getPublicTeamArenaState(ctx: TeamArenaContext, arenaId: string):
     matchComplete: !currentBout,
     cards: state.cards,
     deviceCards: state.deviceCards ?? {},
+    cyrano: state.cyrano ?? null,
     blackCardEnabled:
       ctx.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled === true,
   };

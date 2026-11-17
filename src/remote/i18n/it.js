@@ -388,6 +388,8 @@
   'team.reset_bout': 'Azzera l\'assalto',
   'team.next_relay': 'Staffetta successiva →',
   'team.all_bouts_played': 'Incontro terminato — tutti gli assalti sono stati disputati.',
+  'team.cyrano_master_relay_lock': "Frazione bloccata: l'apparecchio di pedana è in modalità master e convalida la fine della frazione.",
+  'team.touch_remove': 'Togli un tocco (lato {{side}})',
   'team.touch_side': '+ Tocco (lato {{side}})',
   'team.card_title': 'Cartellino {{type}} E',
   'team.cards_label': 'Cartellini squadra « E » — {{team}}',

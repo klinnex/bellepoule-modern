@@ -398,6 +398,8 @@
   'team.reset_bout': 'Сбросить бой',
   'team.next_relay': 'Следующая эстафета →',
   'team.all_bouts_played': 'Матч завершён — все бои проведены.',
+  'team.cyrano_master_relay_lock': 'Эстафета заблокирована: аппарат дорожки в режиме ведущего и подтверждает конец эстафеты.',
+  'team.touch_remove': 'Убрать укол (сторона {{side}})',
   'team.touch_side': '+ Укол (сторона {{side}})',
   'team.card_title': 'Карточка {{type}} E',
   'team.cards_label': 'Командные карточки «E» — {{team}}',

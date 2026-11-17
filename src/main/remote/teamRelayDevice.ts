@@ -10,6 +10,7 @@ import { FIE_RELAY_DURATION_SEC, relayCumul } from '../../features/teams/utils/t
 import { logger, LogCategory } from '../../shared/services/logger';
 import { advanceTeamBout, broadcastTeamArena, type TeamArenaContext } from './teamArena';
 import type { TeamArenaBout, TeamArenaState } from './types';
+import type { ArenaCyranoLink } from '../../shared/types/remote';
 
 /** Relais en cours d'une arène équipe, vu par l'appareil. */
 export interface TeamRelayView {
@@ -124,6 +125,18 @@ export function applyRelayDeviceState(
   }
   if (changed) broadcastTeamArena(ctx, arenaId);
   return { accepted: true, changed };
+}
+
+/** Appareil relié à l'arène équipe (mode, liaison) : verrou de la tablette ; diffusé s'il change. */
+export function setTeamArenaDeviceLink(
+  ctx: TeamArenaContext,
+  arenaId: string,
+  link: ArenaCyranoLink | null
+): void {
+  const state = ctx.teamArenaState.get(arenaId);
+  if (!state || JSON.stringify(state.cyrano ?? null) === JSON.stringify(link)) return;
+  state.cyrano = link;
+  broadcastTeamArena(ctx, arenaId);
 }
 
 /** Fin du relais en cours (END acquitté) : relais enregistré, passage au suivant. */

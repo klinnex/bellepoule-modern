@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import type { ArenaCyranoLink } from '../../shared/types/remote';
 import { CardReason, FencerStatus, Weapon, type Score } from '../../shared/types';
 
 /** Match transmis par le renderer (poules ou tableau) ; champs optionnels selon l'origine. */
@@ -95,4 +96,6 @@ export interface TeamArenaState {
    * ne donne pas le motif : ils ne sont pas enregistrés comme cartons individuels.
    */
   deviceCards?: Record<string, { cardsA: string[]; cardsB: string[] }>;
+  /** Appareil de piste relié à l'arène équipe : maître et en ligne → tablette verrouillée */
+  cyrano?: ArenaCyranoLink | null;
 }

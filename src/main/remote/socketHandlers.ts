@@ -10,6 +10,7 @@ import { normalizeIp, isLoopbackAddress } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { recordRemoteEvent } from './remoteEvents';
+import { isCyranoMasterOnline } from './cyranoLock';
 import { timerForMatch, timerJoinFields } from './arenaTimer';
 import { advanceTeamBout, broadcastTeamArena, teamArenaElapsedSec } from './teamArena';
 
@@ -294,17 +295,31 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
 
     // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
     // à 5 touches valides cumulées, vérifié après chaque saisie.
+    // Appareil de piste maître et en ligne (#1829) : la tablette ne fait que corriger par
+    // retrait ; un ajout est refusé et l'état de l'arène renvoyé à la tablette.
+    const teamDeviceLocked = (arenaId: string, action: string): boolean => {
+      if (!isCyranoMasterOnline(ctx.teamArenaState.get(arenaId))) return false;
+      socket.emit('team_arena_state', ctx.getPublicTeamArenaState(arenaId));
+      logger.info(
+        LogCategory.NETWORK,
+        `Équipes ${arenaId} : « ${action} » refusé, l'appareil de piste fait foi`
+      );
+      return true;
+    };
+
+    // Touche (simple ou zone 1/3/5) ; -1 = retrait d'une touche (correction, toujours permis).
     socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
       if (data.side !== 'A' && data.side !== 'B') return;
-      if (![1, 3, 5].includes(data.points)) return;
+      if (![1, 3, 5, -1].includes(data.points)) return;
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state) return;
-      if (!state.isLaserPoints && data.points !== 1) return;
+      if (!state.isLaserPoints && data.points > 1) return;
       const bout = state.bouts[state.currentBoutIndex];
       if (!bout || bout.status === 'finished') return;
-      if (data.side === 'A') state.liveScoreA += data.points;
-      else state.liveScoreB += data.points;
+      if (data.points > 0 && teamDeviceLocked(data.arenaId, 'team_touch')) return;
+      if (data.side === 'A') state.liveScoreA = Math.max(0, state.liveScoreA + data.points);
+      else state.liveScoreB = Math.max(0, state.liveScoreB + data.points);
       broadcastTeamArena(ctx, data.arenaId);
     });
 
@@ -313,6 +328,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state) return;
+      if (teamDeviceLocked(data.arenaId, 'team_reset_bout')) return;
       state.liveScoreA = 0;
       state.liveScoreB = 0;
       state.elapsedAccumulatedSec = 0;
@@ -340,6 +356,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
     // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
     socket.on('team_advance_bout', (data: { arenaId: string }) => {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
+      if (teamDeviceLocked(data.arenaId, 'team_advance_bout')) return;
       advanceTeamBout(ctx, data.arenaId);
     });
 
@@ -351,6 +368,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         if (!['white', 'yellow', 'red', 'black'].includes(data.type)) return;
         const state = ctx.teamArenaState.get(data.arenaId);
         if (!state) return;
+        if (teamDeviceLocked(data.arenaId, 'team_card')) return;
         if (
           data.type === 'black' &&
           ctx.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled !== true
@@ -382,6 +400,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         if (data.side !== 'A' && data.side !== 'B') return;
         const state = ctx.teamArenaState.get(data.arenaId);
         if (!state) return;
+        if (teamDeviceLocked(data.arenaId, 'team_fencer_card')) return;
         if (!getAvailableReasons(state.weapon).includes(data.reason)) return;
         const bout = state.bouts[state.currentBoutIndex];
         if (!bout) return;

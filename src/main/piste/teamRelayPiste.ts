@@ -21,6 +21,7 @@ import {
   fencerMeetingCards,
   finishRelay,
   reopenPreviousRelay,
+  setTeamArenaDeviceLink,
   substituteRelayFencer,
   teamRelayView,
   type TeamRelayView,
@@ -80,6 +81,17 @@ export class TeamRelayPiste {
   /** Rencontre par équipes assignée à l'arène N, terminée ou non. */
   hasArena(remote: RemoteScoreServer, arena: number): boolean {
     return !!teamCtx(remote)?.teamArenaState.has(String(arena));
+  }
+
+  /** Mode et liaison de l'appareil sur l'arène équipe : verrou de la tablette équipe. */
+  syncLink(link: PisteLink, remote: RemoteScoreServer, mode: PisteMode): void {
+    const ctx = teamCtx(remote);
+    if (!ctx || !link.arena) return;
+    setTeamArenaDeviceLink(ctx, String(link.arena), {
+      piste: link.piste,
+      mode,
+      online: link.status === 'online',
+    });
   }
 
   private sides(state: PisteState, bout: TeamArenaBout): PisteSides | null {

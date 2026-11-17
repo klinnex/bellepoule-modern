@@ -559,6 +559,66 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     expect(mockDb.reopenTeamBout).not.toHaveBeenCalled();
   });
 
+  describe('verrou appareil maître sur la tablette équipe', () => {
+    type Handler = (data: Record<string, unknown>) => void;
+    const tablet = () => {
+      const io = (remote as unknown as { io: { on: { mock: { calls: unknown[][] } } } }).io;
+      const onConnection = io.on.mock.calls.find(c => c[0] === 'connection')?.[1] as (
+        s: unknown
+      ) => void;
+      const handlers: Record<string, Handler> = {};
+      const socket = {
+        id: 'tablet-1',
+        handshake: { headers: {}, address: '192.168.1.60' },
+        on: vi.fn((ev: string, cb: Handler) => {
+          handlers[ev] = cb;
+        }),
+        use: vi.fn(),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return { handlers, socket };
+    };
+
+    it('maître et en ligne : ajout de touche, cartons, relais suivant, remise à zéro refusés ; retrait permis', () => {
+      start();
+      device(info('H', 1, { id: A[0], score: 3 }, { id: B[0], score: 1 }));
+      expect(team().cyrano).toEqual({ piste: '1', mode: 'master', online: true });
+      const { handlers, socket } = tablet();
+      const arenaId = '1';
+      handlers.team_touch({ arenaId, side: 'A', points: 1 });
+      handlers.team_advance_bout({ arenaId });
+      handlers.team_reset_bout({ arenaId });
+      handlers.team_card({ arenaId, teamId: 'tA', type: 'yellow' });
+      handlers.team_fencer_card({ arenaId, side: 'A', reason: 'early_start' });
+      expect(team()).toMatchObject({ liveScoreA: 3, liveScoreB: 1, currentBoutIndex: 0 });
+      expect(team().cards).toHaveLength(0);
+      expect(team().fencerCards).toHaveLength(0);
+      expect(mockDb.updateTeamBout).not.toHaveBeenCalled();
+      expect(socket.emit).toHaveBeenCalledWith('team_arena_state', expect.anything());
+      // Retrait : correction toujours permise, renvoyée à l'appareil
+      out = [];
+      handlers.team_touch({ arenaId, side: 'A', points: -1 });
+      expect(team().liveScoreA).toBe(2);
+      expect(lastDisp()).toMatchObject({ right: { score: 2 } });
+    });
+
+    it('afficheur ou appareil absent : tablette libre', () => {
+      start();
+      const { handlers } = tablet();
+      handlers.team_touch({ arenaId: '1', side: 'B', points: 1 });
+      expect(team().liveScoreB).toBe(1); // jamais vu : pas de verrou
+      device(info('H', 1, { id: A[0], score: 0 }, { id: B[0], score: 1 }));
+      cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, arena: 1, mode: 'display' }]);
+      hub.syncPisteModes();
+      expect(team().cyrano).toMatchObject({ mode: 'display', online: true });
+      handlers.team_touch({ arenaId: '1', side: 'B', points: 1 });
+      expect(team().liveScoreB).toBe(2);
+    });
+  });
+
   it('rencontre retirée de l’arène : affichage vide', () => {
     start();
     remote.clearTeamArenaMatch('1');

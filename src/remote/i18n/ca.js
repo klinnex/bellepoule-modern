@@ -396,6 +396,8 @@
   'team.reset_bout': "Reiniciar l'assalt",
   'team.next_relay': 'Relleu següent →',
   'team.all_bouts_played': "Encontre acabat — s'han disputat tots els assalts.",
+  'team.cyrano_master_relay_lock': "Relleu bloquejat: l'aparell de pista està en mode mestre i valida el final del relleu.",
+  'team.touch_remove': 'Treure un tocat (costat {{side}})',
   'team.touch_side': '+ Tocat (costat {{side}})',
   'team.card_title': 'Targeta {{type}} E',
   'team.cards_label': "Targetes d'equip «E» — {{team}}",
