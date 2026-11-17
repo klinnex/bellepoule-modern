@@ -10,6 +10,7 @@
  */
 import Database from 'better-sqlite3-multiple-ciphers';
 import * as fs from 'fs';
+import { randomBytes } from 'crypto';
 
 /** En-tête d'une base SQLite en clair */
 const PLAIN_HEADER = Buffer.from('SQLite format 3\0', 'ascii');
@@ -20,8 +21,13 @@ export class DatabaseEncryptionError extends Error {}
 
 /** Vrai si le fichier existe, n'est pas vide et commence par l'en-tête SQLite en clair */
 export function isPlainSqliteFile(file: string): boolean {
-  if (!fs.existsSync(file)) return false;
-  const fd = fs.openSync(file, 'r');
+  let fd: number;
+  try {
+    fd = fs.openSync(file, 'r');
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return false;
+    throw e;
+  }
   try {
     const head = Buffer.alloc(PLAIN_HEADER.length);
     const read = fs.readSync(fd, head, 0, head.length, 0);
@@ -33,8 +39,14 @@ export function isPlainSqliteFile(file: string): boolean {
 
 /** Vrai si le fichier est non vide et ne ressemble pas à une base en clair (donc chiffré) */
 export function isEncryptedDatabaseFile(file: string): boolean {
-  if (!fs.existsSync(file) || fs.statSync(file).size === 0) return false;
-  return !isPlainSqliteFile(file);
+  let size: number;
+  try {
+    size = fs.statSync(file).size;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return false;
+    throw e;
+  }
+  return size > 0 && !isPlainSqliteFile(file);
 }
 
 function keyLiteral(key: Buffer): string {
@@ -85,10 +97,16 @@ export function openDatabaseFile(file: string, key: Buffer | null): Database.Dat
 
 /** Écrase le contenu d'un fichier de zéros avant suppression (best effort, cf. docs/RGPD.md) */
 export function shredFile(file: string): void {
-  if (!fs.existsSync(file)) return;
-  const size = fs.statSync(file).size;
-  const fd = fs.openSync(file, 'r+');
+  let fd: number;
   try {
+    fd = fs.openSync(file, 'r+');
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return;
+    throw e;
+  }
+  try {
+    // Taille lue sur le descripteur ouvert : pas de vérification par chemin puis ouverture
+    const size = fs.fstatSync(fd).size;
     const zeros = Buffer.alloc(Math.min(size, 1 << 20));
     for (let off = 0; off < size; off += zeros.length) {
       fs.writeSync(fd, zeros, 0, Math.min(zeros.length, size - off), off);
@@ -108,6 +126,10 @@ function removeSidecars(file: string): void {
 
 /** Fichier de migration intermédiaire / ancienne version en clair laissés par un arrêt brutal */
 const MIGRATION_TMP = '.enc-tmp';
+/** Nom de copie imprévisible : évite toute collision avec un fichier préexistant */
+function migrationTmpName(file: string): string {
+  return `${file}.${randomBytes(8).toString('hex')}${MIGRATION_TMP}`;
+}
 const PLAIN_OLD = '.plain-old';
 
 /**
@@ -116,9 +138,7 @@ const PLAIN_OLD = '.plain-old';
  * En cas d'échec avant le remplacement, la base en clair d'origine reste intacte.
  */
 export function encryptPlainDatabaseFile(file: string, key: Buffer): void {
-  const tmp = `${file}${MIGRATION_TMP}`;
-  removeSidecars(tmp);
-  fs.rmSync(tmp, { force: true });
+  const tmp = migrationTmpName(file);
 
   // 1. Tout dans le fichier principal (pas de WAL), puis copie
   const src = new Database(file);
@@ -129,7 +149,8 @@ export function encryptPlainDatabaseFile(file: string, key: Buffer): void {
     src.close();
   }
   removeSidecars(file);
-  fs.copyFileSync(file, tmp);
+  // COPYFILE_EXCL : échoue plutôt que d'écraser un fichier apparu entre-temps
+  fs.copyFileSync(file, tmp, fs.constants.COPYFILE_EXCL);
 
   try {
     // 2. Chiffrement de la copie
@@ -171,9 +192,8 @@ export function encryptPlainDatabaseFile(file: string, key: Buffer): void {
 
 /** Nettoyage après une migration interrompue : ancien fichier en clair restant, si la base chiffrée est saine */
 export function cleanupInterruptedMigration(file: string, key: Buffer): void {
-  const old = `${file}${PLAIN_OLD}`;
-  if (!fs.existsSync(old)) return;
-  if (!fs.existsSync(file) || isPlainSqliteFile(file)) return;
+  // Base chiffrée saine requise ; shredFile ignore un ancien fichier absent
+  if (!isEncryptedDatabaseFile(file)) return;
   openEncryptedDatabase(file, key).close();
-  shredFile(old);
+  shredFile(`${file}${PLAIN_OLD}`);
 }
