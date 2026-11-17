@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Übungen",
+    "search": "Übung suchen",
     "title": "Übungsbibliothek ({{count}})",
     "help": "Ihre Aufwärm-, Technik- und Taktikübungen, in allen Trainingsplänen wiederverwendbar und per Datei teilbar.",
     "category": "Kategorie",

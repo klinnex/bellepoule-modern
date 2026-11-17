@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Exercicis",
+    "search": "Cerca un exercici",
     "title": "Biblioteca d'exercicis ({{count}})",
     "help": "Els vostres escalfaments i exercicis tècnics i tàctics, reutilitzables en tots els plans i compartibles per fitxer.",
     "category": "Família",

@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Exercícios",
+    "search": "Pesquisar um exercício",
     "title": "Biblioteca de exercícios ({{count}})",
     "help": "Os seus aquecimentos e exercícios técnicos e táticos, reutilizáveis em todos os planos e partilháveis por ficheiro.",
     "category": "Família",

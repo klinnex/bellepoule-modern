@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Exercises",
+    "search": "Search an exercise",
     "title": "Exercise library ({{count}})",
     "help": "Your warm-ups, technical and tactical drills, reusable in every session plan and shareable as a file.",
     "category": "Category",

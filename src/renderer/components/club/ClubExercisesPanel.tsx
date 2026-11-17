@@ -153,8 +153,8 @@ export const ClubExercisesPanel: React.FC = () => {
             className="form-input club-grow"
             type="search"
             value={search}
-            placeholder={t('club.search')}
-            aria-label={t('club.search')}
+            placeholder={t('clubExercises.search')}
+            aria-label={t('clubExercises.search')}
             onChange={e => setSearch(e.target.value)}
           />
         </div>

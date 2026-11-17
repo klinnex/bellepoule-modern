@@ -748,3 +748,8 @@
   color: inherit;
   cursor: pointer;
 }
+
+/* #1872 : icône du sélecteur de date natif lisible en mode sombre */
+.theme-dark input[type='date'] {
+  color-scheme: dark;
+}
