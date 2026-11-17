@@ -129,6 +129,24 @@ d'arènes proposé par le serveur distant ; chaque piste peut porter un libellé
 | `upsert_venue` | `name`, `id?`, `stripCount?`, `isDefault?` | Salle et ses pistes ; la première devient la salle par défaut |
 | `set_default_venue` | `venueId` | Salle par défaut |
 
+## Séances du club (Mode Club, #1872)
+
+Mêmes dépôts que l'onglet Séances (`db.club`). Lecture : `list_clubs`, `list_club_sessions`,
+`get_club_session` (présents et encadrement par nom, plan, notes, bilan). Écriture, sur autorisation :
+
+| Outil | Effet |
+|---|---|
+| `create_club_session` | Séance du club : date, intitulé, arme, pistes, maîtres d'armes, objectifs, tranche d'âge ; `planned: true` la prépare sans l'ouvrir |
+| `start_club_session` | Ouvre une séance préparée |
+| `close_club_session` | Ferme une séance ouverte : combats non terminés annulés, séance déliée du serveur d'entraînement |
+| `reopen_club_session` | Rouvre une séance fermée |
+| `update_club_session` | Modifie les champs fournis, dont le bilan (`feedback` : `rating` 1 à 5, `wentWell`, `toImprove`) et les notes |
+| `check_in_club_members` | Pointe (`present: true`) ou dépointe des membres (200 au plus par appel) |
+
+Pas de suppression de séance par l'agent, ni de saisie de combats : à l'écran. Pas de données
+personnelles au-delà des noms (ni licence, ni date de naissance). Aucune notification n'est
+encore envoyée à l'écran du club après une écriture de l'agent.
+
 
 | Fichier | Rôle |
 |---|---|
@@ -136,6 +154,7 @@ d'arènes proposé par le serveur distant ; chaque piste peut porter un libellé
 | `src/main/mcp/mcpWriteTools.ts` | Outils d'écriture (lot 2) |
 | `src/main/mcp/mcpAdminTools.ts` | Paramétrage, salles, arbitres, serveur distant, suppression |
 | `src/main/mcp/mcpSportTools.ts` | Orchestration sportive (lot 3) |
+| `src/main/mcp/mcpClubTools.ts` | Séances du Mode Club |
 | `src/main/domain/` | Couche domaine : `sport.ts` (poules, scores, tableau), `exportResults.ts`, `settings.ts`, `files.ts` |
 | `src/main/batchImport.ts`, `src/main/cliArgs.ts` | `--batch-import`, `--mcp*` |
 | `src/main/mcp/mcpServer.ts` | Serveur HTTP JSON-RPC, jeton, contrôle Host / Origin |
@@ -152,11 +171,11 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (29)
+## Référence des outils (38)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
-### En lecture (13)
+### En lecture (16)
 
 ### `list_competitions` — Lister les épreuves
 
@@ -255,7 +274,32 @@ Aucun argument.
 
 Aucun argument.
 
-### En écriture, sur autorisation (16)
+### `list_clubs` — Lister les clubs
+
+*lecture.* Clubs du Mode Club : identifiant, nom, nombre de pistes, arme par défaut.
+
+Aucun argument.
+
+### `list_club_sessions` — Lister les séances d’un club
+
+*lecture.* Séances d’un club, les plus récentes d’abord : identifiant, date, intitulé, statut (planned : préparée ; open : ouverte ; closed : fermée), nombre de présents. Filtres facultatifs par période et par statut.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `clubId` | string | oui | Identifiant du club (list_clubs) |
+| `from` | string |  | Date minimale AAAA-MM-JJ |
+| `to` | string |  | Date maximale AAAA-MM-JJ |
+| `status` | `planned`, `open`, `closed` |  |  |
+
+### `get_club_session` — Détail d’une séance
+
+*lecture.* Séance d’un club : date, intitulé, arme, statut, maîtres d’armes et présents (noms), plan de cours (titres et durées), objectifs, notes et bilan.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+
+### En écriture, sur autorisation (22)
 
 ### `create_competition` — Créer une épreuve
 
@@ -437,5 +481,78 @@ Aucun argument.
 | `format` | `xml`, `fff`, `csv`, `html`, `pdf` | oui |  |
 | `path` | string | oui | Chemin absolu du fichier à écrire |
 | `overwrite` | boolean |  | Remplacer un fichier existant |
+
+### `create_club_session` — Créer une séance
+
+*écriture.* Crée une séance d’un club : date, intitulé, arme, pistes, maîtres d’armes, objectifs, tranche d’âge du cours. « planned: true » la prépare sans l’ouvrir (start_club_session l’ouvre ensuite) ; sinon elle est ouverte tout de suite.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `clubId` | string | oui | Identifiant du club (list_clubs) |
+| `date` | string | oui | Date AAAA-MM-JJ |
+| `label` | string |  | Intitulé de la séance |
+| `weapon` | `E`, `F`, `S`, `L` |  | Arme (règles de la saisie distante) |
+| `stripCount` | number |  | Nombre de pistes |
+| `coachIds` | string[] |  | Maîtres d’armes encadrant (identifiants du club) |
+| `objectives` | string |  |  |
+| `planned` | boolean |  | Séance préparée, non ouverte |
+| `ageFrom` | string |  | Catégorie d’âge de début du cours (U9 … V4) |
+| `ageTo` | string |  | Catégorie d’âge de fin du cours (U9 … V4) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `start_club_session` — Ouvrir une séance préparée
+
+*écriture.* Ouvre une séance préparée (statut planned). Les autres séances ouvertes restent ouvertes.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `close_club_session` — Fermer une séance
+
+*écriture.* Ferme une séance ouverte. Les combats non terminés sont annulés et la séance est déliée du serveur d’entraînement. Réouverture possible (reopen_club_session).
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `reopen_club_session` — Rouvrir une séance
+
+*écriture.* Rouvre une séance fermée.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `update_club_session` — Modifier une séance
+
+*écriture, idempotent.* Modifie une séance : date, intitulé, arme, pistes, maîtres d’armes, objectifs, notes, tranche d’âge, bilan (note 1 à 5, points forts, à améliorer). Seuls les champs fournis changent.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+| `date` | string |  | Date AAAA-MM-JJ |
+| `label` | string |  |  |
+| `weapon` | `E`, `F`, `S`, `L` |  |  |
+| `stripCount` | number |  |  |
+| `coachIds` | string[] |  |  |
+| `objectives` | string |  |  |
+| `notes` | string |  | Compte rendu du maître d’armes |
+| `feedback` | object |  | Bilan : rating (1 à 5), wentWell, toImprove |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `check_in_club_members` — Pointer les membres d’une séance
+
+*écriture, idempotent.* Pointe (present: true) ou dépointe (present: false) des membres du club pour une séance. Les identifiants viennent de list_members côté écran ; get_club_session donne les présents.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+| `memberIds` | string[] | oui | Identifiants des membres (200 au plus) |
+| `present` | boolean | oui | true : pointer ; false : dépointer |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
 <!-- outils-mcp:fin -->

@@ -12,6 +12,7 @@ import { MCP_TOOLS, McpToolError, type McpTool } from './mcpTools';
 import { MCP_WRITE_TOOLS, type McpWriteDeps, type McpWriteTool } from './mcpWriteTools';
 import { MCP_SPORT_READ_TOOLS, MCP_SPORT_TOOLS } from './mcpSportTools';
 import { MCP_ADMIN_READ_TOOLS, MCP_ADMIN_TOOLS } from './mcpAdminTools';
+import { MCP_CLUB_READ_TOOLS, MCP_CLUB_TOOLS } from './mcpClubTools';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { McpLogEntry } from '../../shared/types/mcp';
 
@@ -21,17 +22,19 @@ export const MCP_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const MAX_BODY = 1_000_000;
 const MAX_BATCH = 20;
 
-/** Outils en lecture : lot 1, matchs (lot 3), paramétrage du poste */
+/** Outils en lecture : lot 1, matchs (lot 3), paramétrage du poste, séances du club */
 export const READ_TOOLS: McpTool[] = [
   ...MCP_TOOLS,
   ...MCP_SPORT_READ_TOOLS,
   ...MCP_ADMIN_READ_TOOLS,
+  ...MCP_CLUB_READ_TOOLS,
 ];
 /** Outils d'écriture (sur autorisation) : lot 2, compléments, orchestration sportive (lot 3) */
 export const WRITE_TOOLS: McpWriteTool[] = [
   ...MCP_WRITE_TOOLS,
   ...MCP_ADMIN_TOOLS,
   ...MCP_SPORT_TOOLS,
+  ...MCP_CLUB_TOOLS,
 ];
 const LOG_MAX = 200;
 
