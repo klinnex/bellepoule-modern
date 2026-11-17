@@ -14,7 +14,7 @@ import type { McpWriteDeps } from './mcpWriteTools';
 import { runBatchImport } from '../batchImport';
 import { rowsToXlsx } from '../xlsxToCsv';
 
-vi.mock('better-sqlite3', async () => ({
+vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 

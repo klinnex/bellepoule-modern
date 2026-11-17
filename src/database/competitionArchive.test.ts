@@ -6,7 +6,7 @@ import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive
 let Database: any = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Database = require('better-sqlite3');
+  Database = require('better-sqlite3-multiple-ciphers');
   new Database(':memory:').close();
 } catch {
   Database = null;

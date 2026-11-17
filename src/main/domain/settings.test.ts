@@ -14,7 +14,7 @@ import { resolveSetting, upsertVenue } from './settings';
 import { ALL_MIGRATIONS } from '../../database/migrations/migrations';
 import { NodeSqliteDatabase } from '../../database/testing/nodeSqliteDatabase';
 
-vi.mock('better-sqlite3', async () => ({
+vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 

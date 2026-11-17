@@ -210,7 +210,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 └── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)
 
 Database (src/database/)
-├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
+├── index.ts             # DatabaseManager class (better-sqlite3-multiple-ciphers, SQLCipher), file <userData>/bellepoule.db
 ├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club, privacy) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
 └── migrations/          # Schema migrations (index.ts runner + migrations.ts, 39 versions)
@@ -220,7 +220,7 @@ Database (src/database/)
 
 1. **IPC via Preload**: All renderer-to-main communication uses `window.electronAPI` exposed by `preload.ts`. Never use `remote` or direct IPC in the renderer.
 
-2. **Database**: better-sqlite3 provides synchronous native SQLite (rebuilt via electron-rebuild postinstall). All operations go through `DatabaseManager`. Atomic writes (temp file + rename). Autosave every 2 minutes; save on quit.
+2. **Database**: better-sqlite3-multiple-ciphers (SQLCipher, clé dans safeStorage, #1882) provides synchronous native SQLite (rebuilt via electron-rebuild postinstall). All operations go through `DatabaseManager`. Atomic writes (temp file + rename). Autosave every 2 minutes; save on quit.
 
 3. **Remote Scoring**: Express server with Socket.IO on port 8066 (next free port if busy), HTTPS optional (on by default in UI). Arena display at `/arene{N}`, referee interface at `/arene{N}/arbitre` (password → `bp_token_arena{N}` cookie). Referee actions go through the `arena_control` socket event. HTML served in-memory. Docs: `REMOTE_SCORE_GUIDE.md`, `docs/ARBITRAGE.md`.
 
@@ -294,9 +294,9 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Main process changes require Electron restart; renderer hot-reloads via Webpack
 - Remote score server and Webpack dev server both use port 8066 (référence à l'Ordre 66)
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
-- Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
+- Only native/runtime modules are in `dependencies` (better-sqlite3-multiple-ciphers, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
+- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3-multiple-ciphers 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
 
 ## Git Conventions
 

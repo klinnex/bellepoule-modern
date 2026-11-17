@@ -1,12 +1,13 @@
 /**
- * BellePoule Modern - Database Layer (better-sqlite3)
+ * BellePoule Modern - Database Layer (better-sqlite3-multiple-ciphers, SQLCipher #1882)
  * Native SQLite binding — synchronous, 10-50× faster than sql.js at startup.
  * Licensed under GPL-3.0
  */
 
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import * as path from 'path';
 import * as fs from 'fs';
+import { openDatabaseFile } from './encryption';
 import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive';
 import { MigrationManager } from './migrations';
 import { SignatureRepo } from './repos/signatureRepo';
@@ -38,6 +39,8 @@ const STMT_CACHE_MAX = 500;
 export class DatabaseManager {
   private db: Database.Database | null = null;
   private dbPath: string;
+  /** Clé SQLCipher de la base ouverte (null = en clair) — RGPD #1882 */
+  private encryptionKey: Buffer | null = null;
   // Cache des prepared statements : évite de re-parser le SQL à chaque appel.
   // SQLite re-prépare automatiquement un statement si le schéma change.
   private stmtCache = new Map<string, Database.Statement>();
@@ -83,14 +86,23 @@ export class DatabaseManager {
     this.dbPath = dbPath;
   }
 
-  public async open(dbPath?: string): Promise<void> {
+  /**
+   * Ouvre la base. `encryptionKey` (RGPD #1882) : clé SQLCipher ; absente = base en clair.
+   * Sans clé, une base chiffrée est refusée. Un fichier ouvert via `importFromFile` est
+   * toujours ouvert sans clé (il garde son format).
+   */
+  public async open(
+    dbPath?: string,
+    options: { encryptionKey?: Buffer | null } = {}
+  ): Promise<void> {
     if (dbPath) this.dbPath = dbPath;
 
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
     this.stmtCache.clear();
-    this.db = new Database(this.dbPath);
+    this.encryptionKey = options.encryptionKey ?? null;
+    this.db = openDatabaseFile(this.dbPath, this.encryptionKey);
     this.db.pragma('journal_mode = WAL');
     // WAL + NORMAL : durable au crash applicatif, nettement moins de fsync que FULL
     this.db.pragma('synchronous = NORMAL');
@@ -196,6 +208,11 @@ export class DatabaseManager {
 
   public getPath(): string {
     return this.dbPath;
+  }
+
+  /** Vrai si la base ouverte est chiffrée au repos (SQLCipher, #1882) */
+  public isEncrypted(): boolean {
+    return this.db !== null && this.encryptionKey !== null;
   }
 
   public isOpen(): boolean {

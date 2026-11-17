@@ -125,8 +125,8 @@ exporte une compétition (ou toute la base) chiffrée par mot de passe :
 
 ## 4. Mesures de sécurité recommandées à l'organisateur
 
-- **Chiffrer le disque** de l'ordinateur (BitLocker, FileVault, LUKS) : la base
-  `bellepoule.db` n'est pas chiffrée par l'application (voir § 6).
+- **Chiffrer le disque** de l'ordinateur (BitLocker, FileVault, LUKS) : recommandé en complément
+  du chiffrement de la base par l'application (voir § 6) ; il couvre aussi les exports et sauvegardes.
 - Session utilisateur protégée par mot de passe ; verrouillage automatique.
 - Activer le chiffrement de la sauvegarde cloud ; chiffrer les `.bpm` transmis.
 - Wi-Fi de la salle protégé (WPA2/3) ; mots de passe d'arène ; HTTPS du serveur distant.
@@ -147,9 +147,23 @@ exports déjà diffusés et les sauvegardes, à leur prochaine rotation.
 
 ## 6. Limites connues
 
-- **Chiffrement au repos de la base** : non intégré. SQLCipher demanderait de remplacer
-  `better-sqlite3` par une variante chiffrée (dépendance native, packaging des 3 plates-formes,
-  migration des bases existantes) ; suivi à part. Mesure compensatoire : chiffrement du disque.
+- **Chiffrement au repos (SQLCipher)** : `bellepoule.db` est chiffrée (SQLCipher 4, AES-256) dès
+  le premier lancement ; une base en clair existante est migrée en place au démarrage. La clé
+  (256 bits aléatoires) est stockée dans `<userData>/db-key.bin`, chiffrée par le trousseau du
+  système (Keychain, DPAPI, libsecret) ; elle n'est jamais écrite en clair.
+  Limites :
+  - si le trousseau n'est pas disponible (Linux sans gestionnaire de secrets), la base reste
+    **en clair** et un avertissement est journalisé ;
+  - la clé est liée au compte système : une copie du dossier `userData` sur un autre poste ou
+    après réinitialisation du trousseau rend la base **illisible** (l'application refuse de
+    l'ouvrir et n'écrase rien). Transporter les données via les archives `.bpm` chiffrées ;
+  - les fichiers **exportés** restent en clair : **Enregistrer sous**, exports PDF/CSV/XML,
+    `.bpm` non chiffré, et **sauvegardes automatiques** (dossier de sauvegarde, cf. réglages).
+    Les chiffrer relève de l'organisateur (archive `.bpm` chiffrée, chiffrement du disque) ;
+  - **Fichier → Ouvrir** d'un fichier externe l'ouvre dans son format (en clair s'il l'est) ;
+  - l'effacement des anciennes versions de la base repose sur `secure_delete` et un écrasement
+    du fichier : sur support SSD, la couche flash peut conserver des copies hors de portée de
+    l'application. Mesure compensatoire : chiffrement du disque.
 - Les exports déjà produits (PDF, CSV, XML, `.bpm` non chiffrés) ne sont pas suivis par
   l'application : leur effacement relève de l'organisateur.
 - Les référentiels importés (classements FFE, fichiers FFF) restent sous la responsabilité
@@ -175,6 +189,8 @@ exports déjà diffusés et les sauvegardes, à leur prochaine rotation.
 
 | Fichier | Rôle |
 |---|---|
+| `src/database/encryption.ts` | Chiffrement SQLCipher : ouverture, migration d'une base en clair, écrasement |
+| `src/main/dbKey.ts` | Clé de la base, stockée chiffrée par safeStorage (`db-key.bin`) |
 | `src/database/repos/privacyRepo.ts` | Recherche, export, anonymisation, effacement, conservation, purge d'une compétition |
 | `src/main/ipc/privacyHandlers.ts` | Canaux `privacy:*`, purge automatique au démarrage |
 | `src/main/privacySettings.ts` | Réglages `<userData>/privacy-settings.json` |

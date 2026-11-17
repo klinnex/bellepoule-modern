@@ -50,7 +50,7 @@
     "check:i18n-visual": "node scripts/capture-i18n.js",
     "cyrano:sim": "node scripts/cyrano-simulator.js",
     "cyrano:remote": "node scripts/cyrano-remote.js",
-    "postinstall": "electron-rebuild -f -w better-sqlite3"
+    "postinstall": "electron-rebuild -f -w better-sqlite3-multiple-ciphers"
   },
   "keywords": [
     "fencing",
@@ -89,7 +89,7 @@
     },
     "asarUnpack": [
       "dist/remote/**/*",
-      "**/node_modules/better-sqlite3/**/*",
+      "**/node_modules/better-sqlite3-multiple-ciphers/**/*",
       "**/node_modules/tesseract.js/**/*"
     ],
     "extraResources": [
@@ -161,7 +161,7 @@
     }
   },
   "dependencies": {
-    "better-sqlite3": "^13.1.1",
+    "better-sqlite3-multiple-ciphers": "^13.2.0",
     "lucide-react": "^1.72.0",
     "selfsigned": "^5.5.0"
   },
@@ -173,7 +173,6 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.10",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
     "@types/qrcode": "^1.5.6",

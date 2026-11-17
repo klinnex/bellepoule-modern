@@ -16,7 +16,7 @@ import { assignPoolReferees, buildBracket, generatePools, listMatches, recordSco
 import { getBracket, getPoolRanking } from './sessionView';
 import { exportResults } from './exportResults';
 
-vi.mock('better-sqlite3', async () => ({
+vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 

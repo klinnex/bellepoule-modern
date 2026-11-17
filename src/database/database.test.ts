@@ -11,7 +11,7 @@ const makeStmt = (overrides: Partial<{ get: any; all: any; run: any }> = {}) => 
   ...overrides,
 });
 
-vi.mock('better-sqlite3', () => ({
+vi.mock('better-sqlite3-multiple-ciphers', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: vi.fn().mockImplementation(function (this: any) {
     return mockDb;
@@ -56,7 +56,7 @@ describe('DatabaseManager', () => {
 
   describe('initialize (open)', () => {
     it('crée une Database et configure les pragmas', async () => {
-      const Database = (await import('better-sqlite3')).default as any;
+      const Database = (await import('better-sqlite3-multiple-ciphers')).default as any;
       await manager.open();
       expect(Database).toHaveBeenCalledWith('/tmp/test-bellepoule.db');
       expect(mockDb.pragma).toHaveBeenCalledWith('journal_mode = WAL');

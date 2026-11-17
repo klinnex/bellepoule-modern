@@ -301,7 +301,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - **Electron 45** (Node 24) : application de bureau multi-plateforme
 - **React 19.3** + **Zustand 5** : interface et état
 - **TypeScript 7.0** (type-check natif, strict) + 6.0 pour l'outillage + **Webpack 5**
-- **SQLite** via **better-sqlite3 13**
+- **SQLite** via **better-sqlite3-multiple-ciphers 13** (SQLCipher : base chiffrée au repos, #1882)
 - **Express 5** + **Socket.IO 4.8** : serveur temps réel des tablettes
 - **jsPDF 4** : génération PDF
 - **Vitest 5** + **Playwright 1.64** : tests
@@ -364,7 +364,7 @@ git clone https://github.com/klinnex/bellepoule-modern.git
 
 # Installation des dépendances (Node.js 22 requis)
 cd bellepoule-modern
-npm install          # recompile better-sqlite3 pour Electron (postinstall)
+npm install          # recompile better-sqlite3-multiple-ciphers pour Electron (postinstall)
 
 # Construire et lancer
 npm start   # Ubuntu 24.04+ : si Electron plante (SUID sandbox), voir docs/SECURITE_ELECTRON.md
