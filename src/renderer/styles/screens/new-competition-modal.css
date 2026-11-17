@@ -90,10 +90,27 @@
   color: var(--color-warning);
 }
 
-.federal-import-conflicts ul,
-.federal-import-notices {
+.federal-import-conflicts ul {
   margin: 0.25rem 0 0;
   padding-left: 1.25rem;
+}
+
+/* Avertissements : encadrés neutres, sans puce */
+.federal-import-notices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.federal-import-notices li {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 
 .federal-import-source {

@@ -2393,7 +2393,8 @@
     "fie_relay": "Relleu FIE clàssic (objectiu acumulat)",
     "laser_arena": "Arena per equips (assalts de 5 tocats/3 min, reglament ASL-FFE)",
     "location_ph": "P. ex.: Gimnàs Jean Moulin, París",
-    "formula_builder": "Constructor de fórmula"
+    "formula_builder": "Constructor de fórmula",
+    "submit": "Crea la competició"
   },
   "competitionList": {
     "welcome": "Benvingut a {{app}}",

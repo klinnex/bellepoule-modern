@@ -2393,7 +2393,8 @@
     "fie_relay": "Relais FIE classique (cible cumulée)",
     "laser_arena": "Arène équipe (assauts 5 touches/3min, règlement ASL-FFE)",
     "location_ph": "Ex : Gymnase Jean Moulin, Paris",
-    "formula_builder": "Constructeur de formule"
+    "formula_builder": "Constructeur de formule",
+    "submit": "Créer la compétition"
   },
   "competitionList": {
     "welcome": "Bienvenue sur {{app}}",

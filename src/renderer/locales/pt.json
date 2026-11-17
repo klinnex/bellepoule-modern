@@ -2393,7 +2393,8 @@
     "fie_relay": "Revezamento FIE clássico (alvo acumulado)",
     "laser_arena": "Pista de equipas (combates de 5 toques/3 min, regras ASL-FFE)",
     "location_ph": "Ex.: Pavilhão Jean Moulin, Paris",
-    "formula_builder": "Construtor de fórmulas"
+    "formula_builder": "Construtor de fórmulas",
+    "submit": "Criar a competição"
   },
   "competitionList": {
     "welcome": "Bem-vindo ao {{app}}",

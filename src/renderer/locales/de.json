@@ -2393,7 +2393,8 @@
     "fie_relay": "Klassische FIE-Staffel (kumuliertes Ziel)",
     "laser_arena": "Team-Arena (Gefechte 5 Treffer/3 Min., ASL-FFE-Reglement)",
     "location_ph": "Z. B. Sporthalle Jean Moulin, Paris",
-    "formula_builder": "Formel-Editor"
+    "formula_builder": "Formel-Editor",
+    "submit": "Wettkampf erstellen"
   },
   "competitionList": {
     "welcome": "Willkommen bei {{app}}",

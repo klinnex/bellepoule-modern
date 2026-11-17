@@ -2393,7 +2393,8 @@
     "fie_relay": "傳統 FIE 接力（累計目標）",
     "laser_arena": "團體場地（5 劍／3 分鐘，ASL-FFE 規則）",
     "location_ph": "例如：巴黎 Jean Moulin 體育館",
-    "formula_builder": "公式建構器"
+    "formula_builder": "公式建構器",
+    "submit": "建立比賽"
   },
   "competitionList": {
     "welcome": "歡迎使用 {{app}}",

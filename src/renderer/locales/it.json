@@ -2393,7 +2393,8 @@
     "fie_relay": "Staffetta FIE classica (bersaglio cumulato)",
     "laser_arena": "Arena a squadre (assalti da 5 tocchi/3 min, regolamento ASL-FFE)",
     "location_ph": "Es.: Palestra Giovanni Verga, Roma",
-    "formula_builder": "Costruttore di formula"
+    "formula_builder": "Costruttore di formula",
+    "submit": "Crea la competizione"
   },
   "competitionList": {
     "welcome": "Benvenuto in {{app}}",

@@ -2393,7 +2393,8 @@
     "fie_relay": "Erlec'hiadeg FIE klasel (pal berniet)",
     "laser_arena": "Arena skipailh (emgannoù 5 taol/3 munut, reolenn ASL-FFE)",
     "location_ph": "Sk. : Sal-sport Jean Moulin, Pariz",
-    "formula_builder": "Saver formulennoù"
+    "formula_builder": "Saver formulennoù",
+    "submit": "Krouiñ ar genstrivadeg"
   },
   "competitionList": {
     "welcome": "Degemer mat e {{app}}",

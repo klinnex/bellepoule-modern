@@ -2393,7 +2393,8 @@
     "fie_relay": "Relevo FIE clásico (objetivo acumulado)",
     "laser_arena": "Arena por equipos (asaltos de 5 tocados/3 min, reglamento ASL-FFE)",
     "location_ph": "Ej.: Gimnasio Jean Moulin, París",
-    "formula_builder": "Constructor de fórmula"
+    "formula_builder": "Constructor de fórmula",
+    "submit": "Crear la competición"
   },
   "competitionList": {
     "welcome": "Bienvenido a {{app}}",

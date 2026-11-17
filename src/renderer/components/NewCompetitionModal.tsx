@@ -449,7 +449,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 {t('actions.cancel')}
               </Button>
               <Button type="submit" variant="primary">
-                {t('actions.add')} {t('competition.title').toLowerCase()}
+                {t('newCompetition.submit')}
               </Button>
             </div>
           </form>

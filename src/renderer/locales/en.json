@@ -2393,7 +2393,8 @@
     "fie_relay": "Classic FIE relay (cumulative target)",
     "laser_arena": "Team arena (5-touch/3-min bouts, ASL-FFE rules)",
     "location_ph": "E.g. Jean Moulin Gym, Paris",
-    "formula_builder": "Formula builder"
+    "formula_builder": "Formula builder",
+    "submit": "Create the competition"
   },
   "competitionList": {
     "welcome": "Welcome to {{app}}",
