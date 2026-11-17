@@ -105,6 +105,12 @@ export function setTeamArenaMatch(
     })),
     matchId: detail.id,
     competitionId: detail.competitionId,
+    coords: {
+      poolNumber: detail.poolNumber ?? 1,
+      round: detail.round ?? null,
+      position: detail.position ?? null,
+      number: detail.number ?? 1,
+    },
     teamAId: detail.teamAId,
     teamAName: detail.teamAName,
     teamBId: detail.teamBId,

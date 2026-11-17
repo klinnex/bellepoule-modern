@@ -17,7 +17,7 @@
 import type { Socket } from 'socket.io';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaMatch, ArenaUpdate } from '../../shared/types/remote';
-import type { MatchCoordsSource } from '../cyrano/matchCoords';
+import { resolveCyranoPhases, type MatchCoordsSource } from '../cyrano/matchCoords';
 import type { CyranoNatSource } from '../cyrano/names';
 import { buildMatchDisplay } from './matchDisplay';
 import { toCyranoWeapon } from '../cyrano/disp';
@@ -241,6 +241,10 @@ export class PisteHub {
     if (!view) return null;
     if (view.bout) return view;
     return hasAssignment(remote, `arena${link.arena}`) ? null : view;
+  }
+
+  phases(competitionId: string): { pool: number; tableau: number } {
+    return resolveCyranoPhases(competitionId, this.coordsSource);
   }
 
   /** Champ épreuve de l'affichage (obligatoire en Cyrano) : l'épreuve suivie par la piste. */

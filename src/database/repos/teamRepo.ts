@@ -445,6 +445,11 @@ export class TeamRepo {
     teamBName: string;
     status: string;
     currentBoutIndex: number;
+    /** Poule de la rencontre, ou tour et position du tableau ; rang dans la poule (dès 1) */
+    poolNumber: number;
+    round: number | null;
+    position: number | null;
+    number: number;
     bouts: Array<{
       id: string;
       boutOrder: number;
@@ -472,9 +477,19 @@ export class TeamRepo {
        WHERE b.match_id = ? ORDER BY b.bout_order`,
       [matchId]
     );
+    // Rang de la rencontre dans sa poule (ordre de création) : n° de match de l'affichage
+    const before = this.sql.queryOne<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM team_matches
+       WHERE competition_id = ? AND pool_number = ? AND round IS NULL AND created_at < ?`,
+      [m.competition_id, m.pool_number, m.created_at]
+    );
     return {
       id: m.id as string,
       competitionId: m.competition_id as string,
+      poolNumber: Number(m.pool_number) || 1,
+      round: m.round == null ? null : Number(m.round),
+      position: m.position == null ? null : Number(m.position),
+      number: (before?.n ?? 0) + 1,
       teamAId: m.team_a_id as string,
       teamAName: (teamA?.name as string) ?? '—',
       teamBId: m.team_b_id as string,

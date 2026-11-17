@@ -79,6 +79,8 @@ export interface TeamArenaState {
   fencerCards: TeamArenaFencerCard[];
   matchId: string;
   competitionId: string;
+  /** Poule (ou tour et position du tableau) et rang de la rencontre : champs de l'appareil de piste */
+  coords?: { poolNumber: number; round: number | null; position: number | null; number: number };
   teamAId: string;
   teamAName: string;
   teamBId: string;

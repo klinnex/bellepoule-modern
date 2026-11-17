@@ -172,13 +172,14 @@ class CyranoDevice extends EventEmitter {
 
   installDisp({ g, r, l }) {
     const { s } = this;
-    // Cartons transmis pour un match repris (PREV, appareil redémarré)
+    // Cartons et statut (abandon, exclusion) transmis pour un match repris (PREV, appareil redémarré)
     const f = z => ({
       ...emptyFencer(),
       id: z[0] || '',
       name: z[1] || '',
       nat: z[2] || '',
       score: Number(z[3]) || 0,
+      ...(z[4] === 'A' || z[4] === 'E' ? { status: z[4] } : {}),
       y: Number(z[5]) || 0,
       r: Number(z[6]) || 0,
     });

@@ -255,7 +255,26 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
       right: { id: short(A[0]), name: 'MARTIN P', nat: 'PAR', score: 0 },
       left: { id: short(B[0]), name: 'ROSSI M', nat: 'ROM', score: 0 },
     });
-    expect(lastDisp().phase).toBeUndefined();
+    // Phase, poule et n° de la rencontre : obligatoires dans un DISP (spéc. § 3)
+    expect(lastDisp()).toMatchObject({ phase: '1', poulTab: '1', match: '1' });
+  });
+
+  it('rencontre de tableau : phase du tableau, A<tour>, position + 1', () => {
+    mockDb.getCompetition.mockReturnValue({
+      id: 'comp-t',
+      weapon: 'S',
+      settings: { minTeamSize: 3, teamRelayStepSize: 5 },
+    });
+    mockDb.getTeamMatchDetail.mockReturnValue({
+      ...detail(0, []),
+      poolNumber: 1,
+      round: 8,
+      position: 2,
+      number: 1,
+    });
+    out = [];
+    remote.setTeamArenaMatch('1', 'tm1', false);
+    expect(lastDisp()).toMatchObject({ type: 'T', phase: '2', poulTab: 'A8', match: '3' });
   });
 
   it('compétition internationale : nation = pays du tireur', () => {

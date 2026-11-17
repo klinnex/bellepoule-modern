@@ -205,6 +205,14 @@ describe('Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)', () => {
     expect(d.snapshot().right).toMatchObject({ score: 5, y: 1, r: 0 });
     expect(d.snapshot().left).toMatchObject({ score: 2, y: 0, r: 2 });
     expect(d.snapshot().stopwatch).toBe('1:20');
+    // Statut d'un tireur sorti (abandon, exclusion) repris du DISP
+    d.command('raz');
+    d.receive(
+      `|EFP1.1|DISP|1|C1|2|A2|1||||I|F|N|||||%|${RIGHT.slice(0, 8)}|DUVAL J|FRA|5|U|%|` +
+        `${LEFT.slice(0, 8)}|FAURE M|FRA|2|E|%|`
+    );
+    expect(d.snapshot().left.status).toBe('E');
+    expect(d.snapshot().right.status).toBe('U');
   });
 });
 

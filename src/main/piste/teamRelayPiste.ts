@@ -16,7 +16,8 @@
  */
 
 import type { RemoteScoreServer } from '../remoteScoreServer';
-import type { TeamArenaBout } from '../remote/types';
+import type { TeamArenaBout, TeamArenaState } from '../remote/types';
+import { tableauId } from '../cyrano/disp';
 import {
   applyRelayDeviceState,
   fencerMeetingCards,
@@ -58,6 +59,8 @@ export interface TeamPisteHost {
   clearAlert(piste: string): void;
   notify(piste: string, notice: PisteNotice): void;
   competitionField(remote: RemoteScoreServer | null, link: PisteLink): string | undefined;
+  /** Champ Phase : tour de poules en cours et tableau de l'épreuve */
+  phases(competitionId: string): { pool: number; tableau: number };
 }
 
 /** Contexte de l'arène équipe d'un serveur distant (absent sur un serveur simulé). */
@@ -137,6 +140,18 @@ export class TeamRelayPiste {
     };
   }
 
+  /**
+   * Phase, poule ou tableau et n° de la rencontre : obligatoires dans un DISP (spéc. § 3).
+   * Rencontre de tableau : `A<tour>` et position + 1 ; sinon poule et rang dans la poule.
+   */
+  private coords(state: TeamArenaState): { phase: number; poulTab: string; match: number } {
+    const c = state.coords ?? { poolNumber: 1, round: null, position: null, number: 1 };
+    const phases = this.host.phases(state.competitionId);
+    return c.round
+      ? { phase: phases.tableau, poulTab: tableauId(c.round), match: (c.position ?? 0) + 1 }
+      : { phase: phases.pool, poulTab: String(c.poolNumber), match: c.number };
+  }
+
   /** Affiche le relais en cours (scores cumulés), ou rien quand la rencontre est terminée. */
   display(link: PisteLink, remote: RemoteScoreServer, view: TeamRelayView): void {
     const piste = link.piste;
@@ -153,6 +168,7 @@ export class TeamRelayPiste {
       kind: 'display',
       display: {
         type: 'team',
+        ...this.coords(state),
         round: bout.boutOrder,
         weapon: state.weapon,
         right: this.side(
