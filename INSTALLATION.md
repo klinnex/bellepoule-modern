@@ -23,7 +23,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 ### Step 1: Download
 
-1. Go to the [latest releases page](https://github.com/klinnex/bellepoule-modern/releases/latest)
+1. Go to the [latest releases page](https://github.com/BellePoule-Modern/bellepoule-modern/releases/latest)
 2. Download the appropriate file for your platform:
 
 | Platform | Architecture | Files |
@@ -83,7 +83,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/klinnex/bellepoule-modern.git
+   git clone https://github.com/BellePoule-Modern/bellepoule-modern.git
    cd bellepoule-modern
    ```
 
@@ -123,8 +123,8 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 The repository ships a `flake.nix` that builds the app with Nix (Linux, `x86_64` and `aarch64`). Electron comes from nixpkgs, and `better-sqlite3-multiple-ciphers` is recompiled against its headers.
 
 ```bash
-nix run github:klinnex/bellepoule-modern          # run the app
-nix build github:klinnex/bellepoule-modern        # → ./result/bin/bellepoule-modern
+nix run github:BellePoule-Modern/bellepoule-modern          # run the app
+nix build github:BellePoule-Modern/bellepoule-modern        # → ./result/bin/bellepoule-modern
 ```
 
 For maintainers: the `nix-build` CI job builds the package on every push to `dev` and `main`. When `package-lock.json` changes, regenerate the npm hash in `flake.nix` (`npmDepsHash`):
@@ -323,9 +323,9 @@ For remote scoring functionality, you need additional devices:
 
 ### Getting Help
 
-- **Documentation**: [GitHub Wiki](https://github.com/klinnex/bellepoule-modern/wiki)
-- **Issues**: [GitHub Issues](https://github.com/klinnex/bellepoule-modern/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/klinnex/bellepoule-modern/discussions)
+- **Documentation**: [GitHub Wiki](https://github.com/BellePoule-Modern/bellepoule-modern/wiki)
+- **Issues**: [GitHub Issues](https://github.com/BellePoule-Modern/bellepoule-modern/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/BellePoule-Modern/bellepoule-modern/discussions)
 
 ### Bug Reports
 

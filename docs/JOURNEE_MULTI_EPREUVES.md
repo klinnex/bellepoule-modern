@@ -1,6 +1,6 @@
 # Journée multi-épreuves
 
-> Demande [#1714](https://github.com/klinnex/bellepoule-modern/issues/1714). Lot 1 : journée + arbitres partagés. Lot 2 : pistes partagées + kiosk journée.
+> Demande [#1714](https://github.com/BellePoule-Modern/bellepoule-modern/issues/1714). Lot 1 : journée + arbitres partagés. Lot 2 : pistes partagées + kiosk journée.
 
 Plusieurs épreuves dans la même salle, le même jour, partagent les pistes et les arbitres.
 Une **journée** regroupe ces épreuves sur un même poste (même base `bellepoule.db`).

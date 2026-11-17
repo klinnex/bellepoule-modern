@@ -1,6 +1,6 @@
 # Primitives d'interface (renderer)
 
-Référence des composants communs de `src/renderer/components/common/`. Issue de suivi : [klinnex/bellepoule-modern#1529](https://github.com/klinnex/bellepoule-modern/issues/1529).
+Référence des composants communs de `src/renderer/components/common/`. Issue de suivi : [BellePoule-Modern/bellepoule-modern#1529](https://github.com/BellePoule-Modern/bellepoule-modern/issues/1529).
 
 ## Button
 

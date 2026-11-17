@@ -29,7 +29,7 @@ interroge la salle en langage naturel, prépare une journée, tire les poules, s
 export BELLEPOULE_MCP_TOKEN=<jeton copié depuis les Paramètres>
 ```
 
-Puis dans Claude Code : `/plugin install bellepoule --marketplace klinnex/bellepoule-modern`
+Puis dans Claude Code : `/plugin install bellepoule --marketplace BellePoule-Modern/bellepoule-modern`
 (depuis un clone : `claude --plugin-dir plugins/bellepoule`). Commandes : `/bp-etat` (état de la
 salle, lecture seule), `/bp-journee <dossier>` (préparer une journée), `/bp-epreuve <épreuve>`
 (conduire une épreuve). Le test `src/main/mcp/plugin.test.ts` vérifie que chaque outil cité par
