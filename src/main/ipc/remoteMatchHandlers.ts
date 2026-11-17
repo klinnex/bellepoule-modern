@@ -7,6 +7,8 @@ import { ipcMain } from 'electron';
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { remoteServers } from '../remoteRegistry';
 import { setActiveWave } from '../remote/activeWave';
+import type { Fencer } from '../../shared/types';
+import type { RendererMatch } from '../remote/types';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export function registerRemoteMatchHandlers(): void {
@@ -17,7 +19,7 @@ export function registerRemoteMatchHandlers(): void {
       _,
       competitionId: string,
       strips: number,
-      matches?: any[],
+      matches?: RendererMatch[],
       showPhotos?: boolean,
       kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
       cardAnnounce?: boolean
@@ -58,8 +60,8 @@ export function registerRemoteMatchHandlers(): void {
       matchId: string,
       fromArena: number | null,
       toArena: number | null,
-      fencerA?: any,
-      fencerB?: any
+      fencerA?: Fencer,
+      fencerB?: Fencer
     ) => {
       try {
         const entry = remoteServers.get(competitionId);
@@ -74,7 +76,7 @@ export function registerRemoteMatchHandlers(): void {
 
   ipcMain.handle(
     'remote:updatePoolFencers',
-    async (_, competitionId: string, updates: Array<{ poolId: string; fencers: any[] }>) => {
+    async (_, competitionId: string, updates: Array<{ poolId: string; fencers: Fencer[] }>) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
@@ -96,7 +98,11 @@ export function registerRemoteMatchHandlers(): void {
 
   ipcMain.handle(
     'remote:syncPoolMatches',
-    async (_, competitionId: string, poolsData: Array<{ poolId: string; matches: any[] }>) => {
+    async (
+      _,
+      competitionId: string,
+      poolsData: Array<{ poolId: string; matches: RendererMatch[] }>
+    ) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
@@ -108,27 +114,37 @@ export function registerRemoteMatchHandlers(): void {
     }
   );
 
-  ipcMain.handle('remote:assignPools', async (_, competitionId: string, poolsData: any[]) => {
-    try {
-      const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.assignPools(poolsData);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  ipcMain.handle(
+    'remote:assignPools',
+    async (
+      _,
+      competitionId: string,
+      poolsData: Parameters<RemoteScoreServer['assignPools']>[0]
+    ) => {
+      try {
+        const entry = remoteServers.get(competitionId);
+        if (!entry) return { success: false, error: 'server_not_started' };
+        entry.server.assignPools(poolsData);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+      }
     }
-  });
+  );
 
-  ipcMain.handle('remote:refreshDeMatches', async (_, competitionId: string, matches: any[]) => {
-    try {
-      const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.refreshDeMatches(matches);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  ipcMain.handle(
+    'remote:refreshDeMatches',
+    async (_, competitionId: string, matches: RendererMatch[]) => {
+      try {
+        const entry = remoteServers.get(competitionId);
+        if (!entry) return { success: false, error: 'server_not_started' };
+        entry.server.refreshDeMatches(matches);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+      }
     }
-  });
+  );
 
   ipcMain.handle('remote:resetPoolMatch', async (_, competitionId: string, matchId: string) => {
     try {

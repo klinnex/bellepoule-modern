@@ -87,7 +87,7 @@ export function useSettingsHandlers(ctx: Ctx) {
     setLogo(data);
     if (data) localStorage.setItem(LOGO_STORAGE_KEY, data);
     else localStorage.removeItem(LOGO_STORAGE_KEY);
-    const api = (window as any).electronAPI;
+    const api = window.electronAPI;
     if (api?.remote?.updateLogo)
       api.remote.updateLogo(data).catch((err: unknown) => {
         logger.warn(
@@ -101,7 +101,7 @@ export function useSettingsHandlers(ctx: Ctx) {
   const persistLogos = useCallback((next: LogoEntry[]) => {
     setLogos(next);
     saveLogoLibraryLocal(next);
-    (window as any).electronAPI?.saveLogos?.(next)?.catch?.(() => {
+    window.electronAPI?.saveLogos?.(next)?.catch?.(() => {
       /* persistance disque indisponible */
     });
   }, []);
@@ -165,7 +165,7 @@ export function useSettingsHandlers(ctx: Ctx) {
     setWebhookTestStatus('idle');
     localStorage.setItem(WEBHOOK_STORAGE_KEY, url);
     // Synchronise l'URL vers tous les serveurs distants actifs
-    (window as any).electronAPI?.remote?.setWebhookUrl?.(url || null).catch(() => {
+    window.electronAPI?.remote?.setWebhookUrl?.(url || null).catch(() => {
       /* serveur inactif */
     });
   };

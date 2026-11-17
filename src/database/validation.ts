@@ -128,7 +128,7 @@ export const validateOptionalEnum = (
   }
 };
 
-export const validateArray = (value: any[], fieldName: string, maxLength?: number): void => {
+export const validateArray = (value: unknown[], fieldName: string, maxLength?: number): void => {
   if (!Array.isArray(value)) {
     throw new ValidationError(`${fieldName} must be an array`, fieldName);
   }
@@ -323,10 +323,17 @@ export const validatePoolData = (data: Partial<Pool>): void => {
 // Session State Validation
 // ============================================================================
 
-export const validateSessionState = (state: any): void => {
-  if (!state || typeof state !== 'object') {
+export const validateSessionState = (value: unknown): void => {
+  if (!value || typeof value !== 'object') {
     throw new ValidationError('Session state must be an object');
   }
+  const state = value as {
+    currentPhase?: number;
+    selectedPool?: string;
+    selectedTable?: string;
+    lastSaveTime?: Date;
+    uiState?: unknown;
+  };
 
   // Validate specific fields if present
   if (state.currentPhase !== undefined) {
