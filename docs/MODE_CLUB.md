@@ -71,6 +71,17 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   jusqu'à une date, 60 séances au plus. Chaque séance de la série a sa propre copie du plan,
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
+- **Séances sur jours d'ouverture** (bouton de la liste des séances préparées, « Ouvrir sur des
+  jours récurrents ») : cocher les jours (lun → dim), une période du / au (366 jours au plus),
+  intitulé, catégories d'âge et encadrement. Crée une série de séances **préparées**, une par
+  date ; les dates déjà occupées par une séance du club sont ignorées (le résultat l'indique).
+  Pas de jours mémorisés : ils se choisissent à chaque génération.
+- **Fermeture** (même fenêtre, « Fermeture : supprimer les séances prévues ») : supprime les
+  séances **prévues** entre deux dates (ex. vacances scolaires), après confirmation. Les séances
+  ouvertes ou closes ne sont jamais supprimées.
+  API : `club.generateSessions`, `club.deletePlannedBetween` (`club:generateSessions`,
+  `club:deletePlannedBetween`). Code : `ClubRepo.generateSessions` / `deletePlannedBetween`,
+  `weekdayDates` (`clubAge.ts`), `ClubScheduleModal.tsx`.
 - Listes des séances préparées et passées filtrables par catégorie d'âge.
 - **Plusieurs séances ouvertes** : ouvrir, démarrer ou rouvrir une séance ne ferme pas les
   autres. Une séance reste ouverte jusqu'à **Fermer la séance**. L'onglet Séances affiche

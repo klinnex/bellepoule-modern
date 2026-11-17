@@ -37,6 +37,8 @@ describe('handlers club:* (#1872)', () => {
     updateClub: vi.fn(() => null),
     createClub: vi.fn(() => null),
     findMemberByCardCode: vi.fn(() => null),
+    generateSessions: vi.fn(() => ({ created: [], skipped: 0 })),
+    deletePlannedBetween: vi.fn(() => 0),
   };
 
   const inventory = {
@@ -64,7 +66,15 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(69);
+    expect(handlers.size).toBe(71);
+  });
+
+  it('jours d’ouverture et fermetures : délèguent au dépôt', () => {
+    const opts = { weekdays: [3], from: '2026-11-18', until: '2026-12-31' };
+    call('club:generateSessions', 'c1', { date: '2026-11-18' }, opts);
+    expect(repo.generateSessions).toHaveBeenCalledWith('c1', { date: '2026-11-18' }, opts);
+    call('club:deletePlannedBetween', 'c1', '2026-12-21', '2027-01-03');
+    expect(repo.deletePlannedBetween).toHaveBeenCalledWith('c1', '2026-12-21', '2027-01-03');
   });
 
   it('inventaire : délègue au dépôt, filtres et booléens par défaut', () => {

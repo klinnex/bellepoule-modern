@@ -3545,6 +3545,27 @@
     "create": "Crear el club",
     "open_sessions": "{{count}} sessions obertes"
   },
+  "clubSchedule": {
+    "open_btn": "Generar sessions",
+    "title": "Sessions en dies d'obertura",
+    "mode_generate": "Obrir en dies recurrents",
+    "mode_close": "Tancament: suprimir les sessions previstes",
+    "from": "Des del",
+    "until": "Fins al",
+    "days": "Dies d'obertura",
+    "label": "Etiqueta",
+    "label_ph": "p. ex. Júniors",
+    "choose_days": "Tria almenys un dia de la setmana.",
+    "preview": "{{count}} sessió/ns per crear, {{skipped}} data/es ja ocupada/es ignorada/es.",
+    "too_long": "Període massa llarg: {{max}} dies com a màxim.",
+    "period_invalid": "Període no vàlid: la data de fi és anterior a la d'inici.",
+    "create": "Crear sessions",
+    "close_btn": "Suprimir sessions",
+    "close_preview": "Se suprimiran {{count}} sessió/ns prevista/es. Les sessions obertes o tancades es conserven.",
+    "close_confirm": "Suprimir {{count}} sessió/ns prevista/es del {{from}} al {{until}}?",
+    "created": "Sessions preparades: {{count}} (dates ja ocupades ignorades: {{skipped}})",
+    "deleted": "Sessions suprimides: {{count}}"
+  },
   "clubPlan": {
     "edit_title": "Modificar la sessió",
     "new_title": "Preparar una sessió",

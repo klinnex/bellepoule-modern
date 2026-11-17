@@ -3545,6 +3545,27 @@
     "create": "Crea il club",
     "open_sessions": "{{count}} sessioni aperte"
   },
+  "clubSchedule": {
+    "open_btn": "Genera sessioni",
+    "title": "Sessioni nei giorni di apertura",
+    "mode_generate": "Apri nei giorni ricorrenti",
+    "mode_close": "Chiusura: elimina le sessioni pianificate",
+    "from": "Dal",
+    "until": "Al",
+    "days": "Giorni di apertura",
+    "label": "Etichetta",
+    "label_ph": "es. Juniores",
+    "choose_days": "Scegli almeno un giorno della settimana.",
+    "preview": "{{count}} sessione/i da creare, {{skipped}} data/e già occupata/e saltata/e.",
+    "too_long": "Periodo troppo lungo: massimo {{max}} giorni.",
+    "period_invalid": "Periodo non valido: la data di fine precede quella di inizio.",
+    "create": "Crea sessioni",
+    "close_btn": "Elimina sessioni",
+    "close_preview": "{{count}} sessione/i pianificata/e verranno eliminate. Le sessioni aperte o chiuse vengono mantenute.",
+    "close_confirm": "Eliminare {{count}} sessione/i pianificata/e dal {{from}} al {{until}}?",
+    "created": "Sessioni preparate: {{count}} (date già occupate saltate: {{skipped}})",
+    "deleted": "Sessioni eliminate: {{count}}"
+  },
   "clubPlan": {
     "edit_title": "Modifica la seduta",
     "new_title": "Prepara una seduta",

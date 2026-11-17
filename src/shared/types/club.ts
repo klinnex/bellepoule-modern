@@ -223,6 +223,19 @@ export interface ClubRecurrence {
   until?: string;
 }
 
+/** Séances automatiques sur jours d'ouverture : jours 0 (dim) … 6 (sam), période incluse */
+export interface ClubScheduleOptions {
+  weekdays: number[];
+  from: string;
+  until: string;
+}
+
+/** Résultat d'une génération sur jours d'ouverture (dates déjà occupées ignorées) */
+export interface ClubScheduleResult {
+  created: ClubSession[];
+  skipped: number;
+}
+
 /** Combat lancé depuis une tablette arbitre (cartes scannées) */
 export type ClubIdentifyResult =
   | { ok: true; recorded: boolean; nameA: string; nameB: string }
@@ -544,6 +557,14 @@ export interface ClubAPI {
     data: ClubSessionInput,
     recurrence: ClubRecurrence
   ) => Promise<ClubSession[]>;
+  /** Séances préparées sur les jours d'ouverture entre deux dates (une série) */
+  generateSessions: (
+    clubId: string,
+    data: ClubSessionInput,
+    options: ClubScheduleOptions
+  ) => Promise<ClubScheduleResult>;
+  /** Fermeture : supprime les séances prévues (ni ouvertes ni closes) entre deux dates ; renvoie le nombre */
+  deletePlannedBetween: (clubId: string, from: string, until: string) => Promise<number>;
   updateSession: (id: string, data: Partial<ClubSessionInput>) => Promise<ClubSession | null>;
   /** Ferme la séance : combats non terminés annulés */
   closeSession: (id: string) => Promise<ClubSession | null>;

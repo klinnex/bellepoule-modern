@@ -3545,6 +3545,27 @@
     "create": "Verein anlegen",
     "open_sessions": "{{count}} Trainings offen"
   },
+  "clubSchedule": {
+    "open_btn": "Trainings erzeugen",
+    "title": "Trainings an Öffnungstagen",
+    "mode_generate": "Öffnen an wiederkehrenden Tagen",
+    "mode_close": "Schließung: geplante Trainings löschen",
+    "from": "Von",
+    "until": "Bis",
+    "days": "Öffnungstage",
+    "label": "Bezeichnung",
+    "label_ph": "z. B. Jugend",
+    "choose_days": "Mindestens einen Wochentag wählen.",
+    "preview": "{{count}} Training(s) zu erstellen, {{skipped}} bereits belegte Datum/Daten übersprungen.",
+    "too_long": "Zeitraum zu lang: höchstens {{max}} Tage.",
+    "period_invalid": "Ungültiger Zeitraum: Das Enddatum liegt vor dem Startdatum.",
+    "create": "Trainings erstellen",
+    "close_btn": "Trainings löschen",
+    "close_preview": "{{count}} geplante Training(s) werden gelöscht. Offene oder geschlossene Trainings bleiben erhalten.",
+    "close_confirm": "{{count}} geplante Training(s) vom {{from}} bis {{until}} löschen?",
+    "created": "Geplante Trainings: {{count}} (bereits belegte Daten übersprungen: {{skipped}})",
+    "deleted": "Gelöschte Trainings: {{count}}"
+  },
   "clubPlan": {
     "edit_title": "Training bearbeiten",
     "new_title": "Training vorbereiten",

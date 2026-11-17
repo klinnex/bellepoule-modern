@@ -19,6 +19,8 @@ import type {
   ClubSessionInput,
   ClubSessionStatus,
   ClubRecurrence,
+  ClubScheduleOptions,
+  ClubScheduleResult,
   Club,
   ClubSummary,
   ClubUpdate,
@@ -29,7 +31,9 @@ import {
   birthYearOfDate,
   normalizeAgeCategories,
   normalizeAgeCategory,
+  MAX_SCHEDULE_DAYS,
   recurrenceDates,
+  weekdayDates,
 } from '../../shared/utils/clubAge';
 import {
   cleanLongText,
@@ -951,6 +955,73 @@ export class ClubRepo {
       }
     });
     return out;
+  }
+
+  /**
+   * Séances préparées sur les jours d'ouverture (lundi, mercredi…) entre deux dates : une série,
+   * plan et encadrement copiés. Les dates déjà occupées par une séance du club sont ignorées.
+   */
+  public generateSessions(
+    clubId: string,
+    data: ClubSessionInput,
+    options: ClubScheduleOptions
+  ): ClubScheduleResult {
+    this.ensureOpen();
+    if (!isIsoDate(options?.from) || !isIsoDate(options?.until) || options.from > options.until) {
+      throw new Error('Période invalide');
+    }
+    const all = weekdayDates(options.from, options.until, options.weekdays ?? []);
+    if (all.length === 0) throw new Error('Aucune date dans cette période');
+    if (all.length > MAX_SCHEDULE_DAYS) {
+      throw new Error(`Période trop longue : ${MAX_SCHEDULE_DAYS} jours au plus`);
+    }
+    const taken = new Set(
+      this.listSessions(clubId, { from: options.from, to: options.until }).map(s => s.date)
+    );
+    const dates = all.filter(d => !taken.has(d));
+    const seriesId = dates.length > 1 ? uuidv4() : undefined;
+    const created: ClubSession[] = [];
+    this.sql.transaction(() => {
+      for (const date of dates) {
+        created.push(
+          this.createSession(
+            clubId,
+            {
+              ...data,
+              date,
+              planned: true,
+              plan: normalizePlan(data.plan).map(it => ({ ...it, id: '', done: false })),
+            },
+            seriesId
+          )
+        );
+      }
+    });
+    return { created, skipped: all.length - dates.length };
+  }
+
+  /**
+   * Fermeture : supprime les séances prévues (jamais ouvertes ni closes) entre deux dates incluses. Renvoie le nombre supprimé.
+   */
+  public deletePlannedBetween(clubId: string, from: string, until: string): number {
+    this.ensureOpen();
+    if (!isIsoDate(from) || !isIsoDate(until) || from > until) throw new Error('Période invalide');
+    const ids = this.sql
+      .queryAll<{ id: string }>(
+        `SELECT id FROM club_sessions WHERE club_id = ? AND status = 'planned'
+         AND date >= ? AND date <= ?`,
+        [clubId, from, until]
+      )
+      .map(r => r.id);
+    this.sql.transaction(() => {
+      for (const id of ids) {
+        this.sql.run('DELETE FROM club_bouts WHERE session_id = ?', [id]);
+        this.sql.run('DELETE FROM club_attendance WHERE session_id = ?', [id]);
+        this.sql.run('DELETE FROM club_session_coaches WHERE session_id = ?', [id]);
+        this.sql.run('DELETE FROM club_sessions WHERE id = ?', [id]);
+      }
+    });
+    return ids.length;
   }
 
   public updateSession(id: string, updates: Partial<ClubSessionInput>): ClubSession | null {

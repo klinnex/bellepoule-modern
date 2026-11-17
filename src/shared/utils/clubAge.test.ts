@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   addDays,
+  weekdayDates,
   ageCategoryFromBirthYear,
   compareByAgeCategory,
   exerciseMatchesRange,
@@ -92,6 +93,21 @@ describe('catégories d’âge (#1872)', () => {
 });
 
 describe('séances récurrentes (#1872)', () => {
+  it('jours d’ouverture : dates de la période tombant les jours choisis', () => {
+    // 2026-11-16 = lundi
+    expect(weekdayDates('2026-11-16', '2026-11-29', [1, 3])).toEqual([
+      '2026-11-16',
+      '2026-11-18',
+      '2026-11-23',
+      '2026-11-25',
+    ]);
+    expect(weekdayDates('2026-11-16', '2026-11-16', [0])).toEqual([]);
+    expect(weekdayDates('2026-11-16', '2026-11-16', [])).toEqual([]);
+    expect(weekdayDates('2026-11-20', '2026-11-16', [1])).toEqual([]);
+    expect(weekdayDates('2026-02-30', '2026-03-10', [1])).toEqual([]);
+    expect(weekdayDates('2026-11-16', '2026-11-22', [9, 1, 1])).toEqual(['2026-11-16']);
+  });
+
   it('tous les N jours, N fois ou jusqu’à une date (incluse)', () => {
     expect(addDays('2026-10-24', 7)).toBe('2026-10-31');
     expect(addDays('2026-03-28', 2)).toBe('2026-03-30');

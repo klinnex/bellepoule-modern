@@ -3545,6 +3545,27 @@
     "create": "Créer le club",
     "open_sessions": "{{count}} séances ouvertes"
   },
+  "clubSchedule": {
+    "open_btn": "Générer des séances",
+    "title": "Séances sur jours d'ouverture",
+    "mode_generate": "Ouvrir sur des jours récurrents",
+    "mode_close": "Fermeture : supprimer les séances prévues",
+    "from": "Du",
+    "until": "Au",
+    "days": "Jours d'ouverture",
+    "label": "Intitulé",
+    "label_ph": "ex. Poussins",
+    "choose_days": "Choisir au moins un jour de la semaine.",
+    "preview": "{{count}} séance(s) à créer, {{skipped}} date(s) déjà occupée(s) ignorée(s).",
+    "too_long": "Période trop longue : {{max}} jours au plus.",
+    "period_invalid": "Période invalide : la date de fin précède la date de début.",
+    "create": "Créer les séances",
+    "close_btn": "Supprimer les séances",
+    "close_preview": "{{count}} séance(s) prévue(s) seront supprimées. Les séances ouvertes ou closes sont conservées.",
+    "close_confirm": "Supprimer {{count}} séance(s) prévue(s) du {{from}} au {{until}} ?",
+    "created": "Séances préparées : {{count}} (dates déjà occupées ignorées : {{skipped}})",
+    "deleted": "Séances supprimées : {{count}}"
+  },
   "clubPlan": {
     "edit_title": "Modifier la séance",
     "new_title": "Préparer une séance",

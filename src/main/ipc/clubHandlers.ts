@@ -33,6 +33,7 @@ import type {
   ClubMemberReport,
   ClubPeriodKind,
   ClubRecurrence,
+  ClubScheduleOptions,
   ClubSessionInput,
   ClubUpdate,
 } from '../../shared/types/club';
@@ -167,6 +168,14 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     'club:createSeries',
     (_, clubId: string, data: ClubSessionInput, recurrence: ClubRecurrence) =>
       repo.createSeries(clubId, data, recurrence ?? { everyDays: 0 })
+  );
+  ipcMain.handle(
+    'club:generateSessions',
+    (_, clubId: string, data: ClubSessionInput, options: ClubScheduleOptions) =>
+      repo.generateSessions(clubId, data, options)
+  );
+  ipcMain.handle('club:deletePlannedBetween', (_, clubId: string, from: string, until: string) =>
+    repo.deletePlannedBetween(clubId, from, until)
   );
   ipcMain.handle('club:closeSession', (_, id: string) => {
     // Séance fermée : les tablettes ne lancent plus de combats pour elle
