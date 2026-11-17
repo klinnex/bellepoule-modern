@@ -11,6 +11,9 @@ import { logger, LogCategory } from '@shared/services/logger';
 import type { AppState, AppStateActions } from './useAppState';
 import type { ToastType } from '../components/Toast';
 import type { ConfirmOptions } from '../components/ConfirmDialog';
+import type { FederalCreationPayload } from './useFederalImport';
+import { applyFederalImport } from '../services/federalCreation';
+import { translateStatic } from '../contexts/TranslationContext';
 
 interface CompetitionTabsParams
   extends
@@ -46,7 +49,7 @@ export function useCompetitionTabs({
   confirm,
 }: CompetitionTabsParams) {
   const handleCreateCompetition = useCallback(
-    async (data: Partial<Competition>) => {
+    async (data: Partial<Competition>, imported?: FederalCreationPayload) => {
       try {
         if (window.electronAPI) {
           // Assurer que le titre est défini
@@ -62,6 +65,16 @@ export function useCompetitionTabs({
             competitionData as unknown as CompetitionCreateData
           );
           setCompetitions(prev => [newComp, ...prev]);
+
+          // Tireurs, équipes et arbitres des fichiers de l'extranet (#1938)
+          if (imported) {
+            const counts = await applyFederalImport(
+              newComp.id,
+              imported,
+              newComp.settings?.minTeamSize ?? 3
+            );
+            showToast(translateStatic('federalImport.imported', { ...counts }), 'success');
+          }
 
           // Ouvrir la compétition dans un nouvel onglet
           const fencers = await window.electronAPI.db.getFencersByCompetition(newComp.id);
@@ -84,6 +97,7 @@ export function useCompetitionTabs({
       setOpenCompetitions,
       setShowNewCompetitionModal,
       setView,
+      showToast,
     ]
   );
 

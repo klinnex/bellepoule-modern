@@ -421,8 +421,9 @@ function parseLine(line: string, separator: string): string[] {
     const char = line[i];
     const nextChar = line[i + 1];
 
-    // Gérer les guillemets ouvrants
-    if (!inQuotes && (char === '"' || char === "'")) {
+    // Gérer les guillemets ouvrants : seulement en début de champ, sinon l'apostrophe d'un nom
+    // (N'GUYEN, D'ORMANO) ouvrirait une citation et fusionnerait toute la ligne (#1938)
+    if (!inQuotes && (char === '"' || char === "'") && current.trim() === '') {
       inQuotes = true;
       quoteChar = char;
       i++;
