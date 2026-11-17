@@ -38,7 +38,8 @@ vi.mock('http', () => ({
 
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { CyranoServer } from './server';
-import { PisteHub } from './pisteHub';
+import { PisteHub } from '../piste/pisteHub';
+import { CyranoPisteDriver } from './driver';
 import { buildCyrano, parseCyrano, type CyranoMessage } from './codec';
 
 const ID = {
@@ -138,7 +139,7 @@ describe('PisteHub — pistes partagées entre épreuves (#1878)', () => {
       ).mockReturnValue([]);
     cyrano = new CyranoServer();
     cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, port: 50101, arena: 1 }]);
-    hub = new PisteHub(cyrano, () => [fleuret, epee]);
+    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => [fleuret, epee]);
     hub.attach();
     disps = [];
     acks = 0;
@@ -223,10 +224,12 @@ describe('PisteHub — pistes partagées entre épreuves (#1878)', () => {
   });
 
   it('une seule épreuve ouverte : comportement inchangé (serveur unique)', async () => {
-    hub = new PisteHub(cyrano, () => epee);
+    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => epee);
     hub.attach();
     epee.cyranoHook = (id, u) => hub.onArenaUpdate(id, u, epee);
     await startEvent(epee, 'comp-epee', 'pool-e', 1, ID.b1, ID.b2);
     expect(lastDisp().msg).toMatchObject({ weapon: 'E', right: { id: short(ID.b1) } });
+    // Champ Compe obligatoire (spéc. § 3) : l'épreuve, même seule
+    expect(lastDisp().compe).toBe('comp-epee');
   });
 });

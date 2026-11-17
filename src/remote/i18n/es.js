@@ -396,6 +396,8 @@
   'team.reset_bout': 'Reiniciar el asalto',
   'team.next_relay': 'Siguiente relevo →',
   'team.all_bouts_played': 'Encuentro terminado — se han disputado todos los asaltos.',
+  'team.cyrano_master_relay_lock': 'Relevo bloqueado: el aparato de pista está en modo maestro y valida el final del relevo.',
+  'team.touch_remove': 'Quitar un tocado (lado {{side}})',
   'team.touch_side': '+ Tocado (lado {{side}})',
   'team.card_title': 'Tarjeta {{type}} E',
   'team.cards_label': 'Tarjetas de equipo «E» — {{team}}',

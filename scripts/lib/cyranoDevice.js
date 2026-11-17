@@ -4,6 +4,9 @@
  * Répond aux HELLO par un INFO complet, installe les DISP en état W (match en cours :
  * DISP des mêmes tireurs = correction des scores), envoie NEXT / PREV / INFO, passe en W
  * à la réception d'un ACK.
+ * Équipes (DISP `Type=T`, #1829) : `Round` = n° du relais fixé par le logiciel (ROUND ∧∨
+ * bloqués), scores cumulés repris du DISP du relais (jamais remis à zéro au BEGIN), RESERVE
+ * (`resr` / `resl`) = demande d'entrée du remplaçant dans la zone du tireur (champ 11 = R).
  * Événements : `log` ({ dir: 'in' | 'out' | 'note', text }), `change` (état modifié).
  * Licensed under GPL-3.0
  */
@@ -169,13 +172,14 @@ class CyranoDevice extends EventEmitter {
 
   installDisp({ g, r, l }) {
     const { s } = this;
-    // Cartons transmis pour un match repris (PREV, appareil redémarré)
+    // Cartons et statut (abandon, exclusion) transmis pour un match repris (PREV, appareil redémarré)
     const f = z => ({
       ...emptyFencer(),
       id: z[0] || '',
       name: z[1] || '',
       nat: z[2] || '',
       score: Number(z[3]) || 0,
+      ...(z[4] === 'A' || z[4] === 'E' ? { status: z[4] } : {}),
       y: Number(z[5]) || 0,
       r: Number(z[6]) || 0,
     });
@@ -191,8 +195,16 @@ class CyranoDevice extends EventEmitter {
       : s.periodMs;
     s.right = f(r);
     s.left = f(l);
-    this.note(s.right.id ? `match ${s.right.name} – ${s.left.name}` : 'aucun match disponible');
+    if (!s.right.id) this.note('aucun match disponible');
+    else if (this.isTeam())
+      this.note(`relais ${s.general.round} : ${s.right.name} – ${s.left.name} (cumul ${s.right.score}-${s.left.score})`);
+    else this.note(`match ${s.right.name} – ${s.left.name}`);
     this.emit('change');
+  }
+
+  /** Rencontre par équipes (DISP `Type=T`) : relais. */
+  isTeam() {
+    return this.s.general.type === 'T';
   }
 
   /** Match en cours : un DISP des mêmes tireurs corrige les scores (correction depuis la tablette). */
@@ -222,14 +234,20 @@ class CyranoDevice extends EventEmitter {
       case 'DISP':
         return s.state === 'W' ? this.installDisp(m) : this.applyCorrection(m);
       case 'ACK':
-        this.note('fin de match acquittée (ACK)');
+        this.note(this.isTeam() ? `fin du relais ${s.general.round} acquittée (ACK)` : 'fin de match acquittée (ACK)');
         if (s.state !== 'W') {
           s.state = 'W';
           this.sendInfo();
         }
         return undefined;
       case 'NAK':
-        this.note('END refusé (NAK)');
+        // Fin refusée (spéc. § 4) : l'appareil reste actif ; il revient en halte pour que
+        // l'arbitre corrige (score, priorité) et valide à nouveau
+        this.note('END refusé (NAK) : corriger puis VALIDATE');
+        if (s.state === 'E') {
+          s.state = 'H';
+          return this.sendInfo();
+        }
         return this.emit('change');
       default:
         return undefined;
@@ -278,6 +296,7 @@ class CyranoDevice extends EventEmitter {
     if (name === 'begin') return active ? 'match déjà ouvert' : s.right.id ? '' : 'aucun match chargé (NEXT)';
     if (!active) return 'aucun match ouvert (BEGIN)';
     if (s.state === 'E') return 'fin de match en attente de réponse (ACK / NAK)';
+    if ((name === 'round+' || name === 'round-') && this.isTeam()) return 'relais fixé par le logiciel (DISP)';
     switch (name) {
       case 'go':
         if (s.state === 'F') return 'chrono déjà lancé';
@@ -433,6 +452,8 @@ class CyranoDevice extends EventEmitter {
       bind: this.bind ?? '*',
       protocol: this.protocol,
       state: s.state,
+      team: this.isTeam(),
+      relay: this.isTeam() ? Number(s.general.round) || null : null,
       stopwatch: fmtWatch(s.stopwatchMs),
       period: fmtWatch(s.periodMs),
       blocked: Object.fromEntries(COMMANDS.map(c => [c, this.blocked(c)])),

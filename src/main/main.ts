@@ -9,7 +9,13 @@ import * as fs from 'fs';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
-import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
+import {
+  fmt,
+  getCyranoBadMatchLabels,
+  getCyranoTeamOutLabels,
+  getL,
+  setUiLanguage,
+} from './menuLabels';
 import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { registerWindowPrintHandlers, renderHtmlToPdfBuffer } from './ipc/windowPrintHandlers';
@@ -43,7 +49,8 @@ import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
-import { PisteHub } from './cyrano/pisteHub';
+import { CyranoPisteDriver } from './cyrano/driver';
+import { PisteHub } from './piste/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 import { createMcpController } from './ipc/mcpHandlers';
 import { parseCliArgs } from './cliArgs';
@@ -138,7 +145,8 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 // Cyrano scoring machine integration (#1720)
 const cyranoServer = new CyranoServer();
 const pisteHub = new PisteHub(
-  cyranoServer,
+  // Pilote Cyrano du modèle commun des appareils de piste (#1829)
+  new CyranoPisteDriver(cyranoServer),
   // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
   () => [...remoteServers.values()].map(entry => entry.server),
   {
@@ -159,6 +167,20 @@ const pisteHub = new PisteHub(
       });
       notification.show();
     },
+    // Relais par équipes : abandon ou exclusion annoncé par l'appareil (relais acquitté)
+    onNotice: (piste, notice) => {
+      if (!Notification.isSupported()) return;
+      const labels = getCyranoTeamOutLabels();
+      const notification = new Notification({
+        title: labels.title,
+        body: fmt(labels[notice.reason], { piste, relay: notice.relay, fencer: notice.fencer }),
+      });
+      notification.on('click', () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      });
+      notification.show();
+    },
   }
 );
 
@@ -167,6 +189,8 @@ const remoteServerContext = {
   getMainWindow: () => mainWindow,
   onServerCreated: (server: RemoteScoreServer) => {
     server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
+    // Relais par équipes (/equipe{N}) sur l'appareil de piste (#1829)
+    server.cyranoTeamHook = arenaId => pisteHub.onTeamArenaUpdate(arenaId, server);
   },
 };
 registerRemoteServerHandlers(remoteServerContext);

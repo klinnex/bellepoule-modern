@@ -21,14 +21,16 @@ export interface CyranoDispFencer {
   redCards?: number;
   /** Cartons P (EFP1.1, champ 12 : 0, 2 ou 4 selon la règle 2026-2027) (#1829) */
   pCard?: number;
+  /** Statut repris d'un match rappelé : abandon (A) ou exclusion (E) ; sinon U */
+  status?: 'A' | 'E';
 }
 
 export interface CyranoDispMatch {
-  /** Phase : 1er tour de poules = 1, … ; tableau = dernier tour de poules + 1 */
-  phase: number;
+  /** Phase : 1er tour de poules = 1, … ; tableau = dernier tour de poules + 1 (omis : relais) */
+  phase?: number;
   /** N° de poule ou identifiant de tableau (`A32`) */
-  poulTab: string;
-  match: number;
+  poulTab?: string;
+  match?: number;
   /** Période (individuel) ou relais (équipes) */
   round?: number;
   /** Heure prévue (HH:MM) */
@@ -64,7 +66,7 @@ function fencer(f: CyranoDispFencer, opts: CyranoDispOptions): CyranoFencer {
     name: formatCyranoName(f.lastName, f.firstName, opts.nameLength ?? 10),
     nat: formatCyranoNat(f.nat),
     score: f.score,
-    status: 'U',
+    status: f.status ?? 'U',
     ...(f.yellowCards ? { yellowCards: f.yellowCards } : {}),
     ...(f.redCards ? { redCards: f.redCards } : {}),
     ...(f.pCard ? { pCard: f.pCard } : {}),
@@ -75,9 +77,9 @@ export type CyranoDisp = Omit<CyranoMessage, 'protocol' | 'command' | 'piste' | 
 
 export function buildDisp(m: CyranoDispMatch, opts: CyranoDispOptions = {}): CyranoDisp {
   return {
-    phase: String(m.phase),
+    phase: m.phase !== undefined ? String(m.phase) : undefined,
     poulTab: m.poulTab,
-    match: String(m.match),
+    match: m.match !== undefined ? String(m.match) : undefined,
     round: String(m.round ?? 1),
     time: m.time,
     ...(m.stopwatch ? { stopwatch: m.stopwatch } : {}),

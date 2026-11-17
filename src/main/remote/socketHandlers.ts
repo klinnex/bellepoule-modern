@@ -5,12 +5,13 @@
  */
 import type { Socket } from 'socket.io';
 import { CardReason } from '../../shared/types';
-import { relayCumul, relayWinnerSide } from '../../features/teams/utils/teamRelayLive';
 import { createCard, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { normalizeIp, isLoopbackAddress } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { recordRemoteEvent } from './remoteEvents';
+import { isCyranoMasterOnline } from './cyranoLock';
+import { advanceTeamBout, broadcastTeamArena, teamArenaElapsedSec } from './teamArena';
 
 type S = RemoteScoreServer;
 
@@ -28,6 +29,7 @@ export interface SocketHandlersContext {
   readonly checkArenaAuth: S['checkArenaAuth'];
   readonly checkSocketArenaAuth: S['checkSocketArenaAuth'];
   readonly connectedClients: S['connectedClients'];
+  readonly cyranoTeamHook: S['cyranoTeamHook'];
   readonly db: S['db'];
   readonly getArena: S['getArena'];
   readonly getPublicTeamArenaState: S['getPublicTeamArenaState'];
@@ -50,7 +52,6 @@ export interface SocketHandlersContext {
   readonly sessionTableTimerSeconds: S['sessionTableTimerSeconds'];
   readonly sessionTheme: S['sessionTheme'];
   readonly socketsPerIp: S['socketsPerIp'];
-  readonly teamArenaElapsedSec: S['teamArenaElapsedSec'];
   readonly teamArenaState: S['teamArenaState'];
   readonly trainingCustomRules: S['trainingCustomRules'];
 }
@@ -293,26 +294,34 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       socket.emit('team_arena_state', ctx.getPublicTeamArenaState(data.arenaId));
     });
 
-    const broadcastTeamArena = (arenaId: string) => {
-      ctx.io
-        .to(`team-arena:${arenaId}`)
-        .emit('team_arena_state', ctx.getPublicTeamArenaState(arenaId));
-    };
-
     // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
     // à 5 touches valides cumulées, vérifié après chaque saisie.
+    // Appareil de piste maître et en ligne (#1829) : la tablette ne fait que corriger par
+    // retrait ; un ajout est refusé et l'état de l'arène renvoyé à la tablette.
+    const teamDeviceLocked = (arenaId: string, action: string): boolean => {
+      if (!isCyranoMasterOnline(ctx.teamArenaState.get(arenaId))) return false;
+      socket.emit('team_arena_state', ctx.getPublicTeamArenaState(arenaId));
+      logger.info(
+        LogCategory.NETWORK,
+        `Équipes ${arenaId} : « ${action} » refusé, l'appareil de piste fait foi`
+      );
+      return true;
+    };
+
+    // Touche (simple ou zone 1/3/5) ; -1 = retrait d'une touche (correction, toujours permis).
     socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
       if (data.side !== 'A' && data.side !== 'B') return;
-      if (![1, 3, 5].includes(data.points)) return;
+      if (![1, 3, 5, -1].includes(data.points)) return;
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state) return;
-      if (!state.isLaserPoints && data.points !== 1) return;
+      if (!state.isLaserPoints && data.points > 1) return;
       const bout = state.bouts[state.currentBoutIndex];
       if (!bout || bout.status === 'finished') return;
-      if (data.side === 'A') state.liveScoreA += data.points;
-      else state.liveScoreB += data.points;
-      broadcastTeamArena(data.arenaId);
+      if (data.points > 0 && teamDeviceLocked(data.arenaId, 'team_touch')) return;
+      if (data.side === 'A') state.liveScoreA = Math.max(0, state.liveScoreA + data.points);
+      else state.liveScoreB = Math.max(0, state.liveScoreB + data.points);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     // Réinitialise l'assaut en cours (score et chrono), sans le terminer.
@@ -320,11 +329,12 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state) return;
+      if (teamDeviceLocked(data.arenaId, 'team_reset_bout')) return;
       state.liveScoreA = 0;
       state.liveScoreB = 0;
       state.elapsedAccumulatedSec = 0;
       state.timerStartedAt = null;
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     socket.on('team_timer_start', (data: { arenaId: string }) => {
@@ -332,45 +342,23 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state || state.timerStartedAt !== null) return;
       state.timerStartedAt = Date.now();
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     socket.on('team_timer_pause', (data: { arenaId: string }) => {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state || state.timerStartedAt === null) return;
-      state.elapsedAccumulatedSec = ctx.teamArenaElapsedSec(state);
+      state.elapsedAccumulatedSec = teamArenaElapsedSec(state);
       state.timerStartedAt = null;
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
     socket.on('team_advance_bout', (data: { arenaId: string }) => {
       if (!ctx.checkSocketArenaAuth(socket, data?.arenaId)) return;
-      const state = ctx.teamArenaState.get(data.arenaId);
-      if (!state) return;
-      const bout = state.bouts[state.currentBoutIndex];
-      if (!bout || bout.status === 'finished') return;
-      const scoreA = state.liveScoreA;
-      const scoreB = state.liveScoreB;
-      // Relais FIE : vainqueur du relais = équipe en tête au cumul ; arène : score de l'assaut
-      const { cumulA, cumulB } = relayCumul(state.bouts, bout, scoreA, scoreB);
-      const side =
-        state.format === 'fie-relay'
-          ? relayWinnerSide(cumulA, cumulB)
-          : relayWinnerSide(scoreA, scoreB);
-      const winnerId = side === 'A' ? bout.fencerAId : side === 'B' ? bout.fencerBId : null;
-      ctx.db.updateTeamBout(bout.id, scoreA, scoreB, 'finished', winnerId);
-      bout.scoreA = scoreA;
-      bout.scoreB = scoreB;
-      bout.status = 'finished';
-      bout.winnerId = winnerId;
-      state.currentBoutIndex = state.bouts.findIndex(b => b.status !== 'finished');
-      state.liveScoreA = 0;
-      state.liveScoreB = 0;
-      state.elapsedAccumulatedSec = 0;
-      state.timerStartedAt = null;
-      broadcastTeamArena(data.arenaId);
+      if (teamDeviceLocked(data.arenaId, 'team_advance_bout')) return;
+      advanceTeamBout(ctx, data.arenaId);
     });
 
     // Carton d'équipe "E" (traçabilité, pas d'impact automatique sur le score).
@@ -381,6 +369,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         if (!['white', 'yellow', 'red', 'black'].includes(data.type)) return;
         const state = ctx.teamArenaState.get(data.arenaId);
         if (!state) return;
+        if (teamDeviceLocked(data.arenaId, 'team_card')) return;
         if (
           data.type === 'black' &&
           ctx.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled !== true
@@ -399,7 +388,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           type: data.type,
           createdAt: new Date().toISOString(),
         });
-        broadcastTeamArena(data.arenaId);
+        broadcastTeamArena(ctx, data.arenaId);
       }
     );
 
@@ -412,6 +401,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         if (data.side !== 'A' && data.side !== 'B') return;
         const state = ctx.teamArenaState.get(data.arenaId);
         if (!state) return;
+        if (teamDeviceLocked(data.arenaId, 'team_fencer_card')) return;
         if (!getAvailableReasons(state.weapon).includes(data.reason)) return;
         const bout = state.bouts[state.currentBoutIndex];
         if (!bout) return;
@@ -429,7 +419,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           type: card.type,
           reason: card.reason,
         });
-        broadcastTeamArena(data.arenaId);
+        broadcastTeamArena(ctx, data.arenaId);
       }
     );
 
@@ -480,6 +470,7 @@ export const SOCKET_HANDLERS_CONTEXT_KEYS = {
     'arenaScreenThemes',
     'arenaThemeOverrides',
     'connectedClients',
+    'cyranoTeamHook',
     'db',
     'io',
     'isTrainingMode',

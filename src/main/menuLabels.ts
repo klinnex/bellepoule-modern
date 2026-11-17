@@ -881,6 +881,65 @@ const CYRANO_BAD_MATCH_LABELS: Record<MenuLang, { title: string; body: string }>
   },
 };
 
+/** Abandon ou exclusion signalé par l'appareil sur un relais par équipes (#1829) */
+const CYRANO_TEAM_OUT_LABELS: Record<
+  MenuLang,
+  { title: string; abandon: string; exclusion: string }
+> = {
+  fr: {
+    title: 'Cyrano : relais par équipes',
+    abandon:
+      "Piste {piste}, relais {relay} : abandon de {fencer} signalé par l'appareil. À traiter.",
+    exclusion:
+      "Piste {piste}, relais {relay} : exclusion de {fencer} signalée par l'appareil. À traiter.",
+  },
+  en: {
+    title: 'Cyrano: team relay',
+    abandon:
+      'Strip {piste}, relay {relay}: {fencer} withdrew (reported by the device). Action needed.',
+    exclusion:
+      'Strip {piste}, relay {relay}: {fencer} excluded (reported by the device). Action needed.',
+  },
+  de: {
+    title: 'Cyrano: Mannschaftsgefecht',
+    abandon:
+      'Bahn {piste}, Teilgefecht {relay}: Aufgabe von {fencer} vom Gerät gemeldet. Bitte bearbeiten.',
+    exclusion:
+      'Bahn {piste}, Teilgefecht {relay}: Ausschluss von {fencer} vom Gerät gemeldet. Bitte bearbeiten.',
+  },
+  pt: {
+    title: 'Cyrano: equipas',
+    abandon:
+      'Pista {piste}, parcial {relay}: abandono de {fencer} indicado pelo aparelho. A tratar.',
+    exclusion:
+      'Pista {piste}, parcial {relay}: exclusão de {fencer} indicada pelo aparelho. A tratar.',
+  },
+  it: {
+    title: 'Cyrano: squadre',
+    abandon:
+      "Pedana {piste}, frazione {relay}: abbandono di {fencer} segnalato dall'apparecchio. Da gestire.",
+    exclusion:
+      "Pedana {piste}, frazione {relay}: esclusione di {fencer} segnalata dall'apparecchio. Da gestire.",
+  },
+  ru: {
+    title: 'Cyrano: командная встреча',
+    abandon: 'Дорожка {piste}, этап {relay}: прибор сообщил об отказе {fencer}. Требуется решение.',
+    exclusion:
+      'Дорожка {piste}, этап {relay}: прибор сообщил об исключении {fencer}. Требуется решение.',
+  },
+  'zh-HK': {
+    title: 'Cyrano：團體賽',
+    abandon: '場地 {piste}，第 {relay} 局：裝置回報 {fencer} 棄權，請處理。',
+    exclusion: '場地 {piste}，第 {relay} 局：裝置回報 {fencer} 被罰出場，請處理。',
+  },
+};
+
+export function getCyranoTeamOutLabels(): { title: string; abandon: string; exclusion: string } {
+  return CYRANO_TEAM_OUT_LABELS[
+    (uiLanguage in CYRANO_TEAM_OUT_LABELS ? uiLanguage : 'fr') as MenuLang
+  ];
+}
+
 /** Libellés de la notification BAD MATCH, dans la langue de l'interface. */
 export function getCyranoBadMatchLabels(): { title: string; body: string } {
   return CYRANO_BAD_MATCH_LABELS[

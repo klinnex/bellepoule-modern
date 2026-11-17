@@ -396,6 +396,8 @@
   'team.reset_bout': 'Adderaouekaat an emgann',
   'team.next_relay': "Erlec'hiadenn da-heul →",
   'team.all_bouts_played': "Emgavadenn echuet — c'hoariet eo bet an holl emgannoù.",
+  'team.cyrano_master_relay_lock': "Erlec'h prennet: an ardivink leurenn a zo e mod mestr hag a gadarna fin an erlec'h.",
+  'team.touch_remove': 'Lemel un taol (tu {{side}})',
   'team.touch_side': '+ Taol (tu {{side}})',
   'team.card_title': 'Kartenn {{type}} S',
   'team.cards_label': 'Kartennoù skipailh « S » — {{team}}',

@@ -923,6 +923,14 @@ export class DatabaseManager {
     return this.teams.updateTeamBout(...args);
   }
 
+  public reopenTeamBout(boutId: string): void {
+    this.teams.reopenTeamBout(boutId);
+  }
+
+  public setTeamBoutFencer(...args: Parameters<TeamRepo['setTeamBoutFencer']>): void {
+    this.teams.setTeamBoutFencer(...args);
+  }
+
   public createTeamMatchCard(
     ...args: Parameters<TeamRepo['createTeamMatchCard']>
   ): ReturnType<TeamRepo['createTeamMatchCard']> {

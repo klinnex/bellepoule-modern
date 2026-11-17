@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { buildCyrano, parseCyrano, sanitizeField, splitCyranoFrames } from './codec';
 import { formatCyranoName, formatCyranoNat, pickCyranoNat, transliterate } from './names';
-import { cyranoEndOutcome, validateCyranoEnd } from './endValidation';
-import { mapCyranoSides } from './deviceState';
+import { cyranoFencerId } from './deviceState';
+import { cyranoToPisteState } from './driver';
+import { mapPisteSides, pisteEndOutcome, validatePisteEnd } from '../piste/pisteState';
+import type { CyranoMessage } from './codec';
 import { buildDisp, toCyranoWeapon } from './disp';
 
 // Trames d'exemple de la spécification Cyrano 1.1 (§6)
@@ -216,6 +218,12 @@ describe('noms et nations', () => {
   });
 });
 
+// Fin de match : trame Cyrano → état normalisé (pilote) → règles communes (#1829)
+const validateCyranoEnd = (msg: CyranoMessage, options?: { intermediateRound?: boolean }) =>
+  msg.command === 'INFO'
+    ? validatePisteEnd(cyranoToPisteState(msg), options)
+    : { ok: false, reason: 'not_ending' };
+
 describe('fin de match (ACK / NAK)', () => {
   it('cas de la spécification', () => {
     const info = (prio: string, r: string, l: string) =>
@@ -248,8 +256,8 @@ describe('fin de match (ACK / NAK)', () => {
   it('issue par tireur A / B : insensible à l’inversion droite/gauche', () => {
     const match = { fencerA: { id: '28' }, fencerB: { id: '32' } } as never;
     const outcome = (raw: string) => {
-      const msg = parseCyrano(raw)!;
-      return cyranoEndOutcome(msg, mapCyranoSides(msg, match)!);
+      const state = cyranoToPisteState(parseCyrano(raw)!);
+      return pisteEndOutcome(state, mapPisteSides(state, match, cyranoFencerId)!);
     };
     // Victoire au score : vainqueur déduit des scores par matchFinish
     expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|U|%|32|||3|U|%|')).toEqual({});
@@ -335,5 +343,15 @@ describe('splitCyranoFrames (datagrammes Saint-George SG32)', () => {
   it('EFP1 collé à EFP1.1', () => {
     const efp1 = '|EFP1|INFO|3|x|%|';
     expect(splitCyranoFrames(efp1 + a)).toEqual([efp1, a]);
+  });
+});
+
+describe('chrono du DISP selon la version du protocole', () => {
+  const disp = (protocol: 'EFP1' | 'EFP1.1') =>
+    buildCyrano({ protocol, command: 'DISP', piste: '1', compe: 'c', stopwatch: '0:09.53' });
+
+  it('EFP1.1 : centièmes transmis ; EFP1 : retirés (ajout de la version 1.1)', () => {
+    expect(parseCyrano(disp('EFP1.1'))?.stopwatch).toBe('0:09.53');
+    expect(parseCyrano(disp('EFP1'))?.stopwatch).toBe('0:09');
   });
 });

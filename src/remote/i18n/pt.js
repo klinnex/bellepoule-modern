@@ -398,6 +398,8 @@
   'team.reset_bout': 'Repor o assalto',
   'team.next_relay': 'Próximo revezamento →',
   'team.all_bouts_played': 'Combate concluído — todos os assaltos foram disputados.',
+  'team.cyrano_master_relay_lock': 'Revezamento bloqueado: o aparelho de pista está em modo mestre e valida o fim do revezamento.',
+  'team.touch_remove': 'Retirar um toque (lado {{side}})',
   'team.touch_side': '+ Toque (lado {{side}})',
   'team.card_title': 'Cartão {{type}} E',
   'team.cards_label': 'Cartões «E» da equipa — {{team}}',

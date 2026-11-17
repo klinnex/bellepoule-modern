@@ -114,6 +114,10 @@
       .cards-team { text-align: center; }
       .cards-label { font-size: 0.7rem; color: var(--slate-400); margin-bottom: 0.3rem; }
       .card-buttons { display: flex; gap: 0.3rem; justify-content: center; }
+      /* Appareil de piste maître et en ligne : tablette verrouillée (#1829) */
+      .device-lock { margin: 0.5rem 0; padding: 0.5rem 0.75rem; border-radius: 8px; background: var(--slate-800); border-left: 4px solid var(--tw-red-400); font-size: 0.8rem; color: var(--slate-100); }
+      .team-toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); max-width: 90vw; padding: 0.75rem 1rem; border-radius: 10px; background: var(--slate-700); color: var(--slate-100); z-index: 1000; }
+      .remove-btn { padding: 1.4rem 1rem; font-size: 1.2rem; font-weight: 700; background: var(--slate-700); }
       .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: var(--slate-800); border: 1px solid var(--slate-700); }
       .cards-log { margin-top: 0.3rem; font-size: 0.9rem; }
       .reason-select {
@@ -160,6 +164,7 @@
         <div class="score" id="score-b">0</div>
       </div>
       <div class="relay-live" id="relay-live" style="display: none"></div>
+      <div class="device-lock" id="device-lock" role="status" style="display: none" data-i18n="referee.cyrano_master_lock"></div>
       <div class="cap" id="cap-label">/ 5 touches · 3:00</div>
 
       <div class="timer" id="timer">3:00</div>
@@ -193,6 +198,7 @@
         Rencontre terminée — tous les assauts ont été joués.
       </div>
     </div>
+    <div class="team-toast" id="team-toast" role="status" style="display: none"></div>
     </main>
 
     <script>
@@ -228,6 +234,25 @@
           return `${m}:${r.toString().padStart(2, '0')}`;
         }
 
+        // Appareil de piste maître et en ligne : la tablette ne fait que corriger par retrait (#1829)
+        function deviceLocked() {
+          return !!(lastState && lastState.cyrano && lastState.cyrano.mode === 'master' && lastState.cyrano.online);
+        }
+        let toastTimer = null;
+        function notify(key) {
+          const toast = document.getElementById('team-toast');
+          toast.textContent = tk(key);
+          toast.style.display = 'block';
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => (toast.style.display = 'none'), 3000);
+        }
+        // Vrai (et notification) si l'action est bloquée par l'appareil
+        function locked(key) {
+          if (!deviceLocked()) return false;
+          notify(key);
+          return true;
+        }
+
         function renderZones(container, side) {
           container.innerHTML = '';
           if (lastState.isLaserPoints) {
@@ -240,7 +265,9 @@
               btn.className = `zone-btn ${cls}`;
               btn.textContent = `${zone} (${points})`;
               btn.disabled = !lastState.currentBout || lastState.boutComplete;
-              btn.onclick = () => socket.emit('team_touch', { arenaId, side, points });
+              btn.onclick = () => {
+                if (!locked('referee.cyrano_master_lock')) socket.emit('team_touch', { arenaId, side, points });
+              };
               container.appendChild(btn);
             });
           } else {
@@ -248,9 +275,21 @@
             btn.className = 'touch-btn';
             btn.textContent = tk('team.touch_side', { side });
             btn.disabled = !lastState.currentBout || lastState.boutComplete;
-            btn.onclick = () => socket.emit('team_touch', { arenaId, side, points: 1 });
+            btn.onclick = () => {
+              if (!locked('referee.cyrano_master_lock')) socket.emit('team_touch', { arenaId, side, points: 1 });
+            };
             container.appendChild(btn);
           }
+          // Retrait d'une touche (correction), permis même quand l'appareil fait foi
+          const live = side === 'A' ? lastState.liveScoreA : lastState.liveScoreB;
+          const minus = document.createElement('button');
+          minus.className = 'remove-btn';
+          minus.textContent = '−1';
+          minus.title = tk('team.touch_remove', { side });
+          minus.setAttribute('aria-label', minus.title);
+          minus.disabled = !lastState.currentBout || live <= 0;
+          minus.onclick = () => socket.emit('team_touch', { arenaId, side, points: -1 });
+          container.appendChild(minus);
         }
 
         function renderCardButtons(container, teamId) {
@@ -260,7 +299,9 @@
             btn.className = 'card-btn';
             btn.innerHTML = bpCard(type);
             btn.title = tk('team.card_title', { type });
-            btn.onclick = () => socket.emit('team_card', { arenaId, teamId, type });
+            btn.onclick = () => {
+              if (!locked('referee.cyrano_master_card_lock')) socket.emit('team_card', { arenaId, teamId, type });
+            };
             container.appendChild(btn);
           });
         }
@@ -282,7 +323,9 @@
           btn.className = 'card-btn';
           btn.textContent = tk('team.fencer_card');
           btn.disabled = !lastState.currentBout;
-          btn.onclick = () => socket.emit('team_fencer_card', { arenaId, side, reason: select.value });
+          btn.onclick = () => {
+            if (!locked('referee.cyrano_master_card_lock')) socket.emit('team_fencer_card', { arenaId, side, reason: select.value });
+          };
           container.appendChild(select);
           container.appendChild(btn);
         }
@@ -304,6 +347,7 @@
           }
           waiting.style.display = 'none';
           match.style.display = 'flex';
+          document.getElementById('device-lock').style.display = deviceLocked() ? 'block' : 'none';
 
           document.getElementById('team-a-name').textContent = lastState.teamAName;
           document.getElementById('team-b-name').textContent = lastState.teamBName;
@@ -397,9 +441,12 @@
         document.getElementById('timer-start').onclick = () => socket.emit('team_timer_start', { arenaId });
         document.getElementById('timer-pause').onclick = () => socket.emit('team_timer_pause', { arenaId });
         document.getElementById('reset-bout').onclick = () => {
+          if (locked('team.cyrano_master_relay_lock')) return;
           if (confirm(tk('team.reset_confirm'))) socket.emit('team_reset_bout', { arenaId });
         };
-        document.getElementById('advance-bout').onclick = () => socket.emit('team_advance_bout', { arenaId });
+        document.getElementById('advance-bout').onclick = () => {
+          if (!locked('team.cyrano_master_relay_lock')) socket.emit('team_advance_bout', { arenaId });
+        };
       })();
     </script>
   </body>

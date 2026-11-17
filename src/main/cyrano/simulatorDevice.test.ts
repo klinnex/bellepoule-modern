@@ -183,6 +183,19 @@ describe('Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)', () => {
     expect(d.snapshot()).toMatchObject({ state: 'W', right: { score: 0 } });
     expect(d.snapshot().blocked.begin).toMatch(/aucun match/);
   });
+  it('NAK : fin refusée, l’appareil revient en halte ; correction puis VALIDATE acceptés (spéc. § 4)', () => {
+    d.command('validate');
+    expect(d.snapshot().state).toBe('E');
+    sent.length = 0;
+    d.receive('|EFP1.1|NAK|1|C1|%|');
+    expect(d.snapshot().state).toBe('H');
+    expect(parseCyrano(sent[sent.length - 1])?.state).toBe('H');
+    expect(d.command('r+')).toBe(true);
+    d.command('validate');
+    expect(d.snapshot().state).toBe('E');
+    d.receive('|EFP1.1|ACK|1|C1|%|');
+    expect(d.snapshot().state).toBe('W');
+  });
   it('DISP d’un match repris (PREV) : scores et cartons installés', () => {
     d.command('raz');
     d.receive(
@@ -192,5 +205,89 @@ describe('Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)', () => {
     expect(d.snapshot().right).toMatchObject({ score: 5, y: 1, r: 0 });
     expect(d.snapshot().left).toMatchObject({ score: 2, y: 0, r: 2 });
     expect(d.snapshot().stopwatch).toBe('1:20');
+    // Statut d'un tireur sorti (abandon, exclusion) repris du DISP
+    d.command('raz');
+    d.receive(
+      `|EFP1.1|DISP|1|C1|2|A2|1||||I|F|N|||||%|${RIGHT.slice(0, 8)}|DUVAL J|FRA|5|U|%|` +
+        `${LEFT.slice(0, 8)}|FAURE M|FRA|2|E|%|`
+    );
+    expect(d.snapshot().left.status).toBe('E');
+    expect(d.snapshot().right.status).toBe('U');
+  });
+});
+
+describe('Appareil Cyrano simulé — équipes (Type=T, #1829)', () => {
+  const teamDisp = (relay: number, right: string, left: string, a: number, b: number) =>
+    `|EFP1.1|DISP|1|C1||||${relay}|||T|S|N|||||%|${right}|DUVAL J|FRA|${a}|%|` +
+    `${left}|FAURE M|ITA|${b}|%|`;
+  type TeamDevice = Omit<Device, 'snapshot'> & {
+    snapshot(): ReturnType<Device['snapshot']> & { team: boolean; relay: number | null };
+  };
+  let d: TeamDevice;
+  let sent: string[];
+  let notes: string[];
+  const lastInfo = () => {
+    const infos = sent.filter(r => r.includes('|INFO|'));
+    return parseCyrano(infos[infos.length - 1] ?? '');
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    d = new CyranoDevice({ piste: '1' });
+    sent = [];
+    notes = [];
+    d.on('log', e =>
+      e.dir === 'out' ? sent.push(e.text) : e.dir === 'note' && notes.push(e.text)
+    );
+    d.receive(teamDisp(1, 'r1', 'l1', 0, 0));
+  });
+  afterEach(() => {
+    d.stop();
+    vi.useRealTimers();
+  });
+
+  it('DISP Type=T : relais 1 installé, type T et Round renvoyés dans l’INFO', () => {
+    expect(d.snapshot()).toMatchObject({ team: true, relay: 1, state: 'W' });
+    expect(notes[notes.length - 1]).toMatch(/relais 1/);
+    d.command('begin');
+    expect(lastInfo()).toMatchObject({ type: 'T', round: '1', state: 'H' });
+  });
+
+  it('ROUND ∧∨ bloqués en équipes : le relais est fixé par le logiciel', () => {
+    d.command('begin');
+    expect(d.snapshot().blocked['round+']).toMatch(/relais/);
+    d.command('round+');
+    expect(d.snapshot().relay).toBe(1);
+  });
+
+  it('fin de relais : ACK → W, DISP du relais suivant avec les cumuls, BEGIN sans remise à zéro', () => {
+    d.command('begin');
+    for (let i = 0; i < 5; i++) d.command('r+');
+    d.command('l+');
+    d.command('validate');
+    expect(lastInfo()).toMatchObject({ state: 'E', right: { score: 5 }, left: { score: 1 } });
+    d.receive('|EFP1.1|ACK|1|C1|%|');
+    expect(d.snapshot().state).toBe('W');
+    expect(notes.some(n => /relais 1 acquittée/.test(n))).toBe(true);
+    d.receive(teamDisp(2, 'r2', 'l2', 5, 1));
+    d.command('begin');
+    expect(d.snapshot()).toMatchObject({
+      relay: 2,
+      right: { id: 'r2', score: 5 },
+      left: { id: 'l2', score: 1 },
+    });
+    d.command('l+');
+    expect(lastInfo()).toMatchObject({ round: '2', right: { score: 5 }, left: { score: 2 } });
+  });
+
+  it('RESERVE : champ 11 = R dans la zone du tireur, effacé au relais suivant', () => {
+    d.command('begin');
+    d.command('resr');
+    expect(lastInfo()?.right).toMatchObject({ id: 'r1', reserve: true });
+    expect(lastInfo()?.left?.reserve).toBe(false);
+    d.command('validate');
+    d.receive('|EFP1.1|ACK|1|C1|%|');
+    d.receive(teamDisp(2, 'r2', 'l2', 0, 0));
+    expect(d.snapshot().right.reserve).toBe('N');
   });
 });

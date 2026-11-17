@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveCyranoCoords } from './matchCoords';
+import { resolveCyranoCoords, resolveCyranoPhases } from './matchCoords';
 
 const POOL = 'ecc0b9cc-2e60-4105-8582-4ec65a409902';
 const base = { fencerA: { id: 'a' }, fencerB: { id: 'b' }, scoreA: 0, scoreB: 0 } as any;
@@ -50,5 +50,34 @@ describe('resolveCyranoCoords (#1720)', () => {
       poulTab: '1',
       matchNum: 1,
     });
+  });
+
+  it('Phase (spéc. § 3) : tour de poules en cours, tableau = dernier tour de poules + 1', () => {
+    const rounds = (poolRounds: number, currentPoolRound?: number) => ({
+      ...db,
+      getCompetition: () => ({ settings: { poolRounds } }),
+      getSessionState: () => (currentPoolRound ? { uiState: { currentPoolRound } } : null),
+    });
+    const pool = { ...base, id: 'pm7', poolId: POOL };
+    const de = { ...base, id: '8-0', isTableau: true };
+    // Deux tours de poules : 1er tour = 1, 2e tour = 2, tableau = 3
+    expect(resolveCyranoCoords(pool, 'c1', rounds(2, 1)).phase).toBe(1);
+    expect(resolveCyranoCoords(pool, 'c1', rounds(2, 2)).phase).toBe(2);
+    expect(resolveCyranoCoords(de, 'c1', rounds(2, 2)).phase).toBe(3);
+    // Un seul tour (défaut) : inchangé
+    expect(resolveCyranoCoords(de, 'c1', rounds(1)).phase).toBe(2);
+    expect(resolveCyranoCoords(de, 'c1', db).phase).toBe(2);
+    // Sans tour de poules : le tableau est la phase 1
+    expect(resolveCyranoPhases('c1', rounds(0))).toEqual({ pool: 1, tableau: 1 });
+    // Tour en cours incohérent : borné au nombre de tours
+    expect(resolveCyranoPhases('c1', rounds(2, 7))).toEqual({ pool: 2, tableau: 3 });
+    // Lecture en échec : valeurs par défaut
+    const broken = {
+      ...db,
+      getCompetition: () => {
+        throw new Error('x');
+      },
+    };
+    expect(resolveCyranoPhases('c1', broken)).toEqual({ pool: 1, tableau: 2 });
   });
 });

@@ -670,6 +670,7 @@ export interface RemoteServerAPI {
 // Complete API Interface Types
 // ============================================================================
 
+type CardRef = { matchId: string; fencerId: string; cardType: string };
 export interface DatabaseAPI {
   // Competitions
   createCompetition: (data: CompetitionCreateData) => Promise<Competition>;
@@ -827,11 +828,7 @@ export interface DatabaseAPI {
     }>
   >;
 
-  /** Cartons de plusieurs matchs (feuilles imprimées, #1829) */
-  getCardsByMatchIds: (
-    matchIds: string[]
-  ) => Promise<Array<{ matchId: string; fencerId: string; cardType: string }>>;
-
+  getCardsByMatchIds: (ids: string[]) => Promise<CardRef[]>; // feuilles imprimées (#1829)
   // Session State
   /** conflict : état réécrit par le MCP depuis le chargement (#1880), rien n'est écrit */
   saveSessionState: (id: string, state: SessionState) => Promise<void | { conflict: true }>;

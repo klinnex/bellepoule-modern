@@ -54,6 +54,26 @@ export function checkPrevEligibility(
  * pour qu'un nouveau « fin de match » le réenregistre proprement.
  */
 export function restoreForCorrection(snapshot: LastFinishedSnapshot): ArenaMatch {
-  const { endTime: _endTime, duration: _duration, deviceEnd: _deviceEnd, ...rest } = snapshot.match;
-  return { ...rest, status: 'not_started', startTime: null, endTime: null };
+  const {
+    endTime: _endTime,
+    duration: _duration,
+    deviceEnd,
+    recalledOut: _previous,
+    ...rest
+  } = snapshot.match;
+  // Abandon ou exclusion signalé par l'appareil : gardé pour le renvoyer avec le match rappelé
+  const out =
+    deviceEnd?.winner && (deviceEnd.reason === 'abandon' || deviceEnd.reason === 'exclusion')
+      ? {
+          fencer: deviceEnd.winner === 'A' ? ('B' as const) : ('A' as const),
+          reason: deviceEnd.reason,
+        }
+      : undefined;
+  return {
+    ...rest,
+    status: 'not_started',
+    startTime: null,
+    endTime: null,
+    ...(out ? { recalledOut: out } : {}),
+  };
 }

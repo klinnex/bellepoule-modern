@@ -396,6 +396,8 @@
   'team.reset_bout': '重設回合',
   'team.next_relay': '下一棒 →',
   'team.all_bouts_played': '比賽結束 — 所有回合已完成。',
+  'team.cyrano_master_relay_lock': '接力已鎖定：劍道裁判器處於主控模式，並確認接力結束。',
+  'team.touch_remove': '移除一次擊中（{{side}} 方）',
   'team.touch_side': '+ 擊中（{{side}} 方）',
   'team.card_title': '{{type}} 牌 E',
   'team.cards_label': '團體「E」牌 — {{team}}',

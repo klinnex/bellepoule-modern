@@ -398,6 +398,8 @@
   'team.reset_bout': 'Reset bout',
   'team.next_relay': 'Next relay →',
   'team.all_bouts_played': 'Match complete — all bouts have been fenced.',
+  'team.cyrano_master_relay_lock': 'Relay locked: the scoring machine is in master mode and validates the end of the relay.',
+  'team.touch_remove': 'Remove a touch (side {{side}})',
   'team.touch_side': '+ Touch (side {{side}})',
   'team.card_title': '{{type}} card E',
   'team.cards_label': 'Team “E” cards — {{team}}',

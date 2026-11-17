@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import type { ArenaCyranoLink } from '../../shared/types/remote';
 import { CardReason, FencerStatus, Weapon, type Score } from '../../shared/types';
 
 /** Match transmis par le renderer (poules ou tableau) ; champs optionnels selon l'origine. */
@@ -78,6 +79,8 @@ export interface TeamArenaState {
   fencerCards: TeamArenaFencerCard[];
   matchId: string;
   competitionId: string;
+  /** Poule (ou tour et position du tableau) et rang de la rencontre : champs de l'appareil de piste */
+  coords?: { poolNumber: number; round: number | null; position: number | null; number: number };
   teamAId: string;
   teamAName: string;
   teamBId: string;
@@ -90,4 +93,11 @@ export interface TeamArenaState {
   elapsedAccumulatedSec: number; // temps déjà écoulé (assaut en pause)
   timerStartedAt: number | null; // epoch ms, null = chrono à l'arrêt
   cards: TeamArenaCard[];
+  /**
+   * Cartons montrés par l'appareil de piste, par relais (id de l'assaut) — #1829. L'appareil
+   * ne donne pas le motif : ils ne sont pas enregistrés comme cartons individuels.
+   */
+  deviceCards?: Record<string, { cardsA: string[]; cardsB: string[] }>;
+  /** Appareil de piste relié à l'arène équipe : maître et en ligne → tablette verrouillée */
+  cyrano?: ArenaCyranoLink | null;
 }

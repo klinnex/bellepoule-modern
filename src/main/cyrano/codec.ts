@@ -255,6 +255,8 @@ export function buildCyrano(msg: CyranoMessage): string {
     const value = msg[key];
     return sanitizeField(typeof value === 'string' ? value : undefined, GENERAL_MAX[i]);
   });
+  // Centièmes du chrono : ajout d'EFP1.1, absents d'EFP1
+  if (protocol === 'EFP1') general[9] = general[9].split('.')[0];
   // Champs obligatoires (**) toujours présents, même vides
   const g = trimTrailing(general);
   while (g.length < 4) g.push(general[g.length]);

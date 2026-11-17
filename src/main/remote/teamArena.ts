@@ -14,6 +14,7 @@ import {
   isRelayComplete,
   relayCapFor,
   relayCumul,
+  relayWinnerSide,
 } from '../../features/teams/utils/teamRelayLive';
 import { getAvailableReasons } from '../../shared/utils/cardSystem';
 import type { TeamArenaCard, TeamArenaState } from './types';
@@ -26,6 +27,47 @@ export interface TeamArenaContext {
   readonly db: S['db'];
   readonly io: S['io'];
   readonly teamArenaState: S['teamArenaState'];
+  /** Appareil de piste relié à l'arène équipe (#1829) */
+  readonly cyranoTeamHook: S['cyranoTeamHook'];
+}
+
+/** Diffuse l'état d'une arène équipe (tablettes, écrans) et prévient l'appareil de piste. */
+export function broadcastTeamArena(ctx: TeamArenaContext, arenaId: string): void {
+  ctx.io
+    .to(`team-arena:${arenaId}`)
+    .emit('team_arena_state', getPublicTeamArenaState(ctx, arenaId));
+  ctx.cyranoTeamHook?.(arenaId);
+}
+
+/**
+ * Termine l'assaut (relais) en cours : score persisté, passage au suivant s'il en reste.
+ * Relais FIE : vainqueur du relais = équipe en tête au cumul ; arène : score de l'assaut.
+ */
+export function advanceTeamBout(ctx: TeamArenaContext, arenaId: string): boolean {
+  const state = ctx.teamArenaState.get(arenaId);
+  if (!state) return false;
+  const bout = state.bouts[state.currentBoutIndex];
+  if (!bout || bout.status === 'finished') return false;
+  const scoreA = state.liveScoreA;
+  const scoreB = state.liveScoreB;
+  const { cumulA, cumulB } = relayCumul(state.bouts, bout, scoreA, scoreB);
+  const side =
+    state.format === 'fie-relay'
+      ? relayWinnerSide(cumulA, cumulB)
+      : relayWinnerSide(scoreA, scoreB);
+  const winnerId = side === 'A' ? bout.fencerAId : side === 'B' ? bout.fencerBId : null;
+  ctx.db.updateTeamBout(bout.id, scoreA, scoreB, 'finished', winnerId);
+  bout.scoreA = scoreA;
+  bout.scoreB = scoreB;
+  bout.status = 'finished';
+  bout.winnerId = winnerId;
+  state.currentBoutIndex = state.bouts.findIndex(b => b.status !== 'finished');
+  state.liveScoreA = 0;
+  state.liveScoreB = 0;
+  state.elapsedAccumulatedSec = 0;
+  state.timerStartedAt = null;
+  broadcastTeamArena(ctx, arenaId);
+  return true;
 }
 
 // ── Format arène Sabre Laser équipe : saisie temps réel ──────────────────────
@@ -63,6 +105,12 @@ export function setTeamArenaMatch(
     })),
     matchId: detail.id,
     competitionId: detail.competitionId,
+    coords: {
+      poolNumber: detail.poolNumber ?? 1,
+      round: detail.round ?? null,
+      position: detail.position ?? null,
+      number: detail.number ?? 1,
+    },
     teamAId: detail.teamAId,
     teamAName: detail.teamAName,
     teamBId: detail.teamBId,
@@ -76,9 +124,7 @@ export function setTeamArenaMatch(
     timerStartedAt: null,
     cards: ctx.db.getTeamMatchCards(matchId) as TeamArenaCard[],
   });
-  ctx.io
-    .to(`team-arena:${arenaId}`)
-    .emit('team_arena_state', getPublicTeamArenaState(ctx, arenaId));
+  broadcastTeamArena(ctx, arenaId);
   return true;
 }
 
@@ -86,6 +132,7 @@ export function setTeamArenaMatch(
 export function clearTeamArenaMatch(ctx: TeamArenaContext, arenaId: string): void {
   ctx.teamArenaState.delete(arenaId);
   ctx.io.to(`team-arena:${arenaId}`).emit('team_arena_state', null);
+  ctx.cyranoTeamHook?.(arenaId);
 }
 
 export function teamArenaElapsedSec(state: TeamArenaState): number {
@@ -138,6 +185,8 @@ export function getPublicTeamArenaState(ctx: TeamArenaContext, arenaId: string):
     boutComplete,
     matchComplete: !currentBout,
     cards: state.cards,
+    deviceCards: state.deviceCards ?? {},
+    cyrano: state.cyrano ?? null,
     blackCardEnabled:
       ctx.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled === true,
   };
@@ -145,6 +194,6 @@ export function getPublicTeamArenaState(ctx: TeamArenaContext, arenaId: string):
 
 /** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
 export const TEAM_ARENA_CONTEXT_KEYS = {
-  state: ['db', 'io', 'teamArenaState'],
+  state: ['cyranoTeamHook', 'db', 'io', 'teamArenaState'],
   methods: [],
 } as const;

@@ -11,12 +11,7 @@
 import { ipcMain } from 'electron';
 import { CyranoServer, type CyranoPisteConfig } from '../cyrano/server';
 import type { DatabaseManager } from '../../database';
-import {
-  PISTE_ACTIONS,
-  PisteHub,
-  type PisteAction,
-  type PisteHubOptions,
-} from '../cyrano/pisteHub';
+import { PISTE_ACTIONS, PisteHub, type PisteAction, type PisteHubOptions } from '../piste/pisteHub';
 
 export interface CyranoHandlersContext {
   cyranoServer: CyranoServer;

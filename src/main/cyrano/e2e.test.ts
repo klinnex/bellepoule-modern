@@ -39,7 +39,8 @@ vi.mock('http', () => ({
 
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { CyranoServer } from './server';
-import { PisteHub } from './pisteHub';
+import { PisteHub } from '../piste/pisteHub';
+import { CyranoPisteDriver } from './driver';
 // Appareil simulé (scripts/lib/cyranoDevice.js), testé ici car Vitest ne couvre que src/
 const { CyranoDevice } = require('../../../scripts/lib/cyranoDevice.js');
 
@@ -125,7 +126,7 @@ describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', { timeout:
     device.port = devicePort;
     cyrano.setPistes([{ piste: '1', ip: '127.0.0.1', port: devicePort, arena: 1 }]);
 
-    hub = new PisteHub(cyrano, () => remote, {
+    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote, {
       coordsSource: {
         getMatch: id => ({ number: Number(id.slice(1, 2)) || undefined }),
         getCompetitionPools: () => [{ id: POOL, name: 'Poule 2' }],
