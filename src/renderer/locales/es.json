@@ -3492,6 +3492,15 @@
     "open_session": "Sesión abierta ({{date}})",
     "new_name": "Nombre del nuevo club",
     "new_name_ph": "Club de esgrima",
+    "backup_export": "Guardar copia del club",
+    "backup_export_help": "Guarda todo el club (miembros, sesiones, asaltos, inventario, préstamos, ejercicios) en un archivo .bpclub para cargarlo en otro ordenador",
+    "backup_saved": "Copia del club guardada: {{name}}",
+    "backup_import": "Cargar una copia",
+    "backup_import_help": "¿Club creado en otro ordenador? Cargue su archivo de copia .bpclub.",
+    "backup_replace_confirm": "Este club ya existe en este ordenador. ¿Sustituir todos sus datos por los de la copia?",
+    "backup_replace": "Sustituir",
+    "backup_loaded": "Club cargado: {{name}}",
+    "backup_file": "Copia de club BellePoule",
     "create": "Crear el club"
   },
   "clubPlan": {

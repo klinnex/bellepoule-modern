@@ -3492,6 +3492,15 @@
     "open_session": "Session open ({{date}})",
     "new_name": "New club name",
     "new_name_ph": "Fencing club",
+    "backup_export": "Back up club",
+    "backup_export_help": "Saves the whole club (members, sessions, bouts, inventory, loans, exercises) to a .bpclub file to load on another computer",
+    "backup_saved": "Club backed up: {{name}}",
+    "backup_import": "Load a backup",
+    "backup_import_help": "Club created on another computer? Load its .bpclub backup file.",
+    "backup_replace_confirm": "This club already exists on this computer. Replace all its data with the backup?",
+    "backup_replace": "Replace",
+    "backup_loaded": "Club loaded: {{name}}",
+    "backup_file": "BellePoule club backup",
     "create": "Create club"
   },
   "clubPlan": {

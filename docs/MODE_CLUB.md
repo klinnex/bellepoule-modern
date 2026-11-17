@@ -176,7 +176,19 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 `ClubLoanModal.tsx`. API IPC : `club.listItems`, `createItem`, `updateItem`, `deleteItem`,
 `listLoans`, `lendItem`, `returnLoan`, `deleteLoan`.
 
-## 8. Code
+## 8. Sauvegarde et changement d'ordinateur
+
+- **Sauvegarder le club** (en-tête du club) : fichier `.bpclub` (ZIP) avec tout le club —
+  fiche, membres (photos comprises), séances, présences, combats, inventaire, prêts, catégories,
+  marques — et la bibliothèque d'exercices du poste.
+- **Charger une sauvegarde** (écran de choix du club) : recrée le club à l'identique sur l'autre
+  poste. Club déjà présent (même club, déjà chargé) : confirmation, puis ses données sont
+  **remplacées** par celles du fichier. Exercices : ajoutés s'ils manquent, jamais écrasés.
+  Salle d'une séance inconnue sur ce poste : retirée de la séance. Tout ou rien (transaction).
+- Fichier refusé s'il n'est pas une sauvegarde de club ou s'il vient d'une version plus récente.
+- Données personnelles : le fichier n'est pas chiffré, le conserver en lieu sûr (docs/RGPD.md).
+
+## 9. Code
 
 | Élément | Fichier |
 |---|---|
@@ -187,4 +199,5 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 | Utilitaires | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan) |
 | PDF | `src/shared/utils/pdfExport/clubCardsPdf.ts`, `clubPlanPdf.ts` |
 | Inventaire | `src/database/repos/clubInventoryRepo.ts`, `src/shared/utils/clubInventory.ts`, `src/renderer/components/club/ClubInventoryPanel.tsx` (tables `club_items`, `club_loans`) |
+| Sauvegarde | `src/database/repos/clubBackupRepo.ts`, `src/main/clubBackupFile.ts`, `src/renderer/components/club/clubBackup.ts` (IPC `club:exportBackup`, `club:importBackup`) |
 | Interface | `src/renderer/components/club/` |

@@ -11,12 +11,15 @@ import {
   CalendarDays,
   Dumbbell,
   Package,
+  Save,
   Shield,
   Sparkles,
   Trash2,
   Users,
 } from 'lucide-react';
 import { useConfirm } from '../ConfirmDialog';
+import { useToast } from '../Toast';
+import { exportClubBackup } from './clubBackup';
 import { ClubPicker } from './ClubPicker';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -69,6 +72,7 @@ const ClubSpace: React.FC<{
 }> = ({ clubId, onSelectClub }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<ClubTab>('members');
   const [settings, setSettings] = useState<ClubSettings>({ name: '', stripCount: 1 });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -103,6 +107,16 @@ const ClubSpace: React.FC<{
     if (!ok) return;
     await api.deleteClub(clubId);
     onSelectClub(null);
+  };
+
+  const saveBackup = async () => {
+    try {
+      if (await exportClubBackup(clubId, settings.name, t)) {
+        showToast(t('clubs.backup_saved', { name: settings.name }), 'success');
+      }
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : String(e), 'error');
+    }
   };
 
   const onCardsPrinted = useCallback(() => {
@@ -141,6 +155,13 @@ const ClubSpace: React.FC<{
           }}
         >
           {t('clubTour.restart')}
+        </Button>
+        <Button
+          icon={<Save size={15} aria-hidden="true" />}
+          title={t('clubs.backup_export_help')}
+          onClick={() => void saveBackup()}
+        >
+          {t('clubs.backup_export')}
         </Button>
         <Button
           icon={<ArrowLeftRight size={15} aria-hidden="true" />}

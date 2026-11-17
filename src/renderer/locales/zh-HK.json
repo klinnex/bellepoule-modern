@@ -3492,6 +3492,15 @@
     "open_session": "訓練進行中（{{date}}）",
     "new_name": "新會館名稱",
     "new_name_ph": "劍擊會",
+    "backup_export": "備份會館",
+    "backup_export_help": "將整個會館（會員、課堂、比賽、庫存、借出、練習）儲存為 .bpclub 檔案，以便在另一部電腦載入",
+    "backup_saved": "會館已備份：{{name}}",
+    "backup_import": "載入備份",
+    "backup_import_help": "會館在另一部電腦建立？請載入其 .bpclub 備份檔案。",
+    "backup_replace_confirm": "此會館已存在於這部電腦。要以備份取代其所有資料嗎？",
+    "backup_replace": "取代",
+    "backup_loaded": "會館已載入：{{name}}",
+    "backup_file": "BellePoule 會館備份",
     "create": "建立會館"
   },
   "clubPlan": {

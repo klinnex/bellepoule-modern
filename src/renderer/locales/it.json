@@ -3492,6 +3492,15 @@
     "open_session": "Seduta aperta ({{date}})",
     "new_name": "Nome del nuovo club",
     "new_name_ph": "Circolo di scherma",
+    "backup_export": "Salva il club",
+    "backup_export_help": "Salva tutto il club (membri, sedute, assalti, inventario, prestiti, esercizi) in un file .bpclub da caricare su un altro computer",
+    "backup_saved": "Club salvato: {{name}}",
+    "backup_import": "Carica un salvataggio",
+    "backup_import_help": "Club creato su un altro computer? Carica il suo file di salvataggio .bpclub.",
+    "backup_replace_confirm": "Questo club esiste già su questo computer. Sostituire tutti i suoi dati con quelli del salvataggio?",
+    "backup_replace": "Sostituisci",
+    "backup_loaded": "Club caricato: {{name}}",
+    "backup_file": "Salvataggio club BellePoule",
     "create": "Crea il club"
   },
   "clubPlan": {
