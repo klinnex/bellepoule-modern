@@ -39,6 +39,14 @@ export function buildMatchDisplay(input: MatchDisplayInput): PisteDisplay {
     isCurrent && arena?.status !== 'in_progress' && w?.matchId === match.id
       ? w.stopwatch
       : undefined;
+  // Match rappelé pas encore relancé : statut du tireur sorti (abandon ou exclusion signalé par
+  // l'appareil, carton noir de la tablette), spéc. Cyrano § 3 champs R5 / L5
+  const recalled = isCurrent && arena?.status !== 'in_progress';
+  const outOf = (side: 'A' | 'B', list?: string[]): Pick<PisteDisplaySide, 'status'> => {
+    if (!recalled) return {};
+    if (match.recalledOut?.fencer === side) return { status: match.recalledOut.reason };
+    return list?.includes('black') ? { status: 'exclusion' } : {};
+  };
   const right: PisteDisplaySide = {
     id: fA.id,
     lastName: fA.lastName,
@@ -46,6 +54,7 @@ export function buildMatchDisplay(input: MatchDisplayInput): PisteDisplay {
     nat: pickCyranoNat(fA, options.natSource, options.international),
     score: scoreA,
     ...cardCounts(cards?.cardsA),
+    ...outOf('A', cards?.cardsA),
   };
   const left: PisteDisplaySide = {
     id: fB.id,
@@ -54,6 +63,7 @@ export function buildMatchDisplay(input: MatchDisplayInput): PisteDisplay {
     nat: pickCyranoNat(fB, options.natSource, options.international),
     score: scoreB,
     ...cardCounts(cards?.cardsB),
+    ...outOf('B', cards?.cardsB),
   };
 
   const { phase, poulTab, matchNum } = resolveCyranoCoords(

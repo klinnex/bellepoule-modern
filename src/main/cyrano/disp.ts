@@ -21,6 +21,8 @@ export interface CyranoDispFencer {
   redCards?: number;
   /** Cartons P (EFP1.1, champ 12 : 0, 2 ou 4 selon la règle 2026-2027) (#1829) */
   pCard?: number;
+  /** Statut repris d'un match rappelé : abandon (A) ou exclusion (E) ; sinon U */
+  status?: 'A' | 'E';
 }
 
 export interface CyranoDispMatch {
@@ -64,7 +66,7 @@ function fencer(f: CyranoDispFencer, opts: CyranoDispOptions): CyranoFencer {
     name: formatCyranoName(f.lastName, f.firstName, opts.nameLength ?? 10),
     nat: formatCyranoNat(f.nat),
     score: f.score,
-    status: 'U',
+    status: f.status ?? 'U',
     ...(f.yellowCards ? { yellowCards: f.yellowCards } : {}),
     ...(f.redCards ? { redCards: f.redCards } : {}),
     ...(f.pCard ? { pCard: f.pCard } : {}),

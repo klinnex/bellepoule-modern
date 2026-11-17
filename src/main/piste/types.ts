@@ -85,6 +85,8 @@ export interface PisteDisplaySide {
   redCards?: number;
   pRed?: number;
   pBlack?: number;
+  /** Statut repris d'un match rappelé qui s'était terminé par un abandon ou une exclusion */
+  status?: 'abandon' | 'exclusion';
 }
 
 /** Match (ou relais) à afficher sur l'appareil. */

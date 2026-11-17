@@ -126,6 +126,7 @@ function dispFencer(s: PisteDisplaySide): CyranoDispFencer {
     yellowCards: s.yellowCards,
     redCards: s.redCards,
     pCard: cyranoPCardField(s),
+    status: s.status === 'abandon' ? 'A' : s.status === 'exclusion' ? 'E' : undefined,
   };
 }
 

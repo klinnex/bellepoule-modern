@@ -172,6 +172,11 @@ export interface ArenaMatch {
    * l'appareil ; `winner` force le vainqueur (égalité avec priorité, abandon, exclusion).
    */
   deviceEnd?: { winner?: 'A' | 'B'; reason?: 'priority' | 'abandon' | 'exclusion' };
+  /**
+   * Match rappelé (PREV) qui s'était terminé par un abandon ou une exclusion signalé par
+   * l'appareil : tireur concerné, pour renvoyer son statut à l'appareil (#1829).
+   */
+  recalledOut?: { fencer: 'A' | 'B'; reason: 'abandon' | 'exclusion' };
 }
 
 export interface ArenaUpdate {

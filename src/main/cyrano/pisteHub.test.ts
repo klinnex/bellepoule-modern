@@ -360,6 +360,23 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(arena().status).toBe('finished');
     };
 
+    it('match terminé sur abandon ou exclusion : le DISP du match rappelé porte le statut (R5 / L5)', () => {
+      device(
+        info('E', { id: short(ID.ef), score: 3, status: 'A' }, { id: short(ID.ab), score: 1 })
+      );
+      expect(arena().status).toBe('finished');
+      disps = [];
+      device('|EFP1.1|PREV|1||%|');
+      expect(lastDisp()).toMatchObject({
+        right: { id: short(ID.ef), score: 3, status: 'A' },
+        left: { id: short(ID.ab), score: 1, status: 'U' },
+      });
+      // Match relancé : le statut n'est plus imposé (l'arbitre a pu le lever sur l'appareil)
+      device(info('H', { id: short(ID.ef), score: 3 }, { id: short(ID.ab), score: 1 }));
+      updateScore(2, 1);
+      expect(lastDisp().right?.status).toBe('U');
+    });
+
     it('après ACK : match rappelé, DISP avec scores et cartons, correction réenregistrée', () => {
       finishFirst();
       disps = [];
