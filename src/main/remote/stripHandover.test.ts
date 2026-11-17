@@ -37,6 +37,7 @@ vi.mock('http', () => ({
 }));
 
 import { RemoteScoreServer } from '../remoteScoreServer';
+import { dayStripServer } from './stripHandover';
 
 const db = {
   getCompetition: vi.fn().mockReturnValue({ id: 'c1', weapon: 'E', settings: {} }),
@@ -93,12 +94,13 @@ function makeServer(): RemoteScoreServer {
 
 describe('stripHandover — travail en attente et piste libérée (#1878)', () => {
   let server: RemoteScoreServer;
+  const day = () => dayStripServer(server);
   beforeEach(() => {
     vi.clearAllMocks();
     server = makeServer();
   });
 
-  it('poule sans piste : proposée ; jamais déplacée vers une piste hors de l’épreuve', async () => {
+  it('poule sans piste : accueillie sur une piste hors de la plage de l’épreuve', async () => {
     await server.startSession('c1', 2, [
       poolMarker('p1', 1, 1),
       poolMatch('p1', 1, 'a', 'b'),
@@ -107,11 +109,45 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
       poolMarker('p3', 3),
       poolMatch('p3', 1, 'e', 'f'),
     ] as never);
-    const waiting = server.getWaitingWork();
+    server.setArenaPassword('2', 'secret123');
+    const before = server.getArena('arena1');
+    const waiting = day().getWaitingWork();
     expect(waiting).toEqual([{ kind: 'pool', poolId: 'p3', poolNumber: 3, fromArena: null }]);
-    // Piste 4 inexistante dans cette épreuve (ni mot de passe ni écran configurés) : refus
-    expect(server.moveWorkToArena(waiting[0], 4)).toBe(false);
-    expect(server.getArena('arena4')).toBeNull();
+    expect(day().canHostStrip(4)).toBe(true);
+
+    // Piste 4 de la salle, hors de la plage 1–2 de l'épreuve : arènes 3 et 4 créées
+    expect(day().moveWorkToArena(waiting[0], 4)).toBe(true);
+    expect(server.getArena('arena4')?.currentMatch).toMatchObject({ id: 'p3-m1', poolId: 'p3' });
+    expect(server.getArena('arena3')).not.toBeNull();
+    expect(server.getArenaCount()).toBe(4);
+    expect(server.getSession()?.strips.map(s => s.number)).toEqual([1, 2, 3, 4]);
+    // Arènes existantes intactes (match en place), nouvelles arènes protégées comme la dernière
+    expect(server.getArena('arena1')).toBe(before);
+    expect(server.getArena('arena1')?.currentMatch?.id).toBe('p1-m1');
+    expect(server.getArena('arena4')?.password).toBe(server.getArena('arena2')?.password);
+    expect(server.getArena('arena4')?.password).toBeTruthy();
+    expect(day().getWaitingWork()).toEqual([]);
+  });
+
+  it('piste sous la plage de l’épreuve ou indisponible', async () => {
+    await server.startSession('c1', 4, [
+      poolMarker('p1', 1, 3),
+      poolMatch('p1', 1, 'a', 'b'),
+      poolMarker('p2', 2, 3),
+      poolMatch('p2', 1, 'c', 'd'),
+    ] as never);
+    server.setStripPlan({ start: 3, unavailable: [4] });
+    expect(day().canHostStrip(4)).toBe(false);
+    const waiting = day().getWaitingWork();
+    expect(waiting).toHaveLength(1);
+    expect(day().moveWorkToArena(waiting[0], 4)).toBe(false);
+    // Piste 1, sous la piste de départ : le plan est élargi, la piste devient visible
+    expect(server.getVisibleArenas().map(a => a.number)).toEqual([3, 4]);
+    expect(day().moveWorkToArena(waiting[0], 1)).toBe(true);
+    expect(server.getVisibleArenas().map(a => a.number)).toEqual([1, 2, 3, 4]);
+    expect(server.getArena('arena1')?.currentMatch?.poolId).toBe(
+      waiting[0].kind === 'pool' ? waiting[0].poolId : ''
+    );
   });
 
   it('poule en file derrière une piste occupée : installée sur la piste libre, qui la garde', async () => {
@@ -129,13 +165,13 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
     const arena3 = server.getArena('arena3')!;
     arena3.currentMatch = null;
     arena3.activePoolId = undefined;
-    const waiting = server.getWaitingWork();
+    const waiting = day().getWaitingWork();
     expect(waiting).toEqual([{ kind: 'pool', poolId: 'p3', poolNumber: 3, fromArena: 2 }]);
 
-    expect(server.moveWorkToArena(waiting[0], 3)).toBe(true);
+    expect(day().moveWorkToArena(waiting[0], 3)).toBe(true);
     expect(server.getArena('arena3')?.currentMatch).toMatchObject({ id: 'p3-m1', poolId: 'p3' });
     expect(server.hasArenaAssignment('arena3')).toBe(true);
-    expect(server.getWaitingWork()).toEqual([]);
+    expect(day().getWaitingWork()).toEqual([]);
     expect(db.saveArenaState).toHaveBeenCalledWith('arena2', expect.anything());
     expect(db.saveArenaState).toHaveBeenCalledWith('arena3', expect.anything());
 
@@ -159,16 +195,16 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
       { id: '16-2', isTableau: true, round: 16, arena: 1, fencerA: f('c'), fencerB: f('d') },
     ] as never);
     expect(server.getArena('arena1')?.currentMatch?.id).toBe('16-1');
-    const waiting = server.getWaitingWork();
+    const waiting = day().getWaitingWork();
     expect(waiting).toEqual([
       expect.objectContaining({ kind: 'match', matchId: '16-2', fromArena: 1, fencers: 'C – D' }),
     ]);
-    expect(server.moveWorkToArena(waiting[0], 2)).toBe(true);
+    expect(day().moveWorkToArena(waiting[0], 2)).toBe(true);
     expect(server.getArena('arena2')?.currentMatch?.id).toBe('16-2');
-    expect(server.getWaitingWork()).toEqual([]);
+    expect(day().getWaitingWork()).toEqual([]);
   });
 
   it('sans séance : rien n’attend', () => {
-    expect(server.getWaitingWork()).toEqual([]);
+    expect(day().getWaitingWork()).toEqual([]);
   });
 });

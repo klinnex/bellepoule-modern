@@ -196,6 +196,23 @@ describe('PisteHub — pistes partagées entre épreuves (#1878)', () => {
     expect(disps).toHaveLength(n);
   });
 
+  it('liaison appareil (bandeau, verrou tablette) : publiée sur l’arène de l’épreuve suivie', async () => {
+    // Appareil en ligne avant toute séance, puis séances : les arènes sont recréées
+    device(frame('W', ID.a1, ID.a2));
+    await startEvent(fleuret, 'comp-fleuret', 'pool-f', 1, ID.a1, ID.a2);
+    await startEvent(epee, 'comp-epee', 'pool-e', 1, ID.b1, ID.b2);
+    const link = { piste: '1', mode: 'master', online: true };
+    expect(fleuret.getArena('arena1')?.cyrano).toEqual(link);
+    expect(epee.getArena('arena1')?.cyrano ?? null).toBeNull();
+    // Fin du match de fleuret : la piste passe à l'épée, la liaison aussi
+    device(frame('H', ID.a1, ID.a2, 5, 3));
+    device(frame('E', ID.a1, ID.a2, 5, 3));
+    device(frame('W', ID.a1, ID.a2, 5, 3));
+    expect(hub.getRoutes()).toEqual({ '1': 'comp-epee' });
+    expect(epee.getArena('arena1')?.cyrano).toEqual(link);
+    expect(fleuret.getArena('arena1')?.cyrano ?? null).toBeNull();
+  });
+
   it('aucune affectation : la piste reste sur sa dernière épreuve, rien n’est envoyé', async () => {
     await startEvent(fleuret, 'comp-fleuret', 'pool-f', 1, ID.a1, ID.a2);
     await startEvent(epee, 'comp-epee', 'pool-e', 2, ID.b1, ID.b2);

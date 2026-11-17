@@ -7,7 +7,10 @@
 import type { ArenaMatch } from '../../shared/types/remote';
 import { MatchStatus } from '../../shared/types';
 import type { SessionMatch } from './types';
-import type { ArenaQueueContext } from './arenaQueue';
+import { updateMatchArena, type ArenaQueueContext } from './arenaQueue';
+import { canHostStrip, hostStrip, type ArenaSetupContext } from './arenaSetup';
+import type { RemoteScoreServer } from '../remoteScoreServer';
+import type { DayStripServer } from './dayStripBoard';
 
 /** Travail d'une épreuve qui attend une piste. */
 export type WaitingWork =
@@ -148,6 +151,22 @@ export function movePoolToArena(ctx: ArenaQueueContext, poolId: string, arenaId:
   return true;
 }
 
+/**
+ * Déplace le travail vers la piste `n` de l'épreuve, accueillie au besoin (arène créée, plan
+ * des pistes élargi). Refus : piste indisponible pour l'épreuve, travail qui n'attend plus.
+ */
+export function moveWorkToStrip(
+  setup: ArenaSetupContext,
+  ctx: ArenaQueueContext,
+  work: WaitingWork,
+  n: number
+): boolean {
+  if (!hostStrip(setup, n)) return false;
+  if (work.kind === 'pool') return movePoolToArena(ctx, work.poolId, `arena${n}`);
+  updateMatchArena(ctx, work.matchId, work.fromArena, n);
+  return true;
+}
+
 /** Piste imposée à une poule déplacée (tous ses matchs restants surchargés vers la même piste). */
 export function forcedPoolArena(ctx: ArenaQueueContext, poolId: string): string | null {
   const matches = pendingPoolMatches(ctx, poolId);
@@ -155,4 +174,16 @@ export function forcedPoolArena(ctx: ArenaQueueContext, poolId: string): string 
   const first = ctx.poolMatchArenaOverrides.get(matches[0].id);
   if (!first) return null;
   return matches.every(m => ctx.poolMatchArenaOverrides.get(m.id) === first) ? first : null;
+}
+
+/** Serveur distant d'une épreuve, vu par les pistes de la journée (#1878) */
+export function dayStripServer(server: RemoteScoreServer): DayStripServer {
+  return {
+    hasSession: () => server.hasSession(),
+    hasArenaAssignment: arenaId => server.hasArenaAssignment(arenaId),
+    canHostStrip: n => canHostStrip(server.arenaSetupCtx, n),
+    getWaitingWork: () => listWaitingWork(server.arenaQueueCtx),
+    moveWorkToArena: (work, n) =>
+      moveWorkToStrip(server.arenaSetupCtx, server.arenaQueueCtx, work, n),
+  };
 }

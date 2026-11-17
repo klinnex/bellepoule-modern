@@ -206,6 +206,14 @@ export class PisteHub {
         this.watch.delete(status.piste);
       }
       this.routes.set(status.piste, chosen);
+      // Bandeau appareil et verrou de la tablette : la liaison suit la piste d'une épreuve à
+      // l'autre (retirée de l'ancienne arène, publiée sur la nouvelle)
+      if (status.arena) {
+        const arenaId = `arena${status.arena}`;
+        if (previous?.getArena(arenaId)?.cyrano?.piste === status.piste)
+          previous.updateArena(arenaId, { cyrano: null });
+        this.publishArenaLink(status, chosen);
+      }
     }
     return chosen;
   }
@@ -352,15 +360,28 @@ export class PisteHub {
 
   /** Bandeau appareil côté arbitre : mode et liaison de la piste reliée à l'arène (#1829). */
   private syncArenaLink(piste: PisteLink): void {
-    if (!piste.arena) return;
     const remote = this.remoteFor(piste);
-    if (!remote) return;
+    if (remote) this.publishArenaLink(piste, remote);
+  }
+
+  private publishArenaLink(piste: PisteLink, remote: RemoteScoreServer): void {
+    if (!piste.arena) return;
     const mode = this.modeOf(piste, remote);
     remote.updateArena(`arena${piste.arena}`, {
       cyrano: { piste: piste.piste, mode, online: piste.status === 'online' },
     });
     // Arène équipe de même numéro : même verrou de la tablette
     this.team.syncLink(piste, remote, mode);
+  }
+
+  /**
+   * Liaison absente de l'arène (arènes recréées au démarrage d'une séance, piste passée d'une
+   * épreuve à l'autre) : republiée. Sans elle, ni bandeau appareil ni verrou sur la tablette.
+   */
+  private ensureArenaLink(piste: PisteLink, remote: RemoteScoreServer): void {
+    if (!piste.arena) return;
+    const arena = remote.getArena(`arena${piste.arena}`);
+    if (arena && !arena.cyrano) this.publishArenaLink(piste, remote);
   }
 
   /** Match courant de l'arène (ou affichage vide) ; sans effet en manuel. */
@@ -396,7 +417,9 @@ export class PisteHub {
     // Toutes les pistes de l'arène : maître et afficheurs qui la partagent reçoivent l'affichage
     for (const piste of this.driver.findAllByArena(arenaNumber)) {
       // Pistes partagées (#1878) : seule l'épreuve suivie par la piste pilote l'appareil
-      if (source && this.remoteFor(piste) !== source) continue;
+      const remote = this.remoteFor(piste);
+      if (source && remote !== source) continue;
+      if (remote) this.ensureArenaLink(piste, remote);
       this.displayArenaUpdate(piste, update);
     }
   };
@@ -526,6 +549,7 @@ export class PisteHub {
     if (!piste.arena) return;
     const remote = this.remoteFor(piste);
     if (!remote) return;
+    this.ensureArenaLink(piste, remote);
     const mode = this.modeOf(piste, remote);
     const relay = this.relayFor(remote, piste);
     if (relay) {

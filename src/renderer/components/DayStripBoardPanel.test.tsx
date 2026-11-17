@@ -71,6 +71,26 @@ describe('DayStripBoardPanel (#1878)', () => {
     expect(screen.getByText(/^Réservée :/)).toBeInTheDocument();
   });
 
+  it('piste occupée : détail lu en base (poule en cours) quand il concerne la même épreuve', async () => {
+    render(
+      <DayStripBoardPanel
+        dayId="d1"
+        competitions={competitions}
+        occupation={[
+          {
+            strip: 1,
+            free: false,
+            competitionId: 'c1',
+            competitionTitle: 'M15 Fleuret',
+            kind: 'pool',
+            number: 2,
+          },
+        ]}
+      />
+    );
+    expect(await screen.findByText('Poule 2 · M15 Fleuret')).toBeInTheDocument();
+  });
+
   it('Affecter : la piste libre reçoit le travail choisi', async () => {
     render(<DayStripBoardPanel dayId="d1" competitions={competitions} occupation={[]} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Affecter' }));
