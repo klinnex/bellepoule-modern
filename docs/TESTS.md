@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 237 |
-| `src/main/` | 87 | 675 |
+| `src/main/` | 89 | 686 |
 | `src/renderer/services/` | 10 | 55 |
 | `src/renderer/hooks/` | 32 | 151 |
-| `src/renderer/components/` | 112 | 560 |
+| `src/renderer/components/` | 112 | 561 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **447** | **3337** |
+| **Total** | **449** | **3349** |
 
-Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 439 fichiers, 3310 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3336,6 +3336,33 @@ Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/mcp/mcpServer.test.ts</code> — 9 tests</summary>
+
+- **handleMcpMessage**
+  - initialize : version négociée, capacité outils
+  - notification : pas de réponse
+  - tools/list : outils en lecture uniquement
+  - tools/call : données sans date de naissance ni licence
+  - tools/call : argument manquant ou compétition inconnue → isError
+  - méthode ou outil inconnu → erreur JSON-RPC
+- **sécurité**
+  - jeton comparé exactement
+  - Host / Origin limités à la boucle locale
+- **McpServer (HTTP réel)**
+  - 401 sans jeton, 200 avec, 403 hors boucle locale
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpSettings.test.ts</code> — 2 tests</summary>
+
+- **mcpSettings (#1880)**
+  - désactivé par défaut, port validé
+  - jeton chiffré, stable, renouvelable
+
+</details>
+
+<details>
 <summary><code>src/main/menu.test.ts</code> — 3 tests</summary>
 
 - **createMenu (#1341)**
@@ -5910,7 +5937,7 @@ Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 11 tests</summary>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 12 tests</summary>
 
 - **builtinThemes**
   - liste jamais vide pour chaque section
@@ -5919,6 +5946,7 @@ Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - id non prédéfini ou inconnu → null
   - Steampunk proposé et résolu pour chaque section
   - chaque thème décoratif couvre toutes les sections avec des variables connues
+  - Licorne : motif SVG répétable sur chaque section
   - clé héritée de Object.prototype → null
 - **Toutes sources (#1795)**
   - liste préréglages piste et décoratifs
