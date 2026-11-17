@@ -3343,6 +3343,7 @@
     "planned_estimate": "Referência (1.ª estimativa): {{time}}"
   },
   "club": {
+    "new_member": "Novo membro",
     "tab_members": "Sócios",
     "tab_sessions": "Sessões",
     "tab_stats": "Estatísticas",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Imprimir cartões » cria um PDF com 10 cartões por página: logótipo, nome e código QR de identificação para recortar."
   },
   "clubSession": {
+    "delete_past_confirm": "Excluir a sessão de {{date}} e todos os seus combates? Não é possível desfazer.",
     "camera_unavailable": "Câmara indisponível neste dispositivo",
     "camera_denied": "Acesso à câmara recusado",
     "scan_launched": "Assalto iniciado na pista {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Imagem não suportada (PNG, JPEG ou WebP, máx. 1 MB)"
   },
   "clubInventory": {
+    "invoice_too_big": "Fatura demasiado grande (máximo 5 MB).",
+    "invoice_not_pdf": "O ficheiro deve ser um PDF.",
+    "invoice_pdf_import": "Importar fatura PDF",
+    "invoice_pdf_attached": "Fatura PDF anexada",
+    "invoice_pdf": "Fatura (PDF)",
+    "contract_printed_on": "Impresso em",
+    "contract_sign_borrower": "Assinatura do mutuário (\"Lido e aprovado\")",
+    "contract_sign_lender": "Assinatura do clube",
+    "contract_notes": "Observações",
+    "contract_condition": "Estado no empréstimo",
+    "contract_due": "Devolução prevista",
+    "contract_lent_at": "Data do empréstimo",
+    "contract_quantity": "Quantidade",
+    "contract_item": "Material",
+    "contract_borrower": "Mutuário",
+    "contract_club": "O clube",
+    "contract_lender": "Mutuante",
+    "contract_intro": "O material abaixo é emprestado pelo clube. O mutuário compromete-se a devolvê-lo em bom estado na data prevista.",
+    "contract_title": "Contrato de empréstimo de material",
+    "print_contract": "Imprimir contrato de empréstimo",
     "tab": "Inventário",
     "lock_button": "Bloquear",
     "unlock_button": "Desbloquear",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Fora de serviço"
   },
   "clubExercises": {
+    "weapon_artistic": "Esgrima artística",
+    "weapon_any": "Todas as armas",
+    "weapons_hint": "Nenhuma marcada = todas as armas.",
+    "weapons_label": "Armas",
     "tab": "Exercícios",
     "search": "Pesquisar um exercício",
     "title": "Biblioteca de exercícios ({{count}})",

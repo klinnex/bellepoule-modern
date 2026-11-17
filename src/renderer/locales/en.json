@@ -3343,6 +3343,7 @@
     "planned_estimate": "Reference (first estimate): {{time}}"
   },
   "club": {
+    "new_member": "New member",
     "tab_members": "Members",
     "tab_sessions": "Sessions",
     "tab_stats": "Statistics",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Print cards » creates a PDF with 10 cards per page: logo, name and identification QR code, ready to cut out."
   },
   "clubSession": {
+    "delete_past_confirm": "Delete the session of {{date}} and all its bouts? This cannot be undone.",
     "camera_unavailable": "Camera unavailable on this device",
     "camera_denied": "Camera access denied",
     "scan_launched": "Bout started on strip {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Unsupported image (PNG, JPEG or WebP, 1 MB max)"
   },
   "clubInventory": {
+    "invoice_too_big": "Invoice too large (5 MB maximum).",
+    "invoice_not_pdf": "The file must be a PDF.",
+    "invoice_pdf_import": "Import a PDF invoice",
+    "invoice_pdf_attached": "PDF invoice attached",
+    "invoice_pdf": "Invoice (PDF)",
+    "contract_printed_on": "Printed on",
+    "contract_sign_borrower": "Borrower signature (preceded by \"Read and approved\")",
+    "contract_sign_lender": "Club signature",
+    "contract_notes": "Notes",
+    "contract_condition": "Condition when lent",
+    "contract_due": "Expected return",
+    "contract_lent_at": "Loan date",
+    "contract_quantity": "Quantity",
+    "contract_item": "Equipment",
+    "contract_borrower": "Borrower",
+    "contract_club": "The club",
+    "contract_lender": "Lender",
+    "contract_intro": "The equipment below is lent by the club. The borrower agrees to return it in good condition by the due date.",
+    "contract_title": "Equipment loan agreement",
+    "print_contract": "Print loan contract",
     "tab": "Inventory",
     "lock_button": "Lock",
     "unlock_button": "Unlock",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Out of service"
   },
   "clubExercises": {
+    "weapon_artistic": "Artistic fencing",
+    "weapon_any": "All weapons",
+    "weapons_hint": "No box checked = all weapons.",
+    "weapons_label": "Weapons",
     "tab": "Exercises",
     "search": "Search an exercise",
     "title": "Exercise library ({{count}})",

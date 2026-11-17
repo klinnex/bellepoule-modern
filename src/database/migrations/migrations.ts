@@ -1160,4 +1160,26 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 40,
+    description: 'Mode Club : armes visées par les exercices (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_exercises ADD COLUMN weapons TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 41,
+    description: 'Mode Club : facture PDF importée sur le matériel (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_items ADD COLUMN invoice_pdf TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

@@ -3343,6 +3343,7 @@
     "planned_estimate": "參考（首次估算）：{{time}}"
   },
   "club": {
+    "new_member": "新成員",
     "tab_members": "會員",
     "tab_sessions": "訓練",
     "tab_stats": "統計",
@@ -3432,6 +3433,7 @@
     "hint_cards": "「列印會員證」會產生每頁 10 張的 PDF：標誌、姓名及識別 QR 碼，可剪下使用。"
   },
   "clubSession": {
+    "delete_past_confirm": "刪除 {{date}} 的訓練及其所有比賽？無法復原。",
     "camera_unavailable": "此裝置無法使用相機",
     "camera_denied": "相機存取被拒絕",
     "scan_launched": "已在劍道 {{strip}} 開始對賽",
@@ -3675,6 +3677,26 @@
     "invalid": "不支援的圖片（PNG、JPEG 或 WebP，最多 1 MB）"
   },
   "clubInventory": {
+    "invoice_too_big": "發票檔案過大（最多 5 MB）。",
+    "invoice_not_pdf": "檔案必須是 PDF。",
+    "invoice_pdf_import": "匯入 PDF 發票",
+    "invoice_pdf_attached": "已匯入 PDF 發票",
+    "invoice_pdf": "發票（PDF）",
+    "contract_printed_on": "列印日期",
+    "contract_sign_borrower": "借用人簽署（「已閱讀並同意」）",
+    "contract_sign_lender": "俱樂部簽署",
+    "contract_notes": "備註",
+    "contract_condition": "借出時狀況",
+    "contract_due": "預定歸還日期",
+    "contract_lent_at": "借出日期",
+    "contract_quantity": "數量",
+    "contract_item": "器材",
+    "contract_borrower": "借用人",
+    "contract_club": "俱樂部",
+    "contract_lender": "出借人",
+    "contract_intro": "以下器材由俱樂部借出。借用人同意於到期日前以良好狀態歸還。",
+    "contract_title": "器材借用合約",
+    "print_contract": "列印借用合約",
     "tab": "器材庫存",
     "lock_button": "鎖定",
     "unlock_button": "解鎖",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "停用"
   },
   "clubExercises": {
+    "weapon_artistic": "花式劍擊",
+    "weapon_any": "所有武器",
+    "weapons_hint": "未勾選 = 所有武器。",
+    "weapons_label": "武器",
     "tab": "練習",
     "search": "搜尋練習",
     "title": "練習庫（{{count}}）",

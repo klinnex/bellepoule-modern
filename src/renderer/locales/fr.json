@@ -3343,6 +3343,7 @@
     "planned_estimate": "Référence (1re estimation) : {{time}}"
   },
   "club": {
+    "new_member": "Nouveau membre",
     "tab_members": "Membres",
     "tab_sessions": "Séances",
     "tab_stats": "Statistiques",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Imprimer les cartes » crée un PDF de 10 cartes par page : logo, nom et QR code d'identification à découper."
   },
   "clubSession": {
+    "delete_past_confirm": "Supprimer la séance du {{date}} et tous ses combats ? Action irréversible.",
     "camera_unavailable": "Caméra indisponible sur cet appareil",
     "camera_denied": "Accès à la caméra refusé",
     "scan_launched": "Combat lancé sur la piste {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Image non prise en charge (PNG, JPEG ou WebP, 1 Mo max)"
   },
   "clubInventory": {
+    "invoice_too_big": "Facture trop volumineuse (5 Mo maximum).",
+    "invoice_not_pdf": "Le fichier doit être un PDF.",
+    "invoice_pdf_import": "Importer une facture PDF",
+    "invoice_pdf_attached": "Facture PDF importée",
+    "invoice_pdf": "Facture (PDF)",
+    "contract_printed_on": "Imprimé le",
+    "contract_sign_borrower": "Signature de l'emprunteur (précédée de « Lu et approuvé »)",
+    "contract_sign_lender": "Signature du club",
+    "contract_notes": "Remarques",
+    "contract_condition": "État au prêt",
+    "contract_due": "Retour prévu",
+    "contract_lent_at": "Date du prêt",
+    "contract_quantity": "Quantité",
+    "contract_item": "Matériel",
+    "contract_borrower": "Emprunteur",
+    "contract_club": "Le club",
+    "contract_lender": "Prêteur",
+    "contract_intro": "Le matériel ci-dessous est prêté par le club. L'emprunteur s'engage à le restituer en bon état à la date prévue.",
+    "contract_title": "Contrat de prêt de matériel",
+    "print_contract": "Imprimer le contrat de prêt",
     "tab": "Inventaire",
     "lock_button": "Verrouiller",
     "unlock_button": "Déverrouiller",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Hors service"
   },
   "clubExercises": {
+    "weapon_artistic": "Escrime artistique",
+    "weapon_any": "Toutes armes",
+    "weapons_hint": "Aucune case cochée = toutes armes.",
+    "weapons_label": "Armes",
     "tab": "Exercices",
     "search": "Rechercher un exercice",
     "title": "Bibliothèque d'exercices ({{count}})",

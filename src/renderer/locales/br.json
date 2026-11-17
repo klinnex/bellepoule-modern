@@ -3343,6 +3343,7 @@
     "planned_estimate": "Dave (priziadur kentañ) : {{time}}"
   },
   "club": {
+    "new_member": "Ezel nevez",
     "tab_members": "Izili",
     "tab_sessions": "Abadennoù",
     "tab_stats": "Stadegoù",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Moullañ ar c'hartennoù » a grou ur PDF gant 10 karten dre bajenn : logo, anv ha kod QR, da droc'hañ."
   },
   "clubSession": {
+    "delete_past_confirm": "Diverkañ an degemer eus {{date}} hag an holl emgannoù? Ne vez ket gallet dizober.",
     "camera_unavailable": "Kamera dihegerz war an ardivink-mañ",
     "camera_denied": "Nac'het an tremen d'ar gamera",
     "scan_launched": "Emgann loc'het war al leurenn {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Skeudenn n'eo ket degemeret (PNG, JPEG pe WebP, 1 Mo d'ar muiañ)"
   },
   "clubInventory": {
+    "invoice_too_big": "Re bras eo ar faktur (5 MB d'ar muiañ).",
+    "invoice_not_pdf": "Rankout eo PDF ar restr.",
+    "invoice_pdf_import": "Enporzhiañ ur faktur PDF",
+    "invoice_pdf_attached": "Faktur PDF staget",
+    "invoice_pdf": "Faktur (PDF)",
+    "contract_printed_on": "Moullet d'an",
+    "contract_sign_borrower": "Sinadur ar c'hemer (\"Lennet hag aprouet\")",
+    "contract_sign_lender": "Sinadur ar club",
+    "contract_notes": "Notennoù",
+    "contract_condition": "Stad pa vez prestet",
+    "contract_due": "Distro spiset",
+    "contract_lent_at": "Deiz ar prest",
+    "contract_quantity": "Niver",
+    "contract_item": "Sturiadur",
+    "contract_borrower": "Kemer",
+    "contract_club": "Ar club",
+    "contract_lender": "Prestataer",
+    "contract_intro": "Ar sturiadur a-is a vez prestet gant ar club. An hini a gemer a addoue da zistreiñ anezhañ en ur stad mat a-benn an deiz spiset.",
+    "contract_title": "Kontrad prest a sturiadur",
+    "print_contract": "Moullañ ar c'hontrad prest",
     "tab": "Invantar",
     "lock_button": "Stankañ",
     "unlock_button": "Digor",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Diagemm"
   },
   "clubExercises": {
+    "weapon_artistic": "Ezgrima arzel",
+    "weapon_any": "An holl arvoù",
+    "weapons_hint": "Diwall ebet = an holl arvoù.",
+    "weapons_label": "Armoù",
     "tab": "Poelladennoù",
     "search": "Klask un ejerezh",
     "title": "Levraoueg poelladennoù ({{count}})",

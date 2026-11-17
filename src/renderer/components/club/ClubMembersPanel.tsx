@@ -86,7 +86,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   // null = nom enregistré (pas d'édition en cours)
   const [nameEdit, setNameEdit] = useState<string | null>(null);
   const clubName = nameEdit ?? settings.name;
-  const [draft, setDraft] = useState({ firstName: '', lastName: '', license: '', birthDate: '' });
+  const [creating, setCreating] = useState(false);
   const [ageFilter, setAgeFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
   const [printing, setPrinting] = useState(false);
@@ -162,16 +162,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         await saveClub({ logo: String(reader.result) });
       });
     reader.readAsDataURL(file);
-  };
-
-  const addMember = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!draft.firstName.trim() && !draft.lastName.trim()) return;
-    void run(async () => {
-      const { birthDate, ...rest } = draft;
-      await api.createMember(clubId, birthDate ? { ...rest, birthDate } : rest);
-      setDraft({ firstName: '', lastName: '', license: '', birthDate: '' });
-    });
   };
 
   const removeMember = async (m: ClubMember) => {
@@ -304,7 +294,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
         <h2 id="club-identity-title" className="club-card-title">
           {t('club.identity')}
         </h2>
-        <div className="club-row">
+        <div className="club-row club-row--align-end">
           <label className="form-label club-grow" data-tour="club-name">
             {t('club.name')}
             <input
@@ -428,52 +418,16 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           />
         </div>
 
-        <form className="club-row club-row--end" onSubmit={addMember}>
-          <label className="form-label">
-            {t('club.first_name')}
-            <input
-              className="form-input"
-              value={draft.firstName}
-              placeholder={t('addFencer.first_name_ph')}
-              onChange={e => setDraft(d => ({ ...d, firstName: e.target.value }))}
-            />
-          </label>
-          <label className="form-label">
-            {t('club.last_name')}
-            <input
-              className="form-input"
-              value={draft.lastName}
-              placeholder={t('addFencer.last_name_ph')}
-              onChange={e => setDraft(d => ({ ...d, lastName: e.target.value }))}
-            />
-          </label>
-          <label className="form-label">
-            {t('club.license')}
-            <input
-              className="form-input"
-              value={draft.license}
-              onChange={e => setDraft(d => ({ ...d, license: e.target.value }))}
-            />
-          </label>
-          <label className="form-label">
-            {t('club.birth_date')}
-            <input
-              className="form-input"
-              type="date"
-              value={draft.birthDate}
-              max={today()}
-              onChange={e => setDraft(d => ({ ...d, birthDate: e.target.value }))}
-            />
-          </label>
+        <div className="club-row club-row--end">
           <Button
-            type="submit"
             variant="success"
             data-tour="club-add-member"
             icon={<Plus size={15} aria-hidden="true" />}
+            onClick={() => setCreating(true)}
           >
-            {t('actions.add')}
+            {t('club.new_member')}
           </Button>
-        </form>
+        </div>
 
         <div className="club-row">
           <input
@@ -619,6 +573,15 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </table>
         )}
       </section>
+      {creating && (
+        <ClubMemberEditModal
+          onCreate={async data => {
+            await api.createMember(clubId, data);
+            await load();
+          }}
+          onClose={() => setCreating(false)}
+        />
+      )}
       {editing && (
         <ClubMemberEditModal
           member={editing}

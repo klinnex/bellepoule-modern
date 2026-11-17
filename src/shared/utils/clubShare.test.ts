@@ -37,6 +37,7 @@ describe('partage Mode Club (#1872)', () => {
         details: 'Lent',
         images: [PNG],
         ageCategories: [],
+        weapons: [],
       },
       {
         title: 'Fentes',
@@ -45,6 +46,7 @@ describe('partage Mode Club (#1872)', () => {
         details: undefined,
         images: [],
         ageCategories: [],
+        weapons: [],
       },
     ]);
     const hacked = JSON.stringify({
@@ -56,6 +58,7 @@ describe('partage Mode Club (#1872)', () => {
         title: 'X',
         category: 'other',
         minutes: 0,
+        weapons: [],
         details: undefined,
         images: [],
         ageCategories: [],

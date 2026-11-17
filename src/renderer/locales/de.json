@@ -3343,6 +3343,7 @@
     "planned_estimate": "Referenz (erste Schätzung): {{time}}"
   },
   "club": {
+    "new_member": "Neues Mitglied",
     "tab_members": "Mitglieder",
     "tab_sessions": "Trainings",
     "tab_stats": "Statistiken",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Ausweise drucken » erstellt ein PDF mit 10 Ausweisen pro Seite: Logo, Name und QR-Code zum Ausschneiden."
   },
   "clubSession": {
+    "delete_past_confirm": "Training vom {{date}} und alle Gefechte löschen? Nicht rückgängig zu machen.",
     "camera_unavailable": "Kamera auf diesem Gerät nicht verfügbar",
     "camera_denied": "Kamerazugriff verweigert",
     "scan_launched": "Gefecht auf Bahn {{strip}} gestartet",
@@ -3675,6 +3677,26 @@
     "invalid": "Bild nicht unterstützt (PNG, JPEG oder WebP, max. 1 MB)"
   },
   "clubInventory": {
+    "invoice_too_big": "Rechnung zu groß (maximal 5 MB).",
+    "invoice_not_pdf": "Die Datei muss ein PDF sein.",
+    "invoice_pdf_import": "PDF-Rechnung importieren",
+    "invoice_pdf_attached": "PDF-Rechnung angehängt",
+    "invoice_pdf": "Rechnung (PDF)",
+    "contract_printed_on": "Gedruckt am",
+    "contract_sign_borrower": "Unterschrift Entleiher (\"Gelesen und genehmigt\")",
+    "contract_sign_lender": "Unterschrift Verein",
+    "contract_notes": "Bemerkungen",
+    "contract_condition": "Zustand bei Ausgabe",
+    "contract_due": "Geplante Rückgabe",
+    "contract_lent_at": "Ausleihdatum",
+    "contract_quantity": "Anzahl",
+    "contract_item": "Material",
+    "contract_borrower": "Entleiher",
+    "contract_club": "Der Verein",
+    "contract_lender": "Verleiher",
+    "contract_intro": "Das unten genannte Material wird vom Verein verliehen. Der Entleiher verpflichtet sich, es zum vereinbarten Termin in gutem Zustand zurückzugeben.",
+    "contract_title": "Leihvertrag für Material",
+    "print_contract": "Leihvertrag drucken",
     "tab": "Inventar",
     "lock_button": "Sperren",
     "unlock_button": "Entsperren",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Außer Betrieb"
   },
   "clubExercises": {
+    "weapon_artistic": "Künstlerisches Fechten",
+    "weapon_any": "Alle Waffen",
+    "weapons_hint": "Ohne Auswahl = alle Waffen.",
+    "weapons_label": "Waffen",
     "tab": "Übungen",
     "search": "Übung suchen",
     "title": "Übungsbibliothek ({{count}})",

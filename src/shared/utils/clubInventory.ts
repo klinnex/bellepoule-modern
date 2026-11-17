@@ -129,6 +129,7 @@ export function normalizeItemInput(data: Partial<ClubItemInput>): NormalizedItem
     purchasePrice,
     supplier: text(data.supplier),
     invoiceRef: text(data.invoiceRef, 80),
+    invoicePdf: pdfDataUrl(data.invoicePdf),
     warrantyUntil: warrantyUntil || undefined,
     condition: isItemCondition(data.condition) ? data.condition : 'good',
     location: text(data.location),
@@ -259,4 +260,15 @@ const csvCell = (v: string | number | undefined | null): string => {
  */
 export function toCsv(rows: (string | number | undefined | null)[][]): string {
   return '﻿' + rows.map(r => r.map(csvCell).join(';')).join('\r\n') + '\r\n';
+}
+
+/** Facture PDF : data URL base64 application/pdf, 5 Mo max ; sinon undefined */
+export const MAX_INVOICE_PDF_BYTES = 5 * 1024 * 1024;
+const PDF_PREFIX = 'data:application/pdf;base64,';
+export function pdfDataUrl(v: unknown): string | undefined {
+  if (typeof v !== 'string' || !v.startsWith(PDF_PREFIX)) return undefined;
+  const b64Length = v.length - PDF_PREFIX.length;
+  if (b64Length <= 0 || b64Length > Math.ceil((MAX_INVOICE_PDF_BYTES * 4) / 3) + 4)
+    return undefined;
+  return v;
 }
