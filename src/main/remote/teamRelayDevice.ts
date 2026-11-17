@@ -6,7 +6,11 @@
  * Licensed under GPL-3.0
  */
 
-import { FIE_RELAY_DURATION_SEC, relayCumul } from '../../features/teams/utils/teamRelayLive';
+import {
+  FIE_RELAY_DURATION_SEC,
+  relayCapFor,
+  relayCumul,
+} from '../../features/teams/utils/teamRelayLive';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { advanceTeamBout, broadcastTeamArena, type TeamArenaContext } from './teamArena';
 import type { TeamArenaBout, TeamArenaState } from './types';
@@ -102,6 +106,16 @@ export function applyRelayDeviceState(
       LogCategory.NETWORK,
       `Équipes ${arenaId} : cumul de l'appareil ${update.cumulA}-${update.cumulB} inférieur aux ` +
         `relais terminés (${view.cumulA - state.liveScoreA}-${view.cumulB - state.liveScoreB}), ignoré`
+    );
+    return { accepted: false, changed: false };
+  }
+  // Mêmes bornes que la tablette : palier du relais (n × 5), plafonné à l'objectif (45)
+  const cap = relayCapFor(bout.boutOrder, state.relayRule);
+  if (update.cumulA > cap || update.cumulB > cap) {
+    logger.warn(
+      LogCategory.NETWORK,
+      `Équipes ${arenaId} : cumul de l'appareil ${update.cumulA}-${update.cumulB} au-delà du ` +
+        `palier du relais ${bout.boutOrder} (${cap}), ignoré`
     );
     return { accepted: false, changed: false };
   }

@@ -363,6 +363,30 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     expect(lastDisp()).toMatchObject({ round: '2', right: { score: 5 }, left: { score: 2 } });
   });
 
+  it('cumul au-delà du palier du relais ou de l’objectif : ignoré, tracé, cumul de l’arène renvoyé', () => {
+    const warn = vi.spyOn(logger, 'warn');
+    start(1, [[5, 2]]); // relais 2 : palier 10
+    device(info('H', 2, { id: A[1], score: 8 }, { id: B[1], score: 4 }));
+    out = [];
+    device(info('H', 2, { id: A[1], score: 11 }, { id: B[1], score: 4 }));
+    expect(team()).toMatchObject({ liveScoreA: 3, liveScoreB: 2 });
+    expect(lastDisp()).toMatchObject({ round: '2', right: { score: 8 }, left: { score: 4 } });
+    expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('palier'));
+    // END au-delà du palier : NAK
+    device(info('E', 2, { id: A[1], score: 12 }, { id: B[1], score: 4 }));
+    expect(out[out.length - 1]).toBe('NAK');
+    // Dernier relais : objectif 45
+    start(
+      8,
+      Array.from({ length: 8 }, () => [5, 5] as [number, number])
+    );
+    out = [];
+    device(info('H', 9, { id: A[2], score: 46 }, { id: B[1], score: 40 }));
+    expect(team().liveScoreA).toBe(0);
+    expect(lastDisp()).toMatchObject({ round: '9', right: { score: 40 } });
+    warn.mockRestore();
+  });
+
   it('BAD MATCH : tireurs d’un autre relais → alerte ; END → NAK', () => {
     start(2, [
       [5, 2],
