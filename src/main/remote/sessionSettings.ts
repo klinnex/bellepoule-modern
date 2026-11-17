@@ -316,3 +316,41 @@ export function updateKioskTheme(
     }
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SESSION_SETTINGS_CONTEXT_KEYS = {
+  state: [
+    'arenaCount',
+    'arenaEventBuffer',
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenaScreenThemes',
+    'arenaThemeOverrides',
+    'arenas',
+    'connectedClients',
+    'db',
+    'io',
+    'isTrainingMode',
+    'kioskThemeVariables',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionKioskViews',
+    'sessionModernRules',
+    'sessionPoolMaxScore',
+    'sessionPoolTimerSeconds',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableMaxScore',
+    'sessionTableTimerSeconds',
+    'sessionTheme',
+  ],
+  methods: [
+    'applyCompetitionSettings',
+    'broadcastArenaUpdate',
+    'createArena',
+    'getVisibleArenas',
+    'toPublicArena',
+    'updateArenaTheme',
+  ],
+} as const;

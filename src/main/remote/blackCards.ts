@@ -184,3 +184,17 @@ export function cancelBlackCard(
   }
   return { success: true, matchId };
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const BLACK_CARDS_CONTEXT_KEYS = {
+  state: [
+    'arenaMatchQueue',
+    'arenas',
+    'db',
+    'poolFencersCache',
+    'sessionBlackCards',
+    'sessionMatchScores',
+    'sessionMatches',
+  ],
+  methods: ['formatFencerName', 'getArenaBlackCards', 'matchPoolId'],
+} as const;
