@@ -202,6 +202,7 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
   let hub: PisteHub;
   /** Trames émises vers l'appareil, dans l'ordre (DISP relus, ACK, NAK) */
   let out: (CyranoMessage | 'ACK' | 'NAK')[];
+  let notices: [string, unknown][];
 
   const team = () => remote.teamArenaCtx.teamArenaState.get('1')!;
   const device = (frame: string) => cyrano.handle(frame, DEVICE_IP, 50100);
@@ -225,7 +226,10 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     remote = new RemoteScoreServer(mockDb as never, 8066);
     cyrano = new CyranoServer();
     cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, arena: 1 }]);
-    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote);
+    notices = [];
+    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote, {
+      onNotice: (piste, notice) => notices.push([piste, notice]),
+    });
     hub.attach();
     out = [];
     vi.spyOn(cyrano, 'sendDisp').mockImplementation((_p, d) => {
@@ -324,20 +328,21 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     expect(team()).toMatchObject({ currentBoutIndex: 1, liveScoreA: 0, liveScoreB: 0 });
   });
 
-  it('relais intermédiaire avec abandon ou exclusion : NAK tracé, relais non enregistré', () => {
+  it('relais intermédiaire avec abandon ou exclusion : fin toujours correcte (spéc. § 4), ACK et DT prévenu', () => {
     const warn = vi.spyOn(logger, 'warn');
     start();
-    for (const status of ['A', 'E'] as const) {
-      out = [];
-      device(info('E', 1, { id: A[0], score: 3, status }, { id: B[0], score: 1 }));
-      expect(out).toEqual(['NAK']);
-    }
-    expect(mockDb.updateTeamBout).not.toHaveBeenCalled();
-    expect(team().currentBoutIndex).toBe(0);
-    expect(warn).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.stringContaining('abandon ou exclusion')
-    );
+    out = [];
+    device(info('E', 1, { id: A[0], score: 3, status: 'E' }, { id: B[0], score: 1 }));
+    expect(out[0]).toBe('ACK');
+    expect(mockDb.updateTeamBout).toHaveBeenCalledWith('bout1', 3, 1, 'finished', A[0]);
+    expect(team().currentBoutIndex).toBe(1);
+    expect(notices).toEqual([
+      ['1', expect.objectContaining({ kind: 'team_out', relay: 1, reason: 'exclusion' })],
+    ]);
+    expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('exclusion'));
+    // Relais suivant, abandon
+    device(info('E', 2, { id: A[1], score: 4, status: 'A' }, { id: B[1], score: 2 }));
+    expect(notices[1]).toEqual(['1', expect.objectContaining({ relay: 2, reason: 'abandon' })]);
     warn.mockRestore();
   });
 

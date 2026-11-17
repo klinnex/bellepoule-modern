@@ -37,7 +37,7 @@ import {
   validatePisteEnd,
   type PisteSides,
 } from './pisteState';
-import type { DeviceView } from './pisteHub';
+import type { DeviceView, PisteNotice } from './pisteHub';
 import type { PisteDisplaySide, PisteDriver, PisteLink, PisteMode, PisteState } from './types';
 
 /** Ce que le relais par équipes utilise du PisteHub. */
@@ -48,6 +48,7 @@ export interface TeamPisteHost {
   readonly options: Readonly<{ natSource: CyranoNatSource; international: boolean }>;
   setBadMatch(piste: string, state: PisteState, arenaId: string): void;
   clearAlert(piste: string): void;
+  notify(piste: string, notice: PisteNotice): void;
   competitionField(remote: RemoteScoreServer | null, link: PisteLink): string | undefined;
 }
 
@@ -334,13 +335,14 @@ export class TeamRelayPiste {
       logger.info(LogCategory.NETWORK, `Cyrano: NAK → ${piste} (motif : ${verdict.reason})`);
       return;
     }
-    // Le modèle d'équipe déduit le vainqueur du cumul : un vainqueur imposé par l'appareil
-    // (priorité à égalité au dernier relais, abandon ou exclusion à n'importe quel relais) ne
-    // peut pas être enregistré. Jamais d'abandon ni d'exclusion perdus en silence : NAK tracé.
-    const forfeit = [sides.A, sides.B].some(
-      s => s.status === 'abandon' || s.status === 'exclusion'
-    );
-    if (forfeit || (view.isLast && pisteEndOutcome(state, sides).winner)) {
+    // Abandon ou exclusion annoncé par l'appareil
+    const out = [sides.A, sides.B].find(s => s.status === 'abandon' || s.status === 'exclusion');
+    const forfeit = !!out;
+    // Dernier relais : le modèle d'équipe déduit le vainqueur du cumul, un vainqueur imposé par
+    // l'appareil (priorité à égalité, abandon, exclusion) ne peut pas être enregistré → NAK tracé.
+    // Relais intermédiaire : fin toujours correcte (spéc. § 4), acquittée plus bas ; l'abandon
+    // ou l'exclusion est signalé au DT, jamais perdu en silence.
+    if (view.isLast && (forfeit || pisteEndOutcome(state, sides).winner)) {
       this.send(piste, 'nak');
       logger.warn(
         LogCategory.NETWORK,
@@ -359,6 +361,20 @@ export class TeamRelayPiste {
     this.send(piste, 'ack');
     this.host.acked.set(piste, key);
     logger.info(LogCategory.NETWORK, `Cyrano: ACK → ${piste} (relais ${bout.boutOrder})`);
+    if (out && (out.status === 'abandon' || out.status === 'exclusion')) {
+      logger.warn(
+        LogCategory.NETWORK,
+        `Cyrano: piste ${piste}, relais ${bout.boutOrder} : ${out.status} de ${out.name ?? '?'} ` +
+          `signalé par l'appareil — relais acquitté, suite à décider par le DT`
+      );
+      this.host.notify(piste, {
+        kind: 'team_out',
+        arena: `equipe${link.arena}`,
+        relay: bout.boutOrder,
+        reason: out.status,
+        fencer: out.name ?? '?',
+      });
+    }
     // Relais enregistré ; l'arène prévient le hub, qui affiche le relais suivant
     finishRelay(ctx, String(link.arena));
   }

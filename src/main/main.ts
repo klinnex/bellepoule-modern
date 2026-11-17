@@ -9,7 +9,13 @@ import * as fs from 'fs';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
-import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
+import {
+  fmt,
+  getCyranoBadMatchLabels,
+  getCyranoTeamOutLabels,
+  getL,
+  setUiLanguage,
+} from './menuLabels';
 import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
@@ -146,6 +152,20 @@ const pisteHub = new PisteHub(
       const notification = new Notification({
         title: labels.title,
         body: fmt(labels.body, { piste, arena }),
+      });
+      notification.on('click', () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      });
+      notification.show();
+    },
+    // Relais par équipes : abandon ou exclusion annoncé par l'appareil (relais acquitté)
+    onNotice: (piste, notice) => {
+      if (!Notification.isSupported()) return;
+      const labels = getCyranoTeamOutLabels();
+      const notification = new Notification({
+        title: labels.title,
+        body: fmt(labels[notice.reason], { piste, relay: notice.relay, fencer: notice.fencer }),
       });
       notification.on('click', () => {
         mainWindow?.show();

@@ -62,6 +62,20 @@ export interface PisteAlert {
   device: string;
 }
 
+/**
+ * Fait signalé au DT sans alerte persistante : abandon ou exclusion annoncé par l'appareil à
+ * la fin d'un relais intermédiaire (fin toujours acquittée, spéc. Cyrano § 4).
+ */
+export interface PisteNotice {
+  kind: 'team_out';
+  /** Arène équipe de la piste */
+  arena: string;
+  relay: number;
+  reason: 'abandon' | 'exclusion';
+  /** Nom du tireur tel que l'appareil l'affiche */
+  fencer: string;
+}
+
 /** Dernier état connu de l'appareil (affichage envoyé ou état reçu) : évite les échos. */
 export interface DeviceView {
   matchId: string | null;
@@ -115,6 +129,8 @@ export class PisteHub {
   private readonly coordsSource?: MatchCoordsSource;
   /** Notification d'une nouvelle alerte BAD MATCH (DT). */
   private readonly onAlert?: (piste: string, alert: PisteAlert) => void;
+  /** Notification ponctuelle au DT (abandon ou exclusion en relais par équipes). */
+  private readonly onNotice?: (piste: string, notice: PisteNotice) => void;
 
   constructor(
     driver: PisteDriver,
@@ -122,12 +138,14 @@ export class PisteHub {
     options: PisteHubOptions & {
       coordsSource?: MatchCoordsSource;
       onAlert?: (piste: string, alert: PisteAlert) => void;
+      onNotice?: (piste: string, notice: PisteNotice) => void;
     } = {}
   ) {
     this.driver = driver;
     this.getRemotes = getRemotes;
     this.coordsSource = options.coordsSource;
     this.onAlert = options.onAlert;
+    this.onNotice = options.onNotice;
     this.opts = {
       nameLength: options.nameLength ?? 10,
       natSource: options.natSource ?? 'auto',
@@ -269,6 +287,10 @@ export class PisteHub {
     };
     this.alerts.set(piste, alert);
     if (isNew) this.onAlert?.(piste, alert);
+  }
+
+  notify(piste: string, notice: PisteNotice): void {
+    this.onNotice?.(piste, notice);
   }
 
   clearAlert(piste: string): void {
