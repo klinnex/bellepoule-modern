@@ -29,6 +29,13 @@ const member = {
 
 let api: Record<string, ReturnType<typeof vi.fn>>;
 
+/** Fichier choisi via « Importer » (boîte de dialogue du main) */
+const openMemberFileMock = (result: { filePath: string; content: string }) => {
+  (window as unknown as { electronAPI: Record<string, unknown> }).electronAPI.dialog = {
+    openFile: vi.fn().mockResolvedValue(result),
+  };
+};
+
 beforeEach(() => {
   api = {
     getClub: vi.fn().mockResolvedValue({ id: 'c1', name: 'Cercle d’escrime', stripCount: 3 }),
@@ -113,8 +120,9 @@ describe('ClubView', () => {
       'MARTIN,Anne,01/02/2010,F,FRA;IDF,PARIS,75;123,IDF,CLUB,,;',
       'DURAND,Paul,03/04/2011,M,FRA;IDF,PARIS,75;456,IDF,CLUB,,;',
     ].join('\n');
-    const file = new File([fff], 'club.fff');
-    fireEvent.change(screen.getByLabelText('Importer (.fff)'), { target: { files: [file] } });
+    openMemberFileMock({ filePath: '/tmp/club.fff', content: fff });
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Importer (.fff, .csv, .xlsx)' }));
     // Sélection : MARTIN déjà présent (non importable), DURAND nouveau et coché
     expect(await screen.findByText('Déjà présent')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'MARTIN Anne' })).toBeDisabled();
@@ -123,6 +131,19 @@ describe('ClubView', () => {
     await waitFor(() => expect(api.importMembers).toHaveBeenCalled());
     const rows = api.importMembers.mock.calls[0][1] as { lastName: string; firstName: string }[];
     expect(rows.map(r => `${r.lastName} ${r.firstName}`)).toEqual(['DURAND Paul']);
+  });
+
+  it('importe un tableau CSV du club (colonne Nom)', async () => {
+    api.importMembers = vi.fn().mockResolvedValue({ created: 1, updated: 0, skipped: 0 });
+    render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
+    await screen.findByText('MARTIN');
+    const csv = ['Nom;Prénom;Licence;Sexe', 'Durand;Paul;456;M', 'Martin;Anne;123;F'].join('\n');
+    openMemberFileMock({ filePath: '/tmp/membres.csv', content: csv });
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Importer (.fff, .csv, .xlsx)' }));
+    // Casse du fichier conservée ; Martin Anne est déjà présent (licence + sexe identiques)
+    expect(await screen.findByRole('checkbox', { name: 'Durand Paul' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Martin Anne' })).toBeDisabled();
   });
 
   it('nombre de pistes enregistré, import des photos ZIP', async () => {
@@ -134,7 +155,8 @@ describe('ClubView', () => {
     await waitFor(() => expect(strips).toHaveValue(3));
     fireEvent.change(strips, { target: { value: '6' } });
     await waitFor(() => expect(api.updateClub).toHaveBeenCalledWith('c1', { stripCount: 6 }));
-    fireEvent.click(screen.getByRole('button', { name: 'Importer photos (.zip)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Importer photos (.zip)' }));
     await waitFor(() => expect(api.importPhotos).toHaveBeenCalledWith('c1', '/tmp/photos.zip'));
   });
 });

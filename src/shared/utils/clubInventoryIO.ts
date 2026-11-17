@@ -61,7 +61,7 @@ const CONDITION_FR: Record<ClubItemCondition, string> = {
   out_of_service: 'Hors service',
 };
 
-const WEAPON_FR: Record<Weapon, string> = {
+export const WEAPON_FR: Record<Weapon, string> = {
   [Weapon.FOIL]: 'Fleuret',
   [Weapon.EPEE]: 'Épée',
   [Weapon.SABRE]: 'Sabre',
@@ -82,7 +82,7 @@ const EXCHANGE_KEYS = (labels: Record<string, string>) =>
 
 const CATEGORY_BY_LABEL = EXCHANGE_KEYS(CATEGORY_FR);
 const CONDITION_BY_LABEL = EXCHANGE_KEYS(CONDITION_FR);
-const WEAPON_BY_LABEL: Record<string, Weapon> = {
+export const WEAPON_BY_LABEL: Record<string, Weapon> = {
   ...Object.fromEntries(
     Object.entries(WEAPON_FR).map(([code, label]) => [normKey(label), code as Weapon])
   ),

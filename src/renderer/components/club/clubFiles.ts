@@ -8,7 +8,7 @@ export async function saveTextFile(
   defaultPath: string,
   content: string,
   title: string,
-  ext: 'json' | 'csv' = 'json'
+  ext: 'json' | 'csv' | 'fff' = 'json'
 ): Promise<boolean> {
   const api = window.electronAPI;
   if (!api?.dialog?.saveFile || !api.file?.writeContent) return false;
@@ -66,6 +66,20 @@ export async function imageFileToDataUrl(file: File, maxSide = 1280): Promise<st
   } catch {
     return original;
   }
+}
+
+/**
+ * Ouvre un fichier de membres : FFE (.fff / TXT / XML), CSV ou Excel (.xlsx lu en CSV par le
+ * main) ; null si annulé
+ */
+export async function openMemberFile(
+  title: string
+): Promise<{ filePath: string; content: string } | null> {
+  const r = await window.electronAPI?.dialog?.openFile({
+    title,
+    filters: [{ name: 'Membres', extensions: ['fff', 'csv', 'txt', 'xml', 'xlsx'] }],
+  });
+  return r?.filePath ? { filePath: r.filePath, content: r.content ?? '' } : null;
 }
 
 /** Ouvre un fichier CSV ou Excel (.xlsx lu en CSV par le main) ; null si annulé */

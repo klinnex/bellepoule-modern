@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   ArchiveRestore,
@@ -12,7 +12,6 @@ import {
   FileDown,
   IdCard,
   Printer,
-  ImageUp,
   QrCode,
   Plus,
   RefreshCw,
@@ -29,8 +28,13 @@ import {
 } from '../../../shared/utils/clubImport';
 import { ClubImportModal } from './ClubImportModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
-import { decodeTextFile, resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
+import { resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import { exportClubMembersToFFF } from '../../../shared/utils/fencerExport';
+import { parseDelimited } from '../../../shared/utils/clubInventoryIO';
+import { toCsv } from '../../../shared/utils/clubInventory';
+import { isMemberTable, membersToRows, rowsToMembers } from '../../../shared/utils/clubMembersIO';
+import { ClubExchangeMenu } from './ClubExchangeMenu';
+import { openMemberFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
 import {
   exportArenaQrToPDF,
   exportClubCardsToPDF,
@@ -84,7 +88,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [ageFilter, setAgeFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
   const [printing, setPrinting] = useState(false);
-  const importInput = useRef<HTMLInputElement>(null);
   const [importDraft, setImportDraft] = useState<{
     fileName: string;
     rows: ClubMemberInput[];
@@ -184,22 +187,34 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     if (ok) await run(() => api.regenerateCardCode(m.id));
   };
 
-  const importFile = async (file: File | undefined) => {
-    if (!file) return;
+  /** Fichier choisi (FFE .fff / XML / TXT, CSV ou Excel) → personnes à importer */
+  const importFile = async () => {
     try {
-      const content = decodeTextFile(new Uint8Array(await file.arrayBuffer()));
-      const parsed =
-        resolveFencerFileFormat('fff', content) === 'xml'
-          ? parseXMLFile(content)
-          : parseFFEFile(content);
-      const rows = fencersToClubMembers(parsed.fencers);
-      if (rows.length === 0) {
-        showToast(parsed.errors[0] ?? t('club.import_empty'), 'error');
+      const picked = await openMemberFile(t('club.import_menu'));
+      if (!picked) return;
+      const fileName = picked.filePath.split(/[\\/]/).pop() ?? '';
+      const ext = fileName.toLowerCase().split('.').pop() ?? '';
+      // CSV / Excel à colonnes « Nom » (format du club) ; sinon fichier FFE, comme avant
+      const grid = ext === 'csv' || ext === 'xlsx' ? parseDelimited(picked.content) : [];
+      let members: ClubMemberInput[];
+      let error: string | undefined;
+      if (isMemberTable(grid)) {
+        ({ members, error } = rowsToMembers(grid));
+      } else {
+        const parsed =
+          resolveFencerFileFormat('fff', picked.content) === 'xml'
+            ? parseXMLFile(picked.content)
+            : parseFFEFile(picked.content);
+        members = fencersToClubMembers(parsed.fencers);
+        error = parsed.errors[0];
+      }
+      if (members.length === 0) {
+        showToast(error ?? t('club.import_empty'), 'error');
         return;
       }
       // Sélection des personnes à importer (statut calculé sur tout l'annuaire, archivés compris)
-      const statuses = classifyClubImport(await api.listMembers(clubId, true), rows);
-      setImportDraft({ fileName: file.name, rows, statuses });
+      const statuses = classifyClubImport(await api.listMembers(clubId, true), members);
+      setImportDraft({ fileName, rows: members, statuses });
     } catch (e) {
       showToast(errText(e), 'error');
     }
@@ -240,20 +255,24 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
   };
 
-  /** Membres affichés (filtres appliqués) → fichier FFF réimportable */
-  const exportMembers = async () => {
-    const dialog = window.electronAPI?.dialog;
-    const file = window.electronAPI?.file;
-    if (!dialog?.saveFile || !file?.writeContent || filtered.length === 0) return;
+  /** Membres affichés (filtres appliqués) → FFF réimportable, CSV ou Excel */
+  const exportMembers = async (kind: 'fff' | 'csv' | 'xlsx') => {
+    if (filtered.length === 0) return;
+    const name = `${(settings.name || 'club').replace(/[^\p{L}\p{N}_-]+/gu, '_')}-membres.${kind}`;
+    const title = t('club.export_menu');
     try {
-      const r = await dialog.saveFile({
-        title: t('club.export'),
-        defaultPath: `${(settings.name || 'club').replace(/[^\p{L}\p{N}_-]+/gu, '_')}-membres.fff`,
-        filters: [{ name: 'FFF', extensions: ['fff'] }],
-      });
-      if (!r || r.canceled || !r.filePath) return;
-      await file.writeContent(r.filePath, exportClubMembersToFFF(settings.name, filtered));
-      showToast(t('club.export_done', { count: filtered.length }), 'success');
+      const done =
+        kind === 'xlsx'
+          ? await saveSpreadsheetFile(name, membersToRows(filtered), title)
+          : await saveTextFile(
+              name,
+              kind === 'csv'
+                ? toCsv(membersToRows(filtered))
+                : exportClubMembersToFFF(settings.name, filtered),
+              title,
+              kind
+            );
+      if (done) showToast(t('club.export_done', { count: filtered.length }), 'success');
     } catch (e) {
       showToast(errText(e), 'error');
     }
@@ -355,38 +374,37 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           <h2 id="club-members-title" className="club-card-title">
             {t('club.members_count', { count: members.length })}
           </h2>
-          <input
-            ref={importInput}
-            className="sr-only"
-            type="file"
-            accept=".fff,.csv,.txt,.xml"
-            aria-label={t('club.import')}
-            onChange={e => {
-              void importFile(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
-          <Button
-            icon={<ImageUp size={15} aria-hidden="true" />}
-            title={t('privacy.photo_consent')}
-            onClick={() => void importPhotos()}
-          >
-            {t('fencerList.import_photos')}
-          </Button>
-          <Button
+          <ClubExchangeMenu
+            label={t('club.import_menu')}
             icon={<Upload size={15} aria-hidden="true" />}
-            data-tour="club-import"
-            onClick={() => importInput.current?.click()}
-          >
-            {t('club.import')}
-          </Button>
-          <Button
+            dataTour="club-import"
+            items={[
+              { key: 'members', label: t('club.import'), onSelect: () => void importFile() },
+              {
+                key: 'photos',
+                label: t('fencerList.import_photos'),
+                onSelect: () => void importPhotos(),
+              },
+            ]}
+          />
+          <ClubExchangeMenu
+            label={t('club.export_menu')}
             icon={<Download size={15} aria-hidden="true" />}
             disabled={filtered.length === 0}
-            onClick={() => void exportMembers()}
-          >
-            {t('club.export')}
-          </Button>
+            items={[
+              { key: 'fff', label: t('club.export'), onSelect: () => void exportMembers('fff') },
+              {
+                key: 'csv',
+                label: t('club.export_csv'),
+                onSelect: () => void exportMembers('csv'),
+              },
+              {
+                key: 'xlsx',
+                label: t('club.export_excel'),
+                onSelect: () => void exportMembers('xlsx'),
+              },
+            ]}
+          />
           <Button
             variant="primary"
             data-tour="club-print-cards"

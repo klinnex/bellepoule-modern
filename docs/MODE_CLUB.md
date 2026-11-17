@@ -27,9 +27,14 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   M9 → M20 d'après l'âge atteint l'année de fin de saison (règle FFE), Seniors, vétérans
   V1 → V4 d'après l'âge atteint l'année de début de saison. Sans date : catégorie saisie.
 - Liste filtrable par catégorie, triable par nom ou par catégorie.
-- Import FFE `.fff` / XML / CSV : choix des personnes, dédoublonnage par licence puis nom,
-  membres existants complétés (licence, sexe, date de naissance) sans écrasement.
-  Photos par licence depuis un ZIP.
+- Menu **Importer** : fichier FFE `.fff` / XML / TXT, **CSV ou Excel `.xlsx`** (choix des
+  personnes, dédoublonnage par licence puis nom, membres existants complétés — licence, sexe,
+  date de naissance — sans écrasement), ou photos par licence depuis un ZIP.
+- Menu **Exporter** : `.fff` (réimportable), **CSV** (séparateur `;`) ou **Excel**, lignes visibles
+  (filtres appliqués). Colonnes d'échange en français : Nom, Prénom, Licence, Sexe, Date de
+  naissance, Année de naissance, Armes, Latéralité, Catégorie, Actif, Notes. Un CSV / Excel
+  contenant une colonne « Nom » est lu avec ces intitulés ; sinon il est traité comme un fichier FFE.
+  Code : `src/shared/utils/clubMembersIO.ts`.
 - Archivage (stats conservées) ou effacement définitif (RGPD : présences et combats compris).
 
 ### Cartes de membre et QR des pistes
