@@ -84,6 +84,7 @@ import { createPortal } from 'react-dom';
 import { saveActiveSection } from './components/settingsModal.helpers';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
+import { useAppMenuHandlers } from './hooks/useAppMenuHandlers';
 
 const PHASE_BADGE: Record<string, { label: string; cls: string }> = {
   [PhaseType.CHECKIN]: { label: 'Appel', cls: 'badge-checkin' },
@@ -230,48 +231,16 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
-  // Listen for menu events
-  useEffect(() => {
-    const api = window.electronAPI;
-    if (!api) return;
-    // Chaque on* retourne son désabonnement (#1894) : ne retire que nos propres écouteurs
-    const unsubscribers: Array<(() => void) | void> = [
-      api.onMenuNewCompetition(() => setShowNewCompetitionModal(true)),
-      api.onMenuReportIssue(() => setShowReportIssueModal(true)),
-      api.onShowAbout(() => setShowAboutModal(true)),
-
-      // Listen for file operations
-      api.onFileOpened(async (filepath: string, competitionIds?: string[]) => {
-        logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath, competitionIds });
-        await loadCompetitions();
-        if (competitionIds?.length) {
-          showToast(
-            competitionIds.length === 1
-              ? 'Compétition importée'
-              : `${competitionIds.length} compétitions importées`,
-            'success'
-          );
-        }
-        // Une seule compétition : l'ouvrir avec son état sauvegardé (#1117)
-        if (competitionIds?.length === 1)
-          await openImportedCompetitionRef.current(competitionIds[0]);
-      }),
-
-      api.onFileSaved(async (filepath: string) => {
-        logger.debug(LogCategory.UI, 'Fichier sauvegardé', { filepath });
-      }),
-
-      // Listen for save events
-      api.onMenuSave(() => showToast('Sauvegarde effectuée', 'success')),
-      api.onMenuOpenSettings(() => setShowSettingsModal(true)),
-      api.onAutosaveCompleted(() => logger.debug(LogCategory.UI, 'Autosave OK')),
-      api.onAutosaveFailed(() => showToast('Échec de la sauvegarde automatique', 'error')),
-    ];
-
-    return () => {
-      for (const off of unsubscribers) if (typeof off === 'function') off();
-    };
-  }, []);
+  // Menu natif et fichiers (.bpm ouvert, sauvegarde) : hook dédié (#1897)
+  useAppMenuHandlers({
+    onNewCompetition: () => setShowNewCompetitionModal(true),
+    onReportIssue: () => setShowReportIssueModal(true),
+    onAbout: () => setShowAboutModal(true),
+    onOpenSettings: () => setShowSettingsModal(true),
+    reloadCompetitions: loadCompetitions,
+    openImportedCompetition: id => openImportedCompetitionRef.current(id),
+    showToast,
+  });
 
   // Ctrl+K → command palette
   useEffect(() => {
