@@ -19,7 +19,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` ; en CI, une baisse non verrouillée échoue aussi (`--update` pour verrouiller, #1895) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 15 | 234 |
-| `src/main/` | 84 | 668 |
+| `src/database/` | 15 | 237 |
+| `src/main/` | 85 | 673 |
 | `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 29 | 144 |
+| `src/renderer/hooks/` | 30 | 147 |
 | `src/renderer/components/` | 111 | 558 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **438** | **3312** |
+| **Total** | **440** | **3323** |
 
-Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 430 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2636,7 +2636,7 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/privacyRepo.test.ts</code> — 9 tests</summary>
+<summary><code>src/database/repos/privacyRepo.test.ts</code> — 12 tests</summary>
 
 - **identityKey / scrubIdentityInJson**
   - regroupe par licence, sinon par nom sans accents
@@ -2648,6 +2648,9 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - efface la personne de toutes les compétitions et du club
   - liste les compétitions et membres au-delà de la durée de conservation
   - anonymise une compétition échue, qui sort de la liste des candidats
+  - anonymisation : commentaires d’arbitre nettoyés (auteur, libellé, noms) (#1882)
+  - membre sans licence : pas rattaché à un homonyme d’une autre date de naissance (#1882)
+  - competitionIdsOf : compétitions de la personne (#1882)
   - supprime une compétition sans laisser de données orphelines
 
 </details>
@@ -3198,14 +3201,17 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 8 tests</summary>
 
 - **applyRetention**
   - anonymise par défaut, supprime sur demande
   - restreint à la sélection
+  - ignore une compétition ouverte, compacte la base après purge (#1882)
 - **handlers privacy:\***
   - enregistre et applique les réglages (noms abrégés à chaud)
   - filtre les entrées non fiables
+  - compétition ouverte : anonymisation et effacement refusés (#1882)
+  - effacement : base compactée ensuite (#1882)
   - archive chiffrée : mot de passe trop court, aucun fichier en attente
 
 </details>
@@ -3488,6 +3494,14 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 1 test</summary>
+
+- **arena\_control select\_match (#1882)**
+  - reprend fencerA / fencerB / referee de la session
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaSlots.test.ts</code> — 7 tests</summary>
 
 - **sous-pistes des rapières (#1118)**
@@ -3715,7 +3729,7 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/publicDto.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/remote/publicDto.test.ts</code> — 12 tests</summary>
 
 - **stripPersonalData**
   - retire date de naissance, licence et photo à toute profondeur, sans muter
@@ -3730,6 +3744,7 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - décodage côté client inchangé (format standard)
 - **masquage des noms (RGPD, #1882)**
   - « initial » : NOM P. ; « initials » : N. P. ; « full » inchangé
+  - clés oubliées masquées : arbitre, programme public, cartons noirs (#1882)
   - nom complet sans majuscules : dernier mot gardé
   - réglage global appliqué par défaut
 
@@ -4298,6 +4313,16 @@ Unitaires : 428 fichiers, 3273 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/renderer/hooks/`
+
+<details>
+<summary><code>src/renderer/hooks/useAppMenuHandlers.test.tsx</code> — 3 tests</summary>
+
+- **useAppMenuHandlers**
+  - relaie les événements vers les derniers handlers, sans réabonnement
+  - .bpm ouvert : recharge, toast, ouvre la compétition unique
+  - démontage : tous les désabonnements appelés
+
+</details>
 
 <details>
 <summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 7 tests</summary>
