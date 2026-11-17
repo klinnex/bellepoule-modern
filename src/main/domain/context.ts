@@ -1,0 +1,36 @@
+/**
+ * BellePoule Modern - Couche domaine (#1880) : logique métier du process main partagée
+ * par le serveur MCP, le mode --headless et, à terme, les handlers IPC de l'écran.
+ * Licensed under GPL-3.0
+ */
+import type { DatabaseManager } from '../../database';
+
+/** Écriture faite hors de l'écran : l'écran ouvert recharge les données concernées */
+export interface DomainChange {
+  /** Nature : épreuves (liste, réglages), tireurs, arbitres, réglages du poste, état de session */
+  scope: 'competitions' | 'fencers' | 'referees' | 'settings' | 'session';
+  /** Épreuves touchées (vide = liste entière) */
+  competitionIds: string[];
+}
+
+export interface DomainContext {
+  db: DatabaseManager;
+  /** Notifie l'écran d'une écriture hors écran (bus competition:event) */
+  emitChange?: (change: DomainChange) => void;
+  /**
+   * Dossiers où l'agent (MCP) peut écrire des fichiers ; absent = aucune restriction
+   * (tests, opérateur en ligne de commande).
+   */
+  allowedRoots?: () => string[];
+}
+
+/** Erreur métier : message destiné à l'opérateur (ou à l'agent), code stable */
+export class DomainError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string
+  ) {
+    super(message);
+    this.name = 'DomainError';
+  }
+}

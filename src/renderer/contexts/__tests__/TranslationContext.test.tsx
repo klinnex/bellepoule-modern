@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import { TranslationProvider, useTranslation, type Language } from '../TranslationContext';
 import { getActiveLocale } from '@shared/utils/localeFormat';
 
@@ -62,5 +62,73 @@ describe('TranslationContext : langue active (#1160)', () => {
     expect(api.t('test.fencers', { count: 1 })).toBe('1 fencer');
     expect(api.t('test.fencers', { count: 2 })).toBe('2 fencers');
     expect(api.t('test.missing', { count: 2 })).toBe('test.missing');
+  });
+});
+
+describe('TranslationContext : réglages changés par l’agent (#1880)', () => {
+  type Handler = (e: { type: string }) => void;
+  let handler: Handler | null;
+  let unsubscribe: ReturnType<typeof vi.fn>;
+  let get: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    handler = null;
+    unsubscribe = vi.fn();
+    get = vi.fn(async () => ({ language: 'en', theme: 'dark' }));
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      onCompetitionEvent: (cb: Handler) => {
+        handler = cb;
+        return unsubscribe;
+      },
+      settings: { get },
+    };
+  });
+
+  afterEach(() => {
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+
+  it('applique la langue et le thème de la base sur settings:changed', async () => {
+    await mount('fr');
+    await act(async () => {
+      handler!({ type: 'settings:changed' });
+    });
+    await waitFor(() => expect(screen.getByTestId('lang').textContent).toBe('en'));
+    expect(api.theme).toBe('dark');
+    expect(document.body.classList.contains('theme-dark')).toBe(true);
+    expect(localStorage.getItem('bellepoule-language')).toBe('en');
+    expect(localStorage.getItem('bellepoule-theme')).toBe('dark');
+  });
+
+  it('ignore les autres événements, les valeurs identiques et inconnues', async () => {
+    await mount('fr');
+    await act(async () => {
+      handler!({ type: 'competitions:changed' });
+    });
+    expect(get).not.toHaveBeenCalled();
+    get.mockResolvedValue({ language: 'fr', theme: 'default' });
+    await act(async () => {
+      handler!({ type: 'settings:changed' });
+    });
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem('bellepoule-theme')).toBeNull();
+    get.mockResolvedValue({ language: 'xx', theme: 'neon' });
+    await act(async () => {
+      handler!({ type: 'settings:changed' });
+    });
+    expect(screen.getByTestId('lang').textContent).toBe('fr');
+    expect(api.theme).toBe('default');
+  });
+
+  it('se désabonne au démontage', async () => {
+    const { unmount } = render(
+      <TranslationProvider>
+        <Probe />
+      </TranslationProvider>
+    );
+    await screen.findByText('fr');
+    unmount();
+    expect(unsubscribe).toHaveBeenCalled();
   });
 });

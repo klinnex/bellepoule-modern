@@ -25,6 +25,7 @@ import {
   deMatchesKey,
 } from '../../components/remote/remoteScoreManagerShared';
 import { autoStartCyrano } from '../../components/remote/cyranoSettings';
+import { fetchVenueStripCount } from './venueStripCount';
 
 type Ctx = RemoteScoreManagerProps;
 
@@ -184,24 +185,40 @@ export function useRemoteServerState(ctx: Ctx) {
       .catch(() => setQrDataUrl(null));
   }, [activeQR]);
 
-  // Initialisation : priorité localStorage → initialStripCount (parent) → nombre de poules
+  // Initialisation : priorité localStorage → initialStripCount (parent) → pistes de la salle
+  // (#1880) → nombre de poules
   useEffect(() => {
     if (pendingCount !== null) return;
+    let cancelled = false;
     const lsKey = `bellepoule-remote-strips-${competition.id}`;
     const lsSaved = localStorage.getItem(lsKey);
-    const initial = lsSaved
-      ? parseInt(lsSaved, 10)
-      : (initialStripCount ?? (pools.length > 0 ? pools.length : 1));
     const startSaved = parseInt(
       localStorage.getItem(`bellepoule-remote-strip-start-${competition.id}`) ?? '',
       10
     );
     const initStart = Number.isFinite(startSaved) ? startSaved : (initialStripStart ?? 1);
-    const range = normalizeStripRange(initStart, Math.max(initial, initStart));
-    setPendingStart(range.start);
-    setCommittedStart(range.start);
-    setPendingCount(range.end);
-    setCommittedCount(range.end);
+    const apply = (initial: number, keepUserChoice = false) => {
+      const range = normalizeStripRange(initStart, Math.max(initial, initStart));
+      // Réponse asynchrone : un choix fait entre-temps par l'opérateur n'est pas écrasé
+      const set = <T>(setter: (fn: (prev: T | null) => T | null) => void, value: T) =>
+        setter(prev => (keepUserChoice && prev !== null ? prev : value));
+      set(setPendingStart, range.start);
+      set(setCommittedStart, range.start);
+      set(setPendingCount, range.end);
+      set(setCommittedCount, range.end);
+    };
+    if (lsSaved) apply(parseInt(lsSaved, 10));
+    else if (initialStripCount != null) apply(initialStripCount);
+    else if (pools.length > 0) apply(pools.length);
+    else {
+      // Pas encore de poules : pistes de la journée ou de la salle (#1880)
+      void fetchVenueStripCount(competition.id).then(venueCount => {
+        if (!cancelled) apply(venueCount > 0 ? venueCount : 1, true);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
   }, [initialStripCount, pools.length, competition.id]);
 
   const effectivePending = pendingCount ?? pools.length ?? 1;

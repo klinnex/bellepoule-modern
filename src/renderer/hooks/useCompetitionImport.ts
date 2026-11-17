@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import type { Competition, Fencer, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import type { ImportedReferee, RankingImportResult } from '../../shared/utils/fileParser';
+import { importIdentityKeys } from '../../shared/utils/personIdentity';
 import { useToast } from '../components/Toast';
 import { useTranslation } from './useTranslation';
 import type { useFencerManagement } from './useFencerManagement';
@@ -23,9 +24,6 @@ interface UseCompetitionImportParams {
   referees?: Referee[];
   setReferees?: Dispatch<SetStateAction<Referee[]>>;
 }
-
-const refereeKey = (lastName: string, firstName: string) =>
-  `${lastName} ${firstName}`.trim().toUpperCase().replace(/\s+/g, ' ');
 
 /** Fichier d'import en cours (modale) et gestionnaires d'import (tireurs, classement). */
 export function useCompetitionImport({
@@ -52,12 +50,13 @@ export function useCompetitionImport({
   /** Arbitres du bloc <Arbitres> d'un XML (#1504) ; doublons nom + prénom ignorés */
   const handleImportReferees = async (imported: ImportedReferee[]) => {
     if (!window.electronAPI?.db?.createReferee) return;
-    const known = new Set(referees.map(r => refereeKey(r.lastName, r.firstName)));
+    // Doublon : même licence, ou même nom + prénom (clés partagées avec le MCP, #1880)
+    const known = new Set(referees.flatMap(r => importIdentityKeys(r)));
     const created: Referee[] = [];
     for (const ref of imported) {
-      const key = refereeKey(ref.lastName, ref.firstName);
-      if (known.has(key)) continue;
-      known.add(key);
+      const keys = importIdentityKeys(ref);
+      if (keys.some(k => known.has(k))) continue;
+      keys.forEach(k => known.add(k));
       try {
         created.push(
           await window.electronAPI.db.createReferee(competition.id, {

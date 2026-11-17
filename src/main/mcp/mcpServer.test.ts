@@ -165,4 +165,15 @@ describe('McpServer (HTTP réel)', () => {
     const notif = JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' });
     expect((await post(port, notif, { Authorization: 'Bearer secret' })).status).toBe(202);
   });
+
+  it('lots JSON-RPC : 20 messages au plus, traités l’un après l’autre', async () => {
+    const port = await server.start({ port: 0, token: 'secret', version: '1', deps });
+    const auth = { Authorization: 'Bearer secret' };
+    const ping = (id: number) => ({ jsonrpc: '2.0', id, method: 'ping' });
+    const ok = await post(port, JSON.stringify([ping(1), ping(2)]), auth);
+    expect(JSON.parse(ok.body)).toHaveLength(2);
+    const big = JSON.stringify(Array.from({ length: 21 }, (_, i) => ping(i)));
+    expect((await post(port, big, auth)).status).toBe(400);
+    expect((await post(port, '[]', auth)).status).toBe(400);
+  });
 });

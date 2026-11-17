@@ -63,15 +63,37 @@ export function regenerateMcpToken(dir: string, box: SecretBox): string {
   return token;
 }
 
-/** Jeton existant, sinon créé */
-export function getMcpToken(dir: string, box: SecretBox): string {
-  try {
-    const data = fs.readFileSync(tokenFile(dir));
-    const tag = data.subarray(0, 4).toString();
-    if (tag === 'ENC1' && box.isEncryptionAvailable()) return box.decryptString(data.subarray(4));
-    if (tag === 'RAW1') return data.subarray(4).toString();
-  } catch {
-    /* absent ou illisible : nouveau jeton */
+/** Jeton enregistré mais indéchiffrable dans ce contexte (trousseau différent ou verrouillé) */
+export class McpTokenUnreadableError extends Error {
+  public readonly code = 'token_unreadable';
+  constructor() {
+    super('Jeton MCP illisible dans ce contexte : le régénérer (Paramètres ou --mcp-new-token)');
+    this.name = 'McpTokenUnreadableError';
   }
-  return regenerateMcpToken(dir, box);
+}
+
+/**
+ * Jeton existant, sinon créé. Un jeton enregistré mais illisible (autre trousseau : service,
+ * SSH, session sans bureau) n'est jamais remplacé en silence : les clients déjà configurés
+ * seraient refusés sans explication. L'opérateur le régénère explicitement.
+ */
+export function getMcpToken(dir: string, box: SecretBox): string {
+  let data: Buffer;
+  try {
+    data = fs.readFileSync(tokenFile(dir));
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return regenerateMcpToken(dir, box);
+    throw new McpTokenUnreadableError();
+  }
+  const tag = data.subarray(0, 4).toString();
+  if (tag === 'RAW1' && data.length > 4) return data.subarray(4).toString();
+  if (tag === 'ENC1' && box.isEncryptionAvailable()) {
+    try {
+      const token = box.decryptString(data.subarray(4));
+      if (token) return token;
+    } catch {
+      /* indéchiffrable dans ce contexte */
+    }
+  }
+  throw new McpTokenUnreadableError();
 }

@@ -3,6 +3,13 @@
  * Licensed under GPL-3.0
  */
 
+/**
+ * Événements du bus `competition:event` émis après une écriture de l'agent :
+ * liste ou réglages des épreuves modifiés, état de session réécrit (poules, scores, tableau),
+ * paramètres du poste modifiés (langue, thème : l'écran les applique).
+ */
+export type McpScreenEvent = 'competitions:changed' | 'session:changed' | 'settings:changed';
+
 export interface McpStatus {
   /** Activé dans les Paramètres (désactivé par défaut) */
   enabled: boolean;
@@ -14,6 +21,7 @@ export interface McpStatus {
   url: string | null;
   /** Jeton Bearer à déclarer dans le client MCP (.mcp.json du plugin) */
   token: string;
+  /** Message du démarrage, ou `token_unreadable` (jeton indéchiffrable dans ce contexte) */
   error?: string;
 }
 

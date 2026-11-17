@@ -1068,4 +1068,63 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 38,
+    description:
+      'Paramétrage global du poste (app_settings) et salles déclarées une fois (venues, venue_strips) (#1880)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venues (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          is_default INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venue_strips (
+          venue_id TEXT NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+          number INTEGER NOT NULL,
+          label TEXT,
+          cyrano_config TEXT,
+          PRIMARY KEY (venue_id, number)
+        )
+      `);
+      // Une seule salle par défaut
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_venues_single_default ON venues(is_default) WHERE is_default = 1`
+      );
+      for (const table of ['event_days', 'club_sessions']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN venue_id TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      // Reprise : les pistes déjà déclarées (journées, clubs) deviennent la salle par défaut,
+      // une fois, si aucune salle n'existe ; les journées gardent leur propre nombre de pistes
+      const strips = `(SELECT MIN(100, MAX(n)) FROM (
+          SELECT MAX(strip_count) AS n FROM event_days
+          UNION ALL SELECT MAX(strip_count) FROM clubs WHERE strip_count > 1))`;
+      db.run(`
+        INSERT INTO venues (id, name, is_default, created_at, updated_at)
+        SELECT lower(hex(randomblob(16))), 'Salle principale', 1, datetime('now'), datetime('now')
+        WHERE NOT EXISTS (SELECT 1 FROM venues) AND COALESCE(${strips}, 0) > 0
+      `);
+      db.run(`
+        WITH RECURSIVE seq(k) AS (SELECT 1 UNION ALL SELECT k + 1 FROM seq WHERE k < ${strips})
+        INSERT INTO venue_strips (venue_id, number, label, cyrano_config)
+        SELECT v.id, seq.k, NULL, NULL FROM venues v, seq
+        WHERE v.is_default = 1 AND NOT EXISTS (SELECT 1 FROM venue_strips WHERE venue_id = v.id)
+      `);
+    },
+  },
 ];

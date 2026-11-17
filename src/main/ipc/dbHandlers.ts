@@ -163,8 +163,9 @@ export function registerDbHandlers({
   });
 
   // Session State handlers
+  // Révision périmée (état réécrit par le MCP, #1880) : { conflict: true }, rien n'est écrit
   ipcMain.handle('db:saveSessionState', async (_, competitionId, state) => {
-    return db.saveSessionState(competitionId, state);
+    return db.saveSessionStateChecked(competitionId, state) ? undefined : { conflict: true };
   });
 
   ipcMain.handle('db:getSessionState', async (_, competitionId) => {
@@ -174,9 +175,9 @@ export function registerDbHandlers({
   // Sync save for beforeunload (renderer cannot await async IPC on close)
   ipcMain.on('db:saveSessionStateSync', (event, competitionId: string, state: unknown) => {
     try {
-      db.saveSessionState(competitionId, state);
+      const saved = db.saveSessionStateChecked(competitionId, state);
       db.forceSave();
-      event.returnValue = true;
+      event.returnValue = saved;
     } catch (e) {
       logger.error(LogCategory.SYSTEM, '[DB] Sync session state save failed', toError(e));
       event.returnValue = false;

@@ -91,7 +91,9 @@ export class MatchRepo {
       status?: string;
       maxScore?: number;
       isBye?: boolean;
-    }>
+    }>,
+    /** Auteur journalisé des scores modifiés (écran par défaut ; « mcp » pour l'agent, #1880) */
+    audit: { changedBy: string; reason: string } = { changedBy: 'ui', reason: 'tableau_entry' }
   ): void {
     if (!this.sql.db) throw new Error('Database not open');
     if (matches.length === 0) return;
@@ -136,8 +138,8 @@ export class MatchRepo {
             previousScoreB: prev?.b ?? undefined,
             newScoreA: m.scoreA,
             newScoreB: m.scoreB,
-            changedBy: 'ui',
-            reason: 'tableau_entry',
+            changedBy: audit.changedBy,
+            reason: audit.reason,
           });
         }
         const scoreA = keepScoreMarks(prev?.a, m.scoreA);

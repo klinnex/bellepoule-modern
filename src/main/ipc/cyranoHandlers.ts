@@ -18,7 +18,22 @@ export interface CyranoHandlersContext {
   pisteHub: PisteHub;
   db: Pick<DatabaseManager, 'getCyranoPistes' | 'replaceCyranoPistes'> & {
     eventDays?: Pick<DatabaseManager['eventDays'], 'getCompetitionDayId' | 'getDay'>;
+    settings?: Pick<DatabaseManager['settings'], 'getDefaultVenue'>;
   };
+}
+
+/**
+ * Pistes Cyrano de la salle par défaut (#1880) : appareils déclarés une fois avec la salle,
+ * repris par une épreuve ou une journée qui n'a pas encore sa propre table.
+ */
+export function venueCyranoPistes(
+  settings: Pick<DatabaseManager['settings'], 'getDefaultVenue'> | undefined
+): Record<string, unknown>[] {
+  const venue = settings?.getDefaultVenue();
+  if (!venue) return [];
+  return venue.strips
+    .filter(s => s.cyranoConfig && typeof s.cyranoConfig.ip === 'string')
+    .map(s => ({ ...s.cyranoConfig, piste: String(s.number) }));
 }
 
 /** Clé de la table des pistes d'une journée multi-épreuves : partagée par ses épreuves (#1878). */
@@ -75,7 +90,9 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
     if (typeof competitionId !== 'string' || !competitionId) return [];
     const day = dayOf(competitionId);
     const rows = day ? db.getCyranoPistes(dayPistesKey(day)) : [];
-    return (rows.length > 0 ? rows : db.getCyranoPistes(competitionId)).map(row => row.config);
+    const own = (rows.length > 0 ? rows : db.getCyranoPistes(competitionId)).map(row => row.config);
+    // Aucune table propre : appareils de la salle par défaut (#1880)
+    return own.length > 0 ? own : venueCyranoPistes(db.settings);
   });
 
   ipcMain.handle(

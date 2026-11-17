@@ -1,5 +1,6 @@
 ---
 description: État de la salle BellePoule Modern — retards, conflits d'arbitres, pistes libres, tablettes
+argument-hint: [journée ou épreuve]
 ---
 
 Fais le point sur la salle avec le serveur MCP `bellepoule` (lecture seule) :
