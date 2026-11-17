@@ -146,6 +146,8 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   private boundPort = 0;
   /** HELLO envoyés à une piste `auto` jamais entendue (alternance des versions), par IP */
   private readonly probes = new Map<string, number>();
+  /** Champ Compe du dernier DISP envoyé à chaque piste, par IP */
+  private readonly pisteCompe = new Map<string, string>();
   /** Sous-réseau de l'interface choisie : trames d'IP inconnues hors de ce réseau ignorées */
   private subnet: IPv4Subnet | null = null;
 
@@ -337,6 +339,15 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
     }
   }
 
+  /**
+   * Champ Compe (obligatoire, spéc. § 3) : celui du dernier DISP de la piste, repris par les
+   * HELLO / ACK / NAK suivants ; avant tout DISP, celui du serveur.
+   */
+  private compeFor(p: PisteEntry, compe?: string): string {
+    if (compe !== undefined) this.pisteCompe.set(p.key, sanitizeField(compe, 8));
+    return this.pisteCompe.get(p.key) ?? this.opts.compe;
+  }
+
   private protocolFor(p: PisteEntry): CyranoProtocol {
     if (p.protocol && p.protocol !== 'auto') return p.protocol;
     return p.detectedProtocol ?? this.opts.defaultProtocol;
@@ -354,7 +365,7 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
       ...partial,
       protocol: protocol ?? this.protocolFor(p),
       piste: p.piste,
-      compe: compe !== undefined ? sanitizeField(compe, 8) : this.opts.compe,
+      compe: this.compeFor(p, compe),
     };
     const raw = buildCyrano(msg);
     const port = p.port ?? CYRANO_DEFAULT_PORT;

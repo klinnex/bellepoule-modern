@@ -256,9 +256,9 @@ export class PisteHub {
     return hasAssignment(remote, `arena${link.arena}`) ? null : view;
   }
 
-  /** Champ épreuve de l'affichage : seulement entre plusieurs épreuves. */
+  /** Champ épreuve de l'affichage (obligatoire en Cyrano) : l'épreuve suivie par la piste. */
   competitionField(remote: RemoteScoreServer | null, link: PisteLink): string | undefined {
-    return this.remotes().length > 1 && remote ? this.competitionOf(remote, link) : undefined;
+    return remote ? this.competitionOf(remote, link) : undefined;
   }
 
   /** Épreuve suivie par chaque piste (panneau Cyrano, journée). */

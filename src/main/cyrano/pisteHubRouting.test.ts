@@ -229,5 +229,7 @@ describe('PisteHub — pistes partagées entre épreuves (#1878)', () => {
     epee.cyranoHook = (id, u) => hub.onArenaUpdate(id, u, epee);
     await startEvent(epee, 'comp-epee', 'pool-e', 1, ID.b1, ID.b2);
     expect(lastDisp().msg).toMatchObject({ weapon: 'E', right: { id: short(ID.b1) } });
+    // Champ Compe obligatoire (spéc. § 3) : l'épreuve, même seule
+    expect(lastDisp().compe).toBe('comp-epee');
   });
 });

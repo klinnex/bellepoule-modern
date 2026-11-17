@@ -258,3 +258,26 @@ describe('détection de la version du protocole (piste en auto)', () => {
     expect(parseCyrano(await app.next())?.protocol).toBe('EFP1.1');
   });
 });
+
+describe('champ Compe', () => {
+  it('DISP d’une épreuve : repris par les HELLO, ACK et NAK suivants de la piste', async () => {
+    const app = await fakeApparatus();
+    const server = new CyranoServer({ port: 0, host: '127.0.0.1', helloIntervalMs: 60_000 });
+    server.setPistes([
+      { piste: '1', ip: '127.0.0.1', port: app.port, arena: 1, protocol: 'EFP1.1' },
+    ]);
+    try {
+      await server.start();
+      expect(parseCyrano(await app.next())).toMatchObject({ command: 'HELLO', compe: '' });
+      server.sendDisp('1', {}, '2f7256b0-2cfa-4b2d');
+      expect(parseCyrano(await app.next())).toMatchObject({ command: 'DISP', compe: '2f7256b0' });
+      server.sendHelloAll();
+      expect(parseCyrano(await app.next())).toMatchObject({ command: 'HELLO', compe: '2f7256b0' });
+      server.sendAck('1');
+      expect(parseCyrano(await app.next())).toMatchObject({ command: 'ACK', compe: '2f7256b0' });
+    } finally {
+      await server.stop();
+      await app.close();
+    }
+  });
+});
