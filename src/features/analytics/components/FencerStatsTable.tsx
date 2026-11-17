@@ -10,7 +10,10 @@ import { FencerMatchRecord } from '../../../shared/types/preload';
 import { useTranslation } from '../../../renderer/contexts/TranslationContext';
 import { CardIcon } from '../../../renderer/components/common/CardIcon';
 import { FencerDetailModal } from './FencerDetailModal';
-import { exportCompetitionDetailPDF } from '../../../shared/utils/fencerDetailPdfExport';
+import {
+  exportCompetitionDetailPDF,
+  exportFencerDetailPDF,
+} from '../../../shared/utils/fencerDetailPdfExport';
 import {
   ColumnsMenu,
   useColumnVisibility,
@@ -36,6 +39,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
   const [sortAsc, setSortAsc] = useState(true);
   const [selectedFencer, setSelectedFencer] = useState<FencerCompetitionStats | null>(null);
   const [exportingComp, setExportingComp] = useState(false);
+  const [exportingFencerId, setExportingFencerId] = useState<string | null>(null);
 
   const isLaser = competition.weapon === Weapon.LASER;
   // Colonnes masquables (#1817) ; sorties d'arène : Sabre Laser uniquement
@@ -130,6 +134,18 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       await exportCompetitionDetailPDF(sorted, histories, competition, cardReasonLabels());
     } finally {
       setExportingComp(false);
+    }
+  };
+
+  // Fiche PDF d'un seul combattant, lancée depuis la ligne (sans ouvrir le modal)
+  const exportFencerPdf = async (s: FencerCompetitionStats) => {
+    if (!window.electronAPI?.db) return;
+    setExportingFencerId(s.fencerId);
+    try {
+      const hist = await window.electronAPI.db.getFencerHistory(s.fencerId);
+      await exportFencerDetailPDF(s, hist.matches, competition, cardReasonLabels());
+    } finally {
+      setExportingFencerId(null);
     }
   };
 
@@ -280,6 +296,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                   <Th k="averageDurationSeconds" label={t('stats.avg_duration')} />
                 )}
                 {show('early') && <Th k="matchesFinishedEarly" label={t('stats.early_finishes')} />}
+                <th className="px-2 py-2" aria-label={t('stats.export_fencer_pdf')} />
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -328,6 +345,20 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                   {show('early') && (
                     <td className="px-2 py-2 text-center">{s.matchesFinishedEarly || '—'}</td>
                   )}
+                  <td className="px-2 py-2 text-right">
+                    <Button
+                      size="sm"
+                      title={t('stats.export_fencer_pdf')}
+                      loading={exportingFencerId === s.fencerId}
+                      disabled={exportingFencerId !== null && exportingFencerId !== s.fencerId}
+                      onClick={e => {
+                        e.stopPropagation();
+                        void exportFencerPdf(s);
+                      }}
+                    >
+                      PDF
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
