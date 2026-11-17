@@ -72,7 +72,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={ref} className="global-pool-columns-menu-1">
       <Button
         ref={btnRef}
         onClick={() => setOpen(o => !o)}
@@ -105,29 +105,11 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({
               padding: '0.5rem',
             }}
           >
-            <div
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                padding: '0.25rem 0.5rem',
-                borderBottom: '1px solid var(--color-border)',
-                marginBottom: '0.25rem',
-              }}
-            >
-              {t('poolColumns.header')}
-            </div>
+            <div className="global-pool-columns-menu-2">{t('poolColumns.header')}</div>
             {columns.map(col => (
               <label
                 key={col.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.375rem 0.5rem',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
-                  fontSize: '0.8rem',
-                }}
+                className="global-pool-columns-menu-3"
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-2)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >

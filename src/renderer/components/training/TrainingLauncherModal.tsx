@@ -121,50 +121,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2000,
-      }}
+      className="training-launcher-modal-1"
       onClick={e => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '12px',
-          boxShadow: 'var(--shadow-xl)',
-          width: '460px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          padding: '1.5rem',
-          color: 'var(--color-text)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1.25rem',
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+      <div className="training-launcher-modal-2">
+        <div className="training-launcher-modal-3">
+          <h2 className="training-launcher-modal-4">
             <Swords size={18} /> {t('trainingLauncher.title')}
           </h2>
           <button
@@ -180,18 +144,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
         <form onSubmit={handleSubmit}>
           {/* Arme */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              style={{
-                display: 'block',
-                fontWeight: 500,
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-              }}
-            >
-              {t('trainingLauncher.weapon')}
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+          <div className="training-launcher-modal-5">
+            <label className="training-launcher-modal-6">{t('trainingLauncher.weapon')}</label>
+            <div className="training-launcher-modal-7">
               {Object.entries(WEAPON_LABELS).map(([key, label]) => (
                 <button
                   key={key}
@@ -222,18 +177,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           </div>
 
           {/* Pistes */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              style={{
-                display: 'block',
-                fontWeight: 500,
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-              }}
-            >
-              {t('trainingLauncher.strips')}
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="training-launcher-modal-5">
+            <label className="training-launcher-modal-6">{t('trainingLauncher.strips')}</label>
+            <div className="training-launcher-modal-8">
               <Button
                 aria-label={t('actions.decrease')}
                 type="button"
@@ -243,16 +189,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               >
                 <Minus size={14} />
               </Button>
-              <span
-                style={{
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  minWidth: '2rem',
-                  textAlign: 'center',
-                }}
-              >
-                {strips}
-              </span>
+              <span className="training-launcher-modal-9">{strips}</span>
               <Button
                 aria-label={t('actions.increase')}
                 type="button"
@@ -262,30 +199,15 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               >
                 <Plus size={14} />
               </Button>
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  color: 'var(--color-text-muted)',
-                  marginLeft: '0.25rem',
-                }}
-              >
+              <span className="training-launcher-modal-10">
                 {t('trainingLauncher.strip_unit', { count: strips })}
               </span>
             </div>
           </div>
 
           {/* Durée du combat */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontWeight: 500,
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-              }}
-            >
+          <div className="training-launcher-modal-5">
+            <label className="training-launcher-modal-11">
               <Clock size={14} /> {t('trainingLauncher.duration')} <strong>{durationLabel}</strong>
             </label>
             <input
@@ -295,9 +217,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               step={30}
               value={matchDuration}
               onChange={e => setMatchDuration(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+              className="training-launcher-modal-12"
             />
-            <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="training-launcher-modal-13">
               {DURATION_PRESETS.map(p => (
                 <button
                   key={p.value}
@@ -330,18 +252,8 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           </div>
 
           {/* Interface réseau */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              htmlFor="training-interface"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontWeight: 500,
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-              }}
-            >
+          <div className="training-launcher-modal-5">
+            <label htmlFor="training-interface" className="training-launcher-modal-11">
               <Network size={14} /> {t('trainingLauncher.network')}
             </label>
             <select
@@ -365,27 +277,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           {isLaser && (
             <>
               {/* Zones autorisées */}
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontWeight: 500,
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                  }}
-                >
+              <div className="training-launcher-modal-5">
+                <label className="training-launcher-modal-6">
                   {t('trainingLauncher.zones')}{' '}
-                  <span
-                    style={{
-                      fontWeight: 400,
-                      color: 'var(--color-text-muted)',
-                      fontSize: '0.8125rem',
-                    }}
-                  >
+                  <span className="training-launcher-modal-14">
                     {t('trainingLauncher.zones_hint')}
                   </span>
                 </label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="training-launcher-modal-15">
                   {ALL_ZONES.map(zone => {
                     const active = allowedZones.includes(zone);
                     const pts = ZONE_POINTS[zone];
@@ -414,13 +313,13 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                           transition: 'all 0.15s',
                         }}
                       >
-                        <div style={{ fontSize: '1rem', fontWeight: 700 }}>
+                        <div className="training-launcher-modal-16">
                           {t('trainingLauncher.zone_n', { z: zone })}
                         </div>
-                        <div style={{ fontSize: '0.75rem' }}>
+                        <div className="training-launcher-modal-17">
                           {t('trainingLauncher.pts', { count: pts })}
                         </div>
-                        <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{label}</div>
+                        <div className="training-launcher-modal-18">{label}</div>
                       </button>
                     );
                   })}
@@ -428,16 +327,8 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               </div>
 
               {/* Mort subite */}
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
+              <div className="training-launcher-modal-5">
+                <label className="training-launcher-modal-19">
                   <div
                     style={{
                       width: '40px',
@@ -466,27 +357,13 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                       }}
                     />
                   </div>
-                  <span
-                    style={{
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                    }}
-                  >
+                  <span className="training-launcher-modal-20">
                     <Zap size={14} />
                     {t('trainingLauncher.no_sudden_death')}
                   </span>
                 </label>
                 {disableSuddenDeath && (
-                  <p
-                    style={{
-                      margin: '0.35rem 0 0 3.25rem',
-                      fontSize: '0.8rem',
-                      color: 'var(--color-text-muted)',
-                    }}
-                  >
+                  <p className="training-launcher-modal-21">
                     {t('trainingLauncher.no_sudden_death_hint')}
                   </p>
                 )}
@@ -512,7 +389,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
             </>
           )}
 
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+          <div className="training-launcher-modal-22">
             <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
             </Button>

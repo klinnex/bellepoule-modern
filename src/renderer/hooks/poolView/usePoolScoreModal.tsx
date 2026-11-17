@@ -247,21 +247,13 @@ export function usePoolScoreModal(ctx: Ctx) {
 
             {/* Égalité olympique / rapières : tirage du prioritaire (#1442), sous les scores comme au tableau (#1826) */}
             {tieByVictory && !isLaserSabre && (
-              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <div className="use-pool-score-modal-1">
                 {editScoreA !== '' &&
                   editScoreB !== '' &&
                   (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
                   !!pool.matches[editingMatch]?.fencerA &&
                   !!pool.matches[editingMatch]?.fencerB && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        alignItems: 'center',
-                        justifyContent: 'center', // bouton centré dans la carte (#1826)
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="use-pool-score-modal-2">
                       <Button
                         type="button"
                         variant="warning"

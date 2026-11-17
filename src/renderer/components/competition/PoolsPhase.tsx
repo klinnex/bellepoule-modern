@@ -85,18 +85,10 @@ const PoolsPhase: React.FC<PoolsPhaseProps> = ({
     <div className="content">
       {poolRoundSelector}
       {historyPools ? (
-        <div
-          style={{
-            display: 'grid',
-            gap: '2rem',
-            width: '100%',
-            boxSizing: 'border-box',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 480px), 1fr))',
-          }}
-        >
+        <div className="pools-phase-1">
           <Suspense fallback={null}>
             {historyPools.map(pool => (
-              <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
+              <div key={pool.id} className="pools-phase-2">
                 {/* Tour terminé : consultation seule */}
                 <div inert>
                   <PoolView
@@ -154,7 +146,7 @@ const PoolsPhase: React.FC<PoolsPhaseProps> = ({
                 setSinglePoolIndex={setSinglePoolIndex}
               />
               {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
-              <div style={{ width: '100%', overflowX: 'auto' }}>
+              <div className="pools-phase-3">
                 <div
                   className="pools-single-card"
                   style={{

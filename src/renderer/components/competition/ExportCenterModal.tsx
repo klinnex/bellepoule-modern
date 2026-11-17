@@ -45,20 +45,9 @@ interface ExportCenterModalProps {
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div style={{ marginBottom: '1.25rem' }}>
-    <h3
-      style={{
-        fontSize: '0.8125rem',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.03em',
-        color: 'var(--color-text-light)',
-        marginBottom: '0.5rem',
-      }}
-    >
-      {title}
-    </h3>
-    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>{children}</div>
+  <div className="export-center-modal-1">
+    <h3 className="export-center-modal-2">{title}</h3>
+    <div className="export-center-modal-3">{children}</div>
   </div>
 );
 
@@ -188,9 +177,7 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
       )}
 
       {fencers.length === 0 && pools.length === 0 && (
-        <p style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-          {t('exportCenter.empty')}
-        </p>
+        <p className="export-center-modal-4">{t('exportCenter.empty')}</p>
       )}
     </Modal>
   );

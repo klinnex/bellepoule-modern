@@ -42,7 +42,7 @@ const RapieresWavePrintDialog: React.FC<RapieresWavePrintDialogProps> = ({
         <div className="modal-header">
           <h2 className="modal-title">{t('rapieres.print_wave_range_title')}</h2>
         </div>
-        <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+        <div className="modal-body rapieres-wave-print-dialog-1">
           <div className="form-group">
             <label className="form-label" htmlFor="rapieres-print-from">
               {t('rapieres.print_wave_from')}

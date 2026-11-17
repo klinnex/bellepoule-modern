@@ -23,15 +23,7 @@ const SinglePoolNav: React.FC<SinglePoolNavProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '0.5rem',
-        marginBottom: '1.5rem',
-      }}
-    >
+    <div className="single-pool-nav-1">
       <Button
         onClick={() => setSinglePoolIndex(i => (i - 1 + pools.length) % pools.length)}
         disabled={pools.length <= 1}
@@ -41,8 +33,7 @@ const SinglePoolNav: React.FC<SinglePoolNavProps> = ({
         <Icon icon={ChevronLeft} />
       </Button>
       <select
-        className="form-input"
-        style={{ width: 'auto', fontWeight: 600, textAlign: 'center' }}
+        className="form-input single-pool-nav-2"
         value={singlePoolIndex}
         onChange={e => setSinglePoolIndex(Number(e.target.value))}
         aria-label={t('competitionView.select_pool')}
