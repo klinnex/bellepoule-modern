@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 256 |
-| `src/main/` | 108 | 882 |
+| `src/main/` | 108 | 885 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **485** | **3661** |
+| **Total** | **485** | **3664** |
 
-Unitaires : 475 fichiers, 3622 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 475 fichiers, 3625 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3665,7 +3665,7 @@ Unitaires : 475 fichiers, 3622 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/mcp/mcpExtraTools.test.ts</code> — 14 tests</summary>
+<summary><code>src/main/mcp/mcpExtraTools.test.ts</code> — 17 tests</summary>
 
 - sans écriture : outils de lecture seulement, écritures refusées
 - noms d’outils uniques, outils destructifs annotés
@@ -3676,9 +3676,12 @@ Unitaires : 475 fichiers, 3622 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - import\_referees : épreuve (gestion des arbitres activée) puis rejoué sans doublon
 - import\_referees : journée avec armes, reportés dans les épreuves de ces armes
 - start / stop\_remote\_server passent par le serveur distant de l’application
+- assign\_referees : arbitre du club d’un tireur signalé faute d’arbitre neutre
+- arènes du serveur distant sans écran : poules, sinon pistes de la salle, sinon 1
 - delete\_competition : titre exact exigé
 - salle par défaut → pistes ; réglages sans secret ni dossiers de l’agent
 - classeur Excel et cotcot lus comme à l’écran
+- TXT séparé par des espaces lu comme à l’écran ; fichier sans tireur signalé
 - import\_day : un fichier manquant fait échouer l’import sans rien écrire
 - manifeste de import\_day, chemins relatifs au manifeste, rejouable
 
