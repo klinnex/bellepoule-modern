@@ -1040,6 +1040,10 @@ export interface FileAPI {
   import: (filepath: string) => Promise<FileOpenResult>;
   /** Ouvre le dialogue « Ouvrir » (.bpm/.db/.cotcot) — même flux que Fichier › Ouvrir */
   openDialog: () => Promise<void>;
+  /** Décode des fichiers glissés-déposés (.zip de l'extranet, .xml, .fff, .txt) (#1938) */
+  unpackFederalFiles: (
+    inputs: Array<{ name: string; bytes: Uint8Array }>
+  ) => Promise<FederalTextFile[]>;
   /** Exporte une compétition seule (état d'avancement compris) dans un .bpm nommé d'après elle */
   exportCompetition: (
     competitionId: string
@@ -1074,8 +1078,16 @@ export interface FileAPI {
   ) => Promise<{ added: number; updated: number }>;
 }
 
+/** Fichiers de l'extranet fédéral décodés (#1938) */
+export interface FederalTextFile {
+  name: string;
+  content: string;
+}
+
 export interface DialogAPI {
   openFile: (options: DialogOpenOptions) => Promise<FileOpenResult | null>;
+  /** Choisit le .zip de l'extranet (ou .xml / .fff / .txt) ; fichiers décodés un par un */
+  openFederalFiles: () => Promise<{ names: string[]; files: FederalTextFile[] } | null>;
   saveFile: (options: DialogSaveOptions) => Promise<FileSaveResult | null>;
 }
 

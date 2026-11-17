@@ -12,6 +12,7 @@ export const dialogApi = {
     }
     return ipcRenderer.invoke('dialog:openFile', options);
   },
+  openFederalFiles: () => ipcRenderer.invoke('dialog:openFederalFiles'),
   saveFile: (options: DialogSaveOptions) => {
     if (!options || typeof options !== 'object') {
       throw new Error('Dialog options are required');

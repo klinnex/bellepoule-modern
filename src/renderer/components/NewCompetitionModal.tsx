@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   Competition,
@@ -21,10 +21,14 @@ import { Button } from './common/Button';
 import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 import CompetitionPropertiesModal from './CompetitionPropertiesModal';
 import { Settings } from 'lucide-react';
+import FederalImportPanel from './FederalImportPanel';
+import { useFederalImport, type FederalCreationPayload } from '../hooks/useFederalImport';
+import type { FederalNotice } from '../../shared/utils/fileParser/federalImport';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
-  onCreate: (data: Partial<Competition>) => void;
+  /** imported : tireurs, équipes et arbitres lus dans les fichiers de l'extranet (#1938) */
+  onCreate: (data: Partial<Competition>, imported?: FederalCreationPayload) => void;
 }
 
 const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCreate }) => {
@@ -36,6 +40,13 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   const [gender, setGender] = useState<Gender>(Gender.MALE);
   const [category, setCategory] = useState<Category>(Category.SENIOR);
   const [location, setLocation] = useState('');
+  // Horaires appel / scratch / début (HH:MM), lus dans le fichier ou saisis (#1938)
+  const [checkInTime, setCheckInTime] = useState('');
+  const [scratchTime, setScratchTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const federalImport = useFederalImport();
+  const [unlocked, setUnlocked] = useState(false);
+  const header = federalImport.result?.header ?? null;
   const [customFormula, setCustomFormula] = useState<CustomFormulaConfig>(
     createDefaultCustomFormula()
   );
@@ -55,6 +66,48 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
     organizer?: string;
     settings?: Competition['settings'];
   } | null>(null);
+
+  // Fichiers de l'extranet lus : pré-remplissage du formulaire (#1938)
+  useEffect(() => {
+    const imp = federalImport.result;
+    if (!imp) return;
+    const fields = imp.header?.fields;
+    const guess = imp.fileNameGuess;
+    if (fields?.title) setTitle(fields.title);
+    if (fields?.date) setDate(fields.date);
+    const w = fields?.weapon ?? guess.weapon;
+    if (w) setWeapon(w);
+    const g = fields?.gender ?? guess.gender;
+    if (g) setGender(g);
+    const c = fields?.category ?? guess.category;
+    if (c) setCategory(c);
+    if (fields?.location) setLocation(fields.location);
+    setCheckInTime(fields?.checkInTime ?? '');
+    setScratchTime(fields?.scratchTime ?? '');
+    setStartTime(fields?.startTime ?? '');
+    if (fields) setIsTeamEvent(fields.isTeamEvent);
+    if (fields?.isTeamEvent && imp.teams.length > 0) {
+      // Relais FIE : 3 titulaires, les membres en plus sont réservistes
+      const largest = Math.max(...imp.teams.map(t => t.members.length));
+      setTeamSize(Math.min(3, largest));
+      setTeamReserveCount(Math.max(0, largest - 3));
+    }
+    setUnlocked(false);
+  }, [federalImport.result]);
+
+  // Champs fédéraux verrouillés : présents dans l'en-tête XML, non déverrouillés
+  const isLocked = (present: unknown) => !!header && !unlocked && !!present;
+  const locks = {
+    date: isLocked(header?.fields.date),
+    weapon: isLocked(header?.fields.weapon),
+    gender: isLocked(header?.fields.gender),
+    category: isLocked(header?.fields.category),
+    location: isLocked(header?.fields.location),
+    team: isLocked(header),
+  };
+  const today = new Date().toISOString().split('T')[0];
+  const extraNotices: FederalNotice[] =
+    federalImport.result && date < today ? [{ code: 'pastDate' }] : [];
 
   const handleWeaponChange = (w: Weapon) => {
     setWeapon(w);
@@ -100,21 +153,40 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const settings = propsDraft?.settings ?? buildSettings();
+    const payload = federalImport.payload ?? undefined;
+    const baseSettings = propsDraft?.settings ?? buildSettings();
+    const schedule = {
+      ...(checkInTime ? { checkIn: checkInTime } : {}),
+      ...(scratchTime ? { scratch: scratchTime } : {}),
+      ...(startTime ? { start: startTime } : {}),
+    };
+    const settings = baseSettings && {
+      ...baseSettings,
+      ...(header
+        ? { federal: { ...header.federal, ...(unlocked ? { unlocked: true } : {}) } }
+        : {}),
+      ...(Object.keys(schedule).length > 0 ? { schedule } : {}),
+      // Arbitres importés : gestion des arbitres activée d'office (#1504)
+      ...(payload && payload.referees.length > 0 ? { refereeFeatureEnabled: true } : {}),
+    };
+    const organizer = propsDraft?.organizer || header?.fields.organizer;
 
-    onCreate({
-      title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,
-      date: new Date(date),
-      weapon,
-      gender,
-      category,
-      location,
-      ...(propsDraft?.organizer ? { organizer: propsDraft.organizer } : {}),
-      color: getRandomColor(),
-      // Tournoi des rapières : binômes gérés par le mode spécial, pas par les équipes classiques
-      isTeamEvent: isTeamEvent && !(weapon === Weapon.CUSTOM && specialMode),
-      ...(settings ? { settings } : {}),
-    });
+    onCreate(
+      {
+        title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,
+        date: new Date(date),
+        weapon,
+        gender,
+        category,
+        location,
+        ...(organizer ? { organizer } : {}),
+        color: getRandomColor(),
+        // Tournoi des rapières : binômes gérés par le mode spécial, pas par les équipes classiques
+        isTeamEvent: isTeamEvent && !(weapon === Weapon.CUSTOM && specialMode),
+        ...(settings ? { settings } : {}),
+      },
+      payload
+    );
   };
 
   const getRandomColor = () => {
@@ -155,6 +227,13 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
 
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
+              <FederalImportPanel
+                state={federalImport}
+                extraNotices={extraNotices}
+                locked={!unlocked}
+                onUnlock={() => setUnlocked(true)}
+              />
+
               <div className="form-group">
                 <label className="form-label">{t('competition.title')}</label>
                 <input
@@ -173,8 +252,32 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   className="form-input"
                   value={date}
                   onChange={e => setDate(e.target.value)}
+                  disabled={locks.date}
                   required
                 />
+              </div>
+
+              <div className="new-competition-modal-1">
+                {(
+                  [
+                    ['check_in', checkInTime, setCheckInTime],
+                    ['scratch', scratchTime, setScratchTime],
+                    ['start', startTime, setStartTime],
+                  ] as const
+                ).map(([key, value, setValue]) => (
+                  <div className="form-group" key={key}>
+                    <label className="form-label" htmlFor={`new-competition-${key}`}>
+                      {t(`federalImport.${key}`)}
+                    </label>
+                    <input
+                      id={`new-competition-${key}`}
+                      type="time"
+                      className="form-input"
+                      value={value}
+                      onChange={e => setValue(e.target.value)}
+                    />
+                  </div>
+                ))}
               </div>
 
               <div className="new-competition-modal-1">
@@ -184,6 +287,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     className="form-input form-select"
                     value={weapon}
                     onChange={e => handleWeaponChange(e.target.value as Weapon)}
+                    disabled={locks.weapon}
                   >
                     <option value={Weapon.EPEE}>{t('weapons.epee')}</option>
                     <option value={Weapon.FOIL}>{t('weapons.foil')}</option>
@@ -199,7 +303,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     className="form-input form-select"
                     value={gender}
                     onChange={e => setGender(e.target.value as Gender)}
-                    disabled={weapon === Weapon.LASER}
+                    disabled={weapon === Weapon.LASER || locks.gender}
                   >
                     <option value={Gender.MALE}>{t('genders.male')}</option>
                     <option value={Gender.FEMALE}>{t('genders.female')}</option>
@@ -213,6 +317,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     className="form-input form-select"
                     value={category}
                     onChange={e => setCategory(e.target.value as Category)}
+                    disabled={locks.category}
                   >
                     <option value={Category.U9}>{t('categories.U9')}</option>
                     <option value={Category.U11}>{t('categories.U11')}</option>
@@ -235,6 +340,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     type="checkbox"
                     checked={isTeamEvent}
                     onChange={e => setIsTeamEvent(e.target.checked)}
+                    disabled={locks.team}
                   />
                   <span className="form-label new-competition-modal-2">
                     {t('newCompetition.team')}
@@ -314,6 +420,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   placeholder={t('newCompetition.location_ph')}
                   value={location}
                   onChange={e => setLocation(e.target.value)}
+                  disabled={locks.location}
                 />
               </div>
 
@@ -342,7 +449,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 {t('actions.cancel')}
               </Button>
               <Button type="submit" variant="primary">
-                {t('actions.add')} {t('competition.title').toLowerCase()}
+                {t('newCompetition.submit')}
               </Button>
             </div>
           </form>

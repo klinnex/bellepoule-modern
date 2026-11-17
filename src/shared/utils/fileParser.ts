@@ -6,7 +6,13 @@
  * Fichier barrel : l'implémentation est découpée par format dans ./fileParser/
  */
 
-export { ImportResult, ImportedReferee } from './fileParser/common';
+export {
+  ImportResult,
+  ImportedReferee,
+  ImportedTeam,
+  decodeXmlEntities,
+  fencerKey,
+} from './fileParser/common';
 export { parseSimpleTXTFile } from './fileParser/txtParser';
 export { parseFFEFile } from './fileParser/ffeParser';
 export { parseXMLFile } from './fileParser/xmlParser';
@@ -23,3 +29,18 @@ export {
   resolveFencerFileFormat,
   decodeTextFile,
 } from './fileParser/detect';
+export {
+  CompetitionHeader,
+  MappedCompetitionFields,
+  parseCompetitionHeader,
+} from './fileParser/competitionHeader';
+export {
+  FederalFile,
+  FederalImport,
+  FederalNotice,
+  FencerConflict,
+  FencerSource,
+  buildFederalImport,
+  resolveFederalFencers,
+  resolveFederalTeams,
+} from './fileParser/federalImport';

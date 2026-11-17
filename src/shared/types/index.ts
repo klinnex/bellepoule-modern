@@ -635,6 +635,39 @@ export interface TrainingCustomRules {
   disableSuddenDeath: boolean;
 }
 
+/**
+ * Données fédérales lues dans le fichier de l'extranet (#1938) : valeurs brutes, à restituer
+ * telles quelles dans le fichier de résultats (ID et saison contrôlés par l'extranet).
+ */
+export interface FederalCompetitionInfo {
+  id?: string; // ID : numéro de l'épreuve sur l'extranet
+  season?: string; // Annee (ex. « 2026 - 2027 »)
+  championship?: string; // Championnat (FFE, FIE…)
+  federation?: string; // Federation
+  domain?: string; // Domaine : I international, N national, R régional, L ligue, C entre clubs
+  weapon?: string; // Arme (E/F/S)
+  gender?: string; // Sexe (M/F/X)
+  category?: string; // Categorie (SENIOR, M17, V2…)
+  date?: string; // Date (jj.mm.aaaa)
+  dateStart?: string; // DateDebut
+  dateEnd?: string; // DateFin
+  fileDate?: string; // DateFichierXML (date d'extraction)
+  type?: 'I' | 'E'; // Individuel / équipes
+  title?: string; // TitreLong
+  shortTitle?: string; // TitreCourt
+  location?: string; // Lieu
+  organizer?: string; // Organisateur
+  organizerUrl?: string; // URLorganisateur
+  unlocked?: boolean; // Champs fédéraux déverrouillés par l'utilisateur (risque de refus à l'extranet)
+}
+
+/** Horaires de la compétition (HH:MM) : appel, scratch, début (#1938) */
+export interface CompetitionSchedule {
+  checkIn?: string;
+  scratch?: string;
+  start?: string;
+}
+
 export interface CompetitionSettings {
   defaultPoolMaxScore: number; // Score max en poules (défaut: 5)
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)
@@ -672,6 +705,8 @@ export interface CompetitionSettings {
   postPoolSplitCriteria?: PostPoolSplitCriteria; // Séparation en deux tableaux après les poules
   splitOffCompetitionIds?: Partial<Record<string, string>>; // Groupe (genre) → compétition séparée créée
   splitFromCompetitionId?: string; // Compétition d'origine (si créée par séparation)
+  federal?: FederalCompetitionInfo; // Données de l'extranet fédéral (#1938)
+  schedule?: CompetitionSchedule; // Horaires appel / scratch / début (#1938)
 }
 
 export interface Phase extends BaseEntity {

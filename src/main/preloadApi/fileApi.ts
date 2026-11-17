@@ -20,6 +20,10 @@ export const fileApi = {
     return ipcRenderer.invoke('file:import', filepath);
   },
   openDialog: () => ipcRenderer.invoke('file:openDialog'),
+  unpackFederalFiles: (inputs: Array<{ name: string; bytes: Uint8Array }>) => {
+    if (!Array.isArray(inputs) || inputs.length === 0) throw new Error('Files are required');
+    return ipcRenderer.invoke('file:unpackFederalFiles', inputs);
+  },
   exportCompetition: (competitionId: string) =>
     ipcRenderer.invoke('file:exportCompetition', competitionId),
   writeContent: (filepath: string, content: string) => {
