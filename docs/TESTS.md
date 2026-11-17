@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 237 |
-| `src/main/` | 89 | 686 |
+| `src/main/` | 90 | 691 |
 | `src/renderer/services/` | 10 | 55 |
 | `src/renderer/hooks/` | 32 | 151 |
 | `src/renderer/components/` | 112 | 561 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **449** | **3349** |
+| **Total** | **450** | **3354** |
 
-Unitaires : 439 fichiers, 3310 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3359,6 +3359,19 @@ Unitaires : 439 fichiers, 3310 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **mcpSettings (#1880)**
   - désactivé par défaut, port validé
   - jeton chiffré, stable, renouvelable
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpWriteTools.test.ts</code> — 5 tests</summary>
+
+- **outils d’écriture MCP**
+  - écriture non autorisée : outil refusé et absent de tools/list
+  - create\_competition : dryRun sans écriture, puis création avec réglages par défaut
+  - check\_in : pointe par id ou dossard, laisse les abandons
+  - import\_fencers : doublons ignorés, dryRun, chemin et extension contrôlés
+- **import\_day (#1880)**
+  - crée la journée et ses épreuves, puis ne duplique rien au second passage
 
 </details>
 
