@@ -28,6 +28,18 @@ export function isWithinRoots(realPath: string, roots: readonly string[]): boole
   });
 }
 
+/** Plus proche dossier parent existant (chemin réel), ou null */
+function nearestExistingAncestor(dir: string): string | null {
+  let current = dir;
+  for (;;) {
+    const real = realOrNull(current);
+    if (real) return real;
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
 const outsideRoots = () =>
   new DomainError(
     'path_not_allowed',
@@ -51,9 +63,17 @@ export function resolveOutputPath(
     throw new DomainError('invalid_extension', `Extension ${extension} attendue`);
   }
   const realDir = realOrNull(path.dirname(resolved));
-  if (options.roots && (!realDir || !isWithinRoots(realDir, options.roots))) throw outsideRoots();
+  if (options.roots) {
+    // Dossier absent : « introuvable » seulement s'il serait dans les dossiers de l'agent,
+    // sinon même réponse qu'un chemin hors périmètre (rien n'est appris au-dehors)
+    const checked = realDir ?? nearestExistingAncestor(path.dirname(resolved));
+    if (!checked || !isWithinRoots(checked, options.roots)) throw outsideRoots();
+  }
   if (!realDir || !fs.statSync(realDir).isDirectory()) {
-    throw new DomainError('invalid_path', 'Dossier de sortie introuvable');
+    throw new DomainError(
+      'dir_not_found',
+      'Dossier de sortie introuvable : créez-le d’abord (l’agent ne crée pas de dossier)'
+    );
   }
   const target = path.join(realDir, path.basename(resolved));
   let exists = false;

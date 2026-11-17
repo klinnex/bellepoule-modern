@@ -293,7 +293,7 @@ export const MCP_ADMIN_TOOLS: McpWriteTool[] = [
     name: 'start_remote_server',
     title: 'Démarrer le serveur distant',
     description:
-      'Démarre le serveur des tablettes d’arbitre et écrans d’arène d’une épreuve (HTTPS et interface : paramètres du poste). Il écoute sur le réseau local : accord du DT indispensable.',
+      'Démarre le serveur des tablettes d’arbitre et écrans d’arène d’une épreuve (HTTPS et interface : paramètres du poste ; une arène par poule, sinon par piste de la journée ou de la salle). Il écoute sur le réseau local : accord du DT indispensable.',
     inputSchema: {
       type: 'object',
       properties: { ...competitionId, port: { type: 'number', description: 'Port (défaut 8066)' } },

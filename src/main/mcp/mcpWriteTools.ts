@@ -11,8 +11,8 @@ import { Category, FencerStatus, Gender, Weapon, type Fencer } from '../../share
 import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 import {
   decodeTextFile,
-  detectFencerFileFormat,
   parseFFEFile,
+  resolveFencerFileFormat,
   parseSimpleTXTFile,
   parseXMLFile,
   parseEngardeRefereeFile,
@@ -155,40 +155,62 @@ function readImportBytes(file: unknown, extensions: string[], roots?: readonly s
   }
 }
 
-/** Aperçu d'un fichier de tireurs (épreuve pas encore créée, dryRun) */
-function readFencersPreview(content: string) {
-  const format = detectFencerFileFormat(content);
+/** Fichier de tireurs lu : contenu, et format demandé d'après l'extension (comme à l'écran) */
+interface FencersFile {
+  content: string;
+  requested: 'xml' | 'txt' | 'fff';
+}
+
+/** Avertissement quand le fichier ne donne aucun tireur (sinon l'import « réussit » à vide) */
+const NO_FENCER_WARNING =
+  'Aucun tireur lu dans le fichier : vérifiez son format (FFE, XML, CSV, TXT ou Excel).';
+
+/**
+ * Lecture des tireurs : même choix de parseur que l'écran (ImportModal). Un .txt passe par le
+ * parseur libre, sauf si son contenu est du FFF ou du XML ; .xml / .cotcot par le parseur XML.
+ */
+function parseFencersFile({ content, requested }: FencersFile) {
+  const format = resolveFencerFileFormat(requested, content);
   const parsed =
     format === 'xml'
       ? parseXMLFile(content)
       : format === 'txt'
         ? parseSimpleTXTFile(content)
         : parseFFEFile(content);
+  const warnings = parsed.warnings.slice(0, 20);
+  if (parsed.fencers.length === 0 && !warnings.includes(NO_FENCER_WARNING)) {
+    warnings.unshift(NO_FENCER_WARNING);
+  }
+  return { format, parsed, warnings };
+}
+
+/** Aperçu d'un fichier de tireurs (épreuve pas encore créée, dryRun) */
+function readFencersPreview(file: FencersFile) {
+  const { format, parsed, warnings } = parseFencersFile(file);
   return {
-    format: format ?? 'fff',
+    format,
     read: parsed.fencers.length,
     errors: parsed.errors.slice(0, 20),
+    warnings,
   };
 }
 
 /** Fichier de tireurs lu (dossiers de l'agent, xlsx converti) */
-const readFencersFile = (deps: McpWriteDeps, file: unknown) =>
-  readImportFile(file, IMPORT_EXTENSIONS, deps.allowedRoots?.());
+async function readFencersFile(deps: McpWriteDeps, file: unknown): Promise<FencersFile> {
+  const content = await readImportFile(file, IMPORT_EXTENSIONS, deps.allowedRoots?.());
+  const ext = path.extname(String(file)).toLowerCase();
+  const requested = ext === '.txt' ? 'txt' : ext === '.xml' || ext === '.cotcot' ? 'xml' : 'fff';
+  return { content, requested };
+}
 
 /** Import des tireurs (contenu d'un fichier déjà lu) dans une épreuve, doublons ignorés */
 function importFencersFile(
   deps: McpWriteDeps,
   competitionId: string,
-  content: string,
+  file: FencersFile,
   dryRun: boolean
 ) {
-  const format = detectFencerFileFormat(content);
-  const parsed =
-    format === 'xml'
-      ? parseXMLFile(content)
-      : format === 'txt'
-        ? parseSimpleTXTFile(content)
-        : parseFFEFile(content);
+  const { format, parsed, warnings } = parseFencersFile(file);
   const existing = new Set(deps.db.getFencersByCompetition(competitionId).flatMap(keysOf));
   const toAdd: Partial<Fencer>[] = [];
   let duplicates = 0;
@@ -203,12 +225,12 @@ function importFencersFile(
     toAdd.push({ ...f, status: f.status ?? FencerStatus.NOT_CHECKED_IN });
   }
   const report = {
-    format: format ?? 'fff',
+    format,
     read: parsed.fencers.length,
     toAdd: toAdd.length,
     duplicates,
     errors: parsed.errors.slice(0, 20),
-    warnings: parsed.warnings.slice(0, 20),
+    warnings,
   };
   if (dryRun || toAdd.length === 0) return { dryRun, ...report };
   for (const f of toAdd) deps.db.addFencer(competitionId, f);
@@ -271,8 +293,8 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     run: async (deps, args) => {
       const competition = competitionOrThrow(deps, args.competitionId);
-      const content = await readFencersFile(deps, args.path);
-      return importFencersFile(deps, competition.id, content, dryRunOf(args));
+      const file = await readFencersFile(deps, args.path);
+      return importFencersFile(deps, competition.id, file, dryRunOf(args));
     },
   },
   {
@@ -324,7 +346,7 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
       }));
       // Tous les fichiers lus avant la première écriture : un fichier manquant ou illisible
       // fait échouer l'import sans rien écrire
-      const contents: Array<string | null> = [];
+      const contents: Array<FencersFile | null> = [];
       for (const spec of specs) {
         contents.push(
           spec.fencersFile === undefined ? null : await readFencersFile(deps, spec.fencersFile)
