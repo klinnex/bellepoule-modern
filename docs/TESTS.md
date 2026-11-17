@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 253 |
-| `src/main/` | 106 | 858 |
+| `src/main/` | 107 | 877 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **483** | **3633** |
+| **Total** | **484** | **3652** |
 
-Unitaires : 473 fichiers, 3594 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 474 fichiers, 3613 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3031,6 +3031,34 @@ Unitaires : 473 fichiers, 3594 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - --mcp-print-config implique --headless
   - --mcp-new-token : régénère puis affiche la configuration
   - --batch-import sans valeur : ignoré
+
+</details>
+
+<details>
+<summary><code>src/main/clubSync.test.ts</code> — 19 tests</summary>
+
+- **decideSync**
+  - ne fait rien quand rien n a changé
+  - écrit le club quand le fichier n'existe pas
+  - écrit quand seul le poste a changé
+  - reprend le fichier quand seul le fichier a changé
+  - signale un conflit quand les deux côtés ont changé
+  - signale un conflit à la première synchro si le club existe déjà et le fichier aussi
+  - importe à la première synchro sur un poste qui ne connaît pas le club
+  - ne ressuscite pas un club supprimé localement si le fichier n'a pas changé
+  - ne fait rien si le club et le fichier sont absents
+- **clubSyncFileName**
+  - assainit le nom et ajoute un fragment d identifiant
+  - retombe sur « club » pour un nom vide
+- **ClubSyncService (dossier réel, base simulée)**
+  - active la synchro : écrit le fichier et enregistre l'état de référence
+  - ne réécrit ni ne reprend rien quand rien n a changé
+  - reprend un fichier modifié sur un autre poste
+  - écrit le fichier quand ce poste a changé
+  - signale un conflit sans rien écraser quand les deux côtés ont changé
+  - résout un conflit en gardant ce poste
+  - signale une erreur si le dossier de synchro a disparu, sans le recréer
+  - désactiver retire le réglage et laisse le fichier en place
 
 </details>
 
