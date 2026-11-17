@@ -3370,6 +3370,27 @@
     "cards_pdf": "Salva le tessere in PDF",
     "arena_qr_pdf": "Salva i QR delle pedane in PDF"
   },
+  "clubCoach": {
+    "tab": "Maestri d'armi",
+    "title": "Maestri d'armi del club",
+    "intro": "I maestri d'armi e gli istruttori guidano le sessioni. Non sono contati tra gli schermidori.",
+    "title_label": "Ruolo / qualifica",
+    "title_ph": "Maestro d'armi, Istruttore, Educatore…",
+    "phone": "Telefono",
+    "email": "E-mail",
+    "contact": "Contatto",
+    "weapons": "Armi insegnate",
+    "all_weapons": "Tutte",
+    "notes": "Note",
+    "none": "Nessun maestro d'armi",
+    "none_desc": "Aggiungi i maestri d'armi del club per sceglierli nelle sessioni.",
+    "edit": "Modifica scheda",
+    "edit_title": "Scheda di {{name}}",
+    "delete_confirm": "Eliminare definitivamente {{name}}? Sarà rimosso dallo staff delle sessioni.",
+    "session_label": "Maestri d'armi della sessione",
+    "none_available": "Nessun maestro d'armi: aggiungili nella scheda Maestri d'armi.",
+    "by": "Guidata da: {{names}}"
+  },
   "clubTour": {
     "title": "Benvenuto nella modalità Club",
     "skip": "Salta la guida",

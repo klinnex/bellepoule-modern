@@ -3370,6 +3370,27 @@
     "cards_pdf": "將會員卡儲存為 PDF",
     "arena_qr_pdf": "將劍道二維碼儲存為 PDF"
   },
+  "clubCoach": {
+    "tab": "劍擊教練",
+    "title": "會內劍擊教練",
+    "intro": "劍擊教練及導師負責帶領訓練課，不計入劍手名單。",
+    "title_label": "職銜 / 資歷",
+    "title_ph": "總教練、助理教練、導師…",
+    "phone": "電話",
+    "email": "電郵",
+    "contact": "聯絡",
+    "weapons": "教授劍種",
+    "all_weapons": "全部",
+    "notes": "備註",
+    "none": "未有教練",
+    "none_desc": "加入會內教練後，即可在訓練課中選擇。",
+    "edit": "編輯資料",
+    "edit_title": "{{name}} 的資料",
+    "delete_confirm": "永久刪除 {{name}}？將從所有訓練課的教練名單中移除。",
+    "session_label": "本課教練",
+    "none_available": "未有教練：請在「劍擊教練」分頁加入。",
+    "by": "教練：{{names}}"
+  },
   "clubTour": {
     "title": "歡迎使用會館模式",
     "skip": "略過指引",

@@ -8,6 +8,8 @@ import type {
   ClubBoutResult,
   ClubBoutStatus,
   ClubEntryMode,
+  ClubCoach,
+  ClubCoachInput,
   ClubMember,
   ClubExercise,
   ClubExerciseInput,
@@ -82,6 +84,21 @@ interface MemberRow {
   active: number;
   card_code: string | null;
   photo: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CoachRow {
+  id: string;
+  club_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  phone: string | null;
+  email: string | null;
+  weapons: string | null;
+  notes: string | null;
+  active: number;
   created_at: string;
   updated_at: string;
 }
@@ -177,6 +194,23 @@ function rowToMember(r: MemberRow): ClubMember {
     active: r.active !== 0,
     cardCode: r.card_code ?? '',
     photo: opt(r.photo),
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
+}
+
+function rowToCoach(r: CoachRow): ClubCoach {
+  return {
+    id: r.id,
+    clubId: r.club_id,
+    firstName: r.first_name ?? '',
+    lastName: r.last_name ?? '',
+    title: opt(r.title),
+    phone: opt(r.phone),
+    email: opt(r.email),
+    weapons: parseWeapons(r.weapons),
+    notes: opt(r.notes),
+    active: r.active !== 0,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -327,6 +361,11 @@ export class ClubRepo {
         'DELETE FROM club_attendance WHERE session_id IN (SELECT id FROM club_sessions WHERE club_id = ?)',
         [id]
       );
+      this.sql.run(
+        'DELETE FROM club_session_coaches WHERE session_id IN (SELECT id FROM club_sessions WHERE club_id = ?)',
+        [id]
+      );
+      this.sql.run('DELETE FROM club_coaches WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_bouts WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_sessions WHERE club_id = ?', [id]);
       this.sql.run('DELETE FROM club_loans WHERE club_id = ?', [id]);
@@ -514,6 +553,109 @@ export class ClubRepo {
     });
   }
 
+  // ─── Maîtres d'armes ─────────────────────────────────────────────────────────
+
+  public listCoaches(clubId: string, includeInactive = false): ClubCoach[] {
+    if (!this.sql.db) return [];
+    return this.sql
+      .queryAll<CoachRow>(
+        `SELECT * FROM club_coaches WHERE club_id = ? ${includeInactive ? '' : 'AND active = 1'}
+         ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE`,
+        [clubId]
+      )
+      .map(rowToCoach);
+  }
+
+  public getCoach(id: string): ClubCoach | null {
+    if (!this.sql.db) return null;
+    const r = this.sql.queryOne<CoachRow>('SELECT * FROM club_coaches WHERE id = ?', [id]);
+    return r ? rowToCoach(r) : null;
+  }
+
+  private coachColumns(data: Partial<ClubCoachInput>): Record<string, unknown> {
+    const cols: Record<string, unknown> = {};
+    if (data.firstName !== undefined) cols.first_name = str(data.firstName) ?? '';
+    if (data.lastName !== undefined) cols.last_name = str(data.lastName) ?? '';
+    if (data.title !== undefined) cols.title = str(data.title);
+    if (data.phone !== undefined) cols.phone = str(data.phone, 30);
+    if (data.email !== undefined) cols.email = str(data.email, 120);
+    if (data.weapons !== undefined) cols.weapons = serializeWeapons(data.weapons);
+    if (data.notes !== undefined) cols.notes = cleanLongText(data.notes) ?? null;
+    if (data.active !== undefined) cols.active = data.active ? 1 : 0;
+    return cols;
+  }
+
+  public createCoach(clubId: string, data: ClubCoachInput): ClubCoach {
+    this.ensureOpen();
+    this.requireClub(clubId);
+    const cols = this.coachColumns({ weapons: [], active: true, ...data });
+    if (!cols.first_name && !cols.last_name) throw new Error("Nom du maître d'armes requis");
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    const all = { id, club_id: clubId, ...cols, created_at: now, updated_at: now };
+    const keys = Object.keys(all);
+    this.sql.run(
+      `INSERT INTO club_coaches (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
+      Object.values(all)
+    );
+    return this.getCoach(id)!;
+  }
+
+  public updateCoach(id: string, updates: Partial<ClubCoachInput>): ClubCoach | null {
+    this.ensureOpen();
+    const cols = this.coachColumns(updates);
+    if (cols.first_name !== undefined || cols.last_name !== undefined) {
+      const cur = this.getCoach(id);
+      if (!(cols.first_name ?? cur?.firstName) && !(cols.last_name ?? cur?.lastName)) {
+        throw new Error("Nom du maître d'armes requis");
+      }
+    }
+    const keys = Object.keys(cols);
+    if (keys.length > 0) {
+      this.sql.run(
+        `UPDATE club_coaches SET ${keys.map(k => `${k} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+        [...Object.values(cols), new Date().toISOString(), id]
+      );
+    }
+    return this.getCoach(id);
+  }
+
+  /** Effacement définitif : retiré de l'encadrement des séances */
+  public deleteCoach(id: string): void {
+    this.ensureOpen();
+    this.sql.transaction(() => {
+      this.sql.run('DELETE FROM club_session_coaches WHERE coach_id = ?', [id]);
+      this.sql.run('DELETE FROM club_coaches WHERE id = ?', [id]);
+    });
+  }
+
+  private sessionCoaches(sessionId: string): string[] {
+    return this.sql
+      .queryAll<{ coach_id: string }>(
+        `SELECT sc.coach_id FROM club_session_coaches sc
+         JOIN club_coaches c ON c.id = sc.coach_id
+         WHERE sc.session_id = ?
+         ORDER BY c.last_name COLLATE NOCASE, c.first_name COLLATE NOCASE`,
+        [sessionId]
+      )
+      .map(r => r.coach_id);
+  }
+
+  /** Remplace l'encadrement de la séance ; seuls les maîtres d'armes du club sont retenus */
+  private setSessionCoaches(sessionId: string, clubId: string, coachIds: unknown): void {
+    const ids = Array.isArray(coachIds)
+      ? [...new Set(coachIds.filter((x): x is string => typeof x === 'string'))]
+      : [];
+    this.sql.run('DELETE FROM club_session_coaches WHERE session_id = ?', [sessionId]);
+    for (const coachId of ids) {
+      this.sql.run(
+        `INSERT INTO club_session_coaches (session_id, coach_id)
+         SELECT ?, id FROM club_coaches WHERE id = ? AND club_id = ?`,
+        [sessionId, coachId, clubId]
+      );
+    }
+  }
+
   // ─── Séances ─────────────────────────────────────────────────────────────────
 
   private memberFeedbackOf(sessionId: string): Record<string, string> {
@@ -684,6 +826,7 @@ export class ClubRepo {
       openedAt: r.opened_at,
       closedAt: opt(r.closed_at),
       attendeeIds: this.attendees(r.id),
+      coachIds: this.sessionCoaches(r.id),
       objectives: opt(r.objectives),
       plan: normalizePlan(safeJsonParse(r.plan, [], 'club_sessions.plan')),
       notes: opt(r.notes),
@@ -759,6 +902,7 @@ export class ClubRepo {
       'UPDATE club_sessions SET venue_id = (SELECT id FROM venues WHERE is_default = 1) WHERE id = ?',
       [id]
     );
+    if (data.coachIds !== undefined) this.setSessionCoaches(id, clubId, data.coachIds);
     return this.getSession(id)!;
   }
 
@@ -854,13 +998,19 @@ export class ClubRepo {
       sets.push('plan = ?');
       values.push(JSON.stringify(normalizePlan(updates.plan)));
     }
-    if (sets.length === 0) return this.getSession(id);
+    const clubId =
+      updates.coachIds !== undefined
+        ? this.sql.queryOne<{ club_id: string }>('SELECT club_id FROM club_sessions WHERE id = ?', [
+            id,
+          ])?.club_id
+        : undefined;
+    if (sets.length === 0 && !clubId) return this.getSession(id);
     this.sql.transaction(() => {
-      this.sql.run(`UPDATE club_sessions SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`, [
-        ...values,
-        new Date().toISOString(),
-        id,
-      ]);
+      if (clubId) this.setSessionCoaches(id, clubId, updates.coachIds);
+      this.sql.run(
+        `UPDATE club_sessions SET ${[...sets, 'updated_at = ?'].join(', ')} WHERE id = ?`,
+        [...values, new Date().toISOString(), id]
+      );
       // Date dénormalisée dans les combats : garder les filtres par période cohérents
       if (updates.date !== undefined) {
         this.sql.run('UPDATE club_bouts SET date = ? WHERE session_id = ?', [updates.date, id]);
@@ -922,6 +1072,7 @@ export class ClubRepo {
     this.sql.transaction(() => {
       this.sql.run('DELETE FROM club_bouts WHERE session_id = ?', [id]);
       this.sql.run('DELETE FROM club_attendance WHERE session_id = ?', [id]);
+      this.sql.run('DELETE FROM club_session_coaches WHERE session_id = ?', [id]);
       this.sql.run('DELETE FROM club_sessions WHERE id = ?', [id]);
     });
   }

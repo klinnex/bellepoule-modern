@@ -3370,6 +3370,27 @@
     "cards_pdf": "Save the cards as PDF",
     "arena_qr_pdf": "Save the strip QR codes as PDF"
   },
+  "clubCoach": {
+    "tab": "Fencing masters",
+    "title": "Club fencing masters",
+    "intro": "Fencing masters and coaches run the sessions. They are not counted as fencers.",
+    "title_label": "Role / qualification",
+    "title_ph": "Fencing master, Provost, Coach…",
+    "phone": "Phone",
+    "email": "Email",
+    "contact": "Contact",
+    "weapons": "Weapons taught",
+    "all_weapons": "All",
+    "notes": "Notes",
+    "none": "No fencing master",
+    "none_desc": "Add the club's fencing masters to pick them for sessions.",
+    "edit": "Edit profile",
+    "edit_title": "{{name}}'s profile",
+    "delete_confirm": "Permanently delete {{name}}? They will be removed from session staff.",
+    "session_label": "Session fencing masters",
+    "none_available": "No fencing master: add them in the Fencing masters tab.",
+    "by": "Coached by: {{names}}"
+  },
   "clubTour": {
     "title": "Welcome to Club mode",
     "skip": "Skip guide",

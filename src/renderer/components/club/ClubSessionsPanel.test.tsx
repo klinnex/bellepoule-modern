@@ -31,6 +31,7 @@ const session = {
   status: 'open',
   openedAt: '',
   attendeeIds: ['a', 'b'],
+  coachIds: [],
   plan: [{ id: 'e1', title: 'Échauffement', minutes: 15 }],
   memberFeedback: {},
   createdAt: '',
@@ -61,6 +62,7 @@ beforeEach(() => {
   api = {
     listSessions: vi.fn().mockResolvedValue([session]),
     listMembers: vi.fn().mockResolvedValue([m('a', 'ALPHA'), m('b', 'BRAVO'), m('c', 'CHARLIE')]),
+    listCoaches: vi.fn().mockResolvedValue([]),
     listBouts: vi.fn().mockResolvedValue([live]),
     createSession: vi.fn(),
     createBout: vi.fn().mockResolvedValue({ id: 'bt2' }),

@@ -12,6 +12,7 @@ const session = (extra: Partial<ClubSession> = {}): ClubSession => ({
   status: 'planned',
   openedAt: '',
   attendeeIds: [],
+  coachIds: [],
   objectives: 'Parade de quarte\nDistance',
   plan: [
     { id: 'a', title: 'Échauffement', minutes: 15, details: 'Course\nÉtirements' },

@@ -1127,4 +1127,37 @@ export const ALL_MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    version: 39,
+    description: "Mode Club : maîtres d'armes du club et encadrement des séances",
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_coaches (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          title TEXT,
+          phone TEXT,
+          email TEXT,
+          weapons TEXT,
+          notes TEXT,
+          active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_coaches_club ON club_coaches(club_id)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_session_coaches (
+          session_id TEXT NOT NULL,
+          coach_id TEXT NOT NULL,
+          PRIMARY KEY (session_id, coach_id)
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_session_coaches_coach ON club_session_coaches(coach_id)`
+      );
+    },
+  },
 ];

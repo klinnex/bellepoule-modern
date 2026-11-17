@@ -269,6 +269,12 @@ const electronApi = {
       ipcRenderer.invoke('club:createMember', clubId, data),
     updateMember: (id: string, data: unknown) => ipcRenderer.invoke('club:updateMember', id, data),
     deleteMember: (id: string) => ipcRenderer.invoke('club:deleteMember', id),
+    listCoaches: (clubId: string, includeInactive?: boolean) =>
+      ipcRenderer.invoke('club:listCoaches', clubId, includeInactive),
+    createCoach: (clubId: string, data: unknown) =>
+      ipcRenderer.invoke('club:createCoach', clubId, data),
+    updateCoach: (id: string, data: unknown) => ipcRenderer.invoke('club:updateCoach', id, data),
+    deleteCoach: (id: string) => ipcRenderer.invoke('club:deleteCoach', id),
     importMembers: (clubId: string, inputs: unknown[]) =>
       ipcRenderer.invoke('club:importMembers', clubId, inputs),
     listSessions: (clubId: string, range?: unknown) =>

@@ -3370,6 +3370,27 @@
     "cards_pdf": "Guardar las tarjetas en PDF",
     "arena_qr_pdf": "Guardar los QR de las pistas en PDF"
   },
+  "clubCoach": {
+    "tab": "Maestros de armas",
+    "title": "Maestros de armas del club",
+    "intro": "Los maestros de armas y educadores dirigen las sesiones. No cuentan como tiradores.",
+    "title_label": "Función / titulación",
+    "title_ph": "Maestro de armas, Preboste, Educador…",
+    "phone": "Teléfono",
+    "email": "Correo",
+    "contact": "Contacto",
+    "weapons": "Armas enseñadas",
+    "all_weapons": "Todas",
+    "notes": "Notas",
+    "none": "Ningún maestro de armas",
+    "none_desc": "Añada los maestros de armas del club para elegirlos en las sesiones.",
+    "edit": "Editar ficha",
+    "edit_title": "Ficha de {{name}}",
+    "delete_confirm": "¿Eliminar definitivamente a {{name}}? Se quitará del equipo de las sesiones.",
+    "session_label": "Maestros de armas de la sesión",
+    "none_available": "Ningún maestro de armas: añádalos en la pestaña Maestros de armas.",
+    "by": "Dirigida por: {{names}}"
+  },
   "clubTour": {
     "title": "Bienvenido al Modo Club",
     "skip": "Omitir la guía",

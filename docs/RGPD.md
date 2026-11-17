@@ -16,6 +16,7 @@ Tout est stocké **en local**, dans `<userData>/bellepoule.db` (SQLite). Aucune 
 | Instantanés | état de la session (poules, tableau, classements) | `session_state`, `arena_state` |
 | Arbitres | nom, club, licence, commentaires, nom et IP de la tablette dans le journal des scores | `referees`, `event_day_referees`, `referee_comments`, `score_audit_log` |
 | Mode Club | nom, prénom, licence, date/année de naissance, sexe, latéralité, photo, notes, code de carte, présences, combats, bilans de séance | `club_members`, `club_attendance`, `club_bouts` |
+| Mode Club – maîtres d'armes | nom, prénom, fonction, téléphone, e-mail, armes enseignées, notes, séances encadrées (hors recherche RGPD : rectification / effacement depuis l'onglet Maîtres d'armes) | `club_coaches`, `club_session_coaches` |
 
 Sorties possibles : exports PDF / CSV / XML / `.bpm`, sauvegarde cloud (chiffrement AES-GCM
 optionnel), webhooks Discord/Slack (HTTPS imposé), pages servies en Wi-Fi par le serveur distant.

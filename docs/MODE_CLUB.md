@@ -13,6 +13,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 | Onglet | Contenu |
 |---|---|
 | **Membres** | Identité du club (nom, logo, arme par défaut, nombre de pistes), annuaire, cartes de membre, QR des pistes. |
+| **Maîtres d'armes** | Encadrement du club : fonction / diplôme, contact, armes enseignées, notes, archivage. |
 | **Séances** | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
 | **Statistiques** | Classement du club et fiche membre par période et par catégories d'âge. |
 | **Exercices** | Bibliothèque d'exercices partagée entre clubs, exportable / importable. |
@@ -39,6 +40,14 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   un PDF. Seuls les membres affichés (recherche, filtre) et actifs sont imprimés.
 - QR des pistes `BPC1:A:<n>` (2 par A4) : impression ou PDF.
 
+### Maîtres d'armes
+
+- Fiche : nom, prénom, fonction / diplôme (Maître d'armes, Prévôt, Éducateur…), téléphone,
+  e-mail, armes enseignées (vide = toutes), notes, actif / archivé.
+- Distincts des membres : pas de carte, pas de pointage, pas de combats ni de statistiques.
+- Archivé : plus proposé sur les nouvelles séances, reste affiché sur les séances passées.
+- Suppression définitive : retiré de l'encadrement de toutes les séances.
+
 ## 3. Séances
 
 | Statut | Sens |
@@ -48,7 +57,9 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 | `closed` | Terminée ; combats non terminés annulés. Réouverture possible. |
 
 - Ouverture : date (mini-calendrier), intitulé, arme (règles de la saisie distante),
-  **catégories d'âge du cours** (de … à …, bornes incluses).
+  **catégories d'âge du cours** (de … à …, bornes incluses), **maîtres d'armes** de la séance
+  (cases à cocher, plusieurs possibles ; modifiables ensuite dans l'éditeur de séance, copiés
+  sur chaque séance d'une série). Affichés avec l'intitulé (« Encadrement : … »).
 - Préparation : objectifs, plan de cours (exercices avec durée, famille, consignes, 3 images),
   notes ; export PDF, impression, partage du plan (fichier JSON sans date ni présents).
 - **Récurrence** (nouvelle séance préparée) : tous les N jours (7 = chaque semaine), N fois ou
@@ -170,7 +181,7 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 | Élément | Fichier |
 |---|---|
 | Types, API IPC `club.*` | `src/shared/types/club.ts`, `src/main/preload.ts` |
-| Dépôt SQLite | `src/database/repos/clubRepo.ts` (tables `clubs`, `club_members`, `club_sessions`, `club_attendance`, `club_bouts`, `club_exercises`) |
+| Dépôt SQLite | `src/database/repos/clubRepo.ts` (tables `clubs`, `club_members`, `club_coaches`, `club_sessions`, `club_session_coaches`, `club_attendance`, `club_bouts`, `club_exercises`) |
 | Handlers IPC | `src/main/ipc/clubHandlers.ts` |
 | Saisie distante | `src/main/remote/clubArena.ts`, `src/main/remote/routes/clubRoutes.ts`, `src/remote/js/refereeClubCards.js` |
 | Utilitaires | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan) |

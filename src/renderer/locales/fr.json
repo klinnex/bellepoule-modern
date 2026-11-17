@@ -3370,6 +3370,27 @@
     "cards_pdf": "Enregistrer les cartes en PDF",
     "arena_qr_pdf": "Enregistrer les QR des pistes en PDF"
   },
+  "clubCoach": {
+    "tab": "Maîtres d'armes",
+    "title": "Maîtres d'armes du club",
+    "intro": "Les maîtres d'armes et éducateurs encadrent les séances. Ils ne sont pas comptés parmi les tireurs.",
+    "title_label": "Fonction / diplôme",
+    "title_ph": "Maître d'armes, Prévôt, Éducateur…",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "contact": "Contact",
+    "weapons": "Armes enseignées",
+    "all_weapons": "Toutes",
+    "notes": "Notes",
+    "none": "Aucun maître d'armes",
+    "none_desc": "Ajoutez les maîtres d'armes du club pour les choisir sur les séances.",
+    "edit": "Modifier la fiche",
+    "edit_title": "Fiche de {{name}}",
+    "delete_confirm": "Supprimer définitivement {{name}} ? Il sera retiré de l'encadrement des séances.",
+    "session_label": "Maîtres d'armes de la séance",
+    "none_available": "Aucun maître d'armes : ajoutez-les dans l'onglet Maîtres d'armes.",
+    "by": "Encadrement : {{names}}"
+  },
   "clubTour": {
     "title": "Bienvenue dans le Mode Club",
     "skip": "Passer le guide",

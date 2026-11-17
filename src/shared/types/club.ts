@@ -43,6 +43,32 @@ export type ClubMemberInput = Partial<
   photo?: string | null;
 };
 
+/** Maître d'armes / éducateur du club : encadre les séances (pas un tireur) */
+export interface ClubCoach {
+  id: string;
+  clubId: string;
+  firstName: string;
+  lastName: string;
+  /** Diplôme ou fonction : Maître d'armes, Prévôt, Éducateur… */
+  title?: string;
+  phone?: string;
+  email?: string;
+  /** Armes enseignées (vide = toutes) */
+  weapons: Weapon[];
+  notes?: string;
+  /** false = archivé (n'est plus proposé sur les séances, historique conservé) */
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClubCoachInput = Partial<
+  Omit<ClubCoach, 'id' | 'clubId' | 'createdAt' | 'updatedAt'>
+> & {
+  firstName: string;
+  lastName: string;
+};
+
 /** Club (plusieurs clubs possibles, #1872) */
 export interface Club {
   id: string;
@@ -148,6 +174,8 @@ export interface ClubSession {
   closedAt?: string;
   /** Membres pointés présents */
   attendeeIds: string[];
+  /** Maîtres d'armes encadrant la séance */
+  coachIds: string[];
   /** Objectifs pédagogiques de la séance */
   objectives?: string;
   /** Plan de cours */
@@ -170,6 +198,8 @@ export interface ClubSession {
 export interface ClubSessionInput {
   date: string;
   label?: string;
+  /** Maîtres d'armes de la séance (ids du club) */
+  coachIds?: string[];
   weapon?: Weapon;
   stripCount?: number;
   objectives?: string;
@@ -491,6 +521,12 @@ export interface ClubAPI {
   updateMember: (id: string, data: Partial<ClubMemberInput>) => Promise<ClubMember | null>;
   /** Effacement définitif (RGPD) : présences et combats compris ; archiver = active:false */
   deleteMember: (id: string) => Promise<void>;
+  /** Maîtres d'armes ; archivés inclus si includeInactive */
+  listCoaches: (clubId: string, includeInactive?: boolean) => Promise<ClubCoach[]>;
+  createCoach: (clubId: string, data: ClubCoachInput) => Promise<ClubCoach>;
+  updateCoach: (id: string, data: Partial<ClubCoachInput>) => Promise<ClubCoach | null>;
+  /** Suppression définitive (retiré des séances) */
+  deleteCoach: (id: string) => Promise<void>;
   /** Import en lot : nouveaux créés, existants complétés (licence puis nom), doublons ignorés */
   importMembers: (
     clubId: string,
@@ -569,5 +605,8 @@ export interface ClubAPI {
   getInventoryLock: (clubId: string) => Promise<boolean>;
   setInventoryLock: (clubId: string, locked: boolean) => Promise<boolean>;
   /** Import CSV / Excel : fiches ajoutées ; doublons de n° de série ignorés */
-  importItems: (clubId: string, items: ClubItemInput[]) => Promise<{ created: number; skipped: number }>;
+  importItems: (
+    clubId: string,
+    items: ClubItemInput[]
+  ) => Promise<{ created: number; skipped: number }>;
 }
