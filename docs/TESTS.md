@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 78 | 840 |
+| `src/shared/utils/` | 79 | 852 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 105 | 853 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 117 | 600 |
+| `src/renderer/components/` | 117 | 601 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **479** | **3607** |
+| **Total** | **480** | **3620** |
 
-Unitaires : 469 fichiers, 3568 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 470 fichiers, 3581 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -351,6 +351,28 @@ Unitaires : 469 fichiers, 3568 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **exportClubMembersToFFF**
   - écrit en-tête et lignes FFF
   - se réimporte (nom, licence, sexe, date)
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubMembersIO.test.ts</code> — 12 tests</summary>
+
+- **membersToRows**
+  - écrit les en-têtes français et les valeurs lisibles
+  - laisse vides les champs absents
+- **aller-retour CSV**
+  - se relit à l’identique (nom, licence, sexe, dates, armes, notes)
+- **rowsToMembers**
+  - reconnaît les colonnes sans accents, ni casse, dans un ordre libre
+  - accepte l'année seule, et refuse les années hors plage
+  - accepte les sexes et latéralités en libellés français
+  - marque archivé un membre dont Actif vaut Non
+  - ignore les lignes sans nom ni prénom
+  - refuse un fichier sans colonne Nom
+  - refuse un fichier vide
+- **isMemberTable**
+  - reconnaît une table avec une colonne Nom
+  - ne prend pas pour une table un fichier FFF ni une table sans Nom
 
 </details>
 
@@ -5934,7 +5956,7 @@ Unitaires : 469 fichiers, 3568 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 7 tests</summary>
 
 - **ClubView**
   - affiche le club, ses sous-onglets et les membres
@@ -5942,6 +5964,7 @@ Unitaires : 469 fichiers, 3568 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - archive un membre, affiche les archivés
   - enregistre le nom du club
   - importe un fichier FFE .fff
+  - importe un tableau CSV du club (colonne Nom)
   - nombre de pistes enregistré, import des photos ZIP
 
 </details>
