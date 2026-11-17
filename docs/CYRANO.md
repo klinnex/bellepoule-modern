@@ -156,6 +156,10 @@ terminé sur l'arène, ou match suivant en file) :
 - Changement d'épreuve : état connu de l'appareil oublié, nouveau DISP avec l'arme et le champ
   Compe de la nouvelle épreuve (8 premiers caractères de l'identifiant de compétition).
 - NEXT reste dans la file de la piste pour l'épreuve suivie ; jamais de saut d'une épreuve à l'autre.
+- La liaison de l'appareil (`arena.cyrano` : mode, en ligne) suit la piste : retirée de l'arène
+  de l'ancienne épreuve, publiée sur celle de la nouvelle, et republiée dès qu'elle manque
+  (arènes recréées au démarrage d'une séance). Bandeau appareil et verrou de la tablette en
+  dépendent.
 - **Table des pistes de la salle** : une épreuve rattachée à une journée lit et écrit la table
   de la journée (clé `day:<id>` dans `cyrano_pistes`), partagée par toutes ses épreuves ; tant
   qu'elle est vide, la table propre de l'épreuve est reprise. Le panneau l'indique et signale

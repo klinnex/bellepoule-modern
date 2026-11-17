@@ -21,6 +21,45 @@ export interface ArenaSetupContext {
   readonly assignMatchToArena: S['assignMatchToArena'];
   readonly updateArena: S['updateArena'];
   readonly persistArenaState: S['persistArenaState'];
+  readonly session: S['session'];
+  readonly stripPlan: S['stripPlan'];
+  readonly setStripPlan: S['setStripPlan'];
+}
+
+/** Plus grand numéro de piste qu'une épreuve peut accueillir */
+export const MAX_HOSTED_STRIP = 99;
+
+/** La piste `n` peut-elle recevoir du travail de cette épreuve ? (hors pistes indisponibles) */
+export function canHostStrip(ctx: ArenaSetupContext, n: number): boolean {
+  return (
+    Number.isInteger(n) && n >= 1 && n <= MAX_HOSTED_STRIP && !ctx.stripPlan.unavailable.includes(n)
+  );
+}
+
+/**
+ * Piste libérée d'une journée (#1878) : l'épreuve accueille la piste `n` même hors de sa plage.
+ * Les arènes manquantes sont créées sans toucher aux existantes (matchs, files, jetons) et
+ * héritent du mot de passe de la dernière arène ; la séance et le plan des pistes sont élargis
+ * pour que tablettes, kiosque et tableau de bord voient la piste.
+ */
+export function hostStrip(ctx: ArenaSetupContext, n: number): boolean {
+  if (!canHostStrip(ctx, n)) return false;
+  if (n > ctx.arenaCount) {
+    const inherited = ctx.arenas.get(`arena${ctx.arenaCount}`)?.password;
+    for (let i = 1; i <= n; i++) {
+      if (ctx.arenas.has(`arena${i}`)) continue;
+      createArena(ctx, i);
+      if (inherited) ctx.arenas.get(`arena${i}`)!.password = inherited;
+    }
+    ctx.arenaCount = n;
+    const strips = ctx.session?.strips;
+    if (strips)
+      for (let i = strips.length + 1; i <= n; i++) strips.push({ number: i, status: 'available' });
+    logger.info(NET, `[RemoteScoreServer] Arènes étendues jusqu'à la piste ${n} (piste libérée)`);
+  }
+  // Plan des pistes : la piste reçue devient visible (diffuse aussi la liste des arènes)
+  ctx.setStripPlan({ ...ctx.stripPlan, start: Math.min(ctx.stripPlan.start, n) });
+  return ctx.arenas.has(`arena${n}`);
 }
 
 /** Arène `i` vide (file d'attente comprise) */
@@ -95,6 +134,14 @@ export const ARENA_SETUP_CONTEXT_KEYS = {
     'arenaEventBuffer',
     'arenaNextMatchIndex',
     'arenaRefereeSelected',
+    'session',
+    'stripPlan',
   ],
-  methods: ['clearArenaCombatState', 'assignMatchToArena', 'updateArena', 'persistArenaState'],
+  methods: [
+    'clearArenaCombatState',
+    'assignMatchToArena',
+    'updateArena',
+    'persistArenaState',
+    'setStripPlan',
+  ],
 } as const;

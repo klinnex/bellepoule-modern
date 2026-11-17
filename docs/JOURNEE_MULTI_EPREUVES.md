@@ -82,6 +82,28 @@ des épreuves (#1878) :
 
 Sans saisie distante ouverte : occupation prévue en base (poules en cours), sans proposition.
 
+**Poule sans piste.** Quand une épreuve a plus de poules que de pistes dans sa plage (piste de
+départ à piste de fin, hors pistes indisponibles), les poules en trop attendent une piste : le
+serveur ne les place plus sur une piste masquée (sous la piste de départ), qui peut être celle
+d'une autre épreuve de la journée. La saisie distante envoie le plan des pistes au serveur
+avant de démarrer la séance. Ces poules sont proposées aux pistes libres de la journée.
+
+**Piste hors de la plage de l'épreuve.** Une épreuve peut recevoir n'importe quelle piste de la
+salle, sauf celles marquées indisponibles dans son plan des pistes (`canHostStrip`). À
+l'affectation (`hostStrip`, `src/main/remote/arenaSetup.ts`) :
+
+- piste au-delà de sa dernière arène : les arènes manquantes sont créées sans toucher aux
+  existantes ; elles héritent du mot de passe de la dernière arène ; la séance est élargie ;
+- piste sous sa piste de départ : le plan des pistes est élargi, la piste devient visible sur le
+  kiosque et le tableau de bord de l'épreuve.
+
+La plage de pistes saisie dans l'onglet Saisie distante de l'épreuve n'est pas modifiée : le DT
+l'ajuste s'il veut retrouver la piste dans la grille des pistes de l'épreuve. La tablette de la
+piste doit ouvrir l'adresse du serveur de l'épreuve qui la reçoit (un serveur par épreuve).
+
+Une piste occupée affiche le détail lu en base (poule ou match en cours) quand il concerne
+l'épreuve qui l'occupe, sinon le titre de l'épreuve.
+
 Une poule déplacée garde sa piste quand le renderer renvoie la répartition des poules
 (surcharge par match, `forcedPoolArena`). Tablettes et écrans restent ceux de l'épreuve (un
 serveur par épreuve) ; les appareils Cyrano suivent l'épreuve de l'affectation (CYRANO.md § 2
