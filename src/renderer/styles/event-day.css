@@ -125,3 +125,13 @@
   gap: 0.35rem;
   align-items: center;
 }
+
+/* Tuiles de hauteur propre (l'édition d'une réservation n'étire pas les voisines), assez
+   larges pour « Tableau de N et moins » */
+.event-day-strip-board .event-day-strips {
+  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+.event-day-strip-rule select {
+  width: 100%;
+}

@@ -6,7 +6,6 @@
  */
 import { ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
-import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { DayStripBoard } from '../../shared/types/eventDay';
 import { normalizeStripRule } from '../../shared/utils/stripRules';
 import {
@@ -14,6 +13,7 @@ import {
   autoAssignStrips,
   buildStripBoard,
   type DayEvent,
+  type DayStripServer,
   type TableauCoords,
 } from '../remote/dayStripBoard';
 import { resolveCyranoCoords } from '../cyrano/matchCoords';
@@ -23,7 +23,7 @@ export interface DayStripHandlersContext {
   db: Pick<DatabaseManager, 'eventDays' | 'stripRules' | 'getCompetition'> &
     Parameters<typeof resolveCyranoCoords>[2];
   /** Serveurs distants ouverts, par épreuve */
-  getServer: (competitionId: string) => RemoteScoreServer | undefined;
+  getServer: (competitionId: string) => DayStripServer | undefined;
   autoAssignIntervalMs?: number;
 }
 

@@ -182,12 +182,15 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
       <ul className="event-day-strips">
         {board.strips.map(s => {
           const summary = ruleSummary(s.rule, titles, t);
-          const planned = board.live
-            ? null
-            : occupationLabel(
-                occupation.find(o => o.strip === s.strip),
-                t
-              );
+          // Détail lu en base (poule ou match en cours sur la piste) : affiché sans saisie
+          // distante, ou en complément quand il concerne l'épreuve qui occupe la piste
+          const known = occupation.find(o => o.strip === s.strip);
+          const detail = occupationLabel(known, t);
+          const planned = board.live ? null : detail;
+          const live =
+            s.competitionId && known?.competitionId === s.competitionId
+              ? detail
+              : s.competitionTitle;
           const busy = !!s.competitionId || !!planned;
           // Choix encore proposé ? sinon la première proposition (liste rafraîchie)
           const picked = s.candidates.some(c => c.key === choice[s.strip])
@@ -196,7 +199,7 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
           return (
             <li key={s.strip} className={`event-day-strip${busy ? ' event-day-strip--busy' : ''}`}>
               <strong>{t('eventDay.strip', { n: s.strip })}</strong>
-              <span>{s.competitionTitle ?? planned ?? t('eventDay.free')}</span>
+              <span>{live ?? planned ?? t('eventDay.free')}</span>
               {summary && (
                 <span className="text-muted">{t('eventDay.reserved', { rule: summary })}</span>
               )}

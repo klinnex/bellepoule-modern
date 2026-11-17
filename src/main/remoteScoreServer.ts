@@ -189,7 +189,6 @@ import {
   type ArenaBroadcastContext,
   ARENA_BROADCAST_CONTEXT_KEYS,
 } from './remote/arenaBroadcast';
-import { listWaitingWork, movePoolToArena, type WaitingWork } from './remote/stripHandover';
 import {
   assignMatchToArena,
   startArenaMatch,
@@ -501,7 +500,7 @@ export class RemoteScoreServer {
   }
 
   /** Contexte de arenaQueue.ts (#1240) */
-  private get arenaQueueCtx(): ArenaQueueContext {
+  get arenaQueueCtx(): ArenaQueueContext {
     return this.ctx<ArenaQueueContext>(ARENA_QUEUE_CONTEXT_KEYS);
   }
 
@@ -910,15 +909,9 @@ export class RemoteScoreServer {
   public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void {
     return resetPoolMatch(this.poolSyncCtx, ...args);
   }
-  /** Journée multi-épreuves (#1878) : travail en attente d'une piste, et son déplacement vers la piste `n` (créée au besoin) */
-  public getWaitingWork(): WaitingWork[] {
-    return listWaitingWork(this.arenaQueueCtx);
-  }
-  public moveWorkToArena(w: WaitingWork, n: number): boolean {
-    if (!this.arenas.has(`arena${n}`)) return false;
-    if (w.kind === 'pool') return movePoolToArena(this.arenaQueueCtx, w.poolId, `arena${n}`);
-    this.updateMatchArena(w.matchId, w.fromArena, n);
-    return true;
+  /** Contexte d'arenaSetup.ts ; public : pistes libérées d'une journée (stripHandover, #1878) */
+  get arenaSetupCtx(): ArenaSetupContext {
+    return this.ctx<ArenaSetupContext>(ARENA_SETUP_CONTEXT_KEYS);
   }
 
   public finishPoolMatch(...args: Tail<Parameters<typeof finishPoolMatch>>): void {
