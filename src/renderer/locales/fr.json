@@ -376,6 +376,11 @@
     "mcp_folders_default": "par défaut",
     "mcp_folder_add": "Ajouter un dossier",
     "mcp_folder_remove": "Retirer {{folder}}",
+    "mcp_log_title": "Journal des appels de l'agent",
+    "mcp_log_refresh": "Actualiser",
+    "mcp_log_empty": "Aucun appel pour le moment.",
+    "mcp_log_ok": "réussi",
+    "mcp_log_ko": "erreur",
     "proxy_title": "Proxy réseau",
     "proxy_hint": "Utilisé pour les mises à jour et les accès Internet de l'application. Le serveur d'arbitrage local n'est jamais concerné.",
     "proxy_mode_system": "Proxy du système (recommandé)",
@@ -3828,6 +3833,17 @@
     "saved": "Salle enregistrée.",
     "deleted": "Salle supprimée.",
     "name_required": "Le nom est obligatoire.",
-    "failed": "Action impossible."
+    "failed": "Action impossible.",
+    "strips_title": "Libellés et appareils Cyrano des pistes",
+    "strips_hint": "Libellé et appareil Cyrano facultatifs. Sans adresse IP, la piste n'a pas d'appareil.",
+    "strip_row": "Piste {{number}}",
+    "strip_label": "Libellé de la piste {{number}}",
+    "strip_label_placeholder": "Piste {{number}}",
+    "strip_ip": "Adresse IP de l'appareil Cyrano de la piste {{number}}",
+    "strip_ip_placeholder": "Adresse IP (facultative)",
+    "strip_port": "Port de l'appareil Cyrano de la piste {{number}}",
+    "strip_port_placeholder": "Port",
+    "strip_mode": "Mode de l'appareil Cyrano de la piste {{number}}",
+    "strip_invalid": "Adresse IPv4 ou port invalide (piste {{number}})."
   }
 }

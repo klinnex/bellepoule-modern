@@ -1109,6 +1109,22 @@ export const ALL_MIGRATIONS: Migration[] = [
           /* colonne déjà présente */
         }
       }
+      // Reprise : les pistes déjà déclarées (journées, clubs) deviennent la salle par défaut,
+      // une fois, si aucune salle n'existe ; les journées gardent leur propre nombre de pistes
+      const strips = `(SELECT MIN(100, MAX(n)) FROM (
+          SELECT MAX(strip_count) AS n FROM event_days
+          UNION ALL SELECT MAX(strip_count) FROM clubs WHERE strip_count > 1))`;
+      db.run(`
+        INSERT INTO venues (id, name, is_default, created_at, updated_at)
+        SELECT lower(hex(randomblob(16))), 'Salle principale', 1, datetime('now'), datetime('now')
+        WHERE NOT EXISTS (SELECT 1 FROM venues) AND COALESCE(${strips}, 0) > 0
+      `);
+      db.run(`
+        WITH RECURSIVE seq(k) AS (SELECT 1 UNION ALL SELECT k + 1 FROM seq WHERE k < ${strips})
+        INSERT INTO venue_strips (venue_id, number, label, cyrano_config)
+        SELECT v.id, seq.k, NULL, NULL FROM venues v, seq
+        WHERE v.is_default = 1 AND NOT EXISTS (SELECT 1 FROM venue_strips WHERE venue_id = v.id)
+      `);
     },
   },
 ];

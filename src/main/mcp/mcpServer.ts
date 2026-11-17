@@ -19,6 +19,7 @@ export type { McpLogEntry };
 
 export const MCP_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const MAX_BODY = 1_000_000;
+const MAX_BATCH = 20;
 
 /** Outils en lecture : lot 1, matchs (lot 3), paramétrage du poste */
 export const READ_TOOLS: McpTool[] = [
@@ -230,13 +231,20 @@ export class McpServer {
           return send(400, rpcError(null, -32700, 'Parse error'));
         }
         const messages = (Array.isArray(body) ? body : [body]) as JsonRpcRequest[];
-        void Promise.all(
-          messages.map(m => handleMcpMessage(m ?? {}, deps, version, log, allowWrite))
-        ).then(results => {
-          const replies = results.filter((r): r is object => r !== null);
+        // Lots (retirés de la spécification MCP depuis 2025-06-18) : bornés et traités l'un
+        // après l'autre, pour qu'un seul envoi ne lance pas des milliers d'imports à la fois
+        if (messages.length === 0 || messages.length > MAX_BATCH) {
+          return send(400, rpcError(null, -32600, `Lot JSON-RPC : 1 à ${MAX_BATCH} messages`));
+        }
+        void (async () => {
+          const replies: object[] = [];
+          for (const m of messages) {
+            const r = await handleMcpMessage(m ?? {}, deps, version, log, allowWrite);
+            if (r !== null) replies.push(r);
+          }
           if (replies.length === 0) return send(202);
           send(200, Array.isArray(body) ? replies : replies[0]);
-        });
+        })();
       });
     });
     await new Promise<void>((resolve, reject) => {

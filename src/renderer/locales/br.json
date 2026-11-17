@@ -376,6 +376,11 @@
     "mcp_folders_default": "dre ziouer",
     "mcp_folder_add": "Ouzhpennañ un teuliad",
     "mcp_folder_remove": "Lemel {{folder}}",
+    "mcp_log_title": "Marilh galvoù an ajant",
+    "mcp_log_refresh": "Freskaat",
+    "mcp_log_empty": "Galv ebet c'hoazh.",
+    "mcp_log_ok": "graet",
+    "mcp_log_ko": "fazi",
     "proxy_title": "Proksi ar rouedad",
     "proxy_hint": "Implijet evit an hizivadurioù hag an tizh d'ar Genrouedad. Biken ne vez tizhet servijer ar vrokerezh lec'hel.",
     "proxy_mode_system": "Proksi ar reizhiad (erbedet)",
@@ -3828,6 +3833,17 @@
     "saved": "Saell enrollet.",
     "deleted": "Saell dilamet.",
     "name_required": "Rekis eo an anv.",
-    "failed": "Dibosupl eo ober."
+    "failed": "Dibosupl eo ober.",
+    "strips_title": "Anvioù ha dafar Cyrano ar pistennoù",
+    "strips_hint": "An anv hag an dafar Cyrano zo diret. Hep chomlec'h IP ne vez dafar ebet gant ar bistenn.",
+    "strip_row": "Pistenn {{number}}",
+    "strip_label": "Anv ar bistenn {{number}}",
+    "strip_label_placeholder": "Pistenn {{number}}",
+    "strip_ip": "Chomlec'h IP dafar Cyrano ar bistenn {{number}}",
+    "strip_ip_placeholder": "Chomlec'h IP (diret)",
+    "strip_port": "Porzh dafar Cyrano ar bistenn {{number}}",
+    "strip_port_placeholder": "Porzh",
+    "strip_mode": "Mod dafar Cyrano ar bistenn {{number}}",
+    "strip_invalid": "Chomlec'h IPv4 pe borzh direizh (pistenn {{number}})."
   }
 }

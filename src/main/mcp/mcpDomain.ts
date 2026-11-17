@@ -20,13 +20,15 @@ export function writeDomain(deps: McpWriteDeps): DomainContext {
     db: deps.db,
     allowedRoots: deps.allowedRoots,
     emitChange: ({ scope, competitionIds }) => {
-      if (scope === 'settings' || scope === 'referees') return;
+      if (scope === 'referees') return;
       const type =
-        scope === 'session'
-          ? 'session:changed'
-          : scope === 'fencers'
-            ? 'fencers:changed'
-            : 'competitions:changed';
+        scope === 'settings'
+          ? 'settings:changed'
+          : scope === 'session'
+            ? 'session:changed'
+            : scope === 'fencers'
+              ? 'fencers:changed'
+              : 'competitions:changed';
       if (competitionIds.length === 0) deps.notify(type);
       for (const id of competitionIds) deps.notify(type, id);
     },

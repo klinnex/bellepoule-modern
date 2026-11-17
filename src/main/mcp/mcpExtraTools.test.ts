@@ -12,6 +12,7 @@ import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
 import { handleMcpMessage } from './mcpServer';
 import type { McpWriteDeps } from './mcpWriteTools';
 import { runBatchImport } from '../batchImport';
+import { rowsToXlsx } from '../xlsxToCsv';
 
 vi.mock('better-sqlite3', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -226,6 +227,35 @@ d('orchestration sportive (lot 3)', () => {
   });
 });
 
+d('record_score en simulation', () => {
+  it('contrôle et résultat sans écriture ni notification', async () => {
+    const id = await competition();
+    await ok('generate_pools', { competitionId: id });
+    const [m] = await ok('list_matches', { competitionId: id, state: 'ready' });
+    notify.mockClear();
+    const before = JSON.stringify(db.getSessionState(id));
+    const sim = await ok('record_score', {
+      competitionId: id,
+      matchId: m.matchId,
+      scoreA: 5,
+      scoreB: 3,
+      dryRun: true,
+    });
+    expect(sim).toMatchObject({ dryRun: true, kind: 'pool' });
+    expect(JSON.stringify(db.getSessionState(id))).toBe(before);
+    expect(notify).not.toHaveBeenCalled();
+    expect(
+      await ko('record_score', {
+        competitionId: id,
+        matchId: m.matchId,
+        scoreA: 3,
+        scoreB: 3,
+        dryRun: true,
+      })
+    ).toContain('draw_needs_winner');
+  });
+});
+
 d('fichiers lus par l’agent', () => {
   it('import hors des dossiers accessibles refusé, sans révéler si le fichier existe', async () => {
     const id = await competition();
@@ -313,6 +343,61 @@ d('paramétrage du poste et salles', () => {
     await ok('update_settings', { language: 'de', agentFolders: ['/'] });
     expect(db.settings.getSettings()).toMatchObject({ language: 'de', agentFolders: [] });
     expect(await ko('update_settings', { remoteInterface: 'partout' })).toContain('IPv4');
+  });
+});
+
+d('formats d’import et atomicité', () => {
+  it('classeur Excel et cotcot lus comme à l’écran', async () => {
+    const xlsx = path.join(allowed, 'tireurs.xlsx');
+    fs.writeFileSync(
+      xlsx,
+      await rowsToXlsx([
+        ['NOM', 'PRENOM', 'SEXE', 'DATE', 'NATION', 'LIGUE', 'CLUB', 'LICENCE', 'CLASSEMENT'],
+        ['ROUX', 'Marc', 'M', '01/01/1990', 'FRA', 'IDF', 'CE', '111', '3'],
+        ['BLANC', 'Hugo', 'M', '02/02/1991', 'FRA', 'IDF', 'CE', '112', '4'],
+      ])
+    );
+    const cotcot = file(
+      'tireurs.cotcot',
+      '<Competition><Tireur Nom="PETIT" Prenom="Marc" Sexe="M" Nation="FRA"/></Competition>'
+    );
+    const report = await ok('import_day', {
+      name: 'Formats',
+      date: '2026-12-06',
+      competitions: [
+        { title: 'Excel', weapon: 'E', gender: 'M', category: 'SEN', fencersFile: xlsx },
+        { title: 'Cotcot', weapon: 'E', gender: 'M', category: 'U20', fencersFile: cotcot },
+      ],
+    });
+    expect(report.competitions.map((c: { fencers: { added: number } }) => c.fencers.added)).toEqual(
+      [2, 1]
+    );
+  });
+
+  it('import_day : un fichier manquant fait échouer l’import sans rien écrire', async () => {
+    const message = await ko('import_day', {
+      name: 'Partielle',
+      date: '2026-12-06',
+      competitions: [
+        {
+          title: 'A',
+          weapon: 'E',
+          gender: 'M',
+          category: 'SEN',
+          fencersFile: file('a.txt', 'X;Y'),
+        },
+        {
+          title: 'B',
+          weapon: 'E',
+          gender: 'M',
+          category: 'SEN',
+          fencersFile: path.join(allowed, 'absent.txt'),
+        },
+      ],
+    });
+    expect(message).toContain('introuvable');
+    expect(db.getAllCompetitions()).toHaveLength(0);
+    expect(db.eventDays.listDays()).toHaveLength(0);
   });
 });
 

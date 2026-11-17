@@ -1,3 +1,19 @@
+/* Paramètres → Système → Agent IA : journal des appels (#1880) */
+.mcp-log {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+  margin-bottom: var(--space-2, 8px);
+}
+
+.mcp-log td {
+  padding: 2px var(--space-2, 8px) 2px 0;
+}
+
+.mcp-log-ko {
+  color: var(--danger, #ef4444);
+}
+
 /* Paramètres → Système → Agent IA : dossiers accessibles à l'agent (#1880) */
 .mcp-folder-list {
   list-style: none;
@@ -63,4 +79,35 @@
 
 .venue-strips-input {
   width: 6rem;
+}
+
+/* Pistes d'une salle : libellé et appareil Cyrano (VenueStripsEditor.tsx) */
+.venue-strips-editor {
+  margin-bottom: var(--space-2, 8px);
+}
+
+.venue-strips-editor summary {
+  cursor: pointer;
+  margin-bottom: var(--space-1, 4px);
+}
+
+.venue-strip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  margin-bottom: var(--space-1, 4px);
+}
+
+.venue-strip-number {
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.venue-strip-ip {
+  width: 9.5rem;
+}
+
+.venue-strip-port {
+  width: 4.5rem;
 }

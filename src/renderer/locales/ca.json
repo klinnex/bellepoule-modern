@@ -376,6 +376,11 @@
     "mcp_folders_default": "per defecte",
     "mcp_folder_add": "Afegeix una carpeta",
     "mcp_folder_remove": "Treu {{folder}}",
+    "mcp_log_title": "Registre de crides de l'agent",
+    "mcp_log_refresh": "Actualitza",
+    "mcp_log_empty": "Encara no hi ha cap crida.",
+    "mcp_log_ok": "correcte",
+    "mcp_log_ko": "error",
     "proxy_title": "Servidor intermediari (proxy)",
     "proxy_hint": "S'utilitza per a les actualitzacions i l'accés a Internet de l'aplicació. El servidor d'arbitratge local no es veu mai afectat.",
     "proxy_mode_system": "Proxy del sistema (recomanat)",
@@ -3828,6 +3833,17 @@
     "saved": "Sala desada.",
     "deleted": "Sala suprimida.",
     "name_required": "El nom és obligatori.",
-    "failed": "Acció impossible."
+    "failed": "Acció impossible.",
+    "strips_title": "Etiquetes i dispositius Cyrano de les pistes",
+    "strips_hint": "L'etiqueta i el dispositiu Cyrano són opcionals. Sense adreça IP, la pista no té dispositiu.",
+    "strip_row": "Pista {{number}}",
+    "strip_label": "Etiqueta de la pista {{number}}",
+    "strip_label_placeholder": "Pista {{number}}",
+    "strip_ip": "Adreça IP del dispositiu Cyrano de la pista {{number}}",
+    "strip_ip_placeholder": "Adreça IP (opcional)",
+    "strip_port": "Port del dispositiu Cyrano de la pista {{number}}",
+    "strip_port_placeholder": "Port",
+    "strip_mode": "Mode del dispositiu Cyrano de la pista {{number}}",
+    "strip_invalid": "Adreça IPv4 o port no vàlids (pista {{number}})."
   }
 }

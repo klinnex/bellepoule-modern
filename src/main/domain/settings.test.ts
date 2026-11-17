@@ -11,6 +11,8 @@ import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
 import type { DomainChange, DomainContext } from './context';
 import { resolveOutputPath, writeOutputFile } from './files';
 import { resolveSetting, upsertVenue } from './settings';
+import { ALL_MIGRATIONS } from '../../database/migrations/migrations';
+import { NodeSqliteDatabase } from '../../database/testing/nodeSqliteDatabase';
 
 vi.mock('better-sqlite3', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -108,5 +110,34 @@ describe('fichiers écrits par l’agent', () => {
     await writeOutputFile(resolveOutputPath(target, '.csv', { overwrite: true }), 'c', true);
     expect(fs.readFileSync(target, 'utf-8')).toBe('c');
     expect(fs.readdirSync(dir)).toEqual(['r.csv']);
+  });
+});
+
+d('migration 38 : reprise des pistes existantes', () => {
+  const migrate = (setup: (raw: NodeSqliteDatabase) => void) => {
+    const raw = new NodeSqliteDatabase(':memory:');
+    const run = { run: (sql: string) => raw.exec(sql) };
+    for (const m of ALL_MIGRATIONS.filter(x => x.version < 38)) m.up(run);
+    setup(raw);
+    ALL_MIGRATIONS.find(x => x.version === 38)!.up(run);
+    return raw;
+  };
+
+  it('pistes des journées et clubs → salle par défaut', () => {
+    const raw = migrate(r => {
+      r.exec(
+        `INSERT INTO event_days (id, name, date, strip_count, created_at, updated_at)
+         VALUES ('d1', 'J', '2026-12-06', 6, '', ''), ('d2', 'K', '2026-12-07', 9, '', '')`
+      );
+    });
+    const venues = raw.prepare('SELECT * FROM venues').all() as Array<{ is_default: number }>;
+    expect(venues).toHaveLength(1);
+    expect(venues[0].is_default).toBe(1);
+    expect(raw.prepare('SELECT COUNT(*) AS n FROM venue_strips').get()).toEqual({ n: 9 });
+  });
+
+  it('aucune piste déclarée : aucune salle créée', () => {
+    const raw = migrate(() => undefined);
+    expect(raw.prepare('SELECT COUNT(*) AS n FROM venues').get()).toEqual({ n: 0 });
   });
 });

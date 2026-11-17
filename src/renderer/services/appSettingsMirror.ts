@@ -8,7 +8,12 @@
 import { LEGACY_LOCAL_STORAGE_KEYS } from '../../shared/types/appSettings';
 
 const KEYS = Object.keys(LEGACY_LOCAL_STORAGE_KEYS);
+/** Réglages choisis à l'écran à chaque démarrage : recopiés tels quels en base */
+const SCREEN_FIRST = ['bellepoule-language', 'bellepoule-theme'];
 let installed = false;
+/** Stockage suivi (localStorage de la fenêtre) */
+let mirrored: Storage | null = null;
+const PATCHED = Symbol.for('bellepoule.appSettingsMirror');
 
 function send(values: Record<string, string | null>, mode: 'missing' | 'write'): void {
   const api = window.electronAPI?.settings;
@@ -20,25 +25,35 @@ function send(values: Record<string, string | null>, mode: 'missing' | 'write'):
 export function installAppSettingsMirror(storage: Storage = window.localStorage): void {
   if (installed || !window.electronAPI?.settings) return;
   installed = true;
+  // Langue et thème : l'écran fait foi (le splash vient de les confirmer) ; sinon un agent
+  // qui déclenche « settings:changed » ramènerait l'écran à une ancienne langue en base
+  const current: Record<string, string | null> = {};
   const initial: Record<string, string | null> = {};
   for (const key of KEYS) {
     const v = storage.getItem(key);
-    if (v !== null) initial[key] = v;
+    if (v === null) continue;
+    if (SCREEN_FIRST.includes(key)) current[key] = v;
+    else initial[key] = v;
   }
+  send(current, 'write');
   send(initial, 'missing');
 
-  // Une seule interception pour les nombreux écrivains existants (Paramètres, thème, logo…)
-  const proto = Object.getPrototypeOf(storage) as Storage;
+  mirrored = storage;
+  // Une seule interception (jamais deux fois) pour les nombreux écrivains existants
+  // (Paramètres, thème, logo…)
+  const proto = Object.getPrototypeOf(storage) as Storage & { [PATCHED]?: true };
+  if (proto[PATCHED]) return;
+  proto[PATCHED] = true;
   const setItem = proto.setItem;
   const removeItem = proto.removeItem;
   proto.setItem = function (this: Storage, key: string, value: string): void {
     setItem.call(this, key, value);
-    if (this === storage && KEYS.includes(key)) send({ [key]: String(value) }, 'write');
+    if (this === mirrored && KEYS.includes(key)) send({ [key]: String(value) }, 'write');
   };
   proto.removeItem = function (this: Storage, key: string): void {
     removeItem.call(this, key);
     // Seul le logo a un sens « effacé » (null) ; les autres reviennent à la valeur par défaut
-    if (this === storage && key === 'bellepoule-logo') send({ [key]: null }, 'write');
+    if (this === mirrored && key === 'bellepoule-logo') send({ [key]: null }, 'write');
   };
 }
 

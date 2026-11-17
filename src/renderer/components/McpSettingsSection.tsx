@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
-import type { McpStatus } from '../../shared/types/mcp';
+import type { McpLogEntry, McpStatus } from '../../shared/types/mcp';
 import type { AgentFolders } from '../../shared/types/settingsApi';
 import { HINT, BOLD, TOGGLE_LABEL } from './settingsModal.styles';
 import { Button } from './common/Button';
@@ -29,6 +29,9 @@ export function mcpClientConfig(status: Pick<McpStatus, 'port' | 'token'>): stri
     2
   );
 }
+
+/** Derniers appels affichés (le main en garde 200) */
+const LOG_SHOWN = 30;
 
 const McpSettingsSection: React.FC = () => {
   const { t } = useTranslation();
@@ -60,6 +63,14 @@ const McpSettingsSection: React.FC = () => {
   }, [settingsApi]);
 
   /** Ajout par boîte de dialogue native du main ; retrait immédiat */
+  const [log, setLog] = useState<McpLogEntry[]>([]);
+  const refreshLog = () =>
+    void api
+      ?.getLog()
+      .then(entries => setLog(entries.slice(-LOG_SHOWN).reverse()))
+      .catch(() => undefined);
+  useEffect(refreshLog, [api]);
+
   const changeFolders = (action: Promise<AgentFolders> | undefined) =>
     void action?.then(setFolders).catch(() => undefined);
 
@@ -166,6 +177,32 @@ const McpSettingsSection: React.FC = () => {
               {t('settings.mcp_folder_add')}
             </Button>
           </div>
+          <div className="u-row">
+            <label style={BOLD}>{t('settings.mcp_log_title')}</label>
+            <Button type="button" variant="ghost" onClick={refreshLog}>
+              {t('settings.mcp_log_refresh')}
+            </Button>
+          </div>
+          {log.length === 0 ? (
+            <p style={HINT}>{t('settings.mcp_log_empty')}</p>
+          ) : (
+            <table className="mcp-log">
+              <tbody>
+                {log.map((e, i) => (
+                  <tr key={`${e.at}-${i}`}>
+                    <td>{new Date(e.at).toLocaleTimeString()}</td>
+                    <td>
+                      <code>{e.tool ?? e.method}</code>
+                    </td>
+                    <td className={e.ok ? undefined : 'mcp-log-ko'}>
+                      {t(e.ok ? 'settings.mcp_log_ok' : 'settings.mcp_log_ko')}
+                    </td>
+                    <td>{`${e.ms} ms`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </>
       )}
     </div>

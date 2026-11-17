@@ -51,8 +51,8 @@ const LANGUAGES = ['fr', 'en', 'br', 'ca', 'de', 'es', 'pt', 'it', 'ru', 'zh-HK'
 const REFEREE_WEAPONS = ['E', 'F', 'S'] as const;
 
 /** Arbitres d'un fichier : bloc <Arbitres> d'un XML, sinon format Engarde (« ; ») */
-function readReferees(deps: McpWriteDeps, file: unknown) {
-  const content = readImportFile(file, ['.txt', '.csv', '.xml'], deps.allowedRoots?.());
+async function readReferees(deps: McpWriteDeps, file: unknown) {
+  const content = await readImportFile(file, ['.txt', '.csv', '.xml'], deps.allowedRoots?.());
   if (content.trimStart().startsWith('<')) {
     const xml = parseXMLFile(content);
     return { referees: xml.referees ?? [], errors: xml.errors };
@@ -72,10 +72,10 @@ function newReferees(referees: ImportedReferee[], existing: Set<string>): Import
   });
 }
 
-function importReferees(deps: McpWriteDeps, args: Args) {
+async function importReferees(deps: McpWriteDeps, args: Args) {
   const { db } = deps;
   const dry = dryRunOf(args);
-  const parsed = readReferees(deps, args.path);
+  const parsed = await readReferees(deps, args.path);
   const report = (toAdd: ImportedReferee[]) => ({
     dryRun: dry,
     read: parsed.referees.length,

@@ -376,6 +376,11 @@
     "mcp_folders_default": "predefinita",
     "mcp_folder_add": "Aggiungi una cartella",
     "mcp_folder_remove": "Rimuovi {{folder}}",
+    "mcp_log_title": "Registro delle chiamate dell'agente",
+    "mcp_log_refresh": "Aggiorna",
+    "mcp_log_empty": "Nessuna chiamata finora.",
+    "mcp_log_ok": "riuscita",
+    "mcp_log_ko": "errore",
     "proxy_title": "Proxy di rete",
     "proxy_hint": "Usato per gli aggiornamenti e l'accesso a Internet dell'applicazione. Il server arbitrale locale non è mai coinvolto.",
     "proxy_mode_system": "Proxy di sistema (consigliato)",
@@ -3828,6 +3833,17 @@
     "saved": "Sala salvata.",
     "deleted": "Sala eliminata.",
     "name_required": "Il nome è obbligatorio.",
-    "failed": "Azione impossibile."
+    "failed": "Azione impossibile.",
+    "strips_title": "Etichette e dispositivi Cyrano delle pedane",
+    "strips_hint": "Etichetta e dispositivo Cyrano sono facoltativi. Senza indirizzo IP, la pedana non ha dispositivo.",
+    "strip_row": "Pedana {{number}}",
+    "strip_label": "Etichetta della pedana {{number}}",
+    "strip_label_placeholder": "Pedana {{number}}",
+    "strip_ip": "Indirizzo IP del dispositivo Cyrano della pedana {{number}}",
+    "strip_ip_placeholder": "Indirizzo IP (facoltativo)",
+    "strip_port": "Porta del dispositivo Cyrano della pedana {{number}}",
+    "strip_port_placeholder": "Porta",
+    "strip_mode": "Modalità del dispositivo Cyrano della pedana {{number}}",
+    "strip_invalid": "Indirizzo IPv4 o porta non validi (pedana {{number}})."
   }
 }

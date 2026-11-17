@@ -128,7 +128,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
     title: 'Saisir un score',
     description:
       'Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. ' +
-      'Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Pas de dryRun : ne saisir que des scores donnés par le DT.',
+      'Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -143,6 +143,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
           enum: [...SIDES],
           description: 'Égalité en poule : prioritaire',
         },
+        ...dryRun,
       },
       required: ['competitionId', 'matchId', 'scoreA', 'scoreB'],
     },
@@ -156,6 +157,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
           winner: optPick(args, 'winner', SIDES),
           specialStatus: optPick(args, 'specialStatus', SPECIAL),
           priority: optPick(args, 'priority', SIDES),
+          dryRun: optBool(args, 'dryRun'),
         })
       ),
   },

@@ -14,6 +14,8 @@ import { Button } from './common/Button';
 import { Icon } from './common/Icon';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import { MAX_VENUE_STRIPS, type Venue, type VenueInput } from '../../shared/types/appSettings';
+import VenueStripsEditor from './VenueStripsEditor';
+import { applyStripEdits, stripEditError, type StripEdit } from './venueStripsEdit';
 
 const api = () => window.electronAPI?.settings;
 
@@ -21,9 +23,11 @@ interface Draft {
   id?: string;
   name: string;
   stripCount: number;
+  /** Libellés et appareils Cyrano saisis, par numéro de piste (pistes non touchées absentes) */
+  edits: Record<number, StripEdit>;
 }
 
-const EMPTY_DRAFT: Draft = { name: '', stripCount: 4 };
+const EMPTY_DRAFT: Draft = { name: '', stripCount: 4, edits: {} };
 
 /** Pistes d'une salle redimensionnée : on garde libellés et appareils des pistes conservées */
 export function resizeStrips(venue: Venue | undefined, count: number): VenueInput['strips'] {
@@ -38,8 +42,14 @@ const VenueForm: React.FC<{
   onSave: () => void;
   onCancel: () => void;
   invalid: boolean;
-}> = ({ draft, onChange, onSave, onCancel, invalid }) => {
+  /** Salle en cours d'édition (pistes actuelles) ; absente = création */
+  existing?: Venue;
+}> = ({ draft, onChange, onSave, onCancel, invalid, existing }) => {
   const { t } = useTranslation();
+  // Seules les pistes conservées comptent (comme à l'enregistrement)
+  const badStrip = Object.entries(draft.edits).find(
+    ([n, e]) => Number(n) <= draft.stripCount && stripEditError(e)
+  );
   return (
     <form
       className="venue-form"
@@ -75,9 +85,21 @@ const VenueForm: React.FC<{
           onChange({ ...draft, stripCount: Math.max(1, Math.min(MAX_VENUE_STRIPS, n)) });
         }}
       />
+      <VenueStripsEditor
+        strips={resizeStrips(existing, draft.stripCount) ?? []}
+        edits={draft.edits}
+        onChange={(number, edit) =>
+          onChange({ ...draft, edits: { ...draft.edits, [number]: edit } })
+        }
+      />
       {invalid && (
         <p className="form-error" role="alert">
           {t('venues.name_required')}
+        </p>
+      )}
+      {badStrip && (
+        <p className="form-error" role="alert">
+          {t('venues.strip_invalid', { number: badStrip[0] })}
         </p>
       )}
       <div className="u-row">
@@ -134,10 +156,13 @@ const VenuesSettingsSection: React.FC = () => {
       return;
     }
     const existing = venues?.find(v => v.id === draft.id);
+    const strips = resizeStrips(existing, draft.stripCount) ?? [];
+    // Adresse IPv4 ou port invalide : rien n'est enregistré (l'erreur est affichée sur la piste)
+    if (strips.some(s => draft.edits[s.number] && stripEditError(draft.edits[s.number]))) return;
     const input: VenueInput = {
       ...(draft.id ? { id: draft.id } : {}),
       name,
-      strips: resizeStrips(existing, draft.stripCount),
+      strips: applyStripEdits(strips, draft.edits),
     };
     if (await run(() => api()!.upsertVenue(input), 'venues.saved')) closeForm();
   };
@@ -179,7 +204,9 @@ const VenuesSettingsSection: React.FC = () => {
                   style={SMALL_BTN}
                   icon={<Icon icon={Pencil} />}
                   aria-label={`${t('venues.edit')} ${v.name}`}
-                  onClick={() => openForm({ id: v.id, name: v.name, stripCount: v.strips.length })}
+                  onClick={() =>
+                    openForm({ id: v.id, name: v.name, stripCount: v.strips.length, edits: {} })
+                  }
                 >
                   {t('venues.edit')}
                 </Button>
@@ -211,6 +238,7 @@ const VenuesSettingsSection: React.FC = () => {
         <VenueForm
           draft={draft}
           invalid={nameInvalid}
+          existing={venues.find(v => v.id === draft.id)}
           onChange={d => {
             setNameInvalid(false);
             setDraft(d);

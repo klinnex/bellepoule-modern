@@ -132,6 +132,8 @@ describe('import_day (#1880)', () => {
     const dayRefs: Array<{ firstName: string; lastName: string; license?: string }> = [];
     let n = 0;
     const db = {
+      // import_day écrit en une transaction (tout ou rien)
+      transaction: <T>(fn: () => T): T => fn(),
       getCompetition: (id: string) => comps.get(id) ?? null,
       getFencersByCompetition: (id: string) => fencers.get(id) ?? [],
       createCompetition: vi.fn((d: { title: string }) => {

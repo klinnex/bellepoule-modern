@@ -510,6 +510,11 @@
     "mcp_folders_default": "Standard",
     "mcp_folder_add": "Ordner hinzufügen",
     "mcp_folder_remove": "{{folder}} entfernen",
+    "mcp_log_title": "Aufrufprotokoll des Agenten",
+    "mcp_log_refresh": "Aktualisieren",
+    "mcp_log_empty": "Noch keine Aufrufe.",
+    "mcp_log_ok": "erfolgreich",
+    "mcp_log_ko": "Fehler",
     "proxy_title": "Netzwerk-Proxy",
     "proxy_hint": "Wird für Updates und den Internetzugriff der Anwendung verwendet. Der lokale Kampfrichter-Server ist nie betroffen.",
     "proxy_mode_system": "System-Proxy (empfohlen)",
@@ -3828,6 +3833,17 @@
     "saved": "Halle gespeichert.",
     "deleted": "Halle gelöscht.",
     "name_required": "Der Name ist erforderlich.",
-    "failed": "Aktion nicht möglich."
+    "failed": "Aktion nicht möglich.",
+    "strips_title": "Bezeichnungen und Cyrano-Geräte der Planchen",
+    "strips_hint": "Bezeichnung und Cyrano-Gerät sind optional. Ohne IP-Adresse hat die Planche kein Gerät.",
+    "strip_row": "Planche {{number}}",
+    "strip_label": "Bezeichnung der Planche {{number}}",
+    "strip_label_placeholder": "Planche {{number}}",
+    "strip_ip": "IP-Adresse des Cyrano-Geräts der Planche {{number}}",
+    "strip_ip_placeholder": "IP-Adresse (optional)",
+    "strip_port": "Port des Cyrano-Geräts der Planche {{number}}",
+    "strip_port_placeholder": "Port",
+    "strip_mode": "Modus des Cyrano-Geräts der Planche {{number}}",
+    "strip_invalid": "Ungültige IPv4-Adresse oder ungültiger Port (Planche {{number}})."
   }
 }

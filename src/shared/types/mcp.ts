@@ -5,9 +5,10 @@
 
 /**
  * Événements du bus `competition:event` émis après une écriture de l'agent :
- * liste ou réglages des épreuves modifiés, état de session réécrit (poules, scores, tableau).
+ * liste ou réglages des épreuves modifiés, état de session réécrit (poules, scores, tableau),
+ * paramètres du poste modifiés (langue, thème : l'écran les applique).
  */
-export type McpScreenEvent = 'competitions:changed' | 'session:changed';
+export type McpScreenEvent = 'competitions:changed' | 'session:changed' | 'settings:changed';
 
 export interface McpStatus {
   /** Activé dans les Paramètres (désactivé par défaut) */

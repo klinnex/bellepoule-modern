@@ -376,6 +376,11 @@
     "mcp_folders_default": "預設",
     "mcp_folder_add": "新增資料夾",
     "mcp_folder_remove": "移除 {{folder}}",
+    "mcp_log_title": "代理程式呼叫記錄",
+    "mcp_log_refresh": "重新整理",
+    "mcp_log_empty": "暫時沒有呼叫。",
+    "mcp_log_ok": "成功",
+    "mcp_log_ko": "錯誤",
     "proxy_title": "網絡代理伺服器",
     "proxy_hint": "用於更新及應用程式的互聯網連線。本機裁判伺服器不受影響。",
     "proxy_mode_system": "系統代理伺服器（建議）",
@@ -3828,6 +3833,17 @@
     "saved": "場地已儲存。",
     "deleted": "場地已刪除。",
     "name_required": "必須填寫名稱。",
-    "failed": "無法執行操作。"
+    "failed": "無法執行操作。",
+    "strips_title": "劍道標籤及 Cyrano 裝置",
+    "strips_hint": "標籤及 Cyrano 裝置均為選填。未填 IP 位址時，該劍道沒有裝置。",
+    "strip_row": "劍道 {{number}}",
+    "strip_label": "劍道 {{number}} 的標籤",
+    "strip_label_placeholder": "劍道 {{number}}",
+    "strip_ip": "劍道 {{number}} 的 Cyrano 裝置 IP 位址",
+    "strip_ip_placeholder": "IP 位址（選填）",
+    "strip_port": "劍道 {{number}} 的 Cyrano 裝置連接埠",
+    "strip_port_placeholder": "連接埠",
+    "strip_mode": "劍道 {{number}} 的 Cyrano 裝置模式",
+    "strip_invalid": "IPv4 位址或連接埠無效（劍道 {{number}}）。"
   }
 }

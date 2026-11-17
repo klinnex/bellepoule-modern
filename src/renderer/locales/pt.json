@@ -376,6 +376,11 @@
     "mcp_folders_default": "por omissão",
     "mcp_folder_add": "Adicionar uma pasta",
     "mcp_folder_remove": "Remover {{folder}}",
+    "mcp_log_title": "Registo de chamadas do agente",
+    "mcp_log_refresh": "Atualizar",
+    "mcp_log_empty": "Ainda sem chamadas.",
+    "mcp_log_ok": "sucesso",
+    "mcp_log_ko": "erro",
     "proxy_title": "Proxy de rede",
     "proxy_hint": "Utilizado para as atualizações e para o acesso à Internet da aplicação. O servidor local dos árbitros nunca é afetado.",
     "proxy_mode_system": "Proxy do sistema (recomendado)",
@@ -3828,6 +3833,17 @@
     "saved": "Sala guardada.",
     "deleted": "Sala eliminada.",
     "name_required": "O nome é obrigatório.",
-    "failed": "Ação impossível."
+    "failed": "Ação impossível.",
+    "strips_title": "Etiquetas e dispositivos Cyrano das pistas",
+    "strips_hint": "A etiqueta e o dispositivo Cyrano são opcionais. Sem endereço IP, a pista não tem dispositivo.",
+    "strip_row": "Pista {{number}}",
+    "strip_label": "Etiqueta da pista {{number}}",
+    "strip_label_placeholder": "Pista {{number}}",
+    "strip_ip": "Endereço IP do dispositivo Cyrano da pista {{number}}",
+    "strip_ip_placeholder": "Endereço IP (opcional)",
+    "strip_port": "Porta do dispositivo Cyrano da pista {{number}}",
+    "strip_port_placeholder": "Porta",
+    "strip_mode": "Modo do dispositivo Cyrano da pista {{number}}",
+    "strip_invalid": "Endereço IPv4 ou porta inválidos (pista {{number}})."
   }
 }

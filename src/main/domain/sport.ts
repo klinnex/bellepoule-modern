@@ -402,6 +402,8 @@ export interface RecordScoreInput {
   specialStatus?: PoolSpecialStatus;
   /** Égalité : tireur prioritaire (minute supplémentaire) */
   priority?: 'A' | 'B';
+  /** Simulation : contrôles et résultat (classement, vainqueur) sans rien écrire */
+  dryRun?: boolean;
 }
 
 /** Saisie d'un score, mêmes validations que l'écran ; poules et tableau */
@@ -464,67 +466,71 @@ function recordPoolScore(
   }
   const updatedPool = nextPools[poolIndex];
   const overallRanking = computeOverallRankingAllRoundsFor(nextPools, [], isLaser(comp));
-  ctx.db.transaction(() => {
-    ctx.db.updateMatch(match.id, {
-      scoreA: scores.scoreA,
-      scoreB: scores.scoreB,
-      status: MatchStatus.FINISHED,
-    });
-    if (loser && input.specialStatus) {
-      const previous = pools.flatMap(p => p.matches);
-      ctx.db.saveAbandonSnapshot(
-        loser.id,
-        comp.id,
-        pools.flatMap(p => p.fencers).find(f => f.id === loser.id)?.status ??
-          FencerStatus.CHECKED_IN,
-        input.specialStatus,
-        previous
-          .filter(m => m.fencerA?.id === loser.id || m.fencerB?.id === loser.id)
-          .map(m => ({
-            matchId: m.id,
-            status: m.status as string,
-            scoreA: m.scoreA ? { ...m.scoreA } : null,
-            scoreB: m.scoreB ? { ...m.scoreB } : null,
-          }))
-      );
-      ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
-      // Matchs du perdant modifiés (dont ce match, remis à 0 pour un forfait) : miroir en base
-      const before = new Map(previous.map(m => [m.id, m]));
-      const same = (a: unknown, b: unknown) =>
-        JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-      for (const m of nextPools.flatMap(p => p.matches)) {
-        const old = before.get(m.id);
-        if (!old) continue;
-        const changed =
-          m.id === match.id ||
-          old.status !== m.status ||
-          !same(old.scoreA, m.scoreA) ||
-          !same(old.scoreB, m.scoreB);
-        if (changed) {
-          ctx.db.updateMatch(m.id, { scoreA: m.scoreA, scoreB: m.scoreB, status: m.status });
+  if (!input.dryRun)
+    ctx.db.transaction(() => {
+      ctx.db.updateMatch(match.id, {
+        scoreA: scores.scoreA,
+        scoreB: scores.scoreB,
+        status: MatchStatus.FINISHED,
+      });
+      if (loser && input.specialStatus) {
+        const previous = pools.flatMap(p => p.matches);
+        ctx.db.saveAbandonSnapshot(
+          loser.id,
+          comp.id,
+          pools.flatMap(p => p.fencers).find(f => f.id === loser.id)?.status ??
+            FencerStatus.CHECKED_IN,
+          input.specialStatus,
+          previous
+            .filter(m => m.fencerA?.id === loser.id || m.fencerB?.id === loser.id)
+            .map(m => ({
+              matchId: m.id,
+              status: m.status as string,
+              scoreA: m.scoreA ? { ...m.scoreA } : null,
+              scoreB: m.scoreB ? { ...m.scoreB } : null,
+            }))
+        );
+        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+        // Matchs du perdant modifiés (dont ce match, remis à 0 pour un forfait) : miroir en base
+        const before = new Map(previous.map(m => [m.id, m]));
+        const same = (a: unknown, b: unknown) =>
+          JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+        for (const m of nextPools.flatMap(p => p.matches)) {
+          const old = before.get(m.id);
+          if (!old) continue;
+          const changed =
+            m.id === match.id ||
+            old.status !== m.status ||
+            !same(old.scoreA, m.scoreA) ||
+            !same(old.scoreB, m.scoreB);
+          if (changed) {
+            ctx.db.updateMatch(m.id, { scoreA: m.scoreA, scoreB: m.scoreB, status: m.status });
+          }
         }
       }
-    }
-    ctx.db.logScoreChange({
-      matchId: match.id,
-      previousScoreA: match.scoreA ?? undefined,
-      previousScoreB: match.scoreB ?? undefined,
-      newScoreA: scores.scoreA,
-      newScoreB: scores.scoreB,
-      changedBy: 'mcp',
-      reason: 'mcp_entry',
-      poolId: pool.id,
+      ctx.db.logScoreChange({
+        matchId: match.id,
+        previousScoreA: match.scoreA ?? undefined,
+        previousScoreB: match.scoreB ?? undefined,
+        newScoreA: scores.scoreA,
+        newScoreB: scores.scoreB,
+        changedBy: 'mcp',
+        reason: 'mcp_entry',
+        poolId: pool.id,
+      });
+      for (const p of nextPools) {
+        const old = pools.find(x => x.id === p.id);
+        const complete = p.matches.every(m => m.status === MatchStatus.FINISHED);
+        if (old && complete !== old.isComplete) ctx.db.updatePool({ ...p, isComplete: complete });
+      }
+      writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
     });
-    for (const p of nextPools) {
-      const old = pools.find(x => x.id === p.id);
-      const complete = p.matches.every(m => m.status === MatchStatus.FINISHED);
-      if (old && complete !== old.isComplete) ctx.db.updatePool({ ...p, isComplete: complete });
-    }
-    writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
-  });
-  emitSession(ctx, comp.id);
-  if (loser) ctx.emitChange?.({ scope: 'fencers', competitionIds: [comp.id] });
+  if (!input.dryRun) {
+    emitSession(ctx, comp.id);
+    if (loser) ctx.emitChange?.({ scope: 'fencers', competitionIds: [comp.id] });
+  }
   return {
+    dryRun: !!input.dryRun,
     kind: 'pool' as const,
     poolNumber: pool.number,
     pool: summarizePool(updatedPool),
@@ -725,22 +731,25 @@ function recordBracketScore(
   const finalResults = done
     ? calculateFinalResults(matches, tableauRanking(comp, session), size)
     : [];
-  ctx.db.transaction(() => {
-    // Journal des scores : écrit par l'upsert (auteur « mcp »)
-    persistTableau(ctx, comp, matches);
-    if (input.specialStatus) ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
-    // Tableau terminé : phase Résultats, comme onComplete à l'écran
-    writeSession(ctx, comp.id, {
-      tableauMatches: matches,
-      finalResults,
-      ...(done ? { currentPhase: PHASE.results } : {}),
+  if (!input.dryRun)
+    ctx.db.transaction(() => {
+      // Journal des scores : écrit par l'upsert (auteur « mcp »)
+      persistTableau(ctx, comp, matches);
+      if (input.specialStatus)
+        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+      // Tableau terminé : phase Résultats, comme onComplete à l'écran
+      writeSession(ctx, comp.id, {
+        tableauMatches: matches,
+        finalResults,
+        ...(done ? { currentPhase: PHASE.results } : {}),
+      });
     });
-  });
-  emitSession(ctx, comp.id);
-  if (input.specialStatus) {
-    ctx.emitChange?.({ scope: 'fencers', competitionIds: [comp.id] });
+  if (!input.dryRun) {
+    emitSession(ctx, comp.id);
+    if (input.specialStatus) ctx.emitChange?.({ scope: 'fencers', competitionIds: [comp.id] });
   }
   return {
+    dryRun: !!input.dryRun,
     kind: 'bracket' as const,
     match: bracketMatchView(m),
     bracketComplete: done,

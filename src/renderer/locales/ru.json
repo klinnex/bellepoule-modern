@@ -376,6 +376,11 @@
     "mcp_folders_default": "по умолчанию",
     "mcp_folder_add": "Добавить папку",
     "mcp_folder_remove": "Удалить {{folder}}",
+    "mcp_log_title": "Журнал вызовов агента",
+    "mcp_log_refresh": "Обновить",
+    "mcp_log_empty": "Вызовов пока нет.",
+    "mcp_log_ok": "успешно",
+    "mcp_log_ko": "ошибка",
     "proxy_title": "Сетевой прокси",
     "proxy_hint": "Используется для обновлений и доступа приложения в Интернет. Локальный сервер судей никогда не затрагивается.",
     "proxy_mode_system": "Системный прокси (рекомендуется)",
@@ -3828,6 +3833,17 @@
     "saved": "Зал сохранён.",
     "deleted": "Зал удалён.",
     "name_required": "Название обязательно.",
-    "failed": "Действие невозможно."
+    "failed": "Действие невозможно.",
+    "strips_title": "Названия дорожек и устройства Cyrano",
+    "strips_hint": "Название и устройство Cyrano необязательны. Без IP-адреса у дорожки нет устройства.",
+    "strip_row": "Дорожка {{number}}",
+    "strip_label": "Название дорожки {{number}}",
+    "strip_label_placeholder": "Дорожка {{number}}",
+    "strip_ip": "IP-адрес устройства Cyrano дорожки {{number}}",
+    "strip_ip_placeholder": "IP-адрес (необязательно)",
+    "strip_port": "Порт устройства Cyrano дорожки {{number}}",
+    "strip_port_placeholder": "Порт",
+    "strip_mode": "Режим устройства Cyrano дорожки {{number}}",
+    "strip_invalid": "Неверный IPv4-адрес или порт (дорожка {{number}})."
   }
 }

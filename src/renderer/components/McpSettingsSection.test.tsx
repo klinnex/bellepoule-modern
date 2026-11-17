@@ -61,6 +61,28 @@ describe('McpSettingsSection', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(/Jeton illisible dans ce contexte/);
   });
 
+  it('journal des appels : plus récent d’abord, erreurs signalées', async () => {
+    mcp.getLog.mockResolvedValue([
+      {
+        at: '2026-12-06T09:00:00Z',
+        method: 'tools/call',
+        tool: 'list_competitions',
+        ok: true,
+        ms: 3,
+      },
+      { at: '2026-12-06T09:01:00Z', method: 'tools/call', tool: 'record_score', ok: false, ms: 5 },
+    ]);
+    render(<McpSettingsSection />);
+    const tools = await screen.findAllByText(/list_competitions|record_score/);
+    expect(tools.map(e => e.textContent)).toEqual(['record_score', 'list_competitions']);
+    expect(screen.getByText('erreur')).toBeInTheDocument();
+  });
+
+  it('journal vide : message', async () => {
+    render(<McpSettingsSection />);
+    expect(await screen.findByText('Aucun appel pour le moment.')).toBeInTheDocument();
+  });
+
   it('dossiers de l’agent : défauts, ajout par le main, retrait', async () => {
     render(<McpSettingsSection />);
     expect(await screen.findByText('/home/dt/Documents')).toBeInTheDocument();
