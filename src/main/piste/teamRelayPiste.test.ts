@@ -274,6 +274,23 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     expect(team()).toMatchObject({ currentBoutIndex: 1, liveScoreA: 0, liveScoreB: 0 });
   });
 
+  it('relais intermédiaire avec abandon ou exclusion : NAK tracé, relais non enregistré', () => {
+    const warn = vi.spyOn(logger, 'warn');
+    start();
+    for (const status of ['A', 'E'] as const) {
+      out = [];
+      device(info('E', 1, { id: A[0], score: 3, status }, { id: B[0], score: 1 }));
+      expect(out).toEqual(['NAK']);
+    }
+    expect(mockDb.updateTeamBout).not.toHaveBeenCalled();
+    expect(team().currentBoutIndex).toBe(0);
+    expect(warn).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining('abandon ou exclusion')
+    );
+    warn.mockRestore();
+  });
+
   it('relais suivant : score du relais = cumul − relais terminés ; END répété (ACK perdu) → nouvel ACK', () => {
     start(1, [[5, 2]]);
     device(info('H', 2, { id: A[1], score: 7 }, { id: B[1], score: 6 }));

@@ -318,12 +318,18 @@ export class TeamRelayPiste {
       return;
     }
     // Le modèle d'équipe déduit le vainqueur du cumul : un vainqueur imposé par l'appareil
-    // (priorité à égalité, abandon, exclusion) ne peut pas être enregistré
-    if (view.isLast && pisteEndOutcome(state, sides).winner) {
+    // (priorité à égalité au dernier relais, abandon ou exclusion à n'importe quel relais) ne
+    // peut pas être enregistré. Jamais d'abandon ni d'exclusion perdus en silence : NAK tracé.
+    const forfeit = [sides.A, sides.B].some(
+      s => s.status === 'abandon' || s.status === 'exclusion'
+    );
+    if (forfeit || (view.isLast && pisteEndOutcome(state, sides).winner)) {
       this.send(piste, 'nak');
       logger.warn(
         LogCategory.NETWORK,
-        `Cyrano: NAK → ${piste} (fin de rencontre par équipes à vainqueur imposé : à saisir par le DT)`
+        `Cyrano: NAK → ${piste} (relais ${bout.boutOrder} : ` +
+          `${forfeit ? 'abandon ou exclusion' : 'vainqueur imposé'} non enregistrable par le ` +
+          `modèle d'équipe, à saisir par le DT)`
       );
       return;
     }
