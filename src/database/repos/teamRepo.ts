@@ -291,6 +291,23 @@ export class TeamRepo {
     }
   }
 
+  /**
+   * Rappel d'un relais terminé pour correction (#1829) : relais « en cours », vainqueur effacé,
+   * puis rencontre recalculée (statut, vainqueur, scores, relais courant) — y compris quand la
+   * rencontre était terminée.
+   */
+  public reopenTeamBout(boutId: string): void {
+    if (!this.sql.db) return;
+    this.sql.run(
+      `UPDATE team_bouts SET status = 'in_progress', winner_id = NULL, updated_at = ? WHERE id = ?`,
+      [new Date().toISOString(), boutId]
+    );
+    const bout = this.sql.queryOne<SqlRow>('SELECT match_id FROM team_bouts WHERE id = ?', [
+      boutId,
+    ]);
+    if (bout) this.recomputeTeamMatchScore(bout.match_id as string);
+  }
+
   /** Remplaçant (#1829) : tireur d'un côté d'un relais pas encore tiré. */
   public setTeamBoutFencer(boutId: string, side: 'A' | 'B', fencerId: string): void {
     if (!this.sql.db) return;

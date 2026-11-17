@@ -89,6 +89,7 @@ const mockDb = {
   getTeamMatchCards: vi.fn().mockReturnValue([]),
   updateTeamBout: vi.fn(),
   setTeamBoutFencer: vi.fn(),
+  reopenTeamBout: vi.fn(),
   getTeamsByCompetition: vi.fn().mockReturnValue([
     {
       id: 'tA',

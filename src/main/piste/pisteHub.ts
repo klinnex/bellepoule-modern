@@ -191,6 +191,12 @@ export class PisteHub {
       const open = all.filter(r => r.hasSession());
       chosen = open.length === 1 ? open[0] : null;
     }
+    // Rencontre par équipes terminée, toujours assignée à l'arène (PREV, END répété)
+    if (!chosen && status.arena) {
+      const n = status.arena;
+      const teams = all.filter(r => this.team.hasArena(r, n));
+      chosen = teams.length === 1 ? teams[0] : null;
+    }
     if (commit && chosen && chosen !== previous) {
       if (previous) {
         logger.info(

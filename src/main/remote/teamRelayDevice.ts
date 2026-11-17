@@ -122,7 +122,8 @@ export function reopenPreviousRelay(ctx: TeamArenaContext, arenaId: string): boo
       state.timerStartedAt !== null)
   )
     return false;
-  ctx.db.updateTeamBout(previous.id, previous.scoreA, previous.scoreB, 'in_progress', null);
+  // Rencontre recalculée en base : statut « en cours », vainqueur effacé, scores (#1829)
+  ctx.db.reopenTeamBout(previous.id);
   previous.status = 'in_progress';
   previous.winnerId = null;
   state.currentBoutIndex = state.bouts.indexOf(previous);

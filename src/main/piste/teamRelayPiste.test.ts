@@ -94,6 +94,7 @@ const mockDb = {
   getTeamMatchCards: vi.fn().mockReturnValue([]),
   updateTeamBout: vi.fn(),
   setTeamBoutFencer: vi.fn(),
+  reopenTeamBout: vi.fn(),
   getTeamsByCompetition: vi.fn().mockReturnValue([
     {
       id: 'tA',
@@ -384,7 +385,7 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
         [5, 5],
       ]);
       device('|EFP1.1|PREV|1||%|');
-      expect(mockDb.updateTeamBout).toHaveBeenCalledWith('bout2', 5, 5, 'in_progress', null);
+      expect(mockDb.reopenTeamBout).toHaveBeenCalledWith('bout2');
       expect(team()).toMatchObject({ currentBoutIndex: 1, liveScoreA: 5, liveScoreB: 5 });
       expect(lastDisp()).toMatchObject({ round: '2', right: { score: 10 }, left: { score: 7 } });
       // Correction puis nouvelle validation
@@ -393,13 +394,24 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
       expect(lastDisp()).toMatchObject({ round: '3', right: { score: 9 }, left: { score: 7 } });
     });
 
+    it('PREV après la fin de la rencontre : dernier relais rouvert, rencontre recalculée en base', () => {
+      start(
+        9,
+        Array.from({ length: 9 }, () => [5, 4] as [number, number])
+      );
+      device('|EFP1.1|PREV|1||%|');
+      expect(mockDb.reopenTeamBout).toHaveBeenCalledWith('bout9');
+      expect(team()).toMatchObject({ currentBoutIndex: 8, liveScoreA: 5, liveScoreB: 4 });
+      expect(lastDisp()).toMatchObject({ round: '9', right: { score: 45 }, left: { score: 36 } });
+    });
+
     it('PREV refusé une fois le relais en cours commencé', () => {
       start(1, [[5, 2]]);
       device(info('H', 2, { id: A[1], score: 6 }, { id: B[1], score: 2 }));
       out = [];
       device('|EFP1.1|PREV|1||%|');
       expect(team().currentBoutIndex).toBe(1);
-      expect(mockDb.updateTeamBout).not.toHaveBeenCalled();
+      expect(mockDb.reopenTeamBout).not.toHaveBeenCalled();
       expect(lastDisp()).toMatchObject({ round: '2', right: { score: 6 } });
     });
 
