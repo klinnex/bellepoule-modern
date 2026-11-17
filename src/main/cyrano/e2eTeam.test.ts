@@ -127,6 +127,13 @@ describe('Cyrano bout en bout : relais par équipes, UDP réel (#1829)', { timeo
   let device: InstanceType<typeof CyranoDevice>;
   let hub: PisteHub;
   let acks = 0;
+  /**
+   * DISP reçus par l'appareil. Après l'ACK d'un relais, le logiciel en envoie deux : celui du
+   * relais suivant, puis un second en réponse à l'état « attente » que l'appareil émet à
+   * l'ACK (il montre encore l'ancien relais). Les tests attendent les deux avant d'appuyer sur
+   * une touche : le simulateur applique un DISP reçu en plein relais, qui effacerait la touche.
+   */
+  let disps = 0;
   const team = () => remote.teamArenaCtx.teamArenaState.get('1')!;
   const snap = () => device.snapshot();
 
@@ -136,6 +143,9 @@ describe('Cyrano bout en bout : relais par équipes, UDP réel (#1829)', { timeo
     const serverPort = await cyrano.start(0);
     device = new CyranoDevice({ piste: '1', port: 0, serverPort, server: '127.0.0.1' });
     await device.start();
+    device.sock.on('message', (buf: Buffer) => {
+      if (buf.toString('latin1').includes('|DISP|')) disps++;
+    });
     device.port = device.sock.address().port;
     cyrano.setPistes([{ piste: '1', ip: '127.0.0.1', port: device.port, arena: 1 }]);
     hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote);
@@ -172,9 +182,10 @@ describe('Cyrano bout en bout : relais par équipes, UDP réel (#1829)', { timeo
   });
 
   it('VALIDATE → ACK → relais 2 affiché avec les scores cumulés', async () => {
+    const seen = disps;
     device.command('validate');
     await until(() => acks >= 1);
-    await until(() => snap().relay === 2 && snap().state === 'W');
+    await until(() => disps >= seen + 2 && snap().relay === 2 && snap().state === 'W');
     expect(mockDb.updateTeamBout).toHaveBeenCalledWith('bout1', 5, 2, 'finished', A[0]);
     expect(snap()).toMatchObject({
       right: { id: short(A[1]), score: 5 },
@@ -193,8 +204,9 @@ describe('Cyrano bout en bout : relais par équipes, UDP réel (#1829)', { timeo
   });
 
   it('VALIDATE → relais 3 ; PREV avant BEGIN → relais 2 rappelé aux mêmes cumuls', async () => {
+    const seen = disps;
     device.command('validate');
-    await until(() => acks >= 2 && snap().relay === 3 && snap().state === 'W');
+    await until(() => acks >= 2 && disps >= seen + 2 && snap().relay === 3 && snap().state === 'W');
     // Remplaçant accepté à la fin du relais : A2 tire les relais 2, 5 et 8, remplacé dans 5 et 8
     expect(mockDb.setTeamBoutFencer.mock.calls).toEqual([
       ['bout5', 'A', A[3]],
