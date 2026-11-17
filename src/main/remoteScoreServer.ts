@@ -234,6 +234,13 @@ import { getUiLanguage } from './menuLabels';
 import { isWebhookUrlSafe } from '../shared/services/notificationService';
 import { postWebhook } from './webhook';
 import { sendClientListToWindow } from './remoteRegistry';
+import {
+  createArena,
+  initializeArenas,
+  dropPendingPoolMatches,
+  ARENA_SETUP_CONTEXT_KEYS,
+  type ArenaSetupContext,
+} from './remote/arenaSetup';
 import { ClientRegistry, type ConnectedClient } from './remote/clientRegistry';
 import { getSharedMainWindow } from './mainWindowRef';
 import { logger, LogCategory } from '../shared/services/logger';
@@ -414,175 +421,104 @@ export class RemoteScoreServer {
     return this.clients.screenLabels;
   }
 
+  /** Contextes des modules remote/* : un seul objet liveContext par liste de clés (#1896) */
+  private readonly ctxCache = new Map<object, unknown>();
+  private ctx<C extends object>(keys: {
+    readonly state: readonly string[];
+    readonly methods: readonly string[];
+  }): C {
+    let c = this.ctxCache.get(keys) as C | undefined;
+    if (!c) {
+      c = liveContext<C>(this, keys.state, keys.methods);
+      this.ctxCache.set(keys, c);
+    }
+    return c;
+  }
+
   /** Contexte de socketHandlers.ts (#1240) */
   private get socketCtx(): SocketHandlersContext {
-    return (this._socketCtx ??= liveContext<SocketHandlersContext>(
-      this,
-      SOCKET_HANDLERS_CONTEXT_KEYS.state,
-      SOCKET_HANDLERS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<SocketHandlersContext>(SOCKET_HANDLERS_CONTEXT_KEYS);
   }
-  private _socketCtx?: SocketHandlersContext;
 
   /** Contexte de arenaControl.ts (#1240) */
   private get arenaControlCtx(): ArenaControlContext {
-    return (this._arenaControlCtx ??= liveContext<ArenaControlContext>(
-      this,
-      ARENA_CONTROL_CONTEXT_KEYS.state,
-      ARENA_CONTROL_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<ArenaControlContext>(ARENA_CONTROL_CONTEXT_KEYS);
   }
-  private _arenaControlCtx?: ArenaControlContext;
 
   /** Contexte de middleware.ts (#1240) */
   private get middlewareCtx(): MiddlewareContext {
-    return (this._middlewareCtx ??= liveContext<MiddlewareContext>(
-      this,
-      MIDDLEWARE_CONTEXT_KEYS.state,
-      MIDDLEWARE_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<MiddlewareContext>(MIDDLEWARE_CONTEXT_KEYS);
   }
-  private _middlewareCtx?: MiddlewareContext;
 
   /** Contexte de trainingSession.ts (#1240) */
   private get trainingSessionCtx(): TrainingSessionContext {
-    return (this._trainingSessionCtx ??= liveContext<TrainingSessionContext>(
-      this,
-      TRAINING_SESSION_CONTEXT_KEYS.state,
-      TRAINING_SESSION_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<TrainingSessionContext>(TRAINING_SESSION_CONTEXT_KEYS);
   }
-  private _trainingSessionCtx?: TrainingSessionContext;
 
   /** Contexte de teamArena.ts (#1240) */
   private get teamArenaCtx(): TeamArenaContext {
-    return (this._teamArenaCtx ??= liveContext<TeamArenaContext>(
-      this,
-      TEAM_ARENA_CONTEXT_KEYS.state,
-      TEAM_ARENA_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<TeamArenaContext>(TEAM_ARENA_CONTEXT_KEYS);
   }
-  private _teamArenaCtx?: TeamArenaContext;
 
   /** Contexte de poolSync.ts (#1240) */
   private get poolSyncCtx(): PoolSyncContext {
-    return (this._poolSyncCtx ??= liveContext<PoolSyncContext>(
-      this,
-      POOL_SYNC_CONTEXT_KEYS.state,
-      POOL_SYNC_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<PoolSyncContext>(POOL_SYNC_CONTEXT_KEYS);
   }
-  private _poolSyncCtx?: PoolSyncContext;
 
   /** Contexte de sessionStart.ts (#1240) */
   private get sessionStartCtx(): SessionStartContext {
-    return (this._sessionStartCtx ??= liveContext<SessionStartContext>(
-      this,
-      SESSION_START_CONTEXT_KEYS.state,
-      SESSION_START_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<SessionStartContext>(SESSION_START_CONTEXT_KEYS);
   }
-  private _sessionStartCtx?: SessionStartContext;
 
   /** Contexte de matchFinish.ts (#1240) */
   private get matchFinishCtx(): MatchFinishContext {
-    return (this._matchFinishCtx ??= liveContext<MatchFinishContext>(
-      this,
-      MATCH_FINISH_CONTEXT_KEYS.state,
-      MATCH_FINISH_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<MatchFinishContext>(MATCH_FINISH_CONTEXT_KEYS);
   }
-  private _matchFinishCtx?: MatchFinishContext;
 
   /** Contexte de arenaBroadcast.ts (#1240) */
   private get arenaBroadcastCtx(): ArenaBroadcastContext {
-    return (this._arenaBroadcastCtx ??= liveContext<ArenaBroadcastContext>(
-      this,
-      ARENA_BROADCAST_CONTEXT_KEYS.state,
-      ARENA_BROADCAST_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<ArenaBroadcastContext>(ARENA_BROADCAST_CONTEXT_KEYS);
   }
-  private _arenaBroadcastCtx?: ArenaBroadcastContext;
 
   /** Contexte de lifecycle.ts (#1240) */
   private get lifecycleCtx(): LifecycleContext {
-    return (this._lifecycleCtx ??= liveContext<LifecycleContext>(
-      this,
-      LIFECYCLE_CONTEXT_KEYS.state,
-      LIFECYCLE_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<LifecycleContext>(LIFECYCLE_CONTEXT_KEYS);
   }
-  private _lifecycleCtx?: LifecycleContext;
 
   /** Contexte de sessionOps.ts (#1240) */
   private get sessionOpsCtx(): SessionOpsContext {
-    return (this._sessionOpsCtx ??= liveContext<SessionOpsContext>(
-      this,
-      SESSION_OPS_CONTEXT_KEYS.state,
-      SESSION_OPS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<SessionOpsContext>(SESSION_OPS_CONTEXT_KEYS);
   }
-  private _sessionOpsCtx?: SessionOpsContext;
 
   /** Contexte de accessGuards.ts (#1240) */
   private get accessGuardsCtx(): AccessGuardsContext {
-    return (this._accessGuardsCtx ??= liveContext<AccessGuardsContext>(
-      this,
-      ACCESS_GUARDS_CONTEXT_KEYS.state,
-      ACCESS_GUARDS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<AccessGuardsContext>(ACCESS_GUARDS_CONTEXT_KEYS);
   }
-  private _accessGuardsCtx?: AccessGuardsContext;
 
   /** Contexte de arenaOps.ts (#1240) */
   private get arenaOpsCtx(): ArenaOpsContext {
-    return (this._arenaOpsCtx ??= liveContext<ArenaOpsContext>(
-      this,
-      ARENA_OPS_CONTEXT_KEYS.state,
-      ARENA_OPS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<ArenaOpsContext>(ARENA_OPS_CONTEXT_KEYS);
   }
-  private _arenaOpsCtx?: ArenaOpsContext;
 
   /** Contexte de arenaQueue.ts (#1240) */
   private get arenaQueueCtx(): ArenaQueueContext {
-    return (this._arenaQueueCtx ??= liveContext<ArenaQueueContext>(
-      this,
-      ARENA_QUEUE_CONTEXT_KEYS.state,
-      ARENA_QUEUE_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<ArenaQueueContext>(ARENA_QUEUE_CONTEXT_KEYS);
   }
-  private _arenaQueueCtx?: ArenaQueueContext;
 
   /** Contexte de sessionSettings.ts (#1240) */
   private get sessionSettingsCtx(): SessionSettingsContext {
-    return (this._sessionSettingsCtx ??= liveContext<SessionSettingsContext>(
-      this,
-      SESSION_SETTINGS_CONTEXT_KEYS.state,
-      SESSION_SETTINGS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<SessionSettingsContext>(SESSION_SETTINGS_CONTEXT_KEYS);
   }
-  private _sessionSettingsCtx?: SessionSettingsContext;
 
   /** Contexte de blackCards.ts (#1240) */
   private get blackCardsCtx(): BlackCardsContext {
-    return (this._blackCardsCtx ??= liveContext<BlackCardsContext>(
-      this,
-      BLACK_CARDS_CONTEXT_KEYS.state,
-      BLACK_CARDS_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<BlackCardsContext>(BLACK_CARDS_CONTEXT_KEYS);
   }
-  private _blackCardsCtx?: BlackCardsContext;
 
   /** Contexte de dashboard.ts (#1240) */
   private get dashboardCtx(): DashboardContext {
-    return (this._dashboardCtx ??= liveContext<DashboardContext>(
-      this,
-      DASHBOARD_CONTEXT_KEYS.state,
-      DASHBOARD_CONTEXT_KEYS.methods
-    ));
+    return this.ctx<DashboardContext>(DASHBOARD_CONTEXT_KEYS);
   }
-  private _dashboardCtx?: DashboardContext;
 
   constructor(
     db: DatabaseManager,
@@ -929,25 +865,9 @@ export class RemoteScoreServer {
     }
   }
 
-  /** Fin des vagues : match de poule non commencé retiré des pistes, place au tableau (#1118) */
+  /** Fin des vagues : match de poule non commencé retiré des pistes (#1118) */
   private dropPendingPoolMatches(): void {
-    for (const [arenaId, arena] of this.arenas) {
-      const cur = arena.currentMatch;
-      if (!cur?.poolId || cur.isTableau || arena.status === 'in_progress') continue;
-      this.arenaRefereeSelected.set(arenaId, false);
-      const queue = (this.arenaMatchQueue.get(arenaId) || []).filter(m => !m.poolId || m.isTableau);
-      const next = queue[0];
-      this.arenaMatchQueue.set(arenaId, queue.slice(next ? 1 : 0));
-      if (next) {
-        this.assignMatchToArena(arenaId, next);
-      } else {
-        arena.currentMatch = null;
-        arena.status = 'idle';
-        arena.startTime = null;
-        this.updateArena(arenaId, { status: 'idle', currentMatch: null, startTime: null });
-        this.persistArenaState(arenaId);
-      }
-    }
+    dropPendingPoolMatches(this.ctx<ArenaSetupContext>(ARENA_SETUP_CONTEXT_KEYS));
   }
 
   /** Sous-piste attribuée à une tablette arbitre pendant les vagues, sinon la piste (#1118) */
@@ -981,45 +901,10 @@ export class RemoteScoreServer {
   }
 
   private createArena(i: number): void {
-    const arena: Arena = {
-      id: `arena${i}`,
-      name: `Arène ${i}`,
-      number: i,
-      currentMatch: null,
-      status: 'idle',
-      startTime: null,
-      settings: {
-        matchDuration: 180, // 3 minutes par défaut
-        breakDuration: 30, // 30 secondes entre les matchs
-        autoAdvance: false,
-      },
-    };
-    this.arenas.set(arena.id, arena);
-    this.arenaMatchQueue.set(arena.id, []);
-    logger.info(NET, `[RemoteScoreServer] Arène ${i} créée ✓`);
+    createArena(this.ctx<ArenaSetupContext>(ARENA_SETUP_CONTEXT_KEYS), i);
   }
-
   private initializeArenas(arenaCount: number = 4): void {
-    this.arenaCount = arenaCount;
-    logger.info(NET, `[RemoteScoreServer] Initialisation de ${arenaCount} arènes...`);
-    // Sauvegarder les mots de passe avant de vider la map
-    const savedPasswords = new Map<string, string>();
-    this.arenas.forEach((arena, id) => {
-      if (arena.password) savedPasswords.set(id, arena.password);
-    });
-    this.arenas.clear();
-    this.arenaEventBuffer.clear();
-    this.arenaMatchQueue.clear();
-    this.arenaNextMatchIndex.clear();
-    this.clearArenaCombatState();
-
-    for (let i = 1; i <= arenaCount; i++) this.createArena(i);
-    // Restaurer les mots de passe sauvegardés
-    savedPasswords.forEach((pwd, id) => {
-      const arena = this.arenas.get(id);
-      if (arena) arena.password = pwd;
-    });
-    logger.info(NET, `[RemoteScoreServer] ${arenaCount} arènes initialisées avec succès ✓`);
+    initializeArenas(this.ctx<ArenaSetupContext>(ARENA_SETUP_CONTEXT_KEYS), arenaCount);
   }
 
   public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void {
