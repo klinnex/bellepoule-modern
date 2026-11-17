@@ -10,7 +10,7 @@ import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
-import { registerDbHandlers } from './ipc/dbHandlers';
+import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
 import { createMenuActions } from './menuActions';
@@ -161,6 +161,8 @@ registerCyranoHandlers({ cyranoServer, pisteHub, db });
 const mcp = createMcpController({
   deps: {
     db,
+    // Écritures de l'agent : écran rafraîchi (#1880, lot 2)
+    notify: (type, competitionId) => emitCompetitionEvent(type, competitionId),
     remoteServers: () => [...remoteServers.entries()],
     cyranoStatus: () => {
       const alerts = pisteHub.getAlerts();

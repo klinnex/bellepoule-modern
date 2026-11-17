@@ -360,6 +360,7 @@
     "mcp_title": "AI agent (MCP)",
     "mcp_hint": "Read-only MCP server for Claude or another agent: events, pools, bracket, referees, day, strips. Listens on 127.0.0.1 only, with a token. Off by default.",
     "mcp_enable": "Enable the MCP server",
+    "mcp_allow_write": "Allow writing (create an event, import fencers, check in)",
     "mcp_port": "Port",
     "mcp_running": "Running: {{url}}",
     "mcp_error": "Error: {{error}}",

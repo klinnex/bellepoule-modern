@@ -5,7 +5,7 @@
 
 import { ipcMain } from 'electron';
 import { McpServer } from '../mcp/mcpServer';
-import type { McpDeps } from '../mcp/mcpTools';
+import type { McpWriteDeps } from '../mcp/mcpWriteTools';
 import {
   getMcpToken,
   readMcpSettings,
@@ -18,7 +18,7 @@ import { logger, LogCategory, toError } from '../../shared/services/logger';
 import type { McpStatus } from '../../shared/types/mcp';
 
 export interface McpHandlersContext {
-  deps: McpDeps;
+  deps: McpWriteDeps;
   userDataDir: () => string;
   secretBox: SecretBox;
   version: string;
@@ -32,6 +32,7 @@ export function createMcpController({ deps, userDataDir, secretBox, version }: M
     const s = readMcpSettings(userDataDir());
     return {
       enabled: s.enabled,
+      allowWrite: s.allowWrite,
       running: server.running,
       port: server.running ? server.port : s.port,
       url: server.running ? `http://127.0.0.1:${server.port}/mcp` : null,
@@ -52,6 +53,7 @@ export function createMcpController({ deps, userDataDir, secretBox, version }: M
           token: getMcpToken(userDataDir(), secretBox),
           version,
           deps,
+          allowWrite: s.allowWrite,
         });
     } catch (e) {
       lastError = toError(e).message;

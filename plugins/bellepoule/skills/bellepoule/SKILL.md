@@ -5,7 +5,7 @@ description: Interroger une journée d'escrime gérée par BellePoule Modern (é
 
 # BellePoule Modern — agent en lecture
 
-Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). Il n'écrit rien.
+Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). Si le DT a coché « Autoriser l'écriture », il peut aussi créer une épreuve (`create_competition`), importer des tireurs (`import_fencers`) et pointer (`check_in`).
 
 ## Vocabulaire
 - **Épreuve / compétition** : une arme (E épée, F fleuret, S sabre), un sexe, une catégorie (U13… Vétérans).
@@ -20,6 +20,6 @@ Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). I
 2. Puis l'outil ciblé : `get_pool_ranking`, `get_bracket`, `list_fencers`, `list_referees`, `day_overview` avec `dayId`, `strip_occupation`, `server_status`, `cyrano_status`.
 
 ## Garde-fous
-- Lecture seule : ne pas promettre de modification ; renvoyer le DT vers l'application.
+- Écriture : toujours appeler d'abord avec `dryRun: true`, montrer le rapport au DT, écrire seulement après son accord. Sans autorisation d'écriture, renvoyer le DT vers l'application.
 - Données personnelles : ne pas recopier plus que nécessaire (RGPD). Le serveur ne fournit ni date de naissance, ni licence, ni photo.
 - Si le serveur ne répond pas : BellePoule Modern doit être lancé, avec Paramètres → Système → Agent IA (MCP) activé ; jeton dans `BELLEPOULE_MCP_TOKEN`.

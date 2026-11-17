@@ -360,6 +360,7 @@
     "mcp_title": "Ajant IA (MCP)",
     "mcp_hint": "Servijer MCP lenn hepken evit Claude pe un ajant all : kenstrivadegoù, poulennoù, taolenn, barnerien, devezh, roudennoù. War 127.0.0.1 hepken, gant ur jedouer. Diweredekaet dre ziouer.",
     "mcp_enable": "Gweredekaat ar servijer MCP",
+    "mcp_allow_write": "Aotren ar skrivañ (krouiñ ur genstrivadeg, enporzhiañ emgannerien, merkañ)",
     "mcp_port": "Porzh",
     "mcp_running": "O vont en-dro : {{url}}",
     "mcp_error": "Fazi : {{error}}",
