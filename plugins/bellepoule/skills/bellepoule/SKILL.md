@@ -5,7 +5,7 @@ description: Interroger une journée d'escrime gérée par BellePoule Modern (é
 
 # BellePoule Modern — agent en lecture
 
-Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). Si le DT a coché « Autoriser l'écriture », il peut aussi créer une épreuve (`create_competition`), importer des tireurs (`import_fencers`) et pointer (`check_in`).
+Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). Si le DT a coché « Autoriser l'écriture », il peut aussi préparer une journée (`import_day`), créer une épreuve (`create_competition`), importer des tireurs et des arbitres (`import_fencers`, `import_referees`), pointer (`check_in`), puis conduire l'épreuve : poules (`generate_pools`, `assign_referees`), scores (`record_score`), tableau (`build_bracket`), résultats (`export_results`).
 
 ## Vocabulaire
 - **Épreuve / compétition** : une arme (E épée, F fleuret, S sabre), un sexe, une catégorie (U13… Vétérans).
@@ -19,7 +19,16 @@ Le serveur MCP `bellepoule` lit la base du poste du directoire technique (DT). S
 1. `list_competitions` (ou `day_overview` sans argument pour les journées).
 2. Puis l'outil ciblé : `get_pool_ranking`, `get_bracket`, `list_fencers`, `list_referees`, `day_overview` avec `dayId`, `strip_occupation`, `server_status`, `cyrano_status`.
 
+## Conduire une épreuve (écriture autorisée)
+1. `list_fencers` → `check_in` → `generate_pools` (`dryRun: true` pour montrer le tirage, puis réel) → `assign_referees`.
+2. `list_matches` (`state: "ready"`) donne les `matchId` → `record_score`. Égalité : demander le vainqueur (`winner`) ; abandon, forfait, exclusion : `specialStatus` + `winner`.
+3. Poules terminées → `build_bracket` (demander la petite finale si l'épreuve ne la fixe pas) → `record_score` au tableau → `export_results` (`xml` pour la fédération, `pdf` pour l'affichage).
+4. Équipes, rapières, plusieurs tours de poules et « toutes les places » se pilotent à l'écran (erreur `unsupported_format`).
+
 ## Garde-fous
+- Scores : ne saisir que des scores donnés par le DT ou lus sur une feuille qu'il fournit (`record_score` n'a pas de `dryRun`).
+- Destructif : `delete_competition`, `stop_remote_server`, et `replace: true` sur `generate_pools` / `build_bracket` demandent l'accord explicite du DT.
+- Fichiers : lus et écrits seulement dans les dossiers accessibles à l'agent (Paramètres → Système → Agent IA ; par défaut Documents, Téléchargements, Bureau).
 - Écriture : toujours appeler d'abord avec `dryRun: true`, montrer le rapport au DT, écrire seulement après son accord. Sans autorisation d'écriture, renvoyer le DT vers l'application.
 - Données personnelles : ne pas recopier plus que nécessaire (RGPD). Le serveur ne fournit ni date de naissance, ni licence, ni photo.
 - Si le serveur ne répond pas : BellePoule Modern doit être lancé, avec Paramètres → Système → Agent IA (MCP) activé ; jeton dans `BELLEPOULE_MCP_TOKEN`.

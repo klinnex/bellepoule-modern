@@ -18,6 +18,7 @@ import {
 } from './core';
 import { getActiveLocale } from '../localeFormat';
 import { statusCode, finalRankLabel } from '../forfeit';
+import { escHtml } from './bookToc';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
@@ -55,22 +56,23 @@ export function generateResultsHTML(
             : '';
       return `
 <tr>
-  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${finalRankLabel(r.rank, r.fencer, r.eliminatedAt)}</td>
-  <td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${status}</td>
-  <td>${r.fencer.firstName ?? ''}</td>
-  <td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>
-  <td style="text-align:center;color:var(--gray-dark)">${r.eliminatedAt ?? '-'}</td>
+  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${escHtml(String(finalRankLabel(r.rank, r.fencer, r.eliminatedAt)))}</td>
+  <td style="font-weight:600">${escHtml(r.fencer.lastName.toUpperCase())}${status}</td>
+  <td>${escHtml(r.fencer.firstName ?? '')}</td>
+  <td style="color:var(--gray-dark)">${escHtml(r.fencer.club ?? '')}</td>
+  <td style="text-align:center;color:var(--gray-dark)">${escHtml(r.eliminatedAt ?? '-')}</td>
 </tr>`;
     })
     .join('');
 
-  const effectiveTitle = template?.customTitle?.trim() || title;
+  // Données saisies (titre, noms, clubs) échappées : le HTML est rendu en PDF (#1880)
+  const effectiveTitle = escHtml(template?.customTitle?.trim() || title);
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   const sections: Record<string, string> = {
     header: `
   <div class="doc-header">
-    ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
+    ${logoBase64 ? `<img class="doc-header-logo" src="${escHtml(logoBase64)}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
       <div class="subtitle">${pdfT('final_ranking', 'Classement final')} — ${pdfT('fencers_count', results.length > 1 ? '{{count}} tireurs' : '{{count}} tireur', { count: results.length })}</div>

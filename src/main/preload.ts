@@ -228,6 +228,23 @@ const electronApi = {
       ipcRenderer.invoke('eventDay:setAutoAssign', dayId, on),
   },
 
+  // Paramétrage global du poste et salles (#1880)
+  settings: {
+    get: () => ipcRenderer.invoke('settings:get'),
+    update: (updates: Record<string, unknown>) => ipcRenderer.invoke('settings:update', updates),
+    importLegacy: (values: Record<string, string | null>, mode: 'missing' | 'write') =>
+      ipcRenderer.invoke('settings:importLegacy', values, mode),
+    resolve: (key: string, scope?: { competitionId?: string; eventDayId?: string }) =>
+      ipcRenderer.invoke('settings:resolve', key, scope ?? {}),
+    listVenues: () => ipcRenderer.invoke('settings:listVenues'),
+    upsertVenue: (input: import('../shared/types/appSettings').VenueInput) =>
+      ipcRenderer.invoke('settings:upsertVenue', input),
+    setDefaultVenue: (id: string) => ipcRenderer.invoke('settings:setDefaultVenue', id),
+    deleteVenue: (id: string) => ipcRenderer.invoke('settings:deleteVenue', id),
+    getAgentFolders: () => ipcRenderer.invoke('settings:getAgentFolders'),
+    addAgentFolder: () => ipcRenderer.invoke('settings:addAgentFolder'),
+    removeAgentFolder: (folder: string) => ipcRenderer.invoke('settings:removeAgentFolder', folder),
+  },
   // Mode Club (#1872)
   club: {
     listClubs: () => ipcRenderer.invoke('club:listClubs'),

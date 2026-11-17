@@ -20,31 +20,51 @@ import {
 import { syncDay } from '../ipc/eventDayHandlers';
 import { identityKey } from '../../database/repos/privacyRepo';
 import { McpToolError, type McpDeps, type McpTool } from './mcpTools';
+import { isWithinRoots } from '../domain/files';
 
 /** Écran à rafraîchir après une écriture de l'agent */
 export type McpNotify = (
-  type: 'competitions:changed' | 'fencers:changed',
+  type: 'competitions:changed' | 'fencers:changed' | 'session:changed',
   competitionId?: string
 ) => void;
 
 export interface McpWriteDeps extends McpDeps {
   notify: McpNotify;
+  /** Dossiers où l'agent lit et écrit des fichiers ; absent = aucune restriction (tests, CLI) */
+  allowedRoots?: () => string[];
+  /** Serveur distant d'une épreuve (start_remote_server / stop_remote_server) */
+  startRemote?: (
+    competitionId: string,
+    port?: number
+  ) => Promise<{ success: boolean; error?: string; serverInfo?: unknown }>;
+  stopRemote?: (competitionId: string) => boolean;
+  /** Rendu HTML → PDF (export_results) */
+  renderPdf?: (html: string) => Promise<Buffer>;
 }
 
 type Args = Record<string, unknown>;
 
+/** Dossier (chemin réel, liens résolus) dans un des dossiers accessibles à l'agent */
+function isInsideRoots(dir: string, roots: readonly string[]): boolean {
+  try {
+    return isWithinRoots(fs.realpathSync.native(dir), roots);
+  } catch {
+    return false;
+  }
+}
+
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 const IMPORT_EXTENSIONS = ['.xml', '.txt', '.csv', '.fff'];
 
-const pick = <T extends string>(value: unknown, allowed: readonly T[], key: string): T => {
+export const pick = <T extends string>(value: unknown, allowed: readonly T[], key: string): T => {
   if (typeof value === 'string' && (allowed as readonly string[]).includes(value))
     return value as T;
   throw new McpToolError(`« ${key} » doit valoir : ${allowed.join(', ')}`);
 };
 
-const dryRunOf = (args: Args) => args.dryRun === true;
+export const dryRunOf = (args: Args) => args.dryRun === true;
 
-const competitionOrThrow = (deps: McpDeps, id: unknown) => {
+export const competitionOrThrow = (deps: McpDeps, id: unknown) => {
   if (typeof id !== 'string' || !id) throw new McpToolError('Argument « competitionId » requis');
   const c = deps.db.getCompetition(id);
   if (!c) throw new McpToolError(`Compétition inconnue : ${id}`);
@@ -52,7 +72,11 @@ const competitionOrThrow = (deps: McpDeps, id: unknown) => {
 };
 
 /** Clés d'identité : licence si connue, et nom + prénom (doublon dès qu'une clé coïncide) */
-const keysOf = (f: { lastName?: string; firstName?: string; license?: string }): string[] => {
+export const keysOf = (f: {
+  lastName?: string;
+  firstName?: string;
+  license?: string;
+}): string[] => {
   const keys = [identityKey({ lastName: f.lastName, firstName: f.firstName })];
   if (f.license) keys.push(identityKey({ license: f.license }));
   return keys;
@@ -79,12 +103,25 @@ function competitionData(args: Args) {
   };
 }
 
-/** Lit un fichier du poste DT : chemin absolu, extension autorisée, 5 Mo maximum */
-function readImportFile(file: unknown, extensions: string[]): string {
+/**
+ * Lit un fichier du poste DT : chemin absolu, extension autorisée, 5 Mo maximum, et dans
+ * un dossier accessible à l'agent (Paramètres → Agent IA) quand `roots` est fourni.
+ */
+export function readImportFile(
+  file: unknown,
+  extensions: string[],
+  roots?: readonly string[]
+): string {
   const p = typeof file === 'string' ? file : '';
   if (!path.isAbsolute(p)) throw new McpToolError('Le chemin doit être absolu');
   if (!extensions.includes(path.extname(p).toLowerCase())) {
     throw new McpToolError(`Extension acceptée : ${extensions.join(', ')}`);
+  }
+  // Vérifié avant l'ouverture : l'agent n'apprend rien d'un chemin hors périmètre
+  if (roots && !isInsideRoots(path.dirname(p), roots)) {
+    throw new McpToolError(
+      'Chemin hors des dossiers accessibles à l’agent (Paramètres → Système → Agent IA)'
+    );
   }
   // Un seul descripteur : contrôle et lecture portent sur le même fichier (pas de course)
   let fd: number;
@@ -112,8 +149,8 @@ function readImportFile(file: unknown, extensions: string[]): string {
 }
 
 /** Aperçu d'un fichier de tireurs (épreuve pas encore créée, dryRun) */
-function readFencersPreview(file: unknown) {
-  const content = readImportFile(file, IMPORT_EXTENSIONS);
+function readFencersPreview(file: unknown, roots?: readonly string[]) {
+  const content = readImportFile(file, IMPORT_EXTENSIONS, roots);
   const format = detectFencerFileFormat(content);
   const parsed =
     format === 'xml'
@@ -135,7 +172,7 @@ function importFencersFile(
   file: unknown,
   dryRun: boolean
 ) {
-  const content = readImportFile(file, IMPORT_EXTENSIONS);
+  const content = readImportFile(file, IMPORT_EXTENSIONS, deps.allowedRoots?.());
   const format = detectFencerFileFormat(content);
   const parsed =
     format === 'xml'
@@ -304,12 +341,14 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
             ? null
             : id
               ? importFencersFile(deps, id, spec.fencersFile, dryRun)
-              : { dryRun, ...readFencersPreview(spec.fencersFile) };
+              : { dryRun, ...readFencersPreview(spec.fencersFile, deps.allowedRoots?.()) };
         return { title: spec.data.title, id, created, fencers };
       });
       let referees: Record<string, unknown> | null = null;
       if (typeof args.refereesFile === 'string') {
-        const parsed = parseEngardeRefereeFile(readImportFile(args.refereesFile, ['.txt', '.csv']));
+        const parsed = parseEngardeRefereeFile(
+          readImportFile(args.refereesFile, ['.txt', '.csv'], deps.allowedRoots?.())
+        );
         const existing = new Set(
           (day ? db.eventDays.listReferees(day.id) : []).flatMap(r => keysOf(r))
         );

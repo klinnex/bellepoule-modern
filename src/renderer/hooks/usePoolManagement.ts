@@ -5,28 +5,19 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import {
-  Pool,
-  Fencer,
-  Match,
-  MatchStatus,
-  FencerStatus,
-  PoolRanking,
-  Score,
-} from '../../shared/types';
+import { Pool, Fencer, MatchStatus, FencerStatus, PoolRanking, Score } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import type { AbandonSnapshot } from '../../shared/types/preload';
-import {
-  distributeFencersToPoolsSerpentine,
-  calculateOptimalPoolCount,
-  generatePoolMatchOrder,
-  calculatePoolRanking,
-  calculatePoolRankingQuest,
-  calculateOverallRanking,
-  calculateOverallRankingQuest,
-} from '../../shared/utils/poolCalculations';
 import { mergeRoundRankings } from '../../shared/utils/poolRounds';
+import {
+  applyFencerForfeit,
+  applyScoreToPool,
+  buildMatchScores,
+  buildPools,
+  computeOverallRankingFor,
+  computePoolRankingFor,
+} from '../../shared/utils/poolOrchestration';
 import { useTranslation } from './useTranslation';
 
 interface UsePoolManagementProps {
@@ -52,18 +43,12 @@ export const usePoolManagement = ({
 
   // Helper pour calculer le classement selon le type
   const computePoolRanking = useCallback(
-    (pool: Pool) => {
-      return isLaserSabre ? calculatePoolRankingQuest(pool) : calculatePoolRanking(pool);
-    },
+    (pool: Pool) => computePoolRankingFor(pool, isLaserSabre),
     [isLaserSabre]
   );
 
   const computeOverallRanking = useCallback(
-    (poolsList: Pool[]) => {
-      return isLaserSabre
-        ? calculateOverallRankingQuest(poolsList)
-        : calculateOverallRanking(poolsList);
-    },
+    (poolsList: Pool[]) => computeOverallRankingFor(poolsList, isLaserSabre),
     [isLaserSabre]
   );
 
@@ -95,45 +80,11 @@ export const usePoolManagement = ({
         return null;
       }
 
-      const poolCount = calculateOptimalPoolCount(checkedInFencers.length, 5, 7);
-      // Classement en rang 1 : club/région résolus par échanges dans le chapeau
-      const distribution = distributeFencersToPoolsSerpentine(
-        checkedInFencers,
-        poolCount,
-        [],
-        ['byClub', 'byRegion']
-      );
-
-      const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
-        const poolId = crypto.randomUUID();
-        const matchOrder = generatePoolMatchOrder(poolFencers.length);
-        const matches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-          id: crypto.randomUUID(),
-          poolId,
-          number: matchIndex + 1,
-          fencerA: poolFencers[a - 1],
-          fencerB: poolFencers[b - 1],
-          scoreA: null,
-          scoreB: null,
-          maxScore: poolMaxScore,
-          status: MatchStatus.NOT_STARTED,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
-
-        return {
-          id: poolId,
-          number: index + 1,
-          phaseId: round > 1 ? `phase-pools-r${round}` : 'phase-pools',
-          fencers: poolFencers,
-          matches,
-          referees: [],
-          isComplete: false,
-          hasError: false,
-          ranking: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+      // Tirage partagé avec la couche domaine (MCP, #1880)
+      const generatedPools = buildPools(checkedInFencers, {
+        poolMaxScore,
+        round,
+        newId: () => crypto.randomUUID(),
       });
 
       setPools(generatedPools);
@@ -165,52 +116,13 @@ export const usePoolManagement = ({
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];
-        const pool = { ...updatedPools[poolIndex] };
-        const match = { ...pool.matches[matchIndex] };
-
-        // Mettre à jour les scores avec la structure Score
-        const priorityWins = !winnerOverride && scoreA === scoreB && !!priority;
-        const isVictoryA =
-          winnerOverride === 'A' ||
-          (priorityWins ? priority === 'A' : !winnerOverride && scoreA > scoreB);
-        const isVictoryB =
-          winnerOverride === 'B' ||
-          (priorityWins ? priority === 'B' : !winnerOverride && scoreB > scoreA);
-
-        // Le statut spécial (abandon/forfait/exclusion) s'applique au perdant
-        const specialOnA = !!specialStatus && !isVictoryA;
-        const specialOnB = !!specialStatus && !specialOnA && !isVictoryB;
-
-        match.scoreA = {
-          value: scoreA,
-          isVictory: isVictoryA,
-          isAbstention: specialOnA && specialStatus === 'abandon',
-          isExclusion: specialOnA && specialStatus === 'exclusion',
-          isForfait: specialOnA && specialStatus === 'forfait',
-          ...(priorityWins && priority === 'A' ? { isPriority: true } : {}),
-        };
-
-        match.scoreB = {
-          value: scoreB,
-          isVictory: isVictoryB,
-          isAbstention: specialOnB && specialStatus === 'abandon',
-          isExclusion: specialOnB && specialStatus === 'exclusion',
-          isForfait: specialOnB && specialStatus === 'forfait',
-          ...(priorityWins && priority === 'B' ? { isPriority: true } : {}),
-        };
-
-        // Mettre à jour le statut
-        match.status = MatchStatus.FINISHED;
-        match.updatedAt = new Date();
-
-        // Mettre à jour le pool (nouveau tableau pour invalider le useMemo)
-        pool.matches = [...pool.matches];
-        pool.matches[matchIndex] = match;
-        pool.updatedAt = new Date();
-
-        // Recalculer le classement de la poule
-        pool.ranking = computePoolRanking(pool);
-        pool.isComplete = pool.matches.every(m => m.status === MatchStatus.FINISHED);
+        // Scores, statut et classement partagés avec la couche domaine (MCP, #1880)
+        const pool = applyScoreToPool(
+          updatedPools[poolIndex],
+          matchIndex,
+          buildMatchScores(scoreA, scoreB, winnerOverride, specialStatus, priority),
+          isLaserSabre
+        );
 
         updatedPools[poolIndex] = pool;
 
@@ -221,7 +133,7 @@ export const usePoolManagement = ({
         return updatedPools;
       });
     },
-    [computePoolRanking, computeOverallRankingAllRounds]
+    [isLaserSabre, computeOverallRankingAllRounds]
   );
 
   // Annuler un match terminé pour le remettre à NOT_STARTED
@@ -364,90 +276,14 @@ export const usePoolManagement = ({
           .catch((e: Error) => logger.warn(LogCategory.DATABASE, 'Snapshot abandon échoué', e));
       }
 
-      // --- Logique existante ---
-      const newFencerStatus =
-        status === 'abandon'
-          ? FencerStatus.ABANDONED
-          : status === 'forfait'
-            ? FencerStatus.FORFAIT
-            : FencerStatus.EXCLUDED;
-
-      // Règle Sabre Laser : matchs disputés conservés, seuls les suivants sont annulés
-      const laserForfeit = isLaserSabre && status !== 'exclusion';
-
+      // --- Statut propagé, matchs restants perdus : logique partagée (MCP, #1880) ---
       setPools(prevPools => {
-        let modifiedCount = 0;
-
-        const updatedPools = prevPools.map(pool => {
-          const hasFencer =
-            pool.fencers.some(f => f.id === fencerId) ||
-            pool.matches.some(m => m.fencerA?.id === fencerId || m.fencerB?.id === fencerId);
-          if (!hasFencer) return pool;
-
-          const newFencers = pool.fencers.map(f =>
-            f.id === fencerId ? { ...f, status: newFencerStatus } : f
-          );
-
-          const newMatches = pool.matches.map(match => {
-            const isFencerA = match.fencerA?.id === fencerId;
-            const isFencerB = match.fencerB?.id === fencerId;
-            if (!isFencerA && !isFencerB) return match;
-
-            // Ne pas écraser les matchs déjà disputés avec de vrais scores,
-            // mais propager quand même le statut dans la référence fencer
-            // pour que calculateFencerPoolStats annule ces matchs pour les adversaires.
-            // Sabre Laser (forfait/abandon) : le match en cours, déjà saisi avec le
-            // statut spécial (perdu, adversaire à 15), est conservé lui aussi.
-            const isAlreadyPlayed =
-              match.status === MatchStatus.FINISHED &&
-              (laserForfeit || (!match.scoreA?.isForfait && !match.scoreB?.isForfait));
-
-            const newMatch = {
-              ...match,
-              fencerA:
-                isFencerA && match.fencerA
-                  ? { ...match.fencerA, status: newFencerStatus }
-                  : match.fencerA,
-              fencerB:
-                isFencerB && match.fencerB
-                  ? { ...match.fencerB, status: newFencerStatus }
-                  : match.fencerB,
-            };
-
-            if (!isAlreadyPlayed) {
-              // Sabre Laser : match annulé (score null) → ignoré par le classement
-              const cancelledValue = laserForfeit ? null : 0;
-              if (isFencerA) {
-                newMatch.scoreA = {
-                  value: cancelledValue,
-                  isVictory: false,
-                  isAbstention: status === 'abandon',
-                  isExclusion: status === 'exclusion',
-                  isForfait: status === 'forfait',
-                };
-              } else {
-                newMatch.scoreB = {
-                  value: cancelledValue,
-                  isVictory: false,
-                  isAbstention: status === 'abandon',
-                  isExclusion: status === 'exclusion',
-                  isForfait: status === 'forfait',
-                };
-              }
-              newMatch.status = MatchStatus.FINISHED;
-              newMatch.updatedAt = new Date();
-              modifiedCount++;
-            }
-
-            return newMatch;
-          });
-
-          // Le statut du tireur change le classement même sans match restant à annuler
-          const newPool = { ...pool, fencers: newFencers, matches: newMatches };
-          newPool.ranking = computePoolRanking(newPool);
-          newPool.updatedAt = new Date();
-          return newPool;
-        });
+        const { pools: updatedPools, modifiedCount } = applyFencerForfeit(
+          prevPools,
+          fencerId,
+          status,
+          isLaserSabre
+        );
 
         // Recalculer le classement général (tous les tours cumulés)
         setOverallRanking(computeOverallRankingAllRounds(updatedPools));
@@ -458,15 +294,7 @@ export const usePoolManagement = ({
         return updatedPools;
       });
     },
-    [
-      competitionId,
-      pools,
-      isLaserSabre,
-      computePoolRanking,
-      computeOverallRankingAllRounds,
-      showToast,
-      t,
-    ]
+    [competitionId, pools, isLaserSabre, computeOverallRankingAllRounds, showToast, t]
   );
 
   // Annuler un abandon/forfait/exclusion et restaurer les matchs affectés

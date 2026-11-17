@@ -267,7 +267,13 @@ export class ClubRepo {
     const now = new Date().toISOString();
     this.sql.run(
       'INSERT INTO clubs (id, name, logo, strip_count, created_at, updated_at) VALUES (?, ?, NULL, ?, ?, ?)',
-      [id, name, clampInt(data.stripCount ?? 1, 1, MAX_STRIPS, 1), now, now]
+      [
+        id,
+        name,
+        clampInt(data.stripCount ?? this.defaultVenueStrips() ?? 1, 1, MAX_STRIPS, 1),
+        now,
+        now,
+      ]
     );
     return this.getClub(id)!;
   }
@@ -748,7 +754,21 @@ export class ClubRepo {
         now,
       ]
     );
+    // Salle de la séance : salle par défaut du poste (#1880)
+    this.sql.run(
+      'UPDATE club_sessions SET venue_id = (SELECT id FROM venues WHERE is_default = 1) WHERE id = ?',
+      [id]
+    );
     return this.getSession(id)!;
+  }
+
+  /** Pistes de la salle par défaut (#1880) : nombre de pistes d'un nouveau club */
+  private defaultVenueStrips(): number | null {
+    const row = this.sql.queryOne<{ n: number | null }>(
+      `SELECT MAX(s.number) AS n FROM venues v JOIN venue_strips s ON s.venue_id = v.id
+       WHERE v.is_default = 1`
+    );
+    return row?.n ?? null;
   }
 
   /**

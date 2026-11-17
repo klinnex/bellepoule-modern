@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import type { SettingsAPI } from './settingsApi';
 import {
   Card,
   Competition,
@@ -33,7 +34,7 @@ import type {
 } from './eventDay';
 import type { ClubAPI } from './club';
 import type { PrivacyAPI } from './privacy';
-import type { McpAPI } from './mcp';
+import type { McpAPI, McpScreenEvent } from './mcp';
 export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
@@ -827,7 +828,8 @@ export interface DatabaseAPI {
   >;
 
   // Session State
-  saveSessionState: (competitionId: string, state: SessionState) => Promise<void>;
+  /** conflict : état réécrit par le MCP depuis le chargement (#1880), rien n'est écrit */
+  saveSessionState: (id: string, state: SessionState) => Promise<void | { conflict: true }>;
   saveSessionStateSync: (competitionId: string, state: unknown) => boolean;
   getSessionState: (competitionId: string) => Promise<SessionState | null>;
   clearSessionState: (competitionId: string) => Promise<void>;
@@ -1335,7 +1337,7 @@ export interface PrintDialogAPI {
 }
 
 /** Types d'événements du bus de données main → renderer (#1298) */
-export type CompetitionEventType = 'fencers:changed' | 'matches:changed' | 'competitions:changed';
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed' | McpScreenEvent;
 
 // ============================================================================
 // Cyrano API (#1720)
@@ -1416,6 +1418,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   remote: RemoteServerAPI & import('./remote').RemoteFirewallAPI;
   training: TrainingAPI;
   eventDay: EventDayAPI;
+  settings: SettingsAPI;
   club: ClubAPI;
   cyrano: CyranoAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;

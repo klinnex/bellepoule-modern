@@ -30,6 +30,97 @@ export interface RemoteServerHandlersContext {
   onServerCreated?: (server: RemoteScoreServer) => void;
 }
 
+export type StartRemoteServerResult =
+  | {
+      success: true;
+      serverInfo: {
+        url: string;
+        ip: string;
+        port: number;
+        useHttps: boolean;
+        certFingerprint?: string;
+      };
+    }
+  | { success: false; error: string };
+
+/** Serveur distant d'une épreuve : écran (IPC remote:startServer) et MCP (#1880) */
+export async function startRemoteServer(
+  { db, getMainWindow, onServerCreated }: RemoteServerHandlersContext,
+  competitionId: string,
+  port?: number,
+  host?: string,
+  useHttps?: boolean
+): Promise<StartRemoteServerResult> {
+  try {
+    if (remoteServers.has(competitionId)) {
+      return { success: false, error: 'remote_already_started' };
+    }
+
+    const effectivePort = findAvailablePort(port);
+    const effectiveHost = host ?? '0.0.0.0';
+
+    let tlsOptions: { cert: string; key: string } | undefined;
+    let certFingerprint: string | undefined;
+    if (useHttps) {
+      try {
+        const bundle = await ensureCert(app.getPath('userData'));
+        tlsOptions = { cert: bundle.cert, key: bundle.key };
+        certFingerprint = bundle.fingerprint;
+      } catch (certError) {
+        logger.error(LogCategory.NETWORK, 'Erreur génération certificat TLS:', toError(certError));
+        return { success: false, error: 'tls_cert_failed' };
+      }
+    }
+
+    const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
+    try {
+      await server.start();
+    } catch (startError) {
+      logger.error(LogCategory.NETWORK, 'Error binding remote server port:', toError(startError));
+      return {
+        success: false,
+        error: (startError as { message?: string } | null)?.message ?? 'Port indisponible',
+      };
+    }
+    applyActiveWave(competitionId, server);
+    remoteServers.set(competitionId, {
+      server,
+      port: effectivePort,
+      host: effectiveHost,
+      useHttps: !!useHttps,
+      certFingerprint,
+    });
+    usedPorts.add(effectivePort);
+    onServerCreated?.(server);
+
+    // Appliquer la config TTS persistée aux tablettes de ce nouveau serveur
+    try {
+      const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
+      server.setTtsConfig(JSON.parse(await fs.promises.readFile(ttsPath, 'utf-8')));
+    } catch {
+      /* config TTS optionnelle */
+    }
+    setSharedMainWindow(getMainWindow());
+
+    return {
+      success: true,
+      serverInfo: {
+        url: server.getServerUrl(),
+        ip: server.getLocalIPAddress(),
+        port: effectivePort,
+        useHttps: !!useHttps,
+        certFingerprint,
+      },
+    };
+  } catch (error) {
+    logger.error(LogCategory.NETWORK, 'Error starting remote server:', toError(error));
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
+    };
+  }
+}
+
 export function registerRemoteServerHandlers({
   db,
   getMainWindow,
@@ -53,84 +144,8 @@ export function registerRemoteServerHandlers({
 
   ipcMain.handle(
     'remote:startServer',
-    async (_event, competitionId: string, port?: number, host?: string, useHttps?: boolean) => {
-      try {
-        if (remoteServers.has(competitionId)) {
-          return { success: false, error: 'remote_already_started' };
-        }
-
-        const effectivePort = findAvailablePort(port);
-        const effectiveHost = host ?? '0.0.0.0';
-
-        let tlsOptions: { cert: string; key: string } | undefined;
-        let certFingerprint: string | undefined;
-        if (useHttps) {
-          try {
-            const bundle = await ensureCert(app.getPath('userData'));
-            tlsOptions = { cert: bundle.cert, key: bundle.key };
-            certFingerprint = bundle.fingerprint;
-          } catch (certError) {
-            logger.error(
-              LogCategory.NETWORK,
-              'Erreur génération certificat TLS:',
-              toError(certError)
-            );
-            return { success: false, error: 'tls_cert_failed' };
-          }
-        }
-
-        const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
-        try {
-          await server.start();
-        } catch (startError) {
-          logger.error(
-            LogCategory.NETWORK,
-            'Error binding remote server port:',
-            toError(startError)
-          );
-          return {
-            success: false,
-            error: (startError as { message?: string } | null)?.message ?? 'Port indisponible',
-          };
-        }
-        applyActiveWave(competitionId, server);
-        remoteServers.set(competitionId, {
-          server,
-          port: effectivePort,
-          host: effectiveHost,
-          useHttps: !!useHttps,
-          certFingerprint,
-        });
-        usedPorts.add(effectivePort);
-        onServerCreated?.(server);
-
-        // Appliquer la config TTS persistée aux tablettes de ce nouveau serveur
-        try {
-          const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
-          server.setTtsConfig(JSON.parse(await fs.promises.readFile(ttsPath, 'utf-8')));
-        } catch {
-          /* config TTS optionnelle */
-        }
-        setSharedMainWindow(getMainWindow());
-
-        return {
-          success: true,
-          serverInfo: {
-            url: server.getServerUrl(),
-            ip: server.getLocalIPAddress(),
-            port: effectivePort,
-            useHttps: !!useHttps,
-            certFingerprint,
-          },
-        };
-      } catch (error) {
-        logger.error(LogCategory.NETWORK, 'Error starting remote server:', toError(error));
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Erreur inconnue',
-        };
-      }
-    }
+    async (_event, competitionId: string, port?: number, host?: string, useHttps?: boolean) =>
+      startRemoteServer({ db, getMainWindow, onServerCreated }, competitionId, port, host, useHttps)
   );
 
   // Diagnostic pare-feu Windows (lecture seule ; supported: false hors Windows)

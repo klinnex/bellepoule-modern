@@ -1,12 +1,15 @@
 /**
  * BellePoule Modern - Paramètres → Système → Agent IA (MCP) (#1880)
- * Serveur MCP intégré en lecture : activation, port, jeton, configuration du client.
+ * Serveur MCP intégré : activation, port, jeton, configuration du client, dossiers
+ * accessibles à l'agent (fichiers d'import lus, exports écrits).
  * Licensed under GPL-3.0
  */
 
 import React, { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import type { McpStatus } from '../../shared/types/mcp';
+import type { AgentFolders } from '../../shared/types/settingsApi';
 import { HINT, BOLD, TOGGLE_LABEL } from './settingsModal.styles';
 import { Button } from './common/Button';
 
@@ -33,7 +36,9 @@ const McpSettingsSection: React.FC = () => {
   const [port, setPort] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [folders, setFolders] = useState<AgentFolders>({ folders: [], defaults: [] });
   const api = window.electronAPI?.mcp;
+  const settingsApi = window.electronAPI?.settings;
 
   const apply = (s: McpStatus) => {
     setStatus(s);
@@ -46,6 +51,17 @@ const McpSettingsSection: React.FC = () => {
       .then(apply)
       .catch(() => undefined);
   }, [api]);
+
+  useEffect(() => {
+    settingsApi
+      ?.getAgentFolders?.()
+      .then(setFolders)
+      .catch(() => undefined);
+  }, [settingsApi]);
+
+  /** Ajout par boîte de dialogue native du main ; retrait immédiat */
+  const changeFolders = (action: Promise<AgentFolders> | undefined) =>
+    void action?.then(setFolders).catch(() => undefined);
 
   if (!api || !status) return null;
 
@@ -97,9 +113,11 @@ const McpSettingsSection: React.FC = () => {
       <p style={HINT} role="status">
         {status.running && status.url
           ? t('settings.mcp_running', { url: status.url })
-          : status.error
-            ? t('settings.mcp_error', { error: status.error })
-            : t('settings.mcp_stopped')}
+          : status.error === 'token_unreadable'
+            ? t('settings.mcp_token_unreadable')
+            : status.error
+              ? t('settings.mcp_error', { error: status.error })
+              : t('settings.mcp_stopped')}
       </p>
       {status.enabled && (
         <>
@@ -117,6 +135,35 @@ const McpSettingsSection: React.FC = () => {
           <div className="u-row">
             <Button type="button" onClick={() => void copyConfig()}>
               {t(copied ? 'settings.mcp_copied' : 'settings.mcp_copy_config')}
+            </Button>
+          </div>
+          <label style={BOLD}>{t('settings.mcp_folders_title')}</label>
+          <p style={HINT}>{t('settings.mcp_folders_hint')}</p>
+          <ul className="mcp-folder-list">
+            {folders.folders.length === 0
+              ? folders.defaults.map(folder => (
+                  <li key={folder} className="mcp-folder">
+                    <code>{folder}</code>
+                    <span className="mcp-folder-default">{t('settings.mcp_folders_default')}</span>
+                  </li>
+                ))
+              : folders.folders.map(folder => (
+                  <li key={folder} className="mcp-folder">
+                    <code>{folder}</code>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      aria-label={t('settings.mcp_folder_remove', { folder })}
+                      onClick={() => changeFolders(settingsApi?.removeAgentFolder(folder))}
+                    >
+                      <Trash2 size={14} aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+          </ul>
+          <div className="u-row">
+            <Button type="button" onClick={() => changeFolders(settingsApi?.addAgentFolder())}>
+              {t('settings.mcp_folder_add')}
             </Button>
           </div>
         </>

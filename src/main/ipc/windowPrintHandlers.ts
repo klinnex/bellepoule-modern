@@ -3,7 +3,8 @@
  * (extraits de main.ts, #1341).
  * Licensed under GPL-3.0
  */
-import { BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
+import { BrowserWindow, dialog, ipcMain, screen, session, shell } from 'electron';
+import { fileURLToPath } from 'url';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -16,6 +17,106 @@ import { logger, LogCategory } from '../../shared/services/logger';
 
 export interface WindowPrintHandlersContext {
   getMainWindow(): BrowserWindow | null;
+}
+
+/**
+ * Session isolée du rendu PDF (#1880) : seuls le fichier HTML temporaire (bp-pdf-*) et les
+ * data: URL sont chargés. Une donnée saisie injectant <iframe src="file://…"> ou <img src=http…>
+ * ne peut ni lire un fichier local ni joindre le réseau.
+ */
+let pdfSessionReady = false;
+export function isAllowedPdfResource(url: string, tmpDir: string = os.tmpdir()): boolean {
+  if (url.startsWith('data:')) return true;
+  if (!url.startsWith('file:')) return false;
+  try {
+    const file = fileURLToPath(url);
+    const dir = path.dirname(file);
+    return (
+      // path.relative : insensible à la casse du lecteur sous Windows (C: / c:)
+      path.relative(path.resolve(tmpDir), dir) === path.basename(dir) &&
+      path.basename(dir).startsWith('bp-pdf-') &&
+      path.basename(file) === 'print.html'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function pdfRenderSession(): Electron.Session {
+  const ses = session.fromPartition('bp-pdf-render');
+  if (!pdfSessionReady) {
+    ses.webRequest.onBeforeRequest((details, callback) =>
+      callback({ cancel: !isAllowedPdfResource(details.url) })
+    );
+    pdfSessionReady = true;
+  }
+  return ses;
+}
+
+// Rendu HTML → buffer PDF via une fenêtre Electron cachée (partagé par export, aperçu et MCP #1880)
+export function renderHtmlToPdfBuffer(
+  html: string,
+  pdfOptions: Electron.PrintToPDFOptions = {
+    printBackground: true,
+    landscape: false,
+    pageSize: 'A4',
+    preferCSSPageSize: true,
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+  }
+): Promise<Buffer> {
+  // Dossier privé (mkdtemp, 0700) + création exclusive 0600 : pas de fichier prévisible dans le tmp partagé
+  let dir = '';
+  let tmpFile = '';
+  const cleanup = () => fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {});
+  return fs.promises
+    .mkdtemp(path.join(os.tmpdir(), 'bp-pdf-'))
+    .then(d => {
+      dir = d;
+      tmpFile = path.join(d, 'print.html');
+      return fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+    })
+    .then(
+      () =>
+        new Promise<Buffer>((resolve, reject) => {
+          const pdfWin = new BrowserWindow({
+            show: false,
+            width: 1200,
+            height: 1600,
+            webPreferences: {
+              contextIsolation: true,
+              nodeIntegration: false,
+              javascript: false,
+              session: pdfRenderSession(),
+            },
+          });
+          pdfWin.setMenu(null);
+          pdfWin.loadFile(tmpFile);
+
+          pdfWin.webContents.once('did-finish-load', () => {
+            setTimeout(() => {
+              pdfWin.webContents
+                .printToPDF(pdfOptions)
+                .then((data: Buffer) => {
+                  pdfWin.destroy();
+                  void cleanup();
+                  resolve(data);
+                })
+                .catch((err: Error) => {
+                  pdfWin.destroy();
+                  void cleanup();
+                  reject(err);
+                });
+            }, 800);
+          });
+
+          pdfWin.webContents.once('did-fail-load', () => {
+            pdfWin.destroy();
+            void cleanup();
+            reject(new Error('Chargement HTML échoué'));
+          });
+        }),
+      e => Promise.reject(new Error(`Impossible de créer le fichier temporaire: ${e}`))
+    );
 }
 
 export function registerWindowPrintHandlers({ getMainWindow }: WindowPrintHandlersContext): void {
@@ -56,67 +157,6 @@ export function registerWindowPrintHandlers({ getMainWindow }: WindowPrintHandle
     if (opts?.preview) return previewPdf(pdfPreviewDeps, html);
     return printHtmlWithSystemDialog(html);
   });
-
-  // Rendu HTML → buffer PDF via une fenêtre Electron cachée (partagé par export et aperçu)
-  function renderHtmlToPdfBuffer(
-    html: string,
-    pdfOptions: Electron.PrintToPDFOptions = {
-      printBackground: true,
-      landscape: false,
-      pageSize: 'A4',
-      preferCSSPageSize: true,
-      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-    }
-  ): Promise<Buffer> {
-    // Dossier privé (mkdtemp, 0700) + création exclusive 0600 : pas de fichier prévisible dans le tmp partagé
-    let dir = '';
-    let tmpFile = '';
-    const cleanup = () => fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {});
-    return fs.promises
-      .mkdtemp(path.join(os.tmpdir(), 'bp-pdf-'))
-      .then(d => {
-        dir = d;
-        tmpFile = path.join(d, 'print.html');
-        return fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
-      })
-      .then(
-        () =>
-          new Promise<Buffer>((resolve, reject) => {
-            const pdfWin = new BrowserWindow({
-              show: false,
-              width: 1200,
-              height: 1600,
-              webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
-            });
-            pdfWin.setMenu(null);
-            pdfWin.loadFile(tmpFile);
-
-            pdfWin.webContents.once('did-finish-load', () => {
-              setTimeout(() => {
-                pdfWin.webContents
-                  .printToPDF(pdfOptions)
-                  .then((data: Buffer) => {
-                    pdfWin.destroy();
-                    void cleanup();
-                    resolve(data);
-                  })
-                  .catch((err: Error) => {
-                    pdfWin.destroy();
-                    void cleanup();
-                    reject(err);
-                  });
-              }, 800);
-            });
-
-            pdfWin.webContents.once('did-fail-load', () => {
-              pdfWin.destroy();
-              void cleanup();
-              reject(new Error('Chargement HTML échoué'));
-            });
-          }),
-        e => Promise.reject(new Error(`Impossible de créer le fichier temporaire: ${e}`))
-      );
-  }
 
   // PDF generation via hidden BrowserWindow (propre, sans menus d'application)
   ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string) => {

@@ -24,6 +24,7 @@ import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
 import { ClubRepo } from './repos/clubRepo';
 import { ClubInventoryRepo } from './repos/clubInventoryRepo';
 import { PrivacyRepo } from './repos/privacyRepo';
+import { SettingsRepo } from './repos/settingsRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -69,6 +70,8 @@ export class DatabaseManager {
   public readonly clubInventory = new ClubInventoryRepo(this.sql);
   /** RGPD : droits des personnes, conservation (#1882) */
   public readonly privacy = new PrivacyRepo(this.sql);
+  /** Paramétrage global du poste et salles (#1880) */
+  public readonly settings = new SettingsRepo(this.sql);
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');
@@ -160,6 +163,12 @@ export class DatabaseManager {
     return this.db!.transaction(fn)();
   }
 
+  /** Transaction publique (couche domaine, #1880) : tout ou rien, imbrication gérée par SQLite (savepoints) */
+  public transaction<T>(fn: () => T): T {
+    if (!this.db) throw new Error('Database not open');
+    return this.inTransaction(fn);
+  }
+
   // Writes go directly to WAL on every statement — no manual export needed.
   public saveSync(): void {
     if (!this.db) return;
@@ -207,6 +216,22 @@ export class DatabaseManager {
     ...args: Parameters<SessionRepo['getSessionState']>
   ): ReturnType<SessionRepo['getSessionState']> {
     return this.sessions.getSessionState(...args);
+  }
+
+  /**
+   * Sauvegarde de l'écran avec contrôle de révision (#1880) : refusée (false) si l'état en
+   * base a été réécrit par la couche domaine (MCP) depuis le chargement de l'écran.
+   * Un état sans révision (ancien code, nouvelle épreuve) est écrit sans contrôle.
+   */
+  public saveSessionStateChecked(competitionId: string, state: unknown): boolean {
+    const incoming = (state as { revision?: unknown } | null)?.revision;
+    if (typeof incoming === 'number') {
+      const stored = (this.sessions.getSessionState(competitionId) as { revision?: unknown } | null)
+        ?.revision;
+      if (typeof stored === 'number' && stored !== incoming) return false;
+    }
+    this.sessions.saveSessionState(competitionId, state);
+    return true;
   }
 
   public clearSessionState(

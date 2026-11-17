@@ -1068,4 +1068,47 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 38,
+    description:
+      'Paramétrage global du poste (app_settings) et salles déclarées une fois (venues, venue_strips) (#1880)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venues (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          is_default INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venue_strips (
+          venue_id TEXT NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+          number INTEGER NOT NULL,
+          label TEXT,
+          cyrano_config TEXT,
+          PRIMARY KEY (venue_id, number)
+        )
+      `);
+      // Une seule salle par défaut
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_venues_single_default ON venues(is_default) WHERE is_default = 1`
+      );
+      for (const table of ['event_days', 'club_sessions']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN venue_id TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+    },
+  },
 ];

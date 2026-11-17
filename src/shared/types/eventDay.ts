@@ -13,6 +13,8 @@ export interface EventDay {
   date: string;
   /** Nombre de pistes de la salle */
   stripCount: number;
+  /** Salle de la journée (#1880) ; null = aucune salle déclarée */
+  venueId?: string | null;
   /** Épreuves rattachées */
   competitionIds: string[];
   createdAt: string;

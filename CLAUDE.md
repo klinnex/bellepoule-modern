@@ -114,7 +114,9 @@ Main Process (src/main/)
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, clubArena (combats du Mode Club sur les tablettes, cartes scannées : routes/clubRoutes, #1872 — docs/MODE_CLUB.md), dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, endValidation (ACK/NAK), server (UDP, HELLO 15 s, supervision, journal), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch)
-├── mcp/                     # Serveur MCP en lecture (#1880) : mcpTools, mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings — docs/MCP.md
+├── mcp/                     # Serveur MCP intégré (#1880) : mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings, mcpTools (lecture), mcpWriteTools / mcpAdminTools / mcpSportTools (écriture sur autorisation) — docs/MCP.md
+├── domain/                  # Couche domaine (#1880) : sport (poules, scores, tableau hors écran), exportResults, settings (resolveSetting), files (dossiers de l'agent)
+├── cliArgs.ts / batchImport.ts  # --headless, --batch-import manifeste.json [--dry-run], --mcp / --mcp-port=N / --mcp-write, --mcp-print-config, --mcp-new-token
 ├── privacySettings.ts       # Réglages RGPD <userData>/privacy-settings.json (noms sur le réseau, conservation) — docs/RGPD.md
 ├── bpmCrypto.ts             # Archives .bpm chiffrées (AES-256-GCM, scrypt)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
@@ -209,7 +211,7 @@ Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club, privacy) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 37 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 38 versions)
 ```
 
 ### Key Patterns
@@ -234,7 +236,8 @@ Database (src/database/)
    - `themes.*` – Screen themes
    - `cyrano.*` – Appareils de piste Cyrano : start/stop UDP, pistes, statuts, log (#1720)
    - `club.*` – Mode Club : membres, séances, pointage, combats libres, stats par période (#1872)
-   - `mcp.*` – Serveur MCP intégré en lecture (agent IA, 127.0.0.1 + jeton, désactivé par défaut) : statut, réglages, jeton, journal (#1880, docs/MCP.md)
+   - `mcp.*` – Serveur MCP intégré (agent IA, 127.0.0.1 + jeton, désactivé par défaut) : statut, réglages, jeton, journal (#1880, docs/MCP.md)
+   - `settings.*` – Paramétrage du poste (table app_settings), salles (venues, venue_strips), dossiers accessibles à l'agent (#1880)
    - `privacy.*` – RGPD : recherche d'une personne, export JSON/PDF, anonymisation, effacement, durée de conservation, noms sur le réseau, .bpm chiffrés (#1882, docs/RGPD.md)
    - `notifyLanguageChanged(lang)` – Rebuild native menu when UI language changes
 

@@ -30,6 +30,7 @@ import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
 import './styles/app-shell.css';
+import './styles/agentSettings.css';
 import './styles/dashboard.css';
 import './styles/event-day.css';
 import './styles/club.css';
