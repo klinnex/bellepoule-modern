@@ -1042,14 +1042,6 @@
   }
 }
 
-.tools-menu-item {
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 /* Paramètres : navigation par onglets + recherche */
 .settings-modal.settings-modal {
   max-width: 820px;

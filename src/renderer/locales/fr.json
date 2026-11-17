@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Tableau équipes",
     "book_kind_teamRanking": "Classement équipes",
     "export_pdf_full_unsigned": "PDF complet sans signature",
+    "export_black_card_report": "Rapport FFE (carton noir)",
+    "export_black_card_report_title": "Rapport d'exclusion pré-rempli, à compléter et envoyer sous 48 h à la FFE (annexe 14)",
     "export_pdf_full_unsigned_title": "Poules et tableaux d'élimination directe, sans les signatures des combattants"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Grille des scores",
       "pending-matches": "Matchs à jouer",
       "finished-matches": "Résultats",
+      "cards": "Cartons",
       "match-cards": "Fiches de matchs",
       "ranking-table": "Tableau du classement",
       "footer": "Pied de page"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Sortie médicale annulée — {{count}} matchs restaurés"
   },
   "pdf": {
+    "cards_title": "Cartons",
+    "cards_standard": "Cartons",
+    "cards_p": "Cartons P (non-combativité)",
+    "card_white": "Blanc",
+    "card_yellow": "Jaune",
+    "card_red": "Rouge",
+    "card_black": "Noir",
+    "card_p_yellow": "Jaune P",
+    "card_p_red": "Rouge P",
+    "card_p_black": "Noir P",
     "abstention": "Abstention",
     "api_unavailable": "API Electron non disponible",
     "appel_empty": "Aucun tireur dans la liste d'appel",
@@ -3244,6 +3257,7 @@
     "eta": "Fin estimée",
     "all_done": "Terminé",
     "eta_default": "Estimation par défaut (moins de 3 matchs chronométrés)",
+    "eta_cadence": "{{match}} min par match (dont {{gap}} min entre deux matchs) · {{strips}} piste(s) en parallèle, une poule par piste",
     "deviation": "Écart au planning",
     "on_time": "À l’heure",
     "late_by": "{{n}} min de retard",
@@ -3763,6 +3777,7 @@
     "bpm_wrong_password": "Mot de passe incorrect.",
     "bpm_open_failed": "Ouverture impossible.",
     "error": "Opération impossible.",
+    "competition_open": "Fermez la compétition de cette personne (et arrêtez son serveur de tablettes) avant d'anonymiser ou d'effacer.",
     "export_warning": "Les exports et notifications contiennent des données personnelles : ne les transmettez qu'aux destinataires autorisés.",
     "photo_consent": "Photo : recueillez le consentement de la personne (de ses parents si elle est mineure).",
     "pdf_heading": "Données personnelles — {{name}}",

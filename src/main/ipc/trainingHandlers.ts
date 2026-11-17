@@ -14,6 +14,7 @@ import { setSharedMainWindow } from '../mainWindowRef';
 import { closeDemoScreens, openDemoScreens } from '../demoScreens';
 import { isTrainingTheme } from '../../shared/utils/trainingThemes';
 import { applyTrainingTheme } from '../remote/trainingTheme';
+import type { TrainingCustomRules } from '../../shared/types/preload';
 
 export const TRAINING_ID = '__training__';
 
@@ -85,8 +86,11 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
         const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
         try {
           await server.start();
-        } catch (startError: any) {
-          return { success: false, error: startError?.message ?? 'Port indisponible' };
+        } catch (startError) {
+          return {
+            success: false,
+            error: (startError as { message?: string } | null)?.message ?? 'Port indisponible',
+          };
         }
         remoteServers.set(TRAINING_ID, {
           server,
@@ -135,7 +139,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
 
   ipcMain.handle(
     'training:startSession',
-    async (_event, strips: number, weapon: string, customRules?: any) => {
+    async (_event, strips: number, weapon: string, customRules?: TrainingCustomRules) => {
       try {
         const entry = remoteServers.get(TRAINING_ID);
         if (!entry) return { success: false, error: 'training_not_started' };

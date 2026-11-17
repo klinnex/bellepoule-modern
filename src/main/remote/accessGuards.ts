@@ -90,3 +90,16 @@ export function trainerGuard(ctx: AccessGuardsContext, cookieHeader?: string): G
   }
   return null;
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ACCESS_GUARDS_CONTEXT_KEYS = {
+  state: [
+    'checkinEnabled',
+    'checkinPassword',
+    'checkinTokens',
+    'trainerEnabled',
+    'trainerPassword',
+    'trainerTokens',
+  ],
+  methods: [],
+} as const;

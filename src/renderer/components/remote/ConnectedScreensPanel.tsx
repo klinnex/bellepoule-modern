@@ -62,7 +62,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
     // Abonnement aux mises à jour de la liste des clients connectés
     useEffect(() => {
       if (!isRemoteActive) return;
-      window.electronAPI.remote.getConnectedClients(competitionId).then((res: any) => {
+      window.electronAPI.remote.getConnectedClients(competitionId).then(res => {
         if (res.success) setConnectedClients(res.clients ?? []);
       });
       return window.electronAPI.remote.onClientListUpdate((clients: ConnectedClient[], id) => {

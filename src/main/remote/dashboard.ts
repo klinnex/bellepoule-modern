@@ -182,3 +182,18 @@ export function computePhaseEta(ctx: DashboardContext): PhaseEtaSummary {
     round,
   };
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const DASHBOARD_CONTEXT_KEYS = {
+  state: [
+    'arenas',
+    'db',
+    'isTrainingMode',
+    'recentMatchDurationsMs',
+    'session',
+    'sessionMatchScores',
+    'sessionMatches',
+    'stripPlan',
+  ],
+  methods: ['computePhaseEta'],
+} as const;

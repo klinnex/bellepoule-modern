@@ -159,3 +159,9 @@ export async function updateMatchScore(
     });
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SESSION_OPS_CONTEXT_KEYS = {
+  state: ['arenas', 'db', 'sessionMatchScores', 'sessionMatches'],
+  methods: ['assignMatchToArena', 'loadSessionReferees', 'setArenaCount', 'updateArenaScore'],
+} as const;

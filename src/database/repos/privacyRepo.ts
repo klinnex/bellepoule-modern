@@ -231,15 +231,25 @@ export class PrivacyRepo {
           firstName: m.first_name,
           birthDate: m.birth_date,
         });
+        // Sans licence : un homonyme n'est rattaché que si sa date de naissance est
+        // compatible (même date, ou date inconnue d'un côté et candidat unique) (#1882)
+        const prefix = `name:${normalizeIdentity(m.last_name)}|${normalizeIdentity(m.first_name)}|`;
+        const memberDate = m.birth_date ? m.birth_date.slice(0, 10) : '';
+        const memberYear = memberDate.slice(0, 4) || (m.birth_year ? String(m.birth_year) : '');
+        const compatible = [...groups.keys()].filter(k => {
+          if (!k.startsWith(prefix)) return false;
+          const date = k.slice(prefix.length);
+          if (memberDate && date) return date === memberDate;
+          if (memberYear && date) return date.startsWith(memberYear);
+          return true;
+        });
         const key = m.license
           ? byLicense
-          : ((groups.has(byName) ? byName : null) ??
-            [...groups.keys()].find(k =>
-              k.startsWith(
-                `name:${normalizeIdentity(m.last_name)}|${normalizeIdentity(m.first_name)}|`
-              )
-            ) ??
-            byName);
+          : groups.has(byName)
+            ? byName
+            : compatible.length === 1
+              ? compatible[0]
+              : byName;
         const g = group(key, {
           lastName: m.last_name,
           firstName: m.first_name,
@@ -273,6 +283,19 @@ export class PrivacyRepo {
         )
       : [];
     return { fencerIds, memberIds };
+  }
+
+  /** Compétitions où figure la personne (blocage si l'une est ouverte, #1882) */
+  public competitionIdsOf(ref: PrivacyPersonRef): string[] {
+    this.ensureOpen();
+    const { fencerIds } = this.resolveRef(ref);
+    if (fencerIds.length === 0) return [];
+    return this.sql
+      .queryAll<{ competition_id: string }>(
+        `SELECT DISTINCT competition_id FROM fencers WHERE id IN (${this.placeholders(fencerIds.length)})`,
+        fencerIds
+      )
+      .map(r => r.competition_id);
   }
 
   // ─── Droit d'accès / portabilité ─────────────────────────────────────────────
@@ -590,13 +613,54 @@ export class PrivacyRepo {
     return { competitions, members };
   }
 
+  /**
+   * Commentaires d'arbitre (#1882) : auteur et libellé du match (« Piste 3 — DUPONT / MARTIN »)
+   * retirés, noms des tireurs remplacés par leur pseudonyme dans le texte libre.
+   */
+  private scrubRefereeComments(
+    competitionId: string,
+    people: Array<{ names: Array<string | null>; pseudonym: string }>
+  ): void {
+    if (!this.hasTable('referee_comments')) return;
+    const escape = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const patterns = people.flatMap(p =>
+      p.names
+        .map(n => (n ?? '').trim())
+        .filter(n => n.length >= 2)
+        .map(n => ({
+          re: new RegExp(`(?<![\\p{L}\\p{N}])${escape(n)}(?![\\p{L}\\p{N}])`, 'giu'),
+          pseudonym: p.pseudonym,
+        }))
+    );
+    const rows = this.sql.queryAll<{ id: string; comment: string | null }>(
+      'SELECT id, comment FROM referee_comments WHERE competition_id = ?',
+      [competitionId]
+    );
+    for (const row of rows) {
+      let comment = row.comment ?? '';
+      for (const { re, pseudonym } of patterns) comment = comment.replace(re, pseudonym);
+      this.sql.run(
+        'UPDATE referee_comments SET author = NULL, match_label = NULL, comment = ? WHERE id = ?',
+        [comment, row.id]
+      );
+    }
+  }
+
   /** Anonymise tous les tireurs et arbitres d'une compétition (résultats conservés) */
   public anonymizeCompetition(competitionId: string): number {
     this.ensureOpen();
     return this.sql.transaction(() => {
-      const fencers = this.sql.queryAll<{ id: string; ref: number }>(
-        'SELECT id, ref FROM fencers WHERE competition_id = ?',
-        [competitionId]
+      const fencers = this.sql.queryAll<{
+        id: string;
+        ref: number;
+        last_name: string | null;
+        first_name: string | null;
+      }>('SELECT id, ref, last_name, first_name FROM fencers WHERE competition_id = ?', [
+        competitionId,
+      ]);
+      this.scrubRefereeComments(
+        competitionId,
+        fencers.map(f => ({ names: [f.last_name, f.first_name], pseudonym: `Anonyme ${f.ref}` }))
       );
       const n = this.anonymizeFencers(new Map(fencers.map(f => [f.id, `Anonyme ${f.ref}`])));
       this.sql.run(

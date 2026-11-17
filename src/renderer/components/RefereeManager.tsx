@@ -252,8 +252,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             gender: ref.gender,
           });
           created.push(newRef);
-        } catch (err: any) {
-          errors.push(err?.message ?? 'Erreur import');
+        } catch (err) {
+          errors.push((err as { message?: string } | null)?.message ?? 'Erreur import');
         }
       }
       if (created.length > 0) onRefereesChange([...referees, ...created]);
@@ -334,8 +334,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
         nationality: 'FRA',
       });
       setAddError('');
-    } catch (e: any) {
-      setAddError(e?.message ?? 'Erreur');
+    } catch (e) {
+      setAddError((e as { message?: string } | null)?.message ?? 'Erreur');
     }
   };
 

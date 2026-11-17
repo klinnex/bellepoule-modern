@@ -142,3 +142,9 @@ export function getPublicTeamArenaState(ctx: TeamArenaContext, arenaId: string):
       ctx.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled === true,
   };
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const TEAM_ARENA_CONTEXT_KEYS = {
+  state: ['db', 'io', 'teamArenaState'],
+  methods: [],
+} as const;

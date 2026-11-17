@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Taolenn ekipoù",
     "book_kind_teamRanking": "Renkadur ekipoù",
     "export_pdf_full_unsigned": "PDF klok hep sinadur",
+    "export_black_card_report": "Danevell FFE (karten du)",
+    "export_black_card_report_title": "Danevell skarzhañ leuniet en a-raok, da glokaat ha da gas d'ar FFE a-benn 48 eur (stagadenn 14)",
     "export_pdf_full_unsigned_title": "Poulloù ha taolennoù dilezel war-eeun, hep sinadur ar gleizeidi"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Reizh poentoù",
       "pending-matches": "Emgavioù o vont",
       "finished-matches": "Disoc'hoù",
+      "cards": "Kartennoù",
       "match-cards": "Kartennoù emgav",
       "ranking-table": "Taolenn renk",
       "footer": "Troad-pajenn"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Dilez yec'hed nullet — {{count}} c'hoari adsavet"
   },
   "pdf": {
+    "cards_title": "Kartennoù",
+    "cards_standard": "Kartennoù",
+    "cards_p": "Kartennoù P (diemgann)",
+    "card_white": "Gwenn",
+    "card_yellow": "Melen",
+    "card_red": "Ruz",
+    "card_black": "Du",
+    "card_p_yellow": "Melen P",
+    "card_p_red": "Ruz P",
+    "card_p_black": "Du P",
     "abstention": "Ehan",
     "api_unavailable": "API Electron dihegerz",
     "appel_empty": "C'hleze ebet er roll-galv",
@@ -3244,6 +3257,7 @@
     "eta": "Fin diouzh ar jedadenn",
     "all_done": "Echu",
     "eta_default": "Jedadenn dre ziouer (nebeutoc’h eget 3 emgann muzuliet)",
+    "eta_cadence": "{{match}} min dre emgann (gant {{gap}} min etre daou emgann) · {{strips}} roudenn a-gevred, ur poulenn dre roudenn",
     "deviation": "Diforc’h gant an deiziadur",
     "on_time": "D’an eur",
     "late_by": "{{n}} munut dale",
@@ -3763,6 +3777,7 @@
     "bpm_wrong_password": "Ger-tremen fall.",
     "bpm_open_failed": "Dibosupl digeriñ.",
     "error": "Oberiadenn dibosupl.",
+    "competition_open": "Serrit kevezadeg an den-mañ (hag arsavit he servijer tabletennoù) a-raok dizanvaat pe ziverkañ.",
     "export_warning": "Roadennoù personel a zo en ezporzhiadennoù hag er c'hemennoù : kasit anezho d'ar resevidi aotreet hepken.",
     "photo_consent": "Luc'hskeudenn : goulennit asant an den (hini e gerent ma'z eo minor).",
     "pdf_heading": "Roadennoù personel — {{name}}",

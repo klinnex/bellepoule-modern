@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Quadre per equips",
     "book_kind_teamRanking": "Classificació per equips",
     "export_pdf_full_unsigned": "PDF complet sense signatures",
+    "export_black_card_report": "Informe FFE (targeta negra)",
+    "export_black_card_report_title": "Informe d'exclusió preomplert, per completar i enviar a la FFE en 48 h (annex 14)",
     "export_pdf_full_unsigned_title": "Poules i quadres d'eliminació directa, sense les signatures dels tiradors"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Quadrícula de puntuació",
       "pending-matches": "Combats pendents",
       "finished-matches": "Resultats",
+      "cards": "Targetes",
       "match-cards": "Fitxes de combat",
       "ranking-table": "Taula de classificació",
       "footer": "Peu de pàgina"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Retirada mèdica anul·lada — {{count}} combats restaurats"
   },
   "pdf": {
+    "cards_title": "Targetes",
+    "cards_standard": "Targetes",
+    "cards_p": "Targetes P (no combativitat)",
+    "card_white": "Blanca",
+    "card_yellow": "Groga",
+    "card_red": "Vermella",
+    "card_black": "Negra",
+    "card_p_yellow": "Groga P",
+    "card_p_red": "Vermella P",
+    "card_p_black": "Negra P",
     "abstention": "Abstenció",
     "api_unavailable": "API d'Electron no disponible",
     "appel_empty": "Cap tirador a la llista de crida",
@@ -3244,6 +3257,7 @@
     "eta": "Final estimat",
     "all_done": "Acabat",
     "eta_default": "Estimació per defecte (menys de 3 assalts cronometrats)",
+    "eta_cadence": "{{match}} min per combat (incl. {{gap}} min entre combats) · {{strips}} pista(es) en paral·lel, una poule per pista",
     "deviation": "Desviació de l’horari",
     "on_time": "A l’hora",
     "late_by": "{{n}} min de retard",
@@ -3763,6 +3777,7 @@
     "bpm_wrong_password": "Contrasenya incorrecta.",
     "bpm_open_failed": "No es pot obrir.",
     "error": "Operació impossible.",
+    "competition_open": "Tanqueu la competició d'aquesta persona (i atureu el servidor de tauletes) abans d'anonimitzar o esborrar.",
     "export_warning": "Les exportacions i notificacions contenen dades personals: envieu-les només a destinataris autoritzats.",
     "photo_consent": "Foto: obteniu el consentiment de la persona (dels pares si és menor).",
     "pdf_heading": "Dades personals — {{name}}",

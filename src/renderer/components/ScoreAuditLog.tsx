@@ -26,7 +26,17 @@ interface Props {
 /** Auteurs techniques, pas des noms d'arbitre */
 const GENERIC_AUTHORS = new Set(['ui', 'referee', 'system', '']);
 
-function formatScore(score: any): string {
+function formatScore(
+  score:
+    | {
+        value?: number | null;
+        isAbstention?: boolean;
+        isExclusion?: boolean;
+        isForfait?: boolean;
+      }
+    | null
+    | undefined
+): string {
   if (!score) return '—';
   const v = score.value ?? '?';
   if (score.isAbstention) return `${v} (Ab.)`;

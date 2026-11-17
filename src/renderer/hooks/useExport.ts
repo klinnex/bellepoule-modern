@@ -29,6 +29,7 @@ import {
   toNativeRootTag,
 } from '../../shared/utils/gregPublication';
 import type { PoolStripQr } from '../../shared/utils/pdfExport';
+import { withMatchCards } from '../services/poolCards';
 
 /** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
 export interface PoolsRemoteInfo {
@@ -284,7 +285,7 @@ export const useExport = ({
         const { exportMultiplePoolsToPDF } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await exportMultiplePoolsToPDF(
-          pools,
+          await withMatchCards(pools),
           `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
@@ -310,7 +311,7 @@ export const useExport = ({
         const { printMultiplePoolsHTML } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await printMultiplePoolsHTML(
-          pools,
+          await withMatchCards(pools),
           `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,

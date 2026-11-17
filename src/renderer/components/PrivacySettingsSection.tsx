@@ -95,8 +95,10 @@ const RetentionItem: React.FC<{
   const check = async () => {
     try {
       setCandidates((await api()?.retentionCandidates()) ?? null);
-    } catch {
-      showToast(t('privacy.error'), 'error');
+    } catch (e) {
+      // Compétition ouverte : son état en mémoire réécrirait les noms (#1882)
+      const open = e instanceof Error && e.message.includes('competition_open');
+      showToast(t(open ? 'privacy.competition_open' : 'privacy.error'), 'error');
     }
   };
 

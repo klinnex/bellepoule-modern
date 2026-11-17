@@ -163,6 +163,10 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           match: arena.currentMatch,
           scoreA: arena.currentMatch?.scoreA,
           scoreB: arena.currentMatch?.scoreB,
+          // Chrono du match en cours (repris après un redémarrage, #1829)
+          ...(arena.status === 'in_progress' && arena.currentMatch?.clockSeconds !== undefined
+            ? { time: arena.currentMatch.clockSeconds, timerStatus: 'paused' as const }
+            : {}),
           status: arena.status,
           swapped: arena.swapped ?? false,
           leftHanded: arena.leftHanded ?? false,
@@ -464,3 +468,48 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
     });
   });
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SOCKET_HANDLERS_CONTEXT_KEYS = {
+  state: [
+    'MAX_SOCKETS_PER_IP',
+    'SOCKET_EVENTS_PER_SEC',
+    'SOCKET_EVENT_BURST',
+    'arenaEventBuffer',
+    'arenaRefereeSelected',
+    'arenaScreenThemes',
+    'arenaThemeOverrides',
+    'connectedClients',
+    'db',
+    'io',
+    'isTrainingMode',
+    'kioskThemeVariables',
+    'screenLabels',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionPoolTimerSeconds',
+    'sessionRefereeFeatureEnabled',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableTimerSeconds',
+    'sessionTheme',
+    'socketsPerIp',
+    'teamArenaState',
+    'trainingCustomRules',
+  ],
+  methods: [
+    'broadcastClientList',
+    'buildDashboardSnapshot',
+    'checkArenaAuth',
+    'checkSocketArenaAuth',
+    'getArena',
+    'getPublicTeamArenaState',
+    'getSessionReferees',
+    'handleArenaControl',
+    'handleDisconnect',
+    'peekNextMatch',
+    'logDiag',
+    'teamArenaElapsedSec',
+  ],
+} as const;

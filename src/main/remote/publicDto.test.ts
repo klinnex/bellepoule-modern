@@ -141,6 +141,25 @@ describe('masquage des noms (RGPD, #1882)', () => {
     });
   });
 
+  it('clés oubliées masquées : arbitre, programme public, cartons noirs (#1882)', () => {
+    const data = {
+      match: { referee: { id: 'r1', name: 'MARTIN Paul' } },
+      schedule: { fencer: { id: 'f1', name: 'DUPONT Léa', club: 'CE Gratien' } },
+      bouts: [{ opponent: 'DURAND Léo' }],
+      cards: [{ fencerName: 'DUPONT Léa', opponentName: 'DURAND Léo' }],
+      arena: { name: 'Piste Rouge' },
+      club: { name: 'Cercle Escrime' },
+    };
+    const r = stripPersonalData(data, false, 'initials');
+    expect(r.match.referee.name).toBe('M. P.');
+    expect(r.schedule.fencer).toMatchObject({ name: 'D. L.', club: 'CE Gratien' });
+    expect(r.bouts[0].opponent).toBe('D. L.');
+    expect(r.cards[0]).toEqual({ fencerName: 'D. L.', opponentName: 'D. L.' });
+    // `name` hors personne : inchangé
+    expect(r.arena.name).toBe('Piste Rouge');
+    expect(r.club.name).toBe('Cercle Escrime');
+  });
+
   it('nom complet sans majuscules : dernier mot gardé', () => {
     expect(maskFullName('Léa Dupont', 'initial')).toBe('L. Dupont');
     expect(initialOf('élise')).toBe('É.');

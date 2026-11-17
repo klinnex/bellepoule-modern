@@ -247,6 +247,55 @@ describe.skipIf(!DatabaseSync)('PrivacyRepo (#1882)', () => {
     );
   });
 
+  it('anonymisation : commentaires d’arbitre nettoyés (auteur, libellé, noms) (#1882)', () => {
+    const { c1 } = seed();
+    const at = new Date().toISOString();
+    sql.run(
+      `INSERT INTO referees (id, competition_id, ref, name, created_at, updated_at) VALUES ('r1', ?, 1, 'Jean ARBITRE', ?, ?)`,
+      [c1.id, at, at]
+    );
+    sql.run(
+      `INSERT INTO referee_comments (id, competition_id, referee_id, author, comment, match_label, created_at)
+       VALUES ('rc1', ?, 'r1', 'Jean ARBITRE', 'Zoé LEFÈVRE conteste, Martin calme', 'Piste 3 — Lefèvre / Martin', ?)`,
+      [c1.id, new Date().toISOString()]
+    );
+    privacy.anonymizeCompetition(c1.id);
+    const rc = sql.queryOne<{ author: string | null; comment: string; match_label: string | null }>(
+      "SELECT author, comment, match_label FROM referee_comments WHERE id = 'rc1'"
+    )!;
+    expect(rc.author).toBeNull();
+    expect(rc.match_label).toBeNull();
+    expect(rc.comment).not.toMatch(/Zoé|LEFÈVRE|Martin/i);
+    expect(rc.comment).toContain('Anonyme');
+  });
+
+  it('membre sans licence : pas rattaché à un homonyme d’une autre date de naissance (#1882)', () => {
+    const c = competition('Open', '2025-01-01');
+    fencer(c.id, 'Durand', 'Léo'); // né le 2008-05-04, sans licence
+    const cid = club.createClub({ name: 'CE' }).id;
+    const other = club.createMember(cid, {
+      firstName: 'Léo',
+      lastName: 'Durand',
+      birthDate: '2015-02-02',
+    });
+    const same = club.createMember(cid, {
+      firstName: 'Léo',
+      lastName: 'Durand',
+      birthDate: '2008-05-04',
+    });
+    const found = privacy.findPersons('Durand');
+    const withFencer = found.find(p => p.fencers.length > 0)!;
+    expect(withFencer.members.map(m => m.memberId)).toEqual([same.id]);
+    expect(found.find(p => p.members.some(m => m.memberId === other.id))!.fencers).toEqual([]);
+  });
+
+  it('competitionIdsOf : compétitions de la personne (#1882)', () => {
+    const { c1, c2, a1, a2 } = seed();
+    expect(privacy.competitionIdsOf({ fencerIds: [a1.id, a2.id, 'inconnu'] }).sort()).toEqual(
+      [c1.id, c2.id].sort()
+    );
+  });
+
   it('supprime une compétition sans laisser de données orphelines', () => {
     const { c1, c2 } = seed();
     comps.deleteCompetition(c1.id);

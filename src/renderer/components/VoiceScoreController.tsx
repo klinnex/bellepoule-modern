@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { CircleCheck, Mic } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { getSpeechRecognitionCtor } from '../utils/speechRecognition';
 
 interface VoiceCommand {
   command: string;
@@ -158,15 +159,15 @@ export const VoiceScoreController: React.FC<{
       return;
     }
 
-    const SpeechRecognitionAPI =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionAPI = getSpeechRecognitionCtor();
+    if (!SpeechRecognitionAPI) return;
     const recognition = new SpeechRecognitionAPI();
 
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = lang.locale;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = event => {
       const current = event.resultIndex;
       const transcript = event.results[current][0].transcript;
       setTranscript(transcript);
@@ -176,7 +177,7 @@ export const VoiceScoreController: React.FC<{
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = event => {
       setError(`Erreur: ${event.error}`);
       setIsListening(false);
     };

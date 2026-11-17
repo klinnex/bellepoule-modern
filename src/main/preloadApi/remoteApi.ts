@@ -2,7 +2,8 @@
  * BellePoule Modern - Préload : Serveur de saisie distante (remote:*) (#1774)
  * Licensed under GPL-3.0
  */
-import { ipcRenderer, type IpcRendererEvent } from 'electron';
+import { ipcRenderer } from 'electron';
+import { subscribe } from './subscribe';
 import type { RemoteServerAPI } from '../../shared/types/preload';
 import type { RemoteFirewallAPI } from '../../shared/types/remote';
 
@@ -22,7 +23,7 @@ export const remoteApi = {
   startSession: (
     competitionId: string,
     strips: number,
-    matches?: any[],
+    matches?: unknown[],
     showPhotos?: boolean,
     kioskViews?: Record<string, boolean>,
     cardAnnounce?: boolean
@@ -56,8 +57,8 @@ export const remoteApi = {
     matchId: string,
     fromArena: number | null,
     toArena: number | null,
-    fencerA?: any,
-    fencerB?: any
+    fencerA?: unknown,
+    fencerB?: unknown
   ) =>
     ipcRenderer.invoke(
       'remote:updateMatchArena',
@@ -68,23 +69,31 @@ export const remoteApi = {
       fencerA,
       fencerB
     ),
-  updatePoolFencers: (competitionId: string, updates: Array<{ poolId: string; fencers: any[] }>) =>
-    ipcRenderer.invoke('remote:updatePoolFencers', competitionId, updates),
+  updatePoolFencers: (
+    competitionId: string,
+    updates: Array<{ poolId: string; fencers: unknown[] }>
+  ) => ipcRenderer.invoke('remote:updatePoolFencers', competitionId, updates),
   setActiveWave: (competitionId: string, matchIds: string[] | null, poolsClosed?: boolean) =>
     ipcRenderer.invoke('remote:setActiveWave', competitionId, matchIds, poolsClosed),
-  syncPoolMatches: (competitionId: string, poolsData: Array<{ poolId: string; matches: any[] }>) =>
-    ipcRenderer.invoke('remote:syncPoolMatches', competitionId, poolsData),
-  assignPools: (competitionId: string, poolsData: any[]) =>
+  syncPoolMatches: (
+    competitionId: string,
+    poolsData: Array<{ poolId: string; matches: unknown[] }>
+  ) => ipcRenderer.invoke('remote:syncPoolMatches', competitionId, poolsData),
+  assignPools: (competitionId: string, poolsData: unknown[]) =>
     ipcRenderer.invoke('remote:assignPools', competitionId, poolsData),
-  refreshDeMatches: (competitionId: string, matches: any[]) =>
+  refreshDeMatches: (competitionId: string, matches: unknown[]) =>
     ipcRenderer.invoke('remote:refreshDeMatches', competitionId, matches),
   setArenaPassword: (competitionId: string, arenaId: string, password: string) =>
     ipcRenderer.invoke('remote:setArenaPassword', competitionId, arenaId, password),
-  setOrgNote: (competitionId: string, note: any) =>
+  setOrgNote: (competitionId: string, note: unknown) =>
     ipcRenderer.invoke('remote:setOrgNote', competitionId, note),
   clearOrgNote: (competitionId: string) => ipcRenderer.invoke('remote:clearOrgNote', competitionId),
-  updateArenaTheme: (competitionId: string, arenaId: string, theme: string, customTheme?: any) =>
-    ipcRenderer.invoke('remote:updateArenaTheme', competitionId, arenaId, theme, customTheme),
+  updateArenaTheme: (
+    competitionId: string,
+    arenaId: string,
+    theme: string,
+    customTheme?: unknown
+  ) => ipcRenderer.invoke('remote:updateArenaTheme', competitionId, arenaId, theme, customTheme),
   clearArenaThemeOverride: (competitionId: string, arenaId: string) =>
     ipcRenderer.invoke('remote:clearArenaThemeOverride', competitionId, arenaId),
   setStripPlan: (competitionId: string, plan: { start: number; unavailable: number[] }) =>
@@ -95,7 +104,7 @@ export const remoteApi = {
     competitionId: string,
     arenaId: string,
     targetType: string,
-    customTheme?: any
+    customTheme?: unknown
   ) =>
     ipcRenderer.invoke(
       'remote:updateArenaScreenTheme',
@@ -154,20 +163,16 @@ export const remoteApi = {
     ipcRenderer.invoke('remote:setTrainerPassword', competitionId, password),
   getConnectedClients: (competitionId: string) =>
     ipcRenderer.invoke('remote:getConnectedClients', competitionId),
-  sendClientCommand: (competitionId: string, socketId: string, command: any) =>
+  sendClientCommand: (competitionId: string, socketId: string, command: unknown) =>
     ipcRenderer.invoke('remote:sendClientCommand', competitionId, socketId, command),
-  broadcastCommand: (competitionId: string, command: any) =>
+  broadcastCommand: (competitionId: string, command: unknown) =>
     ipcRenderer.invoke('remote:broadcastCommand', competitionId, command),
-  onClientListUpdate: (cb: (clients: any[], competitionId?: string | null) => void) => {
-    const handler = (_: IpcRendererEvent, clients: any[], competitionId?: string | null) =>
-      cb(clients, competitionId);
-    ipcRenderer.on('remote:clientListUpdate', handler);
-    return () => ipcRenderer.removeListener('remote:clientListUpdate', handler);
-  },
+  onClientListUpdate: (cb: Parameters<RemoteServerAPI['onClientListUpdate']>[0]) =>
+    subscribe('remote:clientListUpdate', cb),
   renameClient: (competitionId: string, socketId: string, label: string) =>
     ipcRenderer.invoke('remote:renameClient', competitionId, socketId, label),
   identifyClient: (competitionId: string, socketId: string) =>
     ipcRenderer.invoke('remote:identifyClient', competitionId, socketId),
-  setClientKioskMode: (competitionId: string, socketId: string, config: any) =>
+  setClientKioskMode: (competitionId: string, socketId: string, config: unknown) =>
     ipcRenderer.invoke('remote:setClientKioskMode', competitionId, socketId, config),
 } satisfies RemoteServerAPI & RemoteFirewallAPI;

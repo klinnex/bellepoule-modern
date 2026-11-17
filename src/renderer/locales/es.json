@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Cuadro por equipos",
     "book_kind_teamRanking": "Clasificación por equipos",
     "export_pdf_full_unsigned": "PDF completo sin firmas",
+    "export_black_card_report": "Informe FFE (tarjeta negra)",
+    "export_black_card_report_title": "Informe de exclusión prerrellenado, a completar y enviar a la FFE en 48 h (anexo 14)",
     "export_pdf_full_unsigned_title": "Poules y cuadros de eliminación directa, sin las firmas de los tiradores"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Cuadrícula de puntuación",
       "pending-matches": "Combates pendientes",
       "finished-matches": "Resultados",
+      "cards": "Tarjetas",
       "match-cards": "Fichas de combate",
       "ranking-table": "Tabla de clasificación",
       "footer": "Pie de página"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Retirada médica anulada — {{count}} combates restaurados"
   },
   "pdf": {
+    "cards_title": "Tarjetas",
+    "cards_standard": "Tarjetas",
+    "cards_p": "Tarjetas P (no combatividad)",
+    "card_white": "Blanca",
+    "card_yellow": "Amarilla",
+    "card_red": "Roja",
+    "card_black": "Negra",
+    "card_p_yellow": "Amarilla P",
+    "card_p_red": "Roja P",
+    "card_p_black": "Negra P",
     "abstention": "Abstención",
     "api_unavailable": "API de Electron no disponible",
     "appel_empty": "Ningún tirador en la lista de llamada",
@@ -3244,6 +3257,7 @@
     "eta": "Fin estimada",
     "all_done": "Terminado",
     "eta_default": "Estimación por defecto (menos de 3 asaltos cronometrados)",
+    "eta_cadence": "{{match}} min por combate (incl. {{gap}} min entre combates) · {{strips}} pista(s) en paralelo, una poule por pista",
     "deviation": "Desviación del horario",
     "on_time": "A tiempo",
     "late_by": "{{n}} min de retraso",
@@ -3763,6 +3777,7 @@
     "bpm_wrong_password": "Contraseña incorrecta.",
     "bpm_open_failed": "No se puede abrir.",
     "error": "Operación imposible.",
+    "competition_open": "Cierre la competición de esta persona (y detenga su servidor de tabletas) antes de anonimizar o borrar.",
     "export_warning": "Las exportaciones y notificaciones contienen datos personales: envíelas solo a destinatarios autorizados.",
     "photo_consent": "Foto: obtenga el consentimiento de la persona (de sus padres si es menor).",
     "pdf_heading": "Datos personales — {{name}}",

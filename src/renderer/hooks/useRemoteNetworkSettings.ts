@@ -23,7 +23,7 @@ export function useRemoteNetworkSettings(competitionId: string) {
   });
 
   useEffect(() => {
-    window.electronAPI.remote.getNetworkInterfaces().then((res: any) => {
+    window.electronAPI.remote.getNetworkInterfaces().then(res => {
       if (res?.success && res.interfaces?.length) {
         setNetworkInterfaces(res.interfaces);
       }

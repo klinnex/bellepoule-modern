@@ -19,7 +19,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` ; en CI, une baisse non verrouillée échoue aussi (`--update` pour verrouiller, #1895) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
@@ -87,9 +87,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 73 | 816 |
+| `src/shared/utils/` | 74 | 820 |
 | `src/shared/services/` | 8 | 95 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 33 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 15 | 234 |
-| `src/main/` | 84 | 668 |
-| `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 111 | 558 |
+| `src/database/` | 15 | 237 |
+| `src/main/` | 87 | 675 |
+| `src/renderer/services/` | 10 | 55 |
+| `src/renderer/hooks/` | 32 | 151 |
+| `src/renderer/components/` | 112 | 560 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **438** | **3309** |
+| **Total** | **447** | **3337** |
 
-Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -944,6 +944,14 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/blackCardReportPdf.test.ts</code> — 1 test</summary>
+
+- **generateBlackCardReportHTML (#1829, annexe 14 FFE)**
+  - une page par tireur exclu, champs pré-remplis et échappés
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 5 tests</summary>
 
 - **bookToc**
@@ -1009,7 +1017,7 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 18 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
@@ -1032,6 +1040,10 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
+- **generatePoolHTML – cartons (#1829, t.124.3.e)**
+  - sans carton : pas de section
+  - cartons P inscrits à part des cartons de faute
+  - modèle personnalisé sans la section : cartons quand même imprimés
 
 </details>
 
@@ -1812,7 +1824,7 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 15 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 18 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1836,6 +1848,9 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - fin du dernier match horodaté
 - **bandeau Organisation poules / compétition (#1817)**
   - tableauWaves : exempts déduits, tours successifs
+  - cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)
+  - pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)
+  - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
   - poules en cours : fin des poules + tableau projeté
   - poules finies : fin réelle des poules, tableau généré = ETA globale
 
@@ -2633,7 +2648,7 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/privacyRepo.test.ts</code> — 9 tests</summary>
+<summary><code>src/database/repos/privacyRepo.test.ts</code> — 12 tests</summary>
 
 - **identityKey / scrubIdentityInJson**
   - regroupe par licence, sinon par nom sans accents
@@ -2645,6 +2660,9 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - efface la personne de toutes les compétitions et du club
   - liste les compétitions et membres au-delà de la durée de conservation
   - anonymise une compétition échue, qui sort de la liste des candidats
+  - anonymisation : commentaires d’arbitre nettoyés (auteur, libellé, noms) (#1882)
+  - membre sans licence : pas rattaché à un homonyme d’une autre date de naissance (#1882)
+  - competitionIdsOf : compétitions de la personne (#1882)
   - supprime une compétition sans laisser de données orphelines
 
 </details>
@@ -3195,14 +3213,17 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 8 tests</summary>
 
 - **applyRetention**
   - anonymise par défaut, supprime sur demande
   - restreint à la sélection
+  - ignore une compétition ouverte, compacte la base après purge (#1882)
 - **handlers privacy:\***
   - enregistre et applique les réglages (noms abrégés à chaud)
   - filtre les entrées non fiables
+  - compétition ouverte : anonymisation et effacement refusés (#1882)
+  - effacement : base compactée ensuite (#1882)
   - archive chiffrée : mot de passe trop court, aucun fichier en attente
 
 </details>
@@ -3485,6 +3506,23 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaControl.clock.test.ts</code> — 2 tests</summary>
+
+- **arena\_control chrono (#1829)**
+  - pause : chrono gardé avec le match et persisté
+  - en marche : au plus une écriture toutes les 15 s
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 1 test</summary>
+
+- **arena\_control select\_match (#1882)**
+  - reprend fencerA / fencerB / referee de la session
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaSlots.test.ts</code> — 7 tests</summary>
 
 - **sous-pistes des rapières (#1118)**
@@ -3712,7 +3750,7 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/publicDto.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/remote/publicDto.test.ts</code> — 12 tests</summary>
 
 - **stripPersonalData**
   - retire date de naissance, licence et photo à toute profondeur, sans muter
@@ -3727,6 +3765,7 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - décodage côté client inchangé (format standard)
 - **masquage des noms (RGPD, #1882)**
   - « initial » : NOM P. ; « initials » : N. P. ; « full » inchangé
+  - clés oubliées masquées : arbitre, programme public, cartons noirs (#1882)
   - nom complet sans majuscules : dernier mot gardé
   - réglage global appliqué par défaut
 
@@ -3864,7 +3903,66 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 107 tests</summary>
+<summary><code>src/main/remoteScoreServer.security.test.ts</code> — 43 tests</summary>
+
+- **RemoteScoreServer**
+  - **route /api/auth/login/:arenaId**
+    - retourne 401 si PIN incorrect pour une arène avec mot de passe
+    - retourne succès si mot de passe correct (stocké hashé via setArenaPassword)
+    - retourne succès si arène sans mot de passe
+  - **rate limiting score**
+    - checkScoreRateLimit retourne true pour le premier appel
+    - checkScoreRateLimit retourne false après SCORE\_RATE\_LIMIT appels
+    - SCORE\_RATE\_LIMIT est défini et \> 0
+  - **P0 : actions mutantes protégées par l'auth d'arène**
+    - POST /api/arenas/:arenaId/%s refuse sans cookie (401) _(each)_
+    - POST /api/arenas/:arenaId/score accepte avec un cookie valide
+    - POST /api/session/%s réservé au loopback (403) _(each)_
+    - POST /api/session/stop accepté depuis le loopback
+    - POST /api/sync refuse sans cookie (401)
+    - socket arena\_control refusé sans cookie, sans avoir rejoint l'arène
+    - socket arena\_control accepté avec cookie valide
+    - socket arena\_control toggle\_swap reste autorisé pour l'écran d'arène
+    - **événements team\_\***
+      - %s refusé sans cookie _(each)_
+      - team\_touch accepté avec cookie, points invalides ignorés
+      - **relais FIE (#1086)**
+        - touche simple uniquement (pas de zones hors mode points)
+        - relais suivant : vainqueur au cumul, score du relais persisté
+        - carton individuel : escalade, persistance, motif inconnu refusé
+        - état public : cumul, palier du relais, cible, motifs de carton
+  - **P1 : anti force brute**
+    - hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient
+    - refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé
+    - X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP
+    - X-Forwarded-For lu seulement si trustProxy activé
+    - limite par arène : 20 tentatives/min tous clients confondus
+    - blocage progressif après 5 échecs, même après la fenêtre d'une minute
+    - un succès remet à zéro les échecs de l'IP
+    - jeton expiré côté serveur refusé
+    - nombre de jetons plafonné par arène
+  - **P2 : durcissement réseau / DoS**
+    - isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée
+    - POST avec Origin étrangère refusé (403), Origin même hôte accepté
+    - limite JSON réduite sur les routes de connexion
+    - /api/debug réservé à la machine hôte
+    - refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion
+    - déconnecte une socket qui inonde le serveur d'événements
+    - client:register enregistre l'IP de la socket, pas X-Forwarded-For
+  - **#993/#995/#997 : DoS socket et XSS**
+    - %s avec données nulles : aucune exception _(each)_
+    - sanitizeAnnouncement : balises retirées, carton inconnu normalisé
+    - journal : numéro de piste non numérique refusé (400)
+    - résultats : identifiant de compétition hors format refusé (400)
+  - **#989 : espace formateurs**
+    - fermé tant que non activé / sans mot de passe
+    - login puis commentaire enregistré ; sans cookie → 401
+    - mauvais mot de passe refusé
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 64 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -3874,14 +3972,6 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - getLocalIPAddress retourne une chaîne non vide
     - start() appelle server.listen
     - stop() appelle server.close
-  - **route /api/auth/login/:arenaId**
-    - retourne 401 si PIN incorrect pour une arène avec mot de passe
-    - retourne succès si mot de passe correct (stocké hashé via setArenaPassword)
-    - retourne succès si arène sans mot de passe
-  - **rate limiting score**
-    - checkScoreRateLimit retourne true pour le premier appel
-    - checkScoreRateLimit retourne false après SCORE\_RATE\_LIMIT appels
-    - SCORE\_RATE\_LIMIT est défini et \> 0
   - **arenaEventBuffer**
     - le buffer est initialement vide pour toutes les arènes
     - pushArenaEvent ajoute un événement dans le buffer
@@ -3953,50 +4043,6 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - n'écrase pas un statut sportif (éliminé)
     - ferme l'appel hors phase CHECKIN
     - invalide les sessions quand le mot de passe change
-  - **P0 : actions mutantes protégées par l'auth d'arène**
-    - POST /api/arenas/:arenaId/%s refuse sans cookie (401) _(each)_
-    - POST /api/arenas/:arenaId/score accepte avec un cookie valide
-    - POST /api/session/%s réservé au loopback (403) _(each)_
-    - POST /api/session/stop accepté depuis le loopback
-    - POST /api/sync refuse sans cookie (401)
-    - socket arena\_control refusé sans cookie, sans avoir rejoint l'arène
-    - socket arena\_control accepté avec cookie valide
-    - socket arena\_control toggle\_swap reste autorisé pour l'écran d'arène
-    - **événements team\_\***
-      - %s refusé sans cookie _(each)_
-      - team\_touch accepté avec cookie, points invalides ignorés
-      - **relais FIE (#1086)**
-        - touche simple uniquement (pas de zones hors mode points)
-        - relais suivant : vainqueur au cumul, score du relais persisté
-        - carton individuel : escalade, persistance, motif inconnu refusé
-        - état public : cumul, palier du relais, cible, motifs de carton
-  - **P1 : anti force brute**
-    - hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient
-    - refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé
-    - X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP
-    - X-Forwarded-For lu seulement si trustProxy activé
-    - limite par arène : 20 tentatives/min tous clients confondus
-    - blocage progressif après 5 échecs, même après la fenêtre d'une minute
-    - un succès remet à zéro les échecs de l'IP
-    - jeton expiré côté serveur refusé
-    - nombre de jetons plafonné par arène
-  - **P2 : durcissement réseau / DoS**
-    - isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée
-    - POST avec Origin étrangère refusé (403), Origin même hôte accepté
-    - limite JSON réduite sur les routes de connexion
-    - /api/debug réservé à la machine hôte
-    - refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion
-    - déconnecte une socket qui inonde le serveur d'événements
-    - client:register enregistre l'IP de la socket, pas X-Forwarded-For
-  - **#993/#995/#997 : DoS socket et XSS**
-    - %s avec données nulles : aucune exception _(each)_
-    - sanitizeAnnouncement : balises retirées, carton inconnu normalisé
-    - journal : numéro de piste non numérique refusé (400)
-    - résultats : identifiant de compétition hors format refusé (400)
-  - **#989 : espace formateurs**
-    - fermé tant que non activé / sans mot de passe
-    - login puis commentaire enregistré ; sans cookie → 401
-    - mauvais mot de passe refusé
   - **finishPoolMatch (saisie dans l'application)**
     - conserve le drapeau forfait sur le perdant (#1144)
     - sans statut spécial : score simple, aucun drapeau
@@ -4172,6 +4218,15 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/renderer/services/`
 
 <details>
+<summary><code>src/renderer/services/blackCardReport.test.ts</code> — 2 tests</summary>
+
+- **buildBlackCardEntries (#1829)**
+  - match de la sanction : celui qui porte le carton noir en base
+  - aucun exclu : rien
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/ipcError.test.ts</code> — 3 tests</summary>
 
 - **ipcErrorText (#1159)**
@@ -4297,6 +4352,16 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/renderer/hooks/`
 
 <details>
+<summary><code>src/renderer/hooks/useAppMenuHandlers.test.tsx</code> — 3 tests</summary>
+
+- **useAppMenuHandlers**
+  - relaie les événements vers les derniers handlers, sans réabonnement
+  - .bpm ouvert : recharge, toast, ouvre la compétition unique
+  - démontage : tous les désabonnements appelés
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 7 tests</summary>
 
 - **useAppState - état initial**
@@ -4322,6 +4387,15 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - agrandit quand le contenu déborde
   - ne touche pas une modale sans débordement
   - plafonne à 90 % de la fenêtre
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useClubTab.test.tsx</code> — 2 tests</summary>
+
+- **useClubTab**
+  - mémorise l’onglet et le club, relit le club affiché
+  - état restauré au montage
 
 </details>
 
@@ -4652,6 +4726,15 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - charge le thème sauvegardé au montage
   - isLight vrai en mode clair
   - expose 3 thèmes disponibles
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useTrainingSession.test.tsx</code> — 2 tests</summary>
+
+- **useTrainingSession**
+  - lance puis arrête une session
+  - session refusée : serveur arrêté, toast d’erreur
 
 </details>
 
@@ -5261,6 +5344,15 @@ Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tournoi des rapières : mêmes indicateurs que l'épée
   - arme personnalisée hors rapières : indicateurs historiques
   - sabre laser : indicateurs historiques
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/app/AppTabBar.test.tsx</code> — 2 tests</summary>
+
+- **AppTabBar**
+  - affiche les onglets et relaie les actions
+  - glisser-déposer : réordonne les onglets
 
 </details>
 
