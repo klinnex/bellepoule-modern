@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 17 | 243 |
+| `src/database/` | 17 | 244 |
 | `src/main/` | 102 | 827 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 116 | 594 |
+| `src/renderer/components/` | 117 | 596 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **474** | **3567** |
+| **Total** | **475** | **3570** |
 
-Unitaires : 464 fichiers, 3528 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 465 fichiers, 3531 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2613,7 +2613,7 @@ Unitaires : 464 fichiers, 3528 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 38 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 39 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2632,6 +2632,8 @@ Unitaires : 464 fichiers, 3528 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - **préparation et bilan des séances**
     - séance préparée : plan, objectifs, démarrage, une seule ouverte
     - bilan de séance et remarques par tireur
+  - **maîtres d'armes**
+    - CRUD, archivage, encadrement des séances
   - **bibliothèque d’exercices**
     - CRUD, tri par famille, import sans doublon
     - plan de séance : images et famille conservées
@@ -5743,6 +5745,16 @@ Unitaires : 464 fichiers, 3528 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **AppTabBar**
   - affiche les onglets et relaie les actions
   - glisser-déposer : réordonne les onglets
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubCoachesPanel.test.tsx</code> — 2 tests</summary>
+
+- **ClubCoachesPanel**
+  - liste les actifs, ajoute, archive et supprime
+- **ClubCoachPicker**
+  - coche un maître d’armes ; archivé proposé seulement s’il est déjà choisi
 
 </details>
 
