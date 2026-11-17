@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 256 |
-| `src/main/` | 108 | 879 |
+| `src/main/` | 108 | 882 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **485** | **3658** |
+| **Total** | **485** | **3661** |
 
-Unitaires : 475 fichiers, 3619 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 475 fichiers, 3622 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4682,13 +4682,17 @@ Unitaires : 475 fichiers, 3619 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 12 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 15 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
   - dev : serveur webpack uniquement
 - **isAllowedExternalUrl**
   - https oui, http seulement réseau local, autres schémas non
+- **permissionCheckUrl (caméra en production, Mode Club)**
+  - origine file:// sans chemin → URL de la page (bundle de production)
+  - origine http (dev) inchangée
+  - la vérification de caméra réussit depuis la page de production
 - **isPermissionAllowed**
   - caméra depuis l’app uniquement, sans micro
   - écriture presse-papier depuis l’app uniquement, jamais la lecture (#1858)
