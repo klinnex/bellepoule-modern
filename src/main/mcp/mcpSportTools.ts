@@ -102,7 +102,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
     name: 'assign_referees',
     title: 'Arbitres des poules',
     description:
-      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. « replace: true » réaffecte toutes les poules.',
+      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. Sans arbitre neutre, l’affectation est signalée (« clubConflict », « warnings »). « replace: true » réaffecte toutes les poules.',
     inputSchema: {
       type: 'object',
       properties: {

@@ -13,6 +13,7 @@ import { handleMcpMessage } from './mcpServer';
 import type { McpWriteDeps } from './mcpWriteTools';
 import { runBatchImport } from '../batchImport';
 import { rowsToXlsx } from '../xlsxToCsv';
+import { remoteArenaCount } from '../domain/settings';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -206,6 +207,21 @@ d('orchestration sportive (lot 3)', () => {
         path: path.join(dir, 'r.csv'),
       })
     ).toContain('path_not_allowed');
+    // Sous-dossier absent : « introuvable » dans les dossiers de l'agent, refus au-dehors
+    expect(
+      await ko('export_results', {
+        competitionId: id,
+        format: 'csv',
+        path: path.join(allowed, 'absent', 'r.csv'),
+      })
+    ).toContain('dir_not_found');
+    expect(
+      await ko('export_results', {
+        competitionId: id,
+        format: 'csv',
+        path: path.join(dir, 'absent', 'r.csv'),
+      })
+    ).toContain('path_not_allowed');
     expect(
       await ko('export_results', {
         competitionId: id,
@@ -317,6 +333,30 @@ d('arbitres, serveur distant, suppression', () => {
     expect(await ko('stop_remote_server', { competitionId: id })).toContain('Aucun serveur');
   });
 
+  it('assign_referees : arbitre du club d’un tireur signalé faute d’arbitre neutre', async () => {
+    const id = await competition();
+    const [first] = db.getFencersByCompetition(id);
+    db.updateFencer(first.id, { club: 'NEC' });
+    await ok('import_referees', {
+      competitionId: id,
+      path: file('arbitres.txt', 'nom;prenom;sexe;categorie;club\nARBITRE;Anne;F;;NEC'),
+    });
+    await ok('generate_pools', { competitionId: id });
+    const result = await ok('assign_referees', { competitionId: id, includeUnchecked: true });
+    expect(result.assignments[0]).toMatchObject({ referee: 'Anne ARBITRE', clubConflict: 'NEC' });
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('NEC');
+  });
+
+  it('arènes du serveur distant sans écran : poules, sinon pistes de la salle, sinon 1', async () => {
+    const id = await competition();
+    expect(remoteArenaCount({ db }, id)).toBe(1);
+    await ok('upsert_venue', { name: 'Gymnase', stripCount: 6 });
+    expect(remoteArenaCount({ db }, id)).toBe(6);
+    await ok('generate_pools', { competitionId: id });
+    expect(remoteArenaCount({ db }, id)).toBe(1);
+  });
+
   it('delete_competition : titre exact exigé', async () => {
     const id = await competition();
     expect(await ko('delete_competition', { competitionId: id, confirmTitle: 'open' })).toContain(
@@ -372,6 +412,38 @@ d('formats d’import et atomicité', () => {
     expect(report.competitions.map((c: { fencers: { added: number } }) => c.fencers.added)).toEqual(
       [2, 1]
     );
+  });
+
+  it('TXT séparé par des espaces lu comme à l’écran ; fichier sans tireur signalé', async () => {
+    const { created } = await ok('create_competition', {
+      title: 'Libre',
+      date: '2026-12-06',
+      weapon: 'S',
+      gender: 'F',
+      category: 'SEN',
+    });
+    const libre = file('libre.txt', 'BONNET Claire F\nFONTAINE Julie F\n');
+    expect(await ok('import_fencers', { competitionId: created.id, path: libre })).toMatchObject({
+      format: 'txt',
+      read: 2,
+      added: 2,
+    });
+    const report = await ok('import_fencers', {
+      competitionId: created.id,
+      path: file('vide.csv', 'rien\n'),
+    });
+    expect(report.read).toBe(0);
+    expect(report.warnings[0]).toContain('Aucun tireur lu');
+    // Aperçu de import_day (épreuve pas encore créée) : même lecture
+    const day = await ok('import_day', {
+      name: 'Aperçu',
+      date: '2026-12-07',
+      dryRun: true,
+      competitions: [
+        { title: 'TXT', weapon: 'S', gender: 'F', category: 'SEN', fencersFile: libre },
+      ],
+    });
+    expect(day.competitions[0].fencers).toMatchObject({ format: 'txt', read: 2 });
   });
 
   it('import_day : un fichier manquant fait échouer l’import sans rien écrire', async () => {

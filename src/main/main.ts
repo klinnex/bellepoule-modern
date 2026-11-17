@@ -51,6 +51,7 @@ import { resolveBackupDir } from './backupSettings';
 import { runBackupAutosave } from './autosaveBackup';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
+import { remoteArenaCount } from './domain/settings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
@@ -236,15 +237,22 @@ const mcpDeps: McpWriteDeps = {
     return folders.length > 0 ? folders : defaultAgentFolders;
   },
   // HTTPS et interface : paramètres du poste (app_settings), comme l'écran
-  startRemote: (competitionId, port) => {
+  startRemote: async (competitionId, port) => {
     const { remoteInterface, remoteHttps } = db.settings.getSettings();
-    return startRemoteServer(
+    const result = await startRemoteServer(
       remoteServerContext,
       competitionId,
       port,
       remoteInterface,
       remoteHttps
     );
+    // Sans écran, aucune fenêtre ne règle les arènes : même règle que l'écran (#1880)
+    if (result.success) {
+      remoteServers
+        .get(competitionId)
+        ?.server.setArenaCount(remoteArenaCount({ db }, competitionId));
+    }
+    return result;
   },
   stopRemote: competitionId => stopRemoteServer(competitionId),
   renderPdf: html => renderHtmlToPdfBuffer(html),

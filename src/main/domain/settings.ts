@@ -11,6 +11,7 @@ import {
   type VenueInput,
 } from '../../shared/types/appSettings';
 import type { DomainContext } from './context';
+import { readSession } from './sessionView';
 
 export interface SettingScope {
   competitionId?: string;
@@ -56,6 +57,17 @@ export function resolveSetting<K extends ResolvableKey>(
   const appKey = key as AppSettingKey;
   const stored = ctx.db.settings.getStoredSettings();
   return (appKey in stored ? stored[appKey] : APP_SETTINGS_DEFAULTS[appKey]) as ResolvedValue<K>;
+}
+
+/**
+ * Nombre d'arènes du serveur distant, même règle que l'écran (useRemoteServerState) :
+ * une par poule, sinon pistes de la journée ou de la salle, sinon 1.
+ */
+export function remoteArenaCount(ctx: DomainContext, competitionId: string): number {
+  const { pools } = readSession(ctx, competitionId);
+  if (Array.isArray(pools) && pools.length > 0) return pools.length;
+  const strips = resolveSetting(ctx, 'stripCount', { competitionId });
+  return strips > 0 ? strips : 1;
 }
 
 /** Paramètres du poste effectifs (aucun secret : le jeton MCP vit hors base, chiffré) */

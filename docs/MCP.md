@@ -396,7 +396,7 @@ Aucun argument.
 
 ### `start_remote_server` — Démarrer le serveur distant
 
-*écriture.* Démarre le serveur des tablettes d’arbitre et écrans d’arène d’une épreuve (HTTPS et interface : paramètres du poste). Il écoute sur le réseau local : accord du DT indispensable.
+*écriture.* Démarre le serveur des tablettes d’arbitre et écrans d’arène d’une épreuve (HTTPS et interface : paramètres du poste ; une arène par poule, sinon par piste de la journée ou de la salle). Il écoute sur le réseau local : accord du DT indispensable.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|
@@ -436,7 +436,7 @@ Aucun argument.
 
 ### `assign_referees` — Arbitres des poules
 
-*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. « replace: true » réaffecte toutes les poules.
+*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. Sans arbitre neutre, l’affectation est signalée (« clubConflict », « warnings »). « replace: true » réaffecte toutes les poules.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|

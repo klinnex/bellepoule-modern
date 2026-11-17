@@ -297,23 +297,39 @@ export function assignPoolReferees(
     const id = p.referees?.[0]?.id;
     if (id && !options.replace) load.set(id, (load.get(id) ?? 0) + 1);
   }
-  const assignments: Array<{ poolNumber: number; referee: string; refereeId: string }> = [];
+  const assignments: Array<{
+    poolNumber: number;
+    referee: string;
+    refereeId: string;
+    /** Club partagé avec un tireur de la poule (aucun arbitre neutre disponible) */
+    clubConflict?: string;
+  }> = [];
+  const warnings: string[] = [];
   const matchChanges: Array<{ matchId: string; refereeId: string | null }> = [];
   const nextPools = pools.map(pool => {
     if (pool.referees?.length && !options.replace) return pool;
     const ref = chooseNeutralReferee(pool, candidates, load);
     if (!ref) return pool;
     load.set(ref.id, (load.get(ref.id) ?? 0) + 1);
+    const name = `${ref.firstName} ${ref.lastName}`.trim();
+    const clubConflict =
+      ref.club && pool.fencers.some(f => f.club === ref.club) ? ref.club : undefined;
     assignments.push({
       poolNumber: pool.number,
-      referee: `${ref.firstName} ${ref.lastName}`.trim(),
+      referee: name,
       refereeId: ref.id,
+      ...(clubConflict ? { clubConflict } : {}),
     });
+    if (clubConflict) {
+      warnings.push(
+        `Poule ${pool.number} : ${name} est du club ${clubConflict}, comme un tireur de la poule (aucun arbitre neutre disponible)`
+      );
+    }
     const { matches, changes } = propagatePoolReferee(pool.matches, pool.referees?.[0]?.id, ref);
     matchChanges.push(...changes);
     return { ...pool, referees: [ref], matches };
   });
-  const result = { dryRun: !!options.dryRun, assignments };
+  const result = { dryRun: !!options.dryRun, assignments, warnings };
   if (options.dryRun || assignments.length === 0) return result;
   ctx.db.transaction(() => {
     for (const pool of nextPools) {
