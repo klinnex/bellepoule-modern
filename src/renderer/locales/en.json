@@ -3243,6 +3243,7 @@
     "eta": "Estimated end",
     "all_done": "Finished",
     "eta_default": "Default estimate (fewer than 3 timed bouts)",
+    "eta_cadence": "{{match}} min per bout (incl. {{gap}} min between bouts) · {{strips}} strip(s) in parallel, one pool per strip",
     "deviation": "Schedule deviation",
     "on_time": "On time",
     "late_by": "{{n}} min behind",

@@ -3243,6 +3243,7 @@
     "eta": "Voraussichtliches Ende",
     "all_done": "Beendet",
     "eta_default": "Standardschätzung (weniger als 3 gemessene Gefechte)",
+    "eta_cadence": "{{match}} Min. pro Gefecht (davon {{gap}} Min. zwischen zwei Gefechten) · {{strips}} Bahn(en) parallel, ein Pool pro Bahn",
     "deviation": "Abweichung vom Zeitplan",
     "on_time": "Pünktlich",
     "late_by": "{{n}} Min. Verspätung",

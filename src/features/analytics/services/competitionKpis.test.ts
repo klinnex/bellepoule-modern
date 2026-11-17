@@ -393,6 +393,51 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     expect(tableauWaves(6, 2)).toBe(1 + 1 + 1);
   });
 
+  it('cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)', () => {
+    const notStarted = Array.from({ length: 21 }, (_, i) =>
+      poolMatch(`p${i}`, `f${i}`, `g${i}`, 0, 0, MatchStatus.NOT_STARTED)
+    );
+    const k = organisationKpis({ pools: [pool('A', 1, notStarted)], now: NOW });
+    expect(k.cadence).toEqual({ perMatchMs: 6 * 60_000, changeoverMs: 3 * 60_000, strips: 1 });
+    expect(k.poolsEtaAt! - NOW).toBe(21 * 6 * 60_000);
+  });
+
+  it('pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)', () => {
+    const mk = (pfx: string, n: number) =>
+      Array.from({ length: n }, (_, i) =>
+        poolMatch(`${pfx}${i}`, `${pfx}a${i}`, `${pfx}b${i}`, 0, 0, MatchStatus.NOT_STARTED)
+      );
+    const k = organisationKpis({
+      pools: [pool('A', 1, mk('a', 15)), pool('B', 2, mk('b', 15)), pool('C', 3, mk('c', 15))],
+      arenas: [{ number: 1 }, { number: 2 }] as never,
+      now: NOW,
+    });
+    expect(k.cadence.strips).toBe(2);
+    expect(k.poolsEtaAt! - NOW).toBe(30 * 6 * 60_000);
+  });
+
+  it('délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)', () => {
+    const t = (id: string, s: string, e: string) =>
+      timing({
+        matchId: id,
+        strip: 1,
+        startTime: `2026-11-13T${s}:00Z`,
+        endTime: `2026-11-13T${e}:00Z`,
+      });
+    const k = organisationKpis({
+      pools: [pool('A', 1, [poolMatch('x', 'f1', 'f2', 0, 0, MatchStatus.NOT_STARTED)])],
+      timings: [
+        t('m1', '09:00', '09:03'),
+        t('m2', '09:07', '09:10'),
+        t('m3', '09:14', '09:17'),
+        t('m4', '09:21', '09:24'),
+      ],
+      now: NOW,
+    });
+    expect(k.cadence.changeoverMs).toBe(4 * 60_000);
+    expect(k.cadence.perMatchMs).toBe(7 * 60_000);
+  });
+
   it('poules en cours : fin des poules + tableau projeté', () => {
     const k = organisationKpis({
       pools: [

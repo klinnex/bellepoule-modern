@@ -3243,6 +3243,7 @@
     "eta": "Final estimat",
     "all_done": "Acabat",
     "eta_default": "Estimació per defecte (menys de 3 assalts cronometrats)",
+    "eta_cadence": "{{match}} min per combat (incl. {{gap}} min entre combats) · {{strips}} pista(es) en paral·lel, una poule per pista",
     "deviation": "Desviació de l’horari",
     "on_time": "A l’hora",
     "late_by": "{{n}} min de retard",

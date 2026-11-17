@@ -14,7 +14,14 @@ import {
   Pool,
   RemoteEvent,
 } from '../../../shared/types';
-import { estimatePhaseEta } from '../../../shared/utils/phaseEta';
+import { estimatePhaseEta, median as medianOf } from '../../../shared/utils/phaseEta';
+
+/** Durée d'un match supposée tant que moins de 3 matchs sont chronométrés (#1817) */
+const DEFAULT_MATCH_MS = 3 * 60_000;
+/** Délai entre deux matchs sur une piste tant qu'il n'est pas mesuré (#1817) */
+const DEFAULT_CHANGEOVER_MS = 3 * 60_000;
+/** Au-delà, l'écart entre deux matchs d'une piste est une pause, pas un enchaînement */
+const MAX_CHANGEOVER_MS = 20 * 60_000;
 
 /** Match terminé ramené à une forme commune (poule ou tableau). */
 export interface KpiMatch {
@@ -262,6 +269,11 @@ export interface OrganisationKpis {
   /** Fin estimée (ms) ; null si rien à estimer */
   etaAt: number | null;
   etaBasis: 'measured' | 'default' | null;
+  /**
+   * Base du calcul des fins estimées (#1817) : temps par match (combat + délai entre deux
+   * matchs), délai seul, pistes jouant en parallèle (une poule occupe une piste).
+   */
+  cadence: { perMatchMs: number; changeoverMs: number; strips: number };
   /** Fin estimée des poules (ms) ; null si poules terminées ou absentes (#1817) */
   poolsEtaAt: number | null;
   /** Fin réelle des poules (ms) : dernier match de poule terminé, une fois toutes les poules finies */
@@ -366,20 +378,45 @@ export function organisationKpis(input: {
   for (const p of pools) if (p.strip != null) strips.add(p.strip);
   const parallel = Math.max(1, strips.size || pools.length);
 
+  // Cadence (#1817) : durée d'un match (début → fin) + délai entre deux matchs sur une piste
+  // (appel, installation). Délai mesuré sur les enchaînements réels d'une même piste,
+  // sinon 3 min ; durée de match par défaut 3 min tant que moins de 3 matchs sont chronométrés.
+  const byStrip = new Map<number, Array<{ s: number; e: number }>>();
+  for (const t of finishedTimed) {
+    if (t.strip == null) continue;
+    const list = byStrip.get(t.strip) ?? [];
+    list.push({ s: time(t.startTime), e: time(t.endTime) });
+    byStrip.set(t.strip, list);
+  }
+  const gaps: number[] = [];
+  for (const list of byStrip.values()) {
+    list.sort((a, b) => a.s - b.s);
+    for (let i = 1; i < list.length; i++) {
+      const gap = list[i].s - list[i - 1].e;
+      if (gap >= 0 && gap <= MAX_CHANGEOVER_MS) gaps.push(gap);
+    }
+  }
+  const changeoverMs = gaps.length >= 3 ? medianOf(gaps) : DEFAULT_CHANGEOVER_MS;
+  const etaCommon = {
+    durationsMs: wallMs.map(x => x.ms),
+    activeArenas: parallel,
+    now,
+    fallbackMatchMs: DEFAULT_MATCH_MS,
+    changeoverMs,
+  };
+
   const remaining = total - done;
   let etaAt: number | null = null;
   let etaBasis: OrganisationKpis['etaBasis'] = null;
   if (remaining > 0) {
     const poolRemaining = poolRows.map(p => p.total - p.done).filter(n => n > 0);
     const eta = estimatePhaseEta({
-      durationsMs: wallMs.map(x => x.ms),
+      ...etaCommon,
       remainingMatches: remaining,
       sequentialGroups:
         poolRemaining.length && poolDone < poolTotal
           ? [...poolRemaining, ...new Array(remaining - (poolTotal - poolDone)).fill(1)]
           : undefined,
-      activeArenas: parallel,
-      now,
     });
     etaAt = eta.finishAt;
     etaBasis = eta.basis;
@@ -388,14 +425,12 @@ export function organisationKpis(input: {
   // Fin des poules seule (#1817) : bandeau Organisation séparé poules / compétition
   const poolRemainingTotal = poolTotal - poolDone;
   let poolsEtaAt: number | null = null;
-  let perMatchMs = 0;
+  let perMatchMs = estimatePhaseEta({ ...etaCommon, remainingMatches: 0 }).perMatchMs;
   if (poolTotal > 0) {
     const eta = estimatePhaseEta({
-      durationsMs: wallMs.map(x => x.ms),
+      ...etaCommon,
       remainingMatches: poolRemainingTotal,
       sequentialGroups: poolRows.map(p => p.total - p.done).filter(n => n > 0),
-      activeArenas: parallel,
-      now,
     });
     perMatchMs = eta.perMatchMs;
     if (poolRemainingTotal > 0) poolsEtaAt = eta.finishAt;
@@ -463,6 +498,11 @@ export function organisationKpis(input: {
     inProgress,
     etaAt,
     etaBasis,
+    cadence: {
+      perMatchMs,
+      changeoverMs,
+      strips: parallel,
+    },
     poolsEtaAt,
     poolsEndAt,
     competitionEtaAt,
