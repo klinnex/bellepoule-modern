@@ -25,6 +25,7 @@ describe('builtinThemes', () => {
       'builtin:musketeers',
       'builtin:arcade',
       'builtin:sumie',
+      'builtin:licorne',
     ]);
     expect(resolveBuiltinTheme('arena', 'builtin:light', t)).toEqual({ preset: 'light' });
   });
@@ -51,7 +52,7 @@ describe('builtinThemes', () => {
   });
 
   it('chaque thème décoratif couvre toutes les sections avec des variables connues', () => {
-    for (const key of ['steampunk', 'musketeers', 'arcade', 'sumie']) {
+    for (const key of ['steampunk', 'musketeers', 'arcade', 'sumie', 'licorne']) {
       for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
         const base = resolveBuiltinTheme(s, s === 'arena' ? 'builtin:dark' : 'builtin:default', t);
         const r = resolveBuiltinTheme(s, `builtin:${key}`, t);
@@ -63,6 +64,13 @@ describe('builtinThemes', () => {
           );
         }
       }
+    }
+  });
+
+  it('Licorne : motif SVG répétable sur chaque section', () => {
+    for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+      const r = resolveBuiltinTheme(s, 'builtin:licorne', t);
+      expect(Object.values(r?.theme?.variables ?? {}).join(' ')).toContain('/licorne-pattern.svg');
     }
   });
 
