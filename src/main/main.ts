@@ -72,7 +72,12 @@ const createWindow = (initialLang?: string): void =>
   });
 
 // RGPD (#1882) : droits des personnes, conservation, archives .bpm chiffrées
-const privacyHandlers = createPrivacyHandlers({ db, getMainWindow: () => mainWindow });
+const privacyHandlers = createPrivacyHandlers({
+  db,
+  getMainWindow: () => mainWindow,
+  // Compétition ouverte ou servie aux tablettes : anonymisation / effacement refusés (#1882)
+  isCompetitionBusy: id => id === menuActions.getCurrentCompetitionId() || remoteServers.has(id),
+});
 const menuActions = createMenuActions({
   db,
   getMainWindow: () => mainWindow,

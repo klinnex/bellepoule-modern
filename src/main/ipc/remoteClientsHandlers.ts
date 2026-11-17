@@ -12,7 +12,7 @@ export function registerRemoteClientsHandlers(): void {
   ipcMain.handle('remote:getConnectedClients', async (_, competitionId: string) => {
     try {
       const entry = remoteServers.get(competitionId);
-      return { success: true, clients: entry?.server.getConnectedClients() ?? [] };
+      return { success: true, clients: entry?.server.clients.list() ?? [] };
     } catch (error) {
       return {
         success: false,
@@ -28,7 +28,7 @@ export function registerRemoteClientsHandlers(): void {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
-        entry.server.sendClientCommand(socketId, command);
+        entry.server.clients.send(socketId, command);
         return { success: true };
       } catch (error) {
         return {
@@ -43,7 +43,7 @@ export function registerRemoteClientsHandlers(): void {
     try {
       const entry = remoteServers.get(competitionId);
       if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.broadcastCommand(command);
+      entry.server.clients.broadcast(command);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
@@ -56,7 +56,7 @@ export function registerRemoteClientsHandlers(): void {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
-        entry.server.renameClient(socketId, label);
+        entry.server.clients.rename(socketId, label);
         return { success: true };
       } catch (error) {
         return {
@@ -71,7 +71,7 @@ export function registerRemoteClientsHandlers(): void {
     try {
       const entry = remoteServers.get(competitionId);
       if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.identifyClient(socketId);
+      entry.server.clients.identify(socketId);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
@@ -84,7 +84,7 @@ export function registerRemoteClientsHandlers(): void {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
-        entry.server.setClientKioskMode(socketId, config);
+        entry.server.clients.setKioskMode(socketId, config);
         return { success: true };
       } catch (error) {
         return {

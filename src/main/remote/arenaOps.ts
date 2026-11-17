@@ -237,3 +237,30 @@ export function resolveDbMatchId(ctx: ArenaOpsContext, match: ArenaMatch): strin
   }
   return match.id;
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_OPS_CONTEXT_KEYS = {
+  state: [
+    'arenaOvertimeType',
+    'arenaRefereeSelected',
+    'arenaSuddenDeath',
+    'arenas',
+    'db',
+    'io',
+    'session',
+    'sessionMatches',
+    'sessionPoolMaxScore',
+    'sessionTableMaxScore',
+    'sessionWeapon',
+  ],
+  methods: [
+    'broadcastArenaUpdate',
+    'isGuestMatch',
+    'persistArenaState',
+    'resolveDbMatchId',
+    'resolvePoolReferee',
+    'resolveReferee',
+    'resolveTableauMatchReferees',
+    'updateArena',
+  ],
+} as const;

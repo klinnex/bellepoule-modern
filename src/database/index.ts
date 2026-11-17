@@ -92,6 +92,8 @@ export class DatabaseManager {
     // Attente plutôt qu'un SQLITE_BUSY immédiat en cas de contention (checkpoint, backup)
     this.db.pragma('busy_timeout = 5000');
     this.db.pragma('foreign_keys = ON');
+    // RGPD (#1882) : pages libérées écrasées par des zéros, pas de donnée effacée lisible
+    this.db.pragma('secure_delete = ON');
     this.runMigrations();
   }
 
@@ -728,6 +730,26 @@ export class DatabaseManager {
   public async exportToFile(filepath: string): Promise<void> {
     if (!this.db) throw new Error('Database not open');
     await this.db.backup(filepath);
+    // La sauvegarde recopie aussi les pages libérées : VACUUM pour n'y laisser
+    // aucune donnée effacée (#1882)
+    const copy = new Database(filepath);
+    try {
+      copy.pragma('journal_mode = DELETE');
+      copy.exec('VACUUM');
+    } finally {
+      copy.close();
+    }
+  }
+
+  /**
+   * Après anonymisation / effacement (#1882) : vide le WAL (anciennes versions des pages)
+   * et reconstruit la base pour qu'aucune donnée effacée ne reste dans le fichier.
+   */
+  public compactAfterErasure(): void {
+    if (!this.db) return;
+    this.db.pragma('wal_checkpoint(TRUNCATE)');
+    this.db.exec('VACUUM');
+    this.db.pragma('wal_checkpoint(TRUNCATE)');
   }
 
   public async importFromFile(filepath: string): Promise<void> {

@@ -6,6 +6,8 @@
  *   node scripts/check-quality-ratchet.js            → vérifie (CI)
  *   node scripts/check-quality-ratchet.js --update   → abaisse la référence
  *                                                      aux valeurs actuelles
+ *   En CI (CI=true) ou avec --strict : une baisse non verrouillée échoue aussi, la
+ *   référence suit donc chaque gain (#1895).
  *   node scripts/check-quality-ratchet.js --list jsxText → détaille un compteur
  *
  * Compteurs :
@@ -540,12 +542,16 @@ function main() {
   }
 
   let failed = false;
+  // CI : un gain non verrouillé échoue, sinon la référence ne baisse jamais (#1895)
+  const strict = args.includes('--strict') || process.env.CI === 'true';
+  let unlocked = false;
   for (const [key, value] of Object.entries(totals)) {
     const ref = baseline[key];
     if (value > ref) {
       failed = true;
       console.log(`✗ ${key}: ${value} (référence ${ref}, +${value - ref})`);
     } else if (value < ref) {
+      unlocked = true;
       console.log(
         `↓ ${key}: ${value} (référence ${ref}) — lancer --update pour verrouiller le gain`
       );
@@ -565,6 +571,7 @@ function main() {
       failed = true;
       console.log(`✗ ${f}: ${n} lignes (référence ${ref}, +${n - ref})`);
     } else if (n < ref) {
+      unlocked = true;
       console.log(
         `↓ ${f}: ${n} lignes (référence ${ref}) — lancer --update pour verrouiller le gain`
       );
@@ -572,8 +579,15 @@ function main() {
   }
   for (const f of Object.keys(exceptions)) {
     if (lengths[f] === undefined || lengths[f] <= MAX_LINES) {
+      unlocked = true;
       console.log(`↓ ${f}: sous le plafond — lancer --update pour retirer l'exception`);
     }
+  }
+  if (strict && unlocked && !failed) {
+    console.error(
+      '\nGain non verrouillé : lancer "node scripts/check-quality-ratchet.js --update" et committer scripts/quality-baseline.json.'
+    );
+    process.exit(1);
   }
   if (failed) {
     console.error(

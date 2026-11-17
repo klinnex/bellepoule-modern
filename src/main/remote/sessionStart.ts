@@ -467,3 +467,33 @@ function restoreArenaStates(ctx: SessionStartContext, competitionId: string): vo
     );
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SESSION_START_CONTEXT_KEYS = {
+  state: [
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenas',
+    'db',
+    'poolFencersCache',
+    'poolSignaturesCache',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionCustomScoring',
+    'sessionKioskViews',
+    'sessionMatchScores',
+    'sessionMatches',
+    'sessionPoolArenas',
+    'sessionRefereeFeatureEnabled',
+    'sessionShowPhotos',
+    'sessionWeapon',
+  ],
+  methods: [
+    'applyCompetitionSettings',
+    'assignMatchToArena',
+    'loadSessionReferees',
+    'notifyKioskData',
+    'setArenaCount',
+  ],
+} as const;

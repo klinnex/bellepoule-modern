@@ -120,6 +120,11 @@ export function handleArenaControl(
           data.arenaId,
           {
             ...m,
+            // Tireurs repris de la session : la tablette reçoit des noms abrégés quand le
+            // masquage RGPD est actif, ils ne doivent pas remplacer les vrais (#1882)
+            ...(sessionMatch?.fencerA ? { fencerA: sessionMatch.fencerA } : {}),
+            ...(sessionMatch?.fencerB ? { fencerB: sessionMatch.fencerB } : {}),
+            ...(sessionMatch?.referee ? { referee: sessionMatch.referee } : {}),
             isTableau: m.isTableau ?? sessionMatch?.isTableau ?? false,
             scoreA:
               typeof (m.scoreA as unknown) === 'object'
@@ -521,3 +526,41 @@ export function handleArenaControl(
       socket.emit('error', { message: 'Action non reconnue' });
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_CONTROL_CONTEXT_KEYS = {
+  state: [
+    'SCORE_UPDATE_DEBOUNCE_MS',
+    'arenaCards',
+    'arenaEventTimes',
+    'arenaExits',
+    'arenaOvertimeType',
+    'arenaRefereeSelected',
+    'arenaSuddenDeath',
+    'arenaTouches',
+    'arenaWaitingOvertime',
+    'db',
+    'io',
+    'sessionMatchScores',
+    'isTrainingMode',
+    'scoreUpdateDebounce',
+    'session',
+    'sessionCardAnnounce',
+    'sessionMatches',
+    'trainingCustomRules',
+  ],
+  methods: [
+    'assignMatchToArena',
+    'broadcastArenaUpdate',
+    'finishArenaMatch',
+    'getArena',
+    'loadNextMatch',
+    'pauseArenaMatch',
+    'persistArenaState',
+    'resolveReferee',
+    'logDiag',
+    'stampArenaEvents',
+    'startArenaMatch',
+    'updateArenaScore',
+  ],
+} as const;
