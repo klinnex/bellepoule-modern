@@ -8,8 +8,10 @@
 
 import * as http from 'http';
 import { timingSafeEqual } from 'crypto';
-import { MCP_TOOLS, McpToolError } from './mcpTools';
-import { MCP_WRITE_TOOLS, type McpWriteDeps } from './mcpWriteTools';
+import { MCP_TOOLS, McpToolError, type McpTool } from './mcpTools';
+import { MCP_WRITE_TOOLS, type McpWriteDeps, type McpWriteTool } from './mcpWriteTools';
+import { MCP_SPORT_READ_TOOLS, MCP_SPORT_TOOLS } from './mcpSportTools';
+import { MCP_ADMIN_READ_TOOLS, MCP_ADMIN_TOOLS } from './mcpAdminTools';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { McpLogEntry } from '../../shared/types/mcp';
 
@@ -17,6 +19,20 @@ export type { McpLogEntry };
 
 export const MCP_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const MAX_BODY = 1_000_000;
+const MAX_BATCH = 20;
+
+/** Outils en lecture : lot 1, matchs (lot 3), paramétrage du poste */
+export const READ_TOOLS: McpTool[] = [
+  ...MCP_TOOLS,
+  ...MCP_SPORT_READ_TOOLS,
+  ...MCP_ADMIN_READ_TOOLS,
+];
+/** Outils d'écriture (sur autorisation) : lot 2, compléments, orchestration sportive (lot 3) */
+export const WRITE_TOOLS: McpWriteTool[] = [
+  ...MCP_WRITE_TOOLS,
+  ...MCP_ADMIN_TOOLS,
+  ...MCP_SPORT_TOOLS,
+];
 const LOG_MAX = 200;
 
 interface JsonRpcRequest {
@@ -57,7 +73,7 @@ export async function handleMcpMessage(
   /** Outils d'écriture proposés (Paramètres → « Autoriser l'écriture », lot 2) */
   allowWrite = false
 ): Promise<object | null> {
-  const tools = [...MCP_TOOLS, ...(allowWrite ? MCP_WRITE_TOOLS : [])];
+  const tools = [...READ_TOOLS, ...(allowWrite ? WRITE_TOOLS : [])];
   const started = Date.now();
   const isNotification = msg.id === undefined;
   const method = typeof msg.method === 'string' ? msg.method : '';
@@ -85,8 +101,9 @@ export async function handleMcpMessage(
             'journée multi-épreuves, pistes, serveur distant, appareils Cyrano. Commencer par ' +
             'list_competitions ou day_overview.' +
             (allowWrite
-              ? ' Écriture autorisée (import_day, create_competition, import_fencers, check_in) : ' +
-                'utiliser dryRun: true puis confirmer avec le DT avant d’écrire.'
+              ? ' Écriture autorisée (import_day, create_competition, import_fencers, check_in, ' +
+                'generate_pools, record_score, build_bracket…) : utiliser dryRun: true puis ' +
+                'confirmer avec le DT avant d’écrire.'
               : ''),
         },
       };
@@ -112,7 +129,7 @@ export async function handleMcpMessage(
       const name = String(msg.params?.name ?? '');
       const tool = tools.find(t => t.name === name);
       if (!tool) {
-        if (MCP_WRITE_TOOLS.some(t => t.name === name)) {
+        if (WRITE_TOOLS.some(t => t.name === name)) {
           done(false, name);
           return rpcError(msg.id, -32602, `Écriture désactivée dans BellePoule Modern : ${name}`);
         }
@@ -214,13 +231,20 @@ export class McpServer {
           return send(400, rpcError(null, -32700, 'Parse error'));
         }
         const messages = (Array.isArray(body) ? body : [body]) as JsonRpcRequest[];
-        void Promise.all(
-          messages.map(m => handleMcpMessage(m ?? {}, deps, version, log, allowWrite))
-        ).then(results => {
-          const replies = results.filter((r): r is object => r !== null);
+        // Lots (retirés de la spécification MCP depuis 2025-06-18) : bornés et traités l'un
+        // après l'autre, pour qu'un seul envoi ne lance pas des milliers d'imports à la fois
+        if (messages.length === 0 || messages.length > MAX_BATCH) {
+          return send(400, rpcError(null, -32600, `Lot JSON-RPC : 1 à ${MAX_BATCH} messages`));
+        }
+        void (async () => {
+          const replies: object[] = [];
+          for (const m of messages) {
+            const r = await handleMcpMessage(m ?? {}, deps, version, log, allowWrite);
+            if (r !== null) replies.push(r);
+          }
           if (replies.length === 0) return send(202);
           send(200, Array.isArray(body) ? replies : replies[0]);
-        });
+        })();
       });
     });
     await new Promise<void>((resolve, reject) => {

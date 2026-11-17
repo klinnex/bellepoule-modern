@@ -1,12 +1,15 @@
 /**
  * BellePoule Modern - Paramètres → Système → Agent IA (MCP) (#1880)
- * Serveur MCP intégré en lecture : activation, port, jeton, configuration du client.
+ * Serveur MCP intégré : activation, port, jeton, configuration du client, dossiers
+ * accessibles à l'agent (fichiers d'import lus, exports écrits).
  * Licensed under GPL-3.0
  */
 
 import React, { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
-import type { McpStatus } from '../../shared/types/mcp';
+import type { McpLogEntry, McpStatus } from '../../shared/types/mcp';
+import type { AgentFolders } from '../../shared/types/settingsApi';
 import { HINT, BOLD, TOGGLE_LABEL } from './settingsModal.styles';
 import { Button } from './common/Button';
 
@@ -27,13 +30,18 @@ export function mcpClientConfig(status: Pick<McpStatus, 'port' | 'token'>): stri
   );
 }
 
+/** Derniers appels affichés (le main en garde 200) */
+const LOG_SHOWN = 30;
+
 const McpSettingsSection: React.FC = () => {
   const { t } = useTranslation();
   const [status, setStatus] = useState<McpStatus | null>(null);
   const [port, setPort] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [folders, setFolders] = useState<AgentFolders>({ folders: [], defaults: [] });
   const api = window.electronAPI?.mcp;
+  const settingsApi = window.electronAPI?.settings;
 
   const apply = (s: McpStatus) => {
     setStatus(s);
@@ -46,6 +54,25 @@ const McpSettingsSection: React.FC = () => {
       .then(apply)
       .catch(() => undefined);
   }, [api]);
+
+  useEffect(() => {
+    settingsApi
+      ?.getAgentFolders?.()
+      .then(setFolders)
+      .catch(() => undefined);
+  }, [settingsApi]);
+
+  /** Ajout par boîte de dialogue native du main ; retrait immédiat */
+  const [log, setLog] = useState<McpLogEntry[]>([]);
+  const refreshLog = () =>
+    void api
+      ?.getLog()
+      .then(entries => setLog(entries.slice(-LOG_SHOWN).reverse()))
+      .catch(() => undefined);
+  useEffect(refreshLog, [api]);
+
+  const changeFolders = (action: Promise<AgentFolders> | undefined) =>
+    void action?.then(setFolders).catch(() => undefined);
 
   if (!api || !status) return null;
 
@@ -97,9 +124,11 @@ const McpSettingsSection: React.FC = () => {
       <p style={HINT} role="status">
         {status.running && status.url
           ? t('settings.mcp_running', { url: status.url })
-          : status.error
-            ? t('settings.mcp_error', { error: status.error })
-            : t('settings.mcp_stopped')}
+          : status.error === 'token_unreadable'
+            ? t('settings.mcp_token_unreadable')
+            : status.error
+              ? t('settings.mcp_error', { error: status.error })
+              : t('settings.mcp_stopped')}
       </p>
       {status.enabled && (
         <>
@@ -119,6 +148,61 @@ const McpSettingsSection: React.FC = () => {
               {t(copied ? 'settings.mcp_copied' : 'settings.mcp_copy_config')}
             </Button>
           </div>
+          <label style={BOLD}>{t('settings.mcp_folders_title')}</label>
+          <p style={HINT}>{t('settings.mcp_folders_hint')}</p>
+          <ul className="mcp-folder-list">
+            {folders.folders.length === 0
+              ? folders.defaults.map(folder => (
+                  <li key={folder} className="mcp-folder">
+                    <code>{folder}</code>
+                    <span className="mcp-folder-default">{t('settings.mcp_folders_default')}</span>
+                  </li>
+                ))
+              : folders.folders.map(folder => (
+                  <li key={folder} className="mcp-folder">
+                    <code>{folder}</code>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      aria-label={t('settings.mcp_folder_remove', { folder })}
+                      onClick={() => changeFolders(settingsApi?.removeAgentFolder(folder))}
+                    >
+                      <Trash2 size={14} aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+          </ul>
+          <div className="u-row">
+            <Button type="button" onClick={() => changeFolders(settingsApi?.addAgentFolder())}>
+              {t('settings.mcp_folder_add')}
+            </Button>
+          </div>
+          <div className="u-row">
+            <label style={BOLD}>{t('settings.mcp_log_title')}</label>
+            <Button type="button" variant="ghost" onClick={refreshLog}>
+              {t('settings.mcp_log_refresh')}
+            </Button>
+          </div>
+          {log.length === 0 ? (
+            <p style={HINT}>{t('settings.mcp_log_empty')}</p>
+          ) : (
+            <table className="mcp-log">
+              <tbody>
+                {log.map((e, i) => (
+                  <tr key={`${e.at}-${i}`}>
+                    <td>{new Date(e.at).toLocaleTimeString()}</td>
+                    <td>
+                      <code>{e.tool ?? e.method}</code>
+                    </td>
+                    <td className={e.ok ? undefined : 'mcp-log-ko'}>
+                      {t(e.ok ? 'settings.mcp_log_ok' : 'settings.mcp_log_ko')}
+                    </td>
+                    <td>{`${e.ms} ms`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </>
       )}
     </div>

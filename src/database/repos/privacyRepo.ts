@@ -7,6 +7,7 @@
  * une future table `…fencer_id` est couverte sans modifier ce fichier.
  * Licensed under GPL-3.0
  */
+import { identityKey, normalizeIdentity } from '../../shared/utils/personIdentity';
 import { randomBytes } from 'crypto';
 import type { SqlExecutor } from './sqlExecutor';
 import type { SqlRow } from './rowMappers';
@@ -30,29 +31,8 @@ export const ERASED_LABEL = '—';
 
 const MAX_SEARCH_RESULTS = 50;
 
-/** Minuscules sans accents ni espaces superflus */
-export function normalizeIdentity(text: unknown): string {
-  return String(text ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/** Clé de regroupement : licence si connue, sinon nom + prénom + date de naissance */
-export function identityKey(p: {
-  license?: string | null;
-  lastName?: string | null;
-  firstName?: string | null;
-  birthDate?: string | null;
-}): string {
-  const license = normalizeIdentity(p.license).replace(/\s/g, '');
-  if (license) return `lic:${license}`;
-  return `name:${normalizeIdentity(p.lastName)}|${normalizeIdentity(p.firstName)}|${String(
-    p.birthDate ?? ''
-  ).slice(0, 10)}`;
-}
+// Identité d'une personne : source unique dans shared (imports, MCP, RGPD)
+export { identityKey, normalizeIdentity };
 
 /** Pseudonyme aléatoire stable pour une personne (« Anonyme 3FA9C2 ») */
 export function randomPseudonym(): string {

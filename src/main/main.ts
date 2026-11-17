@@ -12,7 +12,7 @@ import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
 import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
-import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
+import { registerWindowPrintHandlers, renderHtmlToPdfBuffer } from './ipc/windowPrintHandlers';
 import { createMenuActions } from './menuActions';
 import { createMenu } from './menu';
 import { createMainWindow } from './mainWindow';
@@ -28,7 +28,8 @@ import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
 import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
 import { registerRemoteSessionHandlers } from './ipc/remoteSessionHandlers';
 import { registerRemoteMatchHandlers } from './ipc/remoteMatchHandlers';
-import { registerRemoteServerHandlers } from './ipc/remoteServerHandlers';
+import { registerRemoteServerHandlers, startRemoteServer } from './ipc/remoteServerHandlers';
+import type { RemoteScoreServer } from './remoteScoreServer';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
 import { registerThemesHandlers } from './ipc/themesHandlers';
 import { registerCryptoHandlers } from './ipc/cryptoHandlers';
@@ -46,9 +47,16 @@ import { PisteHub } from './cyrano/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 import { createMcpController } from './ipc/mcpHandlers';
 import { parseCliArgs } from './cliArgs';
+import { registerSettingsHandlers } from './ipc/settingsHandlers';
+import { runBatchImport } from './batchImport';
+import type { McpWriteDeps } from './mcp/mcpWriteTools';
 
 // --headless : process main sans fenêtre (#1880)
 const cli = parseCliArgs(process.argv, process.env);
+// --batch-import : journal sur la sortie d'erreur, la sortie standard ne porte que le rapport JSON
+if (cli.batchImport || cli.mcpPrintConfig) {
+  for (const level of ['log', 'info', 'debug', 'warn'] as const) console[level] = console.error;
+}
 
 // Database instance
 const db = new DatabaseManager();
@@ -154,37 +162,72 @@ const pisteHub = new PisteHub(
   }
 );
 
-registerRemoteServerHandlers({
+const remoteServerContext = {
   db,
   getMainWindow: () => mainWindow,
-  onServerCreated: server => {
+  onServerCreated: (server: RemoteScoreServer) => {
     server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
   },
-});
+};
+registerRemoteServerHandlers(remoteServerContext);
 
 registerCyranoHandlers({ cyranoServer, pisteHub, db });
 
-// Serveur MCP intégré, en lecture, désactivé par défaut (#1880) : 127.0.0.1 + jeton
-const mcp = createMcpController({
-  deps: {
-    db,
-    // Écritures de l'agent : écran rafraîchi (#1880, lot 2)
-    notify: (type, competitionId) => emitCompetitionEvent(type, competitionId),
-    remoteServers: () => [...remoteServers.entries()],
-    cyranoStatus: () => {
-      const alerts = pisteHub.getAlerts();
-      return {
-        running: cyranoServer.running,
-        port: cyranoServer.port,
-        pistes: cyranoServer.getStatuses().map(p => ({ ...p, alert: alerts[p.piste] ?? null })),
-      };
-    },
+// Dossiers accessibles à l'agent tant que l'opérateur n'en a pas choisi (Paramètres → Agent IA)
+const defaultAgentFolders = (['documents', 'downloads', 'desktop'] as const).flatMap(name => {
+  try {
+    return [app.getPath(name)];
+  } catch {
+    return [];
+  }
+});
+
+// Dépendances des outils MCP (#1880) : base, écran à rafraîchir, serveur distant, Cyrano, fichiers
+const mcpDeps: McpWriteDeps = {
+  db,
+  // Écritures de l'agent : écran rafraîchi (#1880, lots 2 et 3)
+  notify: (type, competitionId) => emitCompetitionEvent(type, competitionId),
+  remoteServers: () => [...remoteServers.entries()],
+  cyranoStatus: () => {
+    const alerts = pisteHub.getAlerts();
+    return {
+      running: cyranoServer.running,
+      port: cyranoServer.port,
+      pistes: cyranoServer.getStatuses().map(p => ({ ...p, alert: alerts[p.piste] ?? null })),
+    };
   },
+  allowedRoots: () => {
+    const folders = db.settings.getSetting('agentFolders');
+    return folders.length > 0 ? folders : defaultAgentFolders;
+  },
+  // HTTPS et interface : paramètres du poste (app_settings), comme l'écran
+  startRemote: (competitionId, port) => {
+    const { remoteInterface, remoteHttps } = db.settings.getSettings();
+    return startRemoteServer(
+      remoteServerContext,
+      competitionId,
+      port,
+      remoteInterface,
+      remoteHttps
+    );
+  },
+  stopRemote: competitionId => stopRemoteServer(competitionId),
+  renderPdf: html => renderHtmlToPdfBuffer(html),
+};
+
+// Serveur MCP intégré, désactivé par défaut (#1880) : 127.0.0.1 + jeton
+const mcp = createMcpController({
+  deps: mcpDeps,
   userDataDir: () => app.getPath('userData'),
   secretBox: safeStorage,
   version: app.getVersion(),
+  // --mcp, --mcp-port, --mcp-write : utilisable sans écran, réglages enregistrés inchangés
+  override: { enabled: cli.mcp, port: cli.mcpPort, allowWrite: cli.mcpWrite },
 });
 mcp.register();
+/** Démarrage du MCP à l'ouverture de la base (un seul démarrage, attendu en --headless) */
+let mcpReady: ReturnType<typeof mcp.apply> | null = null;
+registerSettingsHandlers({ db, defaultAgentFolders, getMainWindow: () => mainWindow });
 
 registerRemoteMatchHandlers();
 
@@ -268,7 +311,7 @@ async function openDatabase(): Promise<void> {
 
   await db.open(dbPath);
   // MCP : démarré une fois la base ouverte, s'il est activé (#1880)
-  void mcp.apply();
+  mcpReady = mcp.apply();
   logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
   // Noms abrégés sur le réseau + purge automatique des données échues (RGPD, #1882)
   applyStoredPrivacySettings(db, userDataPath);
@@ -307,8 +350,37 @@ app.whenReady().then(async () => {
   if (cli.headless) {
     app.dock?.hide();
     await openDatabase();
+    // Langue du poste lue en base (#1880) : libellés du main et des serveurs distants
+    setUiLanguage(db.settings.getSetting('language'));
+    if (cli.mcpPrintConfig) {
+      // Configuration du client (URL, jeton) sur la sortie standard : à la demande de l'opérateur
+      let exitCode = 0;
+      try {
+        if (cli.mcpNewToken) mcp.regenerateToken();
+        process.stdout.write(`${JSON.stringify(mcp.clientConfig(), null, 2)}\n`);
+      } catch (e) {
+        process.stderr.write(`${toError(e).message}\n`);
+        exitCode = 1;
+      }
+      shutdownDb(db);
+      app.exit(exitCode);
+      return;
+    }
+    if (cli.batchImport) {
+      const result = await runBatchImport(mcpDeps, cli.batchImport, cli.dryRun);
+      process.stdout.write(
+        `${JSON.stringify(result.report ?? { error: result.error }, null, 2)}\n`
+      );
+      shutdownDb(db);
+      app.exit(result.exitCode);
+      return;
+    }
     startAutosave();
-    logger.info(LogCategory.SYSTEM, '[Headless] Prêt, sans fenêtre');
+    const status = await (mcpReady ?? mcp.apply());
+    logger.info(
+      LogCategory.SYSTEM,
+      `[Headless] Prêt, sans fenêtre ; MCP ${status.running ? status.url : status.enabled ? `en échec (${status.error})` : 'désactivé'}`
+    );
     return;
   }
 
@@ -388,6 +460,9 @@ if (cli.headless) {
 }
 
 app.on('window-all-closed', () => {
+  // --headless : aucune fenêtre principale ; une fenêtre cachée (rendu PDF du MCP) qui se
+  // ferme ne doit pas arrêter le process (#1880)
+  if (cli.headless) return;
   // macOS : la base reste ouverte (l'app vit dans le Dock, cf. appLifecycle.ts)
   handleAllWindowsClosed(process.platform, db, () => app.quit());
 });

@@ -9,6 +9,7 @@ import React, {
   useContext,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
   useCallback,
 } from 'react';
@@ -187,6 +188,9 @@ const loadTranslations = async (language: Language): Promise<Translations> => {
   }
 };
 
+const KNOWN_LANGUAGES: readonly string[] = Object.keys(localeLoaders).concat('fr');
+const KNOWN_THEMES: readonly string[] = ['default', 'light', 'dark'];
+
 const applyTheme = (theme: Theme): void => {
   document.body.classList.remove('theme-dark', 'theme-light', 'theme-default');
   if (theme !== 'default') {
@@ -219,6 +223,30 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     applyTheme(newTheme);
     localStorage.setItem('bellepoule-theme', newTheme);
   }, []);
+
+  // Langue et thème changés hors de l'écran (agent MCP, #1880) : repris depuis la base, sans
+  // boucle (les valeurs identiques sont ignorées, les valeurs inconnues aussi)
+  const currentRef = useRef({ language, theme });
+  currentRef.current = { language, theme };
+  useEffect(() => {
+    const subscribe = window.electronAPI?.onCompetitionEvent;
+    if (!subscribe) return;
+    return subscribe(event => {
+      if (event.type !== 'settings:changed') return;
+      void window.electronAPI?.settings
+        ?.get()
+        .then(settings => {
+          const { language: lang, theme: th } = currentRef.current;
+          if (KNOWN_LANGUAGES.includes(settings.language) && settings.language !== lang) {
+            void changeLanguage(settings.language as Language);
+          }
+          if (KNOWN_THEMES.includes(settings.theme) && settings.theme !== th) {
+            changeTheme(settings.theme as Theme);
+          }
+        })
+        .catch(() => undefined);
+    });
+  }, [changeLanguage, changeTheme]);
 
   useEffect(() => {
     const initialize = async () => {

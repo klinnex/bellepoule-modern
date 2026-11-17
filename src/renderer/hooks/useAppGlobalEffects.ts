@@ -5,13 +5,18 @@
  * Licensed under GPL-3.0
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
-import { useCompetitionEvent } from './useCompetitionEvent';
+import type { Competition } from '../../shared/types';
+import { installAppSettingsMirror } from '../services/appSettingsMirror';
+import type { OpenCompetition } from './useAppState';
 
 interface AppGlobalEffectsParams {
   loadCompetitions: () => unknown;
   toggleCommandPalette: () => void;
+  /** Épreuves ouvertes : rechargées après un changement hors écran (MCP, #1880) */
+  setCurrentCompetition?: Dispatch<SetStateAction<Competition | null>>;
+  setOpenCompetitions?: Dispatch<SetStateAction<OpenCompetition[]>>;
 }
 
 export function useAppGlobalEffects(params: AppGlobalEffectsParams): void {
@@ -19,8 +24,28 @@ export function useAppGlobalEffects(params: AppGlobalEffectsParams): void {
   const ref = useRef(params);
   ref.current = params;
 
-  // Épreuve créée hors de l'écran (agent MCP, #1880) : liste rechargée
-  useCompetitionEvent('competitions:changed', undefined, () => ref.current.loadCompetitions());
+  // Écriture hors de l'écran (agent MCP, #1880) : liste rechargée ; une épreuve ouverte dont
+  // les réglages ont changé reprend la version en base (sinon l'écran régénérerait par
+  // exemple le tableau avec l'ancien choix de petite finale)
+  useEffect(() => {
+    const subscribe = window.electronAPI?.onCompetitionEvent;
+    if (!subscribe) return;
+    return subscribe(event => {
+      if (event.type !== 'competitions:changed') return;
+      void ref.current.loadCompetitions();
+      const id = event.competitionId;
+      if (!id) return;
+      void window.electronAPI.db.getCompetition(id).then(fresh => {
+        if (!fresh) return;
+        const merge = (c: Competition): Competition =>
+          c.id === id ? { ...c, ...fresh, fencers: c.fencers, referees: c.referees } : c;
+        ref.current.setCurrentCompetition?.(prev => (prev ? merge(prev) : prev));
+        ref.current.setOpenCompetitions?.(prev =>
+          prev.map(o => (o.competition.id === id ? { ...o, competition: merge(o.competition) } : o))
+        );
+      });
+    });
+  }, []);
 
   // Load competitions on mount — attendre db:ready si la fenêtre s'ouvre avant la DB
   useEffect(() => {
@@ -31,6 +56,8 @@ export function useAppGlobalEffects(params: AppGlobalEffectsParams): void {
         if (!loaded) {
           loaded = true;
           ref.current.loadCompetitions();
+          // Réglages du poste repris en base (#1880) : lisibles en --headless et par le MCP
+          installAppSettingsMirror();
         }
       };
       window.electronAPI.onDbReady(tryLoad);

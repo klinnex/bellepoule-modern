@@ -80,6 +80,8 @@ export interface SessionState {
     currentPoolRound: number;
     pools: number;
   };
+  /** Révision de l'état : incrémentée par la couche domaine (MCP, #1880) */
+  revision?: number;
 }
 
 interface UseCompetitionSessionProps {
@@ -112,12 +114,18 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
   const propsRef = useRef(props);
   const isLoadedRef = useRef(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reloadingRef = useRef(false);
+  // Révision chargée : une sauvegarde sur un état réécrit depuis par le MCP est refusée
+  const revisionRef = useRef(0);
+  const restoreRef = useRef<() => Promise<void>>(async () => undefined);
   propsRef.current = props;
   isLoadedRef.current = isLoaded;
 
   // Sauvegarder l'état - lit depuis propsRef pour rester stable (pas de re-création à chaque render)
   const saveState = useCallback(async () => {
     if (!window.electronAPI?.db?.saveSessionState || !isLoadedRef.current) return;
+    // Relecture en cours après une écriture du domaine : l'état affiché est périmé
+    if (reloadingRef.current) return;
     const p = propsRef.current;
 
     const state: SessionState = {
@@ -148,7 +156,16 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     };
 
     try {
-      await window.electronAPI.db.saveSessionState(p.competitionId, state);
+      state.revision = revisionRef.current;
+      const result = await window.electronAPI.db.saveSessionState(p.competitionId, state);
+      if (result && result.conflict) {
+        // État réécrit hors écran entre-temps : on relit plutôt que d'écraser
+        logger.warn(LogCategory.UI, 'Session state changed elsewhere: reloading');
+        reloadingRef.current = true;
+        void restoreRef.current().finally(() => {
+          reloadingRef.current = false;
+        });
+      }
     } catch (e) {
       logger.error(LogCategory.UI, 'Failed to save session state', e as Error);
     }
@@ -165,6 +182,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       const state = await window.electronAPI.db.getSessionState(props.competitionId);
       if (state) {
         const typedState = state as SessionState;
+        revisionRef.current = typeof typedState.revision === 'number' ? typedState.revision : 0;
         setRestoredState({
           currentPhase: typedState.currentPhase,
           pools: typedState.pools || [],
@@ -195,6 +213,8 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     setIsLoaded(true);
   }, [props.competitionId]);
 
+  restoreRef.current = restoreState;
+
   // Restaurer au chargement
   useEffect(() => {
     restoreState();
@@ -210,6 +230,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       if (!window.electronAPI?.db?.saveSessionStateSync || !isLoadedRef.current) return;
       const p = propsRef.current;
       window.electronAPI.db.saveSessionStateSync(p.competitionId, {
+        revision: revisionRef.current,
         currentPhase: PHASE_NUMBERS[p.currentPhase],
         pools: p.pools,
         poolHistory: p.poolHistory,
@@ -235,6 +256,25 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
+
+  // État de session réécrit hors écran (MCP : poules, scores, tableau, #1880) : la sauvegarde
+  // en attente est annulée et l'état est relu en base, sans écraser l'écriture du domaine.
+  useEffect(() => {
+    const subscribe = window.electronAPI?.onCompetitionEvent;
+    if (!subscribe) return;
+    return subscribe(event => {
+      if (event.type !== 'session:changed') return;
+      if (event.competitionId !== propsRef.current.competitionId) return;
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      reloadingRef.current = true;
+      void restoreState().finally(() => {
+        reloadingRef.current = false;
+      });
+    });
+  }, [restoreState]);
 
   // Sauvegarder à chaque changement - debounced 500ms pour éviter les écritures en rafale
   useEffect(() => {

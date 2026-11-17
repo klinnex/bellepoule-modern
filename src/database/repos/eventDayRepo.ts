@@ -22,6 +22,7 @@ interface DayRow {
   name: string;
   date: string;
   strip_count: number | null;
+  venue_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -106,6 +107,7 @@ export class EventDayRepo {
       name: d.name,
       date: d.date,
       stripCount: d.strip_count ?? 0,
+      venueId: d.venue_id ?? null,
       competitionIds: links.filter(l => l.event_day_id === d.id).map(l => l.id),
       createdAt: d.created_at,
       updatedAt: d.updated_at,
@@ -116,13 +118,32 @@ export class EventDayRepo {
     return this.listDays().find(d => d.id === id) ?? null;
   }
 
-  public createDay(data: { name: string; date: string; stripCount?: number }): EventDay {
+  /**
+   * Crée une journée. Sans nombre de pistes, la journée reprend la salle (indiquée,
+   * sinon la salle par défaut, #1880) : la salle est déclarée une fois.
+   */
+  public createDay(data: {
+    name: string;
+    date: string;
+    stripCount?: number;
+    venueId?: string | null;
+  }): EventDay {
     if (!this.sql.db) throw new Error('Database not open');
     const id = uuidv4();
     const now = new Date().toISOString();
+    const venue =
+      data.venueId === null
+        ? null
+        : this.sql.queryOne<{ id: string; strips: number | null }>(
+            `SELECT v.id, (SELECT MAX(number) FROM venue_strips s WHERE s.venue_id = v.id) AS strips
+             FROM venues v WHERE ${data.venueId ? 'v.id = ?' : 'v.is_default = 1'} LIMIT 1`,
+            data.venueId ? [data.venueId] : []
+          );
+    if (data.venueId && !venue) throw new Error(`Salle introuvable : ${data.venueId}`);
+    const strips = clampStrips(data.stripCount) || clampStrips(venue?.strips);
     this.sql.run(
-      'INSERT INTO event_days (id, name, date, strip_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, data.name.trim(), data.date, clampStrips(data.stripCount), now, now]
+      'INSERT INTO event_days (id, name, date, strip_count, venue_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, data.name.trim(), data.date, strips, venue?.id ?? null, now, now]
     );
     return this.getDay(id)!;
   }

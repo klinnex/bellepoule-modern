@@ -136,6 +136,8 @@ const AppContent: React.FC = () => {
   useAppGlobalEffects({
     loadCompetitions,
     toggleCommandPalette: () => setShowCommandPalette(prev => !prev),
+    setCurrentCompetition,
+    setOpenCompetitions,
   });
 
   // Ouverture / fermeture / suppression des compétitions et de leurs onglets (#1897)

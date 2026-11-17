@@ -5,6 +5,7 @@
 import {
   Bell,
   FileText,
+  MapPin,
   Palette,
   PenLine,
   Settings as SettingsIcon,
@@ -16,7 +17,14 @@ import {
 // Organisation des paramètres : sections (onglets) → réglages.
 // `keys` = clés de traduction parcourues par la recherche.
 export type SettingsSectionId =
-  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'privacy' | 'system';
+  | 'display'
+  | 'scoring'
+  | 'documents'
+  | 'referee'
+  | 'notifications'
+  | 'privacy'
+  | 'venues'
+  | 'system';
 
 export type SettingsItemId =
   | 'language'
@@ -40,7 +48,8 @@ export type SettingsItemId =
   | 'privacy_network'
   | 'privacy_retention'
   | 'privacy_person'
-  | 'privacy_bpm';
+  | 'privacy_bpm'
+  | 'venues';
 
 export interface SettingsSectionDef {
   id: SettingsSectionId;
@@ -114,6 +123,12 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
       { id: 'privacy_retention', keys: ['privacy.retention_title', 'privacy.retention_hint'] },
       { id: 'privacy_bpm', keys: ['privacy.bpm_title', 'privacy.bpm_hint'] },
     ],
+  },
+  {
+    id: 'venues',
+    icon: MapPin,
+    labelKey: 'settings.section_venues',
+    items: [{ id: 'venues', keys: ['venues.title', 'venues.hint'] }],
   },
   {
     id: 'system',
