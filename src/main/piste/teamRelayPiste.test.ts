@@ -270,6 +270,37 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     expect(disps()).toHaveLength(n);
   });
 
+  it('cartons cumulés sur la rencontre : le DISP d’un relais reprend ceux déjà reçus par chaque tireur', () => {
+    start(3, [
+      [5, 2],
+      [5, 5],
+      [5, 5],
+    ]); // relais 4 : A1 – B2
+    team().deviceCards = {
+      bout1: { cardsA: ['yellow'], cardsB: [] }, // A1 au relais 1
+      bout2: { cardsA: [], cardsB: ['red', 'p-red'] }, // B2 au relais 2
+      bout3: { cardsA: ['red'], cardsB: ['red'] }, // A3 / B3 : autres tireurs
+    };
+    team().fencerCards.push({
+      id: 'c1',
+      boutId: 'bout1',
+      fencerId: A[0],
+      type: 'yellow',
+      reason: 'early_start' as never,
+    });
+    out = [];
+    hub.pisteAction('1', 'resync');
+    expect(lastDisp()).toMatchObject({
+      round: '4',
+      right: { id: short(A[0]), yellowCards: 1 },
+      left: { id: short(B[1]), redCards: 1, pCard: 2 },
+    });
+    expect(lastDisp().right?.redCards).toBeUndefined();
+    // Nouveau carton au relais 4 : le relais suivant de ce tireur repart de ce total
+    device(info('H', 4, { id: A[0], score: 15, y: 1 }, { id: B[1], score: 12 }));
+    expect(team().deviceCards?.bout4).toEqual({ cardsA: ['yellow'], cardsB: [] });
+  });
+
   it('inversion droite / gauche : équipe A suivie par Id, pas par position', () => {
     start();
     device(info('H', 1, { id: B[0], score: 4 }, { id: A[0], score: 2 }));

@@ -18,6 +18,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { TeamArenaBout } from '../remote/types';
 import {
   applyRelayDeviceState,
+  fencerMeetingCards,
   finishRelay,
   reopenPreviousRelay,
   substituteRelayFencer,
@@ -93,14 +94,14 @@ export class TeamRelayPiste {
     this.host.driver.send(piste, { kind });
   }
 
-  /** Tireur d'un relais à afficher : nom en base, nation = pays ou équipe. */
+  /** Tireur d'un relais à afficher : nom en base, nation = pays ou équipe, cartons de la rencontre. */
   private side(
     remote: RemoteScoreServer,
     fencerId: string,
     fallbackName: string,
     teamName: string,
     score: number,
-    cards: string[] | undefined
+    cards: string[]
   ): PisteDisplaySide {
     const f = teamCtx(remote)?.db.getFencer(fencerId) ?? null;
     const { natSource, international } = this.host.options;
@@ -130,7 +131,6 @@ export class TeamRelayPiste {
     const key = relayKey(state.matchId, bout);
     this.host.device.set(piste, { matchId: key, scoreA: view.cumulA, scoreB: view.cumulB });
     this.host.clearAlert(piste);
-    const cards = state.deviceCards?.[bout.id];
     this.host.driver.send(piste, {
       kind: 'display',
       display: {
@@ -143,7 +143,7 @@ export class TeamRelayPiste {
           bout.fencerAName,
           state.teamAName,
           view.cumulA,
-          cards?.cardsA
+          fencerMeetingCards(state, 'A', bout.fencerAId)
         ),
         left: this.side(
           remote,
@@ -151,7 +151,7 @@ export class TeamRelayPiste {
           bout.fencerBName,
           state.teamBName,
           view.cumulB,
-          cards?.cardsB
+          fencerMeetingCards(state, 'B', bout.fencerBId)
         ),
       },
       competition: this.host.competitionField(remote, link),

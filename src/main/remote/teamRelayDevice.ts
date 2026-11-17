@@ -44,6 +44,32 @@ export function teamRelayView(ctx: TeamArenaContext, arenaId: string): TeamRelay
   };
 }
 
+const CARD_ORDER = ['yellow', 'red', 'p-red', 'p-black'] as const;
+
+/**
+ * Cartons d'un tireur sur toute la rencontre (#1829) : ils se cumulent d'un relais à l'autre.
+ * Appareil : cartons montrés au dernier relais tiré par ce tireur (l'appareil les reprend du
+ * DISP et y ajoute les nouveaux) ; tablette : cartons individuels enregistrés. Par type, le
+ * plus grand des deux comptes (un carton repris par l'appareil n'est pas compté deux fois).
+ */
+export function fencerMeetingCards(
+  state: TeamArenaState,
+  side: 'A' | 'B',
+  fencerId: string
+): string[] {
+  const key = side === 'A' ? 'fencerAId' : 'fencerBId';
+  const relays = state.bouts
+    .filter(b => b[key] === fencerId && state.deviceCards?.[b.id])
+    .sort((a, b) => b.boutOrder - a.boutOrder);
+  const device = relays.length ? state.deviceCards![relays[0].id] : null;
+  const fromDevice = (side === 'A' ? device?.cardsA : device?.cardsB) ?? [];
+  const fromTablet = state.fencerCards.filter(c => c.fencerId === fencerId).map(c => c.type);
+  const count = (list: readonly string[], type: string) => list.filter(c => c === type).length;
+  return CARD_ORDER.flatMap(type =>
+    Array<string>(Math.max(count(fromDevice, type), count(fromTablet, type))).fill(type)
+  );
+}
+
 export interface RelayDeviceUpdate {
   /** Score cumulé de l'équipe A / B */
   cumulA: number;
