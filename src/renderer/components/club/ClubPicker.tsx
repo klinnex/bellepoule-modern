@@ -43,7 +43,9 @@ const ClubCard: React.FC<{ club: ClubSummary; onOpen: () => void }> = ({ club, o
           {t('clubs.members_n', { count: club.membersCount })}
           {club.openSessionDate && (
             <span className="badge badge-success">
-              {t('clubs.open_session', { date: club.openSessionDate })}
+              {club.openSessionCount > 1
+                ? t('clubs.open_sessions', { count: club.openSessionCount })
+                : t('clubs.open_session', { date: club.openSessionDate })}
             </span>
           )}
         </span>

@@ -90,6 +90,12 @@ const ClubSpace: React.FC<{
   const [panelRevision, setPanelRevision] = useState(0);
   const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
   const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
+  // Séance affichée dans l'onglet Séances (plusieurs séances ouvertes possibles)
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const showSession = useCallback((id: string) => {
+    setActiveSessionId(id);
+    setTab('sessions');
+  }, []);
 
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.club;
@@ -152,6 +158,7 @@ const ClubSpace: React.FC<{
           revision={menuRevision}
           onChanged={bumpPanel}
           onPrepare={() => setTab('sessions')}
+          onShow={showSession}
         />
         <Button
           variant="ghost"
@@ -217,6 +224,8 @@ const ClubSpace: React.FC<{
             settings={settings}
             revision={panelRevision}
             onChanged={bumpMenu}
+            activeSessionId={activeSessionId}
+            onActiveChange={setActiveSessionId}
           />
         )}
         {tab === 'stats' && <ClubStatsPanel clubId={clubId} />}

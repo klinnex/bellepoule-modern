@@ -81,10 +81,13 @@ export interface Club {
   updatedAt: string;
 }
 
-/** Club vu depuis l'accueil : effectif et séance ouverte */
+/** Club vu depuis l'accueil : effectif et séances ouvertes */
 export interface ClubSummary extends Club {
   membersCount: number;
+  /** Date de la séance ouverte la plus récente */
   openSessionDate: string | null;
+  /** Nombre de séances ouvertes (plusieurs possibles) */
+  openSessionCount: number;
 }
 
 export interface ClubUpdate {

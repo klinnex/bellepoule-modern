@@ -268,16 +268,18 @@ export class ClubRepo {
   public listClubs(): ClubSummary[] {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<ClubRow & { members_count: number; open_date: string | null }>(
+      .queryAll<ClubRow & { members_count: number; open_date: string | null; open_count: number }>(
         `SELECT c.*,
            (SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id AND m.active = 1) AS members_count,
-           (SELECT MAX(s.date) FROM club_sessions s WHERE s.club_id = c.id AND s.status = 'open') AS open_date
+           (SELECT MAX(s.date) FROM club_sessions s WHERE s.club_id = c.id AND s.status = 'open') AS open_date,
+           (SELECT COUNT(*) FROM club_sessions s WHERE s.club_id = c.id AND s.status = 'open') AS open_count
          FROM clubs c ORDER BY c.name COLLATE NOCASE, c.created_at`
       )
       .map(r => ({
         ...this.rowToClub(r),
         membersCount: r.members_count ?? 0,
         openSessionDate: r.open_date ?? null,
+        openSessionCount: r.open_count ?? 0,
       }));
   }
 
@@ -1037,19 +1039,11 @@ export class ClubRepo {
     return this.getSession(id);
   }
 
-  /** Séance préparée → ouverte maintenant ; refusé si une autre séance du club est ouverte */
+  /** Séance préparée → ouverte maintenant (plusieurs séances ouvertes possibles) */
   public startSession(id: string): ClubSession | null {
     this.ensureOpen();
     const s = this.getSession(id);
     if (!s || s.status !== 'planned') return s;
-    if (
-      this.sql.queryOne(
-        `SELECT 1 FROM club_sessions WHERE club_id = ? AND status = 'open' AND id <> ?`,
-        [s.clubId, id]
-      )
-    ) {
-      throw new Error('Une séance est déjà ouverte');
-    }
     const now = new Date().toISOString();
     this.sql.run(
       `UPDATE club_sessions SET status = 'open', opened_at = ?, updated_at = ? WHERE id = ?`,
@@ -1058,19 +1052,11 @@ export class ClubRepo {
     return this.getSession(id);
   }
 
-  /** Séance fermée → rouverte ; refusé si une autre séance du club est ouverte */
+  /** Séance fermée → rouverte (plusieurs séances ouvertes possibles) */
   public reopenSession(id: string): ClubSession | null {
     this.ensureOpen();
     const s = this.getSession(id);
     if (!s || s.status !== 'closed') return s;
-    if (
-      this.sql.queryOne(
-        `SELECT 1 FROM club_sessions WHERE club_id = ? AND status = 'open' AND id <> ?`,
-        [s.clubId, id]
-      )
-    ) {
-      throw new Error('Une séance est déjà ouverte');
-    }
     this.sql.run(
       `UPDATE club_sessions SET status = 'open', closed_at = NULL, updated_at = ? WHERE id = ?`,
       [new Date().toISOString(), id]

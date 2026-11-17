@@ -3522,7 +3522,8 @@
     "backup_replace": "Ersetzen",
     "backup_loaded": "Verein geladen: {{name}}",
     "backup_file": "BellePoule-Vereinssicherung",
-    "create": "Verein anlegen"
+    "create": "Verein anlegen",
+    "open_sessions": "{{count}} Trainings offen"
   },
   "clubPlan": {
     "edit_title": "Training bearbeiten",
@@ -3887,14 +3888,17 @@
     "button": "Geplante Trainings: {{count}}",
     "button_open": "Training vom {{date}} geöffnet",
     "title": "Trainings verwalten",
-    "current": "Offenes Training",
     "none_open": "Kein Training geöffnet.",
     "open": "Öffnen",
     "today": "heute",
     "opened": "Training vom {{date}} geöffnet",
-    "switch_confirm": "Training vom {{from}} schließen und das vom {{to}} öffnen?",
     "switch": "Training wechseln",
     "switch_to": "Wechseln zu Training…",
-    "past_tag": "vergangen"
+    "past_tag": "vergangen",
+    "show": "Anzeigen",
+    "opened_list": "Offene Trainings ({{count}})",
+    "open_tag": "offen",
+    "all_sessions": "Alle Trainings",
+    "button_open_n": "{{count}} Trainings offen"
   }
 }

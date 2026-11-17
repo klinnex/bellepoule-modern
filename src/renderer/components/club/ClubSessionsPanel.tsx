@@ -8,6 +8,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRightLeft,
   CalendarPlus,
+  Eye,
+  List,
   ClipboardList,
   FileDown,
   Lock,
@@ -58,7 +60,7 @@ import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
 import { ClubCoachPicker, coachNames } from './ClubCoachPicker';
 import { ClubSessionPlanCard } from './ClubSessionPlanCard';
-import { switchClubSession } from './clubSessionSwitch';
+import { activeSession, openClubSession, openSessions } from './clubSessionSwitch';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -96,6 +98,9 @@ interface ClubSessionsPanelProps {
   revision?: number;
   /** Séances modifiées depuis l'onglet (menu global à recharger) */
   onChanged?: () => void;
+  /** Séance affichée parmi les ouvertes (null : la plus récente) */
+  activeSessionId?: string | null;
+  onActiveChange?: (id: string | null) => void;
 }
 
 /** Combat en cours sur une piste : saisie du score par le maître d'armes */
@@ -204,6 +209,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   settings,
   revision = 0,
   onChanged,
+  activeSessionId = null,
+  onActiveChange,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -228,6 +235,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const [attendanceOpen, setAttendanceOpen] = useState(false);
   const [openRange, setOpenRange] = useState<AgeRange>({});
   const [switchTo, setSwitchTo] = useState('');
+  // Vue liste (ouverture, séances prévues et passées) alors que des séances sont ouvertes
+  const [listMode, setListMode] = useState(false);
   const [listCategory, setListCategory] = useState('');
   const [iface, setIface] = useState(loadInterface);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
@@ -237,7 +246,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const openWeapon = weaponChoice ?? settings.weapon;
   const setOpenWeapon = (w: Weapon) => setWeaponChoice(w);
 
-  const current = sessions.find(s => s.status === 'open') ?? null;
+  const current = activeSession(sessions, activeSessionId);
+  const opened = openSessions(sessions);
 
   const load = useCallback(async () => {
     if (!api) return;
@@ -249,10 +259,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     setSessions(list);
     setMembers(mem);
     setCoaches(coachList);
-    const open = list.find(s => s.status === 'open');
+    const open = activeSession(list, activeSessionId);
     setBouts(open ? await api.listBouts({ sessionId: open.id, includeUnfinished: true }) : []);
     setRemote(await api.remoteStatus());
-  }, [api, clubId]);
+  }, [api, clubId, activeSessionId]);
 
   useEffect(() => {
     void load();
@@ -272,7 +282,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       .catch(() => undefined);
   }, []);
 
-  const currentId = sessions.find(s => s.status === 'open')?.id ?? null;
+  const currentId = current?.id ?? null;
   // Saisie distante active : séance reliée (cartes scannées sur les tablettes) et
   // rafraîchissement régulier (combats lancés ou terminés depuis les tablettes)
   useEffect(() => {
@@ -431,9 +441,42 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     />
   );
 
-  if (!current) {
+  /** Affiche une séance ouverte */
+  const showSession = (id: string) => {
+    setListMode(false);
+    onActiveChange?.(id);
+  };
+
+  if (!current || listMode) {
     return (
       <div className="club-members">
+        {opened.length > 0 && (
+          <section className="club-card" aria-labelledby="club-opened-title">
+            <h2 id="club-opened-title" className="club-card-title">
+              {t('clubSessionMenu.opened_list', { count: opened.length })}
+            </h2>
+            <table className="table">
+              <tbody>
+                {opened.map(s => (
+                  <tr key={s.id}>
+                    <td className="font-medium">{s.date}</td>
+                    <td>{sessionLabel(s)}</td>
+                    <td className="club-actions">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        icon={<Eye size={14} aria-hidden="true" />}
+                        onClick={() => showSession(s.id)}
+                      >
+                        {t('clubSessionMenu.show')}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
         <section className="club-card" aria-labelledby="club-open-title">
           <h2 id="club-open-title" className="club-card-title">
             {t('clubSession.open_title')}
@@ -472,7 +515,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                   icon={<CalendarPlus size={15} aria-hidden="true" />}
                   onClick={() =>
                     void run(async () => {
-                      await api.createSession(clubId, {
+                      const created = await api.createSession(clubId, {
                         date: openDate,
                         label,
                         weapon: openWeapon,
@@ -483,6 +526,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                       });
                       setLabel('');
                       setOpenCoachIds([]);
+                      showSession(created.id);
                     })
                   }
                 >
@@ -568,7 +612,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                         size="sm"
                         variant="primary"
                         icon={<Play size={14} aria-hidden="true" />}
-                        onClick={() => void run(() => api.startSession(s.id))}
+                        onClick={() =>
+                          void run(async () => {
+                            await api.startSession(s.id);
+                            showSession(s.id);
+                          })
+                        }
                       >
                         {t('clubPlan.start')}
                       </Button>
@@ -617,7 +666,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                         size="sm"
                         variant="ghost"
                         icon={<Unlock size={14} aria-hidden="true" />}
-                        onClick={() => void run(() => api.reopenSession(s.id))}
+                        onClick={() =>
+                          void run(async () => {
+                            await api.reopenSession(s.id);
+                            showSession(s.id);
+                          })
+                        }
                       >
                         {t('clubSession.reopen')}
                       </Button>
@@ -695,8 +749,9 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     setFeedbackFor({ ...current, status: 'closed' });
   };
 
-  /** Autres séances vers lesquelles basculer : prévues (par date) puis passées récentes */
+  /** Autres séances : ouvertes, prévues (par date) puis passées récentes */
   const switchTargets = [
+    ...opened.filter(s => s.id !== current.id),
     ...sessions.filter(s => s.status === 'planned').sort((a, b) => a.date.localeCompare(b.date)),
     ...sessions
       .filter(s => s.status === 'closed')
@@ -704,19 +759,15 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       .slice(0, 10),
   ];
 
+  /** Bascule sans fermer la séance en cours : elle reste ouverte jusqu'à sa fermeture */
   const switchSession = async () => {
     const target = sessions.find(s => s.id === switchTo);
     if (!target) return;
-    const ok = await confirm({
-      message: `${t('clubSessionMenu.switch_confirm', { from: current.date, to: target.date })}\n${t(
-        'clubSession.close_confirm',
-        { count: live.length }
-      )}`,
-      confirmLabel: t('clubSessionMenu.switch'),
-    });
-    if (!ok) return;
     setSwitchTo('');
-    await run(() => switchClubSession(api, current, target));
+    await run(async () => {
+      await openClubSession(api, target);
+      showSession(target.id);
+    });
   };
 
   return (
@@ -753,6 +804,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           </Button>
           <Button
             variant="ghost"
+            icon={<List size={15} aria-hidden="true" />}
+            onClick={() => setListMode(true)}
+          >
+            {t('clubSessionMenu.all_sessions')}
+          </Button>
+          <Button
+            variant="ghost"
             icon={<Lock size={15} aria-hidden="true" />}
             onClick={() => void closeSession()}
           >
@@ -773,6 +831,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                   {s.date}
                   {sessionLabel(s) ? ` · ${sessionLabel(s)}` : ''}
                   {s.status === 'closed' ? ` (${t('clubSessionMenu.past_tag')})` : ''}
+                  {s.status === 'open' ? ` (${t('clubSessionMenu.open_tag')})` : ''}
                 </option>
               ))}
             </select>
