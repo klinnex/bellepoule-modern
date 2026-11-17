@@ -19,7 +19,23 @@ describe('plugin bellepoule', () => {
     const server = readJson(path.join(PLUGIN, '.mcp.json')).mcpServers.bellepoule;
     expect(server.type).toBe('http');
     expect(server.url).toMatch(/^http:\/\/127\.0\.0\.1:/);
-    expect(server.headers.Authorization).toBe('Bearer ${BELLEPOULE_MCP_TOKEN}');
+    expect(server.url).toBe('http://127.0.0.1:${user_config.mcp_port}/mcp');
+    expect(server.headers.Authorization).toBe('Bearer ${user_config.mcp_token}');
+  });
+
+  it("userConfig : jeton sensible, repli sur les variables d'environnement (#1947)", () => {
+    const { userConfig } = readJson(path.join(PLUGIN, '.claude-plugin', 'plugin.json'));
+    expect(userConfig.mcp_token).toMatchObject({
+      type: 'string',
+      sensitive: true,
+      required: false,
+      default: '${BELLEPOULE_MCP_TOKEN:-}',
+    });
+    expect(userConfig.mcp_port).toMatchObject({
+      sensitive: false,
+      required: false,
+      default: '${BELLEPOULE_MCP_PORT:-8067}',
+    });
   });
 
   it('commandes : description en en-tête', () => {
