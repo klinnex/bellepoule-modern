@@ -31,8 +31,15 @@ function fakeDb() {
     anonymizeMembersById: vi.fn(),
     findPersons: vi.fn(() => []),
     anonymizePerson: vi.fn(() => ({ fencers: 0, members: 0, pseudonym: 'P' })),
+    erasePerson: vi.fn(() => ({ fencers: 1, members: 0 })),
+    competitionIdsOf: vi.fn(() => ['c-open']),
   };
-  return { privacy, db: { privacy, isOpen: () => true } as unknown as DatabaseManager };
+  const compactAfterErasure = vi.fn();
+  return {
+    privacy,
+    compactAfterErasure,
+    db: { privacy, isOpen: () => true, compactAfterErasure } as unknown as DatabaseManager,
+  };
 }
 
 describe('applyRetention', () => {
@@ -59,6 +66,20 @@ describe('applyRetention', () => {
     });
     expect(r).toEqual({ competitions: 0, members: 1 });
     expect(privacy.anonymizeCompetition).not.toHaveBeenCalled();
+  });
+
+  it('ignore une compétition ouverte, compacte la base après purge (#1882)', () => {
+    const { privacy, db, compactAfterErasure } = fakeDb();
+    const r = applyRetention(
+      db,
+      DEFAULT_PRIVACY_SETTINGS,
+      undefined,
+      new Date(),
+      id => id === 'c1'
+    );
+    expect(r).toEqual({ competitions: 0, members: 1 });
+    expect(privacy.anonymizeCompetition).not.toHaveBeenCalled();
+    expect(compactAfterErasure).toHaveBeenCalled();
   });
 });
 
@@ -101,6 +122,37 @@ describe('handlers privacy:*', () => {
       { fencerIds: ['a', 3, null], memberIds: 'x' }
     );
     expect(privacy.anonymizePerson).toHaveBeenCalledWith({ fencerIds: ['a'], memberIds: [] });
+  });
+
+  it('compétition ouverte : anonymisation et effacement refusés (#1882)', async () => {
+    handlers.clear();
+    const f = fakeDb();
+    createPrivacyHandlers({
+      db: f.db,
+      getMainWindow: () => null,
+      userDataDir: () => dir,
+      isCompetitionBusy: id => id === 'c-open',
+    }).register();
+    const ref = { fencerIds: ['a'], memberIds: [] };
+    await expect(handlers.get('privacy:anonymizePerson')!({}, ref)).rejects.toThrow(
+      'competition_open'
+    );
+    await expect(handlers.get('privacy:erasePerson')!({}, ref)).rejects.toThrow('competition_open');
+    expect(f.privacy.anonymizePerson).not.toHaveBeenCalled();
+    expect(f.privacy.erasePerson).not.toHaveBeenCalled();
+  });
+
+  it('effacement : base compactée ensuite (#1882)', async () => {
+    handlers.clear();
+    const f = fakeDb();
+    createPrivacyHandlers({
+      db: f.db,
+      getMainWindow: () => null,
+      userDataDir: () => dir,
+    }).register();
+    await handlers.get('privacy:erasePerson')!({}, { fencerIds: ['a'] });
+    expect(f.privacy.erasePerson).toHaveBeenCalled();
+    expect(f.compactAfterErasure).toHaveBeenCalled();
   });
 
   it('archive chiffrée : mot de passe trop court, aucun fichier en attente', async () => {

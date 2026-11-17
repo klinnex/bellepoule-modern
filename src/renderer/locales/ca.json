@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "Contrasenya incorrecta.",
     "bpm_open_failed": "No es pot obrir.",
     "error": "Operació impossible.",
+    "competition_open": "Tanqueu la competició d'aquesta persona (i atureu el servidor de tauletes) abans d'anonimitzar o esborrar.",
     "export_warning": "Les exportacions i notificacions contenen dades personals: envieu-les només a destinataris autoritzats.",
     "photo_consent": "Foto: obteniu el consentiment de la persona (dels pares si és menor).",
     "pdf_heading": "Dades personals — {{name}}",

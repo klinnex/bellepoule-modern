@@ -109,6 +109,11 @@ export function handleArenaControl(
           data.arenaId,
           {
             ...m,
+            // Tireurs repris de la session : la tablette reçoit des noms abrégés quand le
+            // masquage RGPD est actif, ils ne doivent pas remplacer les vrais (#1882)
+            ...(sessionMatch?.fencerA ? { fencerA: sessionMatch.fencerA } : {}),
+            ...(sessionMatch?.fencerB ? { fencerB: sessionMatch.fencerB } : {}),
+            ...(sessionMatch?.referee ? { referee: sessionMatch.referee } : {}),
             isTableau: m.isTableau ?? sessionMatch?.isTableau ?? false,
             scoreA:
               typeof (m.scoreA as unknown) === 'object'

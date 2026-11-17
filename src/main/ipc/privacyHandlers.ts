@@ -15,7 +15,7 @@ import {
   writePrivacySettings,
 } from '../privacySettings';
 import { setNameMasking } from '../remote/publicDto';
-import { decryptBpmFile, encryptBpmFile, MIN_BPM_PASSWORD } from '../bpmCrypto';
+import { decryptBpmFile, encryptBpmFileTo, MIN_BPM_PASSWORD } from '../bpmCrypto';
 import type {
   PrivacyPersonRef,
   PrivacySettings,
@@ -28,10 +28,19 @@ export interface PrivacyHandlersContext {
   getMainWindow(): BrowserWindow | null;
   /** Dossier des réglages (défaut : userData) */
   userDataDir?: () => string;
+  /**
+   * Compétition ouverte dans l'application ou servie aux tablettes (#1882) : son état
+   * en mémoire réécrirait les noms anonymisés ou effacés.
+   */
+  isCompetitionBusy?: (competitionId: string) => boolean;
 }
 
+/** Erreur IPC : compétition ouverte, à fermer avant l'anonymisation ou l'effacement */
+export const COMPETITION_OPEN_ERROR = 'competition_open';
+
+// Pas de troncature silencieuse (#1882) : les identifiants sont revalidés en base
 const strIds = (v: unknown): string[] =>
-  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 500) : [];
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
 
 const asRecord = (input: unknown): Record<string, unknown> =>
   (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
@@ -59,7 +68,8 @@ export function applyRetention(
   db: DatabaseManager,
   settings: PrivacySettings,
   selection?: { competitionIds?: string[]; memberIds?: string[] },
-  now: Date = new Date()
+  now: Date = new Date(),
+  isCompetitionBusy: (competitionId: string) => boolean = () => false
 ): RetentionPurgeResult {
   const candidates = db.privacy.listRetentionCandidates(
     retentionCutoff(settings.competitionRetentionMonths, now),
@@ -67,7 +77,10 @@ export function applyRetention(
   );
   const pick = <T extends { id: string }>(items: T[], ids?: string[]) =>
     Array.isArray(ids) ? items.filter(i => ids.includes(i.id)) : items;
-  const competitions = pick(candidates.competitions, selection?.competitionIds);
+  // Compétition ouverte : son état en mémoire réécrirait les données (#1882)
+  const competitions = pick(candidates.competitions, selection?.competitionIds).filter(
+    c => !isCompetitionBusy(c.id)
+  );
   const members = pick(candidates.members, selection?.memberIds);
   for (const c of competitions) {
     if (settings.retentionAction === 'delete') db.privacy.purgeCompetition(c.id, false);
@@ -78,6 +91,7 @@ export function applyRetention(
     if (settings.retentionAction === 'delete') db.privacy.eraseMembersById(memberIds);
     else db.privacy.anonymizeMembersById(memberIds);
   }
+  if (competitions.length || memberIds.length) db.compactAfterErasure?.();
   return { competitions: competitions.length, members: members.length };
 }
 
@@ -103,7 +117,15 @@ export function createPrivacyHandlers({
   db,
   getMainWindow,
   userDataDir = () => app.getPath('userData'),
+  isCompetitionBusy = () => false,
 }: PrivacyHandlersContext) {
+  /** Refuse si une compétition de la personne est ouverte (#1882) */
+  const assertNotBusy = (ref: PrivacyPersonRef): void => {
+    if (db.privacy.competitionIdsOf(ref).some(id => isCompetitionBusy(id))) {
+      throw new Error(COMPETITION_OPEN_ERROR);
+    }
+  };
+
   // Archive chiffrée choisie par Fichier → Ouvrir, en attente du mot de passe
   let pendingEncrypted: string | null = null;
 
@@ -150,13 +172,21 @@ export function createPrivacyHandlers({
       return { success: true, path: result.filePath };
     });
 
-    ipcMain.handle('privacy:anonymizePerson', async (_, ref: unknown) =>
-      db.privacy.anonymizePerson(asRef(ref))
-    );
+    ipcMain.handle('privacy:anonymizePerson', async (_, input: unknown) => {
+      const ref = asRef(input);
+      assertNotBusy(ref);
+      const r = db.privacy.anonymizePerson(ref);
+      db.compactAfterErasure?.();
+      return r;
+    });
 
-    ipcMain.handle('privacy:erasePerson', async (_, ref: unknown) =>
-      db.privacy.erasePerson(asRef(ref))
-    );
+    ipcMain.handle('privacy:erasePerson', async (_, input: unknown) => {
+      const ref = asRef(input);
+      assertNotBusy(ref);
+      const r = db.privacy.erasePerson(ref);
+      db.compactAfterErasure?.();
+      return r;
+    });
 
     ipcMain.handle('privacy:retentionCandidates', async () => {
       const s = readPrivacySettings(userDataDir());
@@ -172,7 +202,13 @@ export function createPrivacyHandlers({
         selection && typeof selection === 'object'
           ? { competitionIds: strIds(r.competitionIds), memberIds: strIds(r.memberIds) }
           : undefined;
-      return applyRetention(db, readPrivacySettings(userDataDir()), sel);
+      return applyRetention(
+        db,
+        readPrivacySettings(userDataDir()),
+        sel,
+        new Date(),
+        isCompetitionBusy
+      );
     });
 
     ipcMain.handle(
@@ -193,15 +229,23 @@ export function createPrivacyHandlers({
           ? await dialog.showSaveDialog(win, opts)
           : await dialog.showSaveDialog(opts);
         if (result.canceled || !result.filePath) return { success: false, canceled: true };
+        // Copie en clair sous userData uniquement, jamais au chemin choisi (#1882)
+        const plain = path.join(
+          path.dirname(db.getPath()),
+          `.export-${Date.now()}-${Math.random().toString(36).slice(2)}.bpm`
+        );
         try {
-          if (id) await db.exportCompetitionToFile(id, result.filePath);
-          else await db.exportToFile(result.filePath);
-          await encryptBpmFile(result.filePath, password);
+          if (id) await db.exportCompetitionToFile(id, plain);
+          else await db.exportToFile(plain);
+          await encryptBpmFileTo(plain, result.filePath, password);
           return { success: true, path: result.filePath };
         } catch (e) {
-          // Pas de copie en clair laissée derrière un échec de chiffrement
-          await fs.promises.unlink(result.filePath).catch(() => undefined);
+          await fs.promises.unlink(`${result.filePath}.enc-tmp`).catch(() => undefined);
           return { success: false, error: String(e) };
+        } finally {
+          for (const f of [plain, `${plain}-wal`, `${plain}-shm`, `${plain}-journal`]) {
+            await fs.promises.unlink(f).catch(() => undefined);
+          }
         }
       }
     );

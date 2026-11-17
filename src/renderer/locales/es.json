@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "Contraseña incorrecta.",
     "bpm_open_failed": "No se puede abrir.",
     "error": "Operación imposible.",
+    "competition_open": "Cierre la competición de esta persona (y detenga su servidor de tabletas) antes de anonimizar o borrar.",
     "export_warning": "Las exportaciones y notificaciones contienen datos personales: envíelas solo a destinatarios autorizados.",
     "photo_consent": "Foto: obtenga el consentimiento de la persona (de sus padres si es menor).",
     "pdf_heading": "Datos personales — {{name}}",
