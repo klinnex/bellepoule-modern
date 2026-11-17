@@ -87,9 +87,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 74 | 820 |
+| `src/shared/utils/` | 75 | 827 |
 | `src/shared/services/` | 8 | 95 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 33 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -104,15 +104,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 90 | 691 |
 | `src/renderer/services/` | 10 | 55 |
 | `src/renderer/hooks/` | 32 | 151 |
-| `src/renderer/components/` | 112 | 561 |
+| `src/renderer/components/` | 112 | 562 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **450** | **3354** |
+| **Total** | **451** | **3363** |
 
-Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1529,6 +1529,20 @@ Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/tableauBouts.test.ts</code> — 7 tests</summary>
+
+- **tableauBouts (#1817)**
+  - premier tour = plus grand numéro de tour
+  - compte les tours suivants même sans tireurs connus, exempts exclus
+  - tableau de 64 complet : 63 matchs dès le premier tour
+  - qualification d’office (vainqueur sans adversaire) hors décompte
+  - petite finale comptée avec la finale
+  - sans numéro de tour : seuls les matchs aux deux tireurs connus
+  - vagues restantes : tours enchaînés, pistes partagées dans un tour
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/tieBreak.test.ts</code> — 2 tests</summary>
 
 - **allowsVictoryTieBreak**
@@ -1824,7 +1838,7 @@ Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 18 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 19 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1853,6 +1867,7 @@ Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
   - poules en cours : fin des poules + tableau projeté
   - poules finies : fin réelle des poules, tableau généré = ETA globale
+  - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
 
 </details>
 
@@ -5617,13 +5632,14 @@ Unitaires : 440 fichiers, 3315 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 7 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 8 tests</summary>
 
 - **computeMatchProgress**
   - renvoie null sans poule ni tableau
   - compte les matchs de poule terminés
   - retombe sur le tableau quand il n’y a pas de poule
   - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
+  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
 - **computeEffectiveTableauRanking**
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
