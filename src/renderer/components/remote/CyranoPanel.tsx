@@ -85,6 +85,21 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
       alive = false;
     };
   }, [competitionId]);
+  // Journée multi-épreuves : table partagée par la salle, épreuve suivie par piste (#1878)
+  const [scope, setScope] = useState<{ dayId: string; dayName: string } | null>(null);
+  const [routes, setRoutes] = useState<Record<string, string | null>>({});
+  useEffect(() => {
+    let alive = true;
+    const api = window.electronAPI?.cyrano;
+    const pending =
+      competitionId && api?.getPistesScope
+        ? api.getPistesScope(competitionId)
+        : Promise.resolve(null);
+    void pending.then(s => alive && setScope(s)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [competitionId]);
   const [statuses, setStatuses] = useState<CyranoPisteStatusDTO[]>([]);
   const [options, setOptionsState] = useState<CyranoOptions>(readOptions);
   const { nameLength, natSource, international } = options;
@@ -110,6 +125,7 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
     const s = await window.electronAPI.cyrano.getStatus();
     setRunning(s.running);
     setStatuses(s.pistes);
+    setRoutes((await window.electronAPI.cyrano.getRoutes?.()) ?? {});
     if (showLogRef.current) setLog((await window.electronAPI.cyrano.getLog?.()) ?? []);
   }, []);
 
@@ -331,6 +347,11 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
       </div>
 
       {/* ── Table des pistes ── */}
+      {scope && (
+        <p className="cyrano-muted cyrano-small">
+          {t('rsm.cyrano_day_scope', { day: scope.dayName })}
+        </p>
+      )}
       <div className="cyrano-table-wrap">
         <table className="cyrano-table">
           <thead>
@@ -432,6 +453,11 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
                         <span className="cyrano-muted cyrano-small">
                           {st.detectedProtocol ?? ''}
                         </span>
+                        {scope && routes[row.piste] && routes[row.piste] !== competitionId && (
+                          <span className="cyrano-muted cyrano-small">
+                            {t('rsm.cyrano_other_event')}
+                          </span>
+                        )}
                         {st.alert?.kind === 'bad_match' && (
                           <span
                             className="cyrano-alert"

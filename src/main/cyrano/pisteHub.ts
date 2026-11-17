@@ -61,10 +61,24 @@ interface DeviceView {
 const isFinished = (match: ArenaMatch | null | undefined, status?: string) =>
   status === 'finished' || match?.status === 'finished';
 
+/** Serveurs distants candidats : un par épreuve (un seul hors journée multi-épreuves). */
+export type RemoteSource = () => RemoteScoreServer | readonly RemoteScoreServer[] | null;
+
+/** Arène ayant une affectation en cours (match non terminé ou suivant en file), #1878. */
+const hasAssignment = (remote: RemoteScoreServer, arenaId: string): boolean =>
+  typeof remote.hasArenaAssignment === 'function'
+    ? remote.hasArenaAssignment(arenaId)
+    : remote.hasSession();
+
 /** Associe CyranoServer aux arènes RemoteScoreServer. Instancié une seule fois. */
 export class PisteHub {
   private readonly cyrano: CyranoServer;
-  private readonly getRemote: () => RemoteScoreServer | null;
+  private readonly getRemotes: RemoteSource;
+  /**
+   * Épreuve suivie par chaque piste (#1878) : celle de son affectation en cours ; sans
+   * affectation, la dernière suivie (rien n'est envoyé à l'appareil d'ici la suivante).
+   */
+  private routes = new Map<string, RemoteScoreServer>();
   private opts: Required<PisteHubOptions>;
   /** Ce que l'appareil affiche, par piste. */
   private device = new Map<string, DeviceView>();
@@ -87,14 +101,14 @@ export class PisteHub {
 
   constructor(
     cyrano: CyranoServer,
-    getRemote: () => RemoteScoreServer | null,
+    getRemotes: RemoteSource,
     options: PisteHubOptions & {
       coordsSource?: MatchCoordsSource;
       onAlert?: (piste: string, alert: PisteAlert) => void;
     } = {}
   ) {
     this.cyrano = cyrano;
-    this.getRemote = getRemote;
+    this.getRemotes = getRemotes;
     this.coordsSource = options.coordsSource;
     this.onAlert = options.onAlert;
     this.opts = {
@@ -111,6 +125,59 @@ export class PisteHub {
   /** Alertes en cours, par piste (panneau Cyrano). */
   getAlerts(): Record<string, PisteAlert> {
     return Object.fromEntries(this.alerts);
+  }
+
+  private remotes(): RemoteScoreServer[] {
+    const r = this.getRemotes();
+    if (!r) return [];
+    return Array.isArray(r) ? [...r] : [r as RemoteScoreServer];
+  }
+
+  /**
+   * Épreuve de la piste (#1878) : parmi les serveurs distants, celui dont l'arène de la piste a
+   * une affectation en cours. Plusieurs : la dernière épreuve suivie, sinon celle dont l'arène
+   * est en combat, sinon la première. Aucune : la dernière suivie si elle est toujours ouverte,
+   * sinon le seul serveur en séance (une seule épreuve). Changer d'épreuve oublie l'état connu
+   * de l'appareil : le prochain DISP part avec l'arme et l'épreuve du nouveau match.
+   */
+  private remoteFor(piste: CyranoPisteStatus | string, commit = true): RemoteScoreServer | null {
+    const status = typeof piste === 'string' ? this.cyrano.findPiste(piste) : piste;
+    if (!status) return null;
+    const all = this.remotes();
+    const previous = this.routes.get(status.piste);
+    let chosen: RemoteScoreServer | null = null;
+    if (status.arena) {
+      const arenaId = `arena${status.arena}`;
+      const active = all.filter(r => hasAssignment(r, arenaId));
+      if (previous && active.includes(previous)) chosen = previous;
+      else if (active.length > 0)
+        chosen = active.find(r => r.getArena(arenaId)?.status === 'in_progress') ?? active[0];
+    }
+    if (!chosen && previous && all.includes(previous) && previous.hasSession()) chosen = previous;
+    if (!chosen) {
+      const open = all.filter(r => r.hasSession());
+      chosen = open.length === 1 ? open[0] : null;
+    }
+    if (commit && chosen && chosen !== previous) {
+      if (previous) {
+        logger.info(
+          LogCategory.NETWORK,
+          `Cyrano: piste ${status.piste} → épreuve ${chosen.getSession()?.competitionId ?? '?'}`
+        );
+        this.clearDispCache(status.piste);
+        this.watch.delete(status.piste);
+      }
+      this.routes.set(status.piste, chosen);
+    }
+    return chosen;
+  }
+
+  /** Épreuve suivie par chaque piste (panneau Cyrano, journée). */
+  getRoutes(): Record<string, string | null> {
+    const out: Record<string, string | null> = {};
+    for (const p of this.cyrano.getStatuses())
+      out[p.piste] = this.remoteFor(p, false)?.getSession()?.competitionId ?? null;
+    return out;
   }
 
   private setBadMatch(piste: string, msg: CyranoMessage, arenaId: string): void {
@@ -139,7 +206,7 @@ export class PisteHub {
    */
   private modeOf(
     piste: CyranoPisteStatus,
-    remote: RemoteScoreServer | null = this.getRemote()
+    remote: RemoteScoreServer | null = this.remoteFor(piste)
   ): CyranoPisteMode {
     if (piste.mode === 'manual' || piste.status === 'offline') return 'manual';
     const weapon = remote?.getSessionWeapon();
@@ -203,7 +270,7 @@ export class PisteHub {
   /** Bandeau appareil côté arbitre : mode et liaison de la piste reliée à l'arène (#1829). */
   private syncArenaLink(piste: CyranoPisteStatus): void {
     if (!piste.arena) return;
-    this.getRemote()?.updateArena(`arena${piste.arena}`, {
+    this.remoteFor(piste)?.updateArena(`arena${piste.arena}`, {
       cyrano: {
         piste: piste.piste,
         mode: this.modeOf(piste),
@@ -218,7 +285,7 @@ export class PisteHub {
     this.applied.delete(piste);
     const status = this.cyrano.findPiste(piste);
     if (!status?.arena || this.modeOf(status) === 'manual') return;
-    const arena = this.getRemote()?.getArena(`arena${status.arena}`);
+    const arena = this.remoteFor(status)?.getArena(`arena${status.arena}`);
     const match = arena?.currentMatch;
     if (arena && match && !isFinished(match, arena.status)) {
       this.sendMatch(piste, match, match.scoreA, match.scoreB);
@@ -233,11 +300,13 @@ export class PisteHub {
    * broadcastArenaUpdate. DISP si le match change ou si le score diffère de celui
    * de l'appareil (correction depuis la tablette). Jamais de DISP d'un match terminé.
    */
-  onArenaUpdate = (arenaId: string, update: ArenaUpdate): void => {
+  onArenaUpdate = (arenaId: string, update: ArenaUpdate, source?: RemoteScoreServer): void => {
     const arenaNumber = parseInt(arenaId.replace(/^arena/, ''), 10);
     if (isNaN(arenaNumber)) return;
     // Toutes les pistes de l'arène : maître et afficheurs qui la partagent reçoivent le DISP
     for (const piste of this.cyrano.findAllByArena(arenaNumber)) {
+      // Pistes partagées (#1878) : seule l'épreuve suivie par la piste pilote l'appareil
+      if (source && this.remoteFor(piste) !== source) continue;
       this.displayArenaUpdate(piste, update);
     }
   };
@@ -318,7 +387,8 @@ export class PisteHub {
     this.alerts.delete(piste);
     // Démarrage de séance : les matchs sont assignés avant que la session existe (arme,
     // compétition inconnues) → DISP construit juste après, dans la même tâche
-    if (deferIfNoSession && !this.getRemote()?.getSession()) {
+    const remote = this.remoteFor(status);
+    if (deferIfNoSession && !remote?.getSession()) {
       queueMicrotask(() => {
         const view = this.device.get(piste);
         if (view?.matchId !== match.id) return;
@@ -326,13 +396,18 @@ export class PisteHub {
       });
       return;
     }
-    this.cyrano.sendDisp(piste, this.buildDispFor(match, scoreA, scoreB, status));
+    this.cyrano.sendDisp(
+      piste,
+      this.buildDispFor(match, scoreA, scoreB, status, remote),
+      // Champ Compe : seulement entre plusieurs épreuves (sinon celui du serveur Cyrano)
+      this.remotes().length > 1 ? (remote?.getSession()?.competitionId ?? undefined) : undefined
+    );
     logger.info(LogCategory.NETWORK, `Cyrano: DISP → ${piste} (match ${match.id})`);
   }
 
   private handleInfo = (piste: CyranoPisteStatus, msg: CyranoMessage): void => {
     if (!piste.arena) return;
-    const remote = this.getRemote();
+    const remote = this.remoteFor(piste);
     if (!remote) return;
     const mode = this.modeOf(piste, remote);
     // Piste hors appareil : aucune entrée prise en compte, la fin reçoit un NAK
@@ -478,7 +553,7 @@ export class PisteHub {
    */
   private handleNext = (piste: CyranoPisteStatus, _msg: CyranoMessage): void => {
     if (!piste.arena) return;
-    const remote = this.getRemote();
+    const remote = this.remoteFor(piste);
     if (!remote) return;
     const arenaId = `arena${piste.arena}`;
     const arena = remote.getArena(arenaId);
@@ -506,7 +581,7 @@ export class PisteHub {
    */
   private handlePrev = (piste: CyranoPisteStatus, _msg?: CyranoMessage): void => {
     if (!piste.arena) return;
-    const remote = this.getRemote();
+    const remote = this.remoteFor(piste);
     if (!remote) return;
     if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
     const arenaId = `arena${piste.arena}`;
@@ -544,11 +619,11 @@ export class PisteHub {
     match: ArenaMatch,
     scoreA: number,
     scoreB: number,
-    piste?: CyranoPisteStatus
+    piste?: CyranoPisteStatus,
+    remote: RemoteScoreServer | null = piste ? this.remoteFor(piste) : null
   ) {
     const fA = match.fencerA;
     const fB = match.fencerB;
-    const remote = this.getRemote();
     // Cartons déjà donnés sur ce match (match rappelé, appareil redémarré) : sans eux, le
     // premier INFO de l'appareil les effacerait
     const arenaId = `arena${piste?.arena}`;

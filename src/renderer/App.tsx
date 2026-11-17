@@ -232,13 +232,16 @@ const AppContent: React.FC = () => {
 
   // Listen for menu events
   useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.onMenuNewCompetition(() => setShowNewCompetitionModal(true));
-      window.electronAPI.onMenuReportIssue(() => setShowReportIssueModal(true));
-      window.electronAPI.onShowAbout(() => setShowAboutModal(true));
+    const api = window.electronAPI;
+    if (!api) return;
+    // Chaque on* retourne son désabonnement (#1894) : ne retire que nos propres écouteurs
+    const unsubscribers: Array<(() => void) | void> = [
+      api.onMenuNewCompetition(() => setShowNewCompetitionModal(true)),
+      api.onMenuReportIssue(() => setShowReportIssueModal(true)),
+      api.onShowAbout(() => setShowAboutModal(true)),
 
       // Listen for file operations
-      window.electronAPI.onFileOpened(async (filepath: string, competitionIds?: string[]) => {
+      api.onFileOpened(async (filepath: string, competitionIds?: string[]) => {
         logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath, competitionIds });
         await loadCompetitions();
         if (competitionIds?.length) {
@@ -252,42 +255,21 @@ const AppContent: React.FC = () => {
         // Une seule compétition : l'ouvrir avec son état sauvegardé (#1117)
         if (competitionIds?.length === 1)
           await openImportedCompetitionRef.current(competitionIds[0]);
-      });
+      }),
 
-      window.electronAPI.onFileSaved(async (filepath: string) => {
+      api.onFileSaved(async (filepath: string) => {
         logger.debug(LogCategory.UI, 'Fichier sauvegardé', { filepath });
-      });
+      }),
 
       // Listen for save events
-      window.electronAPI.onMenuSave(() => {
-        showToast('Sauvegarde effectuée', 'success');
-      });
-
-      window.electronAPI.onMenuOpenSettings(() => {
-        setShowSettingsModal(true);
-      });
-
-      window.electronAPI.onAutosaveCompleted(() => {
-        logger.debug(LogCategory.UI, 'Autosave OK');
-      });
-
-      window.electronAPI.onAutosaveFailed(() => {
-        showToast('Échec de la sauvegarde automatique', 'error');
-      });
-    }
+      api.onMenuSave(() => showToast('Sauvegarde effectuée', 'success')),
+      api.onMenuOpenSettings(() => setShowSettingsModal(true)),
+      api.onAutosaveCompleted(() => logger.debug(LogCategory.UI, 'Autosave OK')),
+      api.onAutosaveFailed(() => showToast('Échec de la sauvegarde automatique', 'error')),
+    ];
 
     return () => {
-      if (window.electronAPI?.removeAllListeners) {
-        window.electronAPI.removeAllListeners('menu:open-settings');
-        window.electronAPI.removeAllListeners('menu:new-competition');
-        window.electronAPI.removeAllListeners('menu:report-issue');
-        window.electronAPI.removeAllListeners('menu:show-about');
-        window.electronAPI.removeAllListeners('file:opened');
-        window.electronAPI.removeAllListeners('file:saved');
-        window.electronAPI.removeAllListeners('menu:save');
-        window.electronAPI.removeAllListeners('autosave:completed');
-        window.electronAPI.removeAllListeners('autosave:failed');
-      }
+      for (const off of unsubscribers) if (typeof off === 'function') off();
     };
   }, []);
 

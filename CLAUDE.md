@@ -105,7 +105,7 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), cyranoHandlers (cyrano:*, #1720), clubHandlers (club:*, Mode Club #1872), privacyHandlers (privacy:*, RGPD #1882) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), dayStripHandlers (pistes libérées et réservation, #1878), cyranoHandlers (cyrano:*, #1720), clubHandlers (club:*, Mode Club #1872), privacyHandlers (privacy:*, RGPD #1882) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
@@ -208,7 +208,7 @@ Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club, privacy) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 33 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 37 versions)
 ```
 
 ### Key Patterns

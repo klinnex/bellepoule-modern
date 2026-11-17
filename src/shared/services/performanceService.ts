@@ -164,16 +164,52 @@ export function calculateVirtualListState(
 // Debounce and Throttle
 // ============================================================================
 
-export function debounce<T extends (...args: unknown[]) => void>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout>;
+/** Fonction différée : `cancel()` abandonne l'appel en attente, `flush()` l'exécute tout de suite. */
+export interface DebouncedFunction<A extends unknown[]> {
+  (...args: A): void;
+  cancel: () => void;
+  flush: () => void;
+}
 
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
+/**
+ * Anti-rebond générique (utilitaire unique du projet, #1898).
+ * Côté React, préférer le hook `useDebounce` (valeur différée, annulée au démontage).
+ * L'anti-rebond par clé `socket.id:arenaId` de `main/remote/arenaControl.ts` est un
+ * filtre temporel côté serveur (ignore les mises à jour trop rapprochées) : il ne relève pas de cet utilitaire.
+ */
+export function debounce<A extends unknown[]>(
+  fn: (...args: A) => void,
+  delay: number
+): DebouncedFunction<A> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let pendingArgs: A | undefined;
+
+  const run = (): void => {
+    const args = pendingArgs;
+    timeoutId = undefined;
+    pendingArgs = undefined;
+    if (args) fn(...args);
   };
+
+  const debounced = ((...args: A) => {
+    pendingArgs = args;
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+    timeoutId = setTimeout(run, delay);
+  }) as DebouncedFunction<A>;
+
+  debounced.cancel = () => {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+    timeoutId = undefined;
+    pendingArgs = undefined;
+  };
+
+  debounced.flush = () => {
+    if (timeoutId === undefined) return;
+    clearTimeout(timeoutId);
+    run();
+  };
+
+  return debounced;
 }
 
 export function throttle<T extends (...args: unknown[]) => void>(

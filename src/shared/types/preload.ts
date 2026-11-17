@@ -28,6 +28,7 @@ import type {
   DayRefereeInput,
   DayRefereeStatus,
   DaySyncResult,
+  DayStripAPI,
   EventDay,
 } from './eventDay';
 import type { ClubAPI } from './club';
@@ -1092,24 +1093,26 @@ export interface DialogAPI {
 }
 
 export interface MenuAPI {
-  onMenuNewCompetition: (callback: () => void) => void;
-  onMenuSave: (callback: () => void) => void;
-  onMenuCompetitionProperties: (callback: () => void) => void;
-  onMenuAddFencer: (callback: () => void) => void;
-  onMenuAddReferee: (callback: () => void) => void;
-  onMenuNextPhase: (callback: () => void) => void;
-  onMenuExport: (callback: (format: string) => void) => void;
-  onMenuImport: (callback: (format: string, filepath: string, content: string) => void) => void;
-  onMenuOpenSettings: (callback: () => void) => void;
-  onMenuReportIssue: (callback: () => void) => void;
-  onShowAbout: (callback: () => void) => void;
+  onMenuNewCompetition: (callback: () => void) => () => void;
+  onMenuSave: (callback: () => void) => () => void;
+  onMenuCompetitionProperties: (callback: () => void) => () => void;
+  onMenuAddFencer: (callback: () => void) => () => void;
+  onMenuAddReferee: (callback: () => void) => () => void;
+  onMenuNextPhase: (callback: () => void) => () => void;
+  onMenuExport: (callback: (format: string) => void) => () => void;
+  onMenuImport: (
+    callback: (format: string, filepath: string, content: string) => void
+  ) => () => void;
+  onMenuOpenSettings: (callback: () => void) => () => void;
+  onMenuReportIssue: (callback: () => void) => () => void;
+  onShowAbout: (callback: () => void) => () => void;
   /** competitionIds : compétitions fusionnées depuis le .bpm ouvert (#1117) */
-  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => void;
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => () => void;
   /** Compétition affichée : « Enregistrer sous » l'exporte seule */
   setCurrentCompetition?: (competitionId: string | null) => void;
-  onFileSaved: (callback: (filepath: string) => void) => void;
-  onAutosaveCompleted: (callback: () => void) => void;
-  onAutosaveFailed: (callback: () => void) => void;
+  onFileSaved: (callback: (filepath: string) => void) => () => void;
+  onAutosaveCompleted: (callback: () => void) => () => void;
+  onAutosaveFailed: (callback: () => void) => () => void;
   onDbReady: (callback: () => void) => void;
 }
 
@@ -1217,7 +1220,8 @@ export interface CryptoAPI {
 }
 
 /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
-export interface EventDayAPI {
+/** Pistes en temps réel d'une journée (#1878) : voir eventDay.ts */
+export interface EventDayAPI extends DayStripAPI {
   list: () => Promise<EventDay[]>;
   create: (data: { name: string; date: string; stripCount?: number }) => Promise<EventDay>;
   update: (
@@ -1386,6 +1390,10 @@ export interface CyranoAPI {
   /** Table des pistes enregistrée en base, par compétition (#1829) */
   loadPistes: (competitionId: string) => Promise<CyranoPisteConfigDTO[]>;
   savePistes: (competitionId: string, pistes: CyranoPisteConfigDTO[]) => Promise<boolean>;
+  /** Épreuve d'une journée : table des pistes partagée par la salle (#1878), sinon null */
+  getPistesScope: (competitionId: string) => Promise<{ dayId: string; dayName: string } | null>;
+  /** Épreuve suivie par chaque piste (identifiant de compétition), #1878 */
+  getRoutes: () => Promise<Record<string, string | null>>;
 }
 
 /** Trame du journal Cyrano (#1829) */

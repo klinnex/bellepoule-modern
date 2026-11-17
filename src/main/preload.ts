@@ -21,6 +21,7 @@ import { dbApi } from './preloadApi/dbApi';
 import { fileApi } from './preloadApi/fileApi';
 import { dialogApi } from './preloadApi/dialogApi';
 import { remoteApi } from './preloadApi/remoteApi';
+import { subscribe } from './preloadApi/subscribe';
 
 // Expose protected methods that allow the renderer process
 // to use the ipcRenderer without exposing the entire object
@@ -35,33 +36,27 @@ const electronApi = {
   // Dialog operations with validation
   dialog: dialogApi,
 
-  // Menu event listeners
-  onMenuNewCompetition: (callback: () => void) => ipcRenderer.on('menu:new-competition', callback),
-  onMenuSave: (callback: () => void) => ipcRenderer.on('menu:save', callback),
+  // Menu event listeners : chaque on* retourne sa fonction de désabonnement (#1894)
+  onMenuNewCompetition: (callback: () => void) => subscribe('menu:new-competition', callback),
+  onMenuSave: (callback: () => void) => subscribe('menu:save', callback),
   onMenuCompetitionProperties: (callback: () => void) =>
-    ipcRenderer.on('menu:competition-properties', callback),
-  onMenuAddFencer: (callback: () => void) => ipcRenderer.on('menu:add-fencer', callback),
-  onMenuAddReferee: (callback: () => void) => ipcRenderer.on('menu:add-referee', callback),
-  onMenuNextPhase: (callback: () => void) => ipcRenderer.on('menu:next-phase', callback),
-  onMenuExport: (callback: (format: string) => void) =>
-    ipcRenderer.on('menu:export', (_, format) => callback(format)),
+    subscribe('menu:competition-properties', callback),
+  onMenuAddFencer: (callback: () => void) => subscribe('menu:add-fencer', callback),
+  onMenuAddReferee: (callback: () => void) => subscribe('menu:add-referee', callback),
+  onMenuNextPhase: (callback: () => void) => subscribe('menu:next-phase', callback),
+  onMenuExport: (callback: (format: string) => void) => subscribe('menu:export', callback),
   onMenuImport: (callback: (format: string, filepath: string, content: string) => void) =>
-    ipcRenderer.on('menu:import', (_, format, filepath, content) =>
-      callback(format, filepath, content)
-    ),
-  onMenuOpenSettings: (callback: () => void) => ipcRenderer.on('menu:open-settings', callback),
-  onMenuReportIssue: (callback: () => void) => ipcRenderer.on('menu:report-issue', callback),
-  onShowAbout: (callback: () => void) => ipcRenderer.on('menu:show-about', callback),
+    subscribe('menu:import', callback),
+  onMenuOpenSettings: (callback: () => void) => subscribe('menu:open-settings', callback),
+  onMenuReportIssue: (callback: () => void) => subscribe('menu:report-issue', callback),
+  onShowAbout: (callback: () => void) => subscribe('menu:show-about', callback),
   onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) =>
-    ipcRenderer.on('file:opened', (_, filepath, competitionIds) =>
-      callback(filepath, competitionIds)
-    ),
+    subscribe('file:opened', callback),
   setCurrentCompetition: (competitionId: string | null) =>
     ipcRenderer.send('app:current-competition', competitionId),
-  onFileSaved: (callback: (filepath: string) => void) =>
-    ipcRenderer.on('file:saved', (_, filepath) => callback(filepath)),
-  onAutosaveCompleted: (callback: () => void) => ipcRenderer.on('autosave:completed', callback),
-  onAutosaveFailed: (callback: () => void) => ipcRenderer.on('autosave:failed', callback),
+  onFileSaved: (callback: (filepath: string) => void) => subscribe('file:saved', callback),
+  onAutosaveCompleted: (callback: () => void) => subscribe('autosave:completed', callback),
+  onAutosaveFailed: (callback: () => void) => subscribe('autosave:failed', callback),
   onDbReady: (callback: () => void) => ipcRenderer.once('db:ready', callback),
 
   // Boîte d'impression intégrée (#1214)
@@ -215,6 +210,13 @@ const electronApi = {
     getBusyElsewhere: (competitionId: string) =>
       ipcRenderer.invoke('eventDay:getBusyElsewhere', competitionId),
     getStripOccupation: (dayId: string) => ipcRenderer.invoke('eventDay:getStripOccupation', dayId),
+    getStripBoard: (dayId: string) => ipcRenderer.invoke('eventDay:getStripBoard', dayId),
+    assignStrip: (dayId: string, strip: number, key: string) =>
+      ipcRenderer.invoke('eventDay:assignStrip', dayId, strip, key),
+    setStripRule: (dayId: string, strip: number, rule: unknown) =>
+      ipcRenderer.invoke('eventDay:setStripRule', dayId, strip, rule),
+    setAutoAssign: (dayId: string, on: boolean) =>
+      ipcRenderer.invoke('eventDay:setAutoAssign', dayId, on),
   },
 
   // Mode Club (#1872)
@@ -484,6 +486,9 @@ const electronApi = {
     loadPistes: (competitionId: string) => ipcRenderer.invoke('cyrano:loadPistes', competitionId),
     savePistes: (competitionId: string, pistes: unknown[]) =>
       ipcRenderer.invoke('cyrano:savePistes', competitionId, pistes),
+    getPistesScope: (competitionId: string) =>
+      ipcRenderer.invoke('cyrano:getPistesScope', competitionId),
+    getRoutes: () => ipcRenderer.invoke('cyrano:getRoutes'),
   },
 
   // Language injected before renderer loads (avoids race with localStorage read)

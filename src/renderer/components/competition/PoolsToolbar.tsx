@@ -77,7 +77,10 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
         title={t('competitionView.print_title')}
         aria-label={t('competitionView.print')}
         icon={<Icon icon={Printer} />}
-      />
+      >
+        {/* Libellé complet ; icône seule si la fenêtre est très rétrécie (#1826) */}
+        <span className="pools-print-label">{t('competitionView.print')}</span>
+      </Button>
       {poolCount > 1 && (
         <Button variant="success" onClick={onExportAll}>
           {t('competitionView.export_all')}

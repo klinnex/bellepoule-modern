@@ -19,6 +19,7 @@ import { createMainWindow } from './mainWindow';
 import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './splash';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { registerEventDayHandlers } from './ipc/eventDayHandlers';
+import { registerDayStripHandlers } from './ipc/dayStripHandlers';
 import { registerClubHandlers } from './ipc/clubHandlers';
 import { applyStoredPrivacySettings, createPrivacyHandlers } from './ipc/privacyHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
@@ -90,6 +91,7 @@ const buildMenu = (language?: string): void =>
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
 registerEventDayHandlers({ db });
+registerDayStripHandlers({ db, getServer: id => remoteServers.get(id)?.server });
 registerClubHandlers({ db });
 privacyHandlers.register();
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
@@ -116,12 +118,8 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 const cyranoServer = new CyranoServer();
 const pisteHub = new PisteHub(
   cyranoServer,
-  () => {
-    for (const { server } of remoteServers.values()) {
-      if (server.hasSession()) return server;
-    }
-    return null;
-  },
+  // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
+  () => [...remoteServers.values()].map(entry => entry.server),
   {
     // Numéros de poule / de match du DISP lus en base
     coordsSource: db,
@@ -147,7 +145,7 @@ registerRemoteServerHandlers({
   db,
   getMainWindow: () => mainWindow,
   onServerCreated: server => {
-    server.cyranoHook = pisteHub.onArenaUpdate;
+    server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
   },
 });
 

@@ -9,6 +9,7 @@ import type { RendererMatch, SessionMatch } from './types';
 import * as slots from './arenaSlots';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { forcedPoolArena } from './stripHandover';
 
 type S = RemoteScoreServer;
 
@@ -433,6 +434,13 @@ export function assignPools(
   const target = new Map<string, string>();
   const used = new Set<number>();
   for (const p of sorted) {
+    // Poule déplacée vers une piste libérée d'une journée (#1878) : sa piste prime
+    const forced = forcedPoolArena(ctx, p.poolId);
+    if (forced && ctx.arenas.has(forced)) {
+      target.set(p.poolId, forced);
+      used.add(Number(forced.replace(/^arena/, '')));
+      continue;
+    }
     const s = Number(p.strip);
     if (Number.isInteger(s) && s > 0 && s <= ctx.arenaCount) {
       target.set(p.poolId, `arena${s}`);

@@ -87,8 +87,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 72 | 810 |
-| `src/shared/services/` | 8 | 92 |
+| `src/shared/utils/` | 73 | 816 |
+| `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 30 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
@@ -100,19 +100,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 14 | 231 |
-| `src/main/` | 78 | 642 |
+| `src/database/` | 15 | 234 |
+| `src/main/` | 84 | 668 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 29 | 144 |
-| `src/renderer/components/` | 109 | 551 |
+| `src/renderer/components/` | 111 | 558 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **428** | **3264** |
+| **Total** | **438** | **3309** |
 
-Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 428 fichiers, 3270 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1389,6 +1389,19 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/stripRules.test.ts</code> — 6 tests</summary>
+
+- **stripRules — réservation des pistes (#1878)**
+  - par défaut tout est autorisé
+  - épreuves autorisées
+  - piste de finale : tableau de 8 et moins, pas de poules
+  - poules seulement
+  - normalisation des entrées invalides
+  - ordre : sans piste d’abord, poules, puis petits tableaux
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/suddenDeath.test.ts</code> — 33 tests</summary>
 
 - **checkChallengerSuddenDeath**
@@ -1671,7 +1684,7 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/services/performanceService.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/services/performanceService.test.ts</code> — 18 tests</summary>
 
 - **CacheService**
   - stocke et relit une valeur
@@ -1692,6 +1705,9 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - borne endIndex au dernier élément
 - **debounce**
   - ne déclenche qu’après le délai et une seule fois
+  - transmet les arguments du dernier appel
+  - cancel() abandonne l’appel en attente
+  - flush() exécute immédiatement, une seule fois
 - **throttle**
   - exécute immédiatement puis limite les appels
 
@@ -2664,6 +2680,16 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/stripRuleRepo.test.ts</code> — 3 tests</summary>
+
+- **StripRuleRepo (#1878)**
+  - réservation enregistrée, relue, retirée par la règle par défaut
+  - affectation automatique par journée
+  - suppression de la journée : réservations et table Cyrano de la salle supprimées
+
+</details>
+
+<details>
 <summary><code>src/database/repos/touchStats.test.ts</code> — 2 tests</summary>
 
 - **Touches données / reçues par zone**
@@ -2965,6 +2991,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/pisteHubRouting.test.ts</code> — 5 tests</summary>
+
+- **PisteHub — pistes partagées entre épreuves (#1878)**
+  - la piste suit l’épreuve de son affectation : DISP avec l’arme et l’épreuve du match
+  - INFO de l’appareil appliqué à l’épreuve suivie, jamais à l’autre
+  - piste prise : l’autre épreuve affectée à la même piste attend la fin, puis prend la main
+  - aucune affectation : la piste reste sur sa dernière épreuve, rien n’est envoyé
+  - une seule épreuve ouverte : comportement inchangé (serveur unique)
+
+</details>
+
+<details>
 <summary><code>src/main/cyrano/server.test.ts</code> — 11 tests</summary>
 
 - **CyranoServer**
@@ -3061,6 +3099,29 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - protect / unprotect font l’aller-retour en base64
   - renvoie null sans chiffrement disponible
   - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/cyranoHandlers.test.ts</code> — 5 tests</summary>
+
+- **cyranoHandlers — table des pistes**
+  - épreuve hors journée : table propre à l’épreuve
+  - épreuves d’une même journée : une seule table, partagée
+  - journée encore vide : la table existante de l’épreuve est reprise
+  - épreuve suivie par piste
+  - entrées invalides refusées
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/dayStripHandlers.test.ts</code> — 4 tests</summary>
+
+- **dayStripHandlers (#1878)**
+  - tableau des pistes : occupée, libre avec proposition
+  - affectation : piste hors salle ou réservée refusée, piste libre acceptée
+  - réservation : entrées invalides refusées, null retire la réservation
+  - affectation automatique : la piste libre est prise sans clic
 
 </details>
 
@@ -3333,6 +3394,16 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/preloadApi/subscribe.test.ts</code> — 3 tests</summary>
+
+- **subscribe (préload)**
+  - transmet les arguments sans l'événement Electron
+  - pas de double écouteur après deux abonnements suivis de deux désabonnements
+  - le désabonnement ne retire que son propre écouteur
+
+</details>
+
+<details>
 <summary><code>src/main/printDialog.test.ts</code> — 21 tests</summary>
 
 - **parsePageRanges (#1214)**
@@ -3475,6 +3546,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
+
+</details>
+
+<details>
+<summary><code>src/main/remote/dayStripBoard.test.ts</code> — 5 tests</summary>
+
+- **dayStripBoard — pistes libérées d’une journée (#1878)**
+  - occupation et propositions : une piste libre reçoit le travail en attente
+  - réservation : piste de finale réservée au tableau de 8 d’une épreuve
+  - piste occupée ou travail inconnu : refus
+  - affectation automatique : une proposition par piste libre, jamais deux fois la même
+  - aucune saisie distante ouverte : tableau hors ligne, sans proposition
 
 </details>
 
@@ -3724,6 +3807,17 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **updateMatchScore**
   - match d’entraînement sur une arène : score appliqué, pas d’erreur
   - match introuvable partout : erreur « Match non trouvé »
+
+</details>
+
+<details>
+<summary><code>src/main/remote/stripHandover.test.ts</code> — 4 tests</summary>
+
+- **stripHandover — travail en attente et piste libérée (#1878)**
+  - poule sans piste : proposée ; jamais déplacée vers une piste hors de l’épreuve
+  - poule en file derrière une piste occupée : installée sur la piste libre, qui la garde
+  - match de tableau en file derrière une piste occupée : déplacé sur la piste libre
+  - sans séance : rien n’attend
 
 </details>
 
@@ -4748,6 +4842,18 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/DayStripBoardPanel.test.tsx</code> — 5 tests</summary>
+
+- **DayStripBoardPanel (#1878)**
+  - piste occupée, piste libre avec proposition, réservation résumée
+  - Affecter : la piste libre reçoit le travail choisi
+  - réservation : tableau de 8 enregistré pour une seule épreuve
+  - affectation automatique activée depuis la case
+  - sans saisie distante : occupation prévue en base, sans proposition
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/EditFencerModal.test.tsx</code> — 3 tests</summary>
 
 - **EditFencerModal**
@@ -5515,6 +5621,14 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/pool/PoolSignaturesModal.test.tsx</code> — 1 test</summary>
+
+- **PoolSignaturesModal**
+  - liste les tireurs, signature affichée ou « non signé », sans édition
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/pool/PoolStripButton.test.tsx</code> — 2 tests</summary>
 
 - **PoolStripButton**
@@ -5594,11 +5708,12 @@ Unitaires : 418 fichiers, 3225 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 15 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 16 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
   - Imprimer : envoie les réglages choisis puis ferme et mémorise (sans pages)
+  - réglages mémorisés sans imprimer, même si la fenêtre est fermée (#1826)
   - échelle : saisie libre, validée à la sortie du champ (#1826)
   - plage invalide ou hors document : impression bloquée
   - échec d’impression : message affiché, boîte conservée

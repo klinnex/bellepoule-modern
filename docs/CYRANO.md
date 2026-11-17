@@ -148,6 +148,29 @@ nombre), noir, puis les **cartons P à part** (P rouge, P noir), comme le veut l
 | Feuille de poule (impression, PDF d'une poule ou de toutes) | section « Cartons » sous la grille : un tireur par ligne (numéro, nom, cartons reçus dans la poule), seulement ceux qui en ont |
 | Feuille de match de tableau (feuilles d'arbitrage) | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur ; vide (à remplir à la main) sans carton enregistré. Un match saisi à distance est relu sous son id composite `<compétition>-<match>` |
 
+### 2 quinquies. Pistes partagées entre épreuves (#1878)
+
+Journée multi-épreuves : un serveur distant par épreuve, un seul serveur Cyrano. L'arène N de
+chaque épreuve est la piste physique N. `PisteHub` reçoit **tous** les serveurs distants et route
+chaque piste vers l'épreuve de son **affectation en cours** (`hasArenaAssignment` : match non
+terminé sur l'arène, ou match suivant en file) :
+
+| Situation | Épreuve suivie |
+|---|---|
+| Une seule épreuve a une affectation sur la piste | celle-ci |
+| Plusieurs | la dernière suivie (la piste reste prise jusqu'à la fin de son affectation), sinon celle en combat |
+| Aucune | la dernière suivie : rien n'est envoyé à l'appareil jusqu'à la prochaine affectation |
+
+- Les mises à jour d'arène d'une autre épreuve que celle suivie n'atteignent pas l'appareil ; les
+  INFO / END / NEXT / PREV de l'appareil vont à l'épreuve suivie.
+- Changement d'épreuve : état connu de l'appareil oublié, nouveau DISP avec l'arme et le champ
+  Compe de la nouvelle épreuve (8 premiers caractères de l'identifiant de compétition).
+- NEXT reste dans la file de la piste pour l'épreuve suivie ; jamais de saut d'une épreuve à l'autre.
+- **Table des pistes de la salle** : une épreuve rattachée à une journée lit et écrit la table
+  de la journée (clé `day:<id>` dans `cyrano_pistes`), partagée par toutes ses épreuves ; tant
+  qu'elle est vide, la table propre de l'épreuve est reprise. Le panneau l'indique et signale
+  les pistes suivies par une autre épreuve (`cyrano:getPistesScope`, `cyrano:getRoutes`).
+
 ### Supervision
 
 | Statut | Condition |

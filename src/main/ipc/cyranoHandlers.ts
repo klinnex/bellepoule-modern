@@ -3,7 +3,8 @@
  * Configuration et supervision du serveur UDP Cyrano et du PisteHub.
  * Canaux : cyrano:start, cyrano:stop, cyrano:isRunning, cyrano:setPistes,
  *          cyrano:getStatus, cyrano:getLog, cyrano:setOptions, cyrano:pisteAction,
- *          cyrano:loadPistes, cyrano:savePistes (table des pistes en base, #1829)
+ *          cyrano:loadPistes, cyrano:savePistes (table des pistes en base, #1829),
+ *          cyrano:getPistesScope, cyrano:getRoutes (pistes partagées d'une journée, #1878)
  * Licensed under GPL-3.0
  */
 
@@ -20,8 +21,13 @@ import {
 export interface CyranoHandlersContext {
   cyranoServer: CyranoServer;
   pisteHub: PisteHub;
-  db: Pick<DatabaseManager, 'getCyranoPistes' | 'replaceCyranoPistes'>;
+  db: Pick<DatabaseManager, 'getCyranoPistes' | 'replaceCyranoPistes'> & {
+    eventDays?: Pick<DatabaseManager['eventDays'], 'getCompetitionDayId' | 'getDay'>;
+  };
 }
+
+/** Clé de la table des pistes d'une journée multi-épreuves : partagée par ses épreuves (#1878). */
+export const dayPistesKey = (dayId: string): string => `day:${dayId}`;
 
 export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
   const { cyranoServer, pisteHub, db } = ctx;
@@ -62,11 +68,30 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
     pisteHub.syncPisteModes();
   });
 
-  // Table des pistes : rattachée à la compétition (#1829). Identifiant vide = rien.
+  /** Journée de l'épreuve : sa table des pistes est celle de la salle (#1878). */
+  const dayOf = (competitionId: string): string | null =>
+    db.eventDays?.getCompetitionDayId(competitionId) ?? null;
+
+  // Table des pistes : rattachée à la compétition (#1829), ou à sa journée (#1878).
+  // Journée encore vide : la table propre de l'épreuve est reprise (installation existante).
   ipcMain.handle('cyrano:loadPistes', (_, competitionId: unknown): Record<string, unknown>[] => {
     if (typeof competitionId !== 'string' || !competitionId) return [];
-    return db.getCyranoPistes(competitionId).map(row => row.config);
+    const day = dayOf(competitionId);
+    const rows = day ? db.getCyranoPistes(dayPistesKey(day)) : [];
+    return (rows.length > 0 ? rows : db.getCyranoPistes(competitionId)).map(row => row.config);
   });
+
+  ipcMain.handle(
+    'cyrano:getPistesScope',
+    (_, competitionId: unknown): { dayId: string; dayName: string } | null => {
+      if (typeof competitionId !== 'string' || !competitionId) return null;
+      const day = dayOf(competitionId);
+      if (!day) return null;
+      return { dayId: day, dayName: db.eventDays?.getDay(day)?.name ?? '' };
+    }
+  );
+
+  ipcMain.handle('cyrano:getRoutes', (): Record<string, string | null> => pisteHub.getRoutes());
 
   ipcMain.handle('cyrano:savePistes', (_, competitionId: unknown, pistes: unknown): boolean => {
     if (typeof competitionId !== 'string' || !competitionId || !Array.isArray(pistes)) return false;
@@ -83,7 +108,8 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
       .filter((p, i, all) => all.findIndex(q => q.piste === p.piste) === i)
       .slice(0, 64)
       .map(p => ({ piste: p.piste, config: p }));
-    db.replaceCyranoPistes(competitionId, rows);
+    const day = dayOf(competitionId);
+    db.replaceCyranoPistes(day ? dayPistesKey(day) : competitionId, rows);
     return true;
   });
 

@@ -265,7 +265,8 @@ export function handleArenaControl(
     case 'update_score': {
       const debounceKey = `${socket.id}:${data.arenaId}`;
       const lastUpdate = ctx.scoreUpdateDebounce.get(debounceKey) ?? 0;
-      // Anti-rebond des tablettes ; l'appareil n'envoie que des changements (PisteHub)
+      // Anti-rebond des tablettes (filtre temporel par socket+arène, distinct de shared debounce, #1898) ;
+      // l'appareil n'envoie que des changements (PisteHub)
       if (!('source' in source) && Date.now() - lastUpdate < ctx.SCORE_UPDATE_DEBOUNCE_MS) break;
       ctx.scoreUpdateDebounce.set(debounceKey, Date.now());
       // Supprimer la mort subite si désactivée en entraînement

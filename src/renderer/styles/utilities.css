@@ -1194,6 +1194,14 @@
   }
 }
 
+/* Barre des poules : « Imprimer toutes les feuilles de poules » en icône seule
+   quand la fenêtre est très rétrécie (#1826) */
+@media (max-width: 1199px) {
+  .pools-print-label {
+    display: none;
+  }
+}
+
 /* Recherche Ctrl+K : libellé coupé par une ellipse (infobulle sur le bouton) */
 .header-search-hint {
   min-width: 0;

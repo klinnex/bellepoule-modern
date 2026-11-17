@@ -21,6 +21,7 @@ import { Modal } from './common/Modal';
 import { Button } from './common/Button';
 import { Icon } from './common/Icon';
 import { formatAssignment } from './eventDayFormat';
+import { DayStripBoardPanel } from './DayStripBoardPanel';
 import { useConfirm } from './ConfirmDialog';
 
 const REFEREE_WEAPONS: Weapon[] = [Weapon.FOIL, Weapon.EPEE, Weapon.SABRE, Weapon.LASER];
@@ -481,32 +482,14 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
               <h3>{t('eventDay.strips_title')}</h3>
               {selected.stripCount === 0 ? (
                 <p className="text-muted">{t('eventDay.strips_no_config')}</p>
-              ) : strips.length === 0 ? (
-                <p className="text-muted">{t('eventDay.strips_no_config')}</p>
               ) : (
-                <ul className="event-day-strips">
-                  {strips.map(s => (
-                    <li
-                      key={s.strip}
-                      className={`event-day-strip${s.free ? '' : ' event-day-strip--busy'}`}
-                    >
-                      <strong>{t('eventDay.strip', { n: s.strip })}</strong>
-                      <span>
-                        {s.free
-                          ? t('eventDay.free')
-                          : s.kind === 'pool'
-                            ? t('eventDay.strips_pool', {
-                                n: s.number ?? 0,
-                                title: s.competitionTitle ?? '',
-                              })
-                            : t('eventDay.strips_match', {
-                                n: s.number ?? 0,
-                                title: s.competitionTitle ?? '',
-                              })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <DayStripBoardPanel
+                  dayId={selected.id}
+                  occupation={strips}
+                  competitions={competitions
+                    .filter(c => selected.competitionIds.includes(c.id))
+                    .map(c => ({ id: c.id, title: c.title }))}
+                />
               )}
             </>
           )}

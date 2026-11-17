@@ -96,6 +96,13 @@ describe('PrintDialog (#1214)', () => {
     });
   });
 
+  it('réglages mémorisés sans imprimer, même si la fenêtre est fermée (#1826)', async () => {
+    const onDone = await open();
+    fireEvent.change(screen.getByLabelText('print.copies'), { target: { value: '4' } });
+    expect(JSON.parse(localStorage.getItem(PRINT_SETTINGS_KEY)!)).toMatchObject({ copies: 4 });
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
   it('échelle : saisie libre, validée à la sortie du champ (#1826)', async () => {
     await open();
     const scale = screen.getByLabelText('print.scale') as HTMLInputElement;
