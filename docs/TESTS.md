@@ -19,6 +19,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
+| Doc MCP | dans `npm run test:run` (`src/main/mcp/mcpDoc.test.ts`) ; seul : `npm run check:mcp-doc` | référence des outils de `docs/MCP.md` pas à jour vs leurs schémas (`npm run docs:mcp` pour régénérer, #1880) |
 | Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` ; en CI, une baisse non verrouillée échoue aussi (`--update` pour verrouiller, #1895) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
@@ -87,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 75 | 827 |
+| `src/shared/utils/` | 77 | 828 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 15 | 237 |
-| `src/main/` | 90 | 691 |
-| `src/renderer/services/` | 10 | 55 |
-| `src/renderer/hooks/` | 32 | 151 |
-| `src/renderer/components/` | 112 | 562 |
+| `src/database/` | 15 | 238 |
+| `src/main/` | 97 | 762 |
+| `src/renderer/services/` | 11 | 57 |
+| `src/renderer/hooks/` | 33 | 158 |
+| `src/renderer/components/` | 115 | 589 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 58 | 383 |
-| `src/renderer/contexts/` | 1 | 4 |
+| `src/remote/` | 58 | 392 |
+| `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **451** | **3363** |
+| **Total** | **465** | **3484** |
 
-Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -856,6 +857,27 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/matchEndValidation.test.ts</code> — 9 tests</summary>
+
+- **validateMatchEnd (spécification Cyrano §4)**
+  - %s _(each)_
+- **decideMatchWinner**
+  - %s _(each)_
+  - winnerByScore
+- **isAcceptableScore (tablette)**
+  - %s → %s _(each)_
+- **resolveScoreLimit**
+  - %s _(each)_
+  - limites FIE issues des réglages par défaut (t.38, t.40, t.42)
+  - crossedScoreLimit : franchissement seulement
+- **crossedSabreBreak (t.39.1)**
+  - %s _(each)_
+- **passivityWinner (P-noir)**
+  - score, puis classement initial, puis tirage
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/matchReplay.test.ts</code> — 7 tests</summary>
 
 - **buildMatchReplay (#1074)**
@@ -1091,6 +1113,22 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.cards.test.ts</code> — 7 tests</summary>
+
+- **matchCardsCellHTML (#1829)**
+  - cartons de faute (avec leur nombre) puis cartons P à part
+  - un seul groupe quand il n’y a que des cartons de faute ou que des cartons P
+  - sans carton : chaîne vide
+- **feuille de match de tableau : colonne « Cartons » (#1829)**
+  - cartons de A et de B sur leur ligne, entre score et signature
+  - sans carton enregistré : cases vides (à remplir à la main)
+- **feuille de poule et feuille de match : mêmes libellés (#1829)**
+  - une seule section « Cartons » sur la feuille de poule
+  - le décompte d’un tireur se lit de la même façon sur les deux feuilles
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 4 tests</summary>
 
 - **generateTableauHTML – feuilles d’arbitrage**
@@ -1131,6 +1169,16 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - chaque modèle définit des tailles de police positives
 - **getAvailableTemplates**
   - retourne toutes les valeurs de TEMPLATES
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/personIdentity.test.ts</code> — 3 tests</summary>
+
+- **personIdentity (#1880)**
+  - accents, casse et espaces ignorés
+  - licence prioritaire, sinon nom + prénom + naissance
+  - import : doublon par nom + prénom ou par licence
 
 </details>
 
@@ -1332,35 +1380,6 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - assigne le principal aux matchs sans arbitre
   - remplace l'ancien principal mais conserve une assignation manuelle
   - retire l'ancien principal quand la poule n'a plus d'arbitre
-
-</details>
-
-<details>
-<summary><code>src/shared/utils/scoreValidation.test.ts</code> — 18 tests</summary>
-
-- **validateMatchScore**
-  - should validate correct score
-  - should detect scores exceeding max
-  - should detect negative scores
-  - should detect tie when not allowed
-  - should allow tie when explicitly allowed
-  - should warn when winner does not have max score
-  - should warn about unilateral score
-  - should handle null scores
-- **checkDuplicateMatches**
-  - should return null when no duplicate
-  - should detect exact duplicate
-  - should detect reverse duplicate
-  - should ignore cancelled matches
-- **validatePoolMatches**
-  - should validate all matches in pool
-- **formatValidationMessage**
-  - should format error messages
-  - should return empty string for valid result
-- **isValidCompleteScore**
-  - should return true for valid complete score
-  - should return false for null scores
-  - should return false for invalid score
 
 </details>
 
@@ -2723,11 +2742,12 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/touchStats.test.ts</code> — 2 tests</summary>
+<summary><code>src/database/repos/touchStats.test.ts</code> — 3 tests</summary>
 
 - **Touches données / reçues par zone**
   - compte les touches reçues des adversaires, par zone, hors touches annulées
   - replaceSimulatedMatchEvents remplace puis efface les seuls événements simulés
+  - getCardsByMatchIds : cartons de plusieurs matchs en ordre chronologique (feuilles, #1829)
 
 </details>
 
@@ -2879,13 +2899,19 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cliArgs.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/cliArgs.test.ts</code> — 10 tests</summary>
 
 - **parseCliArgs**
   - sans option : mode fenêtré
   - --headless
   - BELLEPOULE\_HEADLESS=1
   - arguments inconnus ignorés
+  - --batch-import \<manifeste\> implique --headless
+  - --batch-import=\<manifeste\>
+  - --mcp : serveur MCP activé pour cette exécution, port facultatif
+  - --mcp-print-config implique --headless
+  - --mcp-new-token : régénère puis affiche la configuration
+  - --batch-import sans valeur : ignoré
 
 </details>
 
@@ -2917,7 +2943,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - source du champ nation
 - **fin de match (ACK / NAK)**
   - cas de la spécification
-  - résultat par identifiant : insensible à l’inversion droite/gauche
+  - issue par tireur A / B : insensible à l’inversion droite/gauche
 - **DISP depuis un match**
   - construit les champs et respecte les longueurs
   - armes hors protocole
@@ -2968,7 +2994,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 46 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 53 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -3020,16 +3046,25 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - reprise : match en cours sauvegardé repris avec son score au redémarrage de la séance
     - reprise : match déjà terminé en base non repris
     - mode hors liste : repli sur maître
+  - **verrou des cartons et chrono sauvegardé (#1829)**
+    - maître en ligne : carton ajouté par la tablette refusé et tablette resynchronisée
+    - maître en ligne : retrait permis depuis la tablette, cartons de l’appareil toujours appliqués
+    - maître en ligne : remplacement d’un carton — l’ajout est refusé, le retrait passe
+    - maître en ligne : la tablette ne peut que retirer des points
+    - piste en manuel (ou appareil hors ligne) : la tablette ajoute librement
+    - minute de repos de l’appareil (état P) : le décompte du repos n’écrase pas le chrono du combat
+    - reset\_scores : chrono mémorisé du match effacé, en mémoire et en base
 
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHubRouting.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/cyrano/pisteHubRouting.test.ts</code> — 6 tests</summary>
 
 - **PisteHub — pistes partagées entre épreuves (#1878)**
   - la piste suit l’épreuve de son affectation : DISP avec l’arme et l’épreuve du match
   - INFO de l’appareil appliqué à l’épreuve suivie, jamais à l’autre
   - piste prise : l’autre épreuve affectée à la même piste attend la fin, puis prend la main
+  - liaison appareil (bandeau, verrou tablette) : publiée sur l’arène de l’épreuve suivie
   - aucune affectation : la piste reste sur sa dernière épreuve, rien n’est envoyé
   - une seule épreuve ouverte : comportement inchangé (serveur unique)
 
@@ -3100,6 +3135,40 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/domain/settings.test.ts</code> — 8 tests</summary>
+
+- valeurs par défaut, validation, reprise douce des valeurs localStorage
+- dossiers de l’agent : chemins absolus seulement
+- la salle par défaut fournit ses pistes à la journée, au club et à resolveSetting
+- une seule salle par défaut
+- pistes des journées et clubs → salle par défaut
+- aucune piste déclarée : aucune salle créée
+- **fichiers écrits par l’agent**
+  - dossier hors périmètre refusé, lien vers l’extérieur compris
+  - pas d’écrasement sans accord ; remplacement atomique
+
+</details>
+
+<details>
+<summary><code>src/main/domain/sport.test.ts</code> — 12 tests</summary>
+
+- poules → arbitres → scores → tableau → classement final → exports
+- régénérer des poules jouées exige replace
+- correction d’un match de tableau refusée si le tour suivant est joué
+- formats non pris en charge : erreur explicite
+- pas assez de tireurs pointés
+- abandon en poule : statut du tireur, ses autres matchs perdus, écarté du tableau
+- Sabre Laser : scores max effectifs de l’écran (21 en poule)
+- tableau terminé : phase Résultats
+- révision : une sauvegarde de l’écran sur un état périmé est refusée
+- export : dossier hors périmètre refusé, pas d’écrasement par défaut
+- **validation des scores de poule (identique à l’écran)**
+  - score max, égalité, vainqueur contraire
+  - statut spécial au perdant, priorité marquée
+
+</details>
+
+<details>
 <summary><code>src/main/eventLoopMonitor.test.ts</code> — 3 tests</summary>
 
 - **EventLoopMonitor (#1154)**
@@ -3136,13 +3205,14 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/cyranoHandlers.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/ipc/cyranoHandlers.test.ts</code> — 6 tests</summary>
 
 - **cyranoHandlers — table des pistes**
   - épreuve hors journée : table propre à l’épreuve
   - épreuves d’une même journée : une seule table, partagée
   - journée encore vide : la table existante de l’épreuve est reprise
   - épreuve suivie par piste
+  - table modifiée serveur démarré : HELLO envoyé aussitôt
   - entrées invalides refusées
 
 </details>
@@ -3224,6 +3294,15 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - envoie le fichier puis valide le formulaire, dans cet ordre
   - s'arrête à la première étape en erreur HTTP
   - remonte une erreur réseau sans lever d'exception
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/mcpHandlers.test.ts</code> — 2 tests</summary>
+
+- **contrôleur MCP**
+  - désactivé par défaut ; --mcp l’active sans toucher aux réglages enregistrés
+  - jeton illisible : serveur non démarré, erreur token\_unreadable, puis régénération
 
 </details>
 
@@ -3332,8 +3411,10 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 4 tests</summary>
 
+- **rendu PDF isolé (#1880)**
+  - seuls le HTML temporaire et les data: URL sont chargés
 - **registerWindowPrintHandlers (#1341)**
   - enregistre les canaux fenêtre / impression / shell
   - shell:openExternal : https uniquement
@@ -3351,7 +3432,36 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/mcp/mcpServer.test.ts</code> — 9 tests</summary>
+<summary><code>src/main/mcp/mcpDoc.test.ts</code> — 2 tests</summary>
+
+- **docs/MCP.md**
+  - chaque outil : titre, description, schéma objet, nom unique
+  - référence des outils générée depuis les schémas (npm run docs:mcp)
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpExtraTools.test.ts</code> — 14 tests</summary>
+
+- sans écriture : outils de lecture seulement, écritures refusées
+- noms d’outils uniques, outils destructifs annotés
+- poules → scores → tableau → classement final → export, écran prévenu
+- régénérer des poules jouées exige replace
+- contrôle et résultat sans écriture ni notification
+- import hors des dossiers accessibles refusé, sans révéler si le fichier existe
+- import\_referees : épreuve (gestion des arbitres activée) puis rejoué sans doublon
+- import\_referees : journée avec armes, reportés dans les épreuves de ces armes
+- start / stop\_remote\_server passent par le serveur distant de l’application
+- delete\_competition : titre exact exigé
+- salle par défaut → pistes ; réglages sans secret ni dossiers de l’agent
+- classeur Excel et cotcot lus comme à l’écran
+- import\_day : un fichier manquant fait échouer l’import sans rien écrire
+- manifeste de import\_day, chemins relatifs au manifeste, rejouable
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpServer.test.ts</code> — 10 tests</summary>
 
 - **handleMcpMessage**
   - initialize : version négociée, capacité outils
@@ -3365,15 +3475,19 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - Host / Origin limités à la boucle locale
 - **McpServer (HTTP réel)**
   - 401 sans jeton, 200 avec, 403 hors boucle locale
+  - lots JSON-RPC : 20 messages au plus, traités l’un après l’autre
 
 </details>
 
 <details>
-<summary><code>src/main/mcp/mcpSettings.test.ts</code> — 2 tests</summary>
+<summary><code>src/main/mcp/mcpSettings.test.ts</code> — 4 tests</summary>
 
 - **mcpSettings (#1880)**
   - désactivé par défaut, port validé
   - jeton chiffré, stable, renouvelable
+- **jeton illisible (#1880)**
+  - autre trousseau : jamais remplacé en silence, régénération explicite
+  - fichier corrompu : erreur, pas de nouveau jeton
 
 </details>
 
@@ -3387,6 +3501,16 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - import\_fencers : doublons ignorés, dryRun, chemin et extension contrôlés
 - **import\_day (#1880)**
   - crée la journée et ses épreuves, puis ne duplique rien au second passage
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/plugin.test.ts</code> — 3 tests</summary>
+
+- **plugin bellepoule**
+  - manifestes : plugin, marketplace, serveur MCP local à jeton
+  - commandes : description en en-tête
+  - outils cités dans la skill et les commandes : tous publiés
 
 </details>
 
@@ -3639,6 +3763,18 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
+
+</details>
+
+<details>
+<summary><code>src/main/remote/cyranoLock.test.ts</code> — 5 tests</summary>
+
+- **cyranoLock (#1829)**
+  - isCyranoMasterOnline : maître et en ligne seulement
+  - isDeviceSocket : pseudo-socket \`cyrano:\<piste\>\` du PisteHub
+  - addsCard : ajout détecté par type, retrait et réordonnancement permis
+  - keepRemovals : ajouts ignorés, retraits gardés (remplacement d’un carton)
+  - lockedScore : la tablette ne fait que retirer des points
 
 </details>
 
@@ -3905,10 +4041,12 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/stripHandover.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/remote/stripHandover.test.ts</code> — 6 tests</summary>
 
 - **stripHandover — travail en attente et piste libérée (#1878)**
-  - poule sans piste : proposée ; jamais déplacée vers une piste hors de l’épreuve
+  - poule sans piste : accueillie sur une piste hors de la plage de l’épreuve
+  - épreuve sur les pistes 3–4 : la poule sans piste attend, jamais placée sur une piste masquée
+  - piste sous la plage de l’épreuve ou indisponible
   - poule en file derrière une piste occupée : installée sur la piste libre, qui la garde
   - match de tableau en file derrière une piste occupée : déplacé sur la piste libre
   - sans séance : rien n’attend
@@ -3916,7 +4054,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/stripPlan.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/remote/stripPlan.test.ts</code> — 6 tests</summary>
 
 - **normalizeStripPlan**
   - valeurs par défaut pour une entrée invalide
@@ -3924,6 +4062,9 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **visibleArenas**
   - masque les arènes avant la piste de départ
   - tout visible par défaut
+- **nextFreeStrip (#1878)**
+  - première piste libre dans l’intervalle, hors pistes prises ou indisponibles
+  - aucune piste libre dans l’intervalle : null (la poule attend)
 
 </details>
 
@@ -4017,7 +4158,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 64 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 66 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -4086,6 +4227,8 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - match en file d'attente : arbitre porté
   - **annulation carton noir depuis la tablette**
     - égalité finale : le tireur prioritaire tiré (coin\_flip) gagne (#1442)
+    - vainqueur et bornes via les règles partagées (#1829)
+    - appareil de piste maître en ligne : carton noir de la tablette refusé (#1829)
     - liste le carton noir de l'arène
     - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
     - refuse l'annulation d'un carton noir en tableau
@@ -4273,6 +4416,15 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/renderer/services/`
 
 <details>
+<summary><code>src/renderer/services/appSettingsMirror.test.ts</code> — 2 tests</summary>
+
+- **installAppSettingsMirror**
+  - démarrage : langue et thème écrits, autres réglages seulement s’ils manquent
+  - écritures suivies : clés connues seulement, logo effacé
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/blackCardReport.test.ts</code> — 2 tests</summary>
 
 - **buildBlackCardEntries (#1829)**
@@ -4405,6 +4557,21 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/renderer/hooks/`
+
+<details>
+<summary><code>src/renderer/hooks/remoteScoreManager/useRemoteServerState.test.tsx</code> — 7 tests</summary>
+
+- **fetchVenueStripCount**
+  - interroge la résolution des pistes de l’épreuve
+  - renvoie 0 si inconnu, invalide ou en erreur
+- **useRemoteServerState : nombre de pistes initial**
+  - poules tirées : une arène par poule, sans interroger la salle
+  - pas encore de poules : pistes de la journée ou de la salle
+  - pas de poules ni de salle : une arène
+  - garde la valeur mémorisée sans interroger la salle
+  - garde la valeur du parent sans interroger la salle
+
+</details>
 
 <details>
 <summary><code>src/renderer/hooks/useAppMenuHandlers.test.tsx</code> — 3 tests</summary>
@@ -4980,10 +5147,11 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/DayStripBoardPanel.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/DayStripBoardPanel.test.tsx</code> — 6 tests</summary>
 
 - **DayStripBoardPanel (#1878)**
   - piste occupée, piste libre avec proposition, réservation résumée
+  - piste occupée : détail lu en base (poule en cours) quand il concerne la même épreuve
   - Affecter : la piste libre reçoit le travail choisi
   - réservation : tableau de 8 enregistré pour une seule épreuve
   - affectation automatique activée depuis la case
@@ -5109,6 +5277,18 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 
 - **LiveInterPoolRanking**
   - ne lance aucun timer et ne recalcule que lorsque les poules changent
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/McpSettingsSection.test.tsx</code> — 5 tests</summary>
+
+- **McpSettingsSection**
+  - configuration du client : URL locale et jeton porteur
+  - jeton illisible : message dédié plutôt que l’erreur brute
+  - journal des appels : plus récent d’abord, erreurs signalées
+  - journal vide : message
+  - dossiers de l’agent : défauts, ajout par le main, retrait
 
 </details>
 
@@ -5276,6 +5456,24 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - au-dessus, centré sur le déclencheur
   - bascule en dessous si pas de place en haut
   - recadré au bord droit de la fenêtre
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/VenuesSettingsSection.test.tsx</code> — 10 tests</summary>
+
+- **resizeStrips**
+  - conserve les libellés, tronque ou complète
+- **VenuesSettingsSection**
+  - liste les salles avec nombre de pistes et badge par défaut
+  - crée une salle
+  - refuse un nom vide
+  - modifie une salle en gardant les libellés de pistes
+  - enregistre libellé et appareil Cyrano d’une piste
+  - refuse une adresse IPv4 invalide sans enregistrer
+  - définit la salle par défaut
+  - supprime après confirmation seulement
+  - affiche une erreur en toast si l’enregistrement échoue
 
 </details>
 
@@ -6127,11 +6325,14 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 3 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 6 tests</summary>
 
 - **tableauDialogState**
   - états initiaux
   - loadDESignatures associe signature au bon côté
+  - loadDECards : id composite (saisie distante) ou id simple, rangés par côté (#1829)
+  - loadDECards : match saisi à distance, lignes sous l’id simple ignorées (pas de doublon)
+  - loadDECards : undefined sans carton ou en cas d erreur
   - retourne undefined sans lignes ou en cas d erreur
 
 </details>
@@ -6193,6 +6394,23 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - liste kiosk, arbitres, affichages puis lobby
   - respecte la sélection
   - renvoie vide si rien de coché
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/venueStripsEdit.test.ts</code> — 8 tests</summary>
+
+- **validation**
+  - IPv4
+  - port facultatif entre 1 et 65535
+  - erreur : IP saisie invalide ou port invalide ; IP vide acceptée
+- **stripToEdit**
+  - relit libellé et appareil, mode maître par défaut
+- **applyStripEdits**
+  - ne touche pas aux pistes non modifiées
+  - pose libellé et appareil, garde arène et protocole
+  - retire l’appareil sans adresse IP, garde le libellé
+  - écrit le port numérique
 
 </details>
 
@@ -6744,7 +6962,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeApp.test.ts</code> — 9 tests</summary>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 15 tests</summary>
 
 - **refereeApp.js dans referee.html**
   - referee.html ne contient plus de script inline
@@ -6759,11 +6977,18 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **tournoi des rapières : même vue arbitre que les armes olympiques (#1808)**
   - arme C sans barème (pool/de vides) : +1/+3/+5 masqués, point au clic sur la case score
   - arme C avec barème de formule : boutons de zones conservés
+- **appareil de piste maître (#1829) : chrono du serveur et cartons verrouillés**
+  - reprise après redémarrage sans chrono local : temps du serveur, chrono à l’arrêt
+  - chrono local prioritaire sur celui du serveur
+  - maître en ligne : ajout de carton bloqué (classique, P, noir), rien n’est envoyé
+  - maître en ligne : retrait d’un carton permis pour corriger
+  - carton noir refusé par le serveur (409, appareil maître devenu en ligne) : le combat continue
+  - appareil hors ligne : ajout de carton de nouveau permis
 
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeCards.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/js/refereeCards.test.ts</code> — 9 tests</summary>
 
 - **refereeCards.js cartons**
   - modernYellowOrRed : rouge si déjà jaune ou rouge
@@ -6774,6 +6999,7 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **refereeCards.js passivité**
   - nextPassivityCard : rouge, noir, puis plus rien
   - passivityWinner : score, puis classement initial, puis tirage
+  - passivityWinner : parité avec le module partagé (matchEndValidation.ts, #1829)
   - referee.html charge le module et délègue
 
 </details>
@@ -6960,13 +7186,15 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 11 tests</summary>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 13 tests</summary>
 
 - **refereeUpdate.js**
   - scoreValue : nombre, objet, absent
   - shouldReloadForRules : seulement règles chargées, différentes et hors match
   - idle : poule terminée, fermé par l’appli, ou simple nettoyage
   - in\_progress : reprise avec scores (nombre ou objet), ignorée si déjà connu
+  - in\_progress : chrono sauvegardé par le serveur joint à la reprise (#1829)
+  - serverTimerOf : seulement un chrono à l’arrêt et plausible
   - in\_progress : tireurs du match en repli
   - ready : nouveau match, déjà courant, ou match en cours
   - replaceOrPush et markReadyOrPush
@@ -7144,13 +7372,17 @@ Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/renderer/contexts/`
 
 <details>
-<summary><code>src/renderer/contexts/__tests__/TranslationContext.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/contexts/__tests__/TranslationContext.test.tsx</code> — 7 tests</summary>
 
 - **TranslationContext : langue active (#1160)**
   - attribut lang du document et formats Intl suivent la langue
   - enfants rendus avec la nouvelle langue (date des cartes, #1213)
   - paramètre 0 interpolé (plus remplacé par le gabarit)
   - pluriel : clés \_one / \_other selon Intl.PluralRules
+- **TranslationContext : réglages changés par l’agent (#1880)**
+  - applique la langue et le thème de la base sur settings:changed
+  - ignore les autres événements, les valeurs identiques et inconnues
+  - se désabonne au démontage
 
 </details>
 
