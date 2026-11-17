@@ -86,58 +86,25 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
   const progress = totalMatches > 0 ? (completedMatches / totalMatches) * 100 : 0;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: '#0f172a',
-        color: 'white',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '40px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
+    <div className="presentation-mode-1">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '30px',
-          borderBottom: '2px solid #334155',
-          paddingBottom: '20px',
-        }}
-      >
+      <div className="presentation-mode-2">
         <div>
-          <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 'bold' }}>{competition.title}</h1>
-          <p style={{ margin: '10px 0 0 0', fontSize: '1.2rem', color: '#94a3b8' }}>
+          <h1 className="presentation-mode-3">{competition.title}</h1>
+          <p className="presentation-mode-4">
             {t('presentation.pool_of', { n: currentPool.number, total: pools.length })}
           </p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: '#3b82f6' }}>
+        <div className="presentation-mode-5">
+          <div className="presentation-mode-6">
             {completedMatches}/{totalMatches}
           </div>
-          <div style={{ fontSize: '1rem', color: '#64748b' }}>{t('presentation.finished')}</div>
+          <div className="presentation-mode-7">{t('presentation.finished')}</div>
         </div>
       </div>
 
       {/* Barre de progression */}
-      <div
-        style={{
-          width: '100%',
-          height: '8px',
-          backgroundColor: '#1e293b',
-          borderRadius: '4px',
-          marginBottom: '40px',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="presentation-mode-8">
         <div
           style={{
             width: `${progress}%`,
@@ -149,13 +116,11 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
       </div>
 
       {/* Grille des scores */}
-      <div style={{ flex: 1, display: 'flex', gap: '30px' }}>
+      <div className="presentation-mode-9">
         {/* Liste des tireurs */}
         <div className="flex-1">
-          <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>
-            {t('presentation.ranking')}
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <h2 className="presentation-mode-10">{t('presentation.ranking')}</h2>
+          <div className="presentation-mode-11">
             {currentPool.ranking?.slice(0, 8).map((rank, index) => (
               <div
                 key={rank.fencer.id}
@@ -185,18 +150,16 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                   {index + 1}
                 </div>
                 <div className="flex-1">
-                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
+                  <div className="presentation-mode-12">
                     {rank.fencer.lastName} {rank.fencer.firstName}
                   </div>
-                  <div style={{ fontSize: '1rem', color: '#64748b' }}>
-                    {rank.fencer.club || 'Sans club'}
-                  </div>
+                  <div className="presentation-mode-7">{rank.fencer.club || 'Sans club'}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#3b82f6' }}>
+                <div className="presentation-mode-5">
+                  <div className="presentation-mode-13">
                     {rank.victories}V - {rank.defeats}D
                   </div>
-                  <div style={{ fontSize: '1rem', color: '#64748b' }}>
+                  <div className="presentation-mode-7">
                     {t('presentation.td_tr', { td: rank.touchesScored, tr: rank.touchesReceived })}
                   </div>
                 </div>
@@ -206,71 +169,34 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
         </div>
 
         {/* Matchs en cours */}
-        <div style={{ width: '400px' }}>
-          <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>
-            {t('presentation.in_progress')}
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div className="presentation-mode-14">
+          <h2 className="presentation-mode-10">{t('presentation.in_progress')}</h2>
+          <div className="presentation-mode-11">
             {currentPool.matches
               .filter(m => m.status === MatchStatus.IN_PROGRESS)
               .slice(0, 3)
               .map((match, idx) => (
-                <div
-                  key={match.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: '#dc2626',
-                    borderRadius: '12px',
-                    animation: 'pm-pulse 2s infinite',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '1.3rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
+                <div key={match.id} className="presentation-mode-15">
+                  <div className="presentation-mode-16">
                     <span>{match.fencerA?.lastName || 'TBD'}</span>
-                    <span style={{ color: '#fca5a5' }}>VS</span>
+                    <span className="presentation-mode-17">VS</span>
                     <span>{match.fencerB?.lastName || 'TBD'}</span>
                   </div>
-                  <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '1.1rem' }}>
+                  <div className="presentation-mode-18">
                     {t('presentation.strip_live', { n: match.strip || idx + 1 })}
                   </div>
                 </div>
               ))}
 
             {currentPool.matches.filter(m => m.status === MatchStatus.IN_PROGRESS).length === 0 && (
-              <div
-                style={{
-                  padding: '40px',
-                  textAlign: 'center',
-                  color: '#64748b',
-                  fontSize: '1.2rem',
-                }}
-              >
-                {t('presentation.none')}
-              </div>
+              <div className="presentation-mode-19">{t('presentation.none')}</div>
             )}
           </div>
         </div>
       </div>
 
       {/* Instructions */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '20px',
-          fontSize: '0.9rem',
-          color: '#475569',
-        }}
-      >
-        {t('presentation.keys')}
-      </div>
+      <div className="presentation-mode-20">{t('presentation.keys')}</div>
     </div>
   );
 };

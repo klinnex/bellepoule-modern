@@ -9,7 +9,6 @@ import { getActiveFormula } from '../../shared/utils/customFormulaSettings';
 import type { RendererMatch, SessionMatch } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
-import { extractSavedTimer } from './arenaTimer';
 
 type S = RemoteScoreServer;
 
@@ -440,16 +439,13 @@ export async function startSession(
  * redémarrage, une arène qui était en cours reprend son match et son score, tant que ce match
  * n'est pas terminé en base. La file DE sauvegardée est rétablie. Le match repris remplace
  * l'affectation faite par défaut : le match écarté reste « à jouer » et reste sélectionnable.
- * Le chrono sauvegardé du match est repris, à l'arrêt : il n'est jamais relancé automatiquement ;
- * les tablettes et écrans le reçoivent en rejoignant l'arène.
  */
 function restoreArenaStates(ctx: SessionStartContext, competitionId: string): void {
   for (const arenaId of ctx.arenas.keys()) {
     const saved = ctx.db.getArenaState(arenaId);
     if (!saved || saved.competitionId !== competitionId || saved.status !== 'in_progress') continue;
-    const savedMatch = saved.currentMatch as ArenaMatch | null;
-    if (!savedMatch?.id || !savedMatch.fencerA || !savedMatch.fencerB) continue;
-    const { match, timer } = extractSavedTimer(savedMatch);
+    const match = saved.currentMatch as ArenaMatch | null;
+    if (!match?.id || !match.fencerA || !match.fencerB) continue;
     const dbMatch = ctx.db.getMatch(match.id) as { status?: string } | null | undefined;
     if (dbMatch?.status === 'finished') continue;
 
@@ -457,13 +453,12 @@ function restoreArenaStates(ctx: SessionStartContext, competitionId: string): vo
     if (!arena) continue;
     arena.currentMatch = { ...match, status: 'in_progress' };
     arena.status = 'in_progress';
-    arena.timer = timer;
     if (Array.isArray(saved.matchQueue) && saved.matchQueue.length > 0) {
       ctx.arenaMatchQueue.set(arenaId, saved.matchQueue as ArenaMatch[]);
     }
     logger.info(
       LogCategory.NETWORK,
-      `[RemoteScoreServer] Arène ${arenaId} reprise : match ${match.id} en cours (${match.scoreA}-${match.scoreB})${timer ? `, chrono ${timer.time} s à l'arrêt` : ''}`
+      `[RemoteScoreServer] Arène ${arenaId} reprise : match ${match.id} en cours (${match.scoreA}-${match.scoreB})`
     );
   }
 }

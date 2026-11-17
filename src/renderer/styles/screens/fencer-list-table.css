@@ -1,0 +1,19 @@
+/* Styles extraits de FencerListTable.tsx (#1895) */
+.fencer-list-table-1.fencer-list-table-1.fencer-list-table-1 {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.fencer-list-table-2.fencer-list-table-2.fencer-list-table-2 {
+  table-layout: fixed;
+}
+
+.fencer-list-table-3.fencer-list-table-3.fencer-list-table-3 {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+}

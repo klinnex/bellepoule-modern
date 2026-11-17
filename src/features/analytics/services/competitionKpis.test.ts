@@ -488,4 +488,34 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     expect(withTableau.tableauProjectionMs).toBeNull();
     expect(withTableau.competitionEtaAt).toBe(withTableau.etaAt);
   });
+
+  it('tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)', () => {
+    const tm = (id: string, round: number, known: boolean) => ({
+      id,
+      round,
+      fencerA: known ? { id: `${id}a` } : null,
+      fencerB: known ? { id: `${id}b` } : null,
+      scoreA: null,
+      scoreB: null,
+      winner: null,
+      isBye: false,
+    });
+    const k = organisationKpis({
+      pools: [],
+      tableauMatches: [
+        tm('q1', 8, true),
+        tm('q2', 8, true),
+        tm('q3', 8, true),
+        tm('q4', 8, true),
+        tm('s1', 4, false),
+        tm('s2', 4, false),
+        tm('f', 2, false),
+      ],
+      now: NOW,
+    });
+    expect(k.total).toBe(7);
+    expect(k.pending).toBe(7);
+    // 1 piste (repli) : 7 vagues, une par match
+    expect(k.competitionEtaAt).toBe(NOW + 7 * k.cadence.perMatchMs);
+  });
 });

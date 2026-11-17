@@ -1,0 +1,17 @@
+/* Styles extraits de RemoteArenaGrid.tsx (#1895) */
+.remote-arena-grid-1.remote-arena-grid-1.remote-arena-grid-1 {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.4rem 0 0.25rem;
+}
+
+.remote-arena-grid-2.remote-arena-grid-2.remote-arena-grid-2 {
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  cursor: pointer;
+  max-width: 110px;
+}

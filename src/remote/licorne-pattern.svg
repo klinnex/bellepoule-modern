@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- Motif répétable du thème global « Licorne » : licornes arc-en-ciel et étoiles -->
+  <defs>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff5c8a"/>
+      <stop offset="0.2" stop-color="#ffb347"/>
+      <stop offset="0.4" stop-color="#ffe066"/>
+      <stop offset="0.6" stop-color="#6be585"/>
+      <stop offset="0.8" stop-color="#4dc9ff"/>
+      <stop offset="1" stop-color="#b58cff"/>
+    </linearGradient>
+    <g id="licorne">
+      <!-- Crinière arc-en-ciel -->
+      <path d="M26 22 C 8 26, 4 42, 9 54 C 2 52, 0 62, 6 68" fill="none" stroke="url(#arc)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M30 16 C 18 12, 12 20, 16 30" fill="none" stroke="url(#arc)" stroke-width="5" stroke-linecap="round"/>
+      <!-- Tête -->
+      <path d="M26 20 C 34 14, 46 18, 52 30 L 58 52 C 60 62, 54 68, 44 66 L 30 62 C 22 60, 18 50, 20 42 C 20 34, 22 26, 26 20 Z" fill="#fff7fd" stroke="#c9a6e8" stroke-width="1.5"/>
+      <!-- Oreille -->
+      <path d="M30 16 L 28 2 L 38 12 Z" fill="#fff7fd" stroke="#c9a6e8" stroke-width="1.5" stroke-linejoin="round"/>
+      <!-- Corne spiralée arc-en-ciel -->
+      <path d="M34 18 L 44 -6 L 46 19 Z" fill="url(#arc)"/>
+      <path d="M36 9 L 44 9 M 38 4 L 44 4" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+      <!-- Œil, joue, naseau -->
+      <circle cx="44" cy="36" r="2.6" fill="#3b2a5a"/>
+      <path d="M40 32 Q 44 30, 48 32" fill="none" stroke="#3b2a5a" stroke-width="1" stroke-linecap="round"/>
+      <ellipse cx="36" cy="50" rx="5" ry="3" fill="#ffb3d9" opacity="0.7"/>
+      <circle cx="56" cy="50" r="1.4" fill="#c9a6e8"/>
+    </g>
+    <path id="etoile" d="M0 -5 L1.3 -1.3 L5 0 L1.3 1.3 L0 5 L-1.3 1.3 L-5 0 L-1.3 -1.3 Z" fill="#ffffff"/>
+  </defs>
+  <g opacity="0.6">
+    <use href="#licorne" transform="translate(12 24) scale(1.1)"/>
+    <use href="#licorne" transform="translate(132 130) scale(0.9) rotate(-14 30 30)"/>
+    <use href="#licorne" transform="translate(-100 -110) scale(0.9)" />
+    <use href="#licorne" transform="translate(128 -110) scale(0.9)" />
+    <use href="#licorne" transform="translate(-100 130) scale(0.9)" />
+    <use href="#licorne" transform="translate(132 260) scale(0.9)" />
+  </g>
+  <g opacity="0.7">
+    <use href="#etoile" transform="translate(110 40) scale(1.2)"/>
+    <use href="#etoile" transform="translate(220 92) scale(0.8)"/>
+    <use href="#etoile" transform="translate(70 200) scale(1)"/>
+    <use href="#etoile" transform="translate(200 210) scale(0.7)"/>
+    <use href="#etoile" transform="translate(30 130) scale(0.6)"/>
+  </g>
+</svg>

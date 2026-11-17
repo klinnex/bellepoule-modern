@@ -153,40 +153,17 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
   return (
     <div>
       {error && (
-        <div
-          style={{
-            background: '#fef2f2',
-            border: '1px solid #fca5a5',
-            borderRadius: '6px',
-            color: '#b91c1c',
-            padding: '10px 14px',
-            marginBottom: '12px',
-            fontSize: '0.8125rem',
-            wordBreak: 'break-word',
-          }}
-        >
+        <div className="photo-booth-1">
           <strong>{t('photoBooth.webcam_error')}</strong> {error}
         </div>
       )}
 
       {!isCapturing && !photo && (
         <div className="text-center">
-          <div
-            style={{
-              width: '160px',
-              height: '160px',
-              borderRadius: '50%',
-              backgroundColor: '#f3f4f6',
-              margin: '0 auto 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '4rem',
-            }}
-          >
+          <div className="photo-booth-2">
             <Icon icon={Camera} />
           </div>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <div className="photo-booth-3">
             <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
             </Button>
@@ -199,36 +176,11 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
 
       {isCapturing && (
         <div className="relative">
-          <video
-            ref={videoCallbackRef}
-            autoPlay
-            playsInline
-            muted
-            style={{
-              width: '100%',
-              borderRadius: '8px',
-              transform: 'scaleX(-1)',
-            }}
-          />
+          <video ref={videoCallbackRef} autoPlay playsInline muted className="photo-booth-4" />
 
-          {countdown > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                fontSize: '6.25rem',
-                fontWeight: 'bold',
-                color: 'white',
-                textShadow: '0 4px 20px rgba(0,0,0,0.5)',
-              }}
-            >
-              {countdown}
-            </div>
-          )}
+          {countdown > 0 && <div className="photo-booth-5">{countdown}</div>}
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+          <div className="photo-booth-6">
             <Button
               type="button"
               onClick={capturePhoto}
@@ -253,16 +205,8 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
 
       {photo && (
         <div className="text-center">
-          <img
-            src={photo}
-            alt={t('photoBooth.preview')}
-            style={{
-              width: '100%',
-              borderRadius: '8px',
-              marginBottom: '12px',
-            }}
-          />
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <img src={photo} alt={t('photoBooth.preview')} className="photo-booth-7" />
+          <div className="photo-booth-3">
             <Button type="button" onClick={retake}>
               {t('photoBooth.retake')}
             </Button>
@@ -273,7 +217,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
         </div>
       )}
 
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      <canvas ref={canvasRef} className="photo-booth-8" />
     </div>
   );
 };

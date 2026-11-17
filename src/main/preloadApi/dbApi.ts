@@ -95,9 +95,12 @@ export const dbApi = {
     return ipcRenderer.invoke('db:updateMatch', id, updates);
   },
 
-  upsertTableauMatch: (params: any) => ipcRenderer.invoke('db:upsertTableauMatch', params),
-  upsertMultipleTableauMatches: (competitionId: string, matches: any[]) =>
-    ipcRenderer.invoke('db:upsertMultipleTableauMatches', competitionId, matches),
+  upsertTableauMatch: (params: Parameters<DatabaseAPI['upsertTableauMatch']>[0]) =>
+    ipcRenderer.invoke('db:upsertTableauMatch', params),
+  upsertMultipleTableauMatches: (
+    competitionId: string,
+    matches: Parameters<DatabaseAPI['upsertMultipleTableauMatches']>[1]
+  ) => ipcRenderer.invoke('db:upsertMultipleTableauMatches', competitionId, matches),
   getTableauMatchesForExport: (competitionId: string) =>
     ipcRenderer.invoke('db:getTableauMatchesForExport', competitionId),
 
@@ -277,7 +280,7 @@ export const dbApi = {
     ipcRenderer.invoke('db:getCompetitionTimeline', competitionId),
 
   // Classement saisonnier Quest
-  addCompetitionToSeason: (payload: any) =>
+  addCompetitionToSeason: (payload: Parameters<DatabaseAPI['addCompetitionToSeason']>[0]) =>
     ipcRenderer.invoke('db:addCompetitionToSeason', payload),
   getSeasonRanking: () => ipcRenderer.invoke('db:getSeasonRanking'),
   getSeasonCompetitions: () => ipcRenderer.invoke('db:getSeasonCompetitions'),

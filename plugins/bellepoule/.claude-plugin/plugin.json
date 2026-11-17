@@ -1,0 +1,7 @@
+{
+  "name": "bellepoule",
+  "description": "Interroger une compétition d'escrime BellePoule Modern en langage naturel (serveur MCP local, lecture seule)",
+  "version": "0.1.0",
+  "author": { "name": "BellePoule Modern" },
+  "license": "GPL-3.0"
+}

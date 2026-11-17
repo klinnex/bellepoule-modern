@@ -140,7 +140,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div className="new-competition-modal-1">
               <div className="form-group">
                 <label className="form-label">{t('competition.weapon')}</label>
                 <select
@@ -199,7 +199,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   checked={isTeamEvent}
                   onChange={e => setIsTeamEvent(e.target.checked)}
                 />
-                <span className="form-label" style={{ margin: 0 }}>
+                <span className="form-label new-competition-modal-2">
                   {t('newCompetition.team')}
                 </span>
               </label>
@@ -283,7 +283,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
             {/* Constructeur de formule — visible uniquement pour arme CUSTOM */}
             {isCustom && (
               <div className="form-group custom-formula-section">
-                <label className="form-label" style={{ fontSize: '1rem', fontWeight: 600 }}>
+                <label className="form-label new-competition-modal-3">
                   {t('newCompetition.formula_builder')}
                 </label>
                 <FormulaBuilder

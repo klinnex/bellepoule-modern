@@ -1,0 +1,7 @@
+/* Styles extraits de Confetti.tsx (#1895) */
+.confetti-1.confetti-1.confetti-1 {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}

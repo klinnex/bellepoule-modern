@@ -1,0 +1,9 @@
+/* Styles extraits de RapieresTableauModeDialog.tsx (#1895) */
+.rapieres-tableau-mode-dialog-1.rapieres-tableau-mode-dialog-1.rapieres-tableau-mode-dialog-1 {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rapieres-tableau-mode-dialog-2.rapieres-tableau-mode-dialog-2.rapieres-tableau-mode-dialog-2 {
+  margin: 0;
+}

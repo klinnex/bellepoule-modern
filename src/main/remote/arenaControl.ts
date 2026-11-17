@@ -10,7 +10,6 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import { recordRemoteEvent } from './remoteEvents';
-import { recordArenaTimer } from './arenaTimer';
 import {
   addsCard,
   keepRemovals,
@@ -34,6 +33,7 @@ export interface ArenaControlContext {
   readonly arenaWaitingOvertime: S['arenaWaitingOvertime'];
   readonly assignMatchToArena: S['assignMatchToArena'];
   readonly broadcastArenaUpdate: S['broadcastArenaUpdate'];
+  readonly persistArenaState: S['persistArenaState'];
   readonly db: S['db'];
   readonly finishArenaMatch: S['finishArenaMatch'];
   readonly getArena: S['getArena'];
@@ -42,7 +42,6 @@ export interface ArenaControlContext {
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
-  readonly persistArenaState: S['persistArenaState'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
   readonly logDiag: S['logDiag'];
@@ -54,6 +53,10 @@ export interface ArenaControlContext {
   readonly trainingCustomRules: S['trainingCustomRules'];
   readonly updateArenaScore: S['updateArenaScore'];
 }
+
+/** Persistance du chrono en marche : au plus une écriture par arène toutes les 15 s (#1829) */
+const CLOCK_PERSIST_MS = 15_000;
+const clockPersistedAt = new Map<string, number>();
 
 export function handleArenaControl(
   ctx: ArenaControlContext,
@@ -141,7 +144,6 @@ export function handleArenaControl(
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
         ctx.arenaExits.set(data.arenaId, []);
         ctx.arenaEventTimes.delete(data.arenaId);
-        arena.timer = null;
       }
       break;
     case 'release_match':
@@ -397,6 +399,11 @@ export function handleArenaControl(
         ctx.arenaSuddenDeath.set(data.arenaId, false);
         ctx.arenaOvertimeType.set(data.arenaId, null);
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
+        // Chrono mémorisé du match effacé avec les scores (#1829)
+        if (arena.currentMatch.clockSeconds !== undefined) {
+          delete arena.currentMatch.clockSeconds;
+          ctx.persistArenaState(data.arenaId);
+        }
         ctx.updateArenaScore(data.arenaId, 0, 0);
         ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -462,21 +469,24 @@ export function handleArenaControl(
       if (timerSuddenDeath) {
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
       }
-      // Dernier chrono connu, sauvegardé avec l'arène pour la reprise au redémarrage (#1829)
+      // Reprise du chrono au redémarrage (#1829) : dernière valeur gardée avec le match,
+      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche.
+      // Minute de repos de l'appareil de piste (état P, `arena.resting`) : le décompte reçu est
+      // celui du repos, il ne remplace pas le chrono du combat.
       if (
-        recordArenaTimer(
-          arena,
-          {
-            time: data.time,
-            timerStatus: data.timerStatus,
-            suddenDeath: ctx.arenaSuddenDeath.get(data.arenaId) ?? false,
-            overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
-            resting: arena.resting === true,
-          },
-          Date.now()
-        )
-      )
-        ctx.persistArenaState(data.arenaId);
+        arena.currentMatch &&
+        typeof data.time === 'number' &&
+        data.time >= 0 &&
+        arena.resting !== true
+      ) {
+        arena.currentMatch.clockSeconds = data.time;
+        const now = Date.now();
+        const last = clockPersistedAt.get(data.arenaId) ?? 0;
+        if (data.action !== 'update_timer' || now - last >= CLOCK_PERSIST_MS) {
+          clockPersistedAt.set(data.arenaId, now);
+          ctx.persistArenaState(data.arenaId);
+        }
+      }
       ctx.broadcastArenaUpdate(data.arenaId, {
         arenaId: data.arenaId,
         match: arena.currentMatch,
@@ -552,11 +562,11 @@ export const ARENA_CONTROL_CONTEXT_KEYS = {
   methods: [
     'assignMatchToArena',
     'broadcastArenaUpdate',
+    'persistArenaState',
     'finishArenaMatch',
     'getArena',
     'loadNextMatch',
     'pauseArenaMatch',
-    'persistArenaState',
     'resolveReferee',
     'logDiag',
     'stampArenaEvents',

@@ -1116,19 +1116,9 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
     return (
       <div className="var-row">
         <label className="var-label">{label}</label>
-        <div className="var-control" style={{ flexDirection: 'column', gap: '0.3rem' }}>
+        <div className="var-control theme-editor-1">
           <div className="u-row">
-            <span
-              style={{
-                fontSize: '0.65rem',
-                color: '#94a3b8',
-                userSelect: 'none',
-                width: 14,
-                textAlign: 'center',
-              }}
-            >
-              A
-            </span>
+            <span className="theme-editor-2">A</span>
             <input
               type="range"
               min={0}
@@ -1136,22 +1126,11 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
               step={1}
               value={sliderIdx}
               onChange={e => onChange(entries[Number(e.target.value)][1])}
-              style={{ flex: 1, accentColor: '#3b82f6', cursor: 'pointer' }}
+              className="theme-editor-3"
             />
-            <span
-              style={{
-                fontSize: '1.1rem',
-                color: '#94a3b8',
-                userSelect: 'none',
-                width: 14,
-                textAlign: 'center',
-                fontWeight: 700,
-              }}
-            >
-              A
-            </span>
+            <span className="theme-editor-4">A</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 2px' }}>
+          <div className="theme-editor-5">
             {entries.map(([name], i) => (
               <span
                 key={name}
@@ -1211,15 +1190,7 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
             type="color"
             value={isSimpleColor(value) ? value : '#000000'}
             onChange={e => onChange(e.target.value)}
-            style={{
-              width: 32,
-              height: 28,
-              border: '1px solid #475569',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              padding: '2px',
-              background: '#1e293b',
-            }}
+            className="theme-editor-6"
           />
           <input
             type="text"

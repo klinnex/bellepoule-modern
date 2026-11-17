@@ -11,7 +11,6 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { recordRemoteEvent } from './remoteEvents';
 import { isCyranoMasterOnline } from './cyranoLock';
-import { timerForMatch, timerJoinFields } from './arenaTimer';
 import { advanceTeamBout, broadcastTeamArena, teamArenaElapsedSec } from './teamArena';
 
 type S = RemoteScoreServer;
@@ -165,6 +164,10 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           match: arena.currentMatch,
           scoreA: arena.currentMatch?.scoreA,
           scoreB: arena.currentMatch?.scoreB,
+          // Chrono du match en cours (repris après un redémarrage, #1829)
+          ...(arena.status === 'in_progress' && arena.currentMatch?.clockSeconds !== undefined
+            ? { time: arena.currentMatch.clockSeconds, timerStatus: 'paused' as const }
+            : {}),
           status: arena.status,
           swapped: arena.swapped ?? false,
           leftHanded: arena.leftHanded ?? false,
@@ -184,8 +187,6 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           ...(ctx.isTrainingMode && ctx.trainingCustomRules
             ? { trainingCustomRules: ctx.trainingCustomRules }
             : {}),
-          // Chrono connu du match (repris au redémarrage, à l'arrêt, #1829)
-          ...timerJoinFields(timerForMatch(arena)),
           ...(arena.status === 'finished' && {
             nextMatch: ctx.peekNextMatch(data.arenaId),
           }),

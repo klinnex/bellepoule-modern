@@ -1,0 +1,149 @@
+/* Styles extraits de TrainingLauncherModal.tsx (#1895) */
+.training-launcher-modal-1.training-launcher-modal-1.training-launcher-modal-1 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.training-launcher-modal-2.training-launcher-modal-2.training-launcher-modal-2 {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  color: var(--color-text);
+}
+
+.training-launcher-modal-3.training-launcher-modal-3.training-launcher-modal-3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.training-launcher-modal-4.training-launcher-modal-4.training-launcher-modal-4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.training-launcher-modal-5.training-launcher-modal-5.training-launcher-modal-5 {
+  margin-bottom: 1.25rem;
+}
+
+.training-launcher-modal-6.training-launcher-modal-6.training-launcher-modal-6 {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.training-launcher-modal-7.training-launcher-modal-7.training-launcher-modal-7 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.training-launcher-modal-8.training-launcher-modal-8.training-launcher-modal-8 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.training-launcher-modal-9.training-launcher-modal-9.training-launcher-modal-9 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.training-launcher-modal-10.training-launcher-modal-10.training-launcher-modal-10 {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-left: 0.25rem;
+}
+
+.training-launcher-modal-11.training-launcher-modal-11.training-launcher-modal-11 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.training-launcher-modal-12.training-launcher-modal-12.training-launcher-modal-12 {
+  width: 100%;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.training-launcher-modal-13.training-launcher-modal-13.training-launcher-modal-13 {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.training-launcher-modal-14.training-launcher-modal-14.training-launcher-modal-14 {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.training-launcher-modal-15.training-launcher-modal-15.training-launcher-modal-15 {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.training-launcher-modal-16.training-launcher-modal-16.training-launcher-modal-16 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.training-launcher-modal-17.training-launcher-modal-17.training-launcher-modal-17 {
+  font-size: 0.75rem;
+}
+
+.training-launcher-modal-18.training-launcher-modal-18.training-launcher-modal-18 {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.training-launcher-modal-19.training-launcher-modal-19.training-launcher-modal-19 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.training-launcher-modal-20.training-launcher-modal-20.training-launcher-modal-20 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.training-launcher-modal-21.training-launcher-modal-21.training-launcher-modal-21 {
+  margin: 0.35rem 0 0 3.25rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.training-launcher-modal-22.training-launcher-modal-22.training-launcher-modal-22 {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}

@@ -139,11 +139,11 @@ const ToastItemComponent: React.FC<{
         position: 'relative',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+      <div className="toast-1">
         <span style={{ color: colors.accent, flexShrink: 0, marginTop: '1px' }}>
           {TOAST_ICONS[toast.type]}
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="toast-2">
           {toast.title && (
             <div
               style={{
@@ -156,16 +156,7 @@ const ToastItemComponent: React.FC<{
               {toast.title}
             </div>
           )}
-          <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text)',
-              lineHeight: 1.45,
-              wordBreak: 'break-word',
-            }}
-          >
-            {toast.message}
-          </div>
+          <div className="toast-3">{toast.message}</div>
           {toast.action && (
             <button
               onClick={() => {
@@ -190,16 +181,7 @@ const ToastItemComponent: React.FC<{
         </div>
         <button
           onClick={() => onRemove(toast.id)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--color-text-muted)',
-            padding: '1px',
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-          }}
+          className="toast-4"
           aria-label={translateStatic('actions.close')}
         >
           <span aria-hidden="true">✕</span>
@@ -294,24 +276,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast, showUndoToast, showActionableError }}>
       {children}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="false"
-        style={{
-          position: 'fixed',
-          bottom: '1.25rem',
-          right: '1.25rem',
-          zIndex: 10000,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          pointerEvents: 'none',
-          alignItems: 'flex-end',
-        }}
-      >
+      <div role="status" aria-live="polite" aria-atomic="false" className="toast-5">
         {toasts.map(toast => (
-          <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+          <div key={toast.id} className="toast-6">
             <ToastItemComponent toast={toast} onRemove={removeToast} />
           </div>
         ))}

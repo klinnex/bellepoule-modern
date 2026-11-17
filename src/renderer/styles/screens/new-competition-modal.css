@@ -1,0 +1,15 @@
+/* Styles extraits de NewCompetitionModal.tsx (#1895) */
+.new-competition-modal-1.new-competition-modal-1.new-competition-modal-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.new-competition-modal-2.new-competition-modal-2.new-competition-modal-2 {
+  margin: 0;
+}
+
+.new-competition-modal-3.new-competition-modal-3.new-competition-modal-3 {
+  font-size: 1rem;
+  font-weight: 600;
+}

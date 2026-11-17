@@ -1,0 +1,26 @@
+/* Styles extraits de RapieresWaveBar.tsx (#1895) */
+.rapieres-wave-bar-1.rapieres-wave-bar-1.rapieres-wave-bar-1 {
+  padding: 0.75rem 1rem;
+  margin: 0 auto 1.5rem;
+  max-width: 60rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  border-left: 4px solid #7c3aed;
+}
+
+.rapieres-wave-bar-2.rapieres-wave-bar-2.rapieres-wave-bar-2 {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.rapieres-wave-bar-3.rapieres-wave-bar-3.rapieres-wave-bar-3 {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 3px;
+  border: 2px solid #7c3aed;
+  background: rgba(124, 58, 237, 0.18);
+}

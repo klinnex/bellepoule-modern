@@ -134,54 +134,25 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
   return (
     <div className="u-stack-4">
       {/* Titre personnalisé */}
-      <div className="form-group" style={{ marginBottom: 0 }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-          {t('pdfTemplate.customTitle')}
-        </label>
+      <div className="form-group pdf-template-editor-1">
+        <label className="pdf-template-editor-2">{t('pdfTemplate.customTitle')}</label>
         <input
-          className="form-input"
+          className="form-input pdf-template-editor-3"
           type="text"
           value={template.customTitle}
           onChange={e => handleTitleChange(e.target.value)}
           placeholder={t('pdfTemplate.customTitlePlaceholder')}
-          style={{ marginTop: '0.35rem' }}
         />
       </div>
 
       {/* Logo */}
       <div>
         <div style={SUBHEAD}>{t('pdfEditor.logo')}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="pdf-template-editor-4">
           {logo ? (
-            <img
-              src={logo}
-              alt={t('pdfEditor.logo')}
-              style={{
-                height: '48px',
-                maxWidth: '120px',
-                objectFit: 'contain',
-                border: '1px solid var(--color-border, #d1d5db)',
-                borderRadius: '4px',
-                padding: '2px',
-                background: '#fff',
-              }}
-            />
+            <img src={logo} alt={t('pdfEditor.logo')} className="pdf-template-editor-5" />
           ) : (
-            <div
-              style={{
-                height: '48px',
-                width: '80px',
-                border: '1px dashed var(--color-border, #d1d5db)',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.75rem',
-                color: 'var(--color-muted, #9ca3af)',
-              }}
-            >
-              {t('pdfEditor.no_logo')}
-            </div>
+            <div className="pdf-template-editor-6">{t('pdfEditor.no_logo')}</div>
           )}
           <Button style={SM} onClick={() => logoInputRef.current?.click()}>
             {logo ? 'Changer' : 'Importer'}
@@ -208,7 +179,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
       <div>
         <div style={SUBHEAD}>{t('pdfEditor.colors')}</div>
         {/* Presets */}
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+        <div className="pdf-template-editor-7">
           {COLOR_PRESETS.map(preset => (
             <Button
               key={preset.label}
@@ -239,30 +210,14 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
             </Button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="pdf-template-editor-8">
           {(['navy', 'gold', 'green'] as const).map(key => (
-            <label
-              key={key}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-              }}
-            >
+            <label key={key} className="pdf-template-editor-9">
               <input
                 type="color"
                 value={template.colors[key]}
                 onChange={e => handleColorChange(key, e.target.value)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  padding: '2px',
-                  border: '1px solid var(--color-border, #d1d5db)',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
+                className="pdf-template-editor-10"
               />
               {t(`pdfTemplate.colors.${key}`)}
             </label>
@@ -273,13 +228,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
       {/* Ordre et visibilité des sections */}
       <div>
         <div style={SUBHEAD}>{t('pdfEditor.sections')}</div>
-        <div
-          style={{
-            border: '1px solid var(--color-border, #d1d5db)',
-            borderRadius: '6px',
-            overflow: 'hidden',
-          }}
-        >
+        <div className="pdf-template-editor-11">
           {sorted.map((el, idx) => (
             <div
               key={el.id}
@@ -305,20 +254,12 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
                 transition: 'background 0.1s',
               }}
             >
-              <span
-                style={{
-                  color: 'var(--color-muted, #9ca3af)',
-                  fontSize: '1rem',
-                  userSelect: 'none',
-                }}
-              >
-                ⠿
-              </span>
+              <span className="pdf-template-editor-12">⠿</span>
               <input
                 type="checkbox"
                 checked={el.visible}
                 onChange={() => toggleVisible(el.id)}
-                style={{ cursor: 'pointer', width: '15px', height: '15px', flexShrink: 0 }}
+                className="pdf-template-editor-13"
               />
               <span
                 style={{
@@ -336,7 +277,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.25rem' }}>
+      <div className="pdf-template-editor-14">
         <Button style={SM} onClick={onReset}>
           {t('pdfTemplate.reset')}
         </Button>
@@ -355,11 +296,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
         />
       </div>
 
-      {importError && (
-        <p style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)', marginTop: '-0.5rem' }}>
-          {importError}
-        </p>
-      )}
+      {importError && <p className="pdf-template-editor-15">{importError}</p>}
     </div>
   );
 };

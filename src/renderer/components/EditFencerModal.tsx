@@ -59,9 +59,8 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal edit-fencer-modal-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '500px' }}
         role="dialog"
         aria-modal="true"
       >
@@ -73,7 +72,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
         </div>
 
         <form onSubmit={handleSubmit} className="modal-body">
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <div className="edit-fencer-modal-2">
             <FencerPhoto
               photo={photo}
               firstName={firstName}

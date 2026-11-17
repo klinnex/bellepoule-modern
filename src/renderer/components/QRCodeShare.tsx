@@ -152,7 +152,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
           </button>
         </div>
 
-        <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
+        <div className="qr-code-share-1">
           {(['results', 'checkin'] as QRMode[]).map(m => (
             <button
               key={m}
@@ -185,9 +185,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
                   <p>{t('qrShare.generating')}</p>
                 </div>
               ) : error ? (
-                <div className="alert alert--error" style={{ whiteSpace: 'pre-line' }}>
-                  {error}
-                </div>
+                <div className="alert alert--error qr-code-share-2">{error}</div>
               ) : (
                 <img
                   src={qrCodeUrl}

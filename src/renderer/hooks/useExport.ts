@@ -29,7 +29,7 @@ import {
   toNativeRootTag,
 } from '../../shared/utils/gregPublication';
 import type { PoolStripQr } from '../../shared/utils/pdfExport';
-import { loadPoolCards } from '../utils/poolPrintCards';
+import { withMatchCards } from '../services/poolCards';
 
 /** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
 export interface PoolsRemoteInfo {
@@ -285,13 +285,12 @@ export const useExport = ({
         const { exportMultiplePoolsToPDF } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await exportMultiplePoolsToPDF(
-          pools,
+          await withMatchCards(pools),
           `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
           competition.title,
-          buildStripQrs(pools, remote),
-          await loadPoolCards(pools)
+          buildStripQrs(pools, remote)
         );
         showToast(`Export PDF de ${pools.length} poules généré avec succès`, 'success');
       } catch (error) {
@@ -312,13 +311,12 @@ export const useExport = ({
         const { printMultiplePoolsHTML } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
         await printMultiplePoolsHTML(
-          pools,
+          await withMatchCards(pools),
           `${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
           competition.title,
-          buildStripQrs(pools, remote),
-          await loadPoolCards(pools)
+          buildStripQrs(pools, remote)
         );
       } catch (error) {
         logger.error(LogCategory.UI, "Erreur lors de l'impression des poules", error as Error);

@@ -87,9 +87,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 73 | 816 |
+| `src/shared/utils/` | 75 | 827 |
 | `src/shared/services/` | 8 | 95 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 33 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -101,18 +101,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 237 |
-| `src/main/` | 86 | 673 |
-| `src/renderer/services/` | 9 | 53 |
+| `src/main/` | 90 | 691 |
+| `src/renderer/services/` | 10 | 55 |
 | `src/renderer/hooks/` | 32 | 151 |
-| `src/renderer/components/` | 112 | 560 |
+| `src/renderer/components/` | 112 | 562 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **444** | **3329** |
+| **Total** | **451** | **3363** |
 
-Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 441 fichiers, 3324 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -944,6 +944,14 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/blackCardReportPdf.test.ts</code> — 1 test</summary>
+
+- **generateBlackCardReportHTML (#1829, annexe 14 FFE)**
+  - une page par tireur exclu, champs pré-remplis et échappés
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 5 tests</summary>
 
 - **bookToc**
@@ -1009,7 +1017,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 18 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
@@ -1032,6 +1040,10 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
+- **generatePoolHTML – cartons (#1829, t.124.3.e)**
+  - sans carton : pas de section
+  - cartons P inscrits à part des cartons de faute
+  - modèle personnalisé sans la section : cartons quand même imprimés
 
 </details>
 
@@ -1517,6 +1529,20 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/tableauBouts.test.ts</code> — 7 tests</summary>
+
+- **tableauBouts (#1817)**
+  - premier tour = plus grand numéro de tour
+  - compte les tours suivants même sans tireurs connus, exempts exclus
+  - tableau de 64 complet : 63 matchs dès le premier tour
+  - qualification d’office (vainqueur sans adversaire) hors décompte
+  - petite finale comptée avec la finale
+  - sans numéro de tour : seuls les matchs aux deux tireurs connus
+  - vagues restantes : tours enchaînés, pistes partagées dans un tour
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/tieBreak.test.ts</code> — 2 tests</summary>
 
 - **allowsVictoryTieBreak**
@@ -1812,7 +1838,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 18 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 19 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1841,6 +1867,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
   - poules en cours : fin des poules + tableau projeté
   - poules finies : fin réelle des poules, tableau généré = ETA globale
+  - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
 
 </details>
 
@@ -3324,6 +3351,46 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/mcp/mcpServer.test.ts</code> — 9 tests</summary>
+
+- **handleMcpMessage**
+  - initialize : version négociée, capacité outils
+  - notification : pas de réponse
+  - tools/list : outils en lecture uniquement
+  - tools/call : données sans date de naissance ni licence
+  - tools/call : argument manquant ou compétition inconnue → isError
+  - méthode ou outil inconnu → erreur JSON-RPC
+- **sécurité**
+  - jeton comparé exactement
+  - Host / Origin limités à la boucle locale
+- **McpServer (HTTP réel)**
+  - 401 sans jeton, 200 avec, 403 hors boucle locale
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpSettings.test.ts</code> — 2 tests</summary>
+
+- **mcpSettings (#1880)**
+  - désactivé par défaut, port validé
+  - jeton chiffré, stable, renouvelable
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpWriteTools.test.ts</code> — 5 tests</summary>
+
+- **outils d’écriture MCP**
+  - écriture non autorisée : outil refusé et absent de tools/list
+  - create\_competition : dryRun sans écriture, puis création avec réglages par défaut
+  - check\_in : pointe par id ou dossard, laisse les abandons
+  - import\_fencers : doublons ignorés, dryRun, chemin et extension contrôlés
+- **import\_day (#1880)**
+  - crée la journée et ses épreuves, puis ne duplique rien au second passage
+
+</details>
+
+<details>
 <summary><code>src/main/menu.test.ts</code> — 3 tests</summary>
 
 - **createMenu (#1341)**
@@ -3490,6 +3557,15 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - gaucher A contre droitier B : A rouge
   - droitier A ou deux gauchers : placement de l’appel (A vert)
   - arme non olympique ou pas de match : rien
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaControl.clock.test.ts</code> — 2 tests</summary>
+
+- **arena\_control chrono (#1829)**
+  - pause : chrono gardé avec le match et persisté
+  - en marche : au plus une écriture toutes les 15 s
 
 </details>
 
@@ -4195,6 +4271,15 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/renderer/services/`
+
+<details>
+<summary><code>src/renderer/services/blackCardReport.test.ts</code> — 2 tests</summary>
+
+- **buildBlackCardEntries (#1829)**
+  - match de la sanction : celui qui porte le carton noir en base
+  - aucun exclu : rien
+
+</details>
 
 <details>
 <summary><code>src/renderer/services/ipcError.test.ts</code> — 3 tests</summary>
@@ -5547,13 +5632,14 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 7 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 8 tests</summary>
 
 - **computeMatchProgress**
   - renvoie null sans poule ni tableau
   - compte les matchs de poule terminés
   - retombe sur le tableau quand il n’y a pas de poule
   - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
+  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
 - **computeEffectiveTableauRanking**
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
@@ -5880,7 +5966,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 11 tests</summary>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 12 tests</summary>
 
 - **builtinThemes**
   - liste jamais vide pour chaque section
@@ -5889,6 +5975,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - id non prédéfini ou inconnu → null
   - Steampunk proposé et résolu pour chaque section
   - chaque thème décoratif couvre toutes les sections avec des variables connues
+  - Licorne : motif SVG répétable sur chaque section
   - clé héritée de Object.prototype → null
 - **Toutes sources (#1795)**
   - liste préréglages piste et décoratifs

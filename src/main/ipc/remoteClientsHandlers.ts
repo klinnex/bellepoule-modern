@@ -6,6 +6,8 @@
 import { app, ipcMain } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { RemoteScoreServer } from '../remoteScoreServer';
+import type { ClientCommand, KioskModeConfig } from '../remote/clientRegistry';
 import { remoteServers } from '../remoteRegistry';
 
 export function registerRemoteClientsHandlers(): void {
@@ -24,7 +26,7 @@ export function registerRemoteClientsHandlers(): void {
 
   ipcMain.handle(
     'remote:sendClientCommand',
-    async (_, competitionId: string, socketId: string, command: any) => {
+    async (_, competitionId: string, socketId: string, command: ClientCommand) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
@@ -39,16 +41,22 @@ export function registerRemoteClientsHandlers(): void {
     }
   );
 
-  ipcMain.handle('remote:broadcastCommand', async (_, competitionId: string, command: any) => {
-    try {
-      const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.clients.broadcast(command);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  ipcMain.handle(
+    'remote:broadcastCommand',
+    async (_, competitionId: string, command: ClientCommand) => {
+      try {
+        const entry = remoteServers.get(competitionId);
+        if (!entry) return { success: false, error: 'server_not_started' };
+        entry.server.clients.broadcast(command);
+        return { success: true };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
+        };
+      }
     }
-  });
+  );
 
   ipcMain.handle(
     'remote:renameClient',
@@ -80,7 +88,7 @@ export function registerRemoteClientsHandlers(): void {
 
   ipcMain.handle(
     'remote:setClientKioskMode',
-    async (_, competitionId: string, socketId: string, config: any) => {
+    async (_, competitionId: string, socketId: string, config: KioskModeConfig) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
@@ -100,7 +108,7 @@ export function registerRemoteClientsHandlers(): void {
       const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
       await fs.promises.writeFile(ttsPath, JSON.stringify(config), 'utf-8');
       for (const { server } of remoteServers.values()) {
-        server.setTtsConfig(config as any);
+        server.setTtsConfig(config as Parameters<RemoteScoreServer['setTtsConfig']>[0]);
       }
       return { success: true };
     } catch (error) {

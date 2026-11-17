@@ -26,6 +26,7 @@ import { usePhaseShortcuts } from './usePhaseShortcuts';
 import { registerPhases } from './phaseRegistry';
 import { phaseStepStates, nextBlockedReason } from './phaseStepper';
 import { Button } from '../common/Button';
+import { countTableauBouts } from '../../../shared/utils/tableauBouts';
 
 interface PhaseItem {
   id: string;
@@ -42,6 +43,7 @@ interface PoolItem {
 }
 
 interface TableauMatchItem {
+  round?: number;
   winner: unknown;
   fencerA: unknown;
   fencerB: unknown;
@@ -132,6 +134,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
     onFlowPhase ? currentPhase : lastFlowPhase
   );
   const blockedReason = nextBlockedReason(phases, currentPhase);
+  const tableauBouts = countTableauBouts(tableauMatches);
   return (
     <>
       {tourReady && !isTeamEvent && (
@@ -190,7 +193,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             )}
           </React.Fragment>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="competition-nav-1">
           {currentPhase !== 'checkin' && (
             <Button className="btn-icon-label" onClick={handleGoBack}>
               <ChevronLeft size={15} /> {t('competitionNav.back')}
@@ -365,8 +368,8 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 </span>
                 <span>
                   {t('competitionNav.tableau', {
-                    a: tableauMatches.filter(m => m.winner !== null).length,
-                    b: tableauMatches.filter(m => m.fencerA && m.fencerB).length,
+                    a: tableauBouts.done,
+                    b: tableauBouts.total,
                   })}
                 </span>
               </div>

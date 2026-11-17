@@ -62,7 +62,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
     // Abonnement aux mises à jour de la liste des clients connectés
     useEffect(() => {
       if (!isRemoteActive) return;
-      window.electronAPI.remote.getConnectedClients(competitionId).then((res: any) => {
+      window.electronAPI.remote.getConnectedClients(competitionId).then(res => {
         if (res.success) setConnectedClients(res.clients ?? []);
       });
       return window.electronAPI.remote.onClientListUpdate((clients: ConnectedClient[], id) => {
@@ -184,8 +184,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                   )}
                   <div className="is-8afc24">
                     <button
-                      className="btn-secondary"
-                      style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+                      className="btn-secondary connected-screens-panel-1"
                       title={t('rsm.identify_title')}
                       onClick={() =>
                         window.electronAPI.remote.identifyClient(competitionId, client.socketId)
@@ -211,19 +210,10 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                             );
                         }
                       }}
-                      style={{
-                        width: '8rem',
-                        fontSize: '0.75rem',
-                        padding: '0.2rem 0.4rem',
-                        borderRadius: '0.3rem',
-                        border: '1px solid #475569',
-                        background: '#0f172a',
-                        color: '#e2e8f0',
-                      }}
+                      className="connected-screens-panel-2"
                     />
                     <button
-                      className="btn-secondary"
-                      style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+                      className="btn-secondary connected-screens-panel-1"
                       title={t('rsm.rename')}
                       onClick={async () => {
                         const lbl = renameValues[client.socketId]?.trim();
@@ -238,8 +228,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                       ✓
                     </button>
                     <button
-                      className="btn-primary"
-                      style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+                      className="btn-primary connected-screens-panel-1"
                       title={t('ui.configure_send_kiosk')}
                       onClick={() => {
                         setKioskModal(client.socketId);
@@ -267,15 +256,12 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
           createPortal(
             <div className="qr-popup-overlay" onClick={() => setKioskModal(null)}>
               <div
-                className="qr-popup"
+                className="qr-popup connected-screens-panel-3"
                 onClick={e => e.stopPropagation()}
-                style={{ minWidth: '20rem', maxWidth: '26rem' }}
               >
-                <strong style={{ fontSize: '1rem' }}>{t('rsm.kiosk_modal_title')}</strong>
-                <div style={{ margin: '0.75rem 0', textAlign: 'left' }}>
-                  <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-                    {t('rsm.views_label')}
-                  </div>
+                <strong className="connected-screens-panel-4">{t('rsm.kiosk_modal_title')}</strong>
+                <div className="connected-screens-panel-5">
+                  <div className="connected-screens-panel-6">{t('rsm.views_label')}</div>
                   {(
                     [
                       { key: 'poules', label: t('rsm.view_pools') },
@@ -287,17 +273,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                       { key: 'eta', label: t('rsm.view_eta') },
                     ] as const
                   ).map(({ key, label }) => (
-                    <label
-                      key={key}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        margin: '0.3rem 0',
-                        cursor: 'pointer',
-                        color: '#e2e8f0',
-                      }}
-                    >
+                    <label key={key} className="connected-screens-panel-7">
                       <input
                         type="checkbox"
                         checked={kioskModalConfig[key] !== false}
@@ -308,17 +284,8 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                       {label}
                     </label>
                   ))}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      marginTop: '0.75rem',
-                    }}
-                  >
-                    <label style={{ fontSize: '0.85rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                      {t('rsm.rotation')}
-                    </label>
+                  <div className="connected-screens-panel-8">
+                    <label className="connected-screens-panel-9">{t('rsm.rotation')}</label>
                     <input
                       type="number"
                       min={3}
@@ -330,18 +297,11 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                           rotationSec: Math.max(3, parseInt(e.target.value) || 15),
                         }))
                       }
-                      style={{
-                        width: '5rem',
-                        padding: '0.3rem 0.5rem',
-                        borderRadius: '0.3rem',
-                        border: '1px solid #475569',
-                        background: '#0f172a',
-                        color: '#e2e8f0',
-                      }}
+                      className="connected-screens-panel-10"
                     />
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <div className="connected-screens-panel-11">
                   <Button
                     variant="primary"
                     className="flex-1"

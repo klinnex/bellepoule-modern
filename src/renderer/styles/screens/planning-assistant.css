@@ -1,0 +1,46 @@
+/* Styles extraits de PlanningAssistant.tsx (#1895) */
+.planning-assistant-1.planning-assistant-1.planning-assistant-1 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.planning-assistant-2.planning-assistant-2.planning-assistant-2 {
+  width: 4rem;
+}
+
+.planning-assistant-3.planning-assistant-3.planning-assistant-3 {
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.planning-assistant-4.planning-assistant-4.planning-assistant-4 {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.planning-assistant-5.planning-assistant-5.planning-assistant-5 {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+}
+
+.planning-assistant-6.planning-assistant-6.planning-assistant-6 {
+  color: var(--color-text-light);
+}
+
+.planning-assistant-7.planning-assistant-7.planning-assistant-7 {
+  color: var(--color-danger, #dc2626);
+  font-size: 0.875rem;
+}
+
+.planning-assistant-8.planning-assistant-8.planning-assistant-8 {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}

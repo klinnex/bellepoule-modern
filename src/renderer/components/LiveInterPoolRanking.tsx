@@ -66,51 +66,28 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal live-inter-pool-ranking-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '900px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
         role="dialog"
         aria-modal="true"
       >
         <div className="modal-header flex-shrink-0">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: '#22c55e',
-                animation: 'pulse 1.5s infinite',
-              }}
-            />
-            <h2 style={{ margin: 0 }}>{t('liveInterPool.title')}</h2>
+          <div className="live-inter-pool-ranking-2">
+            <div className="live-inter-pool-ranking-3" />
+            <h2 className="live-inter-pool-ranking-4">{t('liveInterPool.title')}</h2>
           </div>
           <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div
-          style={{
-            padding: '0.75rem 1.5rem',
-            background: 'var(--color-surface-2)',
-            borderBottom: '1px solid var(--color-border)',
-            flexShrink: 0,
-          }}
-        >
+        <div className="live-inter-pool-ranking-5">
           <div className="u-row-between">
             <span className="u-hint">
               {t('liveInterPool.finished', { done: finishedMatches, total: totalMatches })}
             </span>
             <div className="u-row">
-              <div
-                style={{
-                  width: '200px',
-                  height: '6px',
-                  background: 'var(--color-border)',
-                  borderRadius: '3px',
-                }}
-              >
+              <div className="live-inter-pool-ranking-6">
                 <div
                   style={{
                     width: `${progress}%`,
@@ -121,9 +98,9 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                   }}
                 />
               </div>
-              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{progress}%</span>
+              <span className="live-inter-pool-ranking-7">{progress}%</span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+            <span className="live-inter-pool-ranking-8">
               {t('liveInterPool.updated', {
                 time: lastUpdate.toLocaleTimeString(getActiveLocale()),
               })}
@@ -131,10 +108,10 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
           </div>
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+        <div className="live-inter-pool-ranking-9">
+          <table className="live-inter-pool-ranking-10">
             <thead>
-              <tr style={{ background: 'var(--color-bg)', position: 'sticky', top: 0 }}>
+              <tr className="live-inter-pool-ranking-11">
                 <th style={thStyle}>{t('ranking.rank')}</th>
                 <th style={{ ...thStyle, textAlign: 'left' }}>{t('ranking.name')}</th>
                 <th style={{ ...thStyle, textAlign: 'left' }}>{t('ranking.club')}</th>
@@ -182,14 +159,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
               ))}
               {ranking.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={isLaserSabre ? 11 : 9}
-                    style={{
-                      textAlign: 'center',
-                      padding: '2rem',
-                      color: 'var(--color-text-muted)',
-                    }}
-                  >
+                  <td colSpan={isLaserSabre ? 11 : 9} className="live-inter-pool-ranking-12">
                     {t('liveInterPool.none')}
                   </td>
                 </tr>

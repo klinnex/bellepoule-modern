@@ -1,0 +1,23 @@
+/* Styles extraits de TableauPendingSection.tsx (#1895) */
+.tableau-pending-section-1.tableau-pending-section-1.tableau-pending-section-1 {
+  padding: 0.75rem 1rem;
+  background: var(--tableau-panel-header, var(--color-bg));
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.tableau-pending-section-2.tableau-pending-section-2.tableau-pending-section-2 {
+  font-size: 1rem;
+}
+
+.tableau-pending-section-3.tableau-pending-section-3.tableau-pending-section-3 {
+  font-weight: 600;
+  color: var(--tableau-title, var(--color-text));
+}
+
+.tableau-pending-section-4.tableau-pending-section-4.tableau-pending-section-4 {
+  padding: 0.5rem;
+}

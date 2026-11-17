@@ -2,7 +2,7 @@
  * RemoteScoreServer : authentification, limites et durcissement (découpé de
  * remoteScoreServer.test.ts, #1896).
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock d'Electron : évite de charger node_modules/electron (téléchargement du binaire en CI)
 vi.mock('electron', () => ({

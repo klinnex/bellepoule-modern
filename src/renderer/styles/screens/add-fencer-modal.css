@@ -1,0 +1,12 @@
+/* Styles extraits de AddFencerModal.tsx (#1895) */
+.add-fencer-modal-1.add-fencer-modal-1.add-fencer-modal-1 {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.add-fencer-modal-2.add-fencer-modal-2.add-fencer-modal-2 {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  cursor: not-allowed;
+}

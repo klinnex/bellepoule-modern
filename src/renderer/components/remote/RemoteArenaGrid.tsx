@@ -56,7 +56,7 @@ export function RemoteArenaGrid({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                 <strong>{t('rsm.strip_n', { number: arena.number })}</strong>
               </div>
               {/* Onglets type d'écran */}
-              <div style={{ display: 'flex', gap: '0.25rem', margin: '0.4rem 0 0.25rem' }}>
+              <div className="remote-arena-grid-1">
                 {screenThemeTypes.map(({ value, label }) => (
                   <button
                     key={value}
@@ -153,16 +153,7 @@ export function RemoteArenaGrid({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                       }
                       e.currentTarget.value = '';
                     }}
-                    style={{
-                      padding: '0.2rem 0.4rem',
-                      borderRadius: '0.3rem',
-                      border: '1px solid #475569',
-                      background: '#1e293b',
-                      color: '#e2e8f0',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      maxWidth: 110,
-                    }}
+                    className="remote-arena-grid-2"
                   >
                     <option value="">{t('rsm.themes_option')}</option>
                     {filteredForScreen.map(t => (

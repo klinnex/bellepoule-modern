@@ -6,6 +6,7 @@
 import { MatchStatus } from '../../../shared/types';
 import type { Pool, PoolRanking } from '../../../shared/types';
 import { filterPoolWinners } from '../../../shared/utils/poolCalculations';
+import { countTableauBouts } from '../../../shared/utils/tableauBouts';
 import {
   applyTableauAdvancement,
   getTableauAdvancement,
@@ -35,10 +36,8 @@ export function computeMatchProgress(
     return { done, total, label: 'poules' };
   }
   if (tableauMatches.length > 0) {
-    // Exempts (un seul tireur) : vainqueur désigné d'office, hors du décompte
-    const played = tableauMatches.filter(m => m.fencerA && m.fencerB);
-    const total = played.length;
-    const done = played.filter(m => m.winner !== null).length;
+    // Exempts hors décompte ; tours suivants comptés même sans tireurs connus (#1817)
+    const { done, total } = countTableauBouts(tableauMatches);
     return { done, total, label: 'tableau' };
   }
   return null;

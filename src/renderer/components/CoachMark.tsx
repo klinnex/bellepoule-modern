@@ -140,7 +140,7 @@ const CoachMark: React.FC<CoachMarkProps> = ({
   return (
     <div
       ref={wrapRef}
-      style={{ position: 'relative', display: 'inline-flex' }}
+      className="coach-mark-1"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}

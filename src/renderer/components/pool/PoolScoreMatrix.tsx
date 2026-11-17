@@ -163,15 +163,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
     if (isInlineEditing) {
       return (
         <div
-          className={`pool-cell pool-cell-editable pool-cell-inline-editing`}
-          style={{
-            cursor: 'default',
-            position: 'relative',
-            padding: '2px',
-            background: 'rgba(59,130,246,0.08)',
-            outline: '2px solid var(--color-primary)',
-            outlineOffset: '-2px',
-          }}
+          className={`pool-cell pool-cell-editable pool-cell-inline-editing pool-score-matrix-1`}
           onClick={e => e.stopPropagation()}
         >
           <input

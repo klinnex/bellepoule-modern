@@ -1,0 +1,24 @@
+/* Styles extraits de FormulaBuilder.tsx (#1895) */
+.formula-builder-1.formula-builder-1.formula-builder-1 {
+  position: relative;
+  display: inline-block;
+}
+
+.formula-builder-2.formula-builder-2.formula-builder-2 {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  min-width: 16rem;
+  padding: 0.25rem;
+  display: grid;
+}
+
+.formula-builder-3.formula-builder-3.formula-builder-3 {
+  padding: 1rem;
+  margin-top: 0.75rem;
+}
+
+.formula-builder-4.formula-builder-4.formula-builder-4 {
+  margin-top: 0.5rem;
+}

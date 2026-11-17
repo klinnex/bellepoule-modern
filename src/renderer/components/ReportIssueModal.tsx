@@ -141,7 +141,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
       {/* Type selector */}
       <div className="form-group">
         <label>{t('reportIssue.type')}</label>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="report-issue-modal-1">
           <button
             type="button"
             onClick={() => setIssueType('bug')}
@@ -206,7 +206,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
         </label>
         <textarea
           id="issue-description"
-          className="form-input"
+          className="form-input report-issue-modal-2"
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder={
@@ -215,26 +215,15 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
               : 'Expliquez votre suggestion en détail...'
           }
           rows={4}
-          style={{ resize: 'vertical' }}
         />
       </div>
 
       {/* System info */}
-      <div
-        style={{
-          padding: '0.75rem',
-          background: 'var(--color-bg)',
-          borderRadius: '8px',
-          fontSize: '0.875rem',
-          color: 'var(--color-text-light)',
-        }}
-      >
-        <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
-          {t('reportIssue.auto_info')}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
+      <div className="report-issue-modal-3">
+        <div className="report-issue-modal-4">{t('reportIssue.auto_info')}</div>
+        <div className="report-issue-modal-5">
           <span>{t('reportIssue.version')}</span>
-          <span style={{ fontFamily: 'monospace' }}>
+          <span className="report-issue-modal-6">
             {versionInfo ? `${versionInfo.version}-build.${versionInfo.build}` : 'Chargement...'}
           </span>
           <span>{t('reportIssue.system')}</span>
@@ -244,14 +233,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
         </div>
       </div>
 
-      <p
-        style={{
-          fontSize: '0.75rem',
-          color: 'var(--color-text-muted)',
-          marginTop: '0.75rem',
-          textAlign: 'center',
-        }}
-      >
+      <p className="report-issue-modal-7">
         {t('reportIssue.gh_hint_1')}
         <br />
         {t('reportIssue.gh_hint_2')}

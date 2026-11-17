@@ -15,7 +15,7 @@ import {
   pdfT,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
-import { CARDS_CSS, renderCardTally, tallyCards } from './matchCardsPdf';
+import { cardsSummaryHTML, isPCard } from './poolPdf';
 
 // ─── Export Tableau Élimination Directe ──────────────────────────────────────
 
@@ -48,6 +48,20 @@ export interface TableauSheetOptions {
   sheetsOnly?: boolean;
   /** Cartons du match par tireur : matchId → { A, B } (types `yellow`, `red`, `p-red`…, #1829) */
   cards?: Record<string, { A?: string[]; B?: string[] }>;
+}
+
+/**
+ * Cartons d'un tireur sur la feuille de match (#1829) : mêmes libellés et même décompte que la
+ * feuille de poule, cartons de faute puis cartons P à part (t.124.3.e). Vide sans carton
+ * enregistré (case à remplir à la main).
+ */
+export function matchCardsCellHTML(types: readonly string[] | undefined): string {
+  const standard = (types ?? []).filter(t => !isPCard(t));
+  const p = (types ?? []).filter(isPCard);
+  return [
+    standard.length > 0 ? `<div class="cards-std">${cardsSummaryHTML(standard)}</div>` : '',
+    p.length > 0 ? `<div class="cards-p">${cardsSummaryHTML(p)}</div>` : '',
+  ].join('');
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -93,8 +107,8 @@ export function generateTableauHTML(
     const clubB = match.fencerB!.club ?? '';
     const pisteLabel = `${pdfT('strip', 'Piste')} ${match.arena ?? '___'}`;
     const winnerId = match.winner?.id;
-    const isWinnerA = winnerId != null && winnerId === (match.fencerA as any)?.id;
-    const isWinnerB = winnerId != null && winnerId === (match.fencerB as any)?.id;
+    const isWinnerA = winnerId != null && winnerId === match.fencerA?.id;
+    const isWinnerB = winnerId != null && winnerId === match.fencerB?.id;
     const scoreCellA =
       showScores && match.scoreA != null ? `${isWinnerA ? 'V' : ''}${match.scoreA}` : '';
     const scoreCellB =
@@ -106,10 +120,10 @@ export function generateTableauHTML(
         : '';
     const sigCellA = sigImg(sig?.A);
     const sigCellB = sigImg(sig?.B);
-    // Cartons (#1829) : J, R (nombre), N, puis cartons P à part (FIE t.124.3.e)
+    // Cartons (#1829) : comme sur la feuille de poule, cartons P à part (FIE t.124.3.e)
     const matchCards = options?.cards?.[match.id];
-    const cardsCellA = renderCardTally(tallyCards(matchCards?.A));
-    const cardsCellB = renderCardTally(tallyCards(matchCards?.B));
+    const cardsCellA = matchCardsCellHTML(matchCards?.A);
+    const cardsCellB = matchCardsCellHTML(matchCards?.B);
     return `
 <div class="match-card">
   <div class="match-card-header">
@@ -129,7 +143,7 @@ export function generateTableauHTML(
         <th></th>
         <th style="text-align:left">${pdfT('fencer', 'Tireur')}</th>
         <th>${pdfT('score', 'Score')}</th>
-        <th>${pdfT('cards', 'Cartons')}</th>
+        <th>${pdfT('cards_title', 'Cartons')}</th>
         <th>${pdfT('signature', 'Signature')}</th>
       </tr>
     </thead>
@@ -396,8 +410,14 @@ export function generateTableauHTML(
       padding: 1mm 1.5mm;
       vertical-align: middle;
       text-align: center;
+      font-size: 7.5pt;
     }
-    ${CARDS_CSS}
+    /* Cartons P à part des cartons de faute (t.124.3.e) */
+    .cards-box .cards-std + .cards-p {
+      border-top: 1px dashed var(--border);
+      margin-top: 0.8mm;
+      padding-top: 0.8mm;
+    }
     .match-card-footer {
       background: var(--gray-xlight);
       border-top: 1px solid var(--border);
@@ -475,7 +495,7 @@ export async function printTableauHTML(
     signatures,
     options
   );
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }

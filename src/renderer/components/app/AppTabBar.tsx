@@ -52,18 +52,7 @@ export const AppTabBar: React.FC<AppTabBarProps> = ({
   const { t } = useTranslation();
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
   return (
-    <div
-      className="tabs-container"
-      style={{
-        background: '#f8fafc',
-        borderBottom: '1px solid #e5e7eb',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 1rem',
-        gap: '0.25rem',
-        overflowX: 'auto',
-      }}
-    >
+    <div className="tabs-container app-tab-bar-1">
       {/* Onglet Général/Accueil */}
       <div
         className={`tab ${view === 'home' ? 'tab-active' : ''}`}
@@ -218,7 +207,7 @@ export const AppTabBar: React.FC<AppTabBarProps> = ({
             }}
           >
             {openComp.competition.title}
-            {openComp.isDirty && <span style={{ color: '#ef4444', marginLeft: '0.25rem' }}>●</span>}
+            {openComp.isDirty && <span className="app-tab-bar-2">●</span>}
             {(() => {
               const phase = openComp.competition.phases?.[openComp.competition.currentPhaseIndex];
               const badge = phase ? PHASE_BADGE[phase.type] : null;
@@ -230,18 +219,7 @@ export const AppTabBar: React.FC<AppTabBarProps> = ({
           <Tooltip content={t('app.close_tab')}>
             <button
               onClick={e => onCloseTab(openComp.competition.id, e)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#6b7280',
-                cursor: 'pointer',
-                padding: '0.125rem',
-                borderRadius: '3px',
-                fontSize: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className="app-tab-bar-3"
               onMouseEnter={e => {
                 e.currentTarget.style.background = '#e5e7eb';
                 e.currentTarget.style.color = '#374151';
