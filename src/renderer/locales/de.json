@@ -3968,8 +3968,8 @@
     "button_open_n": "{{count}} Trainings offen"
   },
   "federalImport": {
-    "title": "Mit den Verbandsdateien starten",
-    "hint": "Legen Sie hier die .zip-Datei des FFE-Extranets ab oder eine .xml, eine .fff, eine .txt mit Schiedsrichtern.",
+    "title": "Mit den Dateien des Verbands starten",
+    "hint": "Legen Sie hier die vom Verband bereitgestellte Meldedatei (.zip oder .xml; nationaler Verband, FIE …) ab, oder eine .fff, eine .txt mit Schiedsrichtern.",
     "choose": "Dateien auswählen…",
     "loading": "Dateien werden gelesen…",
     "error": "Lesen nicht möglich: {{message}}",
@@ -3984,9 +3984,9 @@
     "domain_L": "Liga",
     "domain_C": "zwischen Vereinen",
     "summary": "{{fencers}} Fechter, {{teams}} Mannschaft(en) und {{referees}} Schiedsrichter werden mit dem Wettbewerb erstellt.",
-    "locked": "Aus der Datei gelesene Felder sind gesperrt: Das Extranet lehnt Ergebnisse ab, wenn der Wettbewerb geändert wird.",
+    "locked": "Aus der Datei gelesene Felder sind gesperrt: Der Verband kann die Ergebnisse ablehnen, wenn der Wettbewerb geändert wird.",
     "unlock": "Entsperren",
-    "unlocked_warning": "Felder entsperrt: Der Ergebnisimport ins Extranet könnte abgelehnt werden.",
+    "unlocked_warning": "Felder entsperrt: Der Verband könnte die Ergebnisdatei ablehnen.",
     "conflicts_title": ".xml und .FFF stimmen nicht überein ({{count}} Abweichung(en)): Bitte die Datei prüfen.",
     "conflict_club": "{{name}}: Verein „{{xml}}“ (xml), „{{fff}}“ (fff)",
     "conflict_ranking": "{{name}}: Rangliste {{xml}} (xml), {{fff}} (fff)",

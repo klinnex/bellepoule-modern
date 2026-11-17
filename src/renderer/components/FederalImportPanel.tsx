@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - « Partir des fichiers de l'extranet » dans Nouvelle compétition (#1938)
+ * BellePoule Modern - « Partir des fichiers de la fédération » dans Nouvelle compétition (#1938)
  * Licensed under GPL-3.0
  */
 import React, { useState } from 'react';

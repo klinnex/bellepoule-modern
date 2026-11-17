@@ -3968,8 +3968,8 @@
     "button_open_n": "{{count}} séances ouvertes"
   },
   "federalImport": {
-    "title": "Partir des fichiers de l'extranet",
-    "hint": "Déposez ici le .zip de l'extranet FFE, ou un .xml, un .fff, un .txt d'arbitres.",
+    "title": "Partir des fichiers de la fédération",
+    "hint": "Déposez ici le .zip ou le .xml d'inscription fourni par la fédération (extranet FFE, FIE…), ou un .fff, un .txt d'arbitres.",
     "choose": "Choisir des fichiers…",
     "loading": "Lecture des fichiers…",
     "error": "Lecture impossible : {{message}}",
@@ -3984,9 +3984,9 @@
     "domain_L": "ligue",
     "domain_C": "entre clubs",
     "summary": "{{fencers}} tireur(s), {{teams}} équipe(s), {{referees}} arbitre(s) seront créés avec la compétition.",
-    "locked": "Champs lus dans le fichier verrouillés : l'extranet refuse les résultats si l'épreuve est modifiée.",
+    "locked": "Champs lus dans le fichier verrouillés : la fédération peut refuser les résultats si l'épreuve est modifiée.",
     "unlock": "Déverrouiller",
-    "unlocked_warning": "Champs déverrouillés : l'import des résultats sur l'extranet risque d'être refusé.",
+    "unlocked_warning": "Champs déverrouillés : la fédération risque de refuser le fichier de résultats.",
     "conflicts_title": "Le .xml et le .FFF ne concordent pas ({{count}} écart(s)) : vérifiez le fichier.",
     "conflict_club": "{{name}} : club « {{xml}} » (xml), « {{fff}} » (fff)",
     "conflict_ranking": "{{name}} : classement {{xml}} (xml), {{fff}} (fff)",

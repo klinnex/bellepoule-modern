@@ -203,7 +203,10 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
     const result = await dialog.showOpenDialog(getMainWindow()!, {
       properties: ['openFile', 'multiSelections'],
       filters: [
-        { name: 'Extranet FFE', extensions: ['zip', 'xml', 'cotcot', 'fff', 'txt', 'csv'] },
+        {
+          name: 'FFE / FIE (.zip, .xml, .fff, .txt)',
+          extensions: ['zip', 'xml', 'cotcot', 'fff', 'txt', 'csv'],
+        },
         { name: '*', extensions: ['*'] },
       ],
     });
