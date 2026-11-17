@@ -12,19 +12,12 @@ import {
   Contrast,
   BookOpen,
   Settings,
-  X,
   Swords,
-  Wrench,
-  Wifi,
-  Tv2,
-  Sparkles,
-  PlayCircle,
   Shield,
   HelpCircle,
   Search,
 } from 'lucide-react';
-import { Competition, PhaseType } from '../shared/types';
-import { restartGuidedTour } from './components/guidedTourFlags';
+import { Competition } from '../shared/types';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
@@ -66,21 +59,14 @@ import { TranslationProvider, useTranslation, Theme } from './contexts/Translati
 import { Button } from './components/common/Button';
 import { Tooltip } from './components/Tooltip';
 import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
-import { createPortal } from 'react-dom';
 import { saveActiveSection } from './components/settingsModal.helpers';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 import { useAppMenuHandlers } from './hooks/useAppMenuHandlers';
 import { useTrainingSession } from './hooks/useTrainingSession';
 import { useClubTab } from './hooks/useClubTab';
-
-const PHASE_BADGE: Record<string, { label: string; cls: string }> = {
-  [PhaseType.CHECKIN]: { label: 'Appel', cls: 'badge-checkin' },
-  [PhaseType.POOL]: { label: 'Poules', cls: 'badge-pool' },
-  [PhaseType.QUEST]: { label: 'Quest', cls: 'badge-pool' },
-  [PhaseType.DIRECT_ELIMINATION]: { label: 'Tableau', cls: 'badge-tableau' },
-  [PhaseType.CLASSIFICATION]: { label: 'Résultats', cls: 'badge-results' },
-};
+import { ToolsMenu } from './components/app/ToolsMenu';
+import { AppTabBar } from './components/app/AppTabBar';
 
 const THEME_CYCLE: Theme[] = ['default', 'light', 'dark'];
 const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
@@ -97,8 +83,6 @@ const AppContent: React.FC = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showWikiModal, setShowWikiModal] = useState(false);
-  const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showWifiQR, setShowWifiQR] = useState(false);
   const [showTVRemote, setShowTVRemote] = useState(false);
   const [remoteServerUrl, setRemoteServerUrl] = useState<string | null>(null);
@@ -121,13 +105,6 @@ const AppContent: React.FC = () => {
     handleLaunchDemo,
     handleStopTraining,
   } = useTrainingSession(showToast);
-  const toolsMenuRef = useRef<HTMLDivElement>(null);
-  const toolsBtnRef = useRef<HTMLButtonElement>(null);
-  const toolsPanelRef = useRef<HTMLDivElement>(null);
-  const [toolsMenuPos, setToolsMenuPos] = useState<{ top: number; right: number }>({
-    top: 0,
-    right: 0,
-  });
 
   const {
     view,
@@ -252,19 +229,6 @@ const AppContent: React.FC = () => {
       if (typeof unsub === 'function') unsub();
     };
   }, []);
-
-  useEffect(() => {
-    if (!showToolsMenu) return;
-    const rect = toolsBtnRef.current?.getBoundingClientRect();
-    if (rect) setToolsMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (toolsMenuRef.current?.contains(target) || toolsPanelRef.current?.contains(target)) return;
-      setShowToolsMenu(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showToolsMenu]);
 
   const handleCreateCompetition = useCallback(async (data: Partial<Competition>) => {
     try {
@@ -640,92 +604,11 @@ const AppContent: React.FC = () => {
               <BookOpen size={16} />
             </Button>
             {view === 'competition' && currentCompetition && (
-              <div ref={toolsMenuRef} className="relative">
-                <Button
-                  ref={toolsBtnRef}
-                  className="btn-icon-label"
-                  onClick={() => setShowToolsMenu(v => !v)}
-                  title={t('app.tools')}
-                  aria-haspopup="true"
-                  aria-expanded={showToolsMenu}
-                >
-                  <Wrench size={15} />
-                  <span className="header-btn-label">{t('app.tools')}</span>
-                </Button>
-                {/* Portail vers body : le header (backdrop-filter) piège position:fixed sous la bannière (#1755) */}
-                {showToolsMenu &&
-                  createPortal(
-                    <div
-                      ref={toolsPanelRef}
-                      style={{
-                        position: 'fixed',
-                        right: toolsMenuPos.right,
-                        top: toolsMenuPos.top,
-                        background: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        boxShadow: 'var(--shadow-xl)',
-                        minWidth: '200px',
-                        zIndex: 1100,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <button
-                        className="comp-header-dropdown-item"
-                        onClick={() => {
-                          setShowWifiQR(true);
-                          setShowToolsMenu(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <Wifi size={15} /> {t('app.wifi_qr')}
-                      </button>
-                      <button
-                        className="comp-header-dropdown-item"
-                        onClick={() => {
-                          setShowTVRemote(true);
-                          setShowToolsMenu(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <Tv2 size={15} /> {t('app.tv_remote')}
-                      </button>
-                      <button
-                        className="comp-header-dropdown-item tools-menu-item"
-                        onClick={() => {
-                          restartGuidedTour();
-                          setShowToolsMenu(false);
-                        }}
-                      >
-                        <Sparkles size={15} /> {t('app.guided_tour')}
-                      </button>
-                      <button
-                        className="comp-header-dropdown-item tools-menu-item"
-                        onClick={() => {
-                          setShowToolsMenu(false);
-                          handleStartDemo();
-                        }}
-                        title={t('demo.hint')}
-                      >
-                        <PlayCircle size={15} /> {t('demo.button')}
-                      </button>
-                    </div>,
-                    document.body
-                  )}
-              </div>
+              <ToolsMenu
+                onWifiQR={() => setShowWifiQR(true)}
+                onTVRemote={() => setShowTVRemote(true)}
+                onStartDemo={handleStartDemo}
+              />
             )}
             <Button
               className="btn-icon-label"
@@ -738,222 +621,28 @@ const AppContent: React.FC = () => {
           </div>
         </header>
 
-        {/* Onglets des compétitions ouvertes (+ onglet Club permanent) */}
+        {/* Onglets des compétitions ouvertes (+ onglet Club permanent) — #1897 */}
         {(openCompetitions.length > 0 || clubTabOpen) && (
-          <div
-            className="tabs-container"
-            style={{
-              background: '#f8fafc',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0 1rem',
-              gap: '0.25rem',
-              overflowX: 'auto',
+          <AppTabBar
+            view={view}
+            activeTabId={activeTabId}
+            openCompetitions={openCompetitions}
+            setOpenCompetitions={setOpenCompetitions}
+            clubTabOpen={clubTabOpen}
+            clubIcon={clubIcon}
+            clubName={activeClub?.name}
+            onHome={() => {
+              setView('home');
+              setActiveTabId(null);
             }}
-          >
-            {/* Onglet Général/Accueil */}
-            <div
-              className={`tab ${view === 'home' ? 'tab-active' : ''}`}
-              onClick={() => {
-                setView('home');
-                setActiveTabId(null);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px 8px 0 0',
-                cursor: 'pointer',
-                background: view === 'home' ? 'white' : 'transparent',
-                border: view === 'home' ? '1px solid #e5e7eb' : '1px solid transparent',
-                borderBottom: view === 'home' ? '1px solid white' : 'none',
-                marginBottom: view === 'home' ? '-1px' : '0',
-                transition: 'all 0.15s ease',
-                position: 'relative',
-                minWidth: '120px',
-              }}
-              onMouseEnter={e => {
-                if (view !== 'home') {
-                  e.currentTarget.style.background = 'var(--color-surface-2)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (view !== 'home') {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: view === 'home' ? '600' : '400',
-                  color: view === 'home' ? 'var(--color-text)' : 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                  whiteSpace: 'nowrap',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <Home size={13} /> {t('app.home')}
-              </span>
-            </div>
-
-            {clubTabOpen && (
-              <div
-                className={`club-tab ${view === 'club' ? 'club-tab--active' : ''}`}
-                role="button"
-                tabIndex={0}
-                onClick={openClub}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    openClub();
-                  }
-                }}
-              >
-                {clubIcon(16)}
-                <span className="club-tab-label">{activeClub?.name || t('app.club')}</span>
-                <Tooltip content={t('app.club_close')}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={<X size={12} aria-hidden="true" />}
-                    aria-label={t('app.club_close')}
-                    onClick={e => {
-                      e.stopPropagation();
-                      setClubTabOpen(false);
-                      if (view === 'club') setView('home');
-                    }}
-                  />
-                </Tooltip>
-              </div>
-            )}
-
-            {openCompetitions.map(openComp => (
-              <div
-                key={openComp.competition.id}
-                className={`tab ${activeTabId === openComp.competition.id ? 'tab-active' : ''} ${draggedTabId === openComp.competition.id ? 'tab-dragging' : ''}`}
-                draggable
-                onDragStart={() => setDraggedTabId(openComp.competition.id)}
-                onDragEnd={() => setDraggedTabId(null)}
-                onDragOver={e => e.preventDefault()}
-                onDrop={e => {
-                  e.preventDefault();
-                  if (!draggedTabId || draggedTabId === openComp.competition.id) return;
-                  setOpenCompetitions(prev => {
-                    const from = prev.findIndex(o => o.competition.id === draggedTabId);
-                    const to = prev.findIndex(o => o.competition.id === openComp.competition.id);
-                    if (from === -1 || to === -1) return prev;
-                    const next = [...prev];
-                    const [moved] = next.splice(from, 1);
-                    next.splice(to, 0, moved);
-                    return next;
-                  });
-                  setDraggedTabId(null);
-                }}
-                onClick={() => handleTabSwitch(openComp.competition.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px 8px 0 0',
-                  cursor: 'grab',
-                  background: activeTabId === openComp.competition.id ? 'white' : 'transparent',
-                  border:
-                    activeTabId === openComp.competition.id
-                      ? '1px solid #e5e7eb'
-                      : '1px solid transparent',
-                  borderBottom:
-                    activeTabId === openComp.competition.id ? '1px solid white' : 'none',
-                  marginBottom: activeTabId === openComp.competition.id ? '-1px' : '0',
-                  transition: 'all 0.15s ease',
-                  position: 'relative',
-                  minWidth: '150px',
-                  opacity: draggedTabId === openComp.competition.id ? 0.4 : 1,
-                }}
-                onMouseEnter={e => {
-                  if (activeTabId !== openComp.competition.id) {
-                    e.currentTarget.style.background = 'var(--color-surface-2)';
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (activeTabId !== openComp.competition.id) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                {/* Dot coloré de la compétition */}
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    background: openComp.competition.color || '#3B5BDB',
-                    boxShadow: `0 0 0 2px ${openComp.competition.color || '#3B5BDB'}33`,
-                  }}
-                />
-                <span
-                  style={{
-                    fontWeight: activeTabId === openComp.competition.id ? '600' : '400',
-                    color:
-                      activeTabId === openComp.competition.id
-                        ? 'var(--color-text)'
-                        : 'var(--color-text-light)',
-                    fontSize: '0.875rem',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    flex: 1,
-                  }}
-                >
-                  {openComp.competition.title}
-                  {openComp.isDirty && (
-                    <span style={{ color: '#ef4444', marginLeft: '0.25rem' }}>●</span>
-                  )}
-                  {(() => {
-                    const phase =
-                      openComp.competition.phases?.[openComp.competition.currentPhaseIndex];
-                    const badge = phase ? PHASE_BADGE[phase.type] : null;
-                    return badge ? (
-                      <span className={`tab-phase-badge ${badge.cls}`}>{badge.label}</span>
-                    ) : null;
-                  })()}
-                </span>
-                <Tooltip content={t('app.close_tab')}>
-                  <button
-                    onClick={e => handleTabClose(openComp.competition.id, e)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      padding: '0.125rem',
-                      borderRadius: '3px',
-                      fontSize: '0.75rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#e5e7eb';
-                      e.currentTarget.style.color = '#374151';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'none';
-                      e.currentTarget.style.color = '#6b7280';
-                    }}
-                    aria-label={t('app.close_tab')}
-                  >
-                    <X size={12} />
-                  </button>
-                </Tooltip>
-              </div>
-            ))}
-          </div>
+            onOpenClub={openClub}
+            onCloseClub={() => {
+              setClubTabOpen(false);
+              if (view === 'club') setView('home');
+            }}
+            onSwitchTab={handleTabSwitch}
+            onCloseTab={handleTabClose}
+          />
         )}
 
         <main className="main">
