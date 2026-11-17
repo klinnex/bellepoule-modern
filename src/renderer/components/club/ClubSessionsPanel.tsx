@@ -90,6 +90,10 @@ const isLive = (b: ClubBout) => b.status === 'pending' || b.status === 'in_progr
 interface ClubSessionsPanelProps {
   clubId: string;
   settings: ClubSettings;
+  /** Change quand le menu global a modifié les séances */
+  revision?: number;
+  /** Séances modifiées depuis l'onglet (menu global à recharger) */
+  onChanged?: () => void;
 }
 
 /** Combat en cours sur une piste : saisie du score par le maître d'armes */
@@ -193,7 +197,12 @@ const FreeStrip: React.FC<{
   );
 };
 
-export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, settings }) => {
+export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
+  clubId,
+  settings,
+  revision = 0,
+  onChanged,
+}) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -244,7 +253,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, revision]);
 
   // Interfaces réseau proposées pour la saisie distante (comme le mode entraînement)
   useEffect(() => {
@@ -280,6 +289,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({ clubId, se
       showToast(errText(e), 'error');
     }
     await load();
+    onChanged?.();
   };
 
   const byId = useMemo(() => new Map(members.map(m => [m.id, m])), [members]);

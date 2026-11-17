@@ -3513,6 +3513,15 @@
     "open_session": "Séance ouverte ({{date}})",
     "new_name": "Nom du nouveau club",
     "new_name_ph": "Cercle d'escrime",
+    "backup_export": "Sauvegarder le club",
+    "backup_export_help": "Enregistre tout le club (membres, séances, combats, inventaire, prêts, exercices) dans un fichier .bpclub à charger sur un autre ordinateur",
+    "backup_saved": "Club sauvegardé : {{name}}",
+    "backup_import": "Charger une sauvegarde",
+    "backup_import_help": "Club créé sur un autre ordinateur ? Chargez son fichier de sauvegarde .bpclub.",
+    "backup_replace_confirm": "Ce club existe déjà sur cet ordinateur. Remplacer toutes ses données par celles de la sauvegarde ?",
+    "backup_replace": "Remplacer",
+    "backup_loaded": "Club chargé : {{name}}",
+    "backup_file": "Sauvegarde de club BellePoule",
     "create": "Créer le club"
   },
   "clubPlan": {
@@ -3873,5 +3882,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Mode de l'appareil Cyrano de la piste {{number}}",
     "strip_invalid": "Adresse IPv4 ou port invalide (piste {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Séances prévues : {{count}}",
+    "button_open": "Séance du {{date}} ouverte",
+    "title": "Gestion des séances",
+    "current": "Séance ouverte",
+    "none_open": "Aucune séance ouverte.",
+    "open": "Ouvrir",
+    "today": "aujourd'hui",
+    "opened": "Séance du {{date}} ouverte",
+    "switch_confirm": "Fermer la séance du {{from}} et ouvrir celle du {{to}} ?"
   }
 }

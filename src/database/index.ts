@@ -23,6 +23,7 @@ import { OrganisationRepo } from './repos/organisationRepo';
 import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
 import { ClubRepo } from './repos/clubRepo';
 import { ClubInventoryRepo } from './repos/clubInventoryRepo';
+import { ClubBackupRepo } from './repos/clubBackupRepo';
 import { PrivacyRepo } from './repos/privacyRepo';
 import { SettingsRepo } from './repos/settingsRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
@@ -68,6 +69,7 @@ export class DatabaseManager {
   public readonly club = new ClubRepo(this.sql);
   /** Mode Club : inventaire du matériel et prêts aux tireurs */
   public readonly clubInventory = new ClubInventoryRepo(this.sql);
+  public readonly clubBackup = new ClubBackupRepo(this.sql);
   /** RGPD : droits des personnes, conservation (#1882) */
   public readonly privacy = new PrivacyRepo(this.sql);
   /** Paramétrage global du poste et salles (#1880) */

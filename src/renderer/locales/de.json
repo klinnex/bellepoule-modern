@@ -3513,6 +3513,15 @@
     "open_session": "Training offen ({{date}})",
     "new_name": "Name des neuen Vereins",
     "new_name_ph": "Fechtverein",
+    "backup_export": "Verein sichern",
+    "backup_export_help": "Speichert den ganzen Verein (Mitglieder, Trainings, Gefechte, Inventar, Ausleihen, Übungen) in einer .bpclub-Datei zum Laden auf einem anderen Computer",
+    "backup_saved": "Verein gesichert: {{name}}",
+    "backup_import": "Sicherung laden",
+    "backup_import_help": "Verein auf einem anderen Computer erstellt? Laden Sie seine .bpclub-Sicherung.",
+    "backup_replace_confirm": "Dieser Verein existiert bereits auf diesem Computer. Alle Daten durch die Sicherung ersetzen?",
+    "backup_replace": "Ersetzen",
+    "backup_loaded": "Verein geladen: {{name}}",
+    "backup_file": "BellePoule-Vereinssicherung",
     "create": "Verein anlegen"
   },
   "clubPlan": {
@@ -3873,5 +3882,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Modus des Cyrano-Geräts der Planche {{number}}",
     "strip_invalid": "Ungültige IPv4-Adresse oder ungültiger Port (Planche {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Geplante Trainings: {{count}}",
+    "button_open": "Training vom {{date}} geöffnet",
+    "title": "Trainings verwalten",
+    "current": "Offenes Training",
+    "none_open": "Kein Training geöffnet.",
+    "open": "Öffnen",
+    "today": "heute",
+    "opened": "Training vom {{date}} geöffnet",
+    "switch_confirm": "Training vom {{from}} schließen und das vom {{to}} öffnen?"
   }
 }

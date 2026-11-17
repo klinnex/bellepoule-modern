@@ -3513,6 +3513,15 @@
     "open_session": "Abadenn digor ({{date}})",
     "new_name": "Anv ar c'hlub nevez",
     "new_name_ph": "Klub skrim",
+    "backup_export": "Gwareziñ ar c'hlub",
+    "backup_export_help": "Enrollañ a ra ar c'hlub a-bezh (izili, dalc'hoù, emgannoù, rolladenn, prestoù, poelladennoù) en ur restr .bpclub da gargañ war un urzhiataer all",
+    "backup_saved": "Klub gwarezet : {{name}}",
+    "backup_import": "Kargañ ur gwarez",
+    "backup_import_help": "Klub krouet war un urzhiataer all ? Kargit e restr gwarez .bpclub.",
+    "backup_replace_confirm": "Bez ez eus eus ar c'hlub-mañ war an urzhiataer-mañ dija. Erlec'hiañ e holl roadennoù gant re ar gwarez ?",
+    "backup_replace": "Erlec'hiañ",
+    "backup_loaded": "Klub karget : {{name}}",
+    "backup_file": "Gwarez klub BellePoule",
     "create": "Krouiñ ar c'hlub"
   },
   "clubPlan": {
@@ -3873,5 +3882,16 @@
     "strip_port_placeholder": "Porzh",
     "strip_mode": "Mod dafar Cyrano ar bistenn {{number}}",
     "strip_invalid": "Chomlec'h IPv4 pe borzh direizh (pistenn {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Emgavioù raktreset : {{count}}",
+    "button_open": "Emgav an {{date}} digor",
+    "title": "Merañ an emgavioù",
+    "current": "Emgav digor",
+    "none_open": "Emgav digor ebet.",
+    "open": "Digeriñ",
+    "today": "hiziv",
+    "opened": "Emgav an {{date}} digoret",
+    "switch_confirm": "Serriñ emgav an {{from}} ha digeriñ hini an {{to}}?"
   }
 }

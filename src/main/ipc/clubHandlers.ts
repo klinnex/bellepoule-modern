@@ -4,7 +4,10 @@
  * Licensed under GPL-3.0
  */
 import { ipcMain } from 'electron';
+import * as fs from 'fs';
 import { readPhotosZip } from './fileHandlers';
+import { assertAuthorizedPath, readBoundedFile } from '../pathAuthorization';
+import { CLUB_BACKUP_EXT, decodeClubBackup, encodeClubBackup } from '../clubBackupFile';
 import { remoteServers } from '../remoteRegistry';
 import { TRAINING_ID } from './trainingHandlers';
 import { trainingFinishListeners, type TrainingFinishRecord } from '../remote/matchFinish';
@@ -259,4 +262,16 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   ipcMain.handle('club:importItems', (_, clubId: string, list: ClubItemInput[]) =>
     inv.importItems(clubId, Array.isArray(list) ? list : [])
   );
+  // Sauvegarde complète d'un club (.bpclub) pour la recharger sur un autre poste
+  ipcMain.handle('club:exportBackup', async (_, clubId: string, filePath: string) => {
+    const target = assertAuthorizedPath(filePath, 'write', [CLUB_BACKUP_EXT]);
+    const backup = db.clubBackup.exportClub(clubId);
+    await fs.promises.writeFile(target, await encodeClubBackup(backup));
+    return { clubName: backup.clubName };
+  });
+  ipcMain.handle('club:importBackup', async (_, filePath: string, replace?: boolean) => {
+    const source = assertAuthorizedPath(filePath, 'read', [CLUB_BACKUP_EXT]);
+    const data = await decodeClubBackup(await readBoundedFile(source));
+    return db.clubBackup.importClub(data, replace === true);
+  });
 }

@@ -12,12 +12,15 @@ import {
   Dumbbell,
   GraduationCap,
   Package,
+  Save,
   Shield,
   Sparkles,
   Trash2,
   Users,
 } from 'lucide-react';
 import { useConfirm } from '../ConfirmDialog';
+import { useToast } from '../Toast';
+import { exportClubBackup } from './clubBackup';
 import { ClubPicker } from './ClubPicker';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -25,6 +28,7 @@ import { Button } from '../common/Button';
 import { ClubMembersPanel } from './ClubMembersPanel';
 import { ClubSessionsPanel } from './ClubSessionsPanel';
 import { ClubCoachesPanel } from './ClubCoachesPanel';
+import { ClubSessionMenu } from './ClubSessionMenu';
 import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubExercisesPanel } from './ClubExercisesPanel';
 import { ClubInventoryPanel } from './ClubInventoryPanel';
@@ -75,11 +79,17 @@ const ClubSpace: React.FC<{
 }> = ({ clubId, onSelectClub }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<ClubTab>('members');
   const [settings, setSettings] = useState<ClubSettings>({ name: '', stripCount: 1 });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [membersCount, setMembersCount] = useState<number | null>(null);
   const [cardsPrinted, setCardsPrinted] = useState(readCardsPrinted);
+  // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
+  const [menuRevision, setMenuRevision] = useState(0);
+  const [panelRevision, setPanelRevision] = useState(0);
+  const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
+  const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
 
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.club;
@@ -106,6 +116,16 @@ const ClubSpace: React.FC<{
     onSelectClub(null);
   };
 
+  const saveBackup = async () => {
+    try {
+      if (await exportClubBackup(clubId, settings.name, t)) {
+        showToast(t('clubs.backup_saved', { name: settings.name }), 'success');
+      }
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : String(e), 'error');
+    }
+  };
+
   const onCardsPrinted = useCallback(() => {
     markCardsPrinted();
     setCardsPrinted(true);
@@ -127,6 +147,12 @@ const ClubSpace: React.FC<{
           <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
           <p className="club-header-sub">{t('club.subtitle')}</p>
         </div>
+        <ClubSessionMenu
+          clubId={clubId}
+          revision={menuRevision}
+          onChanged={bumpPanel}
+          onPrepare={() => setTab('sessions')}
+        />
         <Button
           variant="ghost"
           icon={<Sparkles size={15} aria-hidden="true" />}
@@ -136,6 +162,13 @@ const ClubSpace: React.FC<{
           }}
         >
           {t('clubTour.restart')}
+        </Button>
+        <Button
+          icon={<Save size={15} aria-hidden="true" />}
+          title={t('clubs.backup_export_help')}
+          onClick={() => void saveBackup()}
+        >
+          {t('clubs.backup_export')}
         </Button>
         <Button
           icon={<ArrowLeftRight size={15} aria-hidden="true" />}
@@ -178,7 +211,14 @@ const ClubSpace: React.FC<{
           />
         )}
         {tab === 'coaches' && <ClubCoachesPanel clubId={clubId} />}
-        {tab === 'sessions' && <ClubSessionsPanel clubId={clubId} settings={settings} />}
+        {tab === 'sessions' && (
+          <ClubSessionsPanel
+            clubId={clubId}
+            settings={settings}
+            revision={panelRevision}
+            onChanged={bumpMenu}
+          />
+        )}
         {tab === 'stats' && <ClubStatsPanel clubId={clubId} />}
         {tab === 'exercises' && <ClubExercisesPanel />}
         {tab === 'inventory' && <ClubInventoryPanel clubId={clubId} />}

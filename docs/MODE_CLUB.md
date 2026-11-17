@@ -10,14 +10,14 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 ## 1. Onglets
 
-| Onglet | Contenu |
-|---|---|
-| **Membres** | Identité du club (nom, logo, arme par défaut, nombre de pistes), annuaire, cartes de membre, QR des pistes. |
-| **Maîtres d'armes** | Encadrement du club : fonction / diplôme, contact, armes enseignées, notes, archivage. |
-| **Séances** | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
-| **Statistiques** | Classement du club et fiche membre par période et par catégories d'âge. |
-| **Exercices** | Bibliothèque d'exercices partagée entre clubs, exportable / importable. |
-| **Inventaire** | Matériel du club (masques, armes, vestes…), achats, garanties, états, prêts aux tireurs. |
+| Onglet              | Contenu                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Membres**         | Identité du club (nom, logo, arme par défaut, nombre de pistes), annuaire, cartes de membre, QR des pistes.                          |
+| **Maîtres d'armes** | Encadrement du club : fonction / diplôme, contact, armes enseignées, notes, archivage.                                               |
+| **Séances**         | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
+| **Statistiques**    | Classement du club et fiche membre par période et par catégories d'âge.                                                              |
+| **Exercices**       | Bibliothèque d'exercices partagée entre clubs, exportable / importable.                                                              |
+| **Inventaire**      | Matériel du club (masques, armes, vestes…), achats, garanties, états, prêts aux tireurs.                                             |
 
 ## 2. Membres
 
@@ -50,11 +50,11 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 ## 3. Séances
 
-| Statut | Sens |
-|---|---|
-| `planned` | Préparée à l'avance, démarrée plus tard (**Démarrer**). |
-| `open` | En cours ; une seule par club. |
-| `closed` | Terminée ; combats non terminés annulés. Réouverture possible. |
+| Statut    | Sens                                                           |
+| --------- | -------------------------------------------------------------- |
+| `planned` | Préparée à l'avance, démarrée plus tard (**Démarrer**).        |
+| `open`    | En cours ; une seule par club.                                 |
+| `closed`  | Terminée ; combats non terminés annulés. Réouverture possible. |
 
 - Ouverture : date (mini-calendrier), intitulé, arme (règles de la saisie distante),
   **catégories d'âge du cours** (de … à …, bornes incluses), **maîtres d'armes** de la séance
@@ -67,6 +67,10 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
 - Listes des séances préparées et passées filtrables par catégorie d'âge.
+- **Menu des séances** (en-tête du club, visible depuis tous les onglets) : séance ouverte
+  (**Fermer la séance**) et liste des séances prévues par date (**Ouvrir**). Ouvrir une
+  séance prévue alors qu'une autre est ouverte ferme d'abord celle-ci, après confirmation.
+  **Préparer une séance** renvoie à l'onglet Séances (`ClubSessionMenu.tsx`).
 - Bilan à la fermeture : note sur 5, ce qui a marché, à améliorer, remarque par tireur présent.
 
 ### Pointage
@@ -100,7 +104,7 @@ cours (plage début → fin modifiable, retenue pour la séance), recherche, cas
     la piste (un combat prévu non commencé sur cette piste est annulé) ;
   - une ou aucune carte : combat libre avec les noms connus, **non comptabilisé** ;
   - **Arbitrer sans cartes** : la piste garde son combat libre.
-  Bouton **Cartes** de la vue arbitre : nouvelle identification.
+    Bouton **Cartes** de la vue arbitre : nouvelle identification.
 - API : `GET /api/club/identify` (scan proposé ? nom du club), `POST /api/club/identify`
   `{ arena, codeA, codeB }` (codes `null` = passés ; limite de débit de la saisie des scores).
   Erreurs : `no_session`, `no_arena`, `busy`, `unknown_card` (+ `side`), `same_member`.
@@ -136,7 +140,7 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
   Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
   quantité 1 à 999.
-- **Ajout en série** (nouvelle fiche, case *Ajouter en série*) : N fiches d'un exemplaire chacune
+- **Ajout en série** (nouvelle fiche, case _Ajouter en série_) : N fiches d'un exemplaire chacune
   (1 à 200), nommées `Nom-01`, `Nom-02`… Numérotation reprise après le plus grand suffixe déjà
   présent (`Plastron-07` existe → `Plastron-08`), aucun doublon de nom (casse ignorée), deux
   chiffres minimum. Le numéro de série n'est pas recopié. Une seule transaction.
@@ -183,15 +187,28 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 `ClubLoanModal.tsx`. API IPC : `club.listItems`, `createItem`, `updateItem`, `deleteItem`,
 `listLoans`, `lendItem`, `returnLoan`, `deleteLoan`.
 
-## 8. Code
+## 8. Sauvegarde et changement d'ordinateur
 
-| Élément | Fichier |
-|---|---|
-| Types, API IPC `club.*` | `src/shared/types/club.ts`, `src/main/preload.ts` |
-| Dépôt SQLite | `src/database/repos/clubRepo.ts` (tables `clubs`, `club_members`, `club_coaches`, `club_sessions`, `club_session_coaches`, `club_attendance`, `club_bouts`, `club_exercises`) |
-| Handlers IPC | `src/main/ipc/clubHandlers.ts` |
-| Saisie distante | `src/main/remote/clubArena.ts`, `src/main/remote/routes/clubRoutes.ts`, `src/remote/js/refereeClubCards.js` |
-| Utilitaires | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan) |
-| PDF | `src/shared/utils/pdfExport/clubCardsPdf.ts`, `clubPlanPdf.ts` |
-| Inventaire | `src/database/repos/clubInventoryRepo.ts`, `src/shared/utils/clubInventory.ts`, `src/renderer/components/club/ClubInventoryPanel.tsx` (tables `club_items`, `club_loans`) |
-| Interface | `src/renderer/components/club/` |
+- **Sauvegarder le club** (en-tête du club) : fichier `.bpclub` (ZIP) avec tout le club —
+  fiche, membres (photos comprises), maîtres d'armes, séances (encadrement compris), présences, combats, inventaire, prêts, catégories,
+  marques — et la bibliothèque d'exercices du poste.
+- **Charger une sauvegarde** (écran de choix du club) : recrée le club à l'identique sur l'autre
+  poste. Club déjà présent (même club, déjà chargé) : confirmation, puis ses données sont
+  **remplacées** par celles du fichier. Exercices : ajoutés s'ils manquent, jamais écrasés.
+  Salle d'une séance inconnue sur ce poste : retirée de la séance. Tout ou rien (transaction).
+- Fichier refusé s'il n'est pas une sauvegarde de club ou s'il vient d'une version plus récente.
+- Données personnelles : le fichier n'est pas chiffré, le conserver en lieu sûr (docs/RGPD.md).
+
+## 9. Code
+
+| Élément                 | Fichier                                                                                                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Types, API IPC `club.*` | `src/shared/types/club.ts`, `src/main/preload.ts`                                                                                                                             |
+| Dépôt SQLite            | `src/database/repos/clubRepo.ts` (tables `clubs`, `club_members`, `club_coaches`, `club_sessions`, `club_session_coaches`, `club_attendance`, `club_bouts`, `club_exercises`) |
+| Handlers IPC            | `src/main/ipc/clubHandlers.ts`                                                                                                                                                |
+| Saisie distante         | `src/main/remote/clubArena.ts`, `src/main/remote/routes/clubRoutes.ts`, `src/remote/js/refereeClubCards.js`                                                                   |
+| Utilitaires             | `src/shared/utils/club*.ts` (âge, QR, import, plan, partage, stats, scan)                                                                                                     |
+| PDF                     | `src/shared/utils/pdfExport/clubCardsPdf.ts`, `clubPlanPdf.ts`                                                                                                                |
+| Inventaire              | `src/database/repos/clubInventoryRepo.ts`, `src/shared/utils/clubInventory.ts`, `src/renderer/components/club/ClubInventoryPanel.tsx` (tables `club_items`, `club_loans`)     |
+| Sauvegarde              | `src/database/repos/clubBackupRepo.ts`, `src/main/clubBackupFile.ts`, `src/renderer/components/club/clubBackup.ts` (IPC `club:exportBackup`, `club:importBackup`)             |
+| Interface               | `src/renderer/components/club/`                                                                                                                                               |

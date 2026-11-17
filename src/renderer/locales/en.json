@@ -3513,6 +3513,15 @@
     "open_session": "Session open ({{date}})",
     "new_name": "New club name",
     "new_name_ph": "Fencing club",
+    "backup_export": "Back up club",
+    "backup_export_help": "Saves the whole club (members, sessions, bouts, inventory, loans, exercises) to a .bpclub file to load on another computer",
+    "backup_saved": "Club backed up: {{name}}",
+    "backup_import": "Load a backup",
+    "backup_import_help": "Club created on another computer? Load its .bpclub backup file.",
+    "backup_replace_confirm": "This club already exists on this computer. Replace all its data with the backup?",
+    "backup_replace": "Replace",
+    "backup_loaded": "Club loaded: {{name}}",
+    "backup_file": "BellePoule club backup",
     "create": "Create club"
   },
   "clubPlan": {
@@ -3873,5 +3882,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Mode of the Cyrano device of strip {{number}}",
     "strip_invalid": "Invalid IPv4 address or port (strip {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Planned sessions: {{count}}",
+    "button_open": "Session of {{date}} open",
+    "title": "Manage sessions",
+    "current": "Open session",
+    "none_open": "No session open.",
+    "open": "Open",
+    "today": "today",
+    "opened": "Session of {{date}} opened",
+    "switch_confirm": "Close the session of {{from}} and open the one of {{to}}?"
   }
 }

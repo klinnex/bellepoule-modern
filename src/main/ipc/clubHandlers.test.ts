@@ -64,7 +64,7 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(67);
+    expect(handlers.size).toBe(69);
   });
 
   it('inventaire : délègue au dépôt, filtres et booléens par défaut', () => {

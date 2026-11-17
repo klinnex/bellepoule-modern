@@ -3513,6 +3513,15 @@
     "open_session": "訓練進行中（{{date}}）",
     "new_name": "新會館名稱",
     "new_name_ph": "劍擊會",
+    "backup_export": "備份會館",
+    "backup_export_help": "將整個會館（會員、課堂、比賽、庫存、借出、練習）儲存為 .bpclub 檔案，以便在另一部電腦載入",
+    "backup_saved": "會館已備份：{{name}}",
+    "backup_import": "載入備份",
+    "backup_import_help": "會館在另一部電腦建立？請載入其 .bpclub 備份檔案。",
+    "backup_replace_confirm": "此會館已存在於這部電腦。要以備份取代其所有資料嗎？",
+    "backup_replace": "取代",
+    "backup_loaded": "會館已載入：{{name}}",
+    "backup_file": "BellePoule 會館備份",
     "create": "建立會館"
   },
   "clubPlan": {
@@ -3873,5 +3882,16 @@
     "strip_port_placeholder": "連接埠",
     "strip_mode": "劍道 {{number}} 的 Cyrano 裝置模式",
     "strip_invalid": "IPv4 位址或連接埠無效（劍道 {{number}}）。"
+  },
+  "clubSessionMenu": {
+    "button": "已計劃課堂：{{count}}",
+    "button_open": "{{date}} 課堂進行中",
+    "title": "管理課堂",
+    "current": "進行中的課堂",
+    "none_open": "沒有進行中的課堂。",
+    "open": "開始",
+    "today": "今天",
+    "opened": "{{date}} 課堂已開始",
+    "switch_confirm": "結束 {{from}} 的課堂並開始 {{to}} 的課堂？"
   }
 }
