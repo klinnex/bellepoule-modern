@@ -22,6 +22,9 @@
   --color-primary-light: #6b84e8;
   --color-primary-glow: rgba(59, 91, 219, 0.18);
   --color-on-primary: #ffffff;
+  /* Bouton « Lobby » de la tablette d'entraînement : bleu roi */
+  --color-lobby: #4169e1;
+  --color-lobby-border: #2a4fb8;
 
   --color-success: #0d9488;
   --color-warning: #d97706;

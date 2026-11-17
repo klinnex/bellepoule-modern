@@ -128,3 +128,10 @@ button,
     padding: 0.4rem 0.25rem;
   }
 }
+
+/* Bouton « Lobby » (entraînement) : bleu roi, texte blanc */
+#btn-lobby.inl-fc7f64.inl-fc7f64 {
+  background: var(--color-lobby);
+  border-color: var(--color-lobby-border);
+  color: var(--color-white);
+}

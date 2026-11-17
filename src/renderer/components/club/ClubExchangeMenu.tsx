@@ -48,7 +48,7 @@ export const ClubExchangeMenu: React.FC<ClubExchangeMenuProps> = ({
   }, [open]);
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={ref} className="club-exchange-menu">
       <Button
         icon={icon}
         disabled={disabled}
@@ -60,23 +60,7 @@ export const ClubExchangeMenu: React.FC<ClubExchangeMenuProps> = ({
         {label} <ChevronDown size={14} aria-hidden="true" />
       </Button>
       {open && (
-        <div
-          role="menu"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '4px',
-            zIndex: 50,
-            minWidth: '200px',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '6px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            padding: '0.25rem',
-          }}
-        >
+        <div role="menu" className="club-exchange-menu-list">
           {items.map(item => (
             <button
               key={item.key}
@@ -86,17 +70,7 @@ export const ClubExchangeMenu: React.FC<ClubExchangeMenuProps> = ({
                 setOpen(false);
                 item.onSelect();
               }}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                padding: '0.4rem 0.6rem',
-                background: 'none',
-                border: 0,
-                borderRadius: '4px',
-                color: 'inherit',
-                cursor: 'pointer',
-              }}
+              className="club-exchange-menu-item"
             >
               {item.label}
             </button>

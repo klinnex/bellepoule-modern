@@ -21,6 +21,10 @@ vi.mock('better-sqlite3-multiple-ciphers', () => ({
 vi.mock('fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
   mkdirSync: vi.fn(),
+  // Chiffrement (#1882) : base absente → isEncryptedDatabaseFile renvoie false
+  statSync: vi.fn(() => {
+    throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+  }),
 }));
 
 vi.mock('./migrations', () => ({
