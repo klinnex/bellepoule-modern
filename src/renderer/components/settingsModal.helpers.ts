@@ -44,6 +44,7 @@ export type SettingsItemId =
   | 'proxy'
   | 'mcp'
   | 'backup'
+  | 'backup_dir'
   | 'tour'
   | 'privacy_network'
   | 'privacy_retention'
@@ -141,6 +142,10 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
       },
       { id: 'proxy', keys: ['settings.proxy_title', 'settings.proxy_hint'] },
       { id: 'mcp', keys: ['settings.mcp_title', 'settings.mcp_hint'] },
+      {
+        id: 'backup_dir',
+        keys: ['settings.backup_dir_title', 'settings.backup_dir_hint'],
+      },
       { id: 'backup', keys: ['settings.backup_title', 'settings.backup_hint'] },
       { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
     ],

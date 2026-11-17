@@ -361,6 +361,20 @@ export interface ProxySettingsDTO {
   bypass?: string;
 }
 
+/** Dossier de sauvegarde par défaut (Paramètres → Sauvegarde) */
+export interface BackupDirDTO {
+  dir: string;
+  /** true : pas de réglage, dossier `<Documents>/BellePoule` */
+  isDefault: boolean;
+}
+
+export interface BackupAPI {
+  get: () => Promise<BackupDirDTO>;
+  /** Ouvre le sélecteur de dossier natif ; annulation = dossier inchangé */
+  chooseDir: () => Promise<BackupDirDTO>;
+  resetDir: () => Promise<BackupDirDTO>;
+}
+
 export interface ProxyAPI {
   get: () => Promise<ProxySettingsDTO>;
   set: (
@@ -1410,6 +1424,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   dialog: DialogAPI;
   updater: UpdaterAPI;
   proxy: ProxyAPI;
+  backup: BackupAPI;
   privacy: PrivacyAPI;
   /** Serveur MCP intégré, agent IA en lecture (#1880) */
   mcp: McpAPI;
