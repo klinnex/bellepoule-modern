@@ -11,7 +11,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { recordRemoteEvent } from './remoteEvents';
 import { timerForMatch, timerJoinFields } from './arenaTimer';
-import { advanceTeamBout, teamArenaElapsedSec } from './teamArena';
+import { advanceTeamBout, broadcastTeamArena, teamArenaElapsedSec } from './teamArena';
 
 type S = RemoteScoreServer;
 
@@ -292,13 +292,6 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       socket.emit('team_arena_state', ctx.getPublicTeamArenaState(data.arenaId));
     });
 
-    const broadcastTeamArena = (arenaId: string) => {
-      ctx.io
-        .to(`team-arena:${arenaId}`)
-        .emit('team_arena_state', ctx.getPublicTeamArenaState(arenaId));
-      ctx.cyranoTeamHook?.(arenaId);
-    };
-
     // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
     // à 5 touches valides cumulées, vérifié après chaque saisie.
     socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
@@ -312,7 +305,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       if (!bout || bout.status === 'finished') return;
       if (data.side === 'A') state.liveScoreA += data.points;
       else state.liveScoreB += data.points;
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     // Réinitialise l'assaut en cours (score et chrono), sans le terminer.
@@ -324,7 +317,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       state.liveScoreB = 0;
       state.elapsedAccumulatedSec = 0;
       state.timerStartedAt = null;
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     socket.on('team_timer_start', (data: { arenaId: string }) => {
@@ -332,7 +325,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       const state = ctx.teamArenaState.get(data.arenaId);
       if (!state || state.timerStartedAt !== null) return;
       state.timerStartedAt = Date.now();
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     socket.on('team_timer_pause', (data: { arenaId: string }) => {
@@ -341,7 +334,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
       if (!state || state.timerStartedAt === null) return;
       state.elapsedAccumulatedSec = teamArenaElapsedSec(state);
       state.timerStartedAt = null;
-      broadcastTeamArena(data.arenaId);
+      broadcastTeamArena(ctx, data.arenaId);
     });
 
     // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
@@ -376,7 +369,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           type: data.type,
           createdAt: new Date().toISOString(),
         });
-        broadcastTeamArena(data.arenaId);
+        broadcastTeamArena(ctx, data.arenaId);
       }
     );
 
@@ -406,7 +399,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           type: card.type,
           reason: card.reason,
         });
-        broadcastTeamArena(data.arenaId);
+        broadcastTeamArena(ctx, data.arenaId);
       }
     );
 

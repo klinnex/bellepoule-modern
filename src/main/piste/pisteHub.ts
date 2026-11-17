@@ -507,8 +507,7 @@ export class PisteHub {
       kind: 'display',
       display: this.buildDisplay(match, scoreA, scoreB, status, remote),
       // Champ épreuve : seulement entre plusieurs épreuves (sinon celui du pilote)
-      competition:
-        this.remotes().length > 1 ? (remote?.getSession()?.competitionId ?? undefined) : undefined,
+      competition: this.competitionField(remote, status),
     });
     logger.info(LogCategory.NETWORK, `Cyrano: DISP → ${piste} (match ${match.id})`);
   }
