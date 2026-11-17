@@ -49,6 +49,17 @@ export function isPermissionAllowed(
 }
 
 /**
+ * Origine à contrôler dans setPermissionCheckHandler. En production le bundle est servi en
+ * `file://` : Chromium rapporte alors `file://` (sans chemin), qui n'est pas une URL de page.
+ * On retient l'URL de la page elle-même, sinon la caméra (Mode Club, photo tireur) est refusée
+ * avant même la demande de permission.
+ */
+export function permissionCheckUrl(requestingOrigin: string | undefined, pageUrl: string): string {
+  if (!requestingOrigin || /^file:\/\/\/?$/.test(requestingOrigin)) return pageUrl;
+  return requestingOrigin;
+}
+
+/**
  * CSP de l'en-tête de session (#1343). `style-src 'self'` stricte par défaut ;
  * `'unsafe-inline'` réservé aux fenêtres d'impression / PDF (HTML avec <style>, JS désactivé).
  */
