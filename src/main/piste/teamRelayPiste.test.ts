@@ -130,6 +130,24 @@ const mockDb = {
       : null
   ),
   getArenaState: vi.fn().mockReturnValue(null),
+  // Séance individuelle sur le même serveur (arène individuelle N)
+  getPendingMatches: vi.fn().mockReturnValue([]),
+  getCompetitionPools: vi.fn().mockReturnValue([]),
+  getMatchesByPool: vi.fn().mockReturnValue([]),
+  getPoolFencers: vi.fn().mockReturnValue([]),
+  getPoolCount: vi.fn().mockReturnValue(1),
+  getMatch: vi.fn((id: string) => ({ id, scoreA: { value: 0 }, scoreB: { value: 0 } })),
+  updateMatch: vi.fn(),
+  updateMatchTiming: vi.fn(),
+  saveCard: vi.fn(),
+  clearArenaEvents: vi.fn(),
+  saveTouch: vi.fn(),
+  saveArenaExit: vi.fn(),
+  logScoreChange: vi.fn(),
+  saveArenaState: vi.fn(),
+  updateFencer: vi.fn(),
+  logRemoteEvent: vi.fn(),
+  updateReferee: vi.fn(),
   getSessionState: vi.fn().mockReturnValue(null),
   getFencersByCompetition: vi.fn().mockReturnValue([]),
   getRefereesByCompetition: vi.fn().mockReturnValue([]),
@@ -467,6 +485,34 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
     out = [];
     device(info('E', 1, { id: A[0], score: 5 }, { id: B[0], score: 1 }));
     expect(out).toEqual([]);
+  });
+
+  it('rencontre terminée encore assignée : l’arène individuelle N reçoit les entrées', async () => {
+    start(
+      9,
+      Array.from({ length: 9 }, () => [5, 4] as [number, number])
+    );
+    const withReferees = remote as unknown as { loadSessionReferees: () => unknown[] };
+    vi.spyOn(withReferees, 'loadSessionReferees').mockReturnValue([]);
+    const I = ['c1c1c1c1-0000-4000-8000-000000000001', 'd2d2d2d2-0000-4000-8000-000000000002'];
+    const fencer = (id: string) => ({ id, firstName: 'I', lastName: id.slice(0, 2) });
+    await remote.startSession('comp-t', 1, [
+      { __poolFencers: true, poolId: 'pool-i', poolNumber: 1, strip: 1, fencers: [] },
+      {
+        id: 'mi-0000-4000-8000-000000000000',
+        poolId: 'pool-i',
+        number: 1,
+        fencerA: fencer(I[0]),
+        fencerB: fencer(I[1]),
+        status: 'not_started',
+      },
+    ] as never);
+    expect(remote.getArena('arena1')?.currentMatch?.fencerA.id).toBe(I[0]);
+    device(info('H', 1, { id: I[0], score: 2 }, { id: I[1], score: 1 }));
+    expect(remote.getArena('arena1')?.currentMatch).toMatchObject({ scoreA: 2, scoreB: 1 });
+    // PREV pour la rencontre terminée : sans effet sur l'arène équipe
+    device('|EFP1.1|PREV|1||%|');
+    expect(mockDb.reopenTeamBout).not.toHaveBeenCalled();
   });
 
   it('rencontre retirée de l’arène : affichage vide', () => {

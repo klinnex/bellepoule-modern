@@ -172,7 +172,9 @@ export class TeamRelayPiste {
       return;
     }
     if (!view.bout) {
-      if (known?.matchId !== null) this.display(link, remote, view);
+      // Rencontre terminée : l'appareil quitte le dernier relais, sans effacer un match
+      // individuel qu'il afficherait entre-temps
+      if (known?.matchId?.startsWith('team:')) this.display(link, remote, view);
       return;
     }
     if (
@@ -343,7 +345,6 @@ export class TeamRelayPiste {
     this.host.acked.set(piste, key);
     logger.info(LogCategory.NETWORK, `Cyrano: ACK → ${piste} (relais ${bout.boutOrder})`);
     // Relais enregistré ; l'arène prévient le hub, qui affiche le relais suivant
-    this.host.device.delete(piste);
     finishRelay(ctx, String(link.arena));
   }
 

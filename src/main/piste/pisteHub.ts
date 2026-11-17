@@ -32,6 +32,7 @@ import {
   type PisteSides,
 } from './pisteState';
 import { TeamRelayPiste } from './teamRelayPiste';
+import type { TeamRelayView } from '../remote/teamRelayDevice';
 import type {
   PisteDisplay,
   PisteDisplaySide,
@@ -219,6 +220,18 @@ export class PisteHub {
     );
   }
 
+  /**
+   * Relais par équipes qui reçoit les entrées de la piste : même critère que le routage
+   * (`hasRelay` : relais en cours). Une rencontre terminée encore assignée à `/equipe{N}` ne
+   * reçoit les entrées (END répété, PREV) que si l'arène individuelle N n'a aucune affectation.
+   */
+  private relayFor(remote: RemoteScoreServer, link: PisteLink): TeamRelayView | null {
+    const view = link.arena ? this.team.view(remote, link) : null;
+    if (!view) return null;
+    if (view.bout) return view;
+    return hasAssignment(remote, `arena${link.arena}`) ? null : view;
+  }
+
   /** Champ épreuve de l'affichage : seulement entre plusieurs épreuves. */
   competitionField(remote: RemoteScoreServer | null, link: PisteLink): string | undefined {
     return this.remotes().length > 1 && remote ? this.competitionOf(remote, link) : undefined;
@@ -265,7 +278,7 @@ export class PisteHub {
   modeOf(piste: PisteLink, remote: RemoteScoreServer | null = this.remoteFor(piste)): PisteMode {
     if (piste.mode === 'manual' || piste.status === 'offline') return 'manual';
     const weapon =
-      (remote && piste.arena ? this.team.view(remote, piste)?.state.weapon : undefined) ??
+      (remote ? this.relayFor(remote, piste)?.state.weapon : undefined) ??
       remote?.getSessionWeapon();
     if (weapon && !toCyranoWeapon(weapon)) return 'display';
     return piste.mode;
@@ -358,7 +371,7 @@ export class PisteHub {
     const status = this.driver.findPiste(piste);
     if (!status?.arena || this.modeOf(status) === 'manual') return;
     const remote = this.remoteFor(status);
-    const relay = remote ? this.team.view(remote, status) : null;
+    const relay = remote ? this.relayFor(remote, status) : null;
     if (remote && relay) {
       this.team.display(status, remote, relay);
       return;
@@ -505,7 +518,7 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     const mode = this.modeOf(piste, remote);
-    const relay = this.team.view(remote, piste);
+    const relay = this.relayFor(remote, piste);
     if (relay) {
       this.team.handleState(piste, state, remote, mode, relay);
       return;
@@ -671,7 +684,7 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
-    const relay = this.team.view(remote, piste);
+    const relay = this.relayFor(remote, piste);
     if (relay) {
       this.team.handleNext(piste, remote, relay);
       return;
@@ -703,7 +716,7 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
-    const relay = this.team.view(remote, piste);
+    const relay = this.relayFor(remote, piste);
     if (relay) {
       this.team.handlePrev(piste, remote, relay);
       return;
