@@ -9,6 +9,7 @@ import {
   exportFencersToFFF,
   exportFencersToTXT,
   exportResultsToFFF,
+  exportTeamResultsToFFF,
 } from './fencerExport';
 import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
 
@@ -42,7 +43,7 @@ describe('exportFencersToFFF', () => {
   it('commence par l’en-tête FFF;WIN;COMPETITION puis la ligne de compétition', () => {
     const lines = exportFencersToFFF(LIST_COMP, []).split('\n');
     expect(lines[0]).toBe("FFF;WIN;COMPETITION;CERCLE D'ESCRIME DE DOURDAN");
-    expect(lines[1]).toBe('7/6/2026;sabre;m;senior;Coupe de Dourdan 2026;Dourdan 2026');
+    expect(lines[1]).toBe('7/6/2026;sabre;M;senior;Coupe de Dourdan 2026;Dourdan 2026');
   });
 
   it('met le nom en majuscules et convertit le genre', () => {
@@ -138,11 +139,11 @@ describe('exportResultsToFFF (spécification FFF)', () => {
     updatedAt: new Date(),
   } as unknown as Competition;
 
-  it('écrit l’en-tête FFF;WIN;COMPETITION;organisateur puis la ligne de compétition', () => {
+  it('écrit l’en-tête FFF;WIN;competition;organisateur;individuel puis la ligne de compétition', () => {
     const out = exportResultsToFFF(comp, []);
     const lines = out.split('\n');
-    expect(lines[0]).toBe("FFF;WIN;COMPETITION;CERCLE D'ESCRIME DE DOURDAN");
-    expect(lines[1]).toBe('7/6/2026;sabre;m;senior;Coupe de Dourdan 2026;Dourdan 2026');
+    expect(lines[0]).toBe("FFF;WIN;competition;CERCLE D'ESCRIME DE DOURDAN;individuel");
+    expect(lines[1]).toBe('7/6/2026;sabre;M;senior;Coupe de Dourdan 2026;Dourdan 2026');
   });
 
   it('écrit général;FIE;national;rang,T pour un tireur ayant participé au tableau', () => {
@@ -179,6 +180,49 @@ describe('exportResultsToFFF (spécification FFF)', () => {
     expect(lines[3].startsWith('MARTIN,')).toBe(true);
     expect(lines[4].startsWith('ABANDON,')).toBe(true);
     expect(lines[4].endsWith(';,T')).toBe(true);
+  });
+});
+
+describe('exportTeamResultsToFFF (#1949)', () => {
+  const comp = {
+    ...LIST_COMP,
+    title: 'Nationale exemple',
+    shortTitle: 'FSENIOR-eq',
+    organizer: '',
+    weapon: Weapon.FOIL,
+    isTeamEvent: true,
+  } as unknown as Competition;
+  const member = (lastName: string, license: string) =>
+    makeFencer({
+      lastName,
+      firstName: 'Hugo',
+      license,
+      region: 'LOIRE-ATLANTIQUE',
+      club: 'CLUB EXEMPLE',
+      birthDate: new Date('2000-01-01'),
+    });
+
+  it('suit la forme Engarde : en-tête par_equipes, tireurs, puis ligne d’équipe sans tireur', () => {
+    const out = exportTeamResultsToFFF(comp, [
+      { rank: 2, name: 'AUTRE CLUB 1', club: 'AUTRE CLUB', fencers: [member('Martin', '900201')] },
+      {
+        rank: 1,
+        name: 'CLUB EXEMPLE 1',
+        club: 'CLUB EXEMPLE',
+        fencers: [member('Durand', '012345'), member('Leroy', '900102')],
+      },
+    ]);
+    const lines = out.split('\n');
+    expect(lines[0]).toBe('FFF;WIN;competition;Nationale exemple;par_equipes');
+    expect(lines[1]).toBe('7/6/2026;fleuret;M;senior;Nationale exemple;FSENIOR-eq');
+    expect(lines[2]).toBe(
+      'DURAND,Hugo,1/1/2000,M,FRA,,CLUB EXEMPLE 1;,,;012345,LOIRE-ATLANTIQUE,CLUB EXEMPLE,,,;1,'
+    );
+    expect(lines[3].startsWith('LEROY,Hugo,')).toBe(true);
+    expect(lines[4]).toBe(',,,,FRA,,CLUB EXEMPLE 1;,,;,LOIRE-ATLANTIQUE,CLUB EXEMPLE,,;1,');
+    expect(lines[5].startsWith('MARTIN,')).toBe(true);
+    expect(lines[6]).toBe(',,,,FRA,,AUTRE CLUB 1;,,;,LOIRE-ATLANTIQUE,AUTRE CLUB,,;2,');
+    expect(lines).toHaveLength(7);
   });
 });
 

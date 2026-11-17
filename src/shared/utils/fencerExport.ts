@@ -30,15 +30,20 @@ function genderToFFF(gender: Gender): string {
  * Ligne 2 de l'en-tête FFF (compétition) : date;arme;sexe;catégorie;nom;nom réduit
  * Les lignes 1 et 2 sont communes à la liste des tireurs et aux résultats.
  */
-function competitionHeaderLines(competition: Competition): string[] {
+function competitionHeaderLines(
+  competition: Competition,
+  results?: 'individuel' | 'par_equipes'
+): string[] {
   const organizer = fffField(competition.organizer) || fffField(competition.title);
   const shortName = fffField(competition.shortTitle) || fffField(competition.title);
   return [
-    `FFF;WIN;COMPETITION;${organizer}`,
+    // Résultats (#1949) : forme des fichiers acceptés par l'extranet (Engarde, BellePoule 3)
+    results ? `FFF;WIN;competition;${organizer};${results}` : `FFF;WIN;COMPETITION;${organizer}`,
     [
       formatDateFFFShort(competition.date),
       weaponToFFF(competition.weapon),
-      genderToFFF(competition.gender).toLowerCase(),
+      // Sexe en majuscule, comme Engarde et BellePoule 3 (#1949)
+      genderToFFF(competition.gender),
       categoryToFFF(competition.category),
       fffField(competition.title),
       shortName,
@@ -246,7 +251,7 @@ function categoryToFFF(category: Category): string {
 /**
  * Exporte les résultats finaux au format FFF « résultat de compétition »
  * (spécification FFF, 3 août 2000) :
- *   ligne 1 : FFF;WIN;COMPETITION;<organisateur>
+ *   ligne 1 : FFF;WIN;competition;<organisateur>;individuel
  *   ligne 2 : date;arme;sexe;catégorie;nom;nom réduit
  *   lignes  : NOM,Prénom,date,sexe,nation;<FIE vide>;<national>;<rang>,<T|P>
  * Les tireurs exclus sont omis. Les tireurs sans rang (carton noir) ont un rang vide.
@@ -256,7 +261,7 @@ export function exportResultsToFFF(
   competition: Competition,
   results: Array<{ rank?: number | null; fencer: Fencer; eliminatedAt?: string }>
 ): string {
-  const lines: string[] = [...competitionHeaderLines(competition)];
+  const lines: string[] = [...competitionHeaderLines(competition, 'individuel')];
 
   const sorted = results
     .filter(r => r.fencer.status !== FencerStatus.EXCLUDED)
@@ -271,6 +276,45 @@ export function exportResultsToFFF(
     );
   }
 
+  return lines.join('\n');
+}
+
+/** Équipe classée pour l'export des résultats par équipes (#1949) */
+export interface TeamResultForFFF {
+  rank: number | null;
+  name: string;
+  club?: string;
+  /** Tireurs de l'équipe, remplaçants compris, dans l'ordre de l'équipe */
+  fencers: Fencer[];
+}
+
+/**
+ * Exporte les résultats d'une épreuve par équipes au format FFF, comme Engarde (#1949) :
+ *   ligne 1 : FFF;WIN;competition;<organisateur>;par_equipes
+ *   ligne 2 : date;arme;sexe;catégorie;nom;nom réduit
+ *   tireurs : NOM,Prénom,date,sexe,nation,<dossard>,<équipe>;<FIE vide>;<national>;<rang équipe>,
+ *   équipe  : ,,,,<nation>,,<équipe>;,,;,<ligue>,<club>,,;<rang équipe>,  (ligne sans tireur)
+ * Le nom d'équipe est celui de la fédération quand l'épreuve a été créée depuis ses fichiers.
+ */
+export function exportTeamResultsToFFF(
+  competition: Competition,
+  teams: TeamResultForFFF[]
+): string {
+  const lines: string[] = [...competitionHeaderLines(competition, 'par_equipes')];
+  const sorted = [...teams].sort(
+    (a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER)
+  );
+  for (const team of sorted) {
+    const name = fffField(team.name);
+    const rank = `${team.rank != null ? team.rank : ''},`;
+    for (const fencer of team.fencers) {
+      lines.push(`${fencerGeneralPart(fencer)},,${name};,,;${fencerNationalPart(fencer)};${rank}`);
+    }
+    const first = team.fencers[0];
+    const nation = fffField(first?.nationality) || 'FRA';
+    const club = fffField(team.club) || fffField(first?.club);
+    lines.push(`,,,,${nation},,${name};,,;,${fffField(first?.region)},${club},,;${rank}`);
+  }
   return lines.join('\n');
 }
 
