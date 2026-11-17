@@ -99,8 +99,9 @@ export function cyranoToPisteState(msg: CyranoMessage): PisteState {
 }
 
 /**
- * Chrono en secondes → `m:ss` (format Cyrano) ; centièmes sous 10 s (`0:09.53`).
- * Le champ fait 5 caractères : le codec tronque au besoin.
+ * Chrono en secondes → `m:ss` (format Cyrano). Sous 10 s, les centièmes sont obligatoires en
+ * EFP1.1 (`0:09.53`, `0:09.00`, spéc. § 3 champ 10) ; le codec les retire en EFP1, qui ne les
+ * connaît pas. Le champ fait 8 caractères.
  */
 export function formatCyranoStopwatch(seconds: number): string {
   const total = Math.max(0, seconds);
@@ -112,7 +113,7 @@ export function formatCyranoStopwatch(seconds: number): string {
   }
   const m = Math.floor(whole / 60);
   const ss = String(whole % 60).padStart(2, '0');
-  return total < 10 && cs > 0 ? `${m}:${ss}.${String(cs).padStart(2, '0')}` : `${m}:${ss}`;
+  return whole < 10 ? `${m}:${ss}.${String(cs).padStart(2, '0')}` : `${m}:${ss}`;
 }
 
 function dispFencer(s: PisteDisplaySide): CyranoDispFencer {

@@ -345,3 +345,13 @@ describe('splitCyranoFrames (datagrammes Saint-George SG32)', () => {
     expect(splitCyranoFrames(efp1 + a)).toEqual([efp1, a]);
   });
 });
+
+describe('chrono du DISP selon la version du protocole', () => {
+  const disp = (protocol: 'EFP1' | 'EFP1.1') =>
+    buildCyrano({ protocol, command: 'DISP', piste: '1', compe: 'c', stopwatch: '0:09.53' });
+
+  it('EFP1.1 : centièmes transmis ; EFP1 : retirés (ajout de la version 1.1)', () => {
+    expect(parseCyrano(disp('EFP1.1'))?.stopwatch).toBe('0:09.53');
+    expect(parseCyrano(disp('EFP1'))?.stopwatch).toBe('0:09');
+  });
+});

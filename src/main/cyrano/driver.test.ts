@@ -174,9 +174,11 @@ describe('Conversion affichage → DISP', () => {
   it('chrono : m:ss, centièmes sous 10 s, arrondi', () => {
     expect(formatCyranoStopwatch(180)).toBe('3:00');
     expect(formatCyranoStopwatch(9.53)).toBe('0:09.53');
-    expect(formatCyranoStopwatch(9)).toBe('0:09');
+    // Sous 10 s : centièmes obligatoires en EFP1.1 (spéc. § 3, champ 10)
+    expect(formatCyranoStopwatch(9)).toBe('0:09.00');
     expect(formatCyranoStopwatch(59.999)).toBe('1:00');
-    expect(formatCyranoStopwatch(-3)).toBe('0:00');
+    expect(formatCyranoStopwatch(9.999)).toBe('0:10');
+    expect(formatCyranoStopwatch(-3)).toBe('0:00.00');
   });
 });
 
