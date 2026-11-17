@@ -652,7 +652,7 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       const res = repo.generateSessions(
         cid,
         { date: '', label: 'Poussins', ageFrom: 'U9', ageTo: 'U11' },
-        { weekdays: [3, 6], from: '2026-11-18', until: '2026-11-28' }
+        { weekdays: [3, 6], periods: [{ from: '2026-11-18', until: '2026-11-28' }] }
       );
       expect(res.created.map(s => s.date)).toEqual(['2026-11-18', '2026-11-25', '2026-11-28']);
       expect(res.skipped).toBe(1);
@@ -662,13 +662,48 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       // Séance démarrée dans la période : protégée par la fermeture
       repo.startSession(res.created[1].id);
       // Fermeture (vacances) : seules les séances prévues sont supprimées
-      expect(repo.deletePlannedBetween(cid, '2026-11-19', '2026-11-28')).toBe(2);
+      expect(repo.deletePlannedInPeriods(cid, [{ from: '2026-11-19', until: '2026-11-28' }])).toBe(
+        2
+      );
       const left = repo.listSessions(cid, { from: '2026-11-01', to: '2026-12-31' });
       // 21 (prévue, dans la période) et 28 supprimées ; 18 hors période, 25 démarrée conservées
       expect(left.map(s => s.date).sort()).toEqual(['2026-11-18', '2026-11-25']);
-      expect(() => repo.deletePlannedBetween(cid, '2026-11-28', '2026-11-01')).toThrow(
-        'Période invalide'
+      expect(() =>
+        repo.deletePlannedInPeriods(cid, [{ from: '2026-11-28', until: '2026-11-01' }])
+      ).toThrow('Période invalide');
+    });
+
+    it('plusieurs périodes : dates fusionnées, fermetures sur chaque période', () => {
+      // Mercredis : 18 et 25 nov. (période 1), 2 et 9 déc. (période 2) ; 25 nov. non doublonnée
+      const res = repo.generateSessions(
+        cid,
+        { date: '' },
+        {
+          weekdays: [3],
+          periods: [
+            { from: '2026-11-18', until: '2026-11-25' },
+            { from: '2026-11-25', until: '2026-12-09' },
+          ],
+        }
       );
+      expect(res.created.map(s => s.date)).toEqual([
+        '2026-11-18',
+        '2026-11-25',
+        '2026-12-02',
+        '2026-12-09',
+      ]);
+      expect(
+        repo.deletePlannedInPeriods(cid, [
+          { from: '2026-11-18', until: '2026-11-18' },
+          { from: '2026-12-09', until: '2026-12-09' },
+        ])
+      ).toBe(2);
+      expect(
+        repo
+          .listSessions(cid, { from: '2026-11-01', to: '2026-12-31' })
+          .map(s => s.date)
+          .sort()
+      ).toEqual(['2026-11-25', '2026-12-02']);
     });
 
     it('jours d’ouverture : entrées invalides refusées', () => {
@@ -676,21 +711,24 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
         repo.generateSessions(
           cid,
           { date: '' },
-          { weekdays: [], from: '2026-11-01', until: '2026-11-02' }
+          { weekdays: [], periods: [{ from: '2026-11-01', until: '2026-11-02' }] }
         )
       ).toThrow('Aucune date');
       expect(() =>
         repo.generateSessions(
           cid,
           { date: '' },
-          { weekdays: [1], from: '2026-11-10', until: '2026-11-01' }
+          { weekdays: [1], periods: [{ from: '2026-11-10', until: '2026-11-01' }] }
         )
       ).toThrow('Période invalide');
       expect(() =>
         repo.generateSessions(
           cid,
           { date: '' },
-          { weekdays: [0, 1, 2, 3, 4, 5, 6], from: '2026-01-01', until: '2027-12-31' }
+          {
+            weekdays: [0, 1, 2, 3, 4, 5, 6],
+            periods: [{ from: '2026-01-01', until: '2027-12-31' }],
+          }
         )
       ).toThrow('Période trop longue');
     });

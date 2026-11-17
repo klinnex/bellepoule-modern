@@ -32,6 +32,7 @@ import type {
   ClubMemberInput,
   ClubMemberReport,
   ClubPeriodKind,
+  ClubDateRange,
   ClubRecurrence,
   ClubScheduleOptions,
   ClubSessionInput,
@@ -174,8 +175,8 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
     (_, clubId: string, data: ClubSessionInput, options: ClubScheduleOptions) =>
       repo.generateSessions(clubId, data, options)
   );
-  ipcMain.handle('club:deletePlannedBetween', (_, clubId: string, from: string, until: string) =>
-    repo.deletePlannedBetween(clubId, from, until)
+  ipcMain.handle('club:deletePlannedInPeriods', (_, clubId: string, periods: ClubDateRange[]) =>
+    repo.deletePlannedInPeriods(clubId, Array.isArray(periods) ? periods : [])
   );
   ipcMain.handle('club:closeSession', (_, id: string) => {
     // Séance fermée : les tablettes ne lancent plus de combats pour elle

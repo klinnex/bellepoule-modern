@@ -3562,9 +3562,13 @@
     "create": "Create sessions",
     "close_btn": "Delete sessions",
     "close_preview": "{{count}} planned session(s) will be deleted. Open or closed sessions are kept.",
-    "close_confirm": "Delete {{count}} planned session(s) from {{from}} to {{until}}?",
+    "close_confirm": "Delete {{count}} planned session(s) across {{periods}} period(s)?",
     "created": "Planned sessions: {{count}} (already-booked dates skipped: {{skipped}})",
-    "deleted": "Sessions deleted: {{count}}"
+    "deleted": "Sessions deleted: {{count}}",
+    "period_n": "Period {{n}}",
+    "add_period": "Add a period",
+    "remove_period": "Remove",
+    "too_many": "At most {{max}} periods or dates per action."
   },
   "clubPlan": {
     "edit_title": "Edit session",

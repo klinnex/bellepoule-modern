@@ -290,8 +290,8 @@ const electronApi = {
       ipcRenderer.invoke('club:createSession', clubId, data),
     generateSessions: (clubId: string, data: unknown, options: unknown) =>
       ipcRenderer.invoke('club:generateSessions', clubId, data, options),
-    deletePlannedBetween: (clubId: string, from: string, until: string) =>
-      ipcRenderer.invoke('club:deletePlannedBetween', clubId, from, until),
+    deletePlannedInPeriods: (clubId: string, periods: unknown) =>
+      ipcRenderer.invoke('club:deletePlannedInPeriods', clubId, periods),
     createSeries: (clubId: string, data: unknown, recurrence: unknown) =>
       ipcRenderer.invoke('club:createSeries', clubId, data, recurrence),
     updateSession: (id: string, data: unknown) =>

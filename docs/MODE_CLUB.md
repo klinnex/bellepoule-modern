@@ -71,16 +71,18 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   jusqu'à une date, 60 séances au plus. Chaque séance de la série a sa propre copie du plan,
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
-- **Séances sur jours d'ouverture** (bouton de la liste des séances préparées, « Ouvrir sur des
-  jours récurrents ») : cocher les jours (lun → dim), une période du / au (366 jours au plus),
-  intitulé, catégories d'âge et encadrement. Crée une série de séances **préparées**, une par
-  date ; les dates déjà occupées par une séance du club sont ignorées (le résultat l'indique).
-  Pas de jours mémorisés : ils se choisissent à chaque génération.
-- **Fermeture** (même fenêtre, « Fermeture : supprimer les séances prévues ») : supprime les
-  séances **prévues** entre deux dates (ex. vacances scolaires), après confirmation. Les séances
-  ouvertes ou closes ne sont jamais supprimées.
-  API : `club.generateSessions`, `club.deletePlannedBetween` (`club:generateSessions`,
-  `club:deletePlannedBetween`). Code : `ClubRepo.generateSessions` / `deletePlannedBetween`,
+- **Séances sur jours d'ouverture** (bouton de la liste des séances préparées, « Générer des
+  séances ») : cocher les jours (lun → dim), une ou plusieurs périodes du / au (**Ajouter une
+  période** ; 366 jours au plus par période, 10 périodes au plus, 1 000 séances au plus par
+  action), intitulé, catégories d'âge et encadrement. Crée une série de séances **préparées**,
+  une par date ; une même date n'est créée qu'une fois ; les dates déjà occupées par une séance
+  du club sont ignorées (le résultat l'indique). Pas de jours mémorisés : ils se choisissent à
+  chaque génération.
+- **Fermeture** (même fenêtre, « Supprimer les séances prévues ») : supprime les séances
+  **prévues** sur une ou plusieurs périodes (ex. Toussaint et Noël en une seule action), après
+  confirmation. Les séances ouvertes ou closes ne sont jamais supprimées.
+  API : `club.generateSessions`, `club.deletePlannedInPeriods` (`club:generateSessions`,
+  `club:deletePlannedInPeriods`). Code : `ClubRepo.generateSessions` / `deletePlannedInPeriods`,
   `weekdayDates` (`clubAge.ts`), `ClubScheduleModal.tsx`.
 - Listes des séances préparées et passées filtrables par catégorie d'âge.
 - **Plusieurs séances ouvertes** : ouvrir, démarrer ou rouvrir une séance ne ferme pas les

@@ -3562,9 +3562,13 @@
     "create": "Trainings erstellen",
     "close_btn": "Trainings löschen",
     "close_preview": "{{count}} geplante Training(s) werden gelöscht. Offene oder geschlossene Trainings bleiben erhalten.",
-    "close_confirm": "{{count}} geplante Training(s) vom {{from}} bis {{until}} löschen?",
+    "close_confirm": "{{count}} geplante Training(s) in {{periods}} Zeitraum/Zeiträumen löschen?",
     "created": "Geplante Trainings: {{count}} (bereits belegte Daten übersprungen: {{skipped}})",
-    "deleted": "Gelöschte Trainings: {{count}}"
+    "deleted": "Gelöschte Trainings: {{count}}",
+    "period_n": "Zeitraum {{n}}",
+    "add_period": "Zeitraum hinzufügen",
+    "remove_period": "Entfernen",
+    "too_many": "Höchstens {{max}} Zeiträume oder Daten pro Aktion."
   },
   "clubPlan": {
     "edit_title": "Training bearbeiten",

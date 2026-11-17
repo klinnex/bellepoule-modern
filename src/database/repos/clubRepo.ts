@@ -19,6 +19,7 @@ import type {
   ClubSessionInput,
   ClubSessionStatus,
   ClubRecurrence,
+  ClubDateRange,
   ClubScheduleOptions,
   ClubScheduleResult,
   Club,
@@ -31,7 +32,9 @@ import {
   birthYearOfDate,
   normalizeAgeCategories,
   normalizeAgeCategory,
+  MAX_SCHEDULE_DATES,
   MAX_SCHEDULE_DAYS,
+  MAX_SCHEDULE_PERIODS,
   recurrenceDates,
   weekdayDates,
 } from '../../shared/utils/clubAge';
@@ -247,6 +250,24 @@ function rowToBout(r: BoutRow): ClubBout {
  * Mode Club (#1872) : annuaire des membres, séances (pistes, pointage) et combats
  * libres. Indépendant des compétitions ; combats conservés pour les stats de saison.
  */
+/** Périodes valides : 1 à MAX_SCHEDULE_PERIODS, chacune du / au (inclus), 366 jours au plus */
+function checkPeriods(raw: unknown): ClubDateRange[] {
+  if (!Array.isArray(raw) || raw.length === 0) throw new Error('Période requise');
+  if (raw.length > MAX_SCHEDULE_PERIODS) {
+    throw new Error(`Trop de périodes : ${MAX_SCHEDULE_PERIODS} au plus`);
+  }
+  return raw.map(p => {
+    const from = p?.from;
+    const until = p?.until;
+    if (!isIsoDate(from) || !isIsoDate(until) || from > until) throw new Error('Période invalide');
+    const span = Math.round((Date.parse(until) - Date.parse(from)) / 86_400_000) + 1;
+    if (span > MAX_SCHEDULE_DAYS) {
+      throw new Error(`Période trop longue : ${MAX_SCHEDULE_DAYS} jours au plus`);
+    }
+    return { from, until };
+  });
+}
+
 export class ClubRepo {
   constructor(private readonly sql: SqlExecutor) {}
 
@@ -958,8 +979,9 @@ export class ClubRepo {
   }
 
   /**
-   * Séances préparées sur les jours d'ouverture (lundi, mercredi…) entre deux dates : une série,
-   * plan et encadrement copiés. Les dates déjà occupées par une séance du club sont ignorées.
+   * Séances préparées sur les jours d'ouverture (lundi, mercredi…) sur une ou plusieurs périodes :
+   * une série, plan et encadrement copiés. Les dates déjà occupées par une séance du club sont
+   * ignorées ; une même date n'est créée qu'une fois.
    */
   public generateSessions(
     clubId: string,
@@ -967,16 +989,21 @@ export class ClubRepo {
     options: ClubScheduleOptions
   ): ClubScheduleResult {
     this.ensureOpen();
-    if (!isIsoDate(options?.from) || !isIsoDate(options?.until) || options.from > options.until) {
-      throw new Error('Période invalide');
+    const periods = checkPeriods(options?.periods);
+    const dateSet = new Set<string>();
+    for (const p of periods) {
+      for (const d of weekdayDates(p.from, p.until, options.weekdays ?? [])) dateSet.add(d);
     }
-    const all = weekdayDates(options.from, options.until, options.weekdays ?? []);
+    const all = [...dateSet].sort();
     if (all.length === 0) throw new Error('Aucune date dans cette période');
-    if (all.length > MAX_SCHEDULE_DAYS) {
-      throw new Error(`Période trop longue : ${MAX_SCHEDULE_DAYS} jours au plus`);
+    if (all.length > MAX_SCHEDULE_DATES) {
+      throw new Error(`Trop de séances : ${MAX_SCHEDULE_DATES} au plus`);
     }
     const taken = new Set(
-      this.listSessions(clubId, { from: options.from, to: options.until }).map(s => s.date)
+      this.listSessions(clubId, {
+        from: periods.reduce((m, p) => (p.from < m ? p.from : m), periods[0].from),
+        to: periods.reduce((m, p) => (p.until > m ? p.until : m), periods[0].until),
+      }).map(s => s.date)
     );
     const dates = all.filter(d => !taken.has(d));
     const seriesId = dates.length > 1 ? uuidv4() : undefined;
@@ -1001,18 +1028,22 @@ export class ClubRepo {
   }
 
   /**
-   * Fermeture : supprime les séances prévues (jamais ouvertes ni closes) entre deux dates incluses. Renvoie le nombre supprimé.
+   * Fermeture : supprime les séances prévues (jamais ouvertes ni closes) sur une ou plusieurs
+   * périodes incluses. Renvoie le nombre supprimé.
    */
-  public deletePlannedBetween(clubId: string, from: string, until: string): number {
+  public deletePlannedInPeriods(clubId: string, periods: ClubDateRange[]): number {
     this.ensureOpen();
-    if (!isIsoDate(from) || !isIsoDate(until) || from > until) throw new Error('Période invalide');
-    const ids = this.sql
-      .queryAll<{ id: string }>(
+    const ps = checkPeriods(periods);
+    const ids = new Set<string>();
+    for (const p of ps) {
+      for (const r of this.sql.queryAll<{ id: string }>(
         `SELECT id FROM club_sessions WHERE club_id = ? AND status = 'planned'
          AND date >= ? AND date <= ?`,
-        [clubId, from, until]
-      )
-      .map(r => r.id);
+        [clubId, p.from, p.until]
+      )) {
+        ids.add(r.id);
+      }
+    }
     this.sql.transaction(() => {
       for (const id of ids) {
         this.sql.run('DELETE FROM club_bouts WHERE session_id = ?', [id]);
@@ -1021,7 +1052,7 @@ export class ClubRepo {
         this.sql.run('DELETE FROM club_sessions WHERE id = ?', [id]);
       }
     });
-    return ids.length;
+    return ids.size;
   }
 
   public updateSession(id: string, updates: Partial<ClubSessionInput>): ClubSession | null {

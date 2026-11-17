@@ -3562,9 +3562,13 @@
     "create": "Crear sessions",
     "close_btn": "Suprimir sessions",
     "close_preview": "Se suprimiran {{count}} sessió/ns prevista/es. Les sessions obertes o tancades es conserven.",
-    "close_confirm": "Suprimir {{count}} sessió/ns prevista/es del {{from}} al {{until}}?",
+    "close_confirm": "Suprimir {{count}} sessió/ns prevista/es en {{periods}} període/s?",
     "created": "Sessions preparades: {{count}} (dates ja ocupades ignorades: {{skipped}})",
-    "deleted": "Sessions suprimides: {{count}}"
+    "deleted": "Sessions suprimides: {{count}}",
+    "period_n": "Període {{n}}",
+    "add_period": "Afegeix un període",
+    "remove_period": "Treu",
+    "too_many": "Com a màxim {{max}} períodes o dates per acció."
   },
   "clubPlan": {
     "edit_title": "Modificar la sessió",

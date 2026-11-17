@@ -188,8 +188,12 @@ export function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Plafond d'une génération sur jours d'ouverture (une saison environ) */
+/** Plafond d'une période sur jours d'ouverture (une saison environ) */
 export const MAX_SCHEDULE_DAYS = 366;
+/** Nombre de périodes par action (génération ou fermeture) */
+export const MAX_SCHEDULE_PERIODS = 10;
+/** Nombre total de dates créées par une génération */
+export const MAX_SCHEDULE_DATES = 1000;
 
 /**
  * Dates comprises entre `from` et `until` (incluses) tombant un des jours de la semaine

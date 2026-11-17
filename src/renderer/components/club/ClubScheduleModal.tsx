@@ -5,13 +5,16 @@
 import React, { useMemo, useState } from 'react';
 import type {
   ClubCoach,
+  ClubDateRange,
   ClubScheduleOptions,
   ClubSession,
   ClubSessionInput,
 } from '../../../shared/types/club';
 import {
   addDays,
+  MAX_SCHEDULE_DATES,
   MAX_SCHEDULE_DAYS,
+  MAX_SCHEDULE_PERIODS,
   weekdayDates,
   type AgeRange,
 } from '../../../shared/utils/clubAge';
@@ -44,7 +47,7 @@ interface ClubScheduleModalProps {
   stripCount: number;
   onClose: () => void;
   onGenerate: (data: ClubSessionInput, options: ClubScheduleOptions) => void;
-  onClosePeriod: (from: string, until: string, count: number) => void;
+  onClosePeriod: (periods: ClubDateRange[], count: number) => void;
 }
 
 export const ClubScheduleModal: React.FC<ClubScheduleModalProps> = ({
@@ -59,49 +62,82 @@ export const ClubScheduleModal: React.FC<ClubScheduleModalProps> = ({
   const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>('generate');
   const [weekdays, setWeekdays] = useState<number[]>([]);
-  const [from, setFrom] = useState(today);
-  const [until, setUntil] = useState(() => addDays(today, 90));
+  const [periods, setPeriods] = useState<ClubDateRange[]>(() => [
+    { from: today, until: addDays(today, 90) },
+  ]);
   const [label, setLabel] = useState('');
   const [range, setRange] = useState<AgeRange>({});
   const [coachIds, setCoachIds] = useState<string[]>([]);
 
-  const valid = from <= until;
+  const valid = periods.every(p => p.from <= p.until);
   const toggleDay = (d: number) =>
     setWeekdays(prev => (prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]));
+  const setPeriod = (i: number, patch: Partial<ClubDateRange>) =>
+    setPeriods(prev => prev.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const removePeriod = (i: number) => setPeriods(prev => prev.filter((_, j) => j !== i));
+  const addPeriod = () =>
+    setPeriods(prev => {
+      const last = prev[prev.length - 1];
+      const from = last ? addDays(last.until, 1) : today;
+      return [...prev, { from, until: addDays(from, 30) }];
+    });
 
   const preview = useMemo(() => {
-    if (!valid) return { dates: 0, skipped: 0, tooLong: false };
-    const all = weekdayDates(from, until, weekdays);
-    const taken = new Set(sessions.filter(s => s.date >= from && s.date <= until).map(s => s.date));
+    if (!valid) return { dates: 0, skipped: 0, tooLong: false, tooMany: false };
+    const dateSet = new Set<string>();
+    for (const p of periods)
+      for (const d of weekdayDates(p.from, p.until, weekdays)) dateSet.add(d);
+    const all = [...dateSet];
+    const taken = new Set(
+      sessions
+        .filter(s => periods.some(p => s.date >= p.from && s.date <= p.until))
+        .map(s => s.date)
+    );
     const dates = all.filter(d => !taken.has(d)).length;
-    const span = Math.round((Date.parse(until) - Date.parse(from)) / 86_400_000) + 1;
-    return { dates, skipped: all.length - dates, tooLong: span > MAX_SCHEDULE_DAYS };
-  }, [from, until, weekdays, sessions, valid]);
+    const tooLong = periods.some(p => {
+      const span = Math.round((Date.parse(p.until) - Date.parse(p.from)) / 86_400_000) + 1;
+      return span > MAX_SCHEDULE_DAYS;
+    });
+    return {
+      dates,
+      skipped: all.length - dates,
+      tooLong,
+      tooMany: periods.length > MAX_SCHEDULE_PERIODS || dates > MAX_SCHEDULE_DATES,
+    };
+  }, [periods, weekdays, sessions, valid]);
 
   const planned = useMemo(
-    () => sessions.filter(s => s.status === 'planned' && s.date >= from && s.date <= until).length,
-    [sessions, from, until]
+    () =>
+      sessions.filter(
+        s => s.status === 'planned' && periods.some(p => s.date >= p.from && s.date <= p.until)
+      ).length,
+    [sessions, periods]
   );
 
   const canGenerate =
-    mode === 'generate' && valid && weekdays.length > 0 && preview.dates > 0 && !preview.tooLong;
+    mode === 'generate' &&
+    valid &&
+    weekdays.length > 0 &&
+    preview.dates > 0 &&
+    !preview.tooLong &&
+    !preview.tooMany;
   const canClose = mode === 'close' && valid && planned > 0;
 
   const submit = () => {
     if (mode === 'generate') {
       onGenerate(
         {
-          date: from,
+          date: periods[0].from,
           label: label.trim() || undefined,
           coachIds,
           stripCount,
           ageFrom: range.ageFrom ?? null,
           ageTo: range.ageTo ?? null,
         },
-        { weekdays, from, until }
+        { weekdays, periods }
       );
     } else {
-      onClosePeriod(from, until, planned);
+      onClosePeriod(periods, planned);
     }
   };
 
@@ -145,26 +181,35 @@ export const ClubScheduleModal: React.FC<ClubScheduleModalProps> = ({
         </label>
       </fieldset>
 
-      <div className="club-row">
-        <label className="form-label">
-          {t('clubSchedule.from')}
-          <input
-            className="form-input"
-            type="date"
-            value={from}
-            onChange={e => setFrom(e.target.value)}
-          />
-        </label>
-        <label className="form-label">
-          {t('clubSchedule.until')}
-          <input
-            className="form-input"
-            type="date"
-            value={until}
-            onChange={e => setUntil(e.target.value)}
-          />
-        </label>
-      </div>
+      {periods.map((p, i) => (
+        <div className="club-row" key={i}>
+          <span className="font-medium">{t('clubSchedule.period_n', { n: i + 1 })}</span>
+          <label className="form-label">
+            {t('clubSchedule.from')}
+            <input
+              className="form-input"
+              type="date"
+              value={p.from}
+              onChange={e => setPeriod(i, { from: e.target.value })}
+            />
+          </label>
+          <label className="form-label">
+            {t('clubSchedule.until')}
+            <input
+              className="form-input"
+              type="date"
+              value={p.until}
+              onChange={e => setPeriod(i, { until: e.target.value })}
+            />
+          </label>
+          {periods.length > 1 && (
+            <Button onClick={() => removePeriod(i)}>{t('clubSchedule.remove_period')}</Button>
+          )}
+        </div>
+      ))}
+      {periods.length < MAX_SCHEDULE_PERIODS && (
+        <Button onClick={addPeriod}>{t('clubSchedule.add_period')}</Button>
+      )}
       {!valid && <p className="club-muted">{t('clubSchedule.period_invalid')}</p>}
 
       {mode === 'generate' ? (
@@ -198,9 +243,11 @@ export const ClubScheduleModal: React.FC<ClubScheduleModalProps> = ({
           <p className="club-muted" role="status">
             {preview.tooLong
               ? t('clubSchedule.too_long', { max: MAX_SCHEDULE_DAYS })
-              : weekdays.length === 0
-                ? t('clubSchedule.choose_days')
-                : t('clubSchedule.preview', { count: preview.dates, skipped: preview.skipped })}
+              : preview.tooMany
+                ? t('clubSchedule.too_many', { max: MAX_SCHEDULE_PERIODS })
+                : weekdays.length === 0
+                  ? t('clubSchedule.choose_days')
+                  : t('clubSchedule.preview', { count: preview.dates, skipped: preview.skipped })}
           </p>
         </>
       ) : (

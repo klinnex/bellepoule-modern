@@ -3562,9 +3562,13 @@
     "create": "Criar sessões",
     "close_btn": "Eliminar sessões",
     "close_preview": "{{count}} sessão(ões) prevista(s) serão eliminadas. As sessões abertas ou fechadas são mantidas.",
-    "close_confirm": "Eliminar {{count}} sessão(ões) prevista(s) de {{from}} a {{until}}?",
+    "close_confirm": "Eliminar {{count}} sessão(ões) prevista(s) em {{periods}} período(s)?",
     "created": "Sessões preparadas: {{count}} (datas já ocupadas ignoradas: {{skipped}})",
-    "deleted": "Sessões eliminadas: {{count}}"
+    "deleted": "Sessões eliminadas: {{count}}",
+    "period_n": "Período {{n}}",
+    "add_period": "Adicionar um período",
+    "remove_period": "Remover",
+    "too_many": "No máximo {{max}} períodos ou datas por ação."
   },
   "clubPlan": {
     "edit_title": "Editar a sessão",

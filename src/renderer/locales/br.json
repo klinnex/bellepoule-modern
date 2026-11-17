@@ -3562,9 +3562,13 @@
     "create": "Krouiñ an abadennoù",
     "close_btn": "Dilemel an abadennoù",
     "close_preview": "{{count}} abadenn(noù) spisket a vo dilamet. An abadennoù digor pe serret a vo miret.",
-    "close_confirm": "Dilemel {{count}} abadenn(noù) spisket eus {{from}} betek {{until}}?",
+    "close_confirm": "Dilemel {{count}} abadenn(noù) spisket e {{periods}} padenn(ad)?",
     "created": "Abadennoù spisket: {{count}} (deiziadoù dija talvezet lamet: {{skipped}})",
-    "deleted": "Abadennoù dilamet: {{count}}"
+    "deleted": "Abadennoù dilamet: {{count}}",
+    "period_n": "Padenn {{n}}",
+    "add_period": "Ouzhpennañ ur padenn",
+    "remove_period": "Lemel",
+    "too_many": "Hebiou {{max}} padenn pe deiziad dre obererezh."
   },
   "clubPlan": {
     "edit_title": "Kemmañ an abadenn",

@@ -33,6 +33,7 @@ import {
 import type {
   ClubBout,
   ClubCoach,
+  ClubDateRange,
   ClubMember,
   ClubSession,
   ClubSessionFeedback,
@@ -360,16 +361,16 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     });
   };
 
-  const closePeriod = async (from: string, until: string, count: number) => {
+  const closePeriod = async (periods: ClubDateRange[], count: number) => {
     setScheduleOpen(false);
     if (count === 0) return;
     const ok = await confirm({
-      message: t('clubSchedule.close_confirm', { count, from, until }),
+      message: t('clubSchedule.close_confirm', { count, periods: periods.length }),
       confirmLabel: t('actions.delete'),
     });
     if (!ok) return;
     void run(async () => {
-      const n = await api.deletePlannedBetween(clubId, from, until);
+      const n = await api.deletePlannedInPeriods(clubId, periods);
       showToast(t('clubSchedule.deleted', { count: n }), 'success');
     });
   };
@@ -465,7 +466,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       stripCount={settings.stripCount}
       onClose={() => setScheduleOpen(false)}
       onGenerate={generateSchedule}
-      onClosePeriod={(from, until, count) => void closePeriod(from, until, count)}
+      onClosePeriod={(periods, count) => void closePeriod(periods, count)}
     />
   );
   const plannerModal = planner && (

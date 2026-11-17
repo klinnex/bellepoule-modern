@@ -3562,9 +3562,13 @@
     "create": "建立課節",
     "close_btn": "刪除課節",
     "close_preview": "將刪除 {{count}} 節已計劃課節。已開放或已關閉的課節會保留。",
-    "close_confirm": "刪除由 {{from}} 至 {{until}} 的 {{count}} 節已計劃課節？",
+    "close_confirm": "刪除 {{count}} 節已計劃課節，涵蓋 {{periods}} 個期間？",
     "created": "已準備課節：{{count}}（已跳過已佔用日期：{{skipped}}）",
-    "deleted": "已刪除課節：{{count}}"
+    "deleted": "已刪除課節：{{count}}",
+    "period_n": "期間 {{n}}",
+    "add_period": "新增期間",
+    "remove_period": "移除",
+    "too_many": "每次操作最多 {{max}} 個期間或日期。"
   },
   "clubPlan": {
     "edit_title": "修改訓練",
