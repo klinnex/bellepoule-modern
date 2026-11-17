@@ -1042,27 +1042,6 @@
   }
 }
 
-/* Menu Outils de l'en-tête (#1897), ancré sous le bouton (position calculée) */
-.tools-menu-panel {
-  position: fixed;
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-xl);
-  min-width: 200px;
-  z-index: 1100;
-  overflow: hidden;
-}
-
-.tools-menu-item {
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 /* Paramètres : navigation par onglets + recherche */
 .settings-modal.settings-modal {
   max-width: 820px;
