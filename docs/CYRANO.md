@@ -266,5 +266,9 @@ Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise de
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
 base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
 
+Livré ensuite (#1829) : cartons de la feuille de poule imprimée, **cartons P à part**
+(t.124.3.e) ; reprise du chrono au redémarrage (§ 2 quater) ; **rapport d'exclusion pré-rempli**
+pour la FFE (carton noir, annexe 14 : Résultats → Export → « Rapport FFE (carton noir) »).
+
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).

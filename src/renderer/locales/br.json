@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Taolenn ekipoù",
     "book_kind_teamRanking": "Renkadur ekipoù",
     "export_pdf_full_unsigned": "PDF klok hep sinadur",
+    "export_black_card_report": "Danevell FFE (karten du)",
+    "export_black_card_report_title": "Danevell skarzhañ leuniet en a-raok, da glokaat ha da gas d'ar FFE a-benn 48 eur (stagadenn 14)",
     "export_pdf_full_unsigned_title": "Poulloù ha taolennoù dilezel war-eeun, hep sinadur ar gleizeidi"
   },
   "remote": {

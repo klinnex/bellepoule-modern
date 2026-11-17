@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Tableau équipes",
     "book_kind_teamRanking": "Classement équipes",
     "export_pdf_full_unsigned": "PDF complet sans signature",
+    "export_black_card_report": "Rapport FFE (carton noir)",
+    "export_black_card_report_title": "Rapport d'exclusion pré-rempli, à compléter et envoyer sous 48 h à la FFE (annexe 14)",
     "export_pdf_full_unsigned_title": "Poules et tableaux d'élimination directe, sans les signatures des combattants"
   },
   "remote": {

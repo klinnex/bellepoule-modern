@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Командная таблица",
     "book_kind_teamRanking": "Командный рейтинг",
     "export_pdf_full_unsigned": "Полный PDF без подписей",
+    "export_black_card_report": "Отчёт FFE (чёрная карточка)",
+    "export_black_card_report_title": "Предзаполненный отчёт об исключении — дополнить и отправить в FFE в течение 48 ч (приложение 14)",
     "export_pdf_full_unsigned_title": "Пулы и таблицы прямого выбывания без подписей фехтовальщиков"
   },
   "remote": {

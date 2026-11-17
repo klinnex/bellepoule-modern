@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Cuadro por equipos",
     "book_kind_teamRanking": "Clasificación por equipos",
     "export_pdf_full_unsigned": "PDF completo sin firmas",
+    "export_black_card_report": "Informe FFE (tarjeta negra)",
+    "export_black_card_report_title": "Informe de exclusión prerrellenado, a completar y enviar a la FFE en 48 h (anexo 14)",
     "export_pdf_full_unsigned_title": "Poules y cuadros de eliminación directa, sin las firmas de los tiradores"
   },
   "remote": {

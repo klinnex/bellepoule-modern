@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Tabellone a squadre",
     "book_kind_teamRanking": "Classifica a squadre",
     "export_pdf_full_unsigned": "PDF completo senza firme",
+    "export_black_card_report": "Rapporto FFE (cartellino nero)",
+    "export_black_card_report_title": "Rapporto di esclusione precompilato, da completare e inviare alla FFE entro 48 h (allegato 14)",
     "export_pdf_full_unsigned_title": "Gironi e tabelloni a eliminazione diretta, senza le firme degli schermidori"
   },
   "remote": {

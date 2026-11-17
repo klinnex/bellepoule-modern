@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Team bracket",
     "book_kind_teamRanking": "Team ranking",
     "export_pdf_full_unsigned": "Full PDF without signatures",
+    "export_black_card_report": "FFE report (black card)",
+    "export_black_card_report_title": "Pre-filled exclusion report, to complete and send to the FFE within 48 h (annex 14)",
     "export_pdf_full_unsigned_title": "Pools and direct elimination tableaux, without fencer signatures"
   },
   "remote": {

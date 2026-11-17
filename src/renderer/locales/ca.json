@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Quadre per equips",
     "book_kind_teamRanking": "Classificació per equips",
     "export_pdf_full_unsigned": "PDF complet sense signatures",
+    "export_black_card_report": "Informe FFE (targeta negra)",
+    "export_black_card_report_title": "Informe d'exclusió preomplert, per completar i enviar a la FFE en 48 h (annex 14)",
     "export_pdf_full_unsigned_title": "Poules i quadres d'eliminació directa, sense les signatures dels tiradors"
   },
   "remote": {

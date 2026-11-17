@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "團體淘汰賽表",
     "book_kind_teamRanking": "團體排名",
     "export_pdf_full_unsigned": "完整 PDF（不含簽名）",
+    "export_black_card_report": "FFE 報告（黑牌）",
+    "export_black_card_report_title": "預填的取消資格報告，請補充並於 48 小時內寄交 FFE（附件 14）",
     "export_pdf_full_unsigned_title": "小組賽及淘汰賽表，不含劍手簽名"
   },
   "remote": {
