@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 77 | 828 |
+| `src/shared/utils/` | 77 | 834 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 16 | 239 |
+| `src/database/` | 16 | 240 |
 | `src/main/` | 102 | 827 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 115 | 589 |
+| `src/renderer/components/` | 115 | 590 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **472** | **3552** |
+| **Total** | **472** | **3560** |
 
-Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 462 fichiers, 3521 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -295,7 +295,7 @@ Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/clubInventory.test.ts</code> — 13 tests</summary>
+<summary><code>src/shared/utils/clubInventory.test.ts</code> — 19 tests</summary>
 
 - **normalizeItemInput**
   - exige un nom
@@ -314,6 +314,13 @@ Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - compte hors réformés, valeur et prêts
 - **toCsv**
   - séparateur ;, BOM, virgule décimale et échappement
+- **seriesNames (ajout en série)**
+  - numérote sur deux chiffres à partir de 01
+  - reprend après le plus grand suffixe existant, sans doublon (casse ignorée)
+  - ignore un suffixe déjà saisi dans le nom de base
+  - élargit la numérotation au-delà de 99
+  - échappe les caractères spéciaux du nom
+  - refuse un nom vide
 
 </details>
 
@@ -2560,9 +2567,10 @@ Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 26 tests</summary>
+<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 27 tests</summary>
 
 - **ClubInventoryRepo (inventaire du club)**
+  - ajout en série : fiches unitaires numérotées, sans doublon ni n° de série recopié
   - crée une fiche complète avec achat, garantie et emplacement
   - refuse une fiche sans nom ou avec une date invalide
   - prête des exemplaires et décompte les disponibles
@@ -5747,10 +5755,11 @@ Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 7 tests</summary>
 
 - **ClubInventoryPanel (inventaire du club)**
   - affiche le matériel actif, la synthèse et le prêt en retard ; les réformés sont masqués
+  - colonnes : affiche ou masque, choix mémorisé
   - prête un exemplaire à un tireur
   - refuse de supprimer du matériel prêté (bouton désactivé)
   - enregistre le retour avec l’état constaté
