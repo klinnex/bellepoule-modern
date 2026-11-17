@@ -1087,6 +1087,11 @@
     "invalid_settings": "Arventennoù direizh"
   },
   "properties": {
+    "backup_dir_label": "Teuliad gopioù dedennet (diret)",
+    "backup_dir_hint": "Ma'z eo lakaet, kopioù otomatek ar c'hemmskrid a vez skrivet eno ivez.",
+    "backup_dir_none": "digent (teuliad hollek)",
+    "backup_dir_choose": "Dibab an teuliad…",
+    "backup_dir_clear": "Lemel an teuliad dedennet",
     "one_round": "1 dro",
     "two_rounds": "2 dro",
     "three_rounds": "3 zro",

@@ -1087,6 +1087,11 @@
     "invalid_settings": "Paràmetres no vàlids"
   },
   "properties": {
+    "backup_dir_label": "Carpeta de còpies dedicada (opcional)",
+    "backup_dir_hint": "Si s'indica, les còpies automàtiques d'aquesta competició també s'escriuen allà.",
+    "backup_dir_none": "cap (carpeta global)",
+    "backup_dir_choose": "Tria la carpeta…",
+    "backup_dir_clear": "Treu la carpeta dedicada",
     "one_round": "1 ronda",
     "two_rounds": "2 rondes",
     "three_rounds": "3 rondes",

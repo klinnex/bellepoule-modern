@@ -104,6 +104,13 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
     competition.settings?.trainerCommentsEnabled ?? false
   );
   const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? true);
+  // Dossier dédié aux sauvegardes de cette compétition (facultatif, vide = dossier global)
+  const [backupDir, setBackupDir] = useState(competition.settings?.backupDir ?? '');
+  const chooseBackupDir = () => {
+    void window.electronAPI?.backup?.pickCompetitionDir?.().then(dir => {
+      if (dir) setBackupDir(dir);
+    });
+  };
   const [poolWinnersOnly, setPoolWinnersOnly] = useState(
     competition.settings?.poolWinnersOnly ?? false
   );
@@ -191,6 +198,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       blackCardEnabled,
       trainerCommentsEnabled,
       expertMode,
+      // Vide = pas de dossier dédié : clé retirée (JSON), le dossier global s'applique
+      backupDir: backupDir || undefined,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
       poolWinnersOnly,
@@ -228,6 +237,23 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   function renderGeneral() {
     return (
       <div>
+        <div className="form-group">
+          <label>{t('properties.backup_dir_label')}</label>
+          <p style={HINT}>{t('properties.backup_dir_hint')}</p>
+          <p style={HINT} data-testid="competition-backup-dir">
+            <code>{backupDir || t('properties.backup_dir_none')}</code>
+          </p>
+          <div className="u-row">
+            <Button type="button" style={SM} onClick={chooseBackupDir}>
+              {t('properties.backup_dir_choose')}
+            </Button>
+            {backupDir && (
+              <Button type="button" style={SM} onClick={() => setBackupDir('')}>
+                {t('properties.backup_dir_clear')}
+              </Button>
+            )}
+          </div>
+        </div>
         <div className="form-group">
           <label htmlFor="title">{t('competition.title')}</label>
           <input

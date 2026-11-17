@@ -660,6 +660,7 @@ export interface CompetitionSettings {
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
   blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
   trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
+  backupDir?: string; // Dossier dédié aux sauvegardes de cette compétition (absent = dossier global)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   specialMode?: CompetitionSpecialMode; // Mode spécial (arme CUSTOM) : tournoi des rapières (#1118)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)

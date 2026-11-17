@@ -1087,6 +1087,11 @@
     "invalid_settings": "Réglages invalides"
   },
   "properties": {
+    "backup_dir_label": "Dossier de sauvegarde dédié (facultatif)",
+    "backup_dir_hint": "Si renseigné, les sauvegardes automatiques de cette compétition y sont écrites, en plus du dossier global.",
+    "backup_dir_none": "aucun (dossier global)",
+    "backup_dir_choose": "Choisir le dossier…",
+    "backup_dir_clear": "Retirer le dossier dédié",
     "one_round": "1 tour",
     "two_rounds": "2 tours",
     "three_rounds": "3 tours",

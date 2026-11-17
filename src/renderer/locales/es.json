@@ -1087,6 +1087,11 @@
     "invalid_settings": "Ajustes no válidos"
   },
   "properties": {
+    "backup_dir_label": "Carpeta de copias dedicada (opcional)",
+    "backup_dir_hint": "Si se indica, las copias automáticas de esta competición también se escriben allí.",
+    "backup_dir_none": "ninguna (carpeta global)",
+    "backup_dir_choose": "Elegir carpeta…",
+    "backup_dir_clear": "Quitar carpeta dedicada",
     "one_round": "1 ronda",
     "two_rounds": "2 rondas",
     "three_rounds": "3 rondas",

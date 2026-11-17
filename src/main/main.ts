@@ -45,7 +45,8 @@ import { getVersionInfo } from './versionInfo';
 import { readUpdaterSettings, resolveChannel } from './updaterSettings';
 import { applyStoredProxySettings, registerProxyHandlers } from './ipc/proxyHandlers';
 import { registerBackupHandlers } from './ipc/backupHandlers';
-import { AUTOSAVE_FILE_NAME, resolveBackupDir } from './backupSettings';
+import { resolveBackupDir } from './backupSettings';
+import { runBackupAutosave } from './autosaveBackup';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
@@ -351,17 +352,6 @@ let autosaveInterval: NodeJS.Timeout | null = null;
 
 let autosaveInFlight = false;
 
-/** Copie de la base dans le dossier de sauvegarde (écriture temporaire puis renommage) */
-async function writeAutosaveFile(): Promise<void> {
-  const { dir } = resolveBackupDir(app.getPath('userData'), app.getPath('documents'));
-  fs.mkdirSync(dir, { recursive: true });
-  const target = path.join(dir, AUTOSAVE_FILE_NAME);
-  const tmp = `${target}.tmp`;
-  fs.rmSync(tmp, { force: true });
-  await db.exportToFile(tmp);
-  fs.renameSync(tmp, target);
-}
-
 const startAutosave = () => {
   if (autosaveInterval) clearInterval(autosaveInterval);
   autosaveInterval = setInterval(
@@ -370,7 +360,7 @@ const startAutosave = () => {
       autosaveInFlight = true;
       try {
         await db.saveAsync(); // async I/O — ne bloque pas le main thread
-        await writeAutosaveFile();
+        await runBackupAutosave(db, app.getPath('userData'), app.getPath('documents'));
         logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
         mainWindow?.webContents.send('autosave:completed');
       } catch (error) {

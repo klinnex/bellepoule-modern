@@ -28,8 +28,8 @@ export function createMenuActions({
   getBackupDir,
 }: MenuActionsContext) {
   /** Chemin proposé par « Enregistrer sous » : dossier de sauvegarde + nom */
-  const defaultSavePath = (fileName: string): string =>
-    getBackupDir ? path.join(getBackupDir(), fileName) : fileName;
+  const defaultSavePath = (fileName: string, dedicatedDir?: string): string =>
+    path.join(dedicatedDir || (getBackupDir ? getBackupDir() : '.'), fileName);
 
   function startRemoteScoreServer(): void {
     const L = getL();
@@ -105,7 +105,10 @@ export function createMenuActions({
     if (!competition) return { success: false, error: 'competition_not_found' };
     const result = await dialog.showSaveDialog(getMainWindow()!, {
       title: L.saveTitle,
-      defaultPath: defaultSavePath(competitionFileName(competition.title)),
+      defaultPath: defaultSavePath(
+        competitionFileName(competition.title),
+        competition.settings?.backupDir
+      ),
       filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
     });
     if (result.canceled || !result.filePath) return { success: false, canceled: true };
