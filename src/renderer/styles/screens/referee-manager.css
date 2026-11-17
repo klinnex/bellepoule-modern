@@ -1,0 +1,51 @@
+/* Styles extraits de RefereeManager.tsx (#1895) */
+.referee-manager-1.referee-manager-1.referee-manager-1 {
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.referee-manager-2.referee-manager-2.referee-manager-2 {
+  margin-bottom: 1.5rem;
+}
+
+.referee-manager-3.referee-manager-3.referee-manager-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.referee-manager-4.referee-manager-4.referee-manager-4 {
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.referee-manager-5.referee-manager-5.referee-manager-5 {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.referee-manager-6.referee-manager-6.referee-manager-6 {
+  color: var(--color-text);
+}
+
+.referee-manager-7.referee-manager-7.referee-manager-7 {
+  font-weight: 500;
+}
+
+.referee-manager-8.referee-manager-8.referee-manager-8 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.referee-manager-9.referee-manager-9.referee-manager-9 {
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.referee-manager-10.referee-manager-10.referee-manager-10 {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-surface);
+}

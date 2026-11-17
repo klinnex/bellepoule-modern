@@ -191,12 +191,11 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
   };
 
   return (
-    <div className="card" style={{ padding: '1rem', margin: '1rem', display: 'grid', gap: '1rem' }}>
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
+    <div className="card rapieres-ranking-panel-1">
+      <div className="rapieres-ranking-panel-2">
+        <h3 className="rapieres-ranking-panel-3">{title}</h3>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.category')}
           value={category}
           onChange={e => setCategory(e.target.value as RapieresAgeCategory | '')}
@@ -209,8 +208,7 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.level')}
           value={level}
           onChange={e => setLevel(e.target.value as RapieresLevel | '')}
@@ -223,8 +221,7 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.gender')}
           value={gender}
           onChange={e => setGender(e.target.value as RapieresTeamGender | '')}

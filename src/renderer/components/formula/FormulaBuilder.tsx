@@ -235,7 +235,7 @@ const FormulaBuilder_: React.FC<Props> = ({
             {t('formulaBuilder.load_btn')}
           </Button>
           {onSpecialModeChange && !readOnly && (
-            <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className="formula-builder-1">
               <Button
                 type="button"
                 variant={specialMode ? 'primary' : 'secondary'}
@@ -250,19 +250,7 @@ const FormulaBuilder_: React.FC<Props> = ({
                 {' ▾'}
               </Button>
               {specialMenuOpen && (
-                <div
-                  role="menu"
-                  className="card"
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '100%',
-                    zIndex: 20,
-                    minWidth: '16rem',
-                    padding: '0.25rem',
-                    display: 'grid',
-                  }}
-                >
+                <div role="menu" className="card formula-builder-2">
                   {[undefined, ...SPECIAL_MODES].map(mode => (
                     <Button
                       key={mode ?? 'none'}
@@ -291,9 +279,9 @@ const FormulaBuilder_: React.FC<Props> = ({
       </div>
 
       {specialMode ? (
-        <div className="card" style={{ padding: '1rem', marginTop: '0.75rem' }}>
+        <div className="card formula-builder-3">
           <strong>{t(`rapieres.mode_${specialMode}`)}</strong>
-          <p style={{ marginTop: '0.5rem' }}>{t(`rapieres.mode_description`)}</p>
+          <p className="formula-builder-4">{t(`rapieres.mode_description`)}</p>
         </div>
       ) : (
         /* Contenu principal : pipeline + simulation */

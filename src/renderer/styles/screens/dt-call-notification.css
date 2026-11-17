@@ -1,0 +1,36 @@
+/* Styles extraits de DTCallNotification.tsx (#1895) */
+.dt-call-notification-1.dt-call-notification-1.dt-call-notification-1 {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+}
+
+.dt-call-notification-2.dt-call-notification-2.dt-call-notification-2 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.dt-call-notification-3.dt-call-notification-3.dt-call-notification-3 {
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #fca5a5;
+  margin-bottom: 4px;
+}
+
+.dt-call-notification-4.dt-call-notification-4.dt-call-notification-4 {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.dt-call-notification-5.dt-call-notification-5.dt-call-notification-5 {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 10px;
+}

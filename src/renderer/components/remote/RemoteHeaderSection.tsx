@@ -36,7 +36,7 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
       <div className="remote-header">
         <div className="remote-status active rsm-hero">
           <span className="rsm-status-dot rsm-status-dot--on" aria-hidden="true" />
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="remote-header-section-1">
             <h3 className="rsm-hero-title">{t('remote.active_title')}</h3>
             {isExpert && (
               <>
@@ -44,16 +44,9 @@ export function RemoteHeaderSection({ ctx }: { ctx: RemoteScoreManagerCtx }) {
                   {t('rsm.server')} <strong>{serverUrl}</strong>
                 </p>
                 {certFingerprint ? (
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#94a3b8',
-                      margin: '0.25rem 0 0',
-                      wordBreak: 'break-all',
-                    }}
-                  >
+                  <p className="remote-header-section-2">
                     {t('rsm.cert_fingerprint')}{' '}
-                    <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
+                    <code className="remote-header-section-3">{certFingerprint}</code>
                   </p>
                 ) : (
                   serverUrl.startsWith('http://') && (

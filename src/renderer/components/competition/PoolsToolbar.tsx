@@ -38,16 +38,7 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
   const { t } = useTranslation();
   const { numbering, toggleNumbering } = usePoolNumbering();
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        marginBottom: '2rem',
-      }}
-    >
+    <div className="pools-toolbar-1">
       <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} hasCategory={isRapieres} />
       {/* Numérotage : bulles = placement dans la poule au lieu des initiales (#1864) */}
       <Button
@@ -61,8 +52,7 @@ const PoolsToolbar: React.FC<PoolsToolbarProps> = ({
       </Button>
       <WindowSizePresets value={poolCardSize} onChange={onPoolCardSizeChange} />
       <select
-        className="form-input"
-        style={{ width: 'auto', fontWeight: 600 }}
+        className="form-input pools-toolbar-2"
         value={poolsViewMode}
         onChange={e => onPoolsViewModeChange(e.target.value as 'grid' | 'single')}
         title={t('competitionView.pools_mode')}

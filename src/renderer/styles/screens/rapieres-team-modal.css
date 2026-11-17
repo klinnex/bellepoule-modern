@@ -1,0 +1,37 @@
+/* Styles extraits de RapieresTeamModal.tsx (#1895) */
+.rapieres-team-modal-1.rapieres-team-modal-1.rapieres-team-modal-1 {
+  display: grid;
+  gap: 1rem;
+}
+
+.rapieres-team-modal-2.rapieres-team-modal-2.rapieres-team-modal-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.rapieres-team-modal-3.rapieres-team-modal-3.rapieres-team-modal-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.rapieres-team-modal-4.rapieres-team-modal-4.rapieres-team-modal-4 {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rapieres-team-modal-5.rapieres-team-modal-5.rapieres-team-modal-5 {
+  font-weight: 600;
+}
+
+.rapieres-team-modal-6.rapieres-team-modal-6.rapieres-team-modal-6 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.rapieres-team-modal-7.rapieres-team-modal-7.rapieres-team-modal-7 {
+  margin: 0;
+}

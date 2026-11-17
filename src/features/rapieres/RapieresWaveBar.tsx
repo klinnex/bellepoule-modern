@@ -43,21 +43,7 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
   const allDone = launchedWave >= total && isWaveComplete(pools, launchedWave);
 
   return (
-    <div
-      className="card"
-      role="region"
-      aria-label={t('rapieres.waves')}
-      style={{
-        padding: '0.75rem 1rem',
-        margin: '0 auto 1.5rem',
-        maxWidth: '60rem',
-        display: 'flex',
-        gap: '1rem',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        borderLeft: '4px solid #7c3aed',
-      }}
-    >
+    <div className="card rapieres-wave-bar-1" role="region" aria-label={t('rapieres.waves')}>
       <strong>
         {launchedWave === 0
           ? t('rapieres.no_wave')
@@ -119,24 +105,8 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
         />
       )}
       {launchedWave > 0 && !wavesEnded && !allDone && (
-        <span
-          style={{
-            marginLeft: 'auto',
-            display: 'inline-flex',
-            gap: '0.4rem',
-            alignItems: 'center',
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              width: '0.9rem',
-              height: '0.9rem',
-              borderRadius: '3px',
-              border: '2px solid #7c3aed',
-              background: 'rgba(124,58,237,0.18)',
-            }}
-          />
+        <span className="rapieres-wave-bar-2">
+          <span aria-hidden="true" className="rapieres-wave-bar-3" />
           <span className="text-muted">{t('rapieres.wave_legend')}</span>
         </span>
       )}

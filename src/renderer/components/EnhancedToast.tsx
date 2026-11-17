@@ -77,17 +77,7 @@ const ToastContainer: React.FC = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-      }}
-    >
+    <div className="enhanced-toast-1">
       {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
       ))}
@@ -167,7 +157,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
 
   return (
     <div style={getToastStyle()}>
-      <div style={{ fontSize: '1.25rem', lineHeight: 1 }} aria-hidden="true">
+      <div className="enhanced-toast-2" aria-hidden="true">
         <ToastIcon size={20} />
       </div>
       <div className="flex-1">
@@ -180,17 +170,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
         >
           {toast.title}
         </div>
-        {toast.message && (
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: 'var(--color-text-light)',
-              lineHeight: 1.4,
-            }}
-          >
-            {toast.message}
-          </div>
-        )}
+        {toast.message && <div className="enhanced-toast-3">{toast.message}</div>}
         {toast.action && (
           <button
             onClick={toast.action.onClick}
@@ -212,15 +192,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
       <button
         aria-label={translateStatic('actions.close')}
         onClick={() => onRemove(toast.id)}
-        style={{
-          background: 'none',
-          border: 'none',
-          fontSize: '1.125rem',
-          cursor: 'pointer',
-          color: 'var(--color-text-muted)',
-          padding: '0',
-          lineHeight: 1,
-        }}
+        className="enhanced-toast-4"
       >
         ×
       </button>

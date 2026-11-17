@@ -47,9 +47,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
   }, [playing, index, last]);
 
   if (frames.length === 0) {
-    return (
-      <div style={{ padding: '1rem', color: 'var(--color-text-light)' }}>{t('replay.empty')}</div>
-    );
+    return <div className="match-replay-1">{t('replay.empty')}</div>;
   }
 
   const frame = frames[Math.min(index, last)];
@@ -59,12 +57,10 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
     score: number,
     cards: typeof frame.cardsA
   ) => (
-    <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{name || fallback}</div>
-      <div style={{ fontSize: '2.5rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-        {score}
-      </div>
-      <div style={{ display: 'flex', gap: '3px', justifyContent: 'center', minHeight: '14px' }}>
+    <div className="match-replay-2">
+      <div className="match-replay-3">{name || fallback}</div>
+      <div className="match-replay-4">{score}</div>
+      <div className="match-replay-5">
         {cards.map((c, i) => (
           <span
             key={i}
@@ -91,24 +87,13 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
   };
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--color-border)',
-        borderRadius: '8px',
-        padding: '0.75rem',
-        marginBottom: '0.75rem',
-      }}
-    >
+    <div className="match-replay-6">
       <div className="u-row">
         {side(nameA, t('replay.fencer_a'), frame.scoreA, frame.cardsA)}
-        <div style={{ color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums' }}>
-          {formatReplayOffset(frame.offsetMs)}
-        </div>
+        <div className="match-replay-7">{formatReplayOffset(frame.offsetMs)}</div>
         {side(nameB, t('replay.fencer_b'), frame.scoreB, frame.cardsB)}
       </div>
-      <div style={{ textAlign: 'center', fontSize: '0.85rem', margin: '0.5rem 0' }}>
-        {describeMatchEvent(frame.entry)}
-      </div>
+      <div className="match-replay-8">{describeMatchEvent(frame.entry)}</div>
       <input
         type="range"
         min={0}
@@ -121,9 +106,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
         aria-label={t('replay.position')}
         className="w-full"
       />
-      <div
-        style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}
-      >
+      <div className="match-replay-9">
         <button
           style={btn}
           onClick={() => setIndex(i => Math.max(0, i - 1))}
@@ -150,7 +133,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
         >
           <Icon icon={SkipForward} />
         </button>
-        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+        <span className="match-replay-10">
           {t('replay.event_n', { current: index + 1, total: frames.length })}
         </span>
       </div>

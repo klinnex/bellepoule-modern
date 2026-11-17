@@ -1,0 +1,6 @@
+/* Styles extraits de NumericKeypad.tsx (#1895) */
+.numeric-keypad-1.numeric-keypad-1.numeric-keypad-1 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}

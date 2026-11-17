@@ -16,15 +16,7 @@ interface SplitGroupTabsProps {
 export const SplitGroupTabs: React.FC<SplitGroupTabsProps> = ({ groups, active, onSelect }) => {
   const { t } = useTranslation();
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '0.5rem',
-        padding: '0.75rem 1rem',
-        borderBottom: '1px solid var(--color-border)',
-        background: 'var(--color-surface-2)',
-      }}
-    >
+    <div className="split-group-tabs-1">
       {groups.map(g => (
         <button
           key={g}

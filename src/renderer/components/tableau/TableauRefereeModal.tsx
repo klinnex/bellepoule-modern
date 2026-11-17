@@ -67,7 +67,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
       onClose={onClose}
       size="sm"
     >
-      <p style={{ marginBottom: '1rem', color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+      <p className="tableau-referee-modal-1">
         {isMulti
           ? t('tableauReferee.hint_multi', { n: maxReferees })
           : t('tableauReferee.hint_one')}
@@ -81,15 +81,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
           {t('tableauReferee.none')}
         </Button>
         {referees.length === 0 && (
-          <p
-            style={{
-              color: 'var(--color-text-muted)',
-              fontSize: '0.875rem',
-              textAlign: 'center',
-            }}
-          >
-            {t('tableauReferee.none_checked')}
-          </p>
+          <p className="tableau-referee-modal-2">{t('tableauReferee.none_checked')}</p>
         )}
         {isMulti &&
           referees.map(ref => {

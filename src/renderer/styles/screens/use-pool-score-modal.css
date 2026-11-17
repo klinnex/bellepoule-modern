@@ -1,0 +1,14 @@
+/* Styles extraits de usePoolScoreModal.tsx (#1895) */
+.use-pool-score-modal-1.use-pool-score-modal-1.use-pool-score-modal-1 {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.use-pool-score-modal-2.use-pool-score-modal-2.use-pool-score-modal-2 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}

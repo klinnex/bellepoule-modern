@@ -89,7 +89,7 @@ const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, on
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={ref} className="window-size-presets-1">
       <Button
         ref={btnRef}
 
@@ -151,9 +151,7 @@ const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, on
                   }}
                 >
                   <span>{preset.label}</span>
-                  <span style={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-                    {Math.round(preset.scale * 100)} %
-                  </span>
+                  <span className="window-size-presets-2">{Math.round(preset.scale * 100)} %</span>
                 </button>
               );
             })}

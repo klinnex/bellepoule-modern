@@ -92,8 +92,8 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
         </>
       }
     >
-      <div className="form-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-        <div className="form-group" style={{ flex: 2 }}>
+      <div className="form-row ffe-connect-modal-1">
+        <div className="form-group ffe-connect-modal-2">
           <label className="form-label">{t('ffeConnect.code')}</label>
           <input
             className="form-input"
@@ -105,7 +105,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
             disabled={loading}
           />
         </div>
-        <div className="form-group" style={{ flex: 2 }}>
+        <div className="form-group ffe-connect-modal-2">
           <label className="form-label">{t('ffeConnect.api_key')}</label>
           <input
             className="form-input"
@@ -116,7 +116,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
             disabled={loading}
           />
         </div>
-        <div className="form-group" style={{ flex: 'none', alignSelf: 'flex-end' }}>
+        <div className="form-group ffe-connect-modal-3">
           <Button
             variant="primary"
             onClick={handleImportFetch}
@@ -128,15 +128,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
       </div>
 
       {errors.length > 0 && (
-        <div
-          style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: '#fee2e2',
-            borderRadius: '6px',
-            color: '#dc2626',
-          }}
-        >
+        <div className="ffe-connect-modal-4">
           {errors.map((e, i) => (
             <div key={i}>{e}</div>
           ))}
@@ -145,14 +137,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
 
       {participants.length > 0 && (
         <>
-          <div
-            style={{
-              marginBottom: '0.5rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
+          <div className="ffe-connect-modal-5">
             <span>
               <strong>{participants.length}</strong>{' '}
               {t('plural.participants_found', { count: participants.length })} —{' '}
@@ -163,11 +148,11 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
             </Button>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table className="results-table" style={{ width: '100%', fontSize: '0.85rem' }}>
+          <div className="ffe-connect-modal-6">
+            <table className="results-table ffe-connect-modal-7">
               <thead>
                 <tr>
-                  <th style={{ width: 36 }}></th>
+                  <th className="ffe-connect-modal-8"></th>
                   <th>{t('fencer.license')}</th>
                   <th>{t('fencer.last_name')}</th>
                   <th>{t('fencer.first_name')}</th>

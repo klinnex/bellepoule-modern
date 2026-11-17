@@ -246,7 +246,7 @@ const Bracket: React.FC<BracketProps> = ({
           overflow: 'hidden',
         }}
       >
-        <div style={{ flex: 1, padding: '4px 8px', minWidth: 0 }}>
+        <div className="bracket-1">
           <div
             style={{
               fontWeight: isWinner ? 'bold' : 'normal',
@@ -259,9 +259,7 @@ const Bracket: React.FC<BracketProps> = ({
           >
             {fencer ? `${fencer.lastName} ${fencer.firstName.charAt(0)}.` : 'TBD'}
           </div>
-          {fencer?.club && (
-            <div style={{ fontSize: '0.625rem', color: '#6c757d' }}>{fencer.club}</div>
-          )}
+          {fencer?.club && <div className="bracket-2">{fencer.club}</div>}
         </div>
         <div
           style={{
@@ -291,42 +289,12 @@ const Bracket: React.FC<BracketProps> = ({
       ROUND_KEYS[round] && round <= 6 ? t(ROUND_KEYS[round]) : t('bracket.round_n', { n: round });
 
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '2rem',
-          padding: '1rem',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <button
-            onClick={expandAll}
-            style={{
-              background: '#10b981',
-              color: 'white',
-              border: 'none',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-            }}
-          >
+      <div className="bracket-3">
+        <div className="bracket-4">
+          <button onClick={expandAll} className="bracket-5">
             {t('bracket.expand_all')}
           </button>
-          <button
-            onClick={collapseAll}
-            style={{
-              background: '#6b7280',
-              color: 'white',
-              border: 'none',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-            }}
-          >
+          <button onClick={collapseAll} className="bracket-6">
             {t('bracket.collapse_all')}
           </button>
         </div>
@@ -335,48 +303,15 @@ const Bracket: React.FC<BracketProps> = ({
           const isExpanded = expandedRounds.size === 0 || expandedRounds.has(round);
 
           return (
-            <div
-              key={round}
-              style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '1rem',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '8px',
-              }}
-            >
-              <div
-                onClick={() => toggleRoundExpansion(round)}
-                style={{
-                  textAlign: 'center',
-                  fontWeight: '600',
-                  marginBottom: '1rem',
-                  color: 'var(--color-text)',
-                  fontSize: '1.1rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  userSelect: 'none',
-                }}
-              >
-                <span style={{ fontSize: '0.8rem' }}>
+            <div key={round} className="bracket-7">
+              <div onClick={() => toggleRoundExpansion(round)} className="bracket-8">
+                <span className="bracket-9">
                   <Icon icon={isExpanded ? ChevronDown : ChevronRight} />
                 </span>
                 {roundName(round)}
               </div>
               {isExpanded && (
-                <div
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    alignItems: 'center',
-                  }}
-                >
+                <div className="bracket-10">
                   {roundMatches.map(match => {
                     const isHovered = hoveredMatch === match.id;
                     const isEditing = editingMatch === match.id;
@@ -400,19 +335,8 @@ const Bracket: React.FC<BracketProps> = ({
                         onMouseLeave={() => setHoveredMatch(null)}
                         onClick={() => handleMatchClick(match)}
                       >
-                        {match.isBye && (
-                          <div
-                            style={{
-                              textAlign: 'center',
-                              fontSize: '0.625rem',
-                              color: '#6c757d',
-                              marginBottom: '2px',
-                            }}
-                          >
-                            {t('bracket.bye')}
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {match.isBye && <div className="bracket-11">{t('bracket.bye')}</div>}
+                        <div className="bracket-12">
                           {renderFencerRow(match.fencerA, match.scoreA, isA)}
                           {renderFencerRow(match.fencerB, match.scoreB, isB)}
                         </div>
@@ -429,9 +353,9 @@ const Bracket: React.FC<BracketProps> = ({
   };
 
   return (
-    <div className={`bracket-container ${className}`} style={{ overflow: 'auto' }}>
+    <div className={`bracket-container ${className} bracket-13`}>
       {/* Layout toggle buttons */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="bracket-14">
         <button
           onClick={() => setLayoutMode('horizontal')}
           style={{
@@ -581,7 +505,7 @@ const Bracket: React.FC<BracketProps> = ({
           })}
         </svg>
       ) : (
-        <div style={{ overflow: 'auto' }}>{renderPyramidLayout()}</div>
+        <div className="bracket-13">{renderPyramidLayout()}</div>
       )}
     </div>
   );

@@ -21,13 +21,12 @@ const PoolRoundSelector: React.FC<PoolRoundSelectorProps> = ({
   const { t } = useTranslation();
   return (
     <div style={CV_STYLES.roundSelector}>
-      <label htmlFor="pool-round-select" style={{ fontWeight: 600 }}>
+      <label htmlFor="pool-round-select" className="pool-round-selector-1">
         {t('pools.round_select_label')}
       </label>
       <select
         id="pool-round-select"
-        className="form-input"
-        style={{ width: 'auto', fontWeight: 600 }}
+        className="form-input pool-round-selector-2"
         value={viewedPoolRound ?? currentPoolRound}
         onChange={e => {
           const r = Number(e.target.value);

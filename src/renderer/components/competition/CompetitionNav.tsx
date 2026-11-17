@@ -190,7 +190,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             )}
           </React.Fragment>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="competition-nav-1">
           {currentPhase !== 'checkin' && (
             <Button className="btn-icon-label" onClick={handleGoBack}>
               <ChevronLeft size={15} /> {t('competitionNav.back')}

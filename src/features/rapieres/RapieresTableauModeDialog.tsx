@@ -37,7 +37,7 @@ const RapieresTableauModeDialog: React.FC<RapieresTableauModeDialogProps> = ({
         <div className="modal-header">
           <h2 className="modal-title">{t('rapieres.tableau_mode_title')}</h2>
         </div>
-        <div className="modal-body" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="modal-body rapieres-tableau-mode-dialog-1">
           <Button type="button" onClick={() => onChoose('normal')}>
             {t('rapieres.tableau_mode_normal')}
           </Button>
@@ -56,7 +56,7 @@ const RapieresTableauModeDialog: React.FC<RapieresTableauModeDialogProps> = ({
             {t('rapieres.tableau_mode_semis')}
           </Button>
           {!semisAvailable && (
-            <p className="text-muted" style={{ margin: 0 }}>
+            <p className="text-muted rapieres-tableau-mode-dialog-2">
               {t('rapieres.semis_unavailable')}
             </p>
           )}

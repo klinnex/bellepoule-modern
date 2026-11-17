@@ -1,0 +1,7 @@
+/* Styles extraits de CompetitionNav.tsx (#1895) */
+.competition-nav-1.competition-nav-1.competition-nav-1 {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

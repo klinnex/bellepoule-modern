@@ -1,0 +1,38 @@
+/* Styles extraits de WifiQRModal.tsx (#1895) */
+.wifi-qr-modal-1.wifi-qr-modal-1.wifi-qr-modal-1 {
+  font-size: 0.875rem;
+  color: var(--text-muted, #6b7280);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.wifi-qr-modal-2.wifi-qr-modal-2.wifi-qr-modal-2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.wifi-qr-modal-3.wifi-qr-modal-3.wifi-qr-modal-3 {
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.wifi-qr-modal-4.wifi-qr-modal-4.wifi-qr-modal-4 {
+  margin-top: 0.5rem;
+}
+
+.wifi-qr-modal-5.wifi-qr-modal-5.wifi-qr-modal-5 {
+  text-align: center;
+  margin-top: 1.25rem;
+}
+
+.wifi-qr-modal-6.wifi-qr-modal-6.wifi-qr-modal-6 {
+  border-radius: 8px;
+}
+
+.wifi-qr-modal-7.wifi-qr-modal-7.wifi-qr-modal-7 {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  margin-top: 0.5rem;
+}

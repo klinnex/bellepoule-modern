@@ -1,0 +1,36 @@
+/* Styles extraits de OptimizedPoolGrid.tsx (#1895) */
+.optimized-pool-grid-1.optimized-pool-grid-1.optimized-pool-grid-1 {
+  background-color: #f3f4f6;
+  text-align: center;
+  font-weight: bold;
+  border: 1px solid #d1d5db;
+}
+
+.optimized-pool-grid-2.optimized-pool-grid-2.optimized-pool-grid-2 {
+  background-color: #e5e7eb;
+  text-align: center;
+  border: 1px solid #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.optimized-pool-grid-3.optimized-pool-grid-3.optimized-pool-grid-3 {
+  background-color: #fafafa;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+}
+
+.optimized-pool-grid-4.optimized-pool-grid-4.optimized-pool-grid-4 {
+  background-color: #1f2937;
+  color: white;
+  padding: 8px;
+  border: 1px solid #374151;
+  font-size: 0.75rem;
+}
+
+.optimized-pool-grid-5.optimized-pool-grid-5.optimized-pool-grid-5 {
+  overflow-x: auto;
+  background-color: white;
+  border-radius: 8px;
+}

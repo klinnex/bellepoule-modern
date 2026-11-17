@@ -212,28 +212,13 @@ export const VoiceScoreController: React.FC<{
         </div>
         <div>
           <h3 className="is-175b6f">{t('voice.title')}</h3>
-          <p
-            style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
-          >
+          <p className="voice-score-controller-1">
             {isListening ? t('voice.listening') : t('voice.press')}
           </p>
         </div>
       </div>
 
-      {error && (
-        <div
-          style={{
-            padding: '12px',
-            backgroundColor: '#fee2e2',
-            borderRadius: '8px',
-            color: '#991b1b',
-            marginBottom: '16px',
-            fontSize: '0.875rem',
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div className="voice-score-controller-2">{error}</div>}
 
       <button
         onClick={() => setIsListening(!isListening)}
@@ -254,46 +239,20 @@ export const VoiceScoreController: React.FC<{
       </button>
 
       {transcript && (
-        <div
-          style={{
-            marginTop: '16px',
-            padding: '12px',
-            backgroundColor: 'var(--color-bg)',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-          }}
-        >
+        <div className="voice-score-controller-3">
           <strong>{t('voice.last')}</strong> {transcript}
         </div>
       )}
 
       {lastCommand && (
-        <div
-          style={{
-            marginTop: '8px',
-            padding: '12px',
-            backgroundColor: '#d1fae5',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            color: '#065f46',
-          }}
-        >
+        <div className="voice-score-controller-4">
           <Icon icon={CircleCheck} /> {lastCommand}
         </div>
       )}
 
-      <div style={{ marginTop: '16px' }}>
-        <h4 style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: 'var(--color-text)' }}>
-          {t('voice.available')}
-        </h4>
-        <ul
-          style={{
-            margin: 0,
-            paddingLeft: '20px',
-            fontSize: '0.8125rem',
-            color: 'var(--color-text-light)',
-          }}
-        >
+      <div className="voice-score-controller-5">
+        <h4 className="voice-score-controller-6">{t('voice.available')}</h4>
+        <ul className="voice-score-controller-7">
           {commands.map((cmd, idx) => (
             <li key={idx}>{cmd.description}</li>
           ))}

@@ -1,0 +1,14 @@
+/* Styles extraits de SinglePoolNav.tsx (#1895) */
+.single-pool-nav-1.single-pool-nav-1.single-pool-nav-1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.single-pool-nav-2.single-pool-nav-2.single-pool-nav-2 {
+  width: auto;
+  font-weight: 600;
+  text-align: center;
+}

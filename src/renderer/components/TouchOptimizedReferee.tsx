@@ -671,15 +671,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                     <span style={{ fontSize: '1rem', fontWeight: 800, color: chip.textColor }}>
                       {chip.delta}
                     </span>
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#6b7280',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {chip.score}
-                    </span>
+                    <span className="touch-optimized-referee-1">{chip.score}</span>
                   </div>
                 ))}
               </div>

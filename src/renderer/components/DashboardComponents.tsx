@@ -291,30 +291,11 @@ const EmptyState_: React.FC<{
     <div className="is-2e1bdd">
       <div className="is-b0a337">{icon}</div>
       <h3 className="is-a646e7">{title}</h3>
-      <p
-        style={{
-          margin: '0 0 24px 0',
-          fontSize: '0.875rem',
-          color: 'var(--color-text-light)',
-          maxWidth: '400px',
-        }}
-      >
-        {description}
-      </p>
+      <p className="dashboard-components-1">{description}</p>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
+          className="dashboard-components-2"
           onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = '#2563eb';
             e.currentTarget.style.transform = 'translateY(-2px)';
@@ -374,7 +355,7 @@ const ConditionWidget_: React.FC<{
         {theme.icon}
       </div>
       <div>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{label}</p>
+        <p className="dashboard-components-3">{label}</p>
         <p
           style={{
             margin: '2px 0 0 0',

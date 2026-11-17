@@ -1,0 +1,178 @@
+/* Styles extraits de LiveDashboard.tsx (#1895) */
+.live-dashboard-1.live-dashboard-1.live-dashboard-1 {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.live-dashboard-2.live-dashboard-2.live-dashboard-2 {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.live-dashboard-3.live-dashboard-3.live-dashboard-3 {
+  margin: 0;
+  font-size: 2rem;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.live-dashboard-4.live-dashboard-4.live-dashboard-4 {
+  margin: 0.5rem 0 0 0;
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+}
+
+.live-dashboard-5.live-dashboard-5.live-dashboard-5 {
+  text-align: right;
+}
+
+.live-dashboard-6.live-dashboard-6.live-dashboard-6 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.live-dashboard-7.live-dashboard-7.live-dashboard-7 {
+  color: #10b981;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.live-dashboard-8.live-dashboard-8.live-dashboard-8 {
+  background: white;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.live-dashboard-9.live-dashboard-9.live-dashboard-9 {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.live-dashboard-10.live-dashboard-10.live-dashboard-10 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.live-dashboard-11.live-dashboard-11.live-dashboard-11 {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.live-dashboard-12.live-dashboard-12.live-dashboard-12 {
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.live-dashboard-13.live-dashboard-13.live-dashboard-13 {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+}
+
+.live-dashboard-14.live-dashboard-14.live-dashboard-14 {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.live-dashboard-15.live-dashboard-15.live-dashboard-15 {
+  margin-bottom: 2rem;
+}
+
+.live-dashboard-16.live-dashboard-16.live-dashboard-16 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.live-dashboard-17.live-dashboard-17.live-dashboard-17 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.live-dashboard-18.live-dashboard-18.live-dashboard-18 {
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.live-dashboard-19.live-dashboard-19.live-dashboard-19 {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.live-dashboard-20.live-dashboard-20.live-dashboard-20 {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  opacity: 0.6;
+}
+
+.live-dashboard-21.live-dashboard-21.live-dashboard-21 {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  border: 2px solid #fbbf24;
+  animation: pulse 2s infinite;
+}
+
+.live-dashboard-22.live-dashboard-22.live-dashboard-22 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.live-dashboard-23.live-dashboard-23.live-dashboard-23 {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.live-dashboard-24.live-dashboard-24.live-dashboard-24 {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+
+.live-dashboard-25.live-dashboard-25.live-dashboard-25 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem;
+}
+
+.live-dashboard-26.live-dashboard-26.live-dashboard-26 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #dc2626;
+  font-family: var(--font-digital);
+}
+
+.live-dashboard-27.live-dashboard-27.live-dashboard-27 {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.live-dashboard-28.live-dashboard-28.live-dashboard-28 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #16a34a;
+  font-family: var(--font-digital);
+}

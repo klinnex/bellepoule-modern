@@ -240,50 +240,18 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
             e.stopPropagation();
             setShowWebcam(true);
           }}
-          className="h-8 px-2 bg-blue-500 text-white rounded-md flex items-center justify-center gap-1 hover:bg-blue-600 transition-colors shadow-md"
+          className="h-8 px-2 bg-blue-500 text-white rounded-md flex items-center justify-center gap-1 hover:bg-blue-600 transition-colors shadow-md fencer-photo-1"
           title={t('fencerPhoto.webcam_title')}
-          style={{ fontSize: '0.875rem' }}
         >
-          <Icon icon={Camera} />{' '}
-          <span style={{ fontSize: '0.6875rem', fontWeight: 500 }}>Webcam</span>
+          <Icon icon={Camera} /> <span className="fencer-photo-2">Webcam</span>
         </button>
       )}
 
       {editable && showWebcam && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1100,
-          }}
-          onClick={() => setShowWebcam(false)}
-        >
-          <div
-            style={{
-              background: 'var(--color-surface)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-lg)',
-              padding: '1.5rem',
-              width: '480px',
-              maxWidth: '90vw',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem',
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>
-                {t('fencerPhoto.take')}
-              </h3>
+        <div className="fencer-photo-3" onClick={() => setShowWebcam(false)}>
+          <div className="fencer-photo-4" onClick={e => e.stopPropagation()}>
+            <div className="fencer-photo-5">
+              <h3 className="fencer-photo-6">{t('fencerPhoto.take')}</h3>
               <Button
                 aria-label={t('actions.close')}
                 type="button"

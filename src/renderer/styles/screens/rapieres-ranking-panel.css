@@ -1,0 +1,22 @@
+/* Styles extraits de RapieresRankingPanel.tsx (#1895) */
+.rapieres-ranking-panel-1.rapieres-ranking-panel-1.rapieres-ranking-panel-1 {
+  padding: 1rem;
+  margin: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.rapieres-ranking-panel-2.rapieres-ranking-panel-2.rapieres-ranking-panel-2 {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rapieres-ranking-panel-3.rapieres-ranking-panel-3.rapieres-ranking-panel-3 {
+  margin: 0;
+}
+
+.rapieres-ranking-panel-4.rapieres-ranking-panel-4.rapieres-ranking-panel-4 {
+  width: auto;
+}

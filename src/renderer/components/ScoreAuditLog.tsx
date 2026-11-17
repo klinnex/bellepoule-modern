@@ -214,17 +214,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   const hiddenCount = filtered.length - visibleRows.length;
 
   return (
-    <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          marginBottom: '1rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
+    <div className="score-audit-log-1">
+      <div className="score-audit-log-2">
+        <h2 className="score-audit-log-3">
           {t('scoreAudit.title')}
           <CollapseToggle
             collapsed={collapsed}
@@ -236,13 +228,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         <select
           value={filterPool}
           onChange={e => setFilterPool(e.target.value)}
-          style={{
-            padding: '0.3rem 0.6rem',
-            borderRadius: 4,
-            border: '1px solid var(--color-border-dark)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text)',
-          }}
+          className="score-audit-log-4"
         >
           <option value="">{t('scoreAudit.all_phases')}</option>
           {poolNumbers.map(n => (
@@ -257,13 +243,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
           value={sortMode}
           onChange={e => setSortMode(e.target.value as SortMode)}
           aria-label={t('scoreAudit.sort_aria')}
-          style={{
-            padding: '0.3rem 0.6rem',
-            borderRadius: 4,
-            border: '1px solid var(--color-border-dark)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text)',
-          }}
+          className="score-audit-log-4"
         >
           <option value="time">{t('scoreAudit.sort_time')}</option>
           <option value="pool">{t('scoreAudit.sort_pool')}</option>
@@ -276,14 +256,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
           placeholder={t('scoreAudit.filter_referee')}
           value={filterReferee}
           onChange={e => setFilterReferee(e.target.value)}
-          style={{
-            padding: '0.3rem 0.6rem',
-            borderRadius: 4,
-            border: '1px solid var(--color-border-dark)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text)',
-            minWidth: 140,
-          }}
+          className="score-audit-log-5"
         />
 
         <Button onClick={exportCsv} disabled={filtered.length === 0}>
@@ -296,13 +269,13 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '3rem' }}>
+        <div className="score-audit-log-6">
           {loading ? 'Chargement…' : 'Aucune entrée dans le journal.'}
         </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+        <table className="score-audit-log-7">
           <thead>
-            <tr style={{ background: 'var(--color-surface-2)', textAlign: 'left' }}>
+            <tr className="score-audit-log-8">
               <th style={th}>{t('scoreAudit.h_time')}</th>
               <th style={th}>{t('scoreAudit.h_round')}</th>
               <th style={th}>{t('scoreAudit.h_match')}</th>
@@ -314,7 +287,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
           </thead>
           <tbody>
             {visibleRows.map(e => (
-              <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <tr key={e.id} className="score-audit-log-9">
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
                 <td style={td}>{phaseLabel(e)}</td>
                 <td style={td}>{matchLabel(e)}</td>
@@ -339,7 +312,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         </table>
       )}
 
-      <div style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+      <div className="score-audit-log-10">
         {t('scoreAudit.entries', { count: filtered.length })}
         {entries.length !== filtered.length ? t('scoreAudit.total', { n: entries.length }) : ''}
       </div>

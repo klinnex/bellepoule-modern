@@ -1,0 +1,16 @@
+/* Styles extraits de RemoteHeaderSection.tsx (#1895) */
+.remote-header-section-1.remote-header-section-1.remote-header-section-1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.remote-header-section-2.remote-header-section-2.remote-header-section-2 {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0;
+  word-break: break-all;
+}
+
+.remote-header-section-3.remote-header-section-3.remote-header-section-3 {
+  font-size: 0.7rem;
+}

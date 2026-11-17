@@ -1,0 +1,31 @@
+/* Styles extraits de FFEExportModal.tsx (#1895) */
+.ffe-export-modal-1.ffe-export-modal-1.ffe-export-modal-1 {
+  max-width: 520px;
+}
+
+.ffe-export-modal-2.ffe-export-modal-2.ffe-export-modal-2 {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.ffe-export-modal-3.ffe-export-modal-3.ffe-export-modal-3 {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  color: #dc2626;
+}
+
+.ffe-export-modal-4.ffe-export-modal-4.ffe-export-modal-4 {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #dcfce7;
+  border-radius: 6px;
+  color: #15803d;
+}
+
+.ffe-export-modal-5.ffe-export-modal-5.ffe-export-modal-5 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
