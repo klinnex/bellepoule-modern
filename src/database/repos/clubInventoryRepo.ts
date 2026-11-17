@@ -23,6 +23,7 @@ import {
   localIsoDate,
   normalizeItemInput,
   normalizeQuantity,
+  seriesNames,
 } from '../../shared/utils/clubInventory';
 import { isIsoDate } from '../../shared/utils/clubStats';
 import type { SqlExecutor } from './sqlExecutor';
@@ -233,6 +234,32 @@ export class ClubInventoryRepo {
       ]
     );
     return this.requireItem(id);
+  }
+
+  /**
+   * Ajout en série : `count` fiches d'un exemplaire chacune, nommées « Base-01 … » sans
+   * doublon avec les noms du club (numérotation après le plus grand suffixe existant).
+   * Le n° de série, propre à chaque exemplaire, n'est pas recopié. Une seule transaction.
+   */
+  public createItemSeries(clubId: string, data: ClubItemInput, count: number): ClubItem[] {
+    this.ensureOpen();
+    this.assertUnlocked(clubId);
+    const base = normalizeItemInput(data);
+    this.assertCategory(clubId, base.category);
+    const names = seriesNames(
+      base.name,
+      count,
+      this.listItems(clubId).map(i => i.name)
+    );
+    const created: ClubItem[] = [];
+    this.sql.transaction(() => {
+      for (const name of names) {
+        created.push(
+          this.createItem(clubId, { ...base, name, quantity: 1, serialNumber: undefined })
+        );
+      }
+    });
+    return created;
   }
 
   /** Fiche modifiée ; la quantité ne peut pas passer sous le nombre d'exemplaires prêtés */

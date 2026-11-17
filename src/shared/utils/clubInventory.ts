@@ -137,6 +137,40 @@ export function normalizeItemInput(data: Partial<ClubItemInput>): NormalizedItem
   };
 }
 
+/** Ajout en série : nombre maximal de fiches créées d'un coup */
+export const MAX_SERIES = 200;
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Noms d'une série « Base-01 … Base-NN » sans doublon dans le club (casse ignorée).
+ * La numérotation reprend après le plus grand suffixe existant (« Plastron-07 » → 08) ;
+ * deux chiffres minimum, davantage si la série dépasse 99.
+ */
+export function seriesNames(base: string, count: number, existing: readonly string[]): string[] {
+  const root = base
+    .trim()
+    .replace(/-\d+$/, '')
+    .trim()
+    .slice(0, MAX_TEXT - 6);
+  if (!root) throw new Error('Nom du matériel requis');
+  const n = intIn(count, 1, MAX_SERIES, 1);
+  const taken = new Set(existing.map(x => x.trim().toLowerCase()));
+  const re = new RegExp(`^${escapeRegExp(root.toLowerCase())}-(\\d+)$`);
+  let next = 1;
+  for (const name of taken) {
+    const m = re.exec(name);
+    if (m) next = Math.max(next, Number(m[1]) + 1);
+  }
+  const width = Math.max(2, String(next + n - 1).length);
+  const out: string[] = [];
+  while (out.length < n) {
+    const name = `${root}-${String(next++).padStart(width, '0')}`;
+    if (!taken.has(name.toLowerCase())) out.push(name);
+  }
+  return out;
+}
+
 /** Quantité prêtable : valeur bornée à 1..999 */
 export const normalizeQuantity = (v: unknown): number => intIn(v, 1, MAX_QUANTITY, 1);
 

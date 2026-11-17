@@ -53,6 +53,21 @@ describe.skipIf(!DatabaseSync)('ClubInventoryRepo (inventaire du club)', () => {
     m2 = club.createMember(cid, { firstName: 'Alan', lastName: 'Turing' }).id;
   });
 
+  it('ajout en série : fiches unitaires numérotées, sans doublon ni n° de série recopié', () => {
+    inv.createItem(cid, { name: 'Plastron-03', category: 'plastron' });
+    const made = inv.createItemSeries(
+      cid,
+      { name: 'Plastron', category: 'plastron', quantity: 5, serialNumber: 'X1', size: 'M' },
+      15
+    );
+    expect(made).toHaveLength(15);
+    expect(made[0].name).toBe('Plastron-04');
+    expect(made[14].name).toBe('Plastron-18');
+    expect(made.every(i => i.quantity === 1 && !i.serialNumber && i.size === 'M')).toBe(true);
+    const names = inv.listItems(cid).map(i => i.name.toLowerCase());
+    expect(new Set(names).size).toBe(names.length);
+  });
+
   const masks = (over = {}) =>
     inv.createItem(cid, {
       name: 'Masque',

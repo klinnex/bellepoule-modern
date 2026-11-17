@@ -49,6 +49,7 @@ describe('handlers club:* (#1872)', () => {
     returnLoan: vi.fn(() => null),
     deleteLoan: vi.fn(),
     importItems: vi.fn(() => ({ created: 0, skipped: 0 })),
+    createItemSeries: vi.fn(() => []),
   };
 
   beforeEach(() => {
@@ -63,7 +64,7 @@ describe('handlers club:* (#1872)', () => {
 
   it('enregistre tous les canaux club:*', () => {
     expect([...handlers.keys()].every(k => k.startsWith('club:'))).toBe(true);
-    expect(handlers.size).toBe(62);
+    expect(handlers.size).toBe(63);
   });
 
   it('inventaire : délègue au dépôt, filtres et booléens par défaut', () => {
@@ -79,6 +80,12 @@ describe('handlers club:* (#1872)', () => {
     expect(inventory.deleteLoan).toHaveBeenCalledWith('l1');
     call('club:importItems', 'c1', [{ name: 'X', category: 'mask' }]);
     expect(inventory.importItems).toHaveBeenCalledWith('c1', [{ name: 'X', category: 'mask' }]);
+    call('club:createItemSeries', 'c1', { name: 'P', category: 'plastron' }, '15');
+    expect(inventory.createItemSeries).toHaveBeenCalledWith(
+      'c1',
+      { name: 'P', category: 'plastron' },
+      15
+    );
   });
 
   it('booléens stricts et filtres par défaut', () => {

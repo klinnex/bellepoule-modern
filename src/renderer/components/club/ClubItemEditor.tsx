@@ -3,7 +3,7 @@
  * état, emplacement, numéro de série, quantité).
  * Licensed under GPL-3.0
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type {
   ClubItem,
   ClubItemCategory,
@@ -15,7 +15,9 @@ import { Weapon } from '../../../shared/types';
 import {
   ITEM_CATEGORIES,
   ITEM_CONDITIONS,
+  MAX_SERIES,
   normalizeItemInput,
+  seriesNames,
 } from '../../../shared/utils/clubInventory';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -32,6 +34,10 @@ interface ClubItemEditorProps {
   brands: string[];
   /** Lève une erreur (affichée) si l'enregistrement échoue */
   onSave: (data: ClubItemInput) => Promise<void>;
+  /** Ajout en série (création seulement) : count fiches « Nom-01 … » */
+  onSaveSeries?: (data: ClubItemInput, count: number) => Promise<void>;
+  /** Noms déjà présents dans le club : aperçu de la série sans doublon */
+  existingNames?: string[];
   onClose: () => void;
 }
 
@@ -42,6 +48,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
   customCategories,
   brands,
   onSave,
+  onSaveSeries,
+  existingNames = [],
   onClose,
 }) => {
   const { t } = useTranslation();
@@ -64,7 +72,22 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
   const [condition, setCondition] = useState<ClubItemCondition>(item?.condition ?? 'good');
   const [location, setLocation] = useState(item?.location ?? '');
   const [notes, setNotes] = useState(item?.notes ?? '');
+  const [series, setSeries] = useState(false);
+  const [seriesCount, setSeriesCount] = useState('10');
   const [error, setError] = useState<string | null>(null);
+  const canSeries = !item && !!onSaveSeries;
+  const isSeries = canSeries && series;
+  const count = Number.parseInt(seriesCount, 10);
+  const countOk = Number.isFinite(count) && count >= 1 && count <= MAX_SERIES;
+  const preview = useMemo(() => {
+    if (!isSeries || !countOk || !name.trim()) return '';
+    try {
+      const names = seriesNames(name, count, existingNames);
+      return names.length > 1 ? `${names[0]} … ${names[names.length - 1]}` : names[0];
+    } catch {
+      return '';
+    }
+  }, [isSeries, countOk, count, name, existingNames]);
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
@@ -81,7 +104,7 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         weapon: (weapon || undefined) as Weapon | undefined,
         size,
         color,
-        quantity: numberOrUndef(quantity),
+        quantity: isSeries ? 1 : numberOrUndef(quantity),
         purchaseDate: purchaseDate || undefined,
         purchasePrice: numberOrUndef(purchasePrice),
         supplier,
@@ -98,7 +121,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
     }
     setSaving(true);
     try {
-      await onSave(data);
+      if (isSeries && onSaveSeries) await onSaveSeries(data, count);
+      else await onSave(data);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -116,7 +140,11 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
       footer={
         <>
           <Button onClick={onClose}>{t('actions.cancel')}</Button>
-          <Button variant="primary" disabled={saving || !name.trim()} onClick={() => void submit()}>
+          <Button
+            variant="primary"
+            disabled={saving || !name.trim() || (isSeries && !countOk)}
+            onClick={() => void submit()}
+          >
             {t('actions.save')}
           </Button>
         </>
@@ -132,6 +160,34 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
             autoFocus
           />
         </label>
+        {canSeries && (
+          <div className="club-grow">
+            <label className="club-nowrap">
+              <input type="checkbox" checked={series} onChange={e => setSeries(e.target.checked)} />
+              {t('clubInventory.series_toggle')}
+            </label>
+            {series && (
+              <>
+                <label className="form-label">
+                  {t('clubInventory.series_count')}
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={1}
+                    max={MAX_SERIES}
+                    value={seriesCount}
+                    onChange={e => setSeriesCount(e.target.value)}
+                  />
+                </label>
+                <p className="club-muted">
+                  {preview
+                    ? t('clubInventory.series_preview', { names: preview })
+                    : t('clubInventory.series_help', { max: MAX_SERIES })}
+                </p>
+              </>
+            )}
+          </div>
+        )}
         <label className="form-label">
           {t('clubInventory.category')}
           <select
@@ -209,7 +265,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
             type="number"
             min={1}
             max={999}
-            value={quantity}
+            value={isSeries ? '1' : quantity}
+            disabled={isSeries}
             onChange={e => setQuantity(e.target.value)}
           />
         </label>

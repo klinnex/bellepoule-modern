@@ -158,6 +158,12 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
     await load();
   };
 
+  const saveItemSeries = async (data: ClubItemInput, count: number) => {
+    const created = await api.createItemSeries(clubId, data, count);
+    showToast(t('clubInventory.series_done', { count: created.length }), 'success');
+    await load();
+  };
+
   const toggleLock = async () => {
     try {
       setLocked(await api.setInventoryLock(clubId, !locked));
@@ -622,6 +628,8 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           customCategories={categories}
           brands={brands.map(b => b.name)}
           onSave={saveItem}
+          onSaveSeries={saveItemSeries}
+          existingNames={items.map(i => i.name)}
           onClose={() => setEditing(null)}
         />
       )}

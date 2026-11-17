@@ -211,6 +211,9 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   ipcMain.handle('club:createItem', (_, clubId: string, data: ClubItemInput) =>
     inv.createItem(clubId, data ?? { name: '', category: 'other' })
   );
+  ipcMain.handle('club:createItemSeries', (_, clubId: string, data: ClubItemInput, count: number) =>
+    inv.createItemSeries(clubId, data ?? { name: '', category: 'other' }, Number(count))
+  );
   ipcMain.handle('club:updateItem', (_, id: string, data: Partial<ClubItemInput>) =>
     inv.updateItem(id, data ?? {})
   );
