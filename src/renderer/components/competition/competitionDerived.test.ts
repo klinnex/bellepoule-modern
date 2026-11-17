@@ -52,6 +52,15 @@ describe('computeMatchProgress', () => {
     ] as unknown as TableauMatch[];
     expect(computeMatchProgress([], matches)).toEqual({ done: 2, total: 2, label: 'tableau' });
   });
+
+  it('compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)', () => {
+    const matches = [
+      { id: 'q1', round: 4, fencerA: {}, fencerB: {}, winner: {} },
+      { id: 'q2', round: 4, fencerA: {}, fencerB: {}, winner: null },
+      { id: 'f', round: 2, fencerA: {}, fencerB: null, winner: null },
+    ] as unknown as TableauMatch[];
+    expect(computeMatchProgress([], matches)).toEqual({ done: 1, total: 3, label: 'tableau' });
+  });
 });
 
 describe('computeEffectiveTableauRanking', () => {

@@ -15,6 +15,7 @@ import {
   RemoteEvent,
 } from '../../../shared/types';
 import { estimatePhaseEta, median as medianOf } from '../../../shared/utils/phaseEta';
+import { countTableauBouts, tableauRemainingWaves } from '../../../shared/utils/tableauBouts';
 
 /** Durée d'un match supposée tant que moins de 3 matchs sont chronométrés (#1817) */
 const DEFAULT_MATCH_MS = 3 * 60_000;
@@ -350,15 +351,16 @@ export function organisationKpis(input: {
   });
   markLatePools(poolRows);
 
-  const playableTableau = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB);
-  const tableauDone = playableTableau.filter(m => m.winner).length;
+  // Tous les tours du tableau, tireurs connus ou non (#1817)
+  const tableauBouts = countTableauBouts(tableauMatches);
+  const tableauDone = tableauBouts.done;
   const poolMatchIds = new Set(pools.flatMap(p => (p.matches ?? []).map(m => m.id)));
   const tableauInProgress = live.filter(a => !poolMatchIds.has(a.matchId as string)).length;
 
   const poolDone = poolRows.reduce((s, p) => s + p.done, 0);
   const poolTotal = poolRows.reduce((s, p) => s + p.total, 0);
   const done = poolDone + tableauDone;
-  const total = poolTotal + playableTableau.length;
+  const total = poolTotal + tableauBouts.total;
   const inProgress = Math.min(
     poolRows.reduce((s, p) => s + p.inProgress, 0) + tableauInProgress,
     total - done
@@ -454,8 +456,11 @@ export function organisationKpis(input: {
       }
     tableauProjectionMs = tableauWaves(fencerIds.size, parallel) * perMatchMs;
   }
+  const tableauWavesLeft = tableauRemainingWaves(tableauBouts, parallel);
   const competitionEtaAt = hasTableau
-    ? etaAt
+    ? tableauWavesLeft > 0
+      ? (poolsEtaAt ?? now) + tableauWavesLeft * perMatchMs
+      : etaAt
     : tableauProjectionMs != null
       ? (poolsEtaAt ?? poolsEndAt ?? now) + tableauProjectionMs
       : etaAt;
