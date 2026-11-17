@@ -7,6 +7,7 @@ import {
   isAllowedExternalUrl,
   isAppUrl,
   isPermissionAllowed,
+  permissionCheckUrl,
 } from './windowSecurity';
 
 const prod = { dev: false, rendererDir: '/opt/app/dist/renderer' };
@@ -38,6 +39,26 @@ describe('isAllowedExternalUrl', () => {
     expect(isAllowedExternalUrl('file:///etc/passwd')).toBe(false);
     expect(isAllowedExternalUrl('javascript:alert(1)')).toBe(false);
     expect(isAllowedExternalUrl('smb://host/share')).toBe(false);
+  });
+});
+
+describe('permissionCheckUrl (caméra en production, Mode Club)', () => {
+  const page = 'file:///app/index.html';
+  it('origine file:// sans chemin → URL de la page (bundle de production)', () => {
+    expect(permissionCheckUrl('file://', page)).toBe(page);
+    expect(permissionCheckUrl('file:///', page)).toBe(page);
+    expect(permissionCheckUrl(undefined, page)).toBe(page);
+  });
+  it('origine http (dev) inchangée', () => {
+    expect(permissionCheckUrl('http://localhost:8066', page)).toBe('http://localhost:8066');
+  });
+  it('la vérification de caméra réussit depuis la page de production', () => {
+    const app = (u: string) => u.startsWith('file:///app/');
+    const url = permissionCheckUrl('file://', page);
+    expect(isPermissionAllowed('media', url, app)).toBe(true);
+    expect(
+      isPermissionAllowed('media', permissionCheckUrl('https://evil.example', page), app)
+    ).toBe(false);
   });
 });
 

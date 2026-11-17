@@ -15,6 +15,7 @@ import {
   isAllowedExternalUrl,
   isAppUrl,
   isPermissionAllowed,
+  permissionCheckUrl,
 } from './windowSecurity';
 import { logger, LogCategory } from '../shared/services/logger';
 
@@ -89,7 +90,11 @@ export function createMainWindow({
     callback(isPermissionAllowed(permission, url, isApp, mediaTypes));
   });
   session.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
-    isPermissionAllowed(permission, requestingOrigin || contents?.getURL() || '', isApp)
+    isPermissionAllowed(
+      permission,
+      permissionCheckUrl(requestingOrigin, contents?.getURL() ?? ''),
+      isApp
+    )
   );
 
   // Security: Set CSP headers for all requests
