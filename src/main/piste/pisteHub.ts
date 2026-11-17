@@ -17,13 +17,13 @@
 import type { Socket } from 'socket.io';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaMatch, ArenaUpdate } from '../../shared/types/remote';
-import { resolveCyranoCoords, type MatchCoordsSource } from '../cyrano/matchCoords';
-import { pickCyranoNat, type CyranoNatSource } from '../cyrano/names';
+import type { MatchCoordsSource } from '../cyrano/matchCoords';
+import type { CyranoNatSource } from '../cyrano/names';
+import { buildMatchDisplay } from './matchDisplay';
 import { toCyranoWeapon } from '../cyrano/disp';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { ArenaInputGate } from './arenaInputGate';
 import {
-  cardCounts,
   isActiveState,
   mapPisteSides,
   pisteEndOutcome,
@@ -34,8 +34,6 @@ import {
 import { TeamRelayPiste } from './teamRelayPiste';
 import type { TeamRelayView } from '../remote/teamRelayDevice';
 import type {
-  PisteDisplay,
-  PisteDisplaySide,
   PisteDriver,
   PisteInput,
   PisteLink,
@@ -508,7 +506,16 @@ export class PisteHub {
     }
     this.driver.send(piste, {
       kind: 'display',
-      display: this.buildDisplay(match, scoreA, scoreB, status, remote),
+      display: buildMatchDisplay({
+        match,
+        scoreA,
+        scoreB,
+        link: status,
+        remote,
+        watch: this.watch.get(piste),
+        options: this.opts,
+        coordsSource: this.coordsSource,
+      }),
       // Champ épreuve : seulement entre plusieurs épreuves (sinon celui du pilote)
       competition: this.competitionField(remote, status),
     });
@@ -751,62 +758,5 @@ export class PisteHub {
   /** Pseudo-socket de l'appareil pour `arena_control` (id `cyrano:<piste>`). */
   private deviceSocket(piste: PisteLink): Socket {
     return { id: `cyrano:${piste.piste}`, emit: () => true } as unknown as Socket;
-  }
-
-  private buildDisplay(
-    match: ArenaMatch,
-    scoreA: number,
-    scoreB: number,
-    piste?: PisteLink,
-    remote: RemoteScoreServer | null = piste ? this.remoteFor(piste) : null
-  ): PisteDisplay {
-    const fA = match.fencerA;
-    const fB = match.fencerB;
-    // Cartons déjà donnés sur ce match (match rappelé, appareil redémarré) : sans eux, le
-    // premier état de l'appareil les effacerait
-    const arenaId = `arena${piste?.arena}`;
-    const arena = piste?.arena ? remote?.getArena(arenaId) : null;
-    const isCurrent = arena?.currentMatch?.id === match.id;
-    const cards = isCurrent ? remote?.arenaCards.get(arenaId) : undefined;
-    // Chrono : seulement pour un match repris pas encore relancé (PREV), jamais en plein combat
-    const w = piste ? this.watch.get(piste.piste) : undefined;
-    const stopwatch =
-      isCurrent && arena?.status !== 'in_progress' && w?.matchId === match.id
-        ? w.stopwatch
-        : undefined;
-    const right: PisteDisplaySide = {
-      id: fA.id,
-      lastName: fA.lastName,
-      firstName: fA.firstName,
-      nat: pickCyranoNat(fA, this.opts.natSource, this.opts.international),
-      score: scoreA,
-      ...cardCounts(cards?.cardsA),
-    };
-    const left: PisteDisplaySide = {
-      id: fB.id,
-      lastName: fB.lastName,
-      firstName: fB.firstName,
-      nat: pickCyranoNat(fB, this.opts.natSource, this.opts.international),
-      score: scoreB,
-      ...cardCounts(cards?.cardsB),
-    };
-
-    const { phase, poulTab, matchNum } = resolveCyranoCoords(
-      match,
-      remote?.getSession()?.competitionId,
-      this.coordsSource
-    );
-    return {
-      type: 'individual',
-      phase,
-      poulTab,
-      match: matchNum,
-      stopwatch,
-      // Arme de la séance ; Laser / CUSTOM → champ vide (affichage seul)
-      weapon: remote?.getSessionWeapon() ?? '',
-      right,
-      left,
-      referee: match.referee ? { id: match.referee.id, name: match.referee.name } : undefined,
-    };
   }
 }
