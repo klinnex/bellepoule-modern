@@ -687,7 +687,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                               prev.map((r, i) => (i === index ? { ...r, questPoints: val } : r))
                             );
                           }}
-                          style={{ width: '52px', textAlign: 'center', padding: '1px 4px' }}
+                          className="pool-ranking-view-1"
                         />
                       ) : (
                         (ranking.questPoints ?? 0)
@@ -695,9 +695,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                     </td>
                   )}
                   {isVisible('quest') && isLaserSabre && (
-                    <td style={{ textAlign: 'center', color: '#7c3aed' }}>
-                      {formatQuestPerMatch(ranking)}
-                    </td>
+                    <td className="pool-ranking-view-2">{formatQuestPerMatch(ranking)}</td>
                   )}
                   {isVisible('index') && (
                     <td
@@ -715,9 +713,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       {isQualified ? (
                         <span className="ranking-qualif-badge">Q</span>
                       ) : (
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                          —
-                        </span>
+                        <span className="pool-ranking-view-3">—</span>
                       )}
                     </td>
                   )}
@@ -736,14 +732,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       </div>
 
       {/* Actions */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '2rem',
-        }}
-      >
+      <div className="pool-ranking-view-4">
         <div className="ranking-legend">
           {[
             [t('poolRanking.legend_v'), t('poolRanking.legend_v_full')],
@@ -764,28 +753,19 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             </span>
           ))}
           <span className="ranking-legend-pill">
-            <span
-              className="ranking-status-badge ranking-status-badge--abandon"
-              style={{ marginLeft: 0 }}
-            >
+            <span className="ranking-status-badge ranking-status-badge--abandon pool-ranking-view-5">
               {statusCode(FencerStatus.ABANDONED)}
             </span>{' '}
             {t('poolRanking.abandon')}
           </span>
           <span className="ranking-legend-pill">
-            <span
-              className="ranking-status-badge ranking-status-badge--forfait"
-              style={{ marginLeft: 0 }}
-            >
+            <span className="ranking-status-badge ranking-status-badge--forfait pool-ranking-view-5">
               F
             </span>{' '}
             {t('poolRanking.forfeit')}
           </span>
           <span className="ranking-legend-pill">
-            <span
-              className="ranking-status-badge ranking-status-badge--exclu"
-              style={{ marginLeft: 0 }}
-            >
+            <span className="ranking-status-badge ranking-status-badge--exclu pool-ranking-view-5">
               X
             </span>{' '}
             {t('poolRanking.excluded')}

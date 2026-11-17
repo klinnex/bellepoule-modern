@@ -168,14 +168,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         </>
       }
     >
-      <div
-        style={{
-          marginBottom: '1rem',
-          padding: '0.75rem',
-          background: 'var(--color-bg)',
-          borderRadius: '6px',
-        }}
-      >
+      <div className="import-modal-1">
         <strong>{t('importModal.file')}</strong> {filename}
         <br />
         <strong>{t('importModal.format')}</strong> {format.toUpperCase()}
@@ -185,15 +178,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
       {isRankingImport && rankingResult && (
         <>
           {rankingResult.errors.length > 0 && (
-            <div
-              style={{
-                marginBottom: '1rem',
-                padding: '0.75rem',
-                background: '#fee2e2',
-                borderRadius: '6px',
-                color: '#dc2626',
-              }}
-            >
+            <div className="import-modal-2">
               <strong>{t('importModal.errors')}</strong>
               <ul style={LIST_INDENT}>
                 {rankingResult.errors.map((err, i) => (
@@ -214,15 +199,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
             <strong>{t('importModal.result')}</strong>
             <ul style={LIST_INDENT}>
               <li>
-                <span style={{ color: '#059669', fontWeight: 'bold' }}>
-                  {rankingResult.updated}
-                </span>{' '}
+                <span className="import-modal-3">{rankingResult.updated}</span>{' '}
                 {t('importModal.updated')}
               </li>
               <li>
-                <span style={{ color: '#dc2626', fontWeight: 'bold' }}>
-                  {rankingResult.notFound}
-                </span>{' '}
+                <span className="import-modal-4">{rankingResult.notFound}</span>{' '}
                 {t('importModal.not_found')}
               </li>
             </ul>
@@ -233,14 +214,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
               <div className="mb-2">
                 <strong>{t('importModal.details')}</strong>
               </div>
-              <div
-                style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '6px',
-                  maxHeight: '300px',
-                  overflow: 'auto',
-                }}
-              >
+              <div className="import-modal-5">
                 <table style={TABLE}>
                   <thead style={STICKY_HEAD}>
                     <tr>
@@ -263,14 +237,12 @@ const ImportModal: React.FC<ImportModalProps> = ({
                         <td style={TD}>{detail.lastName}</td>
                         <td style={TD}>{detail.firstName}</td>
                         <td style={TD}>{detail.club || '-'}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 'bold' }}>
-                          {detail.ranking}
-                        </td>
+                        <td className="import-modal-6">{detail.ranking}</td>
                         <td style={TD_CENTER}>
                           {detail.matched ? (
-                            <span style={{ color: '#059669' }}>{t('importModal.matched')}</span>
+                            <span className="import-modal-7">{t('importModal.matched')}</span>
                           ) : (
-                            <span style={{ color: '#dc2626' }}>{t('importModal.unmatched')}</span>
+                            <span className="import-modal-8">{t('importModal.unmatched')}</span>
                           )}
                         </td>
                       </tr>
@@ -285,15 +257,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
       {/* Affichage pour l'import de tireurs (ancien code) */}
       {!isRankingImport && result && result.errors && result.errors.length > 0 && (
-        <div
-          style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: '#fee2e2',
-            borderRadius: '6px',
-            color: '#dc2626',
-          }}
-        >
+        <div className="import-modal-2">
           <strong>{t('importModal.errors')}</strong>
           <ul style={LIST_INDENT}>
             {result.errors.map((err, i) => (
@@ -304,24 +268,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
       )}
 
       {!isRankingImport && result && result.warnings && result.warnings.length > 0 && (
-        <div
-          style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: '#fef3c7',
-            borderRadius: '6px',
-            color: '#d97706',
-          }}
-        >
+        <div className="import-modal-9">
           <strong>{t('importModal.warnings')}</strong>
-          <ul
-            style={{
-              margin: '0.5rem 0 0 1rem',
-              padding: 0,
-              maxHeight: '100px',
-              overflow: 'auto',
-            }}
-          >
+          <ul className="import-modal-10">
             {result.warnings.map((warn, i) => (
               <li key={i}>{warn}</li>
             ))}
@@ -331,14 +280,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
       {!isRankingImport && result && (result.fencers.length > 0 || referees.length > 0) ? (
         <>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '0.5rem',
-            }}
-          >
+          <div className="import-modal-11">
             {result.referees ? (
               <span role="tablist" aria-label={t('importModal.list_choice')} style={TAB_LIST}>
                 {(['fencers', 'referees'] as const).map(v => {
@@ -365,18 +307,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
               </span>
             )}
             {canSelect && (
-              <button
-                onClick={toggleAll}
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--color-text)',
-                  background: 'var(--color-border)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
+              <button onClick={toggleAll} className="import-modal-12">
                 {selected.size === listLength
                   ? t('importModal.deselect_all')
                   : t('importModal.select_all')}
@@ -384,14 +315,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             )}
           </div>
 
-          <div
-            style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              maxHeight: '300px',
-              overflow: 'auto',
-            }}
-          >
+          <div className="import-modal-5">
             {showReferees ? (
               <table style={TABLE}>
                 <thead style={STICKY_HEAD}>
@@ -474,11 +398,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
           </div>
         </>
       ) : !isRankingImport && result ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-light)' }}>
-          {t('importModal.none_in_file')}
-        </div>
+        <div className="import-modal-13">{t('importModal.none_in_file')}</div>
       ) : !isRankingImport ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>{t('importModal.loading')}</div>
+        <div className="import-modal-14">{t('importModal.loading')}</div>
       ) : null}
     </Modal>
   );

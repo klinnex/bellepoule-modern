@@ -41,10 +41,9 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
     <div className="modal-overlay" onClick={onCancel}>
       <form
         ref={trapRef}
-        className="modal"
+        className="modal split-competition-modal-1"
         onClick={e => e.stopPropagation()}
         onSubmit={submit}
-        style={{ maxWidth: '460px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="split-competition-title"
@@ -55,7 +54,9 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
           </h2>
         </div>
         <div className="modal-body">
-          <p style={{ marginTop: 0 }}>{t('splitCompetition.text', { count: fencerCount })}</p>
+          <p className="split-competition-modal-2">
+            {t('splitCompetition.text', { count: fencerCount })}
+          </p>
           <div className="form-group">
             <label className="form-label" htmlFor="split-competition-name">
               {t('splitCompetition.name')}

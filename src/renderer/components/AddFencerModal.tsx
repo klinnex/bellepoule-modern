@@ -111,7 +111,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <div className="add-fencer-modal-1">
               <FencerPhoto
                 photo={photo}
                 firstName={firstName}
@@ -155,14 +155,9 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 {lockedGender ? (
                   <input
                     type="text"
-                    className="form-input"
+                    className="form-input add-fencer-modal-2"
                     value={lockedGender === Gender.MALE ? t('genders.male') : t('genders.female')}
                     readOnly
-                    style={{
-                      background: 'var(--color-surface-2)',
-                      color: 'var(--color-text)',
-                      cursor: 'not-allowed',
-                    }}
                   />
                 ) : (
                   <select

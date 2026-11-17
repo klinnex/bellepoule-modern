@@ -67,7 +67,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: '0.75rem' }}>
+        <span className="modern-visual-components-1">
           {isDark ? <Icon icon={Moon} /> : <Icon icon={Sun} />}
         </span>
       </div>
@@ -125,16 +125,7 @@ const AnimatedCounter_: React.FC<{ value: number; duration?: number }> = ({
     return () => cancelAnimationFrame(animationFrame);
   }, [value, duration]);
 
-  return (
-    <span
-      style={{
-        fontVariantNumeric: 'tabular-nums',
-        fontWeight: 'bold',
-      }}
-    >
-      {displayValue}
-    </span>
-  );
+  return <span className="modern-visual-components-2">{displayValue}</span>;
 };
 
 // Ripple Button
@@ -215,19 +206,7 @@ const RippleButton_: React.FC<
 
 // Gradient Text
 const GradientText_: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <span
-      style={{
-        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6, #ec4899)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontWeight: 'bold',
-      }}
-    >
-      {children}
-    </span>
-  );
+  return <span className="modern-visual-components-3">{children}</span>;
 };
 
 // Status Badge
@@ -286,25 +265,7 @@ const FloatingActionButton_: React.FC<{
   return (
     <button
       onClick={onClick}
-      style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        width: '56px',
-        height: '56px',
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6)',
-        border: 'none',
-        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
-        cursor: 'pointer',
-        fontSize: '1.5rem',
-        color: 'white',
-        transition: 'all 0.3s ease',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-      }}
+      className="modern-visual-components-4"
       onMouseEnter={e => {
         e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
         e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
@@ -334,7 +295,7 @@ const ProgressRing_: React.FC<{
 
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <svg width={size} height={size} className="modern-visual-components-5">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -353,22 +314,10 @@ const ProgressRing_: React.FC<{
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          className="modern-visual-components-6"
         />
       </svg>
-      <span
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '0.875rem',
-          fontWeight: 'bold',
-          color: 'var(--color-text)',
-        }}
-      >
-        {Math.round(progress)}%
-      </span>
+      <span className="modern-visual-components-7">{Math.round(progress)}%</span>
     </div>
   );
 };
@@ -377,14 +326,7 @@ const ProgressRing_: React.FC<{
 const HoverCard_: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div
-      style={{
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        border: '1px solid var(--color-border)',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-      }}
+      className="modern-visual-components-8"
       onMouseEnter={e => {
         e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.15)';
@@ -432,15 +374,7 @@ const Confetti_: React.FC<{ trigger: boolean }> = ({ trigger }) => {
   if (particles.length === 0) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 9999,
-        overflow: 'hidden',
-      }}
-    >
+    <div className="modern-visual-components-9">
       {particles.map(p => (
         <div
           key={p.id}

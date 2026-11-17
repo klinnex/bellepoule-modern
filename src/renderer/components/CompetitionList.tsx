@@ -216,113 +216,35 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     ];
     return (
       <div className="content">
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 'calc(100vh - 220px)',
-            gap: '2.5rem',
-          }}
-        >
+        <div className="competition-list-1">
           <div className="text-center">
             <span className="brand-logo-wrap" aria-hidden="true">
               <BrandLogo size={72} className="mb-4" />
             </span>
-            <h1
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                marginBottom: '0.5rem',
-              }}
-            >
+            <h1 className="competition-list-2">
               {t('competitionList.welcome', { app: t('app.title') })}
             </h1>
-            <p
-              style={{
-                color: 'var(--color-text-light)',
-                fontSize: '1rem',
-                maxWidth: '48ch',
-                margin: '0 auto',
-              }}
-            >
-              {t('competitionList.tagline')}
-            </p>
+            <p className="competition-list-3">{t('competitionList.tagline')}</p>
           </div>
 
-          <ol
-            aria-label={t('competitionList.steps')}
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              alignItems: 'flex-start',
-              listStyle: 'none',
-              padding: 0,
-              margin: 0,
-            }}
-          >
+          <ol aria-label={t('competitionList.steps')} className="competition-list-4">
             {steps
               .map(({ step, Icon, label, desc }) => (
-                <li
-                  key={step}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    width: 100,
-                  }}
-                >
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
-                      color: 'var(--color-primary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                <li key={step} className="competition-list-5">
+                  <div aria-hidden="true" className="competition-list-6">
                     <Icon size={22} strokeWidth={1.75} />
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.6875rem',
-                      fontWeight: 700,
-                      color: 'var(--color-text-light)',
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <div className="competition-list-7">
                     {t('competitionList.step_n', { n: step })}
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>
-                    {label}
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {desc}
-                  </div>
+                  <div className="competition-list-8">{label}</div>
+                  <div className="competition-list-9">{desc}</div>
                 </li>
               ))
               .reduce<React.ReactNode[]>((acc, el, i) => {
                 if (i > 0)
                   acc.push(
-                    <li
-                      key={`arrow-${i}`}
-                      aria-hidden="true"
-                      style={{ color: 'var(--color-text-light)', marginTop: '0.875rem' }}
-                    >
+                    <li key={`arrow-${i}`} aria-hidden="true" className="competition-list-10">
                       <ChevronRight size={20} />
                     </li>
                   );
@@ -331,9 +253,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               }, [])}
           </ol>
 
-          <div
-            style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
-          >
+          <div className="competition-list-11">
             <Button
               variant="primary"
               size="lg"
@@ -382,7 +302,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             </Button>
           )}
 
-          <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
+          <p className="competition-list-12">
             {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
             <kbd>K</kbd> {t('competitionList.tip_3')}
           </p>
@@ -404,7 +324,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     <div className="content">
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="competition-list-13">
           {onStartDemo && (
             <Button
               type="button"
@@ -558,7 +478,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             <div className="comp-card-inner">
               <div className="comp-card-top">
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="competition-list-14">
                   <h3 className="comp-card-title">{competition.title}</h3>
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
@@ -628,16 +548,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         <EventDayModal competitions={competitions} onClose={() => setShowEventDays(false)} />
       )}
       {totalItems > pageSize && (
-        <div
-          className="pagination-bar"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginTop: '1rem',
-            justifyContent: 'center',
-          }}
-        >
+        <div className="pagination-bar competition-list-15">
           <Button
             size="sm"
             onClick={goToFirst}
@@ -654,7 +565,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             ‹
           </Button>
-          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          <span className="competition-list-16">
             {startIndex + 1}–{endIndex} / {totalItems}
           </span>
           <Button
@@ -674,10 +585,9 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             »
           </Button>
           <select
-            className="form-select form-select-sm"
+            className="form-select form-select-sm competition-list-17"
             value={pageSize}
             onChange={e => setPageSize(Number(e.target.value))}
-            style={{ marginLeft: '0.5rem', fontSize: '0.875rem' }}
           >
             {pageSizeOptions.map(s => (
               <option key={s} value={s}>

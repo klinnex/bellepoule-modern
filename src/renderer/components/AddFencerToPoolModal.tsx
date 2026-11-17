@@ -139,9 +139,8 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal add-fencer-to-pool-modal-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '420px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-fencer-title"
@@ -154,16 +153,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
         </div>
 
         <div className="modal-body">
-          <div
-            style={{
-              padding: '0.75rem',
-              background: '#fef3c7',
-              borderRadius: '6px',
-              marginBottom: '1rem',
-              color: '#92400e',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="add-fencer-to-pool-modal-2">
             <Icon icon={TriangleAlert} /> <strong>{t('addFencerPool.rescue_title')}</strong>{' '}
             {t('addFencerPool.rescue_text')}
           </div>
@@ -175,47 +165,14 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
             value={search}
             onChange={e => setSearch(e.target.value)}
             autoFocus
-            style={{
-              width: '100%',
-              padding: '0.5rem 0.75rem',
-              border: '1px solid var(--color-border-dark)',
-              borderRadius: '6px',
-              marginBottom: '0.75rem',
-              fontSize: '0.875rem',
-              boxSizing: 'border-box',
-            }}
+            className="add-fencer-to-pool-modal-3"
           />
 
-          <div
-            style={{
-              maxHeight: '240px',
-              overflowY: 'auto',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-            }}
-          >
+          <div className="add-fencer-to-pool-modal-4">
             {isFetching ? (
-              <div
-                style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('addFencerPool.loading')}
-              </div>
+              <div className="add-fencer-to-pool-modal-5">{t('addFencerPool.loading')}</div>
             ) : available.length === 0 ? (
-              <div
-                style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('addFencerPool.none')}
-              </div>
+              <div className="add-fencer-to-pool-modal-5">{t('addFencerPool.none')}</div>
             ) : (
               available.map(f => {
                 const isSelected = selectedFencer?.id === f.id;
@@ -245,11 +202,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                     <span style={{ fontWeight: isSelected ? 600 : 400 }}>
                       {f.lastName} {f.firstName}
                     </span>
-                    {f.club && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {f.club}
-                      </span>
-                    )}
+                    {f.club && <span className="add-fencer-to-pool-modal-6">{f.club}</span>}
                   </div>
                 );
               })

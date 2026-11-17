@@ -65,15 +65,7 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
             title={t('fencerList.empty_title')}
             description={t('fencerList.empty_desc')}
           >
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.75rem',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-                marginTop: '1.25rem',
-              }}
-            >
+            <div className="fencer-list-table-1">
               {onImport && (
                 <CoachMark
                   id="import-fencers"
@@ -111,7 +103,7 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
       ) : (
         <div className="card">
           {useVirtual && (
-            <table className="table" style={{ tableLayout: 'fixed' }}>
+            <table className="table fencer-list-table-2">
               <colgroup>
                 {visibleCols.map(col => (
                   <col key={col.id} style={col.width ? { width: col.width } : undefined} />
@@ -296,14 +288,7 @@ export function FencerListTable({ ctx }: { ctx: FencerListCtx }) {
                     })}
                     <td onDoubleClick={e => e.stopPropagation()}>
                       {!readOnly && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '0.25rem',
-                            flexWrap: 'wrap',
-                            alignItems: 'center',
-                          }}
-                        >
+                        <div className="fencer-list-table-3">
                           <Button
                             size="sm"
                             onClick={() => openEdit(fencer)}

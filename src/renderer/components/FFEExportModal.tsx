@@ -74,9 +74,8 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal ffe-export-modal-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '520px' }}
         role="dialog"
         aria-modal="true"
       >
@@ -111,45 +110,22 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
             />
           </div>
 
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
+          <p className="ffe-export-modal-2">
             {t('plural.fencers_ready_export', { count: entries.length })}
             {missingLicense > 0 && t('ffeExport.missing_license', { n: missingLicense })}
           </p>
 
           {errors.length > 0 && (
-            <div
-              style={{
-                marginTop: '0.75rem',
-                padding: '0.75rem',
-                background: '#fee2e2',
-                borderRadius: '6px',
-                color: '#dc2626',
-              }}
-            >
+            <div className="ffe-export-modal-3">
               {errors.map((e, i) => (
                 <div key={i}>{e}</div>
               ))}
             </div>
           )}
-          {success && (
-            <div
-              style={{
-                marginTop: '0.75rem',
-                padding: '0.75rem',
-                background: '#dcfce7',
-                borderRadius: '6px',
-                color: '#15803d',
-              }}
-            >
-              {t('ffeExport.success')}
-            </div>
-          )}
+          {success && <div className="ffe-export-modal-4">{t('ffeExport.success')}</div>}
         </div>
 
-        <div
-          className="modal-footer"
-          style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}
-        >
+        <div className="modal-footer ffe-export-modal-5">
           <Button onClick={onClose}>{t('actions.close')}</Button>
           <Button
             variant="primary"

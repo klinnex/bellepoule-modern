@@ -868,7 +868,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         </td>
                         <td className="is-748511">{row.matchesAssigned}</td>
                         <td className="is-748511">{row.consecutiveMatches}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <td className="referee-manager-1">
                           <span
                             style={{
                               color: fatigueColor,
@@ -905,15 +905,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           )}
 
           {/* Arbitres List */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div className="referee-manager-2">
             <h3 style={HEADING}>{t('refereeManager.available')}</h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '1rem',
-              }}
-            >
+            <div className="referee-manager-3">
               {referees.map(referee => {
                 const stats = getRefereeStats(referee.id);
                 return (
@@ -927,7 +921,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       borderColor: referee.status !== 'unavailable' ? '#86efac' : '#fecaca',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', color: 'var(--color-text)' }}>
+                    <div className="referee-manager-4">
                       {referee.firstName} {referee.lastName}
                     </div>
                     {/* Carte sur fond clair (vert/rouge) : texte sombre dans les deux thèmes */}
@@ -953,12 +947,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         })}
                       </div>
                     )}
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                      <span style={{ color: 'var(--color-text)' }}>
+                    <div className="referee-manager-5">
+                      <span className="referee-manager-6">
                         {t('refereeManager.today_matches', { n: stats.todayMatches })}
                       </span>
                       <br />
-                      <span style={{ color: 'var(--color-text)' }}>
+                      <span className="referee-manager-6">
                         {t('refereeManager.total_n', { n: stats.totalMatches })}
                       </span>
                     </div>
@@ -997,7 +991,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     }}
                   >
                     <div className="flex-1">
-                      <div style={{ fontWeight: '500' }}>
+                      <div className="referee-manager-7">
                         {match.fencerA?.firstName} {match.fencerA?.lastName}{' '}
                         {t('refereeManager.vs')} {match.fencerB?.firstName}{' '}
                         {match.fencerB?.lastName}
@@ -1020,21 +1014,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       ) : null}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="referee-manager-8">
                       {conflictWarning && (
-                        <span style={{ color: '#dc2626', fontSize: '0.875rem' }}>
-                          {conflictWarning}
-                        </span>
+                        <span className="referee-manager-9">{conflictWarning}</span>
                       )}
                       <select
                         value={assignedReferee?.id || ''}
                         onChange={e => handleManualAssign(match.id, e.target.value)}
-                        style={{
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid var(--color-border-dark)',
-                          background: 'var(--color-surface)',
-                        }}
+                        className="referee-manager-10"
                       >
                         <option value="">{t('refereeManager.choose')}</option>
                         {referees

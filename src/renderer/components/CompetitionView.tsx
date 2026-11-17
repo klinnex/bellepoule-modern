@@ -300,7 +300,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
       {/* Content — keyed pour animation de transition */}
       <div key={currentPhase} className="phase-content" style={CV_STYLES.phaseContent}>
         {currentPhase === 'checkin' && currentPoolRound > 1 && pools.length === 0 && (
-          <div className="alert alert-info" role="status" style={{ margin: '0.75rem 1rem 0' }}>
+          <div className="alert alert-info competition-view-1" role="status">
             {t('pools.round_checkin_banner', { n: currentPoolRound })}
           </div>
         )}

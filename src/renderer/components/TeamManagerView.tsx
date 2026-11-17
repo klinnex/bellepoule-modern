@@ -853,7 +853,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       {view === 'ranking' && isLaserArena && (
         <div>
           {laserRankings.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+            <div className="team-manager-view-1">
               <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {
@@ -969,7 +969,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       {view === 'ranking' && !isLaserArena && (
         <div>
           {fieRankings.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+            <div className="team-manager-view-1">
               <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {

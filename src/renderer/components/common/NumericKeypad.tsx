@@ -60,15 +60,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
   );
 
   return (
-    <div
-      role="group"
-      aria-label={translateStatic('keypad.aria')}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '0.5rem',
-      }}
-    >
+    <div role="group" aria-label={translateStatic('keypad.aria')} className="numeric-keypad-1">
       {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(digitKey)}
       <button
         type="button"

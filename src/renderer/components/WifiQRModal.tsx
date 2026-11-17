@@ -117,16 +117,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
         </>
       }
     >
-      <p
-        style={{
-          fontSize: '0.875rem',
-          color: 'var(--text-muted, #6b7280)',
-          marginBottom: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        {t('wifiQr.hint')}
-      </p>
+      <p className="wifi-qr-modal-1">{t('wifiQr.hint')}</p>
 
       <div className="form-group">
         <label className="form-label" htmlFor="wifi-ssid">
@@ -175,52 +166,30 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
         </div>
       )}
 
-      <div
-        className="form-group"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
-        }}
-      >
+      <div className="form-group wifi-qr-modal-2">
         <input
           id="wifi-hidden"
           type="checkbox"
           checked={config.hidden}
           onChange={e => handleChange('hidden', e.target.checked)}
         />
-        <label
-          htmlFor="wifi-hidden"
-          className="form-label"
-          style={{ marginBottom: 0, cursor: 'pointer' }}
-        >
+        <label htmlFor="wifi-hidden" className="form-label wifi-qr-modal-3">
           {t('wifiQr.hidden')}
         </label>
       </div>
 
-      {error && (
-        <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="alert alert--error wifi-qr-modal-4">{error}</div>}
 
       {qrDataUrl && (
-        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+        <div className="wifi-qr-modal-5">
           <img
             src={qrDataUrl}
             alt={t('wifiQr.qr_alt')}
             width={280}
             height={280}
-            style={{ borderRadius: '8px' }}
+            className="wifi-qr-modal-6"
           />
-          <p
-            style={{
-              fontSize: '0.8rem',
-              color: 'var(--text-muted, #6b7280)',
-              marginTop: '0.5rem',
-            }}
-          >
+          <p className="wifi-qr-modal-7">
             {t('wifiQr.network')} <strong>{config.ssid}</strong> ·{' '}
             {config.security !== 'nopass' ? config.security : t('wifiQr.open_short')}
           </p>

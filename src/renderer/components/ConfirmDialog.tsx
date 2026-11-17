@@ -111,15 +111,13 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       {pending && (
         <div
-          className="modal-overlay"
+          className="modal-overlay confirm-dialog-1"
           onClick={handleCancel}
           onKeyDown={handleKeyDown}
-          style={{ zIndex: 11000 }}
         >
           <div
-            className="modal"
+            className="modal confirm-dialog-2"
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '420px' }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
