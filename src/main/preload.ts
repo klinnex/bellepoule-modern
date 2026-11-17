@@ -301,6 +301,8 @@ const electronApi = {
       ipcRenderer.invoke('club:listItems', clubId, includeRetired),
     createItem: (clubId: string, data: unknown) =>
       ipcRenderer.invoke('club:createItem', clubId, data),
+    createItemSeries: (clubId: string, data: unknown, count: number) =>
+      ipcRenderer.invoke('club:createItemSeries', clubId, data, count),
     updateItem: (id: string, data: unknown) => ipcRenderer.invoke('club:updateItem', id, data),
     deleteItem: (id: string) => ipcRenderer.invoke('club:deleteItem', id),
     listLoans: (clubId: string, filter?: unknown) =>
