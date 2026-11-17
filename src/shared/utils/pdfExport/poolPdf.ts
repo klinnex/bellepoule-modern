@@ -691,7 +691,7 @@ export function allPoolsFileName(competitionName?: string): string {
 // ─── Impression Poule (dialogue d'impression natif) ───────────────────────────
 
 async function sendHtmlToPrint(html: string): Promise<void> {
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }

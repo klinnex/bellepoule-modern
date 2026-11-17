@@ -495,7 +495,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const exportFullPDF = async (sectionOrder?: BookSectionKind[]) => {
     setIsExportingFull(true);
     try {
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
 
       // Chaque fetch de secours est isolé : un échec ne doit pas vider tout l'export
       const safe = async <T,>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> => {
@@ -637,7 +637,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const exportNoSignaturePDF = async () => {
     setIsExportingFull(true);
     try {
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
 
       const safe = async <T,>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> => {
         try {

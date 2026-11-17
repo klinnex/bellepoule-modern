@@ -90,8 +90,8 @@ export function generateTableauHTML(
     const clubB = match.fencerB!.club ?? '';
     const pisteLabel = `${pdfT('strip', 'Piste')} ${match.arena ?? '___'}`;
     const winnerId = match.winner?.id;
-    const isWinnerA = winnerId != null && winnerId === (match.fencerA as any)?.id;
-    const isWinnerB = winnerId != null && winnerId === (match.fencerB as any)?.id;
+    const isWinnerA = winnerId != null && winnerId === match.fencerA?.id;
+    const isWinnerB = winnerId != null && winnerId === match.fencerB?.id;
     const scoreCellA =
       showScores && match.scoreA != null ? `${isWinnerA ? 'V' : ''}${match.scoreA}` : '';
     const scoreCellB =
@@ -456,7 +456,7 @@ export async function printTableauHTML(
     signatures,
     options
   );
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }

@@ -13,6 +13,7 @@ import { useRemoteNetworkSettings } from '../useRemoteNetworkSettings';
 import { useTranslation } from '../useTranslation';
 import { ipcErrorText } from '../../services/ipcError';
 import { computePoolStrips } from '../../../shared/utils/poolStrips';
+import type { Match } from '../../../shared/types';
 import { buildSessionMatches } from '../../components/remote/sessionMatches';
 import { useStripAvailability } from '../useStripAvailability';
 import { normalizeStripRange } from '../../../shared/utils/stripRange';
@@ -243,7 +244,7 @@ export function useRemoteServerState(ctx: Ctx) {
   const sessionPoolsFingerprintRef = useRef<string>('');
   useEffect(() => {
     const fingerprint = pools
-      .map(p => `${p.id}:${(p.fencers ?? []).map((f: any) => f.id).join(',')}`)
+      .map(p => `${p.id}:${(p.fencers ?? []).map(f => f.id).join(',')}`)
       .join('|');
     if (!isRemoteActive || !session) {
       sessionPoolsFingerprintRef.current = fingerprint;
@@ -267,7 +268,7 @@ export function useRemoteServerState(ctx: Ctx) {
     const fingerprint = pools
       .map(
         p =>
-          `${p.id}:${(p.matches ?? []).map((m: any) => `${m.id}=${m.status}|${m.scoreA ?? ''}-${m.scoreB ?? ''}|${m.refereeId ?? ''}`).join(',')}`
+          `${p.id}:${(p.matches ?? []).map((m: Match & { refereeId?: string }) => `${m.id}=${m.status}|${m.scoreA ?? ''}-${m.scoreB ?? ''}|${m.refereeId ?? ''}`).join(',')}`
       )
       .join('|');
     if (!isRemoteActive || !session) {
@@ -278,7 +279,7 @@ export function useRemoteServerState(ctx: Ctx) {
     sessionMatchesFingerprintRef.current = fingerprint;
     const poolsData = pools.map(pool => ({
       poolId: pool.id,
-      matches: (pool.matches ?? []).map((m: any) => ({ ...m, poolNumber: pool.number })),
+      matches: (pool.matches ?? []).map(m => ({ ...m, poolNumber: pool.number })),
     }));
     window.electronAPI.remote.syncPoolMatches(competition.id, poolsData).catch((err: unknown) => {
       logger.warn(
@@ -326,7 +327,7 @@ export function useRemoteServerState(ctx: Ctx) {
     if (!isRemoteActive) return;
     // Si une session est déjà active (retour sur l'onglet après navigation), on reconnecte
     // sans redémarrer le serveur pour ne pas perdre l'état des pistes configurées.
-    window.electronAPI.remote.getSession(competition.id).then(async (result: any) => {
+    window.electronAPI.remote.getSession(competition.id).then(async result => {
       if (result.success && result.session) {
         // Récupérer l'IP réseau réelle (éviter localhost)
         const info = await window.electronAPI.remote.getServerInfo(competition.id);

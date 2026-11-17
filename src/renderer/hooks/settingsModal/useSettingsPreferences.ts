@@ -125,7 +125,7 @@ export function useSettingsPreferences(ctx: Ctx) {
   // Sync persisted logo from main process if localStorage is empty
   useEffect(() => {
     if (!logo) {
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
       api?.getLogo?.().then((persisted: string | null) => {
         if (persisted) {
           setLogo(persisted);
@@ -133,7 +133,7 @@ export function useSettingsPreferences(ctx: Ctx) {
         }
       });
     }
-    const api = (window as any).electronAPI;
+    const api = window.electronAPI;
     // Bibliothèque persistée (logos.json) : fusion avec la copie locale
     api
       ?.getLogos?.()
@@ -178,7 +178,7 @@ export function useSettingsPreferences(ctx: Ctx) {
   const persistTtsConfig = useCallback((next: TtsConfig) => {
     setTtsConfig(next);
     localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(next));
-    (window as any).electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {
+    window.electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {
       /* serveur inactif */
     });
   }, []);

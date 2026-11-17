@@ -82,13 +82,16 @@ export function registerRemoteServerHandlers({
         const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
         try {
           await server.start();
-        } catch (startError: any) {
+        } catch (startError) {
           logger.error(
             LogCategory.NETWORK,
             'Error binding remote server port:',
             toError(startError)
           );
-          return { success: false, error: startError?.message ?? 'Port indisponible' };
+          return {
+            success: false,
+            error: (startError as { message?: string } | null)?.message ?? 'Port indisponible',
+          };
         }
         applyActiveWave(competitionId, server);
         remoteServers.set(competitionId, {

@@ -17,7 +17,7 @@ import {
   writePendingUpdate,
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
-import { parseReleaseBuild, pickLatestRelease } from './updateReleases';
+import { parseReleaseBuild, pickLatestRelease, type ReleaseLike } from './updateReleases';
 import { downloadToFile, getJson } from './updateHttp';
 import {
   cleanupReplacedExecutable,
@@ -57,6 +57,12 @@ function releasePageUrl(build: number): string {
 }
 
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
+
+/** Release GitHub telle que lue par l'API (champs utilisés par la mise à jour). */
+interface GitHubRelease extends ReleaseLike {
+  html_url?: string;
+  assets?: UpdateInfo['assets'];
+}
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -292,7 +298,7 @@ export class AutoUpdater {
     }
   }
 
-  private async fetchLatestRelease(): Promise<any> {
+  private async fetchLatestRelease(): Promise<GitHubRelease | null> {
     try {
       // Toujours récupérer toutes les releases pour trouver la plus récente (y compris dev/beta)
       const releases = await this.fetchReleases();
@@ -327,18 +333,18 @@ export class AutoUpdater {
     }
   }
 
-  private async fetchLatestReleaseDirect(): Promise<any> {
-    const data = await getJson(`${GITHUB_API}/releases/latest`);
+  private async fetchLatestReleaseDirect(): Promise<GitHubRelease | null> {
+    const data = await getJson<GitHubRelease>(`${GITHUB_API}/releases/latest`);
     return data ?? null;
   }
 
-  private async fetchReleases(): Promise<any[]> {
-    const data = await getJson(`${GITHUB_API}/releases`);
+  private async fetchReleases(): Promise<GitHubRelease[]> {
+    const data = await getJson<GitHubRelease[]>(`${GITHUB_API}/releases`);
     return Array.isArray(data) ? data : [];
   }
 
-  private async fetchTags(): Promise<any[]> {
-    const data = await getJson(`${GITHUB_API}/tags`);
+  private async fetchTags(): Promise<Array<{ name: string }>> {
+    const data = await getJson<Array<{ name: string }>>(`${GITHUB_API}/tags`);
     return Array.isArray(data) ? data : [];
   }
 

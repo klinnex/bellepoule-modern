@@ -18,6 +18,17 @@ export interface ErrorLogEntry {
   url?: string;
 }
 
+/** Sous-ensemble de l'API Sentry utilisé quand le SDK est chargé globalement. */
+interface SentryLike {
+  Scope: new () => {
+    setTags(tags: Record<string, string>): void;
+    setExtras(extras: Record<string, unknown>): void;
+  };
+  captureException(error: unknown, scope?: unknown): void;
+  captureMessage(message: string, level?: string, scope?: unknown): void;
+}
+type SentryWindow = { Sentry?: SentryLike };
+
 const STORAGE_KEY = 'bellepoule-error-logs';
 const MAX_LOGS = 100;
 
@@ -235,8 +246,9 @@ function sendToErrorService(entry: ErrorLogEntry): void {
   }
 
   // Support pour Sentry si disponible globalement
-  if (typeof window !== 'undefined' && (window as any).Sentry) {
-    const Sentry = (window as any).Sentry;
+  const Sentry =
+    typeof window !== 'undefined' ? (window as unknown as SentryWindow).Sentry : undefined;
+  if (Sentry) {
     const scope = new Sentry.Scope();
     scope.setTags({ component: entry.component || 'unknown' });
     scope.setExtras(entry.context || {});

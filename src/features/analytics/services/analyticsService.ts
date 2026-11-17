@@ -43,24 +43,21 @@ export class AnalyticsService {
       const pools = await window.electronAPI.db.getPoolsByPhase(phase.id);
       for (const pool of pools) {
         const matches = await window.electronAPI.db.getMatchesByPool(pool.id);
-        allMatches = allMatches.concat(matches as any);
+        allMatches = allMatches.concat(matches);
       }
     }
 
-    const flatMatches = (allMatches as any[]).flat();
-    const completedMatches = flatMatches.filter((m: any) => m.status === 'finished');
+    const flatMatches = allMatches.flat();
+    const completedMatches = flatMatches.filter(m => m.status === 'finished');
 
-    const totalDuration = completedMatches.reduce(
-      (sum: number, m: any) => sum + (m.duration ?? 0),
-      0
-    );
+    const totalDuration = completedMatches.reduce((sum: number, m) => sum + (m.duration ?? 0), 0);
     const averageMatchDuration =
       completedMatches.length > 0 ? totalDuration / completedMatches.length : 0;
 
     // Build fencer stats using match data
     const topFencers = fencers
       .map(fencer => {
-        const stats = calculateFencerPoolStats(fencer, flatMatches as any);
+        const stats = calculateFencerPoolStats(fencer, flatMatches);
         return {
           fencer,
           victories: stats.victories,
@@ -95,7 +92,7 @@ export class AnalyticsService {
 
     const matches = await window.electronAPI.db.getMatchesByPool(poolId);
     const completed = matches.filter(m => m.status === 'finished');
-    const totalDuration = completed.reduce((sum, m) => sum + ((m as any).duration ?? 0), 0);
+    const totalDuration = completed.reduce((sum, m) => sum + (m.duration ?? 0), 0);
 
     return {
       totalMatches: matches.length,

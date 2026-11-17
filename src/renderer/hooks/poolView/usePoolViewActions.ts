@@ -134,9 +134,13 @@ export function usePoolViewActions(ctx: Ctx) {
     // Capturer l'ancien score pour l'historique
     const match = pool.matches[editingMatch];
     const prevScoreA =
-      typeof match?.scoreA === 'number' ? match.scoreA : ((match?.scoreA as any)?.value ?? null);
+      typeof match?.scoreA === 'number'
+        ? match.scoreA
+        : ((match?.scoreA as { value?: number } | null | undefined)?.value ?? null);
     const prevScoreB =
-      typeof match?.scoreB === 'number' ? match.scoreB : ((match?.scoreB as any)?.value ?? null);
+      typeof match?.scoreB === 'number'
+        ? match.scoreB
+        : ((match?.scoreB as { value?: number } | null | undefined)?.value ?? null);
     const matchIdx = editingMatch;
 
     if (actualScoreA === actualScoreB) {
