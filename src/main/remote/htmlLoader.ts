@@ -105,7 +105,8 @@ export function inlineSocketIoClient(html: string, socketIoClientJs: string): st
 }
 
 /**
- * Charge les pages HTML distantes en mémoire (premier dossier contenant au moins un fichier).
+ * Charge les pages HTML distantes en mémoire : chaque page est cherchée dans les dossiers
+ * candidats, dans l'ordre (un dossier de build partiel ne masque pas les autres).
  * Si `socketIoClientJs` est fourni, il est injecté inline dans chaque page.
  */
 export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
@@ -141,10 +142,15 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
       if (fs.existsSync(basePath)) {
         logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chemin trouvé: ${basePath}`);
 
+        // Fichier par fichier : un dossier partiel (build antérieur, page ajoutée depuis)
+        // ne doit pas masquer les pages présentes dans les dossiers suivants
+        let loadedHere = 0;
         for (const file of REMOTE_HTML_FILES) {
+          if (htmlFiles.has(file)) continue;
           const filePath = path.join(basePath, file);
           try {
             htmlFiles.set(file, fs.readFileSync(filePath, 'utf-8'));
+            loadedHere++;
             logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chargé: ${file}`);
           } catch (e) {
             if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') throw e;
@@ -152,15 +158,16 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
           }
         }
 
-        // Si on a chargé au moins un fichier, on utilise ce chemin
-        if (htmlFiles.size > 0) {
+        // Premier dossier ayant fourni des fichiers : base des autres ressources statiques
+        if (loadedHere > 0 && remoteBasePath === null) {
           logger.info(
             LogCategory.NETWORK,
-            `[RemoteScoreServer] ${htmlFiles.size} fichiers chargés depuis: ${basePath}`
+            `[RemoteScoreServer] ${loadedHere} fichiers chargés depuis: ${basePath}`
           );
           remoteBasePath = basePath;
-          break;
         }
+        // Toutes les pages trouvées : inutile de chercher plus loin
+        if (htmlFiles.size === REMOTE_HTML_FILES.length) break;
       }
     } catch (err) {
       logger.error(
