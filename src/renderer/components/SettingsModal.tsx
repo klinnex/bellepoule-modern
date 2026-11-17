@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
+import BackupDirSettingsSection from './BackupDirSettingsSection';
 import PrivacySettingsSection from './PrivacySettingsSection';
 import McpSettingsSection from './McpSettingsSection';
 import VenuesSettingsSection from './VenuesSettingsSection';
@@ -494,6 +495,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
         return <PrivacySettingsSection item={id} />;
       case 'venues':
         return <VenuesSettingsSection />;
+      case 'backup_dir':
+        return <BackupDirSettingsSection />;
       case 'backup':
         return (
           <>

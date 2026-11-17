@@ -161,6 +161,11 @@ const electronApi = {
   },
 
   // Proxy réseau (Paramètres → Réseau)
+  backup: {
+    get: () => ipcRenderer.invoke('backup:get'),
+    chooseDir: () => ipcRenderer.invoke('backup:chooseDir'),
+    resetDir: () => ipcRenderer.invoke('backup:resetDir'),
+  },
   proxy: {
     get: () => ipcRenderer.invoke('proxy:get'),
     set: (settings: ProxySettingsDTO) => ipcRenderer.invoke('proxy:set', settings),

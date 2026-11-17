@@ -17,9 +17,20 @@ export interface MenuActionsContext {
   getMainWindow(): BrowserWindow | null;
   /** Archive .bpm chiffrée (RGPD, #1882) : le renderer demande le mot de passe */
   onEncryptedBpm?: (filepath: string) => void;
+  /** Dossier de sauvegarde par défaut (Paramètres → Sauvegarde) */
+  getBackupDir?: () => string;
 }
 
-export function createMenuActions({ db, getMainWindow, onEncryptedBpm }: MenuActionsContext) {
+export function createMenuActions({
+  db,
+  getMainWindow,
+  onEncryptedBpm,
+  getBackupDir,
+}: MenuActionsContext) {
+  /** Chemin proposé par « Enregistrer sous » : dossier de sauvegarde + nom */
+  const defaultSavePath = (fileName: string): string =>
+    getBackupDir ? path.join(getBackupDir(), fileName) : fileName;
+
   function startRemoteScoreServer(): void {
     const L = getL();
     dialog.showMessageBox(getMainWindow()!, {
@@ -94,7 +105,7 @@ export function createMenuActions({ db, getMainWindow, onEncryptedBpm }: MenuAct
     if (!competition) return { success: false, error: 'competition_not_found' };
     const result = await dialog.showSaveDialog(getMainWindow()!, {
       title: L.saveTitle,
-      defaultPath: competitionFileName(competition.title),
+      defaultPath: defaultSavePath(competitionFileName(competition.title)),
       filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
     });
     if (result.canceled || !result.filePath) return { success: false, canceled: true };
@@ -129,7 +140,7 @@ export function createMenuActions({ db, getMainWindow, onEncryptedBpm }: MenuAct
     const L = getL();
     const result = await dialog.showSaveDialog(getMainWindow()!, {
       title: L.saveTitle,
-      defaultPath: sessionBackupPath ?? 'competition.bpm',
+      defaultPath: sessionBackupPath ?? defaultSavePath('competition.bpm'),
       filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
     });
     if (result.canceled || !result.filePath) return;
