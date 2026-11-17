@@ -106,7 +106,10 @@ Réglages mémorisés dans le navigateur de l'application (`localStorage`) : tab
 
 `persistArenaState` sauvegarde chaque arène. Au démarrage de la séance de saisie distante, une
 arène sauvegardée **en cours** reprend son match et son score, si ce match n'est pas terminé en base ;
-la file DE sauvegardée est rétablie. Le chrono n'est pas restauré.
+la file DE sauvegardée est rétablie. Le chrono aussi : la dernière valeur envoyée par la tablette
+(`update_timer`, `pause_timer`, `reset_timer`) est gardée dans `currentMatch.clockSeconds`,
+persistée à chaque pause et au plus toutes les 15 s en marche, puis renvoyée en pause aux écrans
+qui rejoignent l'arène. La tablette garde de son côté son propre chrono (#1717).
 
 ### 2 quinquies. Pistes partagées entre épreuves (#1878)
 
@@ -262,6 +265,10 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
 base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
+
+Livré ensuite (#1829) : cartons de la feuille de poule imprimée, **cartons P à part**
+(t.124.3.e) ; reprise du chrono au redémarrage (§ 2 quater) ; **rapport d'exclusion pré-rempli**
+pour la FFE (carton noir, annexe 14 : Résultats → Export → « Rapport FFE (carton noir) »).
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).

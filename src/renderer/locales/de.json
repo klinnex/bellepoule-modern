@@ -242,6 +242,7 @@
     "elements": {
       "competition-name": "Wettkampfname",
       "finished-matches": "Ergebnisse",
+      "cards": "Karten",
       "footer": "Fußzeile",
       "gold-bar": "Goldene Trennlinie",
       "header": "Kopfzeile",
@@ -423,6 +424,8 @@
     "book_kind_teamTableau": "Mannschafts-Tableau",
     "book_kind_teamRanking": "Mannschaftsrangliste",
     "export_pdf_full_unsigned": "Vollständiges PDF ohne Unterschriften",
+    "export_black_card_report": "FFE-Bericht (schwarze Karte)",
+    "export_black_card_report_title": "Vorausgefüllter Ausschlussbericht, binnen 48 Std. an die FFE zu senden (Anhang 14)",
     "export_pdf_full_unsigned_title": "Pools und K.-o.-Tableaus, ohne Unterschriften der Fechter"
   },
   "settings": {
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Medizinischer Ausfall aufgehoben — {{count}} Gefechte wiederhergestellt"
   },
   "pdf": {
+    "cards_title": "Karten",
+    "cards_standard": "Karten",
+    "cards_p": "P-Karten (Kampfverweigerung)",
+    "card_white": "Weiß",
+    "card_yellow": "Gelb",
+    "card_red": "Rot",
+    "card_black": "Schwarz",
+    "card_p_yellow": "Gelb P",
+    "card_p_red": "Rot P",
+    "card_p_black": "Schwarz P",
     "abstention": "Enthaltung",
     "api_unavailable": "Electron-API nicht verfügbar",
     "appel_empty": "Kein Fechter in der Anwesenheitsliste",

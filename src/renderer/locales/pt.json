@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Quadro de equipas",
     "book_kind_teamRanking": "Classificação de equipas",
     "export_pdf_full_unsigned": "PDF completo sem assinaturas",
+    "export_black_card_report": "Relatório FFE (cartão preto)",
+    "export_black_card_report_title": "Relatório de exclusão pré-preenchido, a completar e enviar à FFE em 48 h (anexo 14)",
     "export_pdf_full_unsigned_title": "Poules e quadros de eliminação direta, sem assinaturas dos esgrimistas"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Grelha de resultados",
       "pending-matches": "Combates pendentes",
       "finished-matches": "Resultados",
+      "cards": "Cartões",
       "match-cards": "Cartões de combate",
       "ranking-table": "Tabela de classificação",
       "footer": "Rodapé"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Desistência médica anulada — {{count}} combates restaurados"
   },
   "pdf": {
+    "cards_title": "Cartões",
+    "cards_standard": "Cartões",
+    "cards_p": "Cartões P (não combatividade)",
+    "card_white": "Branco",
+    "card_yellow": "Amarelo",
+    "card_red": "Vermelho",
+    "card_black": "Preto",
+    "card_p_yellow": "Amarelo P",
+    "card_p_red": "Vermelho P",
+    "card_p_black": "Preto P",
     "abstention": "Abstenção",
     "api_unavailable": "API Electron indisponível",
     "appel_empty": "Nenhum esgrimista na chamada",

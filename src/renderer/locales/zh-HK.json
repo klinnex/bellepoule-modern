@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "團體淘汰賽表",
     "book_kind_teamRanking": "團體排名",
     "export_pdf_full_unsigned": "完整 PDF（不含簽名）",
+    "export_black_card_report": "FFE 報告（黑牌）",
+    "export_black_card_report_title": "預填的取消資格報告，請補充並於 48 小時內寄交 FFE（附件 14）",
     "export_pdf_full_unsigned_title": "小組賽及淘汰賽表，不含劍手簽名"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "分數表格",
       "pending-matches": "待打比賽",
       "finished-matches": "結果",
+      "cards": "牌",
       "match-cards": "比賽卡片",
       "ranking-table": "排名表",
       "footer": "頁尾"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "已取消傷病退賽 — 已還原 {{count}} 場比賽"
   },
   "pdf": {
+    "cards_title": "牌",
+    "cards_standard": "牌",
+    "cards_p": "P 牌（消極比賽）",
+    "card_white": "白牌",
+    "card_yellow": "黃牌",
+    "card_red": "紅牌",
+    "card_black": "黑牌",
+    "card_p_yellow": "黃 P 牌",
+    "card_p_red": "紅 P 牌",
+    "card_p_black": "黑 P 牌",
     "abstention": "棄賽",
     "api_unavailable": "Electron API 無法使用",
     "appel_empty": "點名表沒有劍手",

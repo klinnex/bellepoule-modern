@@ -163,6 +163,10 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
           match: arena.currentMatch,
           scoreA: arena.currentMatch?.scoreA,
           scoreB: arena.currentMatch?.scoreB,
+          // Chrono du match en cours (repris après un redémarrage, #1829)
+          ...(arena.status === 'in_progress' && arena.currentMatch?.clockSeconds !== undefined
+            ? { time: arena.currentMatch.clockSeconds, timerStatus: 'paused' as const }
+            : {}),
           status: arena.status,
           swapped: arena.swapped ?? false,
           leftHanded: arena.leftHanded ?? false,

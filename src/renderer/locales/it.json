@@ -267,6 +267,8 @@
     "book_kind_teamTableau": "Tabellone a squadre",
     "book_kind_teamRanking": "Classifica a squadre",
     "export_pdf_full_unsigned": "PDF completo senza firme",
+    "export_black_card_report": "Rapporto FFE (cartellino nero)",
+    "export_black_card_report_title": "Rapporto di esclusione precompilato, da completare e inviare alla FFE entro 48 h (allegato 14)",
     "export_pdf_full_unsigned_title": "Gironi e tabelloni a eliminazione diretta, senza le firme degli schermidori"
   },
   "remote": {
@@ -503,6 +505,7 @@
       "score-grid": "Griglia dei punteggi",
       "pending-matches": "Incontri da disputare",
       "finished-matches": "Risultati",
+      "cards": "Cartellini",
       "match-cards": "Schede degli incontri",
       "ranking-table": "Tabella della classifica",
       "footer": "Piè di pagina"
@@ -1131,6 +1134,16 @@
     "matches_restored_other": "Ritiro medico annullato — {{count}} incontri ripristinati"
   },
   "pdf": {
+    "cards_title": "Cartellini",
+    "cards_standard": "Cartellini",
+    "cards_p": "Cartellini P (non combattività)",
+    "card_white": "Bianco",
+    "card_yellow": "Giallo",
+    "card_red": "Rosso",
+    "card_black": "Nero",
+    "card_p_yellow": "Giallo P",
+    "card_p_red": "Rosso P",
+    "card_p_black": "Nero P",
     "abstention": "Astensione",
     "api_unavailable": "API Electron non disponibile",
     "appel_empty": "Nessuno schermidore nell'elenco d'appello",

@@ -8,6 +8,7 @@ import React from 'react';
 import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/types';
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
+import { buildBlackCardEntries, isBlackCardExclusion } from '../services/blackCardReport';
 import { useTranslation } from '../hooks/useTranslation';
 import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
@@ -397,6 +398,30 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export CSV réussi !', 'success');
   };
 
+  // Rapport d'exclusion pré-rempli pour la FFE (carton noir, annexe 14, #1829)
+  const hasBlackCard = (fencers ?? []).some(isBlackCardExclusion);
+  const exportBlackCardReport = async () => {
+    try {
+      const entries = await buildBlackCardEntries(fencers ?? [], pools, tableauMatches);
+      const { exportBlackCardReportToPDF } =
+        await import('../../shared/utils/pdfExport/blackCardReportPdf');
+      await exportBlackCardReportToPDF(
+        {
+          title: competition.title,
+          date: competition.date ? new Date(competition.date) : undefined,
+          location: competition.location,
+          organizer: competition.organizer,
+          weapon: competition.weapon,
+          category: competition.category,
+          gender: competition.gender,
+        },
+        entries
+      );
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   // Export PDF
   const exportPDF = async () => {
     try {
@@ -457,7 +482,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       competition,
       resultsToDisplay.map(r => ({ rank: r.rank, fencer: r.fencer, eliminatedAt: r.eliminatedAt }))
     );
-    const blob = new Blob([encodeFFFWin1252(content) as BlobPart], { type: 'text/plain;charset=windows-1252' });
+    const blob = new Blob([encodeFFFWin1252(content) as BlobPart], {
+      type: 'text/plain;charset=windows-1252',
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.fff`;
@@ -899,6 +926,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               >
                 {t('results.export_pdf_full_unsigned')}
               </button>
+              {hasBlackCard && (
+                <button
+                  role="menuitem"
+                  style={RV_STYLES.dropdownItem}
+                  title={t('results.export_black_card_report_title')}
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void exportBlackCardReport();
+                  }}
+                >
+                  {t('results.export_black_card_report')}
+                </button>
+              )}
             </div>
           )}
         </div>
