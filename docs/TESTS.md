@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 79 | 853 |
+| `src/shared/utils/` | 80 | 870 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 256 |
-| `src/main/` | 108 | 885 |
+| `src/main/` | 109 | 888 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 117 | 601 |
+| `src/renderer/components/` | 117 | 602 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **485** | **3664** |
+| **Total** | **487** | **3685** |
 
-Unitaires : 475 fichiers, 3625 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 477 fichiers, 3646 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -755,6 +755,35 @@ Unitaires : 475 fichiers, 3625 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - lit la latéralité
   - lit les arbitres du bloc \<Arbitres\> (références de poule ignorées)
   - pas de bloc \<Arbitres\> → referees absent
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/fileParser/federalImport.test.ts</code> — 17 tests</summary>
+
+- **decodeXmlEntities**
+  - décode les entités nommées et numériques en un seul passage
+- **parseXMLFile (#1938)**
+  - décode les entités, lit la date de naissance
+  - reconstitue les équipes depuis l'attribut Equipe (section \<Equipes/\> vide)
+  - utilise le nom de la section \<Equipes\> quand Equipe référence un ID
+- **parseCompetitionHeader**
+  - lit les valeurs brutes et les fait correspondre au formulaire
+  - reconnaît une épreuve par équipes
+  - ignore le DOCTYPE et signale les valeurs inconnues
+  - normalise dates et heures
+- **guessFieldsFromFileName**
+  - lit arme / sexe / catégorie du nom de fichier de l'extranet
+- **buildFederalImport**
+  - classe les fichiers du .zip
+  - fusionne xml / fff / txt sans doublon ni incohérence
+  - signale les écarts xml / fff, la source choisie fait foi
+  - signale un fichier d'arbitres vide sans bloquer
+  - réduit les équipes aux tireurs retenus
+  - sans XML : tireurs du FFF, champs devinés depuis le nom de fichier
+- **encodages des fichiers réels**
+  - XML annoncé ISO-8859-1 mais écrit en UTF-8 : décodé en UTF-8
+  - XML réellement en ISO-8859-1 : repli Windows-1252
 
 </details>
 
@@ -3385,6 +3414,16 @@ Unitaires : 475 fichiers, 3625 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/federalFiles.test.ts</code> — 3 tests</summary>
+
+- **unpackFederalFiles**
+  - décode chaque fichier du .zip avec son propre encodage
+  - accepte des fichiers isolés et ignore les extensions inconnues
+  - refuse un fichier texte trop volumineux
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/clubHandlers.test.ts</code> — 9 tests</summary>
 
 - **handlers club:\* (#1872)**
@@ -5610,13 +5649,14 @@ Unitaires : 475 fichiers, 3625 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 5 tests</summary>
 
 - **NewCompetitionModal**
   - crée une compétition avec le titre saisi
   - génère un titre par défaut si vide
   - propriétés saisies à la création : appliquées à cette compétition seulement
   - le bouton annuler ferme la modale
+  - pré-remplit et verrouille les champs depuis le .zip de l'extranet (#1938)
 
 </details>
 
