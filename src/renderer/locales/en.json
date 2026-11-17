@@ -1087,6 +1087,11 @@
     "invalid_settings": "Invalid settings"
   },
   "properties": {
+    "backup_dir_label": "Dedicated backup folder (optional)",
+    "backup_dir_hint": "If set, this competition's automatic backups are written there, in addition to the global folder.",
+    "backup_dir_none": "none (global folder)",
+    "backup_dir_choose": "Choose folder…",
+    "backup_dir_clear": "Remove dedicated folder",
     "one_round": "1 round",
     "two_rounds": "2 rounds",
     "three_rounds": "3 rounds",

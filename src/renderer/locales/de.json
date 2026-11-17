@@ -1087,6 +1087,11 @@
     "invalid_settings": "Ungültige Einstellungen"
   },
   "properties": {
+    "backup_dir_label": "Eigener Sicherungsordner (optional)",
+    "backup_dir_hint": "Wenn gesetzt, werden die automatischen Sicherungen dieses Wettbewerbs zusätzlich dorthin geschrieben.",
+    "backup_dir_none": "keiner (globaler Ordner)",
+    "backup_dir_choose": "Ordner wählen…",
+    "backup_dir_clear": "Eigenen Ordner entfernen",
     "one_round": "1 Runde",
     "two_rounds": "2 Runden",
     "three_rounds": "3 Runden",

@@ -65,3 +65,15 @@ export function resolveBackupDir(userDataPath: string, documentsPath: string): B
     ? { dir, isDefault: false }
     : { dir: defaultBackupDir(documentsPath), isDefault: true };
 }
+
+/** Nom de la sauvegarde automatique d'une compétition : titre assaini + début d'id (unicité) */
+export function competitionAutosaveName(title: string | undefined, competitionId: string): string {
+  const base = (title ?? '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  const shortId = competitionId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
+  return `${base || 'competition'}-${shortId}-autosave.bpm`;
+}

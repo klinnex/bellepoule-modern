@@ -1087,6 +1087,11 @@
     "invalid_settings": "Definições inválidas"
   },
   "properties": {
+    "backup_dir_label": "Pasta de cópias dedicada (opcional)",
+    "backup_dir_hint": "Se definida, as cópias automáticas desta competição também são gravadas aí.",
+    "backup_dir_none": "nenhuma (pasta global)",
+    "backup_dir_choose": "Escolher pasta…",
+    "backup_dir_clear": "Remover pasta dedicada",
     "one_round": "1 ronda",
     "two_rounds": "2 rondas",
     "three_rounds": "3 rondas",

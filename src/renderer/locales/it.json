@@ -1087,6 +1087,11 @@
     "invalid_settings": "Impostazioni non valide"
   },
   "properties": {
+    "backup_dir_label": "Cartella di backup dedicata (facoltativa)",
+    "backup_dir_hint": "Se impostata, i backup automatici di questa gara vi vengono scritti oltre alla cartella globale.",
+    "backup_dir_none": "nessuna (cartella globale)",
+    "backup_dir_choose": "Scegli cartella…",
+    "backup_dir_clear": "Rimuovi cartella dedicata",
     "one_round": "1 turno",
     "two_rounds": "2 turni",
     "three_rounds": "3 turni",

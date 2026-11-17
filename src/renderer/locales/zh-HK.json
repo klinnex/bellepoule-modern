@@ -1087,6 +1087,11 @@
     "invalid_settings": "設定無效"
   },
   "properties": {
+    "backup_dir_label": "專用備份資料夾（選填）",
+    "backup_dir_hint": "若設定，此比賽的自動備份也會寫入該資料夾。",
+    "backup_dir_none": "無（全域資料夾）",
+    "backup_dir_choose": "選擇資料夾…",
+    "backup_dir_clear": "移除專用資料夾",
     "one_round": "1 輪",
     "two_rounds": "2 輪",
     "three_rounds": "3 輪",
