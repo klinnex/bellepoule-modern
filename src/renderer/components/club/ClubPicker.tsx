@@ -5,11 +5,13 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Shield } from 'lucide-react';
+import { FolderOpen, Plus, Shield } from 'lucide-react';
 import type { ClubSummary } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { useToast } from '../Toast';
+import { useConfirm } from '../ConfirmDialog';
+import { importClubBackup } from './clubBackup';
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -91,6 +93,36 @@ const NewClubForm: React.FC<{ onCreated: (id: string) => void }> = ({ onCreated 
   );
 };
 
+/** Chargement d'une sauvegarde de club (.bpclub) faite sur un autre poste */
+const LoadBackup: React.FC<{ onLoaded: (id: string) => void }> = ({ onLoaded }) => {
+  const { t } = useTranslation();
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
+  const load = async () => {
+    try {
+      const r = await importClubBackup(t, () =>
+        confirm({
+          message: t('clubs.backup_replace_confirm'),
+          confirmLabel: t('clubs.backup_replace'),
+        })
+      );
+      if (!r) return;
+      showToast(t('clubs.backup_loaded', { name: r.clubName }), 'success');
+      onLoaded(r.clubId);
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+  return (
+    <div className="club-row">
+      <p className="club-muted club-grow">{t('clubs.backup_import_help')}</p>
+      <Button icon={<FolderOpen size={15} aria-hidden="true" />} onClick={() => void load()}>
+        {t('clubs.backup_import')}
+      </Button>
+    </div>
+  );
+};
+
 /** Onglet Club sans club choisi : liste des clubs + création */
 export const ClubPicker: React.FC<{ onSelect: (clubId: string) => void }> = ({ onSelect }) => {
   const { t } = useTranslation();
@@ -116,6 +148,7 @@ export const ClubPicker: React.FC<{ onSelect: (clubId: string) => void }> = ({ o
       )}
       <section className="club-card" aria-label={t('clubs.create')}>
         <NewClubForm onCreated={onSelect} />
+        <LoadBackup onLoaded={onSelect} />
       </section>
     </div>
   );

@@ -575,4 +575,14 @@ export interface ClubAPI {
     clubId: string,
     items: ClubItemInput[]
   ) => Promise<{ created: number; skipped: number }>;
+  /** Sauvegarde complète du club dans un fichier .bpclub (chemin choisi par dialogue) */
+  exportBackup: (clubId: string, filePath: string) => Promise<{ clubName: string }>;
+  /**
+   * Recharge une sauvegarde .bpclub. Club déjà présent : erreur « CLUB_EXISTS »,
+   * sauf replace (données du club remplacées)
+   */
+  importBackup: (
+    filePath: string,
+    replace?: boolean
+  ) => Promise<{ clubId: string; clubName: string; replaced: boolean; rows: number }>;
 }

@@ -320,6 +320,10 @@ const electronApi = {
       ipcRenderer.invoke('club:setInventoryLock', clubId, locked),
     importItems: (clubId: string, list: unknown[]) =>
       ipcRenderer.invoke('club:importItems', clubId, list),
+    exportBackup: (clubId: string, filePath: string) =>
+      ipcRenderer.invoke('club:exportBackup', clubId, filePath),
+    importBackup: (filePath: string, replace?: boolean) =>
+      ipcRenderer.invoke('club:importBackup', filePath, replace),
     getMemberFeedback: (memberId: string) => ipcRenderer.invoke('club:getMemberFeedback', memberId),
     deleteSession: (id: string) => ipcRenderer.invoke('club:deleteSession', id),
     setAttendance: (sessionId: string, memberId: string, present: boolean) =>

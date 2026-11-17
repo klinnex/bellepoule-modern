@@ -3492,6 +3492,15 @@
     "open_session": "Sessió oberta ({{date}})",
     "new_name": "Nom del nou club",
     "new_name_ph": "Club d'esgrima",
+    "backup_export": "Desa una còpia del club",
+    "backup_export_help": "Desa tot el club (membres, sessions, assalts, inventari, préstecs, exercicis) en un fitxer .bpclub per carregar-lo en un altre ordinador",
+    "backup_saved": "Còpia del club desada: {{name}}",
+    "backup_import": "Carrega una còpia",
+    "backup_import_help": "Club creat en un altre ordinador? Carregueu-ne el fitxer de còpia .bpclub.",
+    "backup_replace_confirm": "Aquest club ja existeix en aquest ordinador. Voleu substituir totes les seves dades per les de la còpia?",
+    "backup_replace": "Substitueix",
+    "backup_loaded": "Club carregat: {{name}}",
+    "backup_file": "Còpia de club BellePoule",
     "create": "Crear el club"
   },
   "clubPlan": {
