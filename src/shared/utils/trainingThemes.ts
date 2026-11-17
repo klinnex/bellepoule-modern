@@ -128,8 +128,9 @@ export const MUSKETEERS_THEME: Record<ThemeTargetType, Record<string, string>> =
     '--ref-border': 'rgba(201,164,62,0.45)',
     // Carte du match : parchemin vieilli, centre ocre et bords brunis (#1808),
     // côtés émeraude / cardinal patinés ; texte encre bleu nuit
+    // Fond = parchemin de l'écran de référence (src/remote/musketeers-bg.jpg)
     '--ref-match-bg':
-      'radial-gradient(ellipse at 50% 45%, #e6cb93 0%, #d8b675 50%, #bf9555 78%, #8f6431 100%)',
+      "url('/musketeers-bg.jpg') center / cover no-repeat, radial-gradient(ellipse at 50% 45%, #e6cb93 0%, #d8b675 50%, #bf9555 78%, #8f6431 100%)",
     '--ref-match-text': '#14224d',
     '--ref-fencer-bg': 'linear-gradient(180deg, #e9d2a0 0%, #dcbd82 100%)',
     '--ref-fencer-text': '#14224d',
