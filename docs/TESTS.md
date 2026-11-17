@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 17 | 245 |
-| `src/main/` | 102 | 827 |
+| `src/main/` | 103 | 835 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 599 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **475** | **3574** |
+| **Total** | **476** | **3582** |
 
-Unitaires : 465 fichiers, 3535 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 466 fichiers, 3543 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2904,6 +2904,23 @@ Unitaires : 465 fichiers, 3535 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **handleAllWindowsClosed**
   - macOS : la base reste ouverte et l’app ne quitte pas
   - Windows / Linux : ferme la base puis quitte
+
+</details>
+
+<details>
+<summary><code>src/main/backupSettings.test.ts</code> — 8 tests</summary>
+
+- **sanitizeBackupDir**
+  - accepte un chemin absolu et le normalise
+  - refuse vide, relatif, octet nul ou non-texte
+- **dossier par défaut**
+  - vaut \<Documents\>/BellePoule sans réglage
+  - un réglage invalide dans le fichier retombe sur le défaut
+  - fichier corrompu : pas d’exception, défaut
+- **réglage utilisateur**
+  - écrit puis relit le dossier choisi
+  - réinitialiser (réglage vide) rétablit le défaut
+  - le nom de la sauvegarde automatique est fixe
 
 </details>
 
