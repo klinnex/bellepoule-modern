@@ -33,6 +33,7 @@ import type {
 } from './eventDay';
 import type { ClubAPI } from './club';
 import type { PrivacyAPI } from './privacy';
+import type { McpAPI } from './mcp';
 export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
@@ -1406,6 +1407,8 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   updater: UpdaterAPI;
   proxy: ProxyAPI;
   privacy: PrivacyAPI;
+  /** Serveur MCP intégré, agent IA en lecture (#1880) */
+  mcp: McpAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
   ftp: FtpAPI;

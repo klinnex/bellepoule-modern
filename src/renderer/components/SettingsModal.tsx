@@ -8,6 +8,7 @@ import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
 import PrivacySettingsSection from './PrivacySettingsSection';
+import McpSettingsSection from './McpSettingsSection';
 import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
@@ -492,6 +493,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
         );
       case 'proxy':
         return <ProxySettingsSection />;
+      case 'mcp':
+        return <McpSettingsSection />;
       case 'privacy_network':
       case 'privacy_retention':
       case 'privacy_person':
