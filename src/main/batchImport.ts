@@ -40,6 +40,17 @@ export function resolveManifestPaths(manifest: unknown, baseDir: string): Record
   };
 }
 
+/** Un seul descripteur : la taille contrôlée et le contenu lu sont ceux du même fichier */
+function readManifest(file: string): string {
+  const fd = fs.openSync(file, 'r');
+  try {
+    if (fs.fstatSync(fd).size > MAX_MANIFEST_BYTES) throw new Error('Manifeste trop volumineux');
+    return fs.readFileSync(fd, 'utf-8');
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 export async function runBatchImport(
   deps: McpWriteDeps,
   manifestPath: string,
@@ -47,8 +58,7 @@ export async function runBatchImport(
 ): Promise<BatchImportResult> {
   try {
     const file = path.resolve(manifestPath);
-    if (fs.statSync(file).size > MAX_MANIFEST_BYTES) throw new Error('Manifeste trop volumineux');
-    const manifest = JSON.parse(fs.readFileSync(file, 'utf-8').replace(/^\uFEFF/, ''));
+    const manifest = JSON.parse(readManifest(file).replace(/^\uFEFF/, ''));
     const importDay = MCP_WRITE_TOOLS.find(t => t.name === 'import_day')!;
     // Lancé par l'opérateur : pas de restriction aux dossiers de l'agent
     const report = await importDay.run(
