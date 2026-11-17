@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 102 | 827 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 117 | 598 |
+| `src/renderer/components/` | 117 | 599 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **475** | **3573** |
+| **Total** | **475** | **3574** |
 
-Unitaires : 465 fichiers, 3534 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 465 fichiers, 3535 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2650,7 +2650,7 @@ Unitaires : 465 fichiers, 3534 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - pointage idempotent, dépointage
     - changer la date répercute sur les combats
     - fermeture : combats en cours annulés, création refusée
-    - réouverture refusée si une autre séance est ouverte
+    - réouverture possible alors qu’une autre séance est ouverte
     - suppression : combats et présences effacés
   - **combats**
     - contrôles à la création
@@ -5816,16 +5816,16 @@ Unitaires : 465 fichiers, 3534 tests. E2E : 10 fichiers, 39 tests (comptage stat
 <summary><code>src/renderer/components/club/ClubSessionMenu.test.tsx</code> — 5 tests</summary>
 
 - **ClubSessionMenu**
-  - liste les séances prévues et en ouvre une
-  - ferme la séance ouverte avant d’en ouvrir une autre, après confirmation
-  - rouvre une séance passée en fermant la séance ouverte
+  - ouvre une séance prévue sans fermer la séance ouverte, puis l’affiche
+  - plusieurs séances ouvertes : affichage et fermeture de l’une d’elles
+  - rouvre une séance passée sans fermer la séance ouverte
   - refus de confirmation : rien ne change
   - Préparer renvoie vers l’onglet Séances
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 15 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 16 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
@@ -5840,7 +5840,8 @@ Unitaires : 465 fichiers, 3534 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - séance en cours : exercice coché, notes enregistrées
   - fermeture : bilan proposé, note et remarque par tireur
   - préparer une séance à l’avance puis la démarrer
-  - séance ouverte : bascule vers une séance prévue (fermeture puis démarrage)
+  - séance ouverte : bascule vers une séance prévue sans fermer la séance en cours
+  - plusieurs séances ouvertes : affiche la séance choisie, liste des ouvertes
   - ouverture : date choisie dans le mini-calendrier
   - plan : exercices ajoutés depuis la bibliothèque (échauffement proposé d’abord)
 
