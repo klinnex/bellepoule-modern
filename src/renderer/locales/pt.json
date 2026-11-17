@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "Porta",
     "strip_mode": "Modo do dispositivo Cyrano da pista {{number}}",
     "strip_invalid": "Endereço IPv4 ou porta inválidos (pista {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Sessões previstas: {{count}}",
+    "button_open": "Sessão de {{date}} aberta",
+    "title": "Gestão de sessões",
+    "current": "Sessão aberta",
+    "none_open": "Nenhuma sessão aberta.",
+    "open": "Abrir",
+    "today": "hoje",
+    "opened": "Sessão de {{date}} aberta",
+    "switch_confirm": "Fechar a sessão de {{from}} e abrir a de {{to}}?"
   }
 }

@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Modus des Cyrano-Geräts der Planche {{number}}",
     "strip_invalid": "Ungültige IPv4-Adresse oder ungültiger Port (Planche {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Geplante Trainings: {{count}}",
+    "button_open": "Training vom {{date}} geöffnet",
+    "title": "Trainings verwalten",
+    "current": "Offenes Training",
+    "none_open": "Kein Training geöffnet.",
+    "open": "Öffnen",
+    "today": "heute",
+    "opened": "Training vom {{date}} geöffnet",
+    "switch_confirm": "Training vom {{from}} schließen und das vom {{to}} öffnen?"
   }
 }

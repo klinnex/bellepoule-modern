@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "Porzh",
     "strip_mode": "Mod dafar Cyrano ar bistenn {{number}}",
     "strip_invalid": "Chomlec'h IPv4 pe borzh direizh (pistenn {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Emgavioù raktreset : {{count}}",
+    "button_open": "Emgav an {{date}} digor",
+    "title": "Merañ an emgavioù",
+    "current": "Emgav digor",
+    "none_open": "Emgav digor ebet.",
+    "open": "Digeriñ",
+    "today": "hiziv",
+    "opened": "Emgav an {{date}} digoret",
+    "switch_confirm": "Serriñ emgav an {{from}} ha digeriñ hini an {{to}}?"
   }
 }

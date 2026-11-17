@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Mode de l'appareil Cyrano de la piste {{number}}",
     "strip_invalid": "Adresse IPv4 ou port invalide (piste {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Séances prévues : {{count}}",
+    "button_open": "Séance du {{date}} ouverte",
+    "title": "Gestion des séances",
+    "current": "Séance ouverte",
+    "none_open": "Aucune séance ouverte.",
+    "open": "Ouvrir",
+    "today": "aujourd'hui",
+    "opened": "Séance du {{date}} ouverte",
+    "switch_confirm": "Fermer la séance du {{from}} et ouvrir celle du {{to}} ?"
   }
 }

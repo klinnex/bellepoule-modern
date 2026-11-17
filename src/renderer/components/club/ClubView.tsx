@@ -23,6 +23,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { ClubMembersPanel } from './ClubMembersPanel';
 import { ClubSessionsPanel } from './ClubSessionsPanel';
+import { ClubSessionMenu } from './ClubSessionMenu';
 import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubExercisesPanel } from './ClubExercisesPanel';
 import { ClubInventoryPanel } from './ClubInventoryPanel';
@@ -73,6 +74,11 @@ const ClubSpace: React.FC<{
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [membersCount, setMembersCount] = useState<number | null>(null);
   const [cardsPrinted, setCardsPrinted] = useState(readCardsPrinted);
+  // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
+  const [menuRevision, setMenuRevision] = useState(0);
+  const [panelRevision, setPanelRevision] = useState(0);
+  const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
+  const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
 
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.club;
@@ -120,6 +126,12 @@ const ClubSpace: React.FC<{
           <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
           <p className="club-header-sub">{t('club.subtitle')}</p>
         </div>
+        <ClubSessionMenu
+          clubId={clubId}
+          revision={menuRevision}
+          onChanged={bumpPanel}
+          onPrepare={() => setTab('sessions')}
+        />
         <Button
           variant="ghost"
           icon={<Sparkles size={15} aria-hidden="true" />}
@@ -170,7 +182,14 @@ const ClubSpace: React.FC<{
             onCardsPrinted={onCardsPrinted}
           />
         )}
-        {tab === 'sessions' && <ClubSessionsPanel clubId={clubId} settings={settings} />}
+        {tab === 'sessions' && (
+          <ClubSessionsPanel
+            clubId={clubId}
+            settings={settings}
+            revision={panelRevision}
+            onChanged={bumpMenu}
+          />
+        )}
         {tab === 'stats' && <ClubStatsPanel clubId={clubId} />}
         {tab === 'exercises' && <ClubExercisesPanel />}
         {tab === 'inventory' && <ClubInventoryPanel clubId={clubId} />}

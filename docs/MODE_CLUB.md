@@ -56,6 +56,10 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
 - Listes des séances préparées et passées filtrables par catégorie d'âge.
+- **Menu des séances** (en-tête du club, visible depuis tous les onglets) : séance ouverte
+  (**Fermer la séance**) et liste des séances prévues par date (**Ouvrir**). Ouvrir une
+  séance prévue alors qu'une autre est ouverte ferme d'abord celle-ci, après confirmation.
+  **Préparer une séance** renvoie à l'onglet Séances (`ClubSessionMenu.tsx`).
 - Bilan à la fermeture : note sur 5, ce qui a marché, à améliorer, remarque par tireur présent.
 
 ### Pointage
