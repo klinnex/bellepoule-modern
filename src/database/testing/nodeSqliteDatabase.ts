@@ -2,7 +2,7 @@
  * BellePoule Modern - Tests : base SQLite réelle en mémoire pour DatabaseManager (#1880)
  * better-sqlite3 est recompilé pour Electron (ABI différente de Node) : les tests de la
  * couche domaine le remplacent par node:sqlite derrière la même interface :
- *   vi.mock('better-sqlite3', () => ({ default: NodeSqliteDatabase }))
+ *   vi.mock('better-sqlite3-multiple-ciphers', () => ({ default: NodeSqliteDatabase }))
  * Toutes les migrations s'appliquent : schéma identique à la production.
  * Licensed under GPL-3.0
  */

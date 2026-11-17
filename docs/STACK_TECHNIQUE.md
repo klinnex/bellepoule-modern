@@ -9,13 +9,13 @@
 
 | Outil | Version | Remarque |
 |---|---|---|
-| Node.js | **22.x** | Utilisé par la CI (`actions/setup-node`, `node-version: '22'`). Requis par better-sqlite3 13. |
+| Node.js | **22.x** | Utilisé par la CI (`actions/setup-node`, `node-version: '22'`). Requis par better-sqlite3-multiple-ciphers 13. |
 | npm | ≥ 10 | Lockfile v3. |
 | Electron | **45.0.0** | Chromium + Node 24 embarqués. |
 | TypeScript | **7.0.2** (type-check) + **6.0.3** (outillage) | `npm run type-check` = TS 7 natif (paquet `typescript7`). TS 7 n'expose pas l'API JS : ts-loader, typescript-eslint (`<6.1`) et les scripts d'analyse gardent `typescript` 6.0.3. Sans `baseUrl` (chemins `./src/*`). `strict: true`, cible ES2020, modules CommonJS, `jsx: react-jsx`. |
 | OS supportés (build) | Windows x64, macOS x64/arm64, Linux x64 | electron-builder. |
 
-`postinstall` : `electron-rebuild -f -w better-sqlite3` (recompile le module natif pour
+`postinstall` : `electron-rebuild -f -w better-sqlite3-multiple-ciphers` (recompile le module natif pour
 l'ABI d'Electron).
 
 ---
@@ -27,7 +27,7 @@ reste est intégré par Webpack.
 
 | Paquet | Version | Rôle |
 |---|---|---|
-| better-sqlite3 | 13.0.3 | SQLite synchrone natif (`src/database/index.ts`). Externe Webpack, décompressé hors asar. |
+| better-sqlite3-multiple-ciphers | 13.2.0 | SQLite synchrone natif avec chiffrement SQLCipher (`src/database/index.ts`, `src/database/encryption.ts`). Fork de better-sqlite3. Externe Webpack, décompressé hors asar. |
 | lucide-react | 1.61.0 | Icônes React. |
 | selfsigned | 5.5.0 | Certificat TLS auto-signé du serveur HTTPS (`src/main/certManager.ts`). |
 
@@ -100,7 +100,7 @@ reste est intégré par Webpack.
 ### Types
 
 `@types/node` 24.19.2 (Node d'Electron 45), `@types/react` / `@types/react-dom` 19.3.0, `@types/express`
-5.0.6, `@types/better-sqlite3` 9.6.0, `@types/qrcode` 1.5.6 (uuid fournit ses propres types).
+5.0.6, `@types/qrcode` 1.5.6 (uuid fournit ses propres types).
 
 ---
 
@@ -113,7 +113,7 @@ reste est intégré par Webpack.
 | renderer | `webpack.renderer.config.js` | `src/renderer/index.tsx` | `dist/renderer/` |
 | pages distantes | CopyPlugin (renderer) | `src/remote/*` + client Socket.IO | `dist/remote/` (hors asar) |
 
-Externes du main : `electron`, `better-sqlite3`, `bufferutil`, `utf-8-validate`.
+Externes du main : `electron`, `better-sqlite3-multiple-ciphers`, `bufferutil`, `utf-8-validate`.
 Budget de taille vérifié par `npm run check:bundle-size`.
 
 ## 5. Packaging (electron-builder)
@@ -124,7 +124,7 @@ Budget de taille vérifié par `npm run check:bundle-size`.
 | macOS | DMG + ZIP, x64 et arm64 | `BellePoule Modern-<ver>-<arch>.dmg` |
 | Linux | AppImage, deb, rpm | `BellePoule Modern-<ver>-<arch>.AppImage` |
 
-`asarUnpack` : `dist/remote/**`, `better-sqlite3`, `tesseract.js`.
+`asarUnpack` : `dist/remote/**`, `better-sqlite3-multiple-ciphers`, `tesseract.js`.
 `extraResources` : `resources/`, `version.json`.
 
 ## 6. CI/CD (GitHub Actions)
@@ -162,4 +162,4 @@ npm install <pkg>@latest     # majeure (vérifier les breaking changes)
 npm run type-check && npm run lint && npm run test:run && npm run build:ci
 ```
 
-Après une mise à jour d'Electron : `npx electron-rebuild -f -w better-sqlite3`.
+Après une mise à jour d'Electron : `npx electron-rebuild -f -w better-sqlite3-multiple-ciphers`.

@@ -75,7 +75,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 - **Node.js**: Version 22 (as used by CI)
 - **npm**: Version 10 or higher
-- **Native build tools** for better-sqlite3 (rebuilt for Electron by `postinstall`): Python 3 + C++ toolchain
+- **Native build tools** for better-sqlite3-multiple-ciphers (rebuilt for Electron by `postinstall`): Python 3 + C++ toolchain
 - **Git**: For cloning the repository
 
 #### Installation Steps
@@ -120,7 +120,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 ### Nix (flake)
 
-The repository ships a `flake.nix` that builds the app with Nix (Linux, `x86_64` and `aarch64`). Electron comes from nixpkgs, and `better-sqlite3` is recompiled against its headers.
+The repository ships a `flake.nix` that builds the app with Nix (Linux, `x86_64` and `aarch64`). Electron comes from nixpkgs, and `better-sqlite3-multiple-ciphers` is recompiled against its headers.
 
 ```bash
 nix run github:klinnex/bellepoule-modern          # run the app

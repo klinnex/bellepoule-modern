@@ -3,7 +3,7 @@
  * Chaque migration est appliquée une seule fois, dans l'ordre croissant.
  */
 
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import { logger, LogCategory } from '../../shared/services/logger';
 
 export interface Migration {

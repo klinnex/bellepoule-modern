@@ -50,7 +50,7 @@
           npmDepsHash = "sha256-8dJedbNvSVYPZyPkd47F0rnzcmvwx73GwhBlk8q5VhQ=";
 
           # Pas de scripts d'installation : le postinstall d'Electron télécharge un
-          # binaire (refusé dans le sandbox Nix) ; better-sqlite3 est recompilé plus bas.
+          # binaire (refusé dans le sandbox Nix) ; better-sqlite3-multiple-ciphers est recompilé plus bas.
           npmFlags = [ "--ignore-scripts" ];
 
           nativeBuildInputs = [
@@ -65,13 +65,13 @@
 
             npm run build
 
-            # better-sqlite3 : module natif à compiler contre les headers Electron
+            # better-sqlite3-multiple-ciphers : module natif à compiler contre les headers Electron
             # (ABI Electron ≠ ABI Node). --force_build=1 : sinon le binaire précompilé
             # pour Node est gardé et Electron plante au chargement.
-            (cd node_modules/better-sqlite3 && node-gyp rebuild --release --force_build=1 --nodedir=${electron.headers})
-            # better-sqlite3 préfère prebuilds/<plateforme>.node (ABI Node) à build/Release :
+            (cd node_modules/better-sqlite3-multiple-ciphers && node-gyp rebuild --release --force_build=1 --nodedir=${electron.headers})
+            # better-sqlite3-multiple-ciphers préfère prebuilds/<plateforme>.node (ABI Node) à build/Release :
             # on le retire, sinon Electron charge le mauvais binaire.
-            rm -rf node_modules/better-sqlite3/prebuilds
+            rm -rf node_modules/better-sqlite3-multiple-ciphers/prebuilds
 
             runHook postBuild
           '';

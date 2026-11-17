@@ -9,7 +9,7 @@ import { handleMcpMessage } from './mcpServer';
 import type { McpWriteDeps } from './mcpWriteTools';
 import { linkedClubSession, setLinkedClubSession } from '../remote/clubArena';
 
-vi.mock('better-sqlite3', async () => ({
+vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 

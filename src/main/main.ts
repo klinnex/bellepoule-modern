@@ -4,6 +4,7 @@
  */
 
 import { app, BrowserWindow, ipcMain, dialog, Notification, safeStorage } from 'electron';
+import { loadOrCreateDatabaseKey } from './dbKey';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DatabaseManager } from '../database';
@@ -342,7 +343,24 @@ async function openDatabase(): Promise<void> {
     }
   }
 
-  await db.open(dbPath);
+  // RGPD (#1882) : base chiffrée au repos (SQLCipher), clé dans le trousseau système
+  try {
+    const dbKey = loadOrCreateDatabaseKey(userDataPath, safeStorage, dbPath);
+    if (!dbKey) {
+      logger.warn(
+        LogCategory.SYSTEM,
+        'Trousseau système indisponible : base non chiffrée au repos'
+      );
+    }
+    await db.open(dbPath, { encryptionKey: dbKey });
+    logger.info(LogCategory.SYSTEM, dbKey ? 'Base chiffrée (SQLCipher)' : 'Base en clair');
+  } catch (e) {
+    // Base illisible (clé absente ou incorrecte) : on n'écrase rien, on arrête proprement
+    logger.error(LogCategory.SYSTEM, 'Ouverture de la base impossible:', toError(e));
+    dialog.showErrorBox('BellePoule Modern', e instanceof Error ? e.message : String(e));
+    app.quit();
+    return;
+  }
   // MCP : démarré une fois la base ouverte, s'il est activé (#1880)
   mcpReady = mcp.apply();
   logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
