@@ -389,6 +389,14 @@ export function useRemoteServerState(ctx: Ctx) {
         pool: poolMatches.length,
         de: deMatches.length,
       });
+      // Plan des pistes connu du serveur avant la répartition : une poule sans piste attend
+      // dans l'intervalle de l'épreuve, jamais sur une piste masquée (#1878)
+      await window.electronAPI.remote
+        .setStripPlan?.(competition.id, {
+          start: effectiveCommittedStart,
+          unavailable: [...unavailableStrips],
+        })
+        ?.catch?.(() => {});
       const result = await window.electronAPI.remote.startSession(
         competition.id,
         count,

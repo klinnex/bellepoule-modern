@@ -10,6 +10,7 @@ import * as slots from './arenaSlots';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { forcedPoolArena } from './stripHandover';
+import { nextFreeStrip } from './stripPlan';
 
 type S = RemoteScoreServer;
 
@@ -38,6 +39,7 @@ export interface ArenaQueueContext {
   readonly resolveDeMatchReferee: S['resolveDeMatchReferee'];
   readonly resolveReferee: S['resolveReferee'];
   readonly session: S['session'];
+  readonly stripPlan: S['stripPlan'];
   readonly sessionMatchScores: S['sessionMatchScores'];
   sessionMatches: S['sessionMatches'];
   readonly updateArena: S['updateArena'];
@@ -447,13 +449,13 @@ export function assignPools(
       used.add(s);
     }
   }
-  let nextFree = 1;
   for (const p of sorted) {
     if (target.has(p.poolId)) continue;
-    while (used.has(nextFree)) nextFree++;
-    if (nextFree > ctx.arenaCount) break;
-    target.set(p.poolId, `arena${nextFree}`);
-    used.add(nextFree);
+    // Dans l'intervalle de l'épreuve seulement : sinon la poule attend une piste (#1878)
+    const free = nextFreeStrip(ctx.stripPlan, used, ctx.arenaCount);
+    if (free === null) break;
+    target.set(p.poolId, `arena${free}`);
+    used.add(free);
   }
 
   // 3. Libérer les pistes dont la poule a changé de piste ou n'existe plus
@@ -707,6 +709,7 @@ export const ARENA_QUEUE_CONTEXT_KEYS = {
     'poolFencersCache',
     'poolMatchArenaOverrides',
     'session',
+    'stripPlan',
     'sessionMatchScores',
     'sessionMatches',
   ],

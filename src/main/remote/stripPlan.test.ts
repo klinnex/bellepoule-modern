@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeStripPlan, visibleArenas, DEFAULT_STRIP_PLAN } from './stripPlan';
+import { normalizeStripPlan, nextFreeStrip, visibleArenas, DEFAULT_STRIP_PLAN } from './stripPlan';
 
 describe('normalizeStripPlan', () => {
   it('valeurs par défaut pour une entrée invalide', () => {
@@ -21,5 +21,17 @@ describe('visibleArenas', () => {
   });
   it('tout visible par défaut', () => {
     expect(visibleArenas(arenas, DEFAULT_STRIP_PLAN)).toHaveLength(6);
+  });
+});
+
+describe('nextFreeStrip (#1878)', () => {
+  it('première piste libre dans l’intervalle, hors pistes prises ou indisponibles', () => {
+    expect(nextFreeStrip(DEFAULT_STRIP_PLAN, new Set([1]), 4)).toBe(2);
+    expect(nextFreeStrip({ start: 3, unavailable: [] }, new Set(), 4)).toBe(3);
+    expect(nextFreeStrip({ start: 3, unavailable: [3] }, new Set(), 4)).toBe(4);
+  });
+  it('aucune piste libre dans l’intervalle : null (la poule attend)', () => {
+    expect(nextFreeStrip({ start: 3, unavailable: [] }, new Set([3, 4]), 4)).toBeNull();
+    expect(nextFreeStrip({ start: 5, unavailable: [] }, new Set(), 4)).toBeNull();
   });
 });

@@ -82,6 +82,12 @@ des épreuves (#1878) :
 
 Sans saisie distante ouverte : occupation prévue en base (poules en cours), sans proposition.
 
+**Poule sans piste.** Quand une épreuve a plus de poules que de pistes dans sa plage (piste de
+départ à piste de fin, hors pistes indisponibles), les poules en trop attendent une piste : le
+serveur ne les place plus sur une piste masquée (sous la piste de départ), qui peut être celle
+d'une autre épreuve de la journée. La saisie distante envoie le plan des pistes au serveur
+avant de démarrer la séance. Ces poules sont proposées aux pistes libres de la journée.
+
 **Piste hors de la plage de l'épreuve.** Une épreuve peut recevoir n'importe quelle piste de la
 salle, sauf celles marquées indisponibles dans son plan des pistes (`canHostStrip`). À
 l'affectation (`hostStrip`, `src/main/remote/arenaSetup.ts`) :
