@@ -23,25 +23,12 @@ import {
   HelpCircle,
   Search,
 } from 'lucide-react';
-import { Competition, PhaseType, Weapon } from '../shared/types';
+import { Competition, PhaseType } from '../shared/types';
 import { restartGuidedTour } from './components/guidedTourFlags';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
 import { BrandLogo } from './components/common/BrandLogo';
-/** Démo autonome : nombre d'arènes jouées par l'arbitre virtuel */
-const DEMO_STRIPS = 2;
-/** Onglet Club ouvert (#1872), mémorisé localement */
-const CLUB_TAB_KEY = 'bp_club_tab_open';
-/** Club affiché dans l'onglet Club (plusieurs clubs possibles) */
-const CLUB_ACTIVE_KEY = 'bp_club_active';
-const readActiveClub = (): string | null => {
-  try {
-    return localStorage.getItem(CLUB_ACTIVE_KEY);
-  } catch {
-    return null;
-  }
-};
 
 const DemoLauncherModal = React.lazy(() => import('./components/training/DemoLauncherModal'));
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
@@ -76,7 +63,6 @@ import { OperationProvider, useOperation } from './components/common/OperationPr
 import PrintDialogHost from './components/print/PrintDialogHost';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
-import { ipcErrorText } from './services/ipcError';
 import { Button } from './components/common/Button';
 import { Tooltip } from './components/Tooltip';
 import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
@@ -85,6 +71,8 @@ import { saveActiveSection } from './components/settingsModal.helpers';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 import { useAppMenuHandlers } from './hooks/useAppMenuHandlers';
+import { useTrainingSession } from './hooks/useTrainingSession';
+import { useClubTab } from './hooks/useClubTab';
 
 const PHASE_BADGE: Record<string, { label: string; cls: string }> = {
   [PhaseType.CHECKIN]: { label: 'Appel', cls: 'badge-checkin' },
@@ -115,41 +103,24 @@ const AppContent: React.FC = () => {
   const [showTVRemote, setShowTVRemote] = useState(false);
   const [remoteServerUrl, setRemoteServerUrl] = useState<string | null>(null);
   const [remoteArenaCount, setRemoteArenaCount] = useState<number>(1);
-  const [showTrainingModal, setShowTrainingModal] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
-  const [trainingActive, setTrainingActive] = useState(false);
-  const [showTrainingPanel, setShowTrainingPanel] = useState(false);
-  const [trainingServerUrl, setTrainingServerUrl] = useState('');
-  const [trainingStrips, setTrainingStrips] = useState(1);
-  const [trainingWeapon, setTrainingWeapon] = useState('');
-  const [trainingLaunching, setTrainingLaunching] = useState(false);
-  // Mode Club (#1872) : onglet permanent, mémorisé entre les sessions
-  const [clubTabOpen, setClubTabOpenState] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(CLUB_TAB_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
-  const setClubTabOpen = useCallback((open: boolean) => {
-    setClubTabOpenState(open);
-    try {
-      if (open) localStorage.setItem(CLUB_TAB_KEY, '1');
-      else localStorage.removeItem(CLUB_TAB_KEY);
-    } catch {
-      /* stockage indisponible : onglet non mémorisé */
-    }
-  }, []);
-  const [activeClubId, setActiveClubIdState] = useState<string | null>(readActiveClub);
-  const setActiveClubId = useCallback((id: string | null) => {
-    setActiveClubIdState(id);
-    try {
-      if (id) localStorage.setItem(CLUB_ACTIVE_KEY, id);
-      else localStorage.removeItem(CLUB_ACTIVE_KEY);
-    } catch {
-      /* stockage indisponible */
-    }
-  }, []);
+  // Entraînement / démo autonome : état et lancement (#1897)
+  const {
+    showTrainingModal,
+    setShowTrainingModal,
+    showDemoModal,
+    setShowDemoModal,
+    trainingActive,
+    showTrainingPanel,
+    setShowTrainingPanel,
+    trainingServerUrl,
+    trainingStrips,
+    trainingWeapon,
+    trainingLaunching,
+    handleLaunchTraining,
+    handleStartDemo,
+    handleLaunchDemo,
+    handleStopTraining,
+  } = useTrainingSession(showToast);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const toolsBtnRef = useRef<HTMLButtonElement>(null);
   const toolsPanelRef = useRef<HTMLDivElement>(null);
@@ -184,23 +155,9 @@ const AppContent: React.FC = () => {
     handleTabSwitch,
   } = useAppState(showToast);
 
-  // Club affiché : logo (remplace le bouclier) et nom de l'onglet, relus à chaque changement de vue
-  const [activeClub, setActiveClub] = useState<{ name: string; logo?: string } | null>(null);
-  useEffect(() => {
-    const api = window.electronAPI?.club;
-    if (!api || !activeClubId) {
-      setActiveClub(null);
-      return;
-    }
-    let alive = true;
-    void api
-      .getClub(activeClubId)
-      .then(c => alive && setActiveClub(c ? { name: c.name, logo: c.logo } : null))
-      .catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, [activeClubId, view]);
+  // Mode Club (#1872) : onglet mémorisé, club affiché (logo, nom) — hook dédié (#1897)
+  const { clubTabOpen, setClubTabOpen, activeClubId, setActiveClubId, activeClub } =
+    useClubTab(view);
   const clubIcon = (size: number) =>
     activeClub?.logo ? (
       <img className="club-icon-logo" src={activeClub.logo} alt="" width={size} height={size} />
@@ -515,45 +472,6 @@ const AppContent: React.FC = () => {
     [openCompetitions, activeTabId, confirm]
   );
 
-  const handleLaunchTraining = useCallback(
-    async (weapon: string, strips: number, customRules?: any, host?: string): Promise<boolean> => {
-      if (!window.electronAPI?.training) return false;
-      setTrainingLaunching(true);
-      try {
-        const startRes = await window.electronAPI.training.startServer(undefined, host);
-        if (!startRes.success || !startRes.serverInfo) {
-          showToast(ipcErrorText(t, startRes, 'Impossible de démarrer le serveur'), 'error');
-          return false;
-        }
-        const sessionRes = await window.electronAPI.training.startSession(
-          strips,
-          weapon,
-          customRules
-        );
-        if (!sessionRes.success) {
-          await window.electronAPI.training.stopServer();
-          showToast(ipcErrorText(t, sessionRes, 'Impossible de démarrer la session'), 'error');
-          return false;
-        }
-        setTrainingServerUrl(startRes.serverInfo.url);
-        setTrainingStrips(strips);
-        setTrainingWeapon(weapon);
-        setTrainingActive(true);
-        setShowTrainingPanel(true);
-        setShowTrainingModal(false);
-        return true;
-      } catch (err) {
-        showToast("Erreur lors du lancement de l'entraînement", 'error');
-        return false;
-      } finally {
-        setTrainingLaunching(false);
-      }
-    },
-    [showToast, t]
-  );
-
-  // Démo autonome : entraînement en mode démo (arbitre virtuel) + écrans distants ouverts
-  // Toujours proposer l'arme, même si un entraînement / une démo tourne déjà (relancé au choix)
   const openClub = useCallback(() => {
     setClubTabOpen(true);
     setActiveTabId(null);
@@ -568,50 +486,6 @@ const AppContent: React.FC = () => {
     },
     [setActiveClubId, openClub]
   );
-
-  const handleStartDemo = useCallback(() => {
-    if (window.electronAPI?.training) setShowDemoModal(true);
-  }, []);
-
-  const handleLaunchDemo = useCallback(
-    async (weapon: Weapon) => {
-      const training = window.electronAPI?.training;
-      if (!training) return;
-      if (trainingActive) {
-        // Session en cours : arrêtée (écrans de démo fermés) puis relancée avec l'arme choisie
-        await training.stopSession().catch(() => undefined);
-        await training.stopServer().catch(() => undefined);
-      }
-      const ok = await handleLaunchTraining(weapon, DEMO_STRIPS, {
-        matchDurationSeconds: 180,
-        allowedZones: [],
-        disableSuddenDeath: false,
-        demo: true,
-      });
-      if (!ok) return;
-      const res = await training.openDemoScreens?.(DEMO_STRIPS);
-      setShowDemoModal(false);
-      if (res?.success) showToast(t('demo.started'), 'success');
-    },
-    [handleLaunchTraining, trainingActive, showToast, t]
-  );
-
-  const handleStopTraining = useCallback(async () => {
-    if (!window.electronAPI?.training) return;
-    try {
-      await window.electronAPI.training.stopSession();
-      await window.electronAPI.training.stopServer();
-    } catch {
-      /* ignore */
-    }
-    setTrainingActive(false);
-    setShowTrainingPanel(false);
-    setTrainingServerUrl('');
-    setTrainingStrips(1);
-    setTrainingWeapon('');
-    // Retour à la fenêtre de paramétrage du mode (au lieu de fermer)
-    setShowTrainingModal(true);
-  }, []);
 
   const handleDeleteCompetition = useCallback(
     async (id: string) => {
