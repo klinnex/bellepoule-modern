@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 256 |
-| `src/main/` | 109 | 888 |
+| `src/main/` | 109 | 889 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 602 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3690** |
+| **Total** | **488** | **3691** |
 
-Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3652 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3785,10 +3785,11 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/mcp/plugin.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/mcp/plugin.test.ts</code> — 4 tests</summary>
 
 - **plugin bellepoule**
   - manifestes : plugin, marketplace, serveur MCP local à jeton
+  - userConfig : jeton sensible, repli sur les variables d'environnement (#1947)
   - commandes : description en en-tête
   - outils cités dans la skill et les commandes : tous publiés
 
