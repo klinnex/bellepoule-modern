@@ -87,7 +87,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 73 | 816 |
+| `src/shared/utils/` | 74 | 820 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 33 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 237 |
-| `src/main/` | 86 | 673 |
-| `src/renderer/services/` | 9 | 53 |
+| `src/main/` | 87 | 675 |
+| `src/renderer/services/` | 10 | 55 |
 | `src/renderer/hooks/` | 32 | 151 |
 | `src/renderer/components/` | 112 | 560 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **444** | **3329** |
+| **Total** | **447** | **3337** |
 
-Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 437 fichiers, 3298 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -944,6 +944,14 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/blackCardReportPdf.test.ts</code> — 1 test</summary>
+
+- **generateBlackCardReportHTML (#1829, annexe 14 FFE)**
+  - une page par tireur exclu, champs pré-remplis et échappés
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 5 tests</summary>
 
 - **bookToc**
@@ -1009,7 +1017,7 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 18 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
@@ -1032,6 +1040,10 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
+- **generatePoolHTML – cartons (#1829, t.124.3.e)**
+  - sans carton : pas de section
+  - cartons P inscrits à part des cartons de faute
+  - modèle personnalisé sans la section : cartons quand même imprimés
 
 </details>
 
@@ -3494,6 +3506,15 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaControl.clock.test.ts</code> — 2 tests</summary>
+
+- **arena\_control chrono (#1829)**
+  - pause : chrono gardé avec le match et persisté
+  - en marche : au plus une écriture toutes les 15 s
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 1 test</summary>
 
 - **arena\_control select\_match (#1882)**
@@ -4195,6 +4216,15 @@ Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/renderer/services/`
+
+<details>
+<summary><code>src/renderer/services/blackCardReport.test.ts</code> — 2 tests</summary>
+
+- **buildBlackCardEntries (#1829)**
+  - match de la sanction : celui qui porte le carton noir en base
+  - aucun exclu : rien
+
+</details>
 
 <details>
 <summary><code>src/renderer/services/ipcError.test.ts</code> — 3 tests</summary>
