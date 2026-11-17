@@ -14,6 +14,7 @@ import { assertAuthorizedPath, authorizePath } from '../pathAuthorization';
 import { previewPdf, registerPdfPreviewHandlers } from './pdfPreview';
 import { registerPrintDialogHandlers } from './printDialog';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { prepareForInk } from '../printInk';
 
 export interface WindowPrintHandlersContext {
   getMainWindow(): BrowserWindow | null;
@@ -73,7 +74,11 @@ export function renderHtmlToPdfBuffer(
     .then(d => {
       dir = d;
       tmpFile = path.join(d, 'print.html');
-      return fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+      return fs.promises.writeFile(tmpFile, prepareForInk(html), {
+        encoding: 'utf-8',
+        mode: 0o600,
+        flag: 'wx',
+      });
     })
     .then(
       () =>

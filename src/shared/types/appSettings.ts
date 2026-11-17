@@ -22,6 +22,8 @@ export interface AppSettings {
    * Téléchargements et Bureau. Non modifiable par l'agent.
    */
   agentFolders: string[];
+  /** Économie d'encre à l'impression : fonds retirés, texte et traits en noir (PDF compris) */
+  inkSaving: boolean;
 }
 
 export type AppSettingKey = keyof AppSettings;
@@ -34,6 +36,7 @@ export const APP_SETTINGS_DEFAULTS: Readonly<AppSettings> = Object.freeze({
   remoteHttps: true,
   remoteInterface: '0.0.0.0',
   agentFolders: [],
+  inkSaving: false,
 });
 
 export const APP_SETTING_KEYS = Object.keys(APP_SETTINGS_DEFAULTS) as AppSettingKey[];
@@ -76,6 +79,9 @@ export function validateAppSetting<K extends AppSettingKey>(
       return value as AppSettings[K];
     case 'remoteInterface':
       if (typeof value !== 'string' || !IPV4.test(value)) fail('adresse IPv4');
+      return value as AppSettings[K];
+    case 'inkSaving':
+      if (typeof value !== 'boolean') fail('booléen');
       return value as AppSettings[K];
     case 'agentFolders':
       if (

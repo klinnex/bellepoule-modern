@@ -8,6 +8,7 @@ import { BrowserWindow } from 'electron';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { prepareForInk } from './printInk';
 
 export async function printHtmlWithSystemDialog(
   html: string
@@ -18,7 +19,11 @@ export async function printHtmlWithSystemDialog(
   try {
     dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'bp-print-'));
     tmpFile = path.join(dir, 'print.html');
-    await fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+    await fs.promises.writeFile(tmpFile, prepareForInk(html), {
+      encoding: 'utf-8',
+      mode: 0o600,
+      flag: 'wx',
+    });
   } catch (e) {
     return { success: false, error: 'temp_file_failed', detail: String(e) };
   }
@@ -62,7 +67,11 @@ export async function printHtmlSilently(
   try {
     dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'bp-print-'));
     tmpFile = path.join(dir, 'print.html');
-    await fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+    await fs.promises.writeFile(tmpFile, prepareForInk(html), {
+      encoding: 'utf-8',
+      mode: 0o600,
+      flag: 'wx',
+    });
   } catch {
     return false;
   }
