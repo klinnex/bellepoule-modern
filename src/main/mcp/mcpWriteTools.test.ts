@@ -117,3 +117,100 @@ describe('outils d’écriture MCP', () => {
     ).toBe(true);
   });
 });
+
+describe('import_day (#1880)', () => {
+  function dayDb() {
+    const days: Array<{
+      id: string;
+      name: string;
+      date: string;
+      stripCount: number;
+      competitionIds: string[];
+    }> = [];
+    const comps = new Map<string, { id: string; title: string }>();
+    const fencers = new Map<string, Fencer[]>();
+    const dayRefs: Array<{ firstName: string; lastName: string; license?: string }> = [];
+    let n = 0;
+    const db = {
+      getCompetition: (id: string) => comps.get(id) ?? null,
+      getFencersByCompetition: (id: string) => fencers.get(id) ?? [],
+      createCompetition: vi.fn((d: { title: string }) => {
+        const c = { id: `c${++n}`, title: d.title };
+        comps.set(c.id, c);
+        return c;
+      }),
+      addFencer: vi.fn((cid: string, f: Fencer) =>
+        fencers.set(cid, [...(fencers.get(cid) ?? []), f])
+      ),
+      eventDays: {
+        listDays: () => days,
+        createDay: vi.fn((d: { name: string; date: string }) => {
+          const day = { id: `d${days.length + 1}`, stripCount: 4, competitionIds: [], ...d };
+          days.push(day);
+          return day;
+        }),
+        setCompetitionDay: (cid: string, dayId: string) =>
+          days.find(d => d.id === dayId)!.competitionIds.push(cid),
+        listReferees: () => dayRefs,
+        createReferee: vi.fn((_: string, r: (typeof dayRefs)[number]) => dayRefs.push(r)),
+        getAssignments: () => [],
+        getLinks: () => ({}),
+        getCompetitionWeapons: () => ({}),
+        syncCompetition: () => ({ added: 0, updated: 0 }),
+        getDay: (id: string) => days.find(d => d.id === id) ?? null,
+      },
+    };
+    return { db, days };
+  }
+
+  it('crée la journée et ses épreuves, puis ne duplique rien au second passage', async () => {
+    const { db, days } = dayDb();
+    const notify = vi.fn();
+    const deps = {
+      db,
+      notify,
+      remoteServers: () => [],
+      cyranoStatus: () => null,
+    } as unknown as McpWriteDeps;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-day-'));
+    const fencersFile = path.join(dir, 'm15.txt');
+    fs.writeFileSync(fencersFile, 'DUPONT;Léa;F;CE\nDURAND;Léo;M;CE\n');
+    const manifest = {
+      name: 'Journée M15',
+      date: '2026-12-06',
+      competitions: [
+        { title: 'M15 FH', weapon: 'F', gender: 'M', category: 'U15', fencersFile },
+        { title: 'M15 FD', weapon: 'F', gender: 'F', category: 'U15' },
+      ],
+    };
+    const run = async (args: Record<string, unknown>) =>
+      JSON.parse(
+        (
+          (await handleMcpMessage(
+            {
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'tools/call',
+              params: { name: 'import_day', arguments: args },
+            },
+            deps,
+            '1',
+            undefined,
+            true
+          )) as { result: { content: Array<{ text: string }> } }
+        ).result.content[0].text
+      );
+    const dry = await run({ ...manifest, dryRun: true });
+    expect(dry.day.created).toBe(true);
+    expect(days).toHaveLength(0);
+    const first = await run(manifest);
+    expect(days).toHaveLength(1);
+    expect(first.competitions.map((c: { created: boolean }) => c.created)).toEqual([true, true]);
+    expect(first.competitions[0].fencers.added).toBe(2);
+    const second = await run(manifest);
+    expect(days).toHaveLength(1);
+    expect(db.createCompetition).toHaveBeenCalledTimes(2);
+    expect(second.competitions[0].fencers.duplicates).toBe(2);
+    expect(notify).toHaveBeenCalledWith('competitions:changed');
+  });
+});

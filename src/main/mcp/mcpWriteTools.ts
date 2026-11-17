@@ -15,7 +15,9 @@ import {
   parseFFEFile,
   parseSimpleTXTFile,
   parseXMLFile,
+  parseEngardeRefereeFile,
 } from '../../shared/utils/fileParser';
+import { syncDay } from '../ipc/eventDayHandlers';
 import { identityKey } from '../../database/repos/privacyRepo';
 import { McpToolError, type McpDeps, type McpTool } from './mcpTools';
 
@@ -50,11 +52,110 @@ const competitionOrThrow = (deps: McpDeps, id: unknown) => {
 };
 
 /** Clés d'identité : licence si connue, et nom + prénom (doublon dès qu'une clé coïncide) */
-const keysOf = (f: Partial<Fencer>): string[] => {
+const keysOf = (f: { lastName?: string; firstName?: string; license?: string }): string[] => {
   const keys = [identityKey({ lastName: f.lastName, firstName: f.firstName })];
   if (f.license) keys.push(identityKey({ license: f.license }));
   return keys;
 };
+
+/** Données d'une épreuve à créer (réglages par défaut de la fenêtre « Nouvelle compétition ») */
+function competitionData(args: Args) {
+  const title = typeof args.title === 'string' ? args.title.trim().slice(0, 200) : '';
+  if (!title) throw new McpToolError('Argument « title » requis');
+  const date = new Date(String(args.date ?? ''));
+  if (Number.isNaN(date.getTime())) throw new McpToolError('« date » invalide (AAAA-MM-JJ)');
+  const weapon = pick(args.weapon, [Weapon.EPEE, Weapon.FOIL, Weapon.SABRE], 'weapon');
+  const gender = pick(args.gender, [Gender.MALE, Gender.FEMALE, Gender.MIXED], 'gender');
+  const category = pick(args.category, Object.values(Category), 'category');
+  const settings = buildDefaultCompetitionSettings({ weapon, category });
+  return {
+    title,
+    date,
+    weapon,
+    gender,
+    category,
+    ...(typeof args.location === 'string' ? { location: args.location.slice(0, 200) } : {}),
+    ...(settings ? { settings } : {}),
+  };
+}
+
+/** Lit un fichier du poste DT : chemin absolu, extension autorisée, 5 Mo maximum */
+function readImportFile(file: unknown, extensions: string[]): string {
+  const p = typeof file === 'string' ? file : '';
+  if (!path.isAbsolute(p)) throw new McpToolError('Le chemin doit être absolu');
+  if (!extensions.includes(path.extname(p).toLowerCase())) {
+    throw new McpToolError(`Extension acceptée : ${extensions.join(', ')}`);
+  }
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(p);
+  } catch {
+    throw new McpToolError(`Fichier introuvable : ${p}`);
+  }
+  if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) {
+    throw new McpToolError('Fichier absent ou trop volumineux (5 Mo maximum)');
+  }
+  return decodeTextFile(new Uint8Array(fs.readFileSync(p)));
+}
+
+/** Aperçu d'un fichier de tireurs (épreuve pas encore créée, dryRun) */
+function readFencersPreview(file: unknown) {
+  const content = readImportFile(file, IMPORT_EXTENSIONS);
+  const format = detectFencerFileFormat(content);
+  const parsed =
+    format === 'xml'
+      ? parseXMLFile(content)
+      : format === 'txt'
+        ? parseSimpleTXTFile(content)
+        : parseFFEFile(content);
+  return {
+    format: format ?? 'fff',
+    read: parsed.fencers.length,
+    errors: parsed.errors.slice(0, 20),
+  };
+}
+
+/** Import des tireurs d'un fichier dans une épreuve, doublons ignorés */
+function importFencersFile(
+  deps: McpWriteDeps,
+  competitionId: string,
+  file: unknown,
+  dryRun: boolean
+) {
+  const content = readImportFile(file, IMPORT_EXTENSIONS);
+  const format = detectFencerFileFormat(content);
+  const parsed =
+    format === 'xml'
+      ? parseXMLFile(content)
+      : format === 'txt'
+        ? parseSimpleTXTFile(content)
+        : parseFFEFile(content);
+  const existing = new Set(deps.db.getFencersByCompetition(competitionId).flatMap(keysOf));
+  const toAdd: Partial<Fencer>[] = [];
+  let duplicates = 0;
+  for (const f of parsed.fencers) {
+    if (!f.lastName) continue;
+    const keys = keysOf(f);
+    if (keys.some(k => existing.has(k))) {
+      duplicates++;
+      continue;
+    }
+    keys.forEach(k => existing.add(k));
+    toAdd.push({ ...f, status: f.status ?? FencerStatus.NOT_CHECKED_IN });
+  }
+  const report = {
+    format: format ?? 'fff',
+    read: parsed.fencers.length,
+    toAdd: toAdd.length,
+    duplicates,
+    errors: parsed.errors.slice(0, 20),
+    warnings: parsed.warnings.slice(0, 20),
+  };
+  if (dryRun || toAdd.length === 0) return { dryRun, ...report };
+  for (const f of toAdd) deps.db.addFencer(competitionId, f);
+  deps.notify('fencers:changed', competitionId);
+  return { dryRun: false, added: toAdd.length, ...report };
+}
 
 /** Outil d'écriture : annotations MCP + exécution avec notification de l'écran */
 export interface McpWriteTool extends Omit<McpTool, 'annotations' | 'run'> {
@@ -87,23 +188,7 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     run: (deps, args) => {
-      const title = typeof args.title === 'string' ? args.title.trim().slice(0, 200) : '';
-      if (!title) throw new McpToolError('Argument « title » requis');
-      const date = new Date(String(args.date ?? ''));
-      if (Number.isNaN(date.getTime())) throw new McpToolError('« date » invalide (AAAA-MM-JJ)');
-      const weapon = pick(args.weapon, [Weapon.EPEE, Weapon.FOIL, Weapon.SABRE], 'weapon');
-      const gender = pick(args.gender, [Gender.MALE, Gender.FEMALE, Gender.MIXED], 'gender');
-      const category = pick(args.category, Object.values(Category), 'category');
-      const settings = buildDefaultCompetitionSettings({ weapon, category });
-      const data = {
-        title,
-        date,
-        weapon,
-        gender,
-        category,
-        ...(typeof args.location === 'string' ? { location: args.location.slice(0, 200) } : {}),
-        ...(settings ? { settings } : {}),
-      };
+      const data = competitionData(args);
       if (dryRunOf(args)) return { dryRun: true, wouldCreate: data };
       const created = deps.db.createCompetition(data);
       deps.notify('competitions:changed', created.id);
@@ -127,53 +212,127 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     run: (deps, args) => {
       const competition = competitionOrThrow(deps, args.competitionId);
-      const file = typeof args.path === 'string' ? args.path : '';
-      if (!path.isAbsolute(file)) throw new McpToolError('« path » doit être un chemin absolu');
-      if (!IMPORT_EXTENSIONS.includes(path.extname(file).toLowerCase())) {
-        throw new McpToolError(`Extension acceptée : ${IMPORT_EXTENSIONS.join(', ')}`);
+      return importFencersFile(deps, competition.id, args.path, dryRunOf(args));
+    },
+  },
+  {
+    name: 'import_day',
+    title: 'Préparer une journée',
+    description:
+      'Crée (ou complète) une journée multi-épreuves à partir d’un manifeste : épreuves, fichiers de tireurs, fichier d’arbitres (Engarde). ' +
+      'Relancer le même manifeste ne crée aucun doublon (journée par nom + date, épreuve par titre, tireurs et arbitres dédoublonnés).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        date: { type: 'string', description: 'AAAA-MM-JJ' },
+        stripCount: { type: 'number' },
+        location: { type: 'string' },
+        competitions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              weapon: { type: 'string', enum: ['E', 'F', 'S'] },
+              gender: { type: 'string', enum: ['M', 'F', 'X'] },
+              category: { type: 'string', enum: Object.values(Category) },
+              fencersFile: { type: 'string', description: 'Chemin absolu (facultatif)' },
+            },
+            required: ['title', 'weapon', 'gender', 'category'],
+          },
+        },
+        refereesFile: { type: 'string', description: 'Fichier d’arbitres Engarde (.txt / .csv)' },
+        ...dryRunProp,
+      },
+      required: ['name', 'date', 'competitions'],
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    run: (deps, args) => {
+      const dryRun = dryRunOf(args);
+      const name = typeof args.name === 'string' ? args.name.trim().slice(0, 200) : '';
+      const date = typeof args.date === 'string' ? args.date.slice(0, 10) : '';
+      if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new McpToolError('« name » et « date » (AAAA-MM-JJ) requis');
       }
-      let stat: fs.Stats;
-      try {
-        stat = fs.statSync(file);
-      } catch {
-        throw new McpToolError(`Fichier introuvable : ${file}`);
+      if (!Array.isArray(args.competitions) || args.competitions.length === 0) {
+        throw new McpToolError('« competitions » : liste non vide requise');
       }
-      if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) {
-        throw new McpToolError('Fichier absent ou trop volumineux (5 Mo maximum)');
+      const specs = (args.competitions as Args[]).slice(0, 50).map(c => ({
+        data: competitionData({ ...c, date, location: args.location }),
+        fencersFile: c.fencersFile,
+      }));
+      const { db } = deps;
+      let day = db.eventDays.listDays().find(d => d.name === name && d.date === date) ?? null;
+      const dayCreated = !day;
+      if (!day && !dryRun) {
+        const strips = Number(args.stripCount);
+        day = db.eventDays.createDay({
+          name,
+          date,
+          ...(Number.isInteger(strips) && strips > 0 ? { stripCount: strips } : {}),
+        });
       }
-      const content = decodeTextFile(new Uint8Array(fs.readFileSync(file)));
-      const format = detectFencerFileFormat(content);
-      const parsed =
-        format === 'xml'
-          ? parseXMLFile(content)
-          : format === 'txt'
-            ? parseSimpleTXTFile(content)
-            : parseFFEFile(content);
-      const existing = new Set(deps.db.getFencersByCompetition(competition.id).flatMap(keysOf));
-      const toAdd: Partial<Fencer>[] = [];
-      let duplicates = 0;
-      for (const f of parsed.fencers) {
-        if (!f.lastName) continue;
-        const keys = keysOf(f);
-        if (keys.some(k => existing.has(k))) {
-          duplicates++;
-          continue;
+      const inDay = new Map(
+        (day?.competitionIds ?? [])
+          .map(id => db.getCompetition(id))
+          .filter((c): c is NonNullable<typeof c> => !!c)
+          .map(c => [c.title, c.id] as const)
+      );
+      const competitions = specs.map(spec => {
+        let id = inDay.get(spec.data.title) ?? null;
+        const created = !id;
+        if (!id && !dryRun && day) {
+          id = db.createCompetition(spec.data).id;
+          db.eventDays.setCompetitionDay(id, day.id);
         }
-        keys.forEach(k => existing.add(k));
-        toAdd.push({ ...f, status: f.status ?? FencerStatus.NOT_CHECKED_IN });
+        const fencers =
+          spec.fencersFile === undefined
+            ? null
+            : id
+              ? importFencersFile(deps, id, spec.fencersFile, dryRun)
+              : { dryRun, ...readFencersPreview(spec.fencersFile) };
+        return { title: spec.data.title, id, created, fencers };
+      });
+      let referees: Record<string, unknown> | null = null;
+      if (typeof args.refereesFile === 'string') {
+        const parsed = parseEngardeRefereeFile(readImportFile(args.refereesFile, ['.txt', '.csv']));
+        const existing = new Set(
+          (day ? db.eventDays.listReferees(day.id) : []).flatMap(r => keysOf(r))
+        );
+        const toAdd = parsed.referees.filter(r => {
+          const keys = keysOf(r);
+          if (keys.some(k => existing.has(k))) return false;
+          keys.forEach(k => existing.add(k));
+          return true;
+        });
+        if (!dryRun && day) {
+          for (const r of toAdd) {
+            db.eventDays.createReferee(day.id, {
+              firstName: r.firstName,
+              lastName: r.lastName,
+              club: r.club,
+              license: r.license,
+              category: r.category,
+              weapons: [],
+            });
+          }
+          syncDay(db, day.id);
+        }
+        referees = {
+          read: parsed.referees.length,
+          added: toAdd.length,
+          duplicates: parsed.referees.length - toAdd.length,
+          errors: parsed.errors.slice(0, 20),
+        };
       }
-      const report = {
-        format: format ?? 'fff',
-        read: parsed.fencers.length,
-        toAdd: toAdd.length,
-        duplicates,
-        errors: parsed.errors.slice(0, 20),
-        warnings: parsed.warnings.slice(0, 20),
+      if (!dryRun) deps.notify('competitions:changed');
+      return {
+        dryRun,
+        day: { id: day?.id ?? null, name, date, created: dayCreated },
+        competitions,
+        referees,
       };
-      if (dryRunOf(args) || toAdd.length === 0) return { dryRun: dryRunOf(args), ...report };
-      for (const f of toAdd) deps.db.addFencer(competition.id, f);
-      deps.notify('fencers:changed', competition.id);
-      return { dryRun: false, added: toAdd.length, ...report };
     },
   },
   {

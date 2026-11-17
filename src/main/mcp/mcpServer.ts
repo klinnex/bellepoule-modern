@@ -85,7 +85,7 @@ export async function handleMcpMessage(
             'journée multi-épreuves, pistes, serveur distant, appareils Cyrano. Commencer par ' +
             'list_competitions ou day_overview.' +
             (allowWrite
-              ? ' Écriture autorisée (create_competition, import_fencers, check_in) : ' +
+              ? ' Écriture autorisée (import_day, create_competition, import_fencers, check_in) : ' +
                 'utiliser dryRun: true puis confirmer avec le DT avant d’écrire.'
               : ''),
         },

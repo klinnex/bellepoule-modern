@@ -44,6 +44,7 @@ Chaque outil accepte `dryRun: true` (rapport sans écriture). Toute écriture pr
 
 | Outil | Arguments | Effet |
 |---|---|---|
+| `import_day` | `name`, `date`, `stripCount?`, `location?`, `competitions[]` (`title`, `weapon`, `gender`, `category`, `fencersFile?`), `refereesFile?` | Journée multi-épreuves complète ; **idempotent** : journée retrouvée par nom + date, épreuve par titre, tireurs et arbitres dédoublonnés |
 | `create_competition` | `title`, `date`, `weapon` (E/F/S), `gender` (M/F/X), `category`, `location?` | Épreuve créée avec les réglages par défaut de la fenêtre « Nouvelle compétition » (`buildDefaultCompetitionSettings`) |
 | `import_fencers` | `competitionId`, `path` (absolu ; `.xml` `.txt` `.csv` `.fff`, 5 Mo max) | Format détecté (XML FFE / cotcot, FFF, TXT) ; doublons ignorés (même licence, ou même nom et prénom) |
 | `check_in` | `competitionId`, `fencers` (ids ou dossards), `present` | Pointage ; abandons, exclusions, forfaits laissés tels quels |
@@ -57,8 +58,8 @@ Chaque outil accepte `dryRun: true` (rapport sans écriture). Toute écriture pr
 | `src/main/mcp/mcpSettings.ts` | Réglages et jeton chiffré |
 | `src/main/ipc/mcpHandlers.ts` | IPC `mcp:*`, démarrage à l'ouverture de la base |
 | `src/renderer/components/McpSettingsSection.tsx` | Section des Paramètres |
-| `plugins/bellepoule/` | Plugin Claude Code : `.mcp.json`, skill, commande `/bp-etat` |
+| `plugins/bellepoule/` | Plugin Claude Code : `.mcp.json`, skill, commandes `/bp-etat`, `/bp-journee` |
 
 ## Suite (épique #1880)
 
-Lot 2 restant : `import_day` (journée complète par manifeste), arbitres, serveur distant ; lot 3 (orchestration sportive dans le main), paramétrage global (`app_settings`, salles).
+Lot 2 restant : serveur distant (démarrer / arrêter) ; lot 3 (orchestration sportive dans le main), paramétrage global (`app_settings`, salles).
