@@ -10,6 +10,7 @@
  * score faite sur la tablette, et quand l'appareil au repos n'affiche pas le bon match.
  * Sabre laser et armes personnalisées : affichage seul (décision n°5) — noms et score
  * envoyés, commandes de l'appareil ignorées.
+ * Relais par équipes (arène `/equipe{N}`) : voir `teamRelayPiste.ts`.
  * Licensed under GPL-3.0
  */
 
@@ -30,6 +31,7 @@ import {
   validatePisteEnd,
   type PisteSides,
 } from './pisteState';
+import { TeamRelayPiste } from './teamRelayPiste';
 import type {
   PisteDisplay,
   PisteDisplaySide,
@@ -86,6 +88,8 @@ export class PisteHub {
   private readonly getRemotes: RemoteSource;
   /** Barrière d'entrée des arènes : séquence par source (#1829) */
   readonly gate = new ArenaInputGate();
+  /** Relais par équipes */
+  private readonly team: TeamRelayPiste;
   /**
    * Épreuve suivie par chaque piste (#1878) : celle de son affectation en cours ; sans
    * affectation, la dernière suivie (rien n'est envoyé à l'appareil d'ici la suivante).
@@ -131,6 +135,7 @@ export class PisteHub {
       international: options.international ?? false,
     };
     this.driver.setNameLength?.(this.opts.nameLength);
+    this.team = new TeamRelayPiste(this);
   }
 
   setOptions(opts: PisteHubOptions): void {
@@ -169,12 +174,19 @@ export class PisteHub {
     let chosen: RemoteScoreServer | null = null;
     if (status.arena) {
       const arenaId = `arena${status.arena}`;
-      const active = all.filter(r => hasAssignment(r, arenaId));
+      const n = status.arena;
+      const active = all.filter(r => hasAssignment(r, arenaId) || this.team.hasRelay(r, n));
       if (previous && active.includes(previous)) chosen = previous;
       else if (active.length > 0)
         chosen = active.find(r => r.getArena(arenaId)?.status === 'in_progress') ?? active[0];
     }
-    if (!chosen && previous && all.includes(previous) && previous.hasSession()) chosen = previous;
+    if (
+      !chosen &&
+      previous &&
+      all.includes(previous) &&
+      (previous.hasSession() || (!!status.arena && this.team.hasArena(previous, status.arena)))
+    )
+      chosen = previous;
     if (!chosen) {
       const open = all.filter(r => r.hasSession());
       chosen = open.length === 1 ? open[0] : null;
@@ -193,9 +205,17 @@ export class PisteHub {
     return chosen;
   }
 
-  /** Épreuve d'un serveur distant (séance en cours). */
-  private competitionOf(remote: RemoteScoreServer, _link: PisteLink): string | undefined {
-    return remote.getSession()?.competitionId;
+  /** Épreuve d'un serveur distant : séance individuelle, sinon relais par équipes de la piste. */
+  private competitionOf(remote: RemoteScoreServer, link: PisteLink): string | undefined {
+    return (
+      remote.getSession()?.competitionId ??
+      (link.arena ? this.team.view(remote, link)?.state.competitionId : undefined)
+    );
+  }
+
+  /** Champ épreuve de l'affichage : seulement entre plusieurs épreuves. */
+  competitionField(remote: RemoteScoreServer | null, link: PisteLink): string | undefined {
+    return this.remotes().length > 1 && remote ? this.competitionOf(remote, link) : undefined;
   }
 
   /** Épreuve suivie par chaque piste (panneau Cyrano, journée). */
@@ -238,7 +258,9 @@ export class PisteHub {
    */
   modeOf(piste: PisteLink, remote: RemoteScoreServer | null = this.remoteFor(piste)): PisteMode {
     if (piste.mode === 'manual' || piste.status === 'offline') return 'manual';
-    const weapon = remote?.getSessionWeapon();
+    const weapon =
+      (remote && piste.arena ? this.team.view(remote, piste)?.state.weapon : undefined) ??
+      remote?.getSessionWeapon();
     if (weapon && !toCyranoWeapon(weapon)) return 'display';
     return piste.mode;
   }
@@ -329,7 +351,13 @@ export class PisteHub {
     this.applied.delete(piste);
     const status = this.driver.findPiste(piste);
     if (!status?.arena || this.modeOf(status) === 'manual') return;
-    const arena = this.remoteFor(status)?.getArena(`arena${status.arena}`);
+    const remote = this.remoteFor(status);
+    const relay = remote ? this.team.view(remote, status) : null;
+    if (remote && relay) {
+      this.team.display(status, remote, relay);
+      return;
+    }
+    const arena = remote?.getArena(`arena${status.arena}`);
     const match = arena?.currentMatch;
     if (arena && match && !isFinished(match, arena.status)) {
       this.sendMatch(piste, match, match.scoreA, match.scoreB);
@@ -352,6 +380,22 @@ export class PisteHub {
       // Pistes partagées (#1878) : seule l'épreuve suivie par la piste pilote l'appareil
       if (source && this.remoteFor(piste) !== source) continue;
       this.displayArenaUpdate(piste, update);
+    }
+  };
+
+  /**
+   * Rappel installé sur `RemoteScoreServer.cyranoTeamHook` : arène équipe `/equipe{N}`
+   * modifiée (tablette, DT, appareil) → relais en cours affiché sur les pistes de l'arène N.
+   */
+  onTeamArenaUpdate = (arenaId: string, source?: RemoteScoreServer): void => {
+    if (!/^\d+$/.test(arenaId)) return;
+    for (const piste of this.driver.findAllByArena(Number(arenaId))) {
+      // Rencontre retirée de l'arène : plus d'affectation, la piste suit encore cette épreuve
+      const followed = source && this.routes.get(piste.piste) === source ? source : null;
+      const remote = this.remoteFor(piste) ?? followed;
+      if (!remote || (source && remote !== source)) continue;
+      if (this.modeOf(piste, remote) === 'manual') continue;
+      this.team.refresh(piste, remote);
     }
   };
 
@@ -455,6 +499,11 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     const mode = this.modeOf(piste, remote);
+    const relay = this.team.view(remote, piste);
+    if (relay) {
+      this.team.handleState(piste, state, remote, mode, relay);
+      return;
+    }
     // Piste hors appareil : aucune entrée prise en compte, la fin reçoit un NAK
     if (mode === 'manual') {
       if (state.state === 'ending') this.driver.send(piste.piste, { kind: 'nak' });
@@ -616,6 +665,11 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
+    const relay = this.team.view(remote, piste);
+    if (relay) {
+      this.team.handleNext(piste, remote, relay);
+      return;
+    }
     const arenaId = `arena${piste.arena}`;
     const arena = remote.getArena(arenaId);
     const match = arena?.currentMatch;
@@ -643,6 +697,11 @@ export class PisteHub {
     const remote = this.remoteFor(piste);
     if (!remote) return;
     if (this.modeOf(piste, remote) !== 'master') return; // affichage seul : pas de télécommande
+    const relay = this.team.view(remote, piste);
+    if (relay) {
+      this.team.handlePrev(piste, remote, relay);
+      return;
+    }
     const arenaId = `arena${piste.arena}`;
     const before = remote.getArena(arenaId)?.currentMatch;
     this.device.delete(piste.piste);

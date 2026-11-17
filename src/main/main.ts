@@ -148,6 +148,8 @@ registerRemoteServerHandlers({
   getMainWindow: () => mainWindow,
   onServerCreated: server => {
     server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
+    // Relais par équipes (/equipe{N}) sur l'appareil de piste (#1829)
+    server.cyranoTeamHook = arenaId => pisteHub.onTeamArenaUpdate(arenaId, server);
   },
 });
 
