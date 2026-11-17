@@ -41,6 +41,18 @@ describe('NewCompetitionModal', () => {
     expect(onCreate.mock.calls[0][0].title).toMatch(/^Compétition du/);
   });
 
+  it('propriétés saisies à la création : appliquées à cette compétition seulement', () => {
+    const { onCreate, container } = setup();
+    fireEvent.click(screen.getByText('competitionHeader.properties'));
+    const propsTitle = document.getElementById('title') as HTMLInputElement;
+    fireEvent.change(propsTitle, { target: { value: 'Titre via propriétés' } });
+    fireEvent.click(screen.getByText('properties.save'));
+    // La modale Propriétés se ferme après enregistrement, la création reste ouverte
+    expect(document.getElementById('title')).toBeNull();
+    fireEvent.submit(container.querySelector('form')!);
+    expect(onCreate.mock.calls[0][0].title).toBe('Titre via propriétés');
+  });
+
   it('le bouton annuler ferme la modale', () => {
     const { onClose } = setup();
     fireEvent.click(screen.getByText('actions.cancel'));

@@ -19,6 +19,8 @@ import { FormulaBuilder } from './formula/FormulaBuilder';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { Button } from './common/Button';
 import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
+import CompetitionPropertiesModal from './CompetitionPropertiesModal';
+import { Settings } from 'lucide-react';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
@@ -46,16 +48,21 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   // progressive) ou format arène (assauts indépendants 5 touches/3min, score
   // = total de points, règlement épreuve par équipe Sabre Laser).
   const [teamFormat, setTeamFormat] = useState<'fie-relay' | 'laser-arena'>('fie-relay');
+  // Propriétés saisies dans la modale « Propriétés » : brouillon local à cette création,
+  // appliqué uniquement à la compétition créée (rien n'est écrit en base avant « Ajouter »)
+  const [showProperties, setShowProperties] = useState(false);
+  const [propsDraft, setPropsDraft] = useState<{
+    organizer?: string;
+    settings?: Competition['settings'];
+  } | null>(null);
 
   const handleWeaponChange = (w: Weapon) => {
     setWeapon(w);
     if (w === Weapon.LASER) setGender(Gender.MIXED);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const settings = buildDefaultCompetitionSettings({
+  const buildSettings = () =>
+    buildDefaultCompetitionSettings({
       weapon,
       category,
       isTeamEvent,
@@ -67,6 +74,34 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
       specialMode,
     });
 
+  // Objet transmis à la modale Propriétés : champs du formulaire + brouillon éventuel
+  const draftCompetition = {
+    id: '',
+    title,
+    date: new Date(date),
+    weapon,
+    gender,
+    category,
+    location,
+    organizer: propsDraft?.organizer ?? '',
+    settings: propsDraft?.settings ?? buildSettings(),
+  } as Competition;
+
+  const handlePropertiesSave = (updates: Partial<Competition>) => {
+    if (updates.title !== undefined) setTitle(updates.title);
+    if (updates.date) setDate(new Date(updates.date).toISOString().split('T')[0]);
+    if (updates.location !== undefined) setLocation(updates.location);
+    if (updates.weapon) setWeapon(updates.weapon);
+    if (updates.gender !== undefined) setGender(updates.gender);
+    if (updates.category) setCategory(updates.category);
+    setPropsDraft({ organizer: updates.organizer, settings: updates.settings });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const settings = propsDraft?.settings ?? buildSettings();
+
     onCreate({
       title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,
       date: new Date(date),
@@ -74,6 +109,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
       gender,
       category,
       location,
+      ...(propsDraft?.organizer ? { organizer: propsDraft.organizer } : {}),
       color: getRandomColor(),
       // Tournoi des rapières : binômes gérés par le mode spécial, pas par les équipes classiques
       isTeamEvent: isTeamEvent && !(weapon === Weapon.CUSTOM && specialMode),
@@ -100,214 +136,227 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   const isCustom = weapon === Weapon.CUSTOM;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal"
-        style={isCustom ? { maxWidth: '92vw', width: '1100px' } : undefined}
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="modal-header">
-          <h2 className="modal-title">{t('competition.new')}</h2>
-          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
-            ×
-          </button>
-        </div>
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div
+          ref={modalRef}
+          className="modal"
+          style={isCustom ? { maxWidth: '92vw', width: '1100px' } : undefined}
+          onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-header">
+            <h2 className="modal-title">{t('competition.new')}</h2>
+            <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+              ×
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <div className="form-group">
-              <label className="form-label">{t('competition.title')}</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder={t('newCompetition.title_ph')}
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">{t('competition.date')}</label>
-              <input
-                type="date"
-                className="form-input"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="new-competition-modal-1">
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body">
               <div className="form-group">
-                <label className="form-label">{t('competition.weapon')}</label>
-                <select
-                  className="form-input form-select"
-                  value={weapon}
-                  onChange={e => handleWeaponChange(e.target.value as Weapon)}
-                >
-                  <option value={Weapon.EPEE}>{t('weapons.epee')}</option>
-                  <option value={Weapon.FOIL}>{t('weapons.foil')}</option>
-                  <option value={Weapon.SABRE}>{t('weapons.sabre')}</option>
-                  <option value={Weapon.LASER}>{t('weapons.laser')}</option>
-                  <option value={Weapon.CUSTOM}>{t('newCompetition.custom')}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t('competition.gender')}</label>
-                <select
-                  className="form-input form-select"
-                  value={gender}
-                  onChange={e => setGender(e.target.value as Gender)}
-                  disabled={weapon === Weapon.LASER}
-                >
-                  <option value={Gender.MALE}>{t('genders.male')}</option>
-                  <option value={Gender.FEMALE}>{t('genders.female')}</option>
-                  <option value={Gender.MIXED}>{t('genders.mixed')}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t('competition.category')}</label>
-                <select
-                  className="form-input form-select"
-                  value={category}
-                  onChange={e => setCategory(e.target.value as Category)}
-                >
-                  <option value={Category.U9}>{t('categories.U9')}</option>
-                  <option value={Category.U11}>{t('categories.U11')}</option>
-                  <option value={Category.U13}>{t('categories.U13')}</option>
-                  <option value={Category.U15}>{t('categories.U15')}</option>
-                  <option value={Category.U17}>{t('categories.U17')}</option>
-                  <option value={Category.U20}>{t('categories.U20')}</option>
-                  <option value={Category.SENIOR}>{t('categories.senior')}</option>
-                  <option value={Category.V1}>{t('categories.V1')} (40-49)</option>
-                  <option value={Category.V2}>{t('categories.V2')} (50-59)</option>
-                  <option value={Category.V3}>{t('categories.V3')} (60-69)</option>
-                  <option value={Category.V4}>{t('categories.V4')} (70+)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="u-row cursor-pointer">
+                <label className="form-label">{t('competition.title')}</label>
                 <input
-                  type="checkbox"
-                  checked={isTeamEvent}
-                  onChange={e => setIsTeamEvent(e.target.checked)}
+                  type="text"
+                  className="form-input"
+                  placeholder={t('newCompetition.title_ph')}
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
                 />
-                <span className="form-label new-competition-modal-2">
-                  {t('newCompetition.team')}
-                </span>
-              </label>
-            </div>
-
-            {isTeamEvent && (
-              <div
-                className="form-group team-settings-panel"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: weapon === Weapon.LASER ? '1fr 1fr 1fr 1fr' : '1fr 1fr',
-                  gap: '1rem',
-                  padding: '0.75rem',
-                  borderRadius: '0.5rem',
-                }}
-              >
-                <div className="form-group">
-                  <label className="form-label">{t('newCompetition.starters')}</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    min={1}
-                    max={10}
-                    value={teamSize}
-                    onChange={e => setTeamSize(Math.max(1, Number(e.target.value) || 1))}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t('newCompetition.reserves')}</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    min={0}
-                    max={5}
-                    value={teamReserveCount}
-                    onChange={e => setTeamReserveCount(Math.max(0, Number(e.target.value) || 0))}
-                  />
-                </div>
-                {weapon === Weapon.LASER && (
-                  <div className="form-group">
-                    <label className="form-label">{t('newCompetition.laser_target')}</label>
-                    <select
-                      className="form-input form-select"
-                      value={laserTeamMode}
-                      onChange={e => setLaserTeamMode(e.target.value as 'touches' | 'points')}
-                    >
-                      <option value="touches">{t('newCompetition.touches')}</option>
-                      <option value="points">{t('newCompetition.points')}</option>
-                    </select>
-                  </div>
-                )}
-                {weapon === Weapon.LASER && (
-                  <div className="form-group">
-                    <label className="form-label">{t('newCompetition.format')}</label>
-                    <select
-                      className="form-input form-select"
-                      value={teamFormat}
-                      onChange={e => setTeamFormat(e.target.value as 'fie-relay' | 'laser-arena')}
-                    >
-                      <option value="fie-relay">{t('newCompetition.fie_relay')}</option>
-                      <option value="laser-arena">{t('newCompetition.laser_arena')}</option>
-                    </select>
-                  </div>
-                )}
               </div>
-            )}
 
-            <div className="form-group">
-              <label className="form-label">
-                {t('competition.location')} ({t('actions.default')})
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder={t('newCompetition.location_ph')}
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-              />
-            </div>
+              <div className="form-group">
+                <label className="form-label">{t('competition.date')}</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  required
+                />
+              </div>
 
-            {/* Constructeur de formule — visible uniquement pour arme CUSTOM */}
-            {isCustom && (
-              <div className="form-group custom-formula-section">
-                <label className="form-label new-competition-modal-3">
-                  {t('newCompetition.formula_builder')}
+              <div className="new-competition-modal-1">
+                <div className="form-group">
+                  <label className="form-label">{t('competition.weapon')}</label>
+                  <select
+                    className="form-input form-select"
+                    value={weapon}
+                    onChange={e => handleWeaponChange(e.target.value as Weapon)}
+                  >
+                    <option value={Weapon.EPEE}>{t('weapons.epee')}</option>
+                    <option value={Weapon.FOIL}>{t('weapons.foil')}</option>
+                    <option value={Weapon.SABRE}>{t('weapons.sabre')}</option>
+                    <option value={Weapon.LASER}>{t('weapons.laser')}</option>
+                    <option value={Weapon.CUSTOM}>{t('newCompetition.custom')}</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{t('competition.gender')}</label>
+                  <select
+                    className="form-input form-select"
+                    value={gender}
+                    onChange={e => setGender(e.target.value as Gender)}
+                    disabled={weapon === Weapon.LASER}
+                  >
+                    <option value={Gender.MALE}>{t('genders.male')}</option>
+                    <option value={Gender.FEMALE}>{t('genders.female')}</option>
+                    <option value={Gender.MIXED}>{t('genders.mixed')}</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{t('competition.category')}</label>
+                  <select
+                    className="form-input form-select"
+                    value={category}
+                    onChange={e => setCategory(e.target.value as Category)}
+                  >
+                    <option value={Category.U9}>{t('categories.U9')}</option>
+                    <option value={Category.U11}>{t('categories.U11')}</option>
+                    <option value={Category.U13}>{t('categories.U13')}</option>
+                    <option value={Category.U15}>{t('categories.U15')}</option>
+                    <option value={Category.U17}>{t('categories.U17')}</option>
+                    <option value={Category.U20}>{t('categories.U20')}</option>
+                    <option value={Category.SENIOR}>{t('categories.senior')}</option>
+                    <option value={Category.V1}>{t('categories.V1')} (40-49)</option>
+                    <option value={Category.V2}>{t('categories.V2')} (50-59)</option>
+                    <option value={Category.V3}>{t('categories.V3')} (60-69)</option>
+                    <option value={Category.V4}>{t('categories.V4')} (70+)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="u-row cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isTeamEvent}
+                    onChange={e => setIsTeamEvent(e.target.checked)}
+                  />
+                  <span className="form-label new-competition-modal-2">
+                    {t('newCompetition.team')}
+                  </span>
                 </label>
-                <FormulaBuilder
-                  formula={customFormula}
-                  fencerCount={32}
-                  onChange={setCustomFormula}
-                  specialMode={specialMode}
-                  onSpecialModeChange={setSpecialMode}
+              </div>
+
+              {isTeamEvent && (
+                <div
+                  className="form-group team-settings-panel"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: weapon === Weapon.LASER ? '1fr 1fr 1fr 1fr' : '1fr 1fr',
+                    gap: '1rem',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                  }}
+                >
+                  <div className="form-group">
+                    <label className="form-label">{t('newCompetition.starters')}</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      min={1}
+                      max={10}
+                      value={teamSize}
+                      onChange={e => setTeamSize(Math.max(1, Number(e.target.value) || 1))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">{t('newCompetition.reserves')}</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      min={0}
+                      max={5}
+                      value={teamReserveCount}
+                      onChange={e => setTeamReserveCount(Math.max(0, Number(e.target.value) || 0))}
+                    />
+                  </div>
+                  {weapon === Weapon.LASER && (
+                    <div className="form-group">
+                      <label className="form-label">{t('newCompetition.laser_target')}</label>
+                      <select
+                        className="form-input form-select"
+                        value={laserTeamMode}
+                        onChange={e => setLaserTeamMode(e.target.value as 'touches' | 'points')}
+                      >
+                        <option value="touches">{t('newCompetition.touches')}</option>
+                        <option value="points">{t('newCompetition.points')}</option>
+                      </select>
+                    </div>
+                  )}
+                  {weapon === Weapon.LASER && (
+                    <div className="form-group">
+                      <label className="form-label">{t('newCompetition.format')}</label>
+                      <select
+                        className="form-input form-select"
+                        value={teamFormat}
+                        onChange={e => setTeamFormat(e.target.value as 'fie-relay' | 'laser-arena')}
+                      >
+                        <option value="fie-relay">{t('newCompetition.fie_relay')}</option>
+                        <option value="laser-arena">{t('newCompetition.laser_arena')}</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label className="form-label">
+                  {t('competition.location')} ({t('actions.default')})
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('newCompetition.location_ph')}
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
                 />
               </div>
-            )}
-          </div>
 
-          <div className="modal-footer">
-            <Button type="button" onClick={onClose}>
-              {t('actions.cancel')}
-            </Button>
-            <Button type="submit" variant="primary">
-              {t('actions.add')} {t('competition.title').toLowerCase()}
-            </Button>
-          </div>
-        </form>
+              {/* Constructeur de formule — visible uniquement pour arme CUSTOM */}
+              {isCustom && (
+                <div className="form-group custom-formula-section">
+                  <label className="form-label new-competition-modal-3">
+                    {t('newCompetition.formula_builder')}
+                  </label>
+                  <FormulaBuilder
+                    formula={customFormula}
+                    fencerCount={32}
+                    onChange={setCustomFormula}
+                    specialMode={specialMode}
+                    onSpecialModeChange={setSpecialMode}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <Button type="button" onClick={() => setShowProperties(true)}>
+                <Settings size={14} /> {t('competitionHeader.properties')}
+              </Button>
+              <Button type="button" onClick={onClose}>
+                {t('actions.cancel')}
+              </Button>
+              <Button type="submit" variant="primary">
+                {t('actions.add')} {t('competition.title').toLowerCase()}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+      {/* Frère (et non enfant) de l'overlay : les clics et Échap ne remontent pas à la création */}
+      {showProperties && (
+        <CompetitionPropertiesModal
+          competition={draftCompetition}
+          onSave={handlePropertiesSave}
+          onClose={() => setShowProperties(false)}
+        />
+      )}
+    </>
   );
 };
 
