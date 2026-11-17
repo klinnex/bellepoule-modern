@@ -93,7 +93,6 @@ import {
 import {
   setTeamArenaMatch,
   clearTeamArenaMatch,
-  teamArenaElapsedSec,
   getPublicTeamArenaState,
   type TeamArenaContext,
 } from './remote/teamArena';
@@ -332,6 +331,7 @@ export class RemoteScoreServer {
   private readonly EVENT_BUFFER_TTL_MS = 5 * 60 * 1000; // 5 minutes
   public cyranoHook:
     ((arenaId: string, update: import('../shared/types/remote').ArenaUpdate) => void) | undefined;
+  public cyranoTeamHook: ((arenaId: string) => void) | undefined; // arène équipe → appareil de piste (#1829)
   // Registre des clients TV/affichage connectés (télécommande)
   private connectedClients: Map<
     string,
@@ -365,6 +365,7 @@ export class RemoteScoreServer {
         'arenaScreenThemes',
         'arenaThemeOverrides',
         'connectedClients',
+        'cyranoTeamHook',
         'db',
         'io',
         'isTrainingMode',
@@ -395,7 +396,6 @@ export class RemoteScoreServer {
         'handleDisconnect',
         'peekNextMatch',
         'logDiag',
-        'teamArenaElapsedSec',
       ]
     ));
   }
@@ -497,9 +497,10 @@ export class RemoteScoreServer {
   }
   private _trainingSessionCtx?: TrainingSessionContext;
 
-  /** Contexte de teamArena.ts (#1240) */
-  private get teamArenaCtx(): TeamArenaContext {
+  /** Contexte de teamArena.ts (#1240) ; public : relais par équipes sur appareil de piste (#1829) */
+  get teamArenaCtx(): TeamArenaContext {
     return (this._teamArenaCtx ??= liveContext<TeamArenaContext>(this, [
+      'cyranoTeamHook',
       'db',
       'io',
       'teamArenaState',
@@ -926,10 +927,6 @@ export class RemoteScoreServer {
   /** Retire l'assignation d'une arène (fin de saisie temps réel pour cette arène). */
   public clearTeamArenaMatch(...args: Tail<Parameters<typeof clearTeamArenaMatch>>): void {
     clearTeamArenaMatch(this.teamArenaCtx, ...args);
-  }
-
-  private teamArenaElapsedSec(state: TeamArenaState): number {
-    return teamArenaElapsedSec(state);
   }
 
   private getPublicTeamArenaState(

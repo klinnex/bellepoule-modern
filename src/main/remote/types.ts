@@ -90,4 +90,9 @@ export interface TeamArenaState {
   elapsedAccumulatedSec: number; // temps déjà écoulé (assaut en pause)
   timerStartedAt: number | null; // epoch ms, null = chrono à l'arrêt
   cards: TeamArenaCard[];
+  /**
+   * Cartons montrés par l'appareil de piste, par relais (id de l'assaut) — #1829. L'appareil
+   * ne donne pas le motif : ils ne sont pas enregistrés comme cartons individuels.
+   */
+  deviceCards?: Record<string, { cardsA: string[]; cardsB: string[] }>;
 }

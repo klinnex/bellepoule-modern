@@ -291,6 +291,17 @@ export class TeamRepo {
     }
   }
 
+  /** Remplaçant (#1829) : tireur d'un côté d'un relais pas encore tiré. */
+  public setTeamBoutFencer(boutId: string, side: 'A' | 'B', fencerId: string): void {
+    if (!this.sql.db) return;
+    const column = side === 'A' ? 'fencer_a_id' : 'fencer_b_id';
+    this.sql.run(`UPDATE team_bouts SET ${column} = ?, updated_at = ? WHERE id = ?`, [
+      fencerId,
+      new Date().toISOString(),
+      boutId,
+    ]);
+  }
+
   private recomputeTeamMatchScore(matchId: string): void {
     const match = this.sql.queryOne<SqlRow>(
       'SELECT team_a_id, team_b_id FROM team_matches WHERE id = ?',
