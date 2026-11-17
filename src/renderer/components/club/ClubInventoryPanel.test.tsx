@@ -95,6 +95,7 @@ beforeEach(() => {
     deleteLoan: vi.fn().mockResolvedValue(undefined),
   };
   (window as unknown as { electronAPI: unknown }).electronAPI = { club: api };
+  localStorage.clear();
 });
 
 describe('ClubInventoryPanel (inventaire du club)', () => {
@@ -107,6 +108,25 @@ describe('ClubInventoryPanel (inventaire du club)', () => {
     expect(screen.getByText('En retard')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: /réformés/i }));
     expect(await screen.findByText('Veste vieille')).toBeInTheDocument();
+  });
+
+  it('colonnes : affiche ou masque, choix mémorisé', async () => {
+    api.listItems.mockResolvedValue([item({ brand: 'Allstar', supplier: 'Escrime Shop' })]);
+    const { unmount } = render(<ClubInventoryPanel clubId="c" />);
+    expect(await screen.findByText('Masque')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Fournisseur' })).toBeNull();
+    expect(screen.getByText('Allstar')).toBeInTheDocument(); // sous le nom, colonne masquée
+    expect(screen.getByRole('columnheader', { name: 'Emplacement' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Colonnes' }));
+    const menu = screen.getByRole('group', { name: /colonnes/i });
+    fireEvent.click(within(menu).getByRole('checkbox', { name: 'Fournisseur' }));
+    fireEvent.click(within(menu).getByRole('checkbox', { name: 'Emplacement' }));
+    expect(screen.getByRole('columnheader', { name: 'Fournisseur' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Escrime Shop' })).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Emplacement' })).toBeNull();
+    unmount();
+    render(<ClubInventoryPanel clubId="c" />);
+    expect(await screen.findByRole('columnheader', { name: 'Fournisseur' })).toBeInTheDocument();
   });
 
   it('prête un exemplaire à un tireur', async () => {

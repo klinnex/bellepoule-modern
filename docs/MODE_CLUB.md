@@ -125,6 +125,13 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
   Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
   quantité 1 à 999.
+- **Ajout en série** (nouvelle fiche, case *Ajouter en série*) : N fiches d'un exemplaire chacune
+  (1 à 200), nommées `Nom-01`, `Nom-02`… Numérotation reprise après le plus grand suffixe déjà
+  présent (`Plastron-07` existe → `Plastron-08`), aucun doublon de nom (casse ignorée), deux
+  chiffres minimum. Le numéro de série n'est pas recopié. Une seule transaction.
+- **Colonnes** (bouton **Colonnes**) : afficher ou masquer chaque colonne du tableau du matériel
+  (catégorie, arme, marque, modèle, n° de série, taille, couleur, quantité, état, emplacement,
+  achat, fournisseur, facture, garantie, notes). Le nom reste affiché. Choix mémorisé sur le poste.
 - **Marques** : catalogue propre au club (bouton **Marques** : ajout, renommage, suppression).
   Le champ Marque de la fiche propose ces marques (saisie libre toujours possible). Renommer une
   marque met à jour les fiches ; suppression refusée tant qu'une fiche la porte.

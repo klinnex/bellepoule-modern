@@ -541,6 +541,8 @@ export interface ClubAPI {
   /** Inventaire : matériel du club (réformés inclus si includeRetired) */
   listItems: (clubId: string, includeRetired?: boolean) => Promise<ClubItem[]>;
   createItem: (clubId: string, data: ClubItemInput) => Promise<ClubItem>;
+  /** Ajout en série : count fiches « Nom-01 … » (1 exemplaire chacune), sans doublon de nom */
+  createItemSeries: (clubId: string, data: ClubItemInput, count: number) => Promise<ClubItem[]>;
   updateItem: (id: string, data: Partial<ClubItemInput>) => Promise<ClubItem | null>;
   /** Refusé si du matériel est prêté ; l'historique des prêts rendus est effacé avec lui */
   deleteItem: (id: string) => Promise<void>;
@@ -569,5 +571,8 @@ export interface ClubAPI {
   getInventoryLock: (clubId: string) => Promise<boolean>;
   setInventoryLock: (clubId: string, locked: boolean) => Promise<boolean>;
   /** Import CSV / Excel : fiches ajoutées ; doublons de n° de série ignorés */
-  importItems: (clubId: string, items: ClubItemInput[]) => Promise<{ created: number; skipped: number }>;
+  importItems: (
+    clubId: string,
+    items: ClubItemInput[]
+  ) => Promise<{ created: number; skipped: number }>;
 }

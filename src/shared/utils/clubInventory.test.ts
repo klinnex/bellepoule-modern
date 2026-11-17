@@ -9,6 +9,7 @@ import {
   isWarrantyAlert,
   localIsoDate,
   normalizeItemInput,
+  seriesNames,
   toCsv,
 } from './clubInventory';
 import type { ClubItem } from '../types/club';
@@ -154,5 +155,36 @@ describe('toCsv', () => {
     expect(lines[0]).toBe('Nom;Prix');
     expect(lines[1]).toBe('"Masque ""pro""; taille M";12,5');
     expect(lines[2]).toBe('Gant;');
+  });
+});
+
+describe('seriesNames (ajout en série)', () => {
+  it('numérote sur deux chiffres à partir de 01', () => {
+    const n = seriesNames('Plastron', 15, []);
+    expect(n).toHaveLength(15);
+    expect(n[0]).toBe('Plastron-01');
+    expect(n[14]).toBe('Plastron-15');
+  });
+
+  it('reprend après le plus grand suffixe existant, sans doublon (casse ignorée)', () => {
+    const n = seriesNames('Plastron', 3, ['plastron-02', 'PLASTRON-07', 'Plastron', 'Masque-09']);
+    expect(n).toEqual(['Plastron-08', 'Plastron-09', 'Plastron-10']);
+  });
+
+  it('ignore un suffixe déjà saisi dans le nom de base', () => {
+    expect(seriesNames('Plastron-05 ', 1, ['Plastron-05'])).toEqual(['Plastron-06']);
+  });
+
+  it('élargit la numérotation au-delà de 99', () => {
+    const n = seriesNames('Fil', 5, ['Fil-97']);
+    expect(n).toEqual(['Fil-098', 'Fil-099', 'Fil-100', 'Fil-101', 'Fil-102']);
+  });
+
+  it('échappe les caractères spéciaux du nom', () => {
+    expect(seriesNames('Gant (M)', 1, ['Gant (M)-04', 'Gant xMx-09'])).toEqual(['Gant (M)-05']);
+  });
+
+  it('refuse un nom vide', () => {
+    expect(() => seriesNames('  ', 2, [])).toThrow();
   });
 });
