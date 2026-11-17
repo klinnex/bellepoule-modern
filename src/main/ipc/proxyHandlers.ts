@@ -13,7 +13,7 @@ import {
 import { getJson } from '../updateHttp';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
-const TEST_URL = 'https://api.github.com/repos/klinnex/bellepoule-modern';
+const TEST_URL = 'https://api.github.com/repos/BellePoule-Modern/bellepoule-modern';
 
 /** Applique le proxy à la session par défaut et coupe les connexions ouvertes. */
 export async function applyProxySettings(settings: ProxySettings): Promise<void> {

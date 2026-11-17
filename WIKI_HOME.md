@@ -15,7 +15,7 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
-![Build](https://github.com/klinnex/bellepoule-modern/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/BellePoule-Modern/bellepoule-modern/actions/workflows/build.yml/badge.svg)
 
 ## 📚 Documentation Categories
 
@@ -230,8 +230,8 @@ We welcome contributions from the community! See the [Development Guide](DEVELOP
 - **Automatic Updates**: Check for updates on startup
 
 ### Community Support  
-- **GitHub Issues**: [Report bugs](https://github.com/klinnex/bellepoule-modern/issues)
-- **GitHub Discussions**: [Ask questions](https://github.com/klinnex/bellepoule-modern/discussions)
+- **GitHub Issues**: [Report bugs](https://github.com/BellePoule-Modern/bellepoule-modern/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/BellePoule-Modern/bellepoule-modern/discussions)
 - **Documentation Wiki**: Community-contributed guides
 
 ## 📊 Project Statistics
@@ -251,7 +251,7 @@ BellePoule Modern is licensed under **GPL-3.0**, the same license as the origina
 
 Ready to modernize your fencing tournament management?
 
-### 📥 **[Download Latest Version](https://github.com/klinnex/bellepoule-modern/releases/latest)**
+### 📥 **[Download Latest Version](https://github.com/BellePoule-Modern/bellepoule-modern/releases/latest)**
 
 ### 📖 **[Read Installation Guide](INSTALLATION.md)**
 

@@ -20,7 +20,7 @@ Code : `src/main/autoUpdater.ts`, `src/main/updateIntegrity.ts`,
 
 | Élément | Comportement |
 |---|---|
-| Source | API GitHub Releases de `klinnex/bellepoule-modern` |
+| Source | API GitHub Releases de `BellePoule-Modern/bellepoule-modern` |
 | Comparaison | numéro de **build** (`version.json`), pas la version SemVer |
 | Canal | figé au packaging : build `dev` → suit aussi les pré-releases `vX.Y.Z-dev.N` ; build `stable` → releases stables uniquement |
 | Téléchargement | manuel (`autoDownload: false` dans `main.ts`) |

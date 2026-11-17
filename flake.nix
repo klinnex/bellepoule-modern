@@ -114,7 +114,7 @@
 
           meta = {
             description = "Gestion de tournois d'escrime (poules, tableaux, scoring distant)";
-            homepage = "https://github.com/klinnex/bellepoule-modern";
+            homepage = "https://github.com/BellePoule-Modern/bellepoule-modern";
             license = lib.licenses.gpl3Plus;
             mainProgram = "bellepoule-modern";
             platforms = systems;

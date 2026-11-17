@@ -19,7 +19,7 @@ serveur MCP intégré à l'application (local, `127.0.0.1`). Référence des out
 3. Dans Claude Code :
 
    ```
-   /plugin install bellepoule --marketplace klinnex/bellepoule-modern
+   /plugin install bellepoule --marketplace BellePoule-Modern/bellepoule-modern
    ```
 
    Depuis un clone du dépôt : `claude --plugin-dir plugins/bellepoule`.

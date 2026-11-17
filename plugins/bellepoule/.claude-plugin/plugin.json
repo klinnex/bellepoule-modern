@@ -3,8 +3,8 @@
   "description": "Interroger et, sur autorisation, piloter une compétition d'escrime BellePoule Modern en langage naturel : préparer une journée, pointer, tirer les poules, saisir les scores, construire le tableau, suivre la salle (serveur MCP local).",
   "version": "0.2.0",
   "author": { "name": "BellePoule Modern" },
-  "homepage": "https://github.com/klinnex/bellepoule-modern/blob/dev/docs/MCP.md",
-  "repository": "https://github.com/klinnex/bellepoule-modern",
+  "homepage": "https://github.com/BellePoule-Modern/bellepoule-modern/blob/dev/docs/MCP.md",
+  "repository": "https://github.com/BellePoule-Modern/bellepoule-modern",
   "license": "GPL-3.0",
   "keywords": ["escrime", "fencing", "bellepoule", "mcp", "tournoi"]
 }

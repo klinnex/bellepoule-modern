@@ -3,7 +3,7 @@
 ## Signaler une vulnérabilité
 
 Ne pas ouvrir d'issue publique. Utiliser **Security → Report a vulnerability** sur
-https://github.com/klinnex/bellepoule-modern/security/advisories/new
+https://github.com/BellePoule-Modern/bellepoule-modern/security/advisories/new
 (ou écrire au mainteneur via son profil GitHub).
 
 Indiquer : version (`version.json`), système, étapes de reproduction, impact. Accusé de réception visé sous 7 jours.

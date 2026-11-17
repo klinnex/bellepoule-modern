@@ -136,7 +136,7 @@ Full list: [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md). Detailed architec
 #### 1. Clone Repository
 
 ```bash
-git clone https://github.com/klinnex/bellepoule-modern.git
+git clone https://github.com/BellePoule-Modern/bellepoule-modern.git
 cd bellepoule-modern
 ```
 

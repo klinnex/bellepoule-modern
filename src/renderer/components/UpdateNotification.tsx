@@ -115,10 +115,13 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const handleViewRelease = () => {
     // Ouvre vers la page de la release spécifique (pas l'historique complet)
     if (updateInfo?.latestVersion) {
-      const releaseUrl = `https://github.com/klinnex/bellepoule-modern/releases/tag/v${updateInfo.latestVersion}`;
+      const releaseUrl = `https://github.com/BellePoule-Modern/bellepoule-modern/releases/tag/v${updateInfo.latestVersion}`;
       window.open(releaseUrl, '_blank');
     } else {
-      window.open('https://github.com/klinnex/bellepoule-modern/releases/latest', '_blank');
+      window.open(
+        'https://github.com/BellePoule-Modern/bellepoule-modern/releases/latest',
+        '_blank'
+      );
     }
   };
 

@@ -4,7 +4,7 @@ Merci de votre intérêt pour le projet !
 
 ## Signaler un bug
 
-1. Vérifier que le bug n'est pas déjà signalé dans les [Issues GitHub](https://github.com/klinnex/bellepoule-modern/issues).
+1. Vérifier que le bug n'est pas déjà signalé dans les [Issues GitHub](https://github.com/BellePoule-Modern/bellepoule-modern/issues).
 2. Ouvrir une nouvelle issue en précisant :
    - Version du logiciel (menu **Aide > À propos**)
    - Système d'exploitation et version
@@ -14,7 +14,7 @@ Merci de votre intérêt pour le projet !
 
 ## Proposer une fonctionnalité
 
-- Ouvrir une issue avec le label `enhancement` ou une discussion dans [GitHub Discussions](https://github.com/klinnex/bellepoule-modern/discussions).
+- Ouvrir une issue avec le label `enhancement` ou une discussion dans [GitHub Discussions](https://github.com/BellePoule-Modern/bellepoule-modern/discussions).
 - Décrire le besoin concret (pas uniquement la solution technique).
 - Les fonctionnalités liées à la gestion de compétitions d'escrime sont prioritaires.
 

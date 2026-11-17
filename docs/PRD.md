@@ -648,7 +648,7 @@ Q1 2026                    Q2 2026                    Q3 2026
 
 ### 10.2 Références
 
-- [GitHub Repository](https://github.com/klinnex/bellepoule-modern)
+- [GitHub Repository](https://github.com/BellePoule-Modern/bellepoule-modern)
 - [BellePoule Original](http://betton.escrime.free.fr/index.php/bellepoule)
 - [Règlement FFE Sabre Laser](https://www.ffescrime.fr/wp-content/uploads/2024/09/Livret2_CombatSportif_v.Sept25-FR.pdf)
 - [Règlement FFE](https://www.escrime-ffe.fr/)
