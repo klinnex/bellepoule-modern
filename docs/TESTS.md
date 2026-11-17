@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 15 | 238 |
-| `src/main/` | 97 | 762 |
+| `src/database/` | 16 | 239 |
+| `src/main/` | 102 | 827 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 115 | 589 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 58 | 392 |
+| `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **465** | **3484** |
+| **Total** | **472** | **3552** |
 
-Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 462 fichiers, 3513 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2742,6 +2742,14 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/teamRepo.test.ts</code> — 1 test</summary>
+
+- **TeamRepo.reopenTeamBout**
+  - rencontre terminée → en cours, vainqueur effacé, scores et relais courant recalculés
+
+</details>
+
+<details>
 <summary><code>src/database/repos/touchStats.test.ts</code> — 3 tests</summary>
 
 - **Touches données / reçues par zone**
@@ -2916,7 +2924,7 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/codec.test.ts</code> — 27 tests</summary>
+<summary><code>src/main/cyrano/codec.test.ts</code> — 28 tests</summary>
 
 - **parseCyrano — trames de la spécification**
   - HELLO / NEXT / PREV
@@ -2951,22 +2959,40 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - une trame seule est rendue telle quelle
   - deux INFO collés : deux trames, dans l’ordre, la dernière lisible
   - EFP1 collé à EFP1.1
+- **chrono du DISP selon la version du protocole**
+  - EFP1.1 : centièmes transmis ; EFP1 : retirés (ajout de la version 1.1)
 
 </details>
 
 <details>
-<summary><code>src/main/cyrano/deviceState.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/cyrano/deviceState.test.ts</code> — 4 tests</summary>
 
 - **deviceState (#1720)**
   - Id UUID : le préfixe de 8 caractères qui circule dans les trames
-  - resolveCyranoSide : Id tronqué ou complet ; inconnu ou ambigu → null
-  - mapCyranoSides : droite/gauche → A/B, inversion comprise
-  - cyranoCards : jaune puis rouges
   - parseCyranoStopwatch : m:ss et m:ss.cc
-  - isActiveCyranoState : F, H, P
 - **cartons P EFP1.1 (#1829)**
-  - champ 12 → cartons P des arènes
-  - cartons P des arènes → champ 12 du DISP (0, 2 ou 4, noir prime)
+  - champ 12 → compteurs jaune / rouge / noir P
+  - compteurs → champ 12 du DISP (0, 2 ou 4, noir prime)
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/driver.test.ts</code> — 10 tests</summary>
+
+- **Conversion Cyrano → état normalisé**
+  - INFO complet : état, chrono en secondes, priorité, type, relais, côtés
+  - états, statuts et cartons P (0 à 5)
+  - INFO minimal : champs absents omis (pas de priorité inventée)
+- **Conversion affichage → DISP**
+  - individuel : chrono m:ss, cartons, carton P (rouge = 2, noir = 4)
+  - équipes : Type=T, Round = n° du relais, phase / poule / match omis
+  - chrono : m:ss, centièmes sous 10 s, arrondi
+- **CyranoPisteDriver**
+  - INFO / NEXT / PREV → entrées numérotées par piste, liaison jointe
+  - commandes → DISP / DISP vide / ACK / NAK, épreuve transmise
+  - identifiant tronqué à 8 caractères, liaison et statuts relayés, dispose
+- **PisteHub + ArenaInputGate**
+  - entrée de séquence déjà vue : rejetée avant l’arène, tracée
 
 </details>
 
@@ -2983,18 +3009,31 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/matchCoords.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/cyrano/e2eTeam.test.ts</code> — 5 tests</summary>
+
+- **Cyrano bout en bout : relais par équipes, UDP réel (#1829)**
+  - DISP Type=T reçu par UDP : relais 1, tireurs du relais, nation = équipe
+  - relais 1 : touches de l’appareil → score du relais sur l’arène équipe
+  - VALIDATE → ACK → relais 2 affiché avec les scores cumulés
+  - relais 2 : BEGIN sans remise à zéro, remplaçant demandé (RESERVE), pas encore pris en compte
+  - VALIDATE → relais 3 ; PREV avant BEGIN → relais 2 rappelé aux mêmes cumuls
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/matchCoords.test.ts</code> — 5 tests</summary>
 
 - **resolveCyranoCoords (#1720)**
   - poule : numéro de la poule (pas le dernier segment de son UUID) et numéro du match
   - tableau : A\<taille\> et position + 1, depuis l’id \`\<taille\>-\<position\>\`
   - tableau : tour et position lus en base (id composite) si l’id ne les porte pas
   - base indisponible : valeurs par défaut, sans exception
+  - Phase (spéc. § 3) : tour de poules en cours, tableau = dernier tour de poules + 1
 
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 53 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 54 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -3022,6 +3061,7 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
   - sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet
   - **PREV — touche PREVIOUS de l’appareil (#1829)**
+    - match terminé sur abandon ou exclusion : le DISP du match rappelé porte le statut (R5 / L5)
     - après ACK : match rappelé, DISP avec scores et cartons, correction réenregistrée
     - après NEXT : le match suivant non commencé cède la place au match rappelé
     - combat en cours : refusé, DISP du match courant renvoyé
@@ -3071,7 +3111,7 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/server.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/cyrano/server.test.ts</code> — 14 tests</summary>
 
 - **CyranoServer**
   - interface d’écoute : adresse IP ou vide, refus sinon (#1829)
@@ -3086,11 +3126,16 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - deux INFO dans un datagramme : deux trames traitées, la dernière retenue
   - interface choisie : reçoit aussi les datagrammes adressés à une autre IP locale (broadcast)
   - interface choisie : IP inconnues d’un autre réseau ignorées sans trace
+- **détection de la version du protocole (piste en auto)**
+  - appareil jamais entendu : HELLO alterné EFP1.1 / EFP1, puis la version entendue
+  - version imposée : jamais d’alternance
+- **champ Compe**
+  - DISP d’une épreuve : repris par les HELLO, ACK et NAK suivants de la piste
 
 </details>
 
 <details>
-<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 10 tests</summary>
+<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 15 tests</summary>
 
 - **Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)**
   - expose toutes les commandes de la télécommande
@@ -3102,7 +3147,13 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bloc PC : abandon, expulsion, réserve, médical dans la trame INFO
   - priorité tirée au sort, P RESET, arme
   - VALIDATE → E ; NEXT bloqué tant que le match n’est pas acquitté ; RAZ efface tout
+  - NAK : fin refusée, l’appareil revient en halte ; correction puis VALIDATE acceptés (spéc. § 4)
   - DISP d’un match repris (PREV) : scores et cartons installés
+- **Appareil Cyrano simulé — équipes (Type=T, #1829)**
+  - DISP Type=T : relais 1 installé, type T et Round renvoyés dans l’INFO
+  - ROUND ∧∨ bloqués en équipes : le relais est fixé par le logiciel
+  - fin de relais : ACK → W, DISP du relais suivant avec les cumuls, BEGIN sans remise à zéro
+  - RESERVE : champ 11 = R dans la zone du tireur, effacé au relais suivant
 
 </details>
 
@@ -3590,6 +3641,74 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - rejette un JSON falsifié (champs manquants / invalide)
   - rejette des droits trop larges
   - nom aléatoire sans traversal
+
+</details>
+
+<details>
+<summary><code>src/main/piste/arenaInputGate.test.ts</code> — 8 tests</summary>
+
+- **ArenaInputGate**
+  - séquence croissante admise, trame en double ou désordonnée rejetée et tracée
+  - les entrées de la tablette passent sans contrôle
+  - séquences indépendantes par source (pilote + piste) et par arène
+  - séquence non numérique rejetée
+  - forget : un appareil redémarré reprend sa numérotation
+  - journal des rejets borné
+  - fromInput : entrée de pilote → entrée de barrière
+  - rejet journalisé (logger.warn)
+
+</details>
+
+<details>
+<summary><code>src/main/piste/pisteState.test.ts</code> — 5 tests</summary>
+
+- **pisteState**
+  - resolveSide : Id tronqué (pilote) ou complet ; inconnu ou ambigu → null
+  - mapPisteSides : droite/gauche → A/B, inversion comprise
+  - sideCards : jaune, rouges, puis rouges et noirs P (jaune P non repris)
+  - cardCounts : cartons d’arène → compteurs à afficher
+  - isActiveState : assaut, halte, pause
+
+</details>
+
+<details>
+<summary><code>src/main/piste/teamRelayPiste.test.ts</code> — 30 tests</summary>
+
+- **PisteHub — relais FIE par équipes (Type=T)**
+  - rencontre assignée : DISP Type=T du relais 1, tireurs du relais, nation = équipe
+  - rencontre de tableau : phase du tableau, A\<tour\>, position + 1
+  - compétition internationale : nation = pays du tireur
+  - état reçu : score cumulé → score du relais, cartons reportés au relais, chrono, sans écho
+  - cartons cumulés sur la rencontre : le DISP d’un relais reprend ceux déjà reçus par chaque tireur
+  - inversion droite / gauche : équipe A suivie par Id, pas par position
+  - fin d’un relais intermédiaire : toujours correcte, ACK puis DISP du relais suivant avec les cumuls
+  - relais intermédiaire avec abandon ou exclusion : fin toujours correcte (spéc. § 4), ACK et DT prévenu
+  - relais suivant : score du relais = cumul − relais terminés ; END répété (ACK perdu) → nouvel ACK
+  - cumul inférieur aux relais terminés : ignoré, cumul de l’arène renvoyé à l’appareil
+  - cumul au-delà du palier du relais ou de l’objectif : ignoré, tracé, cumul de l’arène renvoyé
+  - BAD MATCH : tireurs d’un autre relais → alerte ; END → NAK
+  - appareil au repos sans le relais en cours → DISP du relais
+  - arme laser : affichage seul (END → NAK) ; format arène laser : non raccordé
+  - rencontre terminée encore assignée : l’arène individuelle N reçoit les entrées
+  - rencontre retirée de l’arène : affichage vide
+  - **remplaçant (R11 / L11 = R)**
+    - accepté : le remplaçant prend la place du tireur dans ses relais suivants
+    - annulé pendant le relais : aucun remplacement
+    - refusé : équipe sans remplaçant, remplaçant déjà utilisé (tracé)
+  - **NEXT / PREV dans la rencontre**
+    - NEXT pendant un relais : refusé, relais en cours renvoyé
+    - PREV avant le début du relais suivant : relais précédent rappelé avec son score
+    - PREV après la fin de la rencontre : dernier relais rouvert, rencontre recalculée en base
+    - PREV refusé une fois le relais en cours commencé
+    - afficheur : NEXT / PREV ignorés, END → NAK
+  - **dernier relais : règles de fin individuelles**
+    - END après une rencontre terminée hors de ce poste (aucun ACK donné) : NAK
+    - égalité sans priorité : NAK
+    - vainqueur imposé (priorité à égalité) : NAK, non enregistrable par le modèle d’équipe
+    - victoire au cumul : ACK, rencontre terminée, affichage vide
+  - **verrou appareil maître sur la tablette équipe**
+    - maître et en ligne : ajout de touche, cartons, relais suivant, remise à zéro refusés ; retrait permis
+    - afficheur ou appareil absent : tablette libre
 
 </details>
 
@@ -7366,6 +7485,15 @@ Unitaires : 455 fichiers, 3445 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **sw.js précache (#1600)**
   - ${page} : tous ses scripts /js/\* sont précachés et existent
   - aucun doublon dans la liste précachée
+
+</details>
+
+<details>
+<summary><code>src/remote/teamRefereeLock.test.ts</code> — 2 tests</summary>
+
+- **tablette équipe — verrou appareil maître**
+  - maître et en ligne : bandeau, ajouts bloqués avec notification, retrait permis
+  - afficheur ou hors ligne : tablette libre
 
 </details>
 
