@@ -1,15 +1,15 @@
 /**
- * BellePoule Modern - Lecture d'un INFO Cyrano rapporté au match de l'arène (#1720)
+ * BellePoule Modern - Champs Cyrano d'un appareil : Id, chrono, cartons P (#1720, #1829)
+ * Conversions propres au protocole, utilisées par le pilote Cyrano (`driver.ts`) ; la lecture
+ * d'un état rapportée au match de l'arène est hors protocole (`src/main/piste/pisteState.ts`).
  * - Id tireur : le protocole limite le champ à 8 caractères ; les identifiants BellePoule
- *   (UUID, 36 caractères) arrivent tronqués. La correspondance se fait sur ce préfixe,
- *   parmi les deux tireurs du match en cours uniquement.
- * - Côtés : droite / gauche → A / B par identifiant, jamais par position (inversion).
- * - Cartons, chrono : conversion vers le format des arènes (liste de cartons, secondes).
+ *   (UUID, 36 caractères) arrivent tronqués.
+ * - Chrono `m:ss` / `m:ss.cc` → secondes.
+ * - Carton P (EFP1.1, champ 12) ↔ compteurs jaune / rouge / noir P.
  * Licensed under GPL-3.0
  */
 
-import type { ArenaMatch } from '../../shared/types/remote';
-import { sanitizeField, type CyranoFencer, type CyranoMessage } from './codec';
+import { sanitizeField } from './codec';
 
 /** Longueur maximale du champ Id d'un tireur (spécification, zone tireur R1 / L1). */
 export const CYRANO_FENCER_ID_MAX = 8;
@@ -17,81 +17,6 @@ export const CYRANO_FENCER_ID_MAX = 8;
 /** Identifiant tel qu'il circule dans les trames (préfixe nettoyé de 8 caractères). */
 export function cyranoFencerId(id: string): string {
   return sanitizeField(id, CYRANO_FENCER_ID_MAX);
-}
-
-export type ArenaSide = 'A' | 'B';
-
-/** Tireur du match désigné par un Id reçu ; null si inconnu ou ambigu. */
-export function resolveCyranoSide(
-  cyranoId: string | undefined,
-  match: Pick<ArenaMatch, 'fencerA' | 'fencerB'>
-): ArenaSide | null {
-  if (!cyranoId) return null;
-  const hit = (id: string | undefined) =>
-    !!id && (id === cyranoId || cyranoFencerId(id) === cyranoId);
-  const a = hit(match.fencerA?.id);
-  const b = hit(match.fencerB?.id);
-  if (a === b) return null;
-  return a ? 'A' : 'B';
-}
-
-export interface CyranoSides {
-  A: CyranoFencer;
-  B: CyranoFencer;
-  /** Tireur A affiché à droite de l'appareil */
-  aOnRight: boolean;
-}
-
-/** Zones droite / gauche → tireurs A / B ; null si l'appareil n'affiche pas ce match. */
-export function mapCyranoSides(
-  msg: CyranoMessage,
-  match: Pick<ArenaMatch, 'fencerA' | 'fencerB'>
-): CyranoSides | null {
-  const { right, left } = msg;
-  if (!right || !left) return null;
-  const r = resolveCyranoSide(right.id, match);
-  const l = resolveCyranoSide(left.id, match);
-  if (!r || !l || r === l) return null;
-  return r === 'A' ? { A: right, B: left, aOnRight: true } : { A: left, B: right, aOnRight: false };
-}
-
-/** Cartons d'un tireur au format des arènes (`yellow`, `red`…), dans l'ordre d'attribution. */
-export function cyranoCards(f: CyranoFencer): string[] {
-  const cards: string[] = [];
-  if ((f.yellowCards ?? 0) > 0) cards.push('yellow');
-  for (let i = 0; i < Math.min(f.redCards ?? 0, 99); i++) cards.push('red');
-  return cards;
-}
-
-/**
- * Cartons P d'un tireur (EFP1.1, champ 12) au format des arènes (`p-red`, `p-black`), #1829.
- * 0 aucun ; 1 jaune P, sans effet sur le score, non transmis ; 2 rouge P ; 3 deux rouges P ;
- * 4 noir P ; 5 deux noirs P. Le rouge P touche le score, le noir P fait perdre le match.
- */
-export function cyranoPCards(f: CyranoFencer): string[] {
-  switch (f.pCard) {
-    case 2:
-      return ['p-red'];
-    case 3:
-      return ['p-red', 'p-red'];
-    case 4:
-      return ['p-black'];
-    case 5:
-      return ['p-black', 'p-black'];
-    default:
-      return [];
-  }
-}
-
-/**
- * Valeur du champ 12 du DISP pour les cartons P d'un tireur. Règle 2026-2027 : 0, 2 ou 4 ;
- * le noir P prime sur le rouge P.
- */
-export function pCardValue(cards: readonly string[] | undefined): number {
-  if (!cards) return 0;
-  if (cards.includes('p-black')) return 4;
-  if (cards.includes('p-red')) return 2;
-  return 0;
 }
 
 /** Chrono Cyrano (`m:ss` ou `m:ss.cc` sous 10 s) → secondes ; null si absent ou illisible. */
@@ -104,7 +29,36 @@ export function parseCyranoStopwatch(value: string | undefined): number | null {
   return Number(m[1]) * 60 + sec + cs / 100;
 }
 
-/** États « match en cours » de l'appareil : Fencing, Halt, Pause. */
-export function isActiveCyranoState(state: CyranoMessage['state']): boolean {
-  return state === 'F' || state === 'H' || state === 'P';
+export interface PCardCounts {
+  pYellow?: number;
+  pRed?: number;
+  pBlack?: number;
+}
+
+/**
+ * Champ 12 reçu (0 à 5) → cartons P : 1 jaune P (sans effet sur le score), 2 rouge P, 3 deux
+ * rouges P, 4 noir P, 5 deux noirs P. Compteurs nuls omis.
+ */
+export function cyranoPCardCounts(value: number | undefined): PCardCounts {
+  switch (value) {
+    case 1:
+      return { pYellow: 1 };
+    case 2:
+      return { pRed: 1 };
+    case 3:
+      return { pRed: 2 };
+    case 4:
+      return { pBlack: 1 };
+    case 5:
+      return { pBlack: 2 };
+    default:
+      return {};
+  }
+}
+
+/** Champ 12 du DISP : règle 2026-2027, 0, 2 ou 4 ; le noir P prime sur le rouge P. */
+export function cyranoPCardField(counts: PCardCounts): number {
+  if ((counts.pBlack ?? 0) > 0) return 4;
+  if ((counts.pRed ?? 0) > 0) return 2;
+  return 0;
 }

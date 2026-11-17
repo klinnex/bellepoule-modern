@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { buildCyrano, parseCyrano, sanitizeField, splitCyranoFrames } from './codec';
 import { formatCyranoName, formatCyranoNat, pickCyranoNat, transliterate } from './names';
-import { cyranoEndOutcome, validateCyranoEnd } from './endValidation';
-import { mapCyranoSides } from './deviceState';
+import { cyranoFencerId } from './deviceState';
+import { cyranoToPisteState } from './driver';
+import { mapPisteSides, pisteEndOutcome, validatePisteEnd } from '../piste/pisteState';
+import type { CyranoMessage } from './codec';
 import { buildDisp, toCyranoWeapon } from './disp';
 
 // Trames d'exemple de la spécification Cyrano 1.1 (§6)
@@ -216,6 +218,12 @@ describe('noms et nations', () => {
   });
 });
 
+// Fin de match : trame Cyrano → état normalisé (pilote) → règles communes (#1829)
+const validateCyranoEnd = (msg: CyranoMessage, options?: { intermediateRound?: boolean }) =>
+  msg.command === 'INFO'
+    ? validatePisteEnd(cyranoToPisteState(msg), options)
+    : { ok: false, reason: 'not_ending' };
+
 describe('fin de match (ACK / NAK)', () => {
   it('cas de la spécification', () => {
     const info = (prio: string, r: string, l: string) =>
@@ -248,8 +256,8 @@ describe('fin de match (ACK / NAK)', () => {
   it('issue par tireur A / B : insensible à l’inversion droite/gauche', () => {
     const match = { fencerA: { id: '28' }, fencerB: { id: '32' } } as never;
     const outcome = (raw: string) => {
-      const msg = parseCyrano(raw)!;
-      return cyranoEndOutcome(msg, mapCyranoSides(msg, match)!);
+      const state = cyranoToPisteState(parseCyrano(raw)!);
+      return pisteEndOutcome(state, mapPisteSides(state, match, cyranoFencerId)!);
     };
     // Victoire au score : vainqueur déduit des scores par matchFinish
     expect(outcome('|EFP1.1|INFO|1|c|||||||I|E|N|E|%|28|||5|U|%|32|||3|U|%|')).toEqual({});

@@ -11,7 +11,12 @@ import { EventEmitter } from 'events';
 import type { CyranoFencer, CyranoMessage } from './codec';
 import type { CyranoPisteStatus, CyranoServer } from './server';
 import { buildDisp, EMPTY_DISP, type CyranoDisp, type CyranoDispFencer } from './disp';
-import { cyranoFencerId, parseCyranoStopwatch } from './deviceState';
+import {
+  cyranoFencerId,
+  cyranoPCardCounts,
+  cyranoPCardField,
+  parseCyranoStopwatch,
+} from './deviceState';
 import type { CyranoNameLength } from './names';
 import type {
   PisteCommand,
@@ -52,24 +57,6 @@ const STATUSES: Record<string, PisteFencerStatus> = {
   E: 'exclusion',
 };
 
-/** Carton P Cyrano (champ 12 : 0 à 5) → compteurs jaune / rouge / noir P. */
-function pCards(value: number | undefined): Pick<PisteSideState, 'pYellow' | 'pRed' | 'pBlack'> {
-  switch (value) {
-    case 1:
-      return { pYellow: 1 };
-    case 2:
-      return { pRed: 1 };
-    case 3:
-      return { pRed: 2 };
-    case 4:
-      return { pBlack: 1 };
-    case 5:
-      return { pBlack: 2 };
-    default:
-      return {};
-  }
-}
-
 function toSide(f: CyranoFencer | undefined): PisteSideState | undefined {
   if (!f) return undefined;
   const side: PisteSideState = {
@@ -80,7 +67,7 @@ function toSide(f: CyranoFencer | undefined): PisteSideState | undefined {
     status: f.status ? STATUSES[f.status] : undefined,
     yellowCards: f.yellowCards,
     redCards: f.redCards,
-    ...pCards(f.pCard),
+    ...cyranoPCardCounts(f.pCard),
     light: f.light,
     whiteLight: f.whiteLight,
     medical: f.medical,
@@ -127,10 +114,6 @@ export function formatCyranoStopwatch(seconds: number): string {
   return total < 10 && cs > 0 ? `${m}:${ss}.${String(cs).padStart(2, '0')}` : `${m}:${ss}`;
 }
 
-/** Carton P à afficher (champ 12 du DISP) : règle 2026-2027, 0 / 2 / 4, le noir P prime. */
-const pCardOf = (s: PisteDisplaySide): number =>
-  (s.pBlack ?? 0) > 0 ? 4 : (s.pRed ?? 0) > 0 ? 2 : 0;
-
 function dispFencer(s: PisteDisplaySide): CyranoDispFencer {
   return {
     id: s.id,
@@ -140,7 +123,7 @@ function dispFencer(s: PisteDisplaySide): CyranoDispFencer {
     score: s.score,
     yellowCards: s.yellowCards,
     redCards: s.redCards,
-    pCard: pCardOf(s),
+    pCard: cyranoPCardField(s),
   };
 }
 

@@ -1,7 +1,7 @@
 /**
  * BellePoule Modern - Validation de fin de match unifiée (#1829)
  * Module unique de règles, pur et sans dépendance, utilisé par :
- *  - l'appareil de piste Cyrano (`main/cyrano/endValidation.ts`, END → ACK / NAK) ;
+ *  - l'appareil de piste (`main/piste/pisteState.ts`, END → ACK / NAK, tous protocoles) ;
  *  - la tablette arbitre (`main/remote/routes/matchRoutes.ts`, POST /api/matches/:id/finish) ;
  *  - la fin de match d'arène (`main/remote/matchFinish.ts`) et la limite de score
  *    (`main/remote/arenaOps.ts`).
