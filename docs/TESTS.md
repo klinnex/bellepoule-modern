@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 16 | 240 |
+| `src/database/` | 17 | 243 |
 | `src/main/` | 102 | 827 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 115 | 590 |
+| `src/renderer/components/` | 116 | 594 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **472** | **3560** |
+| **Total** | **474** | **3567** |
 
-Unitaires : 462 fichiers, 3521 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 464 fichiers, 3528 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2563,6 +2563,16 @@ Unitaires : 462 fichiers, 3521 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - retourne le repli sur null / vide
 - **cache de statements borné (#1007)**
   - ne dépasse pas la taille max et réutilise les statements
+
+</details>
+
+<details>
+<summary><code>src/database/repos/clubBackupRepo.test.ts</code> — 3 tests</summary>
+
+- **ClubBackupRepo (sauvegarde / chargement d’un club)**
+  - recharge tout le club sur un autre poste (via le fichier .bpclub)
+  - club déjà présent : refus sans remplacement, remplacement sans doublon
+  - refuse un fichier qui n’est pas une sauvegarde de club
 
 </details>
 
@@ -5786,6 +5796,17 @@ Unitaires : 462 fichiers, 3521 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **ClubScanModal**
   - piste puis 2 cartes : pointe, crée et lance le combat
   - messages : QR inconnu, carte inconnue, piste hors séance
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubSessionMenu.test.tsx</code> — 4 tests</summary>
+
+- **ClubSessionMenu**
+  - liste les séances prévues et en ouvre une
+  - ferme la séance ouverte avant d’en ouvrir une autre, après confirmation
+  - refus de confirmation : rien ne change
+  - Préparer renvoie vers l’onglet Séances
 
 </details>
 
