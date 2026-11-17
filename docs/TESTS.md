@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 80 | 870 |
+| `src/shared/utils/` | 81 | 875 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **487** | **3685** |
+| **Total** | **488** | **3690** |
 
-Unitaires : 477 fichiers, 3646 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -343,6 +343,20 @@ Unitaires : 477 fichiers, 3646 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **catégories du club dans l’échange**
   - écrit le nom de la catégorie propre et la relit vers sa clé
   - une catégorie inconnue retombe sur « Autre »
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubLoanContract.test.ts</code> — 5 tests</summary>
+
+- **clubLoanContract**
+  - échappe les données saisies
+  - produit la fiche avec emprunteur, matériel, dates et zones de signature
+  - affiche « — » quand la date de retour est absente
+- **armes des exercices**
+  - garde les codes valides, sans doublon, dans l ordre canonique
+- **facture PDF**
+  - accepte un PDF base64 et refuse le reste
 
 </details>
 
