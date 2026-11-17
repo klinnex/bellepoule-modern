@@ -40,7 +40,8 @@ vi.mock('http', () => ({
 
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { CyranoServer } from './server';
-import { PisteHub } from './pisteHub';
+import { PisteHub } from '../piste/pisteHub';
+import { CyranoPisteDriver } from './driver';
 import { buildCyrano, parseCyrano, type CyranoFencer, type CyranoMessage } from './codec';
 import type { ArenaUpdate } from '../../shared/types/remote';
 
@@ -174,7 +175,7 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     cyrano = new CyranoServer({ now: () => clock });
     cyrano.setPistes([{ piste: '1', ip: DEVICE_IP, port: 50101, arena: 1 }]);
     // Base : poule n°2, numéro de match lu par id
-    hub = new PisteHub(cyrano, () => remote, {
+    hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote, {
       coordsSource: {
         getMatch: id => ({ number: Number(id.slice(1, 2)) || undefined }),
         getCompetitionPools: () => [{ id: POOL, name: 'Poule 2' }],
@@ -676,7 +677,7 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     it('BAD MATCH : notification au DT à la première alerte seulement', () => {
       const onAlert = vi.fn();
       hub.detach();
-      hub = new PisteHub(cyrano, () => remote, { onAlert });
+      hub = new PisteHub(new CyranoPisteDriver(cyrano), () => remote, { onAlert });
       hub.attach();
       device(info('H', { id: short(ID.de), score: 1 }, { id: short(ID.bc), score: 0 }));
       device(info('H', { id: short(ID.de), score: 2 }, { id: short(ID.bc), score: 0 }));

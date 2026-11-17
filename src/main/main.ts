@@ -41,7 +41,8 @@ import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
-import { PisteHub } from './cyrano/pisteHub';
+import { CyranoPisteDriver } from './cyrano/driver';
+import { PisteHub } from './piste/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 import { parseCliArgs } from './cliArgs';
 
@@ -117,7 +118,8 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 // Cyrano scoring machine integration (#1720)
 const cyranoServer = new CyranoServer();
 const pisteHub = new PisteHub(
-  cyranoServer,
+  // Pilote Cyrano du modèle commun des appareils de piste (#1829)
+  new CyranoPisteDriver(cyranoServer),
   // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
   () => [...remoteServers.values()].map(entry => entry.server),
   {

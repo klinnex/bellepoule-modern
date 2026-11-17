@@ -24,11 +24,11 @@ export interface CyranoDispFencer {
 }
 
 export interface CyranoDispMatch {
-  /** Phase : 1er tour de poules = 1, … ; tableau = dernier tour de poules + 1 */
-  phase: number;
+  /** Phase : 1er tour de poules = 1, … ; tableau = dernier tour de poules + 1 (omis : relais) */
+  phase?: number;
   /** N° de poule ou identifiant de tableau (`A32`) */
-  poulTab: string;
-  match: number;
+  poulTab?: string;
+  match?: number;
   /** Période (individuel) ou relais (équipes) */
   round?: number;
   /** Heure prévue (HH:MM) */
@@ -75,9 +75,9 @@ export type CyranoDisp = Omit<CyranoMessage, 'protocol' | 'command' | 'piste' | 
 
 export function buildDisp(m: CyranoDispMatch, opts: CyranoDispOptions = {}): CyranoDisp {
   return {
-    phase: String(m.phase),
+    phase: m.phase !== undefined ? String(m.phase) : undefined,
     poulTab: m.poulTab,
-    match: String(m.match),
+    match: m.match !== undefined ? String(m.match) : undefined,
     round: String(m.round ?? 1),
     time: m.time,
     ...(m.stopwatch ? { stopwatch: m.stopwatch } : {}),
