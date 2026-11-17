@@ -38,6 +38,7 @@ export type SettingsItemId =
   | 'audit'
   | 'logo'
   | 'pdf'
+  | 'ink_saving'
   | 'tts'
   | 'webhook'
   | 'updates'
@@ -90,6 +91,14 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
     items: [
       { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
       { id: 'pdf', keys: ['settings.pdf_title', 'settings.pdf_hint'] },
+      {
+        id: 'ink_saving',
+        keys: [
+          'settings.ink_saving_title',
+          'settings.ink_saving_hint',
+          'settings.ink_saving_enable',
+        ],
+      },
     ],
   },
   {

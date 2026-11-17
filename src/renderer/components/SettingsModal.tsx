@@ -13,6 +13,7 @@ import McpSettingsSection from './McpSettingsSection';
 import VenuesSettingsSection from './VenuesSettingsSection';
 import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
+import { InkSavingSettingsSection } from './InkSavingSettingsSection';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { restartGuidedTour } from './guidedTourFlags';
 import { UI_SCALES, normalizeUiScale } from '../services/uiScale';
@@ -316,6 +317,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
             </div>
           </>
         );
+      case 'ink_saving':
+        return <InkSavingSettingsSection />;
       case 'tour':
         return (
           <>

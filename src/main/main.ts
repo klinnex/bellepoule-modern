@@ -60,6 +60,7 @@ import { parseCliArgs } from './cliArgs';
 import { registerSettingsHandlers } from './ipc/settingsHandlers';
 import { runBatchImport } from './batchImport';
 import type { McpWriteDeps } from './mcp/mcpWriteTools';
+import { setInkSavingProvider } from './printInk';
 
 // --headless : process main sans fenêtre (#1880)
 const cli = parseCliArgs(process.argv, process.env);
@@ -70,6 +71,8 @@ if (cli.batchImport || cli.mcpPrintConfig) {
 
 // Database instance
 const db = new DatabaseManager();
+// Économie d'encre : réglage du poste lu à chaque impression / PDF (Paramètres → Documents)
+setInkSavingProvider(() => db.settings.getSetting('inkSaving'));
 
 // Auto updater
 let autoUpdater: AutoUpdater | null = null;
