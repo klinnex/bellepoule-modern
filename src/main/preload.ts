@@ -7,6 +7,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 
 import type {
+  TrainingCustomRules,
   ElectronAPI,
   CompetitionEventType,
   UpdateInfo,
@@ -313,7 +314,7 @@ const electronApi = {
     startServer: (port?: number, host?: string, useHttps?: boolean) =>
       ipcRenderer.invoke('training:startServer', port, host, useHttps),
     stopServer: () => ipcRenderer.invoke('training:stopServer'),
-    startSession: (strips: number, weapon: string, customRules?: any) =>
+    startSession: (strips: number, weapon: string, customRules?: TrainingCustomRules) =>
       ipcRenderer.invoke('training:startSession', strips, weapon, customRules),
     stopSession: () => ipcRenderer.invoke('training:stopSession'),
     setTheme: (theme: string) => ipcRenderer.invoke('training:setTheme', theme),
@@ -325,48 +326,22 @@ const electronApi = {
   },
 
   // Remote event listeners (for real-time updates)
-  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
-    const handler = (_: IpcRendererEvent, info: UpdateInfo) => callback(info);
-    ipcRenderer.on('update:available', handler);
-    return () => ipcRenderer.removeListener('update:available', handler);
-  },
-  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => {
-    const handler = (_: IpcRendererEvent, data: UpdateProgressEvent) => callback(data);
-    ipcRenderer.on('update:progress', handler);
-    return () => ipcRenderer.removeListener('update:progress', handler);
-  },
-  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => {
-    const handler = (_: IpcRendererEvent, data: RemoteArenaUpdateEvent) => callback(data);
-    ipcRenderer.on('arena:update', handler);
-    return () => ipcRenderer.removeListener('arena:update', handler);
-  },
-  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => {
-    const handler = (_: IpcRendererEvent, data: RemoteMatchFinishedEvent) => callback(data);
-    ipcRenderer.on('match:finished', handler);
-    return () => ipcRenderer.removeListener('match:finished', handler);
-  },
-  onTrainingMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('training:match_finished', handler);
-    return () => ipcRenderer.removeListener('training:match_finished', handler);
-  },
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) =>
+    subscribe('update:available', callback),
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) =>
+    subscribe('update:progress', callback),
+  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) =>
+    subscribe('arena:update', callback),
+  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) =>
+    subscribe('match:finished', callback),
+  onTrainingMatchFinished: (callback: Parameters<ElectronAPI['onTrainingMatchFinished']>[0]) =>
+    subscribe('training:match_finished', callback),
   onCompetitionEvent: (
     callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
-  ) => {
-    const handler = (
-      _: IpcRendererEvent,
-      data: { type: CompetitionEventType; competitionId?: string }
-    ) => callback(data);
-    ipcRenderer.on('competition:event', handler);
-    return () => ipcRenderer.removeListener('competition:event', handler);
-  },
+  ) => subscribe('competition:event', callback),
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
-  ) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:fencer_excluded', handler);
-    return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
-  },
+  ) => subscribe('remote:fencer_excluded', callback),
   onRemoteFencerReinstated: (
     callback: (data: {
       fencerId: string;
@@ -375,28 +350,14 @@ const electronApi = {
       scoreA: number;
       scoreB: number;
     }) => void
-  ) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:fencer_reinstated', handler);
-    return () => ipcRenderer.removeListener('remote:fencer_reinstated', handler);
-  },
+  ) => subscribe('remote:fencer_reinstated', callback),
   onRemoteCheckinUpdated: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
-  ) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:checkin_updated', handler);
-    return () => ipcRenderer.removeListener('remote:checkin_updated', handler);
-  },
-  onRemoteRefereeChanged: (callback: (data: { matchId: string; refereeId: string }) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:referee_changed', handler);
-    return () => ipcRenderer.removeListener('remote:referee_changed', handler);
-  },
-  onKioskNoteUpdate: (callback: (note: any) => void) => {
-    const handler = (_: IpcRendererEvent, note: any) => callback(note);
-    ipcRenderer.on('kiosk:note', handler);
-    return () => ipcRenderer.removeListener('kiosk:note', handler);
-  },
+  ) => subscribe('remote:checkin_updated', callback),
+  onRemoteRefereeChanged: (callback: (data: { matchId: string; refereeId: string }) => void) =>
+    subscribe('remote:referee_changed', callback),
+  onKioskNoteUpdate: (callback: Parameters<ElectronAPI['onKioskNoteUpdate']>[0]) =>
+    subscribe('kiosk:note', callback),
   onDTCall: (
     callback: (data: {
       arenaId: string;
@@ -407,47 +368,26 @@ const electronApi = {
       reason?: 'black_card';
       fencerName?: string | null;
     }) => void
-  ) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:dt_call', handler);
-    return () => ipcRenderer.removeListener('remote:dt_call', handler);
-  },
-  onDTCallCancel: (callback: (data: { arenaId: string }) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('remote:dt_cancel', handler);
-    return () => ipcRenderer.removeListener('remote:dt_cancel', handler);
-  },
+  ) => subscribe('remote:dt_call', callback),
+  onDTCallCancel: (callback: (data: { arenaId: string }) => void) =>
+    subscribe('remote:dt_cancel', callback),
 
-  onScoreIpConflict: (callback: (data: any) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('score:ip-conflict', handler);
-    return () => ipcRenderer.removeListener('score:ip-conflict', handler);
-  },
+  onScoreIpConflict: (callback: Parameters<ElectronAPI['onScoreIpConflict']>[0]) =>
+    subscribe('score:ip-conflict', callback),
 
   onPoolSignatureUpdated: (
     callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void
-  ) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('pool:signature:updated', handler);
-    return () => ipcRenderer.removeListener('pool:signature:updated', handler);
-  },
+  ) => subscribe('pool:signature:updated', callback),
 
-  onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
-    ipcRenderer.on('tableau:signature:updated', handler);
-    return () => ipcRenderer.removeListener('tableau:signature:updated', handler);
-  },
+  onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) =>
+    subscribe('tableau:signature:updated', callback),
 
   getLogo: () => ipcRenderer.invoke('app:getLogo'),
   getLogos: () => ipcRenderer.invoke('app:getLogos'),
   saveLogos: (logos: { id: string; name: string; data: string }[]) =>
     ipcRenderer.invoke('app:saveLogos', logos),
   getTtsConfig: () => ipcRenderer.invoke('app:getTtsConfig'),
-  onLogoLoaded: (callback: (logo: string | null) => void) => {
-    const handler = (_: IpcRendererEvent, logo: string | null) => callback(logo);
-    ipcRenderer.on('app:logoLoaded', handler);
-    return () => ipcRenderer.removeListener('app:logoLoaded', handler);
-  },
+  onLogoLoaded: (callback: (logo: string | null) => void) => subscribe('app:logoLoaded', callback),
 
   // Bibliothèque de thèmes persistante
   themes: {

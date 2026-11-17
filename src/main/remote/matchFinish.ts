@@ -555,3 +555,36 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     }
   }, 3000);
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const MATCH_FINISH_CONTEXT_KEYS = {
+  state: [
+    'arenaCards',
+    'arenaEventTimes',
+    'arenaExits',
+    'arenaMatchQueue',
+    'arenaRefereeSelected',
+    'arenaTouches',
+    'arenas',
+    'db',
+    'isTrainingMode',
+    'recentMatchDurationsMs',
+    'session',
+    'sessionMatchScores',
+    'sessionModernRules',
+    'sessionWeapon',
+    'trainingHistory',
+  ],
+  methods: [
+    'broadcastArenaUpdate',
+    'broadcastDashboardUpdate',
+    'assignMatchToArena',
+    'createTrainingMatch',
+    'fireWebhook',
+    'loadNextMatch',
+    'peekNextMatch',
+    'persistArenaState',
+    'resolveDbMatchId',
+    'logDiag',
+  ],
+} as const;

@@ -152,3 +152,33 @@ export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): 
     );
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_BROADCAST_CONTEXT_KEYS = {
+  state: [
+    'arenaEventBuffer',
+    'arenaMatchQueue',
+    'arenaPhotoSentForMatch',
+    'arenaRefereeSelected',
+    'arenaScreenThemes',
+    'arenaThemeOverrides',
+    'arenas',
+    'db',
+    'EVENT_BUFFER_MAX',
+    'EVENT_BUFFER_TTL_MS',
+    'io',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionModernRules',
+    'sessionPoolTimerSeconds',
+    'sessionRefereeFeatureEnabled',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableTimerSeconds',
+    'sessionTheme',
+    'sessionWeapon',
+    'cyranoHook',
+  ],
+  methods: ['getArena', 'getSessionReferees', 'notifyKioskData'],
+} as const;

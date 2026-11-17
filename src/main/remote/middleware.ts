@@ -196,3 +196,9 @@ export function setupMiddleware(ctx: MiddlewareContext): void {
   });
   logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Middleware configuré ✓');
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const MIDDLEWARE_CONTEXT_KEYS = {
+  state: ['app', 'assets', 'htmlFiles', 'staticFiles'],
+  methods: ['isAllowedOrigin', 'sendHtmlFromMemory'],
+} as const;

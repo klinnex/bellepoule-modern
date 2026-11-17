@@ -692,3 +692,37 @@ export function isGuestMatch(
     !!m.poolId && !!home && m.poolId !== home && ctx.poolMatchArenaOverrides.get(m.id) === arenaId
   );
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_QUEUE_CONTEXT_KEYS = {
+  state: [
+    'arenaCount',
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenaRefereeSelected',
+    'arenas',
+    'db',
+    'io',
+    'isTrainingMode',
+    'poolFencersCache',
+    'poolMatchArenaOverrides',
+    'session',
+    'sessionMatchScores',
+    'sessionMatches',
+  ],
+  methods: [
+    'applySmartMatchOrder',
+    'arenaHomePoolId',
+    'assignMatchToArena',
+    'broadcastArenaUpdate',
+    'guestQueue',
+    'isGuestMatch',
+    'isInActiveWave',
+    'isMatchPlayable',
+    'loadNextMatch',
+    'persistArenaState',
+    'resolveDeMatchReferee',
+    'resolveReferee',
+    'updateArena',
+  ],
+} as const;
