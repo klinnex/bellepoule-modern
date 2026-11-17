@@ -1,13 +1,13 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : menu global des séances, visible depuis tous
- * les onglets du club. Séance ouverte (fermeture) et séances prévues à l'avance
- * (ouverture) ou passées (réouverture) ; la séance en cours est fermée d'abord, après
- * confirmation.
+ * les onglets du club. Séances ouvertes (affichage, fermeture), séances prévues à
+ * l'avance (ouverture) ou passées (réouverture). Plusieurs séances peuvent rester
+ * ouvertes : chacune n'est fermée que sur décision explicite.
  * Licensed under GPL-3.0
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, ClipboardList, Lock, Play, Unlock } from 'lucide-react';
+import { CalendarClock, ClipboardList, Eye, Lock, Play, Unlock } from 'lucide-react';
 import type { ClubSession } from '../../../shared/types/club';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -16,7 +16,7 @@ import { Modal } from '../common/Modal';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { ageRangeText } from './ClubAgeRange';
-import { switchClubSession } from './clubSessionSwitch';
+import { openClubSession, openSessions } from './clubSessionSwitch';
 
 interface ClubSessionMenuProps {
   clubId: string;
@@ -26,6 +26,8 @@ interface ClubSessionMenuProps {
   onChanged: () => void;
   /** Préparer une nouvelle séance (onglet Séances) */
   onPrepare: () => void;
+  /** Afficher une séance ouverte (onglet Séances) */
+  onShow: (sessionId: string) => void;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -36,6 +38,7 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
   revision,
   onChanged,
   onPrepare,
+  onShow,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -56,7 +59,7 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
 
   if (!api) return null;
 
-  const current = sessions.find(s => s.status === 'open') ?? null;
+  const opened = openSessions(sessions);
   const planned = sessions
     .filter(s => s.status === 'planned')
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -69,16 +72,6 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
     [s.label ?? '', ageRangeText(s, t), s.weapon ? weaponLabel(s.weapon, t) : '']
       .filter(Boolean)
       .join(' · ');
-
-  /** Fermeture de la séance ouverte, combats en cours annulés après confirmation */
-  const confirmClose = async (s: ClubSession, message: string, label: string) => {
-    const bouts = await api.listBouts({ sessionId: s.id, includeUnfinished: true });
-    const live = bouts.filter(b => b.status === 'pending' || b.status === 'in_progress').length;
-    return confirm({
-      message: `${message}\n${t('clubSession.close_confirm', { count: live })}`,
-      confirmLabel: label,
-    });
-  };
 
   const act = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -93,26 +86,31 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
     }
   };
 
-  const closeCurrent = async () => {
-    if (!current) return;
-    if (!(await confirmClose(current, describe(current) || current.date, t('clubSession.close'))))
-      return;
-    await act(() => api.closeSession(current.id));
+  /** Fermeture d'une séance ouverte, combats en cours annulés après confirmation */
+  const closeOne = async (s: ClubSession) => {
+    const bouts = await api.listBouts({ sessionId: s.id, includeUnfinished: true });
+    const live = bouts.filter(b => b.status === 'pending' || b.status === 'in_progress').length;
+    const ok = await confirm({
+      message: `${describe(s) ? `${s.date} · ${describe(s)}` : s.date}\n${t(
+        'clubSession.close_confirm',
+        { count: live }
+      )}`,
+      confirmLabel: t('clubSession.close'),
+    });
+    if (ok) await act(() => api.closeSession(s.id));
   };
 
+  const show = (id: string) => {
+    setOpen(false);
+    onShow(id);
+  };
+
+  /** Ouverture sans fermer les autres séances, puis affichage */
   const start = async (s: ClubSession) => {
-    if (current?.id === s.id) return;
-    if (current) {
-      const ok = await confirmClose(
-        current,
-        t('clubSessionMenu.switch_confirm', { from: current.date, to: s.date }),
-        s.status === 'closed' ? t('clubSession.reopen') : t('clubSessionMenu.open')
-      );
-      if (!ok) return;
-    }
     await act(async () => {
-      await switchClubSession(api, current, s);
+      await openClubSession(api, s);
       showToast(t('clubSessionMenu.opened', { date: s.date }), 'success');
+      show(s.id);
     });
   };
 
@@ -121,7 +119,7 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
   return (
     <>
       <Button
-        variant={current ? 'primary' : 'secondary'}
+        variant={opened.length ? 'primary' : 'secondary'}
         icon={<CalendarClock size={15} aria-hidden="true" />}
         aria-haspopup="dialog"
         onClick={() => {
@@ -129,9 +127,11 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
           void load();
         }}
       >
-        {current
-          ? t('clubSessionMenu.button_open', { date: current.date })
-          : t('clubSessionMenu.button', { count: planned.length })}
+        {opened.length > 1
+          ? t('clubSessionMenu.button_open_n', { count: opened.length })
+          : opened.length === 1
+            ? t('clubSessionMenu.button_open', { date: opened[0].date })
+            : t('clubSessionMenu.button', { count: planned.length })}
       </Button>
       {open && (
         <Modal
@@ -151,25 +151,41 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
             </Button>
           }
         >
-          <h3 className="club-card-title">{t('clubSessionMenu.current')}</h3>
-          {current ? (
-            <div className="club-row club-row--between club-session-menu-row">
-              <span>
-                <span className="font-medium">{current.date}</span>
-                {describe(current) ? ` · ${describe(current)}` : ''}
-              </span>
-              <Button
-                size="sm"
-                variant="danger"
-                icon={<Lock size={14} aria-hidden="true" />}
-                loading={busy}
-                onClick={() => void closeCurrent()}
-              >
-                {t('clubSession.close')}
-              </Button>
-            </div>
-          ) : (
+          <h3 className="club-card-title">
+            {t('clubSessionMenu.opened_list', { count: opened.length })}
+          </h3>
+          {opened.length === 0 ? (
             <p className="club-muted">{t('clubSessionMenu.none_open')}</p>
+          ) : (
+            <ul className="club-session-menu-list">
+              {opened.map(s => (
+                <li key={s.id} className="club-row club-row--between club-session-menu-row">
+                  <span>
+                    <span className="font-medium">{s.date}</span>
+                    {describe(s) ? ` · ${describe(s)}` : ''}
+                  </span>
+                  <span className="club-row">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      icon={<Eye size={14} aria-hidden="true" />}
+                      onClick={() => show(s.id)}
+                    >
+                      {t('clubSessionMenu.show')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      icon={<Lock size={14} aria-hidden="true" />}
+                      disabled={busy}
+                      onClick={() => void closeOne(s)}
+                    >
+                      {t('clubSession.close')}
+                    </Button>
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
           <h3 className="club-card-title">{t('clubPlan.upcoming')}</h3>
           {planned.length === 0 ? (

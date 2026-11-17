@@ -3522,7 +3522,8 @@
     "backup_replace": "Заменить",
     "backup_loaded": "Клуб загружен: {{name}}",
     "backup_file": "Резервная копия клуба BellePoule",
-    "create": "Создать клуб"
+    "create": "Создать клуб",
+    "open_sessions": "Открыто занятий: {{count}}"
   },
   "clubPlan": {
     "edit_title": "Изменить тренировку",
@@ -3887,14 +3888,17 @@
     "button": "Запланировано занятий: {{count}}",
     "button_open": "Занятие {{date}} открыто",
     "title": "Управление занятиями",
-    "current": "Открытое занятие",
     "none_open": "Нет открытого занятия.",
     "open": "Открыть",
     "today": "сегодня",
     "opened": "Занятие {{date}} открыто",
-    "switch_confirm": "Закрыть занятие {{from}} и открыть занятие {{to}}?",
     "switch": "Сменить занятие",
     "switch_to": "Перейти к занятию…",
-    "past_tag": "прошедшее"
+    "past_tag": "прошедшее",
+    "show": "Показать",
+    "opened_list": "Открытые занятия ({{count}})",
+    "open_tag": "открыто",
+    "all_sessions": "Все занятия",
+    "button_open_n": "Открыто занятий: {{count}}"
   }
 }

@@ -3522,7 +3522,8 @@
     "backup_replace": "Erlec'hiañ",
     "backup_loaded": "Klub karget : {{name}}",
     "backup_file": "Gwarez klub BellePoule",
-    "create": "Krouiñ ar c'hlub"
+    "create": "Krouiñ ar c'hlub",
+    "open_sessions": "{{count}} emgav digor"
   },
   "clubPlan": {
     "edit_title": "Kemmañ an abadenn",
@@ -3887,14 +3888,17 @@
     "button": "Emgavioù raktreset : {{count}}",
     "button_open": "Emgav an {{date}} digor",
     "title": "Merañ an emgavioù",
-    "current": "Emgav digor",
     "none_open": "Emgav digor ebet.",
     "open": "Digeriñ",
     "today": "hiziv",
     "opened": "Emgav an {{date}} digoret",
-    "switch_confirm": "Serriñ emgav an {{from}} ha digeriñ hini an {{to}}?",
     "switch": "Cheñch emgav",
     "switch_to": "Mont d'an emgav…",
-    "past_tag": "tremenet"
+    "past_tag": "tremenet",
+    "show": "Diskouez",
+    "opened_list": "Emgavioù digor ({{count}})",
+    "open_tag": "digor",
+    "all_sessions": "An holl emgavioù",
+    "button_open_n": "{{count}} emgav digor"
   }
 }

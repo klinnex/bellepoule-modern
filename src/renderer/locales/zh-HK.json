@@ -3522,7 +3522,8 @@
     "backup_replace": "取代",
     "backup_loaded": "會館已載入：{{name}}",
     "backup_file": "BellePoule 會館備份",
-    "create": "建立會館"
+    "create": "建立會館",
+    "open_sessions": "{{count}} 個課堂進行中"
   },
   "clubPlan": {
     "edit_title": "修改訓練",
@@ -3887,14 +3888,17 @@
     "button": "已計劃課堂：{{count}}",
     "button_open": "{{date}} 課堂進行中",
     "title": "管理課堂",
-    "current": "進行中的課堂",
     "none_open": "沒有進行中的課堂。",
     "open": "開始",
     "today": "今天",
     "opened": "{{date}} 課堂已開始",
-    "switch_confirm": "結束 {{from}} 的課堂並開始 {{to}} 的課堂？",
     "switch": "切換課堂",
     "switch_to": "切換至課堂…",
-    "past_tag": "已結束"
+    "past_tag": "已結束",
+    "show": "顯示",
+    "opened_list": "進行中的課堂（{{count}}）",
+    "open_tag": "進行中",
+    "all_sessions": "所有課堂",
+    "button_open_n": "{{count}} 個課堂進行中"
   }
 }

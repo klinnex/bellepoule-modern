@@ -3522,7 +3522,8 @@
     "backup_replace": "Substitueix",
     "backup_loaded": "Club carregat: {{name}}",
     "backup_file": "Còpia de club BellePoule",
-    "create": "Crear el club"
+    "create": "Crear el club",
+    "open_sessions": "{{count}} sessions obertes"
   },
   "clubPlan": {
     "edit_title": "Modificar la sessió",
@@ -3887,14 +3888,17 @@
     "button": "Sessions previstes: {{count}}",
     "button_open": "Sessió del {{date}} oberta",
     "title": "Gestió de sessions",
-    "current": "Sessió oberta",
     "none_open": "Cap sessió oberta.",
     "open": "Obrir",
     "today": "avui",
     "opened": "Sessió del {{date}} oberta",
-    "switch_confirm": "Tancar la sessió del {{from}} i obrir la del {{to}}?",
     "switch": "Canviar de sessió",
     "switch_to": "Passar a la sessió…",
-    "past_tag": "passada"
+    "past_tag": "passada",
+    "show": "Mostrar",
+    "opened_list": "Sessions obertes ({{count}})",
+    "open_tag": "oberta",
+    "all_sessions": "Totes les sessions",
+    "button_open_n": "{{count}} sessions obertes"
   }
 }

@@ -53,7 +53,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 | Statut    | Sens                                                           |
 | --------- | -------------------------------------------------------------- |
 | `planned` | Préparée à l'avance, démarrée plus tard (**Démarrer**).        |
-| `open`    | En cours ; une seule par club.                                 |
+| `open`    | En cours ; plusieurs possibles, fermée sur décision explicite. |
 | `closed`  | Terminée ; combats non terminés annulés. Réouverture possible. |
 
 - Ouverture : date (mini-calendrier), intitulé, arme (règles de la saisie distante),
@@ -67,10 +67,16 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
 - Listes des séances préparées et passées filtrables par catégorie d'âge.
-- **Menu des séances** (en-tête du club, visible depuis tous les onglets) : séance ouverte
-  (**Fermer la séance**) et liste des séances prévues par date (**Ouvrir**). Ouvrir une
-  séance prévue alors qu'une autre est ouverte ferme d'abord celle-ci, après confirmation.
-  **Préparer une séance** renvoie à l'onglet Séances (`ClubSessionMenu.tsx`).
+- **Plusieurs séances ouvertes** : ouvrir, démarrer ou rouvrir une séance ne ferme pas les
+  autres. Une séance reste ouverte jusqu'à **Fermer la séance**. L'onglet Séances affiche
+  une séance ouverte à la fois (la plus récente par défaut) ; **Changer de séance** bascule
+  vers une autre (ouverte, prévue ou passée) sans rien fermer ; **Toutes les séances**
+  revient à la liste (séances ouvertes, ouverture, prévues, passées). La saisie distante
+  suit la séance affichée (`clubSessionSwitch.ts`).
+- **Menu des séances** (en-tête du club, visible depuis tous les onglets) : séances
+  ouvertes (**Afficher**, **Fermer la séance**), séances prévues par date (**Ouvrir**) et 5
+  dernières séances passées (**Rouvrir**). **Préparer une séance** renvoie à l'onglet
+  Séances (`ClubSessionMenu.tsx`).
 - Bilan à la fermeture : note sur 5, ce qui a marché, à améliorer, remarque par tireur présent.
 
 ### Pointage

@@ -214,10 +214,10 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(() =>
         repo.createBout({ sessionId: s.id, memberAId: a.id, memberBId: b.id })
       ).toThrow();
+      // Plusieurs séances ouvertes en même temps
       const other = repo.createSession(cid, { date: '2026-11-16' });
-      expect(() => repo.startSession(s.id)).toThrow('Une séance est déjà ouverte');
-      repo.closeSession(other.id);
       expect(repo.startSession(s.id)!.status).toBe('open');
+      expect(repo.getSession(other.id)!.status).toBe('open');
       const done = repo.updateSession(s.id, {
         plan: s.plan.map(p => ({ ...p, done: p.id === 'e1' })),
         notes: 'Bonne énergie',
@@ -479,13 +479,16 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.reopenSession(s.id)).toMatchObject({ status: 'open', closedAt: undefined });
     });
 
-    it('réouverture refusée si une autre séance est ouverte', () => {
+    it('réouverture possible alors qu’une autre séance est ouverte', () => {
       const old = repo.createSession(cid, { date: '2026-11-10' });
       repo.closeSession(old.id);
       const cur = repo.createSession(cid, { date: '2026-11-16' });
-      expect(() => repo.reopenSession(old.id)).toThrow('Une séance est déjà ouverte');
-      repo.closeSession(cur.id);
       expect(repo.reopenSession(old.id)!.status).toBe('open');
+      expect(repo.getSession(cur.id)!.status).toBe('open');
+      expect(repo.listClubs().find(c => c.id === cid)).toMatchObject({
+        openSessionDate: '2026-11-16',
+        openSessionCount: 2,
+      });
     });
 
     it('suppression : combats et présences effacés', () => {

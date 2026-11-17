@@ -301,18 +301,44 @@ describe('ClubSessionsPanel', () => {
     );
   });
 
-  it('séance ouverte : bascule vers une séance prévue (fermeture puis démarrage)', async () => {
+  it('séance ouverte : bascule vers une séance prévue sans fermer la séance en cours', async () => {
     const planned = { ...session, id: 'p1', status: 'planned', date: '2026-11-20', plan: [] };
     api.listSessions.mockResolvedValue([session, planned]);
-    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    const onActiveChange = vi.fn();
+    render(<ClubSessionsPanel clubId="c1" settings={settings} onActiveChange={onActiveChange} />);
     const select = await screen.findByLabelText('Passer à la séance…');
     fireEvent.change(select, { target: { value: 'p1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Changer de séance' }));
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('p1'));
-    expect(api.closeSession).toHaveBeenCalledWith('s1');
-    expect(api.closeSession.mock.invocationCallOrder[0]).toBeLessThan(
-      api.startSession.mock.invocationCallOrder[0]
+    expect(api.closeSession).not.toHaveBeenCalled();
+    expect(onActiveChange).toHaveBeenCalledWith('p1');
+  });
+
+  it('plusieurs séances ouvertes : affiche la séance choisie, liste des ouvertes', async () => {
+    const other = { ...session, id: 's2', date: '2026-11-17', label: 'Adultes', attendeeIds: [] };
+    api.listSessions.mockResolvedValue([session, other]);
+    const onActiveChange = vi.fn();
+    const { rerender } = render(
+      <ClubSessionsPanel clubId="c1" settings={settings} onActiveChange={onActiveChange} />
     );
+    // Par défaut : la plus récente
+    expect(await screen.findByText(/Séance du 2026-11-17/)).toBeInTheDocument();
+    rerender(
+      <ClubSessionsPanel
+        clubId="c1"
+        settings={settings}
+        activeSessionId="s1"
+        onActiveChange={onActiveChange}
+      />
+    );
+    expect(await screen.findByText(/Séance du 2026-11-16/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(api.listBouts).toHaveBeenLastCalledWith({ sessionId: 's1', includeUnfinished: true })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Toutes les séances' }));
+    expect(await screen.findByText('Séances ouvertes (2)')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Afficher' })[0]);
+    expect(onActiveChange).toHaveBeenCalledWith('s2');
   });
 
   it('ouverture : date choisie dans le mini-calendrier', async () => {

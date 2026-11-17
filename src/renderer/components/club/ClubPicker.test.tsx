@@ -17,6 +17,7 @@ const club = (id: string, name: string, extra = {}) => ({
   updatedAt: '',
   membersCount: 12,
   openSessionDate: null,
+  openSessionCount: 0,
   ...extra,
 });
 
@@ -27,7 +28,7 @@ beforeEach(() => {
     listClubs: vi
       .fn()
       .mockResolvedValue([
-        club('c1', 'Cercle Nord', { openSessionDate: '2026-11-16' }),
+        club('c1', 'Cercle Nord', { openSessionDate: '2026-11-16', openSessionCount: 1 }),
         club('c2', 'Salle Sud'),
       ]),
     createClub: vi.fn().mockResolvedValue({ id: 'c3', name: 'Nouveau' }),
