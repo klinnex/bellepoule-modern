@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 77 | 834 |
+| `src/shared/utils/` | 78 | 840 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **478** | **3601** |
+| **Total** | **479** | **3607** |
 
-Unitaires : 468 fichiers, 3562 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 469 fichiers, 3568 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -829,6 +829,20 @@ Unitaires : 468 fichiers, 3562 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
   - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
   - refuse un CSV sans en-tête attendu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/inkSaving.test.ts</code> — 6 tests</summary>
+
+- **applyInkSaving**
+  - insère la feuille avant \</head\> sans retirer de contenu
+  - préfixe le style quand il n’y a pas de \<head\>
+  - est idempotent
+  - retire les fonds et ramène le texte en noir
+- **réglage inkSaving**
+  - est désactivé par défaut
+  - n’accepte que un booléen
 
 </details>
 
