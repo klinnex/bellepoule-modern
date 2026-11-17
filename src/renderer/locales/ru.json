@@ -503,6 +503,7 @@
       "score-grid": "Таблица счёта",
       "pending-matches": "Предстоящие бои",
       "finished-matches": "Результаты",
+      "cards": "Карточки",
       "match-cards": "Карточки боёв",
       "ranking-table": "Таблица рейтинга",
       "footer": "Нижний колонтитул"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Медицинское снятие отменено — восстановлено боёв: {{count}}"
   },
   "pdf": {
+    "cards_title": "Карточки",
+    "cards_standard": "Карточки",
+    "cards_p": "Карточки P (пассивность)",
+    "card_white": "Белая",
+    "card_yellow": "Жёлтая",
+    "card_red": "Красная",
+    "card_black": "Чёрная",
+    "card_p_yellow": "Жёлтая P",
+    "card_p_red": "Красная P",
+    "card_p_black": "Чёрная P",
     "abstention": "Неявка",
     "api_unavailable": "API Electron недоступен",
     "appel_empty": "В перекличке нет фехтовальщиков",

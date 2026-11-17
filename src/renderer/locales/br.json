@@ -503,6 +503,7 @@
       "score-grid": "Reizh poentoù",
       "pending-matches": "Emgavioù o vont",
       "finished-matches": "Disoc'hoù",
+      "cards": "Kartennoù",
       "match-cards": "Kartennoù emgav",
       "ranking-table": "Taolenn renk",
       "footer": "Troad-pajenn"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Dilez yec'hed nullet — {{count}} c'hoari adsavet"
   },
   "pdf": {
+    "cards_title": "Kartennoù",
+    "cards_standard": "Kartennoù",
+    "cards_p": "Kartennoù P (diemgann)",
+    "card_white": "Gwenn",
+    "card_yellow": "Melen",
+    "card_red": "Ruz",
+    "card_black": "Du",
+    "card_p_yellow": "Melen P",
+    "card_p_red": "Ruz P",
+    "card_p_black": "Du P",
     "abstention": "Ehan",
     "api_unavailable": "API Electron dihegerz",
     "appel_empty": "C'hleze ebet er roll-galv",

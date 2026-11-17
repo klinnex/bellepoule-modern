@@ -503,6 +503,7 @@
       "score-grid": "Grille des scores",
       "pending-matches": "Matchs à jouer",
       "finished-matches": "Résultats",
+      "cards": "Cartons",
       "match-cards": "Fiches de matchs",
       "ranking-table": "Tableau du classement",
       "footer": "Pied de page"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Sortie médicale annulée — {{count}} matchs restaurés"
   },
   "pdf": {
+    "cards_title": "Cartons",
+    "cards_standard": "Cartons",
+    "cards_p": "Cartons P (non-combativité)",
+    "card_white": "Blanc",
+    "card_yellow": "Jaune",
+    "card_red": "Rouge",
+    "card_black": "Noir",
+    "card_p_yellow": "Jaune P",
+    "card_p_red": "Rouge P",
+    "card_p_black": "Noir P",
     "abstention": "Abstention",
     "api_unavailable": "API Electron non disponible",
     "appel_empty": "Aucun tireur dans la liste d'appel",

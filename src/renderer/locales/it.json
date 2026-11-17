@@ -503,6 +503,7 @@
       "score-grid": "Griglia dei punteggi",
       "pending-matches": "Incontri da disputare",
       "finished-matches": "Risultati",
+      "cards": "Cartellini",
       "match-cards": "Schede degli incontri",
       "ranking-table": "Tabella della classifica",
       "footer": "Piè di pagina"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Ritiro medico annullato — {{count}} incontri ripristinati"
   },
   "pdf": {
+    "cards_title": "Cartellini",
+    "cards_standard": "Cartellini",
+    "cards_p": "Cartellini P (non combattività)",
+    "card_white": "Bianco",
+    "card_yellow": "Giallo",
+    "card_red": "Rosso",
+    "card_black": "Nero",
+    "card_p_yellow": "Giallo P",
+    "card_p_red": "Rosso P",
+    "card_p_black": "Nero P",
     "abstention": "Astensione",
     "api_unavailable": "API Electron non disponibile",
     "appel_empty": "Nessuno schermidore nell'elenco d'appello",

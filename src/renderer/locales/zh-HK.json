@@ -503,6 +503,7 @@
       "score-grid": "分數表格",
       "pending-matches": "待打比賽",
       "finished-matches": "結果",
+      "cards": "牌",
       "match-cards": "比賽卡片",
       "ranking-table": "排名表",
       "footer": "頁尾"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "已取消傷病退賽 — 已還原 {{count}} 場比賽"
   },
   "pdf": {
+    "cards_title": "牌",
+    "cards_standard": "牌",
+    "cards_p": "P 牌（消極比賽）",
+    "card_white": "白牌",
+    "card_yellow": "黃牌",
+    "card_red": "紅牌",
+    "card_black": "黑牌",
+    "card_p_yellow": "黃 P 牌",
+    "card_p_red": "紅 P 牌",
+    "card_p_black": "黑 P 牌",
     "abstention": "棄賽",
     "api_unavailable": "Electron API 無法使用",
     "appel_empty": "點名表沒有劍手",

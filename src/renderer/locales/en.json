@@ -503,6 +503,7 @@
       "score-grid": "Score grid",
       "pending-matches": "Pending matches",
       "finished-matches": "Results",
+      "cards": "Cards",
       "match-cards": "Match cards",
       "ranking-table": "Ranking table",
       "footer": "Footer"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Medical withdrawal cancelled — {{count}} matches restored"
   },
   "pdf": {
+    "cards_title": "Cards",
+    "cards_standard": "Cards",
+    "cards_p": "P cards (non-combativity)",
+    "card_white": "White",
+    "card_yellow": "Yellow",
+    "card_red": "Red",
+    "card_black": "Black",
+    "card_p_yellow": "Yellow P",
+    "card_p_red": "Red P",
+    "card_p_black": "Black P",
     "abstention": "Abstention",
     "api_unavailable": "Electron API unavailable",
     "appel_empty": "No fencer in the roll call",

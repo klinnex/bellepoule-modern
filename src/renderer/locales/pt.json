@@ -503,6 +503,7 @@
       "score-grid": "Grelha de resultados",
       "pending-matches": "Combates pendentes",
       "finished-matches": "Resultados",
+      "cards": "Cartões",
       "match-cards": "Cartões de combate",
       "ranking-table": "Tabela de classificação",
       "footer": "Rodapé"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Desistência médica anulada — {{count}} combates restaurados"
   },
   "pdf": {
+    "cards_title": "Cartões",
+    "cards_standard": "Cartões",
+    "cards_p": "Cartões P (não combatividade)",
+    "card_white": "Branco",
+    "card_yellow": "Amarelo",
+    "card_red": "Vermelho",
+    "card_black": "Preto",
+    "card_p_yellow": "Amarelo P",
+    "card_p_red": "Vermelho P",
+    "card_p_black": "Preto P",
     "abstention": "Abstenção",
     "api_unavailable": "API Electron indisponível",
     "appel_empty": "Nenhum esgrimista na chamada",

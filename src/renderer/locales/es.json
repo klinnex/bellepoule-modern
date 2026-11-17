@@ -503,6 +503,7 @@
       "score-grid": "Cuadrícula de puntuación",
       "pending-matches": "Combates pendientes",
       "finished-matches": "Resultados",
+      "cards": "Tarjetas",
       "match-cards": "Fichas de combate",
       "ranking-table": "Tabla de clasificación",
       "footer": "Pie de página"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Retirada médica anulada — {{count}} combates restaurados"
   },
   "pdf": {
+    "cards_title": "Tarjetas",
+    "cards_standard": "Tarjetas",
+    "cards_p": "Tarjetas P (no combatividad)",
+    "card_white": "Blanca",
+    "card_yellow": "Amarilla",
+    "card_red": "Roja",
+    "card_black": "Negra",
+    "card_p_yellow": "Amarilla P",
+    "card_p_red": "Roja P",
+    "card_p_black": "Negra P",
     "abstention": "Abstención",
     "api_unavailable": "API de Electron no disponible",
     "appel_empty": "Ningún tirador en la lista de llamada",

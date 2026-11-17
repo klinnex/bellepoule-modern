@@ -503,6 +503,7 @@
       "score-grid": "Quadrícula de puntuació",
       "pending-matches": "Combats pendents",
       "finished-matches": "Resultats",
+      "cards": "Targetes",
       "match-cards": "Fitxes de combat",
       "ranking-table": "Taula de classificació",
       "footer": "Peu de pàgina"
@@ -1131,6 +1132,16 @@
     "matches_restored_other": "Retirada mèdica anul·lada — {{count}} combats restaurats"
   },
   "pdf": {
+    "cards_title": "Targetes",
+    "cards_standard": "Targetes",
+    "cards_p": "Targetes P (no combativitat)",
+    "card_white": "Blanca",
+    "card_yellow": "Groga",
+    "card_red": "Vermella",
+    "card_black": "Negra",
+    "card_p_yellow": "Groga P",
+    "card_p_red": "Vermella P",
+    "card_p_black": "Negra P",
     "abstention": "Abstenció",
     "api_unavailable": "API d'Electron no disponible",
     "appel_empty": "Cap tirador a la llista de crida",

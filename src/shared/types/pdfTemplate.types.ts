@@ -31,6 +31,7 @@ export const PDF_ELEMENT_IDS: Record<PdfDocType, string[]> = {
     'score-grid',
     'pending-matches',
     'finished-matches',
+    'cards',
     'footer',
   ],
   tableau: ['header', 'gold-bar', 'match-cards', 'footer'],
