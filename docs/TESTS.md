@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 253 |
-| `src/main/` | 107 | 877 |
+| `src/main/` | 108 | 878 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **484** | **3652** |
+| **Total** | **485** | **3653** |
 
-Unitaires : 474 fichiers, 3613 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4534,6 +4534,14 @@ Unitaires : 474 fichiers, 3613 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **mode démo (session d’entraînement)**
   - joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique
   - simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5
+
+</details>
+
+<details>
+<summary><code>src/main/repoLocation.test.ts</code> — 1 test</summary>
+
+- **emplacement du dépôt GitHub (#1940)**
+  - aucune référence à l'ancien dépôt dans le code et le plugin
 
 </details>
 
