@@ -2,8 +2,8 @@
   "mcpServers": {
     "bellepoule": {
       "type": "http",
-      "url": "http://127.0.0.1:${BELLEPOULE_MCP_PORT:-8067}/mcp",
-      "headers": { "Authorization": "Bearer ${BELLEPOULE_MCP_TOKEN}" }
+      "url": "http://127.0.0.1:${user_config.mcp_port}/mcp",
+      "headers": { "Authorization": "Bearer ${user_config.mcp_token}" }
     }
   }
 }
