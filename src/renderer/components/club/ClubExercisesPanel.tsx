@@ -7,6 +7,7 @@
 import { exerciseMatchesRange } from '../../../shared/utils/clubAge';
 import { categoryLabel } from '../../../shared/utils/categoryLabel';
 import { AgeCategoryFilter } from './ClubAgeRange';
+import { ExerciseWeaponFilter, exerciseMatchesWeapon } from './ClubExerciseWeapons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import type { ClubExercise, ClubExerciseCategory } from '../../../shared/types/club';
@@ -36,6 +37,7 @@ export const ClubExercisesPanel: React.FC = () => {
   const [category, setCategory] = useState<ClubExerciseCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const [ageCategory, setAgeCategory] = useState('');
+  const [weapon, setWeapon] = useState('');
   const [editing, setEditing] = useState<{ exercise: ClubExercise | null } | null>(null);
 
   const load = useCallback(async () => {
@@ -53,9 +55,10 @@ export const ClubExercisesPanel: React.FC = () => {
         (category === 'all' || e.category === category) &&
         // Catégorie d'âge : exercices visant cette catégorie et exercices communs à tous
         exerciseMatchesRange(e.ageCategories, { ageFrom: ageCategory, ageTo: ageCategory }) &&
+        exerciseMatchesWeapon(e.weapons, weapon) &&
         (!q || `${e.title} ${e.details ?? ''}`.toLowerCase().includes(q))
     );
-  }, [list, category, search, ageCategory]);
+  }, [list, category, search, ageCategory, weapon]);
 
   if (!api) return null;
 
@@ -149,6 +152,7 @@ export const ClubExercisesPanel: React.FC = () => {
             </select>
           </label>
           <AgeCategoryFilter value={ageCategory} onChange={setAgeCategory} />
+          <ExerciseWeaponFilter value={weapon} onChange={setWeapon} />
           <input
             className="form-input club-grow"
             type="search"

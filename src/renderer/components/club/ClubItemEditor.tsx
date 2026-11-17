@@ -15,8 +15,10 @@ import { Weapon } from '../../../shared/types';
 import {
   ITEM_CATEGORIES,
   ITEM_CONDITIONS,
+  MAX_INVOICE_PDF_BYTES,
   MAX_SERIES,
   normalizeItemInput,
+  pdfDataUrl,
   seriesNames,
 } from '../../../shared/utils/clubInventory';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
@@ -68,6 +70,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
   );
   const [supplier, setSupplier] = useState(item?.supplier ?? '');
   const [invoiceRef, setInvoiceRef] = useState(item?.invoiceRef ?? '');
+  const [invoicePdf, setInvoicePdf] = useState<string | undefined>(item?.invoicePdf);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [warrantyUntil, setWarrantyUntil] = useState(item?.warrantyUntil ?? '');
   const [condition, setCondition] = useState<ClubItemCondition>(item?.condition ?? 'good');
   const [location, setLocation] = useState(item?.location ?? '');
@@ -109,6 +113,7 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         purchasePrice: numberOrUndef(purchasePrice),
         supplier,
         invoiceRef,
+        invoicePdf,
         warrantyUntil: warrantyUntil || undefined,
         condition,
         location,
@@ -315,6 +320,52 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
             onChange={e => setInvoiceRef(e.target.value)}
           />
         </label>
+        <div className="form-label">
+          {t('clubInventory.invoice_pdf')}
+          {invoicePdf ? (
+            <div className="club-row">
+              <span className="club-muted">{t('clubInventory.invoice_pdf_attached')}</span>
+              <Button size="sm" variant="ghost" onClick={() => setInvoicePdf(undefined)}>
+                {t('actions.delete')}
+              </Button>
+            </div>
+          ) : (
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              aria-label={t('clubInventory.invoice_pdf_import')}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                  setInvoiceError(t('clubInventory.invoice_not_pdf'));
+                  return;
+                }
+                if (file.size > MAX_INVOICE_PDF_BYTES) {
+                  setInvoiceError(t('clubInventory.invoice_too_big'));
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const url = String(reader.result);
+                  if (pdfDataUrl(url)) {
+                    setInvoicePdf(url);
+                    setInvoiceError(null);
+                  } else {
+                    setInvoiceError(t('clubInventory.invoice_not_pdf'));
+                  }
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+          )}
+          {invoiceError && (
+            <p role="alert" className="text-sm club-error">
+              {invoiceError}
+            </p>
+          )}
+        </div>
         <label className="form-label">
           {t('clubInventory.condition')}
           <select

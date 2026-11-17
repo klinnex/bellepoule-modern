@@ -3343,6 +3343,7 @@
     "planned_estimate": "Ориентир (первая оценка): {{time}}"
   },
   "club": {
+    "new_member": "Новый участник",
     "tab_members": "Члены клуба",
     "tab_sessions": "Тренировки",
     "tab_stats": "Статистика",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Печать карт » создаёт PDF по 10 карт на странице: логотип, имя и QR-код для вырезания."
   },
   "clubSession": {
+    "delete_past_confirm": "Удалить занятие от {{date}} и все его бои? Это нельзя отменить.",
     "camera_unavailable": "Камера недоступна на этом устройстве",
     "camera_denied": "Доступ к камере запрещён",
     "scan_launched": "Бой начат на дорожке {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Изображение не поддерживается (PNG, JPEG или WebP, до 1 МБ)"
   },
   "clubInventory": {
+    "invoice_too_big": "Слишком большой файл (максимум 5 МБ).",
+    "invoice_not_pdf": "Файл должен быть в формате PDF.",
+    "invoice_pdf_import": "Загрузить PDF-счёт",
+    "invoice_pdf_attached": "PDF-счёт прикреплён",
+    "invoice_pdf": "Счёт (PDF)",
+    "contract_printed_on": "Распечатано",
+    "contract_sign_borrower": "Подпись получателя («Ознакомлен и согласен»)",
+    "contract_sign_lender": "Подпись клуба",
+    "contract_notes": "Примечания",
+    "contract_condition": "Состояние при выдаче",
+    "contract_due": "Плановый возврат",
+    "contract_lent_at": "Дата выдачи",
+    "contract_quantity": "Количество",
+    "contract_item": "Инвентарь",
+    "contract_borrower": "Получатель",
+    "contract_club": "Клуб",
+    "contract_lender": "Выдаёт",
+    "contract_intro": "Инвентарь ниже передаётся клубом. Получатель обязуется вернуть его в исправном состоянии к указанной дате.",
+    "contract_title": "Договор на выдачу инвентаря",
+    "print_contract": "Распечатать договор аренды",
     "tab": "Инвентарь",
     "lock_button": "Заблокировать",
     "unlock_button": "Разблокировать",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Не работает"
   },
   "clubExercises": {
+    "weapon_artistic": "Художественное фехтование",
+    "weapon_any": "Все виды оружия",
+    "weapons_hint": "Ничего не выбрано = все виды оружия.",
+    "weapons_label": "Оружие",
     "tab": "Упражнения",
     "search": "Поиск упражнения",
     "title": "Библиотека упражнений ({{count}})",

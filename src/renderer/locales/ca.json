@@ -3343,6 +3343,7 @@
     "planned_estimate": "Referència (1a estimació): {{time}}"
   },
   "club": {
+    "new_member": "Nou membre",
     "tab_members": "Socis",
     "tab_sessions": "Sessions",
     "tab_stats": "Estadístiques",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Imprimir els carnets » crea un PDF de 10 carnets per pàgina: logotip, nom i codi QR d'identificació per retallar."
   },
   "clubSession": {
+    "delete_past_confirm": "Eliminar la sessió del {{date}} i tots els seus combats? No es pot desfer.",
     "camera_unavailable": "Càmera no disponible en aquest aparell",
     "camera_denied": "Accés a la càmera denegat",
     "scan_launched": "Combat iniciat a la pista {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Imatge no admesa (PNG, JPEG o WebP, 1 MB màx.)"
   },
   "clubInventory": {
+    "invoice_too_big": "Factura massa gran (màxim 5 MB).",
+    "invoice_not_pdf": "El fitxer ha de ser un PDF.",
+    "invoice_pdf_import": "Importar factura PDF",
+    "invoice_pdf_attached": "Factura PDF adjunta",
+    "invoice_pdf": "Factura (PDF)",
+    "contract_printed_on": "Imprès el",
+    "contract_sign_borrower": "Signatura del prestatari («Llegit i aprovat»)",
+    "contract_sign_lender": "Signatura del club",
+    "contract_notes": "Observacions",
+    "contract_condition": "Estat en el préstec",
+    "contract_due": "Retorn previst",
+    "contract_lent_at": "Data del préstec",
+    "contract_quantity": "Quantitat",
+    "contract_item": "Material",
+    "contract_borrower": "Prestatari",
+    "contract_club": "El club",
+    "contract_lender": "Prestador",
+    "contract_intro": "El club presta el material indicat. El prestatari s'hi compromet a retornar-lo en bon estat a la data prevista.",
+    "contract_title": "Contracte de préstec de material",
+    "print_contract": "Imprimir el contracte de préstec",
     "tab": "Inventari",
     "lock_button": "Bloqueja",
     "unlock_button": "Desbloqueja",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Fora de servei"
   },
   "clubExercises": {
+    "weapon_artistic": "Esgrima artística",
+    "weapon_any": "Totes les armes",
+    "weapons_hint": "Cap casella marcada = totes les armes.",
+    "weapons_label": "Armes",
     "tab": "Exercicis",
     "search": "Cerca un exercici",
     "title": "Biblioteca d'exercicis ({{count}})",

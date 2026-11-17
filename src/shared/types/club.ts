@@ -156,12 +156,16 @@ export interface ClubExercise {
   images: string[];
   /** Catégories d'âge visées (U9 … V4) ; vide = commun à tous */
   ageCategories: string[];
+  /** Armes visées (absent ou vide = toutes armes) */
+  weapons?: string[];
   createdAt: string;
   updatedAt: string;
 }
 
 export type ClubExerciseInput = Pick<ClubExercise, 'title'> &
-  Partial<Pick<ClubExercise, 'category' | 'minutes' | 'details' | 'images' | 'ageCategories'>>;
+  Partial<
+    Pick<ClubExercise, 'category' | 'minutes' | 'details' | 'images' | 'ageCategories' | 'weapons'>
+  >;
 
 /** Séance d'entraînement (une date, N pistes) */
 export interface ClubSession {
@@ -414,6 +418,8 @@ export interface ClubItem {
   supplier?: string;
   /** Référence de facture */
   invoiceRef?: string;
+  /** Facture PDF importée (data URL application/pdf, 5 Mo max) */
+  invoicePdf?: string;
   /** Fin de garantie AAAA-MM-JJ */
   warrantyUntil?: string;
   condition: ClubItemCondition;
@@ -445,6 +451,7 @@ export type ClubItemInput = Pick<ClubItem, 'name' | 'category'> &
       | 'purchasePrice'
       | 'supplier'
       | 'invoiceRef'
+      | 'invoicePdf'
       | 'warrantyUntil'
       | 'condition'
       | 'location'

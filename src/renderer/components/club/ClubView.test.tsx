@@ -78,6 +78,7 @@ describe('ClubView', () => {
   it('ajoute un membre', async () => {
     render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
     await screen.findByText('MARTIN');
+    fireEvent.click(screen.getByRole('button', { name: 'Nouveau membre' }));
     fireEvent.change(screen.getByLabelText('Prénom'), { target: { value: 'Paul' } });
     fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Durand' } });
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
@@ -85,7 +86,6 @@ describe('ClubView', () => {
       expect(api.createMember).toHaveBeenCalledWith('c1', {
         firstName: 'Paul',
         lastName: 'Durand',
-        license: '',
       })
     );
     expect(api.listMembers).toHaveBeenCalledTimes(2);

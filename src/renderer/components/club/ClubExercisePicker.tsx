@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import React, { useEffect, useMemo, useState } from 'react';
+import { ExerciseWeaponFilter, exerciseMatchesWeapon } from './ClubExerciseWeapons';
 import type { ClubExercise, ClubExerciseCategory } from '../../../shared/types/club';
 import { EXERCISE_CATEGORIES, formatMinutes } from '../../../shared/utils/clubPlan';
 import { exerciseMatchesRange, hasAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
@@ -32,6 +33,7 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
   const [search, setSearch] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [forCourse, setForCourse] = useState(hasAgeRange(ageRange));
+  const [weapon, setWeapon] = useState('');
 
   useEffect(() => {
     void window.electronAPI?.club?.listExercises().then(setAll);
@@ -43,9 +45,10 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
       e =>
         (category === 'all' || e.category === category) &&
         (!forCourse || exerciseMatchesRange(e.ageCategories, ageRange)) &&
+        exerciseMatchesWeapon(e.weapons, weapon) &&
         (!q || `${e.title} ${e.details ?? ''}`.toLowerCase().includes(q))
     );
-  }, [all, category, search, forCourse, ageRange]);
+  }, [all, category, search, forCourse, ageRange, weapon]);
 
   const toggle = (id: string) =>
     setPicked(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]));
@@ -85,6 +88,7 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
             ))}
           </select>
         </label>
+        <ExerciseWeaponFilter value={weapon} onChange={setWeapon} />
         <input
           className="form-input club-grow"
           type="search"

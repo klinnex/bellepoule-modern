@@ -50,6 +50,7 @@ import { safeJsonParse } from './dbUtils';
 import { planClubImport, type ClubImportResult } from '../../shared/utils/clubImport';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
+import { normalizeExerciseWeapons } from '../../shared/utils/clubWeapon';
 import { sanitizeText } from '../validation';
 import type { SqlExecutor } from './sqlExecutor';
 
@@ -61,6 +62,7 @@ interface ExerciseRow {
   details: string | null;
   images: string | null;
   age_categories: string | null;
+  weapons: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -709,6 +711,7 @@ export class ClubRepo {
       ageCategories: normalizeAgeCategories(
         safeJsonParse(r.age_categories, [], 'club_exercises.age_categories')
       ),
+      weapons: normalizeExerciseWeapons(safeJsonParse(r.weapons, [], 'club_exercises.weapons')),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -735,8 +738,8 @@ export class ClubRepo {
     const now = new Date().toISOString();
     this.sql.run(
       `INSERT INTO club_exercises (id, title, category, minutes, details, images, age_categories,
-         created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         weapons, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         e.title,
@@ -745,6 +748,7 @@ export class ClubRepo {
         e.details ?? null,
         JSON.stringify(e.images),
         JSON.stringify(e.ageCategories),
+        JSON.stringify(e.weapons),
         now,
         now,
       ]
@@ -760,7 +764,7 @@ export class ClubRepo {
     if (!e) throw new Error("Titre de l'exercice requis");
     this.sql.run(
       `UPDATE club_exercises SET title = ?, category = ?, minutes = ?, details = ?, images = ?,
-         age_categories = ?, updated_at = ?
+         age_categories = ?, weapons = ?, updated_at = ?
        WHERE id = ?`,
       [
         e.title,
@@ -769,6 +773,7 @@ export class ClubRepo {
         e.details ?? null,
         JSON.stringify(e.images),
         JSON.stringify(e.ageCategories),
+        JSON.stringify(e.weapons),
         new Date().toISOString(),
         id,
       ]

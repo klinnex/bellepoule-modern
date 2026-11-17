@@ -3343,6 +3343,7 @@
     "planned_estimate": "Riferimento (1ª stima): {{time}}"
   },
   "club": {
+    "new_member": "Nuovo membro",
     "tab_members": "Soci",
     "tab_sessions": "Sedute",
     "tab_stats": "Statistiche",
@@ -3432,6 +3433,7 @@
     "hint_cards": "« Stampa tessere » crea un PDF con 10 tessere per pagina: logo, nome e codice QR di identificazione da ritagliare."
   },
   "clubSession": {
+    "delete_past_confirm": "Eliminare la sessione del {{date}} e tutti i suoi incontri? Operazione irreversibile.",
     "camera_unavailable": "Fotocamera non disponibile su questo dispositivo",
     "camera_denied": "Accesso alla fotocamera negato",
     "scan_launched": "Assalto avviato sulla pedana {{strip}}",
@@ -3675,6 +3677,26 @@
     "invalid": "Immagine non supportata (PNG, JPEG o WebP, max 1 MB)"
   },
   "clubInventory": {
+    "invoice_too_big": "Fattura troppo grande (massimo 5 MB).",
+    "invoice_not_pdf": "Il file deve essere un PDF.",
+    "invoice_pdf_import": "Importa fattura PDF",
+    "invoice_pdf_attached": "Fattura PDF allegata",
+    "invoice_pdf": "Fattura (PDF)",
+    "contract_printed_on": "Stampato il",
+    "contract_sign_borrower": "Firma del richiedente (\"Letto e approvato\")",
+    "contract_sign_lender": "Firma del club",
+    "contract_notes": "Note",
+    "contract_condition": "Stato al prestito",
+    "contract_due": "Restituzione prevista",
+    "contract_lent_at": "Data del prestito",
+    "contract_quantity": "Quantità",
+    "contract_item": "Materiale",
+    "contract_borrower": "Richiedente",
+    "contract_club": "Il club",
+    "contract_lender": "Prestatore",
+    "contract_intro": "Il materiale sotto indicato è prestato dal club. Il richiedente si impegna a restituirlo in buono stato entro la data prevista.",
+    "contract_title": "Contratto di prestito di materiale",
+    "print_contract": "Stampa contratto di prestito",
     "tab": "Inventario",
     "lock_button": "Blocca",
     "unlock_button": "Sblocca",
@@ -3798,6 +3820,10 @@
     "cond_out_of_service": "Fuori servizio"
   },
   "clubExercises": {
+    "weapon_artistic": "Scherma artistica",
+    "weapon_any": "Tutte le armi",
+    "weapons_hint": "Nessuna casella = tutte le armi.",
+    "weapons_label": "Armi",
     "tab": "Esercizi",
     "search": "Cerca un esercizio",
     "title": "Libreria di esercizi ({{count}})",

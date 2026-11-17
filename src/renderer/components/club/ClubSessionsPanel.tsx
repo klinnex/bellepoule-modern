@@ -383,6 +383,15 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     if (ok) await run(() => api.deleteSession(s.id));
   };
 
+  /** Supprime une séance passée (et ses combats) après confirmation */
+  const removePast = async (s: ClubSession) => {
+    const ok = await confirm({
+      message: t('clubSession.delete_past_confirm', { date: s.date }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (ok) await run(() => api.deleteSession(s.id));
+  };
+
   const saveFeedback = (
     s: ClubSession,
     feedback: ClubSessionFeedback,
@@ -586,11 +595,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             <h2 id="club-planned-title" className="club-card-title">
               {t('clubPlan.upcoming')}
             </h2>
-            <AgeCategoryFilter
-              value={listCategory}
-              onChange={setListCategory}
-              label={t('clubAge.course_for')}
-            />
+            <div className="club-course-filter">
+              <AgeCategoryFilter
+                value={listCategory}
+                onChange={setListCategory}
+                label={t('clubAge.course_for')}
+              />
+            </div>
             <Button
               icon={<Upload size={15} aria-hidden="true" />}
               onClick={() => void importPlan()}
@@ -696,7 +707,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           ) : (
             <table className="table">
               <tbody>
-                {past.slice(0, 20).map(s => (
+                {past.map(s => (
                   <tr key={s.id}>
                     <td className="font-medium">{s.date}</td>
                     <td>{sessionLabel(s)}</td>
@@ -726,6 +737,14 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                       >
                         {t('clubSession.reopen')}
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Trash2 size={14} aria-hidden="true" />}
+                        aria-label={t('actions.delete')}
+                        title={t('actions.delete')}
+                        onClick={() => void removePast(s)}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -916,7 +935,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       />
 
       <section className="club-card" aria-labelledby="club-remote-title">
-        <div className="club-row club-row--between">
+        <div className="club-row club-row--between club-row--align-end">
           <h2 id="club-remote-title" className="club-card-title">
             {t('clubSession.remote')}
           </h2>

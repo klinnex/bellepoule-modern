@@ -13,6 +13,7 @@ import {
   Lock,
   Pencil,
   Plus,
+  Printer,
   Tags,
   Trash2,
   Undo2,
@@ -34,6 +35,10 @@ import {
   computeInventorySummary,
   localIsoDate,
 } from '../../../shared/utils/clubInventory';
+import {
+  buildLoanContractHtml,
+  type LoanContractLabels,
+} from '../../../shared/utils/clubLoanContract';
 import { toCsv } from '../../../shared/utils/clubInventory';
 import {
   itemsToRows,
@@ -286,6 +291,33 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
     }
   };
 
+  /** Contrat de prêt imprimable (qui, à qui, quoi, quand, signatures) */
+  const printContract = (l: ClubLoan) => {
+    const labels: LoanContractLabels = {
+      title: t('clubInventory.contract_title'),
+      intro: t('clubInventory.contract_intro'),
+      lender: t('clubInventory.contract_lender'),
+      lenderName: t('clubInventory.contract_club'),
+      borrower: t('clubInventory.contract_borrower'),
+      item: t('clubInventory.contract_item'),
+      quantity: t('clubInventory.contract_quantity'),
+      lentAt: t('clubInventory.contract_lent_at'),
+      dueDate: t('clubInventory.contract_due'),
+      condition: t('clubInventory.contract_condition'),
+      notes: t('clubInventory.contract_notes'),
+      signLender: t('clubInventory.contract_sign_lender'),
+      signBorrower: t('clubInventory.contract_sign_borrower'),
+      printedOn: t('clubInventory.contract_printed_on'),
+      condition_label: c => t(`clubInventory.cond_${c}`),
+      formatDate: fmtDate,
+      none: '—',
+    };
+    const html = buildLoanContractHtml(l, labels, localIsoDate());
+    void window.electronAPI.file.printHtml(html).then(res => {
+      if (!res.success && res.error) showToast(res.error, 'error');
+    });
+  };
+
   const loanRow = (l: ClubLoan, open: boolean) => (
     <tr key={l.id} className={l.overdue ? 'club-row-archived' : undefined}>
       <td>{l.itemName}</td>
@@ -309,6 +341,14 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
         </td>
       )}
       <td className="club-row club-row--end">
+        <Button
+          size="sm"
+          variant="ghost"
+          aria-label={t('clubInventory.print_contract')}
+          title={t('clubInventory.print_contract')}
+          icon={<Printer size={14} aria-hidden="true" />}
+          onClick={() => printContract(l)}
+        />
         {open ? (
           <Button
             size="sm"

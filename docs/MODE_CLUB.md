@@ -245,3 +245,11 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 | Synchronisation dossier | `src/main/clubSync.ts` (décision pure `decideSync`, service), `src/main/ipc/clubSyncHandlers.ts` (IPC `club:sync*`), `src/renderer/components/club/ClubSyncModal.tsx`         |
 | Sauvegarde              | `src/database/repos/clubBackupRepo.ts`, `src/main/clubBackupFile.ts`, `src/renderer/components/club/clubBackup.ts` (IPC `club:exportBackup`, `club:importBackup`)             |
 | Interface               | `src/renderer/components/club/`                                                                                                                                               |
+
+## Compléments (#1872, retours de séance)
+
+- **Armes des exercices** : `club_exercises.weapons` (migration 40). Liste de codes `E` épée, `F` fleuret, `S` sabre, `L` sabre laser, `A` escrime artistique ; vide = toutes armes. Filtre dans la bibliothèque et le sélecteur d'exercices.
+- **Nouveau membre** : fenêtre de création (nom, prénom, licence, date de naissance, latéralité, catégorie d'âge saisie seulement sans date de naissance).
+- **Séances passées** : suppression possible (efface aussi les combats de la séance, après confirmation).
+- **Contrat de prêt** : bouton « Imprimer le contrat de prêt » sur chaque prêt (`src/shared/utils/clubLoanContract.ts`), zones de signature prêteur / emprunteur.
+- **Facture PDF** : import sur la fiche matériel, stocké en data URL dans `club_items.invoice_pdf` (migration 41), 5 Mo maximum.
