@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 79 | 852 |
+| `src/shared/utils/` | 79 | 853 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 19 | 253 |
-| `src/main/` | 108 | 878 |
+| `src/database/` | 19 | 256 |
+| `src/main/` | 108 | 879 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **485** | **3653** |
+| **Total** | **485** | **3658** |
 
-Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 475 fichiers, 3619 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -269,7 +269,7 @@ Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/clubAge.test.ts</code> — 8 tests</summary>
+<summary><code>src/shared/utils/clubAge.test.ts</code> — 9 tests</summary>
 
 - **catégories d’âge (#1872)**
   - jeunes : âge atteint l’année de fin de saison ; vétérans : année de début
@@ -279,6 +279,7 @@ Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - exercices : aucune catégorie = commun à tous
   - tri par catégorie puis nom, inconnues à la fin
 - **séances récurrentes (#1872)**
+  - jours d’ouverture : dates de la période tombant les jours choisis
   - tous les N jours, N fois ou jusqu’à une date (incluse)
   - bornes : 60 séances au plus, pas invalide = une seule date, date invalide = aucune
 
@@ -2671,7 +2672,7 @@ Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 40 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 43 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2723,6 +2724,9 @@ Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - séance : catégories du cours (codes reconnus), effaçables
     - série : une séance préparée par date, plan copié sans cases cochées
     - exercice : catégories visées (vide = commun à tous)
+    - jours d’ouverture : séances préparées, dates occupées ignorées, fermeture
+    - plusieurs périodes : dates fusionnées, fermetures sur chaque période
+    - jours d’ouverture : entrées invalides refusées
 
 </details>
 
@@ -3381,10 +3385,11 @@ Unitaires : 475 fichiers, 3614 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 9 tests</summary>
 
 - **handlers club:\* (#1872)**
   - enregistre tous les canaux club:\*
+  - jours d’ouverture et fermetures : délèguent au dépôt
   - inventaire : délègue au dépôt, filtres et booléens par défaut
   - booléens stricts et filtres par défaut
   - club : objets vides par défaut
