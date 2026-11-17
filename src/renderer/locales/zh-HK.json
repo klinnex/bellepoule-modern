@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "密碼錯誤。",
     "bpm_open_failed": "無法開啟。",
     "error": "操作失敗。",
+    "competition_open": "匿名化或刪除前，請先關閉此人的比賽（並停止其平板伺服器）。",
     "export_warning": "匯出檔及通知包含個人資料：只可傳送給獲授權的收件人。",
     "photo_consent": "相片：請取得當事人同意（未成年人須取得家長同意）。",
     "pdf_heading": "個人資料 — {{name}}",

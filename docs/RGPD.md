@@ -37,6 +37,8 @@ Tous dans **Paramètres → Confidentialité (RGPD)**, sauf mention contraire.
 
 Recherche d'une personne par nom, prénom ou licence dans **toutes les compétitions** et le
 **Mode Club**. Les fiches sont regroupées par licence, sinon par nom + prénom + date de naissance.
+Un membre du club sans licence n'est rattaché à un homonyme que si les dates de naissance
+sont compatibles (même date, ou date inconnue et candidat unique).
 
 | Droit | Action | Détail |
 |---|---|---|
@@ -49,12 +51,22 @@ Recherche d'une personne par nom, prénom ou licence dans **toutes les compétit
 Effacer un tireur supprime aussi ses matchs : les résultats de ses adversaires changent.
 Pour une compétition terminée, préférer **Anonymiser**.
 
+**Anonymiser** et **Effacer** sont refusés tant qu'une compétition de la personne est ouverte
+dans l'application ou servie aux tablettes : son état en mémoire réécrirait les noms. Fermer
+la compétition (et arrêter son serveur distant) avant l'action. La purge par durée de
+conservation ignore de même une compétition ouverte.
+
+Après chaque anonymisation, effacement ou purge, la base est compactée (WAL vidé, `VACUUM`)
+et `secure_delete` est actif : aucune donnée effacée ne reste lisible dans `bellepoule.db`
+ni dans une sauvegarde (**Enregistrer sous**, archive `.bpm`).
+
 ### Durée de conservation
 
 - Deux durées (en mois, 0 = illimitée) : **compétitions** (date de la compétition) et
   **membres inactifs du club** (dernière présence, dernier combat ou dernière modification).
 - Action : **Anonymiser** (tireurs `Anonyme <n°>`, arbitres `Arbitre <n°>`, nom et IP des
-  tablettes retirés du journal) ou **Supprimer définitivement**.
+  tablettes retirés du journal, commentaires d'arbitre sans auteur ni libellé de match et
+  noms des tireurs remplacés par leur pseudonyme) ou **Supprimer définitivement**.
 - **Vérifier maintenant** liste les éléments échus ; **Appliquer** demande confirmation.
 - **Appliquer automatiquement au démarrage** : purge sans intervention. Sinon, un rappel
   s'affiche au démarrage tant que des données sont échues.
@@ -74,6 +86,12 @@ distant (écrans, `public.html`, overlay, résultats, kiosque, tablettes) passen
 | Prénom abrégé | `DUPONT L.` |
 | Initiales | `D. L.` |
 
+Noms concernés : prénom / nom des tireurs, noms composés (`fencerAName`, `refereeName`,
+`fencerName`, `opponentName`, `opponent`…) et clé `name` des objets personne (`referee`,
+`fencer`, `fencerA` / `fencerB`, listes `referees` / `fencers`), dont le programme public
+`/api/public/fencers/:id/schedule`. Le serveur ne reprend jamais un nom abrégé renvoyé par une
+tablette : à la sélection d'un match, tireurs et arbitre viennent de la session.
+
 Toujours retirés, quel que soit le réglage : date de naissance, licence, IP des tablettes,
 photo (sauf affichage des photos activé pour la session). Appliqué à chaud.
 
@@ -92,7 +110,9 @@ exporte une compétition (ou toute la base) chiffrée par mot de passe :
 - AES-256-GCM, clé dérivée par scrypt (N = 2^15, r = 8, p = 1), sel et IV aléatoires,
   en-tête authentifié (`src/main/bpmCrypto.ts`) ; mot de passe de 8 caractères minimum ;
 - **Fichier → Ouvrir** détecte une archive chiffrée et demande le mot de passe ;
-- mot de passe perdu = archive illisible (aucune récupération).
+- mot de passe perdu = archive illisible (aucune récupération) ;
+- la copie en clair intermédiaire est créée sous `userData` puis supprimée : le dossier choisi
+  (éventuellement synchronisé) ne reçoit que le fichier chiffré.
 
 ### Information et consentement
 

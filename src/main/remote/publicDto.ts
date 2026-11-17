@@ -35,6 +35,25 @@ const FULL_NAME_KEYS = new Set([
   'nameA',
   'nameB',
   'refereeName',
+  // Cartons noirs, programme d'un tireur (#1882)
+  'fencerName',
+  'opponentName',
+  'opponent',
+]);
+
+/**
+ * Objets « personne » dont la clé `name` est un nom complet (#1882) : `match.referee.name`,
+ * `fencer.name` du programme public, listes d'arbitres. Ailleurs, `name` (club, arène,
+ * compétition) n'est pas un nom de personne.
+ */
+const PERSON_PARENT_KEYS = new Set([
+  'referee',
+  'referees',
+  'fencer',
+  'fencers',
+  'fencerA',
+  'fencerB',
+  'opponent',
 ]);
 
 let nameMasking: NameMasking = 'full';
@@ -89,23 +108,28 @@ export function stripPersonalData<T>(
   keepPhotos = false,
   masking: NameMasking = nameMasking
 ): T {
-  const walk = (v: unknown, depth: number, inReferees: boolean): unknown => {
+  const walk = (v: unknown, depth: number, parentKey: string): unknown => {
     if (v === null || typeof v !== 'object' || depth > MAX_DEPTH) return v;
-    if (Array.isArray(v)) return v.map(item => walk(item, depth + 1, inReferees));
+    if (Array.isArray(v)) return v.map(item => walk(item, depth + 1, parentKey));
     const proto = Object.getPrototypeOf(v);
     if (proto !== Object.prototype && proto !== null) return v; // Date, Buffer…
+    const inPerson = PERSON_PARENT_KEYS.has(parentKey);
     const out: Record<string, unknown> = {};
     for (const [k, child] of Object.entries(v)) {
       if (PRIVATE_KEYS.has(k) || (k === 'photo' && !keepPhotos)) continue;
-      if (k === 'code' && inReferees) continue;
+      if (k === 'code' && parentKey === 'referees') continue;
       out[k] =
         typeof child === 'string'
-          ? maskName(k, child, masking)
-          : walk(child, depth + 1, k === 'referees');
+          ? k === 'name' && inPerson
+            ? masking === 'full'
+              ? child
+              : maskFullName(child, masking)
+            : maskName(k, child, masking)
+          : walk(child, depth + 1, k);
     }
     return out;
   };
-  return walk(value, 0, false) as T;
+  return walk(value, 0, '') as T;
 }
 
 /** Middleware : toutes les réponses `res.json` passent par `stripPersonalData`. */

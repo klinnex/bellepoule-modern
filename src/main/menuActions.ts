@@ -218,5 +218,6 @@ export function createMenuActions({ db, getMainWindow, onEncryptedBpm }: MenuAct
     startRemoteScoreServer,
     stopRemoteScoreServer,
     setCurrentCompetitionId,
+    getCurrentCompetitionId: (): string | null => currentCompetitionId,
   };
 }

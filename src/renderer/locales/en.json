@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "Wrong password.",
     "bpm_open_failed": "Cannot open the file.",
     "error": "Operation failed.",
+    "competition_open": "Close this person's competition (and stop its tablet server) before anonymising or erasing.",
     "export_warning": "Exports and notifications contain personal data: only send them to authorised recipients.",
     "photo_consent": "Photo: obtain the person's consent (their parents' if they are a minor).",
     "pdf_heading": "Personal data — {{name}}",

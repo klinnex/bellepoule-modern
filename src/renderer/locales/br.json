@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "Ger-tremen fall.",
     "bpm_open_failed": "Dibosupl digeriñ.",
     "error": "Oberiadenn dibosupl.",
+    "competition_open": "Serrit kevezadeg an den-mañ (hag arsavit he servijer tabletennoù) a-raok dizanvaat pe ziverkañ.",
     "export_warning": "Roadennoù personel a zo en ezporzhiadennoù hag er c'hemennoù : kasit anezho d'ar resevidi aotreet hepken.",
     "photo_consent": "Luc'hskeudenn : goulennit asant an den (hini e gerent ma'z eo minor).",
     "pdf_heading": "Roadennoù personel — {{name}}",

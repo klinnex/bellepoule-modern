@@ -3763,6 +3763,7 @@
     "bpm_wrong_password": "Falsches Passwort.",
     "bpm_open_failed": "Öffnen nicht möglich.",
     "error": "Vorgang fehlgeschlagen.",
+    "competition_open": "Schließen Sie das Turnier dieser Person (und stoppen Sie dessen Tablet-Server), bevor Sie anonymisieren oder löschen.",
     "export_warning": "Exporte und Benachrichtigungen enthalten personenbezogene Daten: nur an berechtigte Empfänger weitergeben.",
     "photo_consent": "Foto: Einwilligung der Person einholen (bei Minderjährigen der Eltern).",
     "pdf_heading": "Personenbezogene Daten — {{name}}",

@@ -121,6 +121,17 @@ export async function encryptBpmFile(filepath: string, password: string): Promis
   await fs.promises.rename(tmp, filepath);
 }
 
+/**
+ * Chiffre `src` (fichier SQLite en clair, sous userData) vers `dest` : le chemin choisi
+ * par l'utilisateur ne reçoit jamais de copie en clair (dossier synchronisé, plantage, #1882).
+ */
+export async function encryptBpmFileTo(src: string, dest: string, password: string): Promise<void> {
+  const enc = await encryptBpmBuffer(await fs.promises.readFile(src), password);
+  const tmp = `${dest}.enc-tmp`;
+  await fs.promises.writeFile(tmp, enc);
+  await fs.promises.rename(tmp, dest);
+}
+
 /** Déchiffre `src` vers `dest` (fichier SQLite) */
 export async function decryptBpmFile(src: string, dest: string, password: string): Promise<void> {
   const plain = await decryptBpmBuffer(await fs.promises.readFile(src), password);
