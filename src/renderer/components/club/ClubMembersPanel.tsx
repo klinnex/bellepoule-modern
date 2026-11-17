@@ -11,6 +11,7 @@ import {
   Download,
   FileDown,
   IdCard,
+  Pencil,
   Printer,
   QrCode,
   Plus,
@@ -27,6 +28,7 @@ import {
   type ClubImportRowStatus,
 } from '../../../shared/utils/clubImport';
 import { ClubImportModal } from './ClubImportModal';
+import { ClubMemberEditModal } from './ClubMemberEditModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
 import { resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import { exportClubMembersToFFF } from '../../../shared/utils/fencerExport';
@@ -88,6 +90,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [ageFilter, setAgeFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
   const [printing, setPrinting] = useState(false);
+  const [editing, setEditing] = useState<ClubMember | null>(null);
   const [importDraft, setImportDraft] = useState<{
     fileName: string;
     rows: ClubMemberInput[];
@@ -574,6 +577,14 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
                     <Button
                       size="sm"
                       variant="ghost"
+                      icon={<Pencil size={14} aria-hidden="true" />}
+                      aria-label={t('actions.edit')}
+                      title={t('actions.edit')}
+                      onClick={() => setEditing(m)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       icon={<RefreshCw size={14} aria-hidden="true" />}
                       aria-label={t('club.regenerate')}
                       title={t('club.regenerate')}
@@ -608,6 +619,16 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </table>
         )}
       </section>
+      {editing && (
+        <ClubMemberEditModal
+          member={editing}
+          onSave={async (id, data) => {
+            await api.updateMember(id, data);
+            await load();
+          }}
+          onClose={() => setEditing(null)}
+        />
+      )}
       {importDraft && (
         <ClubImportModal
           {...importDraft}
