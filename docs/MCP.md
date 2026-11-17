@@ -1,7 +1,7 @@
 # Agent IA — serveur MCP intégré (#1880)
 
-BellePoule Modern expose un serveur [MCP](https://modelcontextprotocol.io) **en lecture** dans le
-process main : un agent (Claude Code avec le plugin `plugins/bellepoule`, ou tout client MCP)
+BellePoule Modern expose un serveur [MCP](https://modelcontextprotocol.io) dans le process main,
+**en lecture** et, sur autorisation, en **écriture administrative** : un agent (Claude Code avec le plugin `plugins/bellepoule`, ou tout client MCP)
 interroge la salle en langage naturel.
 
 ## Activation et sécurité
@@ -36,18 +36,30 @@ interroge la salle en langage naturel.
 | `server_status` | — | Serveurs distants : URL, séance, arènes, écrans connectés |
 | `cyrano_status` | — | Appareils de piste Cyrano : port, pistes, statut, alertes |
 
-## Code
+## Outils d'écriture (lot 2)
+
+Proposés seulement si **« Autoriser l'écriture »** est coché (désactivé par défaut) ; sinon refusés.
+Chaque outil accepte `dryRun: true` (rapport sans écriture). Toute écriture prévient l'écran
+(`competition:event` : `competitions:changed`, `fencers:changed`), qui se recharge.
+
+| Outil | Arguments | Effet |
+|---|---|---|
+| `import_day` | `name`, `date`, `stripCount?`, `location?`, `competitions[]` (`title`, `weapon`, `gender`, `category`, `fencersFile?`), `refereesFile?` | Journée multi-épreuves complète ; **idempotent** : journée retrouvée par nom + date, épreuve par titre, tireurs et arbitres dédoublonnés |
+| `create_competition` | `title`, `date`, `weapon` (E/F/S), `gender` (M/F/X), `category`, `location?` | Épreuve créée avec les réglages par défaut de la fenêtre « Nouvelle compétition » (`buildDefaultCompetitionSettings`) |
+| `import_fencers` | `competitionId`, `path` (absolu ; `.xml` `.txt` `.csv` `.fff`, 5 Mo max) | Format détecté (XML FFE / cotcot, FFF, TXT) ; doublons ignorés (même licence, ou même nom et prénom) |
+| `check_in` | `competitionId`, `fencers` (ids ou dossards), `present` | Pointage ; abandons, exclusions, forfaits laissés tels quels |
+
 
 | Fichier | Rôle |
 |---|---|
-| `src/main/mcp/mcpTools.ts` | Définition et exécution des outils |
+| `src/main/mcp/mcpTools.ts` | Outils en lecture |
+| `src/main/mcp/mcpWriteTools.ts` | Outils d'écriture (lot 2) |
 | `src/main/mcp/mcpServer.ts` | Serveur HTTP JSON-RPC, jeton, contrôle Host / Origin |
 | `src/main/mcp/mcpSettings.ts` | Réglages et jeton chiffré |
 | `src/main/ipc/mcpHandlers.ts` | IPC `mcp:*`, démarrage à l'ouverture de la base |
 | `src/renderer/components/McpSettingsSection.tsx` | Section des Paramètres |
-| `plugins/bellepoule/` | Plugin Claude Code : `.mcp.json`, skill, commande `/bp-etat` |
+| `plugins/bellepoule/` | Plugin Claude Code : `.mcp.json`, skill, commandes `/bp-etat`, `/bp-journee` |
 
 ## Suite (épique #1880)
 
-Lot 2 (écriture administrative : `import_day`, `create_competition`, `check_in`, `db:changed`),
-lot 3 (orchestration sportive dans le main), paramétrage global (`app_settings`, salles).
+Lot 2 restant : serveur distant (démarrer / arrêter) ; lot 3 (orchestration sportive dans le main), paramétrage global (`app_settings`, salles).

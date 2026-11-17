@@ -494,6 +494,7 @@
     "mcp_title": "KI-Agent (MCP)",
     "mcp_hint": "Schreibgeschützter MCP-Server für Claude oder einen anderen Agenten: Wettbewerbe, Pools, Tableau, Kampfrichter, Tag, Bahnen. Nur auf 127.0.0.1, mit Token. Standardmäßig aus.",
     "mcp_enable": "MCP-Server aktivieren",
+    "mcp_allow_write": "Schreiben erlauben (Wettbewerb anlegen, Fechter importieren, einchecken)",
     "mcp_port": "Port",
     "mcp_running": "Läuft: {{url}}",
     "mcp_error": "Fehler: {{error}}",

@@ -8,7 +8,8 @@
 
 import * as http from 'http';
 import { timingSafeEqual } from 'crypto';
-import { MCP_TOOLS, McpToolError, type McpDeps } from './mcpTools';
+import { MCP_TOOLS, McpToolError } from './mcpTools';
+import { MCP_WRITE_TOOLS, type McpWriteDeps } from './mcpWriteTools';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { McpLogEntry } from '../../shared/types/mcp';
 
@@ -50,10 +51,13 @@ export function isLocalRequest(host: string | undefined, origin: string | undefi
 /** Traite un message JSON-RPC ; `null` pour une notification (pas de réponse) */
 export async function handleMcpMessage(
   msg: JsonRpcRequest,
-  deps: McpDeps,
+  deps: McpWriteDeps,
   version: string,
-  log?: (e: McpLogEntry) => void
+  log?: (e: McpLogEntry) => void,
+  /** Outils d'écriture proposés (Paramètres → « Autoriser l'écriture », lot 2) */
+  allowWrite = false
 ): Promise<object | null> {
+  const tools = [...MCP_TOOLS, ...(allowWrite ? MCP_WRITE_TOOLS : [])];
   const started = Date.now();
   const isNotification = msg.id === undefined;
   const method = typeof msg.method === 'string' ? msg.method : '';
@@ -77,9 +81,13 @@ export async function handleMcpMessage(
           capabilities: { tools: { listChanged: false } },
           serverInfo: { name: 'bellepoule-modern', title: 'BellePoule Modern', version },
           instructions:
-            'Outils en lecture sur la base BellePoule Modern du poste DT : épreuves, tireurs, poules, ' +
-            'tableau, arbitres, journée multi-épreuves, pistes, serveur distant, appareils Cyrano. ' +
-            'Commencer par list_competitions ou day_overview.',
+            'Base BellePoule Modern du poste DT : épreuves, tireurs, poules, tableau, arbitres, ' +
+            'journée multi-épreuves, pistes, serveur distant, appareils Cyrano. Commencer par ' +
+            'list_competitions ou day_overview.' +
+            (allowWrite
+              ? ' Écriture autorisée (import_day, create_competition, import_fencers, check_in) : ' +
+                'utiliser dryRun: true puis confirmer avec le DT avant d’écrire.'
+              : ''),
         },
       };
     }
@@ -91,7 +99,7 @@ export async function handleMcpMessage(
         jsonrpc: '2.0',
         id: msg.id,
         result: {
-          tools: MCP_TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({
+          tools: tools.map(({ name, title, description, inputSchema, annotations }) => ({
             name,
             title,
             description,
@@ -102,14 +110,21 @@ export async function handleMcpMessage(
       };
     case 'tools/call': {
       const name = String(msg.params?.name ?? '');
-      const tool = MCP_TOOLS.find(t => t.name === name);
+      const tool = tools.find(t => t.name === name);
       if (!tool) {
+        if (MCP_WRITE_TOOLS.some(t => t.name === name)) {
+          done(false, name);
+          return rpcError(msg.id, -32602, `Écriture désactivée dans BellePoule Modern : ${name}`);
+        }
         done(false, name);
         return rpcError(msg.id, -32602, `Outil inconnu : ${name}`);
       }
       const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;
       try {
-        const data = await tool.run(deps, args && typeof args === 'object' ? args : {});
+        const data = await (tool.run as (d: McpWriteDeps, a: Record<string, unknown>) => unknown)(
+          deps,
+          args && typeof args === 'object' ? args : {}
+        );
         done(true, name);
         return {
           jsonrpc: '2.0',
@@ -142,7 +157,8 @@ export interface McpServerOptions {
   port: number;
   token: string;
   version: string;
-  deps: McpDeps;
+  deps: McpWriteDeps;
+  allowWrite?: boolean;
 }
 
 export class McpServer {
@@ -158,7 +174,13 @@ export class McpServer {
     return this.server !== null;
   }
 
-  async start({ port, token, version, deps }: McpServerOptions): Promise<number> {
+  async start({
+    port,
+    token,
+    version,
+    deps,
+    allowWrite = false,
+  }: McpServerOptions): Promise<number> {
     await this.stop();
     const log = (e: McpLogEntry) => {
       this.logEntries.push(e);
@@ -192,13 +214,13 @@ export class McpServer {
           return send(400, rpcError(null, -32700, 'Parse error'));
         }
         const messages = (Array.isArray(body) ? body : [body]) as JsonRpcRequest[];
-        void Promise.all(messages.map(m => handleMcpMessage(m ?? {}, deps, version, log))).then(
-          results => {
-            const replies = results.filter((r): r is object => r !== null);
-            if (replies.length === 0) return send(202);
-            send(200, Array.isArray(body) ? replies : replies[0]);
-          }
-        );
+        void Promise.all(
+          messages.map(m => handleMcpMessage(m ?? {}, deps, version, log, allowWrite))
+        ).then(results => {
+          const replies = results.filter((r): r is object => r !== null);
+          if (replies.length === 0) return send(202);
+          send(200, Array.isArray(body) ? replies : replies[0]);
+        });
       });
     });
     await new Promise<void>((resolve, reject) => {

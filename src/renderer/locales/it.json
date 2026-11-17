@@ -360,6 +360,7 @@
     "mcp_title": "Agente IA (MCP)",
     "mcp_hint": "Server MCP in sola lettura per Claude o un altro agente: gare, gironi, tabellone, arbitri, giornata, pedane. Solo su 127.0.0.1, con token. Disattivato per impostazione predefinita.",
     "mcp_enable": "Attiva il server MCP",
+    "mcp_allow_write": "Consenti la scrittura (creare una gara, importare schermidori, appello)",
     "mcp_port": "Porta",
     "mcp_running": "In funzione: {{url}}",
     "mcp_error": "Errore: {{error}}",

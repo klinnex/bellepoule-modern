@@ -1335,7 +1335,7 @@ export interface PrintDialogAPI {
 }
 
 /** Types d'événements du bus de données main → renderer (#1298) */
-export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed' | 'competitions:changed';
 
 // ============================================================================
 // Cyrano API (#1720)

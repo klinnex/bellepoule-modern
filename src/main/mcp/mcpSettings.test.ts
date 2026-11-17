@@ -21,9 +21,9 @@ describe('mcpSettings (#1880)', () => {
 
   it('désactivé par défaut, port validé', () => {
     const d = dir();
-    expect(readMcpSettings(d)).toEqual({ enabled: false, port: 8067 });
-    writeMcpSettings(d, { enabled: true, port: 80 });
-    expect(readMcpSettings(d)).toEqual({ enabled: true, port: 8067 });
+    expect(readMcpSettings(d)).toEqual({ enabled: false, port: 8067, allowWrite: false });
+    writeMcpSettings(d, { enabled: true, port: 80, allowWrite: true });
+    expect(readMcpSettings(d)).toEqual({ enabled: true, port: 8067, allowWrite: true });
   });
 
   it('jeton chiffré, stable, renouvelable', () => {

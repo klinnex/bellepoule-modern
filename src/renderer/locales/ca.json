@@ -360,6 +360,7 @@
     "mcp_title": "Agent IA (MCP)",
     "mcp_hint": "Servidor MCP de només lectura per a Claude o un altre agent: proves, poules, quadre, àrbitres, jornada, pistes. Només a 127.0.0.1, amb testimoni. Desactivat per defecte.",
     "mcp_enable": "Activa el servidor MCP",
+    "mcp_allow_write": "Permet l'escriptura (crear prova, importar tiradors, passar llista)",
     "mcp_port": "Port",
     "mcp_running": "En marxa: {{url}}",
     "mcp_error": "Error: {{error}}",

@@ -130,7 +130,7 @@ const electronApi = {
   // RGPD (#1882) : droits des personnes, conservation, .bpm chiffrés
   mcp: {
     getStatus: () => ipcRenderer.invoke('mcp:getStatus'),
-    setSettings: (settings: { enabled?: boolean; port?: number }) =>
+    setSettings: (settings: { enabled?: boolean; port?: number; allowWrite?: boolean }) =>
       ipcRenderer.invoke('mcp:setSettings', settings),
     regenerateToken: () => ipcRenderer.invoke('mcp:regenerateToken'),
     getLog: () => ipcRenderer.invoke('mcp:getLog'),

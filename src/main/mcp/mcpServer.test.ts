@@ -5,7 +5,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import * as http from 'http';
 import { McpServer, handleMcpMessage, isLocalRequest, tokenMatches } from './mcpServer';
-import type { McpDeps } from './mcpTools';
+import type { McpWriteDeps } from './mcpWriteTools';
 import { FencerStatus } from '../../shared/types';
 
 const deps = {
@@ -40,7 +40,8 @@ const deps = {
   },
   remoteServers: () => [],
   cyranoStatus: () => ({ running: false }),
-} as unknown as McpDeps;
+  notify: () => {},
+} as unknown as McpWriteDeps;
 
 const call = (method: string, params?: Record<string, unknown>, id: number | undefined = 1) =>
   handleMcpMessage({ jsonrpc: '2.0', id, method, params }, deps, '1.2.3');

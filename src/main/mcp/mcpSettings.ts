@@ -12,9 +12,11 @@ import { randomBytes } from 'crypto';
 export interface McpSettings {
   enabled: boolean;
   port: number;
+  /** Outils d'écriture administrative (création, import, pointage) ; désactivé par défaut */
+  allowWrite: boolean;
 }
 
-export const DEFAULT_MCP_SETTINGS: McpSettings = { enabled: false, port: 8067 };
+export const DEFAULT_MCP_SETTINGS: McpSettings = { enabled: false, port: 8067, allowWrite: false };
 
 /** Chiffrement du système (Electron safeStorage), injecté pour les tests */
 export interface SecretBox {
@@ -39,6 +41,7 @@ export function sanitizeMcpSettings(input: Partial<McpSettings> | null | undefin
   const port = Number(input?.port);
   return {
     enabled: input?.enabled === true,
+    allowWrite: input?.allowWrite === true,
     port:
       Number.isInteger(port) && port >= 1024 && port <= 65535 ? port : DEFAULT_MCP_SETTINGS.port,
   };

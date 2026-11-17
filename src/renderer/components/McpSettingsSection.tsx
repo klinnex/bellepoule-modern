@@ -71,6 +71,16 @@ const McpSettingsSection: React.FC = () => {
         />
         {t('settings.mcp_enable')}
       </label>
+      {status.enabled && (
+        <label className="u-row" style={TOGGLE_LABEL}>
+          <input
+            type="checkbox"
+            checked={status.allowWrite}
+            onChange={e => void api.setSettings({ allowWrite: e.target.checked }).then(apply)}
+          />
+          {t('settings.mcp_allow_write')}
+        </label>
+      )}
       <div className="u-row">
         <label htmlFor="mcp-port">{t('settings.mcp_port')}</label>
         <input

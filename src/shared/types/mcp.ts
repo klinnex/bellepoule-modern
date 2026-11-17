@@ -6,6 +6,8 @@
 export interface McpStatus {
   /** Activé dans les Paramètres (désactivé par défaut) */
   enabled: boolean;
+  /** Outils d'écriture administrative autorisés (lot 2) */
+  allowWrite: boolean;
   running: boolean;
   port: number;
   /** http://127.0.0.1:<port>/mcp quand le serveur tourne */
@@ -25,7 +27,11 @@ export interface McpLogEntry {
 
 export interface McpAPI {
   getStatus: () => Promise<McpStatus>;
-  setSettings: (settings: { enabled?: boolean; port?: number }) => Promise<McpStatus>;
+  setSettings: (settings: {
+    enabled?: boolean;
+    port?: number;
+    allowWrite?: boolean;
+  }) => Promise<McpStatus>;
   regenerateToken: () => Promise<McpStatus>;
   getLog: () => Promise<McpLogEntry[]>;
 }
