@@ -7,6 +7,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRightLeft,
+  CalendarDays,
   CalendarPlus,
   Eye,
   List,
@@ -32,11 +33,13 @@ import {
 import type {
   ClubBout,
   ClubCoach,
+  ClubDateRange,
   ClubMember,
   ClubSession,
   ClubSessionFeedback,
   ClubSessionInput,
   ClubRecurrence,
+  ClubScheduleOptions,
   ClubSettings,
 } from '../../../shared/types/club';
 import { inAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
@@ -58,6 +61,7 @@ import { Weapon } from '../../../shared/types';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
+import { ClubScheduleModal } from './ClubScheduleModal';
 import { ClubCoachPicker, coachNames } from './ClubCoachPicker';
 import { ClubSessionPlanCard } from './ClubSessionPlanCard';
 import { activeSession, openClubSession, openSessions } from './clubSessionSwitch';
@@ -241,6 +245,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const [iface, setIface] = useState(loadInterface);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
   const [openDate, setOpenDate] = useState(today);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   // Arme de la séance à ouvrir : celle du club par défaut
   const [weaponChoice, setWeaponChoice] = useState<Weapon | undefined>(undefined);
   const openWeapon = weaponChoice ?? settings.weapon;
@@ -340,6 +345,36 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     });
   };
 
+  /** Séances sur jours d'ouverture (une série), puis fermetures (suppression des prévues) */
+  const generateSchedule = (data: ClubSessionInput, options: ClubScheduleOptions) => {
+    setScheduleOpen(false);
+    void run(async () => {
+      const res = await api.generateSessions(
+        clubId,
+        { ...data, planned: true, stripCount: settings.stripCount },
+        options
+      );
+      showToast(
+        t('clubSchedule.created', { count: res.created.length, skipped: res.skipped }),
+        'success'
+      );
+    });
+  };
+
+  const closePeriod = async (periods: ClubDateRange[], count: number) => {
+    setScheduleOpen(false);
+    if (count === 0) return;
+    const ok = await confirm({
+      message: t('clubSchedule.close_confirm', { count, periods: periods.length }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (!ok) return;
+    void run(async () => {
+      const n = await api.deletePlannedInPeriods(clubId, periods);
+      showToast(t('clubSchedule.deleted', { count: n }), 'success');
+    });
+  };
+
   const removePlanned = async (s: ClubSession) => {
     const ok = await confirm({
       message: t('clubPlan.delete_confirm', { date: s.date }),
@@ -423,6 +458,17 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   for (const s of sessions)
     if (!dayMarks[s.date] || s.status === 'open') dayMarks[s.date] = s.status;
 
+  const scheduleModal = scheduleOpen && (
+    <ClubScheduleModal
+      coaches={coaches}
+      sessions={sessions}
+      today={today()}
+      stripCount={settings.stripCount}
+      onClose={() => setScheduleOpen(false)}
+      onGenerate={generateSchedule}
+      onClosePeriod={(periods, count) => void closePeriod(periods, count)}
+    />
+  );
   const plannerModal = planner && (
     <ClubSessionPlanner
       session={planner.session}
@@ -551,6 +597,12 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
               onClick={() => void importPlan()}
             >
               {t('clubPlan.import_plan')}
+            </Button>
+            <Button
+              icon={<CalendarDays size={15} aria-hidden="true" />}
+              onClick={() => setScheduleOpen(true)}
+            >
+              {t('clubSchedule.open_btn')}
             </Button>
             <Button
               data-tour="club-plan-session"
@@ -683,6 +735,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           )}
         </section>
         {plannerModal}
+        {scheduleModal}
         {feedbackModal}
       </div>
     );
@@ -1030,6 +1083,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       </section>
 
       {plannerModal}
+      {scheduleModal}
       {feedbackModal}
       {attendanceOpen && (
         <ClubAttendanceModal

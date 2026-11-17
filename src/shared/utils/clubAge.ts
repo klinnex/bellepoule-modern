@@ -188,6 +188,28 @@ export function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Plafond d'une période sur jours d'ouverture (une saison environ) */
+export const MAX_SCHEDULE_DAYS = 366;
+/** Nombre de périodes par action (génération ou fermeture) */
+export const MAX_SCHEDULE_PERIODS = 10;
+/** Nombre total de dates créées par une génération */
+export const MAX_SCHEDULE_DATES = 1000;
+
+/**
+ * Dates comprises entre `from` et `until` (incluses) tombant un des jours de la semaine
+ * (0 = dimanche … 6 = samedi). Vide si une date est invalide ou si la période est inversée.
+ */
+export function weekdayDates(from: string, until: string, weekdays: readonly number[]): string[] {
+  if (!isIsoDate(from) || !isIsoDate(until) || from > until) return [];
+  const days = new Set(weekdays.filter(d => Number.isInteger(d) && d >= 0 && d <= 6));
+  if (days.size === 0) return [];
+  const out: string[] = [];
+  for (let d = from; d <= until && out.length <= MAX_SCHEDULE_DAYS; d = addDays(d, 1)) {
+    if (days.has(new Date(`${d}T00:00:00Z`).getUTCDay())) out.push(d);
+  }
+  return out;
+}
+
 /**
  * Dates d'une séance récurrente : `start`, puis tous les `everyDays` jours,
  * jusqu'à `until` (inclus) ou `count` occurrences ; 60 au plus.

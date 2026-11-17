@@ -288,6 +288,10 @@ const electronApi = {
     getSession: (id: string) => ipcRenderer.invoke('club:getSession', id),
     createSession: (clubId: string, data: unknown) =>
       ipcRenderer.invoke('club:createSession', clubId, data),
+    generateSessions: (clubId: string, data: unknown, options: unknown) =>
+      ipcRenderer.invoke('club:generateSessions', clubId, data, options),
+    deletePlannedInPeriods: (clubId: string, periods: unknown) =>
+      ipcRenderer.invoke('club:deletePlannedInPeriods', clubId, periods),
     createSeries: (clubId: string, data: unknown, recurrence: unknown) =>
       ipcRenderer.invoke('club:createSeries', clubId, data, recurrence),
     updateSession: (id: string, data: unknown) =>
