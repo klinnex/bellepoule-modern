@@ -226,3 +226,41 @@ export function stopSession(ctx: LifecycleContext): void {
   ctx.arenaEventBuffer.clear();
   ctx.clearArenaCombatState();
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const LIFECYCLE_CONTEXT_KEYS = {
+  state: [
+    'arenaCount',
+    'arenaEventBuffer',
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenaTokens',
+    'arenas',
+    'cleanupInterval',
+    'demoPlayer',
+    'host',
+    'io',
+    'isTrainingMode',
+    'kioskDataTimer',
+    'poolFencersCache',
+    'poolMatchArenaOverrides',
+    'poolSignaturesCache',
+    'port',
+    'server',
+    'session',
+    'sessionMatchScores',
+    'sessionMatches',
+    'sessionPoolArenas',
+    'tlsOptions',
+    'trainingCustomRules',
+    'unsubscribeDb',
+    'useHttps',
+  ],
+  methods: [
+    'clearArenaCombatState',
+    'getServerUrl',
+    'notifyKioskData',
+    'stopSession',
+    'updateArena',
+  ],
+} as const;

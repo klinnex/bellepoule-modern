@@ -142,3 +142,44 @@ export function createTrainingMatch(): ArenaMatch {
     endTime: null,
   };
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const TRAINING_SESSION_CONTEXT_KEYS = {
+  state: [
+    'poolFencersCache',
+    'poolSignaturesCache',
+    'sessionBlackCards',
+    'sessionMatchScores',
+    'isTrainingMode',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionCustomScoring',
+    'sessionKioskViews',
+    'sessionMatches',
+    'sessionModernRules',
+    'sessionPoolMaxScore',
+    'sessionPoolTimerSeconds',
+    'sessionRefereeFeatureEnabled',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableMaxScore',
+    'sessionTableTimerSeconds',
+    'sessionWeapon',
+    'trainingCustomRules',
+    'trainingHistory',
+    'arenas',
+    'demoPlayer',
+  ],
+  methods: [
+    'assignMatchToArena',
+    'createTrainingMatch',
+    'notifyKioskData',
+    'setArenaCount',
+    'startArenaMatch',
+    'updateArenaScore',
+    'finishArenaMatch',
+    'getScoreLimit',
+    'broadcastArenaUpdate',
+  ],
+} as const;

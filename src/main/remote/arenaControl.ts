@@ -468,3 +468,40 @@ export function handleArenaControl(
       socket.emit('error', { message: 'Action non reconnue' });
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_CONTROL_CONTEXT_KEYS = {
+  state: [
+    'SCORE_UPDATE_DEBOUNCE_MS',
+    'arenaCards',
+    'arenaEventTimes',
+    'arenaExits',
+    'arenaOvertimeType',
+    'arenaRefereeSelected',
+    'arenaSuddenDeath',
+    'arenaTouches',
+    'arenaWaitingOvertime',
+    'db',
+    'io',
+    'sessionMatchScores',
+    'isTrainingMode',
+    'scoreUpdateDebounce',
+    'session',
+    'sessionCardAnnounce',
+    'sessionMatches',
+    'trainingCustomRules',
+  ],
+  methods: [
+    'assignMatchToArena',
+    'broadcastArenaUpdate',
+    'finishArenaMatch',
+    'getArena',
+    'loadNextMatch',
+    'pauseArenaMatch',
+    'resolveReferee',
+    'logDiag',
+    'stampArenaEvents',
+    'startArenaMatch',
+    'updateArenaScore',
+  ],
+} as const;

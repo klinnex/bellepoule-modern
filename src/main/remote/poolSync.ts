@@ -192,3 +192,9 @@ export function finishPoolMatch(
   const poolId = match?.poolId ?? match?.pool?.id;
   if (poolId) notifyPoolUpdate(ctx, poolId);
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const POOL_SYNC_CONTEXT_KEYS = {
+  state: ['arenas', 'db', 'io', 'poolFencersCache', 'sessionMatches', 'sessionMatchScores'],
+  methods: ['broadcastArenaUpdate', 'resolveReferee'],
+} as const;
