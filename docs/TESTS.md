@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 104 | 842 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 117 | 599 |
+| `src/renderer/components/` | 117 | 600 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **477** | **3589** |
+| **Total** | **477** | **3590** |
 
-Unitaires : 467 fichiers, 3550 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 467 fichiers, 3551 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5475,11 +5475,12 @@ Unitaires : 467 fichiers, 3550 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 4 tests</summary>
 
 - **NewCompetitionModal**
   - crée une compétition avec le titre saisi
   - génère un titre par défaut si vide
+  - propriétés saisies à la création : appliquées à cette compétition seulement
   - le bouton annuler ferme la modale
 
 </details>
