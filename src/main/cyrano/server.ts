@@ -144,6 +144,8 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   private readonly log: CyranoFrameLogEntry[] = [];
   private readonly opts: Required<Omit<CyranoServerOptions, 'host'>> & { host?: string };
   private boundPort = 0;
+  /** HELLO envoyés à une piste `auto` jamais entendue (alternance des versions), par IP */
+  private readonly probes = new Map<string, number>();
   /** Sous-réseau de l'interface choisie : trames d'IP inconnues hors de ce réseau ignorées */
   private subnet: IPv4Subnet | null = null;
 
@@ -315,8 +317,24 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
     return this.send(piste, { command: 'HELLO' });
   }
 
+  /**
+   * HELLO à toutes les pistes. Piste en `auto` jamais entendue : la version alterne à chaque
+   * envoi (version par défaut, puis l'autre). Un appareil qui ne parle qu'EFP1 ne répond pas à
+   * un HELLO EFP1.1 : sans cette alternance, il resterait « jamais vu ».
+   */
   sendHelloAll(): void {
-    for (const p of this.pistes.values()) this.send(p.piste, { command: 'HELLO' });
+    for (const p of this.pistes.values()) {
+      const probing = (p.protocol ?? 'auto') === 'auto' && !p.detectedProtocol;
+      if (!probing) {
+        this.probes.delete(p.key);
+        this.send(p.piste, { command: 'HELLO' });
+        continue;
+      }
+      const n = this.probes.get(p.key) ?? 0;
+      this.probes.set(p.key, n + 1);
+      const fallback: CyranoProtocol = this.opts.defaultProtocol === 'EFP1' ? 'EFP1.1' : 'EFP1';
+      this.send(p.piste, { command: 'HELLO' }, undefined, n % 2 === 1 ? fallback : undefined);
+    }
   }
 
   private protocolFor(p: PisteEntry): CyranoProtocol {
@@ -327,13 +345,14 @@ export class CyranoServer extends EventEmitter<CyranoServerEvents> {
   private send(
     piste: string,
     partial: Omit<CyranoMessage, 'protocol' | 'piste' | 'compe'>,
-    compe?: string
+    compe?: string,
+    protocol?: CyranoProtocol
   ): boolean {
     const p = [...this.pistes.values()].find(e => e.piste === piste);
     if (!p || !this.socket) return false;
     const msg: CyranoMessage = {
       ...partial,
-      protocol: this.protocolFor(p),
+      protocol: protocol ?? this.protocolFor(p),
       piste: p.piste,
       compe: compe !== undefined ? sanitizeField(compe, 8) : this.opts.compe,
     };

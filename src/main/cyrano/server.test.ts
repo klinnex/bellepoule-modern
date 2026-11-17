@@ -215,3 +215,46 @@ describe('Interface d’écoute et datagrammes Saint-George', () => {
     expect(server.getLog().map(e => e.ip)).toEqual(['127.0.0.9']);
   });
 });
+
+describe('détection de la version du protocole (piste en auto)', () => {
+  const cleanup: (() => Promise<void>)[] = [];
+  afterEach(async () => {
+    while (cleanup.length) await cleanup.pop()!();
+  });
+
+  it('appareil jamais entendu : HELLO alterné EFP1.1 / EFP1, puis la version entendue', async () => {
+    const app = await fakeApparatus();
+    cleanup.push(app.close);
+    const server = new CyranoServer({ port: 0, host: '127.0.0.1', helloIntervalMs: 60_000 });
+    server.setPistes([{ piste: '1', ip: '127.0.0.1', port: app.port, arena: 1 }]);
+    cleanup.push(() => server.stop());
+    const port = await server.start();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1.1');
+    server.tick();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1');
+    server.tick();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1.1');
+    // L'appareil ne parle qu'EFP1 : il répond au HELLO EFP1, la suite reste en EFP1
+    const heard = new Promise<void>(resolve => server.once('info', () => resolve()));
+    await app.send('|EFP1|INFO|1|x||||||||||W|%|', port);
+    await heard;
+    server.tick();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1');
+    server.tick();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1');
+  });
+
+  it('version imposée : jamais d’alternance', async () => {
+    const app = await fakeApparatus();
+    cleanup.push(app.close);
+    const server = new CyranoServer({ port: 0, host: '127.0.0.1', helloIntervalMs: 60_000 });
+    server.setPistes([
+      { piste: '1', ip: '127.0.0.1', port: app.port, arena: 1, protocol: 'EFP1.1' },
+    ]);
+    cleanup.push(() => server.stop());
+    await server.start();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1.1');
+    server.tick();
+    expect(parseCyrano(await app.next())?.protocol).toBe('EFP1.1');
+  });
+});
