@@ -176,6 +176,8 @@
     "prep_drag_priority": "(перетащите, чтобы задать приоритет)",
     "prep_match_order_title": "Показать официальный порядок боёв FIE/FFE по размеру пула",
     "prep_match_order": "Порядок боёв",
+    "prep_swap_names": "Поменять имя и фамилию",
+    "prep_swap_names_title": "Фамилия перед именем (только отображение)",
     "prep_crit_club": "клуб",
     "prep_crit_region": "регион",
     "prep_crit_nation": "страна",

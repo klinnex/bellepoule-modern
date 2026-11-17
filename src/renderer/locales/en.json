@@ -176,6 +176,8 @@
     "prep_drag_priority": "(drag to set priority)",
     "prep_match_order_title": "Show the official FIE/FFE bout order by pool size",
     "prep_match_order": "Bout order",
+    "prep_swap_names": "Swap first / last name",
+    "prep_swap_names_title": "Show last name before first name (display only)",
     "prep_crit_club": "club",
     "prep_crit_region": "region",
     "prep_crit_nation": "nation",

@@ -176,6 +176,8 @@
     "prep_drag_priority": "(trascina per la priorità)",
     "prep_match_order_title": "Mostra l'ordine ufficiale FIE/FFE degli incontri per dimensione del girone",
     "prep_match_order": "Ordine degli incontri",
+    "prep_swap_names": "Inverti nome / cognome",
+    "prep_swap_names_title": "Mostra il cognome prima del nome (solo visualizzazione)",
     "prep_crit_club": "club",
     "prep_crit_region": "regione",
     "prep_crit_nation": "nazione",

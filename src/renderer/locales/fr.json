@@ -176,6 +176,8 @@
     "prep_drag_priority": "(glisser pour priorité)",
     "prep_match_order_title": "Afficher l'ordre officiel FIE/FFE des matchs par taille de poule",
     "prep_match_order": "Ordre des matchs",
+    "prep_swap_names": "Inverser prénom / nom",
+    "prep_swap_names_title": "Afficher le nom avant le prénom (présentation seule)",
     "prep_crit_club": "club",
     "prep_crit_region": "région",
     "prep_crit_nation": "nation",

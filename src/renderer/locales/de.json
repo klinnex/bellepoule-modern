@@ -320,6 +320,8 @@
     "prep_drag_priority": "(ziehen für Priorität)",
     "prep_match_order_title": "Offizielle FIE/FFE-Gefechtsreihenfolge nach Poolgröße anzeigen",
     "prep_match_order": "Gefechtsreihenfolge",
+    "prep_swap_names": "Vor- / Nachname tauschen",
+    "prep_swap_names_title": "Nachname vor Vorname anzeigen (nur Anzeige)",
     "prep_crit_club": "Verein",
     "prep_crit_region": "Region",
     "prep_crit_nation": "Nation",

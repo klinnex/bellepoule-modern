@@ -176,6 +176,8 @@
     "prep_drag_priority": "(arrastrar para priorizar)",
     "prep_match_order_title": "Mostrar el orden oficial FIE/FFE de los combates por tamaño de poule",
     "prep_match_order": "Orden de los combates",
+    "prep_swap_names": "Invertir nombre / apellido",
+    "prep_swap_names_title": "Mostrar el apellido antes que el nombre (solo visual)",
     "prep_crit_club": "club",
     "prep_crit_region": "región",
     "prep_crit_nation": "nación",

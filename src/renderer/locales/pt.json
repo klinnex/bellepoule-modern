@@ -176,6 +176,8 @@
     "prep_drag_priority": "(arraste para definir a prioridade)",
     "prep_match_order_title": "Mostrar a ordem oficial dos combates FIE/FFE segundo a dimensão da poule",
     "prep_match_order": "Ordem dos combates",
+    "prep_swap_names": "Inverter nome / apelido",
+    "prep_swap_names_title": "Mostrar o apelido antes do nome (apenas visual)",
     "prep_crit_club": "clube",
     "prep_crit_region": "região",
     "prep_crit_nation": "nação",

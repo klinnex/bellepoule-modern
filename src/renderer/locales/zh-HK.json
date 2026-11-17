@@ -176,6 +176,8 @@
     "prep_drag_priority": "（拖曳設定優先次序）",
     "prep_match_order_title": "按小組人數顯示 FIE／FFE 官方比賽次序",
     "prep_match_order": "比賽次序",
+    "prep_swap_names": "對調姓名次序",
+    "prep_swap_names_title": "姓在名之前顯示（僅影響顯示）",
     "prep_crit_club": "劍會",
     "prep_crit_region": "地區",
     "prep_crit_nation": "國家",

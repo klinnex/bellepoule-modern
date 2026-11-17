@@ -176,6 +176,8 @@
     "prep_drag_priority": "(arrossega per prioritzar)",
     "prep_match_order_title": "Mostra l'ordre oficial FIE/FFE dels combats per mida de poule",
     "prep_match_order": "Ordre dels combats",
+    "prep_swap_names": "Inverteix nom / cognoms",
+    "prep_swap_names_title": "Mostra el cognom abans del nom (només visual)",
     "prep_crit_club": "club",
     "prep_crit_region": "regió",
     "prep_crit_nation": "nació",

@@ -25,10 +25,18 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from './Toast';
 import { stripNumbers } from '../../shared/utils/stripRange';
 import { Button } from './common/Button';
-import { SkipForward, TriangleAlert } from 'lucide-react';
+import { SkipForward, TriangleAlert, UserRound } from 'lucide-react';
 import { Icon } from './common/Icon';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
+const NAMES_SWAPPED_KEY = 'bp_poolprep_names_swapped';
+
+/** Libellé d'un tireur : « Prénom N. » ou, inversé, « Nom Prénom » (présentation seule) */
+function formatFencerName(fencer: Fencer, swapped: boolean): string {
+  return swapped
+    ? `${fencer.lastName} ${fencer.firstName}`
+    : `${fencer.firstName} ${fencer.lastName.charAt(0)}.`;
+}
 
 const CRITERION_NOUN: Record<SeparationCriterionKey, string> = {
   byClub: 'pools.prep_crit_club',
@@ -194,6 +202,25 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   }, [pools, poolCount, separationCriteria, onDraftChange]);
 
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
+  // Inversion nom / prénom : présentation uniquement, sans effet sur la répartition
+  const [namesSwapped, setNamesSwapped] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(NAMES_SWAPPED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleNamesSwapped = () => {
+    setNamesSwapped(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(NAMES_SWAPPED_KEY, next ? '1' : '0');
+      } catch {
+        // stockage indisponible : inversion conservée pour la session seulement
+      }
+      return next;
+    });
+  };
   const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
     try {
       return localStorage.getItem(HINT_DISMISSED_KEY) === '1';
@@ -757,6 +784,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             {t('pools.prep_match_order')}
           </Button>
 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleNamesSwapped}
+            aria-label={t('pools.prep_swap_names')}
+            aria-pressed={namesSwapped}
+            title={t('pools.prep_swap_names_title')}
+            icon={<Icon icon={UserRound} />}
+            className={`pool-prep-swap-names${namesSwapped ? ' active' : ''}`}
+          />
+
           {conflictSummary.length > 0 && pools.length > 1 && (
             <div className="pool-prep-conflict-summary">
               {conflictSummary.map(c => (
@@ -971,9 +1009,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                           {positionOf?.(fencer) ?? fencerIndex + 1}
                         </span>
                         <span className="is-b2764b">
-                          {display
-                            ? display.label
-                            : `${fencer.firstName} ${fencer.lastName.charAt(0)}.`}
+                          {display ? display.label : formatFencerName(fencer, namesSwapped)}
                         </span>
                         {fencer.ranking != null && fencer.ranking > 0 && (
                           <span
