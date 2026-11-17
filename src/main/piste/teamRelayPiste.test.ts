@@ -447,6 +447,16 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
   describe('dernier relais : règles de fin individuelles', () => {
     const eight: [number, number][] = Array.from({ length: 8 }, () => [5, 5]);
 
+    it('END après une rencontre terminée hors de ce poste (aucun ACK donné) : NAK', () => {
+      start(
+        9,
+        Array.from({ length: 9 }, () => [5, 4] as [number, number])
+      );
+      out = [];
+      device(info('E', 9, { id: A[2], score: 45 }, { id: B[1], score: 36 }));
+      expect(out).toEqual(['NAK']);
+    });
+
     it('égalité sans priorité : NAK', () => {
       start(8, eight);
       device(info('E', 9, { id: A[2], score: 45 }, { id: B[1], score: 45 }));
@@ -470,6 +480,9 @@ describe('PisteHub — relais FIE par équipes (Type=T)', () => {
       // END répété après la fin : ACK de nouveau
       device(info('E', 9, { id: A[2], score: 45 }, { id: B[1], score: 43 }));
       expect(out[out.length - 1]).toBe('ACK');
+      // END qui n'est pas une répétition (autres tireurs) : NAK, jamais de silence
+      device(info('E', 8, { id: A[1], score: 45 }, { id: B[0], score: 43 }));
+      expect(out[out.length - 1]).toBe('NAK');
     });
   });
 

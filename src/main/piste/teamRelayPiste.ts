@@ -297,8 +297,11 @@ export class TeamRelayPiste {
       !!previous &&
       acked === relayKey(view.state.matchId, previous) &&
       !!this.sides(state, previous);
+    // Rencontre terminée : toujours une réponse, sinon l'appareil reste bloqué en E
     if (!bout || !ctx) {
-      if (repeated) this.send(piste, 'ack');
+      this.send(piste, repeated ? 'ack' : 'nak');
+      if (!repeated)
+        logger.info(LogCategory.NETWORK, `Cyrano: NAK → ${piste} (rencontre par équipes terminée)`);
       return;
     }
     const sides = this.sides(state, bout);
