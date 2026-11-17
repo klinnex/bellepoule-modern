@@ -24,7 +24,8 @@
   }
 
   /**
-   * Chrono connu du serveur pour un match en cours (reprise au redémarrage, #1829) :
+   * Chrono connu du serveur pour un match en cours (`clockSeconds` du match, renvoyé à l'arrêt
+   * à qui rejoint l'arène ; reprise au redémarrage, #1829) :
    * { time, isSuddenDeath, overtimeType } ou null. Jamais un chrono en marche.
    */
   function serverTimerOf(data) {

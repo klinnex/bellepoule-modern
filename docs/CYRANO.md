@@ -128,6 +128,15 @@ la file DE sauvegardée est rétablie. Le chrono aussi : la dernière valeur env
 persistée à chaque pause et au plus toutes les 15 s en marche, puis renvoyée en pause aux écrans
 qui rejoignent l'arène. La tablette garde de son côté son propre chrono (#1717).
 
+- **Minute de repos de l'appareil** (état `P`, `arena.resting`) : le décompte reçu est celui du
+  repos, il ne remplace pas `clockSeconds` ; le chrono du combat est de nouveau suivi à la fin du
+  repos.
+- **Tablette sans chrono local** (autre tablette, stockage vidé) : en rouvrant le match, elle
+  reprend le chrono renvoyé par le serveur (`serverTimer`, `refereeUpdate.js`), toujours à
+  l'arrêt, jamais relancé automatiquement ; son chrono local (`localStorage`, #1717) reste
+  prioritaire.
+- **`reset_scores`** efface `clockSeconds` avec les scores (en mémoire et dans l'état sauvegardé).
+
 ### 2 quinquies. Pistes partagées entre épreuves (#1878)
 
 Journée multi-épreuves : un serveur distant par épreuve, un seul serveur Cyrano. L'arène N de

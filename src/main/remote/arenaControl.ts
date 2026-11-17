@@ -144,7 +144,6 @@ export function handleArenaControl(
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
         ctx.arenaExits.set(data.arenaId, []);
         ctx.arenaEventTimes.delete(data.arenaId);
-        arena.timer = null;
       }
       break;
     case 'release_match':
@@ -400,6 +399,11 @@ export function handleArenaControl(
         ctx.arenaSuddenDeath.set(data.arenaId, false);
         ctx.arenaOvertimeType.set(data.arenaId, null);
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
+        // Chrono mémorisé du match effacé avec les scores (#1829)
+        if (arena.currentMatch.clockSeconds !== undefined) {
+          delete arena.currentMatch.clockSeconds;
+          ctx.persistArenaState(data.arenaId);
+        }
         ctx.updateArenaScore(data.arenaId, 0, 0);
         ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -466,8 +470,15 @@ export function handleArenaControl(
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
       }
       // Reprise du chrono au redémarrage (#1829) : dernière valeur gardée avec le match,
-      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche
-      if (arena.currentMatch && typeof data.time === 'number' && data.time >= 0) {
+      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche.
+      // Minute de repos de l'appareil de piste (état P, `arena.resting`) : le décompte reçu est
+      // celui du repos, il ne remplace pas le chrono du combat.
+      if (
+        arena.currentMatch &&
+        typeof data.time === 'number' &&
+        data.time >= 0 &&
+        arena.resting !== true
+      ) {
         arena.currentMatch.clockSeconds = data.time;
         const now = Date.now();
         const last = clockPersistedAt.get(data.arenaId) ?? 0;

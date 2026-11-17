@@ -738,46 +738,6 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       }
     });
 
-    it('reprise : chrono sauvegardé du match repris, à l’arrêt (#1829)', async () => {
-      const saved = {
-        ...pm(2, ID.de, ID.bc),
-        scoreA: 3,
-        scoreB: 1,
-        status: 'in_progress',
-        savedTimer: { matchId: pm(2, ID.de, ID.bc).id, time: 97.5, running: true },
-      };
-      mockDb.getArenaState.mockReturnValue({
-        arenaId: 'arena1',
-        competitionId: 'comp-1',
-        currentMatch: saved,
-        matchQueue: [],
-        settings: null,
-        status: 'in_progress',
-        updatedAt: '',
-      });
-      try {
-        remote.stopSession();
-        await remote.startSession('comp-1', 1, [
-          { __poolFencers: true, poolId: POOL, poolNumber: 1, strip: 1, fencers: [] },
-          pm(1, ID.ef, ID.ab),
-          pm(2, ID.de, ID.bc),
-          pm(3, ID.ef, ID.de),
-        ] as unknown as Parameters<RemoteScoreServer['startSession']>[2]);
-        expect(arena().currentMatch?.id).toBe(saved.id);
-        expect(arena().currentMatch).not.toHaveProperty('savedTimer');
-        // Jamais relancé automatiquement
-        expect(arena().timer).toEqual({
-          matchId: saved.id,
-          time: 97.5,
-          suddenDeath: false,
-          overtimeType: null,
-          running: false,
-        });
-      } finally {
-        mockDb.getArenaState.mockReturnValue(null);
-      }
-    });
-
     it('mode hors liste : repli sur maître', () => {
       cyrano.setPistes([
         { piste: '1', ip: DEVICE_IP, port: 50101, arena: 1, mode: 'bogus' as any },
@@ -859,40 +819,11 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
       expect(heldCards()).toEqual({ cardsA: ['yellow'], cardsB: ['red'] });
     });
 
-    it('chrono de la tablette : dernière valeur sauvegardée avec l’état de l’arène', () => {
-      tablet({ action: 'start' });
-      mockDb.saveArenaState.mockClear();
-      tablet({ action: 'pause_timer', time: 125.5, timerStatus: 'paused' });
-      const [arenaId, state] = lastCall(mockDb.saveArenaState);
-      expect(arenaId).toBe('arena1');
-      expect(state.currentMatch).toMatchObject({
-        id: pm(1, ID.ef, ID.ab).id,
-        savedTimer: { matchId: pm(1, ID.ef, ID.ab).id, time: 125.5, running: false },
-      });
-      // L'état en mémoire de l'arène n'est pas modifié
-      expect(arena().currentMatch).not.toHaveProperty('savedTimer');
-      // En marche : pas plus d'une sauvegarde toutes les 5 s
-      const t0 = Date.now();
-      const now = vi.spyOn(Date, 'now');
-      try {
-        mockDb.saveArenaState.mockClear();
-        now.mockReturnValue(t0 + 1000);
-        tablet({ action: 'update_timer', time: 124, timerStatus: 'running' });
-        expect(mockDb.saveArenaState).not.toHaveBeenCalled();
-        now.mockReturnValue(t0 + 6000);
-        tablet({ action: 'update_timer', time: 119, timerStatus: 'running' });
-        now.mockReturnValue(t0 + 7000);
-        tablet({ action: 'update_timer', time: 118, timerStatus: 'running' });
-        expect(mockDb.saveArenaState).toHaveBeenCalledTimes(1);
-        expect(arena().timer).toMatchObject({ time: 118, running: true });
-      } finally {
-        now.mockRestore();
-      }
-    });
-
-    it('minute de repos de l’appareil (état P) : décompte du repos non sauvegardé comme chrono', () => {
+    it('minute de repos de l’appareil (état P) : le décompte du repos n’écrase pas le chrono du combat', () => {
+      const clock = () => arena().currentMatch?.clockSeconds;
       device(info('H', { id: short(ID.ef), score: 2 }, { id: short(ID.ab), score: 1 }));
-      expect(arena().timer).toMatchObject({ time: 180 });
+      expect(clock()).toBe(180);
+      mockDb.saveArenaState.mockClear();
       device(
         info(
           'P',
@@ -901,7 +832,34 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
           { stopwatch: '0:42' }
         )
       );
-      expect(arena().timer).toMatchObject({ time: 180 });
+      expect(arena().resting).toBe(true);
+      expect(clock()).toBe(180);
+      // Rien de neuf à sauvegarder pendant le repos
+      expect(mockDb.saveArenaState).not.toHaveBeenCalled();
+      // Fin du repos : le chrono du combat est de nouveau suivi
+      device(
+        info(
+          'H',
+          { id: short(ID.ef), score: 2 },
+          { id: short(ID.ab), score: 1 },
+          { stopwatch: '2:30' }
+        )
+      );
+      expect(arena().resting).toBe(false);
+      expect(clock()).toBe(150);
+    });
+
+    it('reset_scores : chrono mémorisé du match effacé, en mémoire et en base', () => {
+      tablet({ action: 'start' });
+      tablet({ action: 'pause_timer', time: 125.5, timerStatus: 'paused' });
+      expect(arena().currentMatch?.clockSeconds).toBe(125.5);
+      expect(lastCall(mockDb.saveArenaState)[1].currentMatch).toMatchObject({
+        clockSeconds: 125.5,
+      });
+
+      tablet({ action: 'reset_scores' });
+      expect(arena().currentMatch).not.toHaveProperty('clockSeconds');
+      expect(lastCall(mockDb.saveArenaState)[1].currentMatch).not.toHaveProperty('clockSeconds');
     });
   });
 });
