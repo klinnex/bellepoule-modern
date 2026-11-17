@@ -210,7 +210,9 @@ appareil ◀─trames─── pilote ◀─────────────
   numéro illisible) est rejetée avant l'arène, journalisée (`logger.warn`) et gardée dans un journal
   borné (`getRejections`). Les entrées de la tablette passent sans contrôle (chemin `arena_control`
   inchangé). Une piste passée hors ligne est oubliée (`forget`) : un appareil redémarré peut
-  reprendre sa numérotation.
+  reprendre sa numérotation. **Avec Cyrano, elle ne rejette rien** : le protocole ne numérote
+  pas ses trames, le pilote numérote à la réception (toujours croissant) ; un INFO dupliqué ou
+  désordonné sur le réseau n'est pas détecté. C'est le socle des protocoles numérotés à venir.
 - Nouveau pilote (RS422-FPA, Favero série, OPP2/MQTT) : implémenter `PisteDriver`, le passer au
   `PisteHub` (`main.ts`). Un seul pilote par hub pour l'instant ; le pseudo-socket des entrées
   d'appareil reste `cyrano:<piste>` (verrou appareil maître, `cyranoLock.ts`).

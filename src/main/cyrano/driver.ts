@@ -3,7 +3,8 @@
  * Adaptateur `CyranoServer` ↔ `PisteDriver` :
  * - INFO / NEXT / PREV → `PisteInput` (état normalisé, n° de séquence croissant par piste) ;
  * - `PisteCommand` → DISP / ACK / NAK.
- * Le protocole Cyrano ne numérote pas ses trames : la séquence est attribuée à la réception.
+ * Le protocole Cyrano ne numérote pas ses trames : la séquence est attribuée à la réception,
+ * toujours croissante ; l'ArenaInputGate ne rejette donc aucune entrée Cyrano.
  * Licensed under GPL-3.0
  */
 

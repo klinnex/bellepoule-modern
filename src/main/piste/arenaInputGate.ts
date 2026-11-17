@@ -6,6 +6,11 @@
  * accepté pour la même source, sur la même arène, est rejetée (trame en double ou arrivée
  * dans le désordre) et tracée. Les entrées de la tablette passent sans contrôle : elles
  * suivent leur propre chemin (`arena_control`, anti-rebond, verrou appareil maître).
+ *
+ * Portée réelle : socle pour les protocoles qui numérotent leurs trames (OPP2/MQTT…). Avec
+ * Cyrano, qui ne numérote pas ses trames, le pilote attribue le numéro à la réception : il
+ * croît toujours et la barrière ne rejette rien. Elle ne détecte pas un INFO Cyrano dupliqué
+ * ou arrivé dans le désordre sur le réseau.
  * Licensed under GPL-3.0
  */
 
