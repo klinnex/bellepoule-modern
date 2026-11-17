@@ -10,8 +10,9 @@
 > import / export de la liste.
 > Validation de fin unifiée : règles uniques dans `src/shared/utils/matchEndValidation.ts`,
 > partagées par l'appareil, la tablette et la fin de match d'arène.
-> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, test de bout
-> en bout en CI.
+> Cartons P (EFP1.1) lus sur l'appareil et repris dans le `DISP` ; test de bout en bout
+> (`e2e.test.ts`, UDP réel, lancé avec les tests unitaires en CI).
+> Restent : bouton PREV de la tablette, équipes, couche multi-protocole.
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -162,15 +163,16 @@ terminé sur l'arène, ou match suivant en file) :
 
 ### 2 sexies. Cartons sur les feuilles imprimées (#1829)
 
-Tous les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
-figurent sur les feuilles imprimées ou exportées en PDF, par tireur : blanc, jaune, rouge (avec leur
-nombre), noir, puis les **cartons P à part** (P rouge, P noir), comme le veut le règlement FIE
-(t.124.3.e). Lecture en une requête (`db.getCardsByMatchIds`).
+Les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
+figurent sur les feuilles imprimées ou exportées en PDF, par tireur. Même décompte sur les deux
+feuilles (`cardsSummaryHTML`, `poolPdf.ts`) : libellés traduits (`pdf.card_*` : Blanc, Jaune,
+Rouge, Noir, Jaune P, Rouge P, Noir P), nombre si plus d'un (« Rouge ×2 »), et **cartons P à
+part** des cartons de faute, comme le veut le règlement FIE (t.124.3.e).
 
-| Feuille | Rendu |
-|---|---|
-| Feuille de poule (impression, PDF d'une poule ou de toutes) | section « Cartons » sous la grille : un tireur par ligne (numéro, nom, cartons reçus dans la poule), seulement ceux qui en ont |
-| Feuille de match de tableau (feuilles d'arbitrage) | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur ; vide (à remplir à la main) sans carton enregistré. Un match saisi à distance est relu sous son id composite `<compétition>-<match>` |
+| Feuille | Lecture | Rendu |
+|---|---|---|
+| Feuille de poule (impression d'une poule, impression ou PDF de toutes) | `withMatchCards` (`renderer/services/poolCards.ts`) : cartons des matchs terminés joints aux matchs (`db.getCards`) | `poolCardsSectionHTML` : section « Cartons » (élément `cards` des modèles, imprimée même avec un modèle antérieur), une ligne par tireur sanctionné, colonnes « Cartons » et « Cartons P (non-combativité) » |
+| Feuille de match de tableau (feuilles d'arbitrage) | `loadDECards` (`tableauDialogState.ts`) : une requête (`db.getCardsByMatchIds`) ; un match saisi à distance est relu sous son id composite `<compétition>-<match>` | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur : cartons de faute, puis cartons P dessous ; vide (à remplir à la main) sans carton enregistré |
 
 ### Supervision
 
@@ -307,8 +309,9 @@ Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise de
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
 base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
 
-Livré ensuite (#1829) : cartons de la feuille de poule imprimée, **cartons P à part**
-(t.124.3.e) ; reprise du chrono au redémarrage (§ 2 quater) ; **rapport d'exclusion pré-rempli**
+Livré ensuite (#1829) : cartons de la feuille de poule et de la feuille de match de tableau
+imprimées, **cartons P à part** (t.124.3.e, § 2 sexies) ; reprise du chrono au redémarrage
+(§ 2 quater) ; **rapport d'exclusion pré-rempli**
 pour la FFE (carton noir, annexe 14 : Résultats → Export → « Rapport FFE (carton noir) »).
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;

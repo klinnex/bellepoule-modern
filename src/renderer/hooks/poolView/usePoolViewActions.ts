@@ -15,7 +15,6 @@ import { specialStatusOutcome } from '../../components/pool/poolSpecialStatus';
 import type { PoolViewProps } from '../../components/pool/poolViewTypes';
 import { usePoolViewInput } from './usePoolViewInput';
 import { usePoolViewState } from './usePoolViewState';
-import { loadPoolCards } from '../../utils/poolPrintCards';
 import { withMatchCards } from '../../services/poolCards';
 
 type Ctx = PoolViewProps &
@@ -281,8 +280,6 @@ export function usePoolViewActions(ctx: Ctx) {
     const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
     const sigsArray = await window.electronAPI.db.getPoolSignatures(pool.id);
     const signatures = Object.fromEntries(sigsArray.map(s => [s.fencerId, s.signatureData]));
-    // Cartons reçus dans la poule, imprimés par tireur (#1829)
-    const cards = (await loadPoolCards([pool]))[pool.id];
     return {
       title: `Poule ${pool.number} - ${pool.fencers.length} tireurs`,
       includeFinishedMatches: true,
@@ -295,7 +292,6 @@ export function usePoolViewActions(ctx: Ctx) {
       hideStatColumns: pdfHideStatColumns,
       landscape: pdfLandscape,
       signatures,
-      cards,
       stripQrUrl: stripQr?.url,
       stripNumber: stripQr?.strip,
     };

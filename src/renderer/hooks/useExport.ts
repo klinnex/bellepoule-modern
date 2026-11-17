@@ -29,7 +29,6 @@ import {
   toNativeRootTag,
 } from '../../shared/utils/gregPublication';
 import type { PoolStripQr } from '../../shared/utils/pdfExport';
-import { loadPoolCards } from '../utils/poolPrintCards';
 import { withMatchCards } from '../services/poolCards';
 
 /** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
@@ -291,8 +290,7 @@ export const useExport = ({
           logo,
           poolTemplate,
           competition.title,
-          buildStripQrs(pools, remote),
-          await loadPoolCards(pools)
+          buildStripQrs(pools, remote)
         );
         showToast(`Export PDF de ${pools.length} poules généré avec succès`, 'success');
       } catch (error) {
@@ -318,8 +316,7 @@ export const useExport = ({
           logo,
           poolTemplate,
           competition.title,
-          buildStripQrs(pools, remote),
-          await loadPoolCards(pools)
+          buildStripQrs(pools, remote)
         );
       } catch (error) {
         logger.error(LogCategory.UI, "Erreur lors de l'impression des poules", error as Error);
