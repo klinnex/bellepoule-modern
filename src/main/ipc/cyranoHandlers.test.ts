@@ -64,6 +64,22 @@ describe('cyranoHandlers — table des pistes', () => {
     expect(call('cyrano:getRoutes')).toEqual({ '3': 'comp-b' });
   });
 
+  it('table modifiée serveur démarré : HELLO envoyé aussitôt', () => {
+    handlers.clear();
+    const cyranoServer = { running: true, setPistes: vi.fn(), sendHelloAll: vi.fn() };
+    registerCyranoHandlers({
+      cyranoServer: cyranoServer as never,
+      pisteHub: { syncPisteModes: vi.fn() } as never,
+      db: { getCyranoPistes: () => [], replaceCyranoPistes: () => {} },
+    });
+    handlers.get('cyrano:setPistes')!({}, [{ piste: '1', ip: '10.0.0.1' }]);
+    expect(cyranoServer.setPistes).toHaveBeenCalled();
+    expect(cyranoServer.sendHelloAll).toHaveBeenCalledTimes(1);
+    cyranoServer.running = false;
+    handlers.get('cyrano:setPistes')!({}, []);
+    expect(cyranoServer.sendHelloAll).toHaveBeenCalledTimes(1);
+  });
+
   it('entrées invalides refusées', () => {
     const { call } = setup({});
     expect(call('cyrano:loadPistes', 42)).toEqual([]);

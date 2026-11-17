@@ -27,6 +27,22 @@ export function normalizeStripPlan(input: unknown): StripPlan {
   return { start, unavailable };
 }
 
+/**
+ * Première piste libre de l'épreuve pour une poule sans piste : dans son intervalle (≥ piste de
+ * départ, ≤ `max`), hors pistes indisponibles et déjà prises. null : la poule attend une piste
+ * (jamais placée sur une piste masquée, qui peut être celle d'une autre épreuve de la journée).
+ */
+export function nextFreeStrip(
+  plan: StripPlan,
+  used: ReadonlySet<number>,
+  max: number
+): number | null {
+  for (let n = plan.start; n <= max; n++) {
+    if (!used.has(n) && !plan.unavailable.includes(n)) return n;
+  }
+  return null;
+}
+
 /** Arènes visibles : celles dont le numéro est dans l'intervalle (≥ piste de départ). */
 export function visibleArenas<T extends Pick<Arena, 'number'>>(arenas: T[], plan: StripPlan): T[] {
   return arenas.filter(a => a.number >= plan.start);

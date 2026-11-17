@@ -9,6 +9,7 @@ import { getActiveFormula } from '../../shared/utils/customFormulaSettings';
 import type { RendererMatch, SessionMatch } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { nextFreeStrip } from './stripPlan';
 
 type S = RemoteScoreServer;
 
@@ -36,6 +37,7 @@ export interface SessionStartContext {
   sessionShowPhotos: S['sessionShowPhotos'];
   sessionWeapon: S['sessionWeapon'];
   readonly setArenaCount: S['setArenaCount'];
+  readonly stripPlan: S['stripPlan'];
 }
 
 export async function startSession(
@@ -275,17 +277,17 @@ export async function startSession(
   // Piste cible par poule : pool.strip si défini, sinon première piste libre (ordre des poules)
   const poolArenaMap = new Map<string, number>();
   const usedStrips = new Set(poolStripMap.values());
-  let nextFreeStrip = 1;
   for (const [poolId] of sortedPoolEntries) {
     const assigned = poolStripMap.get(poolId);
     if (assigned) {
       poolArenaMap.set(poolId, assigned);
       continue;
     }
-    while (usedStrips.has(nextFreeStrip)) nextFreeStrip++;
-    if (nextFreeStrip > strips) continue;
-    poolArenaMap.set(poolId, nextFreeStrip);
-    usedStrips.add(nextFreeStrip);
+    // Dans l'intervalle de l'épreuve seulement : sinon la poule attend une piste (#1878)
+    const free = nextFreeStrip(ctx.stripPlan, usedStrips, strips);
+    if (free === null) continue;
+    poolArenaMap.set(poolId, free);
+    usedStrips.add(free);
   }
 
   ctx.sessionPoolArenas = poolArenaMap;
@@ -483,6 +485,7 @@ export const SESSION_START_CONTEXT_KEYS = {
     'sessionRefereeFeatureEnabled',
     'sessionShowPhotos',
     'sessionWeapon',
+    'stripPlan',
   ],
   methods: [
     'applyCompetitionSettings',

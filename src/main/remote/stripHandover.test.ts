@@ -129,6 +129,34 @@ describe('stripHandover — travail en attente et piste libérée (#1878)', () =
     expect(day().getWaitingWork()).toEqual([]);
   });
 
+  it('épreuve sur les pistes 3–4 : la poule sans piste attend, jamais placée sur une piste masquée', async () => {
+    server.setStripPlan({ start: 3, unavailable: [] });
+    await server.startSession('c1', 4, [
+      poolMarker('p1', 1, 3),
+      poolMatch('p1', 1, 'a', 'b'),
+      poolMarker('p2', 2, 4),
+      poolMatch('p2', 1, 'c', 'd'),
+      poolMarker('p3', 3),
+      poolMatch('p3', 1, 'e', 'f'),
+    ] as never);
+    // Les pistes 1 et 2 sont celles d'une autre épreuve de la journée
+    expect(server.getArena('arena1')?.currentMatch).toBeNull();
+    expect(server.getArena('arena2')?.currentMatch).toBeNull();
+    expect(day().getWaitingWork()).toEqual([
+      { kind: 'pool', poolId: 'p3', poolNumber: 3, fromArena: null },
+    ]);
+    // Répartition renvoyée par le renderer : même règle
+    server.assignPools([
+      { poolId: 'p1', poolNumber: 1, strip: 3, matches: [poolMatch('p1', 1, 'a', 'b')] },
+      { poolId: 'p2', poolNumber: 2, strip: 4, matches: [poolMatch('p2', 1, 'c', 'd')] },
+      { poolId: 'p3', poolNumber: 3, strip: null, matches: [poolMatch('p3', 1, 'e', 'f')] },
+    ] as never);
+    expect(server.getArena('arena1')?.currentMatch).toBeNull();
+    // Piste 5 de la salle libérée : la poule 3 y est accueillie
+    expect(day().moveWorkToArena(day().getWaitingWork()[0], 5)).toBe(true);
+    expect(server.getArena('arena5')?.currentMatch?.poolId).toBe('p3');
+  });
+
   it('piste sous la plage de l’épreuve ou indisponible', async () => {
     await server.startSession('c1', 4, [
       poolMarker('p1', 1, 3),
