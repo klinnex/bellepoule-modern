@@ -1,12 +1,13 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : menu global des séances, visible depuis tous
  * les onglets du club. Séance ouverte (fermeture) et séances prévues à l'avance
- * (ouverture ; la séance en cours est fermée d'abord, après confirmation).
+ * (ouverture) ou passées (réouverture) ; la séance en cours est fermée d'abord, après
+ * confirmation.
  * Licensed under GPL-3.0
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, ClipboardList, Lock, Play } from 'lucide-react';
+import { CalendarClock, ClipboardList, Lock, Play, Unlock } from 'lucide-react';
 import type { ClubSession } from '../../../shared/types/club';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -15,6 +16,7 @@ import { Modal } from '../common/Modal';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { ageRangeText } from './ClubAgeRange';
+import { switchClubSession } from './clubSessionSwitch';
 
 interface ClubSessionMenuProps {
   clubId: string;
@@ -58,6 +60,10 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
   const planned = sessions
     .filter(s => s.status === 'planned')
     .sort((a, b) => a.date.localeCompare(b.date));
+  const past = sessions
+    .filter(s => s.status === 'closed')
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
 
   const describe = (s: ClubSession) =>
     [s.label ?? '', ageRangeText(s, t), s.weapon ? weaponLabel(s.weapon, t) : '']
@@ -95,17 +101,17 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
   };
 
   const start = async (s: ClubSession) => {
+    if (current?.id === s.id) return;
     if (current) {
       const ok = await confirmClose(
         current,
         t('clubSessionMenu.switch_confirm', { from: current.date, to: s.date }),
-        t('clubSessionMenu.open')
+        s.status === 'closed' ? t('clubSession.reopen') : t('clubSessionMenu.open')
       );
       if (!ok) return;
     }
     await act(async () => {
-      if (current) await api.closeSession(current.id);
-      await api.startSession(s.id);
+      await switchClubSession(api, current, s);
       showToast(t('clubSessionMenu.opened', { date: s.date }), 'success');
     });
   };
@@ -196,6 +202,30 @@ export const ClubSessionMenu: React.FC<ClubSessionMenuProps> = ({
                 </li>
               ))}
             </ul>
+          )}
+          {past.length > 0 && (
+            <>
+              <h3 className="club-card-title">{t('clubSession.past')}</h3>
+              <ul className="club-session-menu-list">
+                {past.map(s => (
+                  <li key={s.id} className="club-row club-row--between club-session-menu-row">
+                    <span>
+                      <span className="font-medium">{s.date}</span>
+                      {describe(s) ? ` · ${describe(s)}` : ''}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={<Unlock size={14} aria-hidden="true" />}
+                      disabled={busy}
+                      onClick={() => void start(s)}
+                    >
+                      {t('clubSession.reopen')}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Modal>
       )}

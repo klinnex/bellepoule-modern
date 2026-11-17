@@ -3892,6 +3892,9 @@
     "open": "Öffnen",
     "today": "heute",
     "opened": "Training vom {{date}} geöffnet",
-    "switch_confirm": "Training vom {{from}} schließen und das vom {{to}} öffnen?"
+    "switch_confirm": "Training vom {{from}} schließen und das vom {{to}} öffnen?",
+    "switch": "Training wechseln",
+    "switch_to": "Wechseln zu Training…",
+    "past_tag": "vergangen"
   }
 }

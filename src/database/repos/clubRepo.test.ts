@@ -479,6 +479,15 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
       expect(repo.reopenSession(s.id)).toMatchObject({ status: 'open', closedAt: undefined });
     });
 
+    it('réouverture refusée si une autre séance est ouverte', () => {
+      const old = repo.createSession(cid, { date: '2026-11-10' });
+      repo.closeSession(old.id);
+      const cur = repo.createSession(cid, { date: '2026-11-16' });
+      expect(() => repo.reopenSession(old.id)).toThrow('Une séance est déjà ouverte');
+      repo.closeSession(cur.id);
+      expect(repo.reopenSession(old.id)!.status).toBe('open');
+    });
+
     it('suppression : combats et présences effacés', () => {
       const [a, b] = [member('A'), member('B')];
       const s = repo.createSession(cid, { date: '2026-11-16' });

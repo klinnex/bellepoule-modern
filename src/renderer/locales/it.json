@@ -3892,6 +3892,9 @@
     "open": "Apri",
     "today": "oggi",
     "opened": "Sessione del {{date}} aperta",
-    "switch_confirm": "Chiudere la sessione del {{from}} e aprire quella del {{to}}?"
+    "switch_confirm": "Chiudere la sessione del {{from}} e aprire quella del {{to}}?",
+    "switch": "Cambia sessione",
+    "switch_to": "Passa alla sessione…",
+    "past_tag": "passata"
   }
 }

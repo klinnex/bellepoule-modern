@@ -34,6 +34,7 @@ const setup = (sessions: unknown[]) => {
     listBouts: vi.fn().mockResolvedValue([]),
     closeSession: vi.fn(),
     startSession: vi.fn(),
+    reopenSession: vi.fn(),
   };
   (window as unknown as { electronAPI: unknown }).electronAPI = { club: api };
 };
@@ -68,6 +69,16 @@ describe('ClubSessionMenu', () => {
     expect(api.closeSession.mock.invocationCallOrder[0]).toBeLessThan(
       api.startSession.mock.invocationCallOrder[0]
     );
+  });
+
+  it('rouvre une séance passée en fermant la séance ouverte', async () => {
+    setup([s('o', '2026-11-17', 'open'), s('c', '2026-11-10', 'closed')]);
+    render(<ClubSessionMenu clubId="c1" revision={0} onChanged={vi.fn()} onPrepare={vi.fn()} />);
+    fireEvent.click(await screen.findByText(/Séance du .* ouverte/));
+    fireEvent.click(await screen.findByText('Rouvrir'));
+    await waitFor(() => expect(api.reopenSession).toHaveBeenCalledWith('c'));
+    expect(api.closeSession).toHaveBeenCalledWith('o');
+    expect(api.startSession).not.toHaveBeenCalled();
   });
 
   it('refus de confirmation : rien ne change', async () => {
