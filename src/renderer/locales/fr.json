@@ -3243,6 +3243,7 @@
     "eta": "Fin estimée",
     "all_done": "Terminé",
     "eta_default": "Estimation par défaut (moins de 3 matchs chronométrés)",
+    "eta_cadence": "{{match}} min par match (dont {{gap}} min entre deux matchs) · {{strips}} piste(s) en parallèle, une poule par piste",
     "deviation": "Écart au planning",
     "on_time": "À l’heure",
     "late_by": "{{n}} min de retard",

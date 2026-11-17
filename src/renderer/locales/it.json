@@ -3243,6 +3243,7 @@
     "eta": "Fine stimata",
     "all_done": "Terminato",
     "eta_default": "Stima predefinita (meno di 3 assalti cronometrati)",
+    "eta_cadence": "{{match}} min per assalto (di cui {{gap}} min tra due assalti) · {{strips}} pedana/e in parallelo, un girone per pedana",
     "deviation": "Scostamento dal programma",
     "on_time": "In orario",
     "late_by": "{{n}} min di ritardo",

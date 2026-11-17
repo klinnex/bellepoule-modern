@@ -3243,6 +3243,7 @@
     "eta": "預計結束",
     "all_done": "已完成",
     "eta_default": "預設估算（少於 3 場計時比賽）",
+    "eta_cadence": "每場 {{match}} 分鐘（含場間 {{gap}} 分鐘）· {{strips}} 條劍道並行，每組一條劍道",
     "deviation": "與計劃偏差",
     "on_time": "準時",
     "late_by": "延誤 {{n}} 分鐘",

@@ -3243,6 +3243,7 @@
     "eta": "Fin diouzh ar jedadenn",
     "all_done": "Echu",
     "eta_default": "Jedadenn dre ziouer (nebeutoc’h eget 3 emgann muzuliet)",
+    "eta_cadence": "{{match}} min dre emgann (gant {{gap}} min etre daou emgann) · {{strips}} roudenn a-gevred, ur poulenn dre roudenn",
     "deviation": "Diforc’h gant an deiziadur",
     "on_time": "D’an eur",
     "late_by": "{{n}} munut dale",

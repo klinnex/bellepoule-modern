@@ -3243,6 +3243,7 @@
     "eta": "Fin estimada",
     "all_done": "Terminado",
     "eta_default": "Estimación por defecto (menos de 3 asaltos cronometrados)",
+    "eta_cadence": "{{match}} min por combate (incl. {{gap}} min entre combates) · {{strips}} pista(s) en paralelo, una poule por pista",
     "deviation": "Desviación del horario",
     "on_time": "A tiempo",
     "late_by": "{{n}} min de retraso",

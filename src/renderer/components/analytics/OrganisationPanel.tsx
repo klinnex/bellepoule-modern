@@ -204,7 +204,21 @@ export const OrganisationPanel: React.FC<{
                   ? t('organisation.all_done')
                   : '—'
           }
-          etaHint={kpis.etaBasis === 'default' ? t('organisation.eta_default') : undefined}
+          etaHint={
+            kpis.poolsEtaAt != null ? (
+              <>
+                {/* Base du calcul affichée (#1817) */}
+                <div>
+                  {t('organisation.eta_cadence', {
+                    match: Math.round(kpis.cadence.perMatchMs / 60_000),
+                    gap: Math.round(kpis.cadence.changeoverMs / 60_000),
+                    strips: kpis.cadence.strips,
+                  })}
+                </div>
+                {kpis.etaBasis === 'default' && <div>{t('organisation.eta_default')}</div>}
+              </>
+            ) : undefined
+          }
           deviationLabel={t('organisation.deviation_pools')}
           deviationMin={poolsDeviation}
           plannedLabel={
