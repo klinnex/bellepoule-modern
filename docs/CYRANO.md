@@ -12,7 +12,8 @@
 > partagées par l'appareil, la tablette et la fin de match d'arène.
 > **Couche multi-protocole** (§ 2 sexies) : modèle commun `src/main/piste/`, pilote Cyrano,
 > barrière d'entrée des arènes (`ArenaInputGate`). **Équipes** (`Type=T`, § 2 septies) : relais FIE
-> de l'arène `/equipe{N}` sur l'appareil (relais, cumuls, remplaçant, NEXT / PREV).
+> de l'arène `/equipe{N}` sur l'appareil (relais, cumuls, cartons de la rencontre, remplaçant,
+> NEXT / PREV, verrou de la tablette équipe).
 > Restent : bouton PREV de la tablette, pilotes RS422-FPA / Favero / OPP2-MQTT, équipes au format
 > « arène laser », vainqueur imposé en fin de rencontre par équipes, cartons d'appareil en équipes
 > (sans motif : non enregistrés comme cartons individuels).
@@ -227,22 +228,33 @@ l'équipe (`isReserve`). La tablette saisit les touches du relais en cours, le c
 « relais suivant » enregistre le relais (`advanceTeamBout`).
 
 Raccordement : une piste rattachée à l'arène N suit l'arène équipe `N` quand une rencontre en
-relais FIE y est assignée (`setTeamArenaMatch`) ; sinon l'arène individuelle `arena{N}`. Toute
+relais FIE y a un **relais en cours** (même critère pour le routage et le traitement des
+entrées) ; sinon l'arène individuelle `arena{N}`. Une rencontre terminée encore assignée ne
+reçoit END répété et PREV que si l'arène individuelle N n'a aucune affectation. Toute
 modification de l'arène équipe (tablette, DT, appareil) prévient le hub (`cyranoTeamHook`).
 
 | Sens | Effet |
 |---|---|
-| DISP | `Type=T`, `Round` = n° du relais (1 à 9), zones tireur = tireurs du relais en cours (Id, nom en base, nation = équipe ; pays si compétition internationale ou source « pays »), **scores cumulés** de l'équipe ; phase / poule / match omis. Rencontre terminée ou retirée : DISP vide |
-| INFO actif | score cumulé → score du relais en cours (cumul − relais terminés ; un cumul inférieur aux relais terminés est ignoré, tracé, et le cumul de l'arène renvoyé) ; cartons de l'appareil reportés au relais en cours (`deviceCards`, état en mémoire : l'appareil ne donne pas le motif) ; chrono du relais (3 min − temps restant) |
-| END d'un relais intermédiaire | toujours correct : ACK, relais enregistré, puis DISP du relais suivant avec les cumuls (l'appareil ne remet pas les scores à zéro au BEGIN). END répété (ACK perdu) : nouvel ACK |
+| DISP | `Type=T`, `Round` = n° du relais (1 à 9), zones tireur = tireurs du relais en cours (Id, nom en base, nation = équipe ; pays si compétition internationale ou source « pays »), **scores cumulés** de l'équipe ; cartons déjà reçus par chacun des deux tireurs **dans la rencontre** (ils se cumulent d'un relais à l'autre : dernier relais tiré vu par l'appareil et cartons de la tablette, par type le plus grand compte) ; phase / poule / match omis. Rencontre terminée ou retirée : DISP vide (sans effacer un match individuel affiché entre-temps) |
+| INFO actif | score cumulé → score du relais en cours (cumul − relais terminés). Mêmes bornes que la tablette : un cumul inférieur aux relais terminés ou au-delà du palier du relais (`relayCapFor` : n × 5, plafonné à 45) est ignoré, tracé, et le cumul de l'arène renvoyé ; cartons de l'appareil reportés au relais en cours (`deviceCards`, état en mémoire : l'appareil ne donne pas le motif) ; chrono du relais (3 min − temps restant) |
+| END d'un relais intermédiaire | correct (égalité comprise) : ACK, relais enregistré, puis DISP du relais suivant avec les cumuls (l'appareil ne remet pas les scores à zéro au BEGIN). END répété (ACK perdu) : nouvel ACK. Tireur en abandon (`A`) ou exclusion (`E`) : NAK tracé (vainqueur imposé non enregistrable, jamais perdu en silence) ; cumul au-delà du palier : NAK |
 | END du dernier relais | règles de fin individuelles (`validatePisteEnd`) ; vainqueur imposé (priorité à égalité, abandon, exclusion) → NAK tracé : le modèle d'équipe déduit le vainqueur du cumul, à saisir par le DT |
+| END après la fin de la rencontre | répétition du dernier relais acquitté : ACK ; sinon NAK (jamais sans réponse) |
 | Remplaçant (`R11` / `L11` = `R`) | équipes seulement (en individuel : refusé, tracé) ; le remplaçant de l'équipe prend la place du tireur de la zone dans ses relais suivants non tirés (`team_bouts` mis à jour). Refusé et tracé : pas de remplaçant, remplaçant déjà présent dans la rencontre, plus de relais pour ce tireur. Demande répétée dans chaque INFO : traitée une fois |
 | NEXT | ne saute jamais un relais : relais en cours renvoyé ; rencontre terminée → DISP vide (rencontre suivante assignée par le DT) |
-| PREV | rappel du relais précédent (repasse en cours avec son score) si le relais en cours n'a pas commencé, ou après la fin de la rencontre ; sinon relais en cours renvoyé. Nouvel END → réenregistré |
+| PREV | rappel du relais précédent (repasse en cours avec son score) si le relais en cours n'a pas commencé, ou après la fin de la rencontre ; la rencontre est recalculée en base (`reopenTeamBout` : statut en cours, vainqueur effacé, scores et relais courant). Sinon relais en cours renvoyé. Nouvel END → réenregistré |
 | BAD MATCH | tireurs d'un autre relais : alerte (`equipe{N}`), END → NAK |
 
 Modes : afficheur → DISP seul, END → NAK ; arme laser → affichage seul ; format « arène laser »
 non raccordé (assauts indépendants, pas de relais).
+
+**Verrou de la tablette équipe** (même décision qu'en individuel) : le hub publie le mode et la
+liaison de l'appareil sur l'arène équipe (`cyrano`). Appareil maître et en ligne → la tablette ne
+peut ni ajouter de touche ou de carton (équipe ou tireur), ni passer au relais suivant, ni remettre
+le relais à zéro : refus côté serveur (`team_touch` > 0, `team_card`, `team_fencer_card`,
+`team_reset_bout`, `team_advance_bout` → état renvoyé, trace) et côté tablette (bandeau,
+notification). Retrait d'une touche toujours permis (bouton −1, `team_touch` -1) ; il est renvoyé
+à l'appareil par un DISP.
 
 ### Supervision
 
