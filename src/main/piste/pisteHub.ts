@@ -39,6 +39,7 @@ import type {
   PisteLink,
   PisteMode,
   PisteNameLength,
+  PisteNotice,
   PisteState,
 } from './types';
 
@@ -60,20 +61,6 @@ export interface PisteAlert {
   arena: string;
   /** Noms affichés par l'appareil (droite – gauche) */
   device: string;
-}
-
-/**
- * Fait signalé au DT sans alerte persistante : abandon ou exclusion annoncé par l'appareil à
- * la fin d'un relais intermédiaire (fin toujours acquittée, spéc. Cyrano § 4).
- */
-export interface PisteNotice {
-  kind: 'team_out';
-  /** Arène équipe de la piste */
-  arena: string;
-  relay: number;
-  reason: 'abandon' | 'exclusion';
-  /** Nom du tireur tel que l'appareil l'affiche */
-  fencer: string;
 }
 
 /** Dernier état connu de l'appareil (affichage envoyé ou état reçu) : évite les échos. */

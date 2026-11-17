@@ -38,8 +38,15 @@ import {
   validatePisteEnd,
   type PisteSides,
 } from './pisteState';
-import type { DeviceView, PisteNotice } from './pisteHub';
-import type { PisteDisplaySide, PisteDriver, PisteLink, PisteMode, PisteState } from './types';
+import type { DeviceView } from './pisteHub';
+import type {
+  PisteDisplaySide,
+  PisteDriver,
+  PisteLink,
+  PisteMode,
+  PisteNotice,
+  PisteState,
+} from './types';
 
 /** Ce que le relais par équipes utilise du PisteHub. */
 export interface TeamPisteHost {

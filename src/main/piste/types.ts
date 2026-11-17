@@ -183,3 +183,17 @@ export interface PisteDriver {
     listener: (...args: PisteDriverEvents[K]) => void
   ): unknown;
 }
+
+/**
+ * Fait signalé au DT sans alerte persistante : abandon ou exclusion annoncé par l'appareil à
+ * la fin d'un relais intermédiaire (fin toujours acquittée, spéc. Cyrano § 4).
+ */
+export interface PisteNotice {
+  kind: 'team_out';
+  /** Arène équipe de la piste */
+  arena: string;
+  relay: number;
+  reason: 'abandon' | 'exclusion';
+  /** Nom du tireur tel que l'appareil l'affiche */
+  fencer: string;
+}
