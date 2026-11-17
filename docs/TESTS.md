@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 17 | 245 |
-| `src/main/` | 105 | 853 |
+| `src/database/` | 19 | 253 |
+| `src/main/` | 106 | 858 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 601 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **480** | **3620** |
+| **Total** | **483** | **3633** |
 
-Unitaires : 470 fichiers, 3581 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 473 fichiers, 3594 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2603,6 +2603,28 @@ Unitaires : 470 fichiers, 3581 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/databaseEncryption.test.ts</code> — 1 test</summary>
+
+- **DatabaseManager chiffré (#1882)**
+  - migration en clair puis ouverture chiffrée avec migrations
+
+</details>
+
+<details>
+<summary><code>src/database/encryption.test.ts</code> — 7 tests</summary>
+
+- **chiffrement au repos (SQLCipher, #1882)**
+  - une base créée avec clé ne contient pas la donnée en clair
+  - une base en clair existante est migrée en place et reste lisible avec la clé
+  - une mauvaise clé est refusée sans modifier le fichier
+  - une base chiffrée sans clé est refusée
+  - sans clé, une base en clair reste ouverte en clair (fichiers importés)
+  - une migration interrompue laisse un ancien fichier en clair qui est écrasé au démarrage suivant
+  - migration : la base d’origine est intacte si la vérification échoue
+
+</details>
+
+<details>
 <summary><code>src/database/repos/clubBackupRepo.test.ts</code> — 3 tests</summary>
 
 - **ClubBackupRepo (sauvegarde / chargement d’un club)**
@@ -3243,6 +3265,18 @@ Unitaires : 470 fichiers, 3581 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - ROUND ∧∨ bloqués en équipes : le relais est fixé par le logiciel
   - fin de relais : ACK → W, DISP du relais suivant avec les cumuls, BEGIN sans remise à zéro
   - RESERVE : champ 11 = R dans la zone du tireur, effacé au relais suivant
+
+</details>
+
+<details>
+<summary><code>src/main/dbKey.test.ts</code> — 5 tests</summary>
+
+- **clé de la base (SQLCipher, #1882)**
+  - crée une clé de 256 bits au premier lancement, stockée chiffrée
+  - relit la même clé aux lancements suivants
+  - trousseau indisponible : pas de clé (base en clair signalée par l’appelant)
+  - fichier de clé illisible : erreur, aucune nouvelle clé générée
+  - base chiffrée sans fichier de clé : erreur, pas de nouvelle clé
 
 </details>
 
