@@ -12,9 +12,11 @@ describe('CyranoPanel — alerte BAD MATCH (#1720)', () => {
     localStorage.clear();
     (window as any).electronAPI = {
       cyrano: {
-        loadPistes: vi.fn().mockResolvedValue([
-          { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
-        ]),
+        loadPistes: vi
+          .fn()
+          .mockResolvedValue([
+            { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
+          ]),
         savePistes: vi.fn().mockResolvedValue(true),
         getStatus: vi.fn().mockResolvedValue({
           running: true,
@@ -52,9 +54,11 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
     localStorage.clear();
     (window as unknown as { electronAPI: unknown }).electronAPI = {
       cyrano: {
-        loadPistes: vi.fn().mockResolvedValue([
-          { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
-        ]),
+        loadPistes: vi
+          .fn()
+          .mockResolvedValue([
+            { piste: '1', ip: '127.0.0.1', port: 50101, arena: 1, protocol: 'auto' },
+          ]),
         savePistes: vi.fn().mockResolvedValue(true),
         getStatus: vi.fn().mockResolvedValue({
           running: true,
@@ -83,7 +87,11 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
       remote: {
         getNetworkInterfaces: vi.fn().mockResolvedValue({
           success: true,
-          interfaces: [{ name: 'eth0', address: '10.1.1.1' }],
+          // Format de remote:getNetworkInterfaces : le nom porte déjà l'adresse
+          interfaces: [
+            { name: 'Toutes les interfaces', address: '0.0.0.0' },
+            { name: 'eth0 (10.1.1.1)', address: '10.1.1.1' },
+          ],
         }),
       },
     };
@@ -102,6 +110,8 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
     render(<CyranoPanel competitionId="c1" />);
     fireEvent.click(await screen.findByText('Journal des trames'));
     expect(await screen.findByText(/\|EFP1\.1\|INFO\|1\|/)).toBeInTheDocument();
-    expect(await screen.findByText('10.1.1.1 (eth0)')).toBeInTheDocument();
+    expect(await screen.findByText('eth0 (10.1.1.1)')).toBeInTheDocument();
+    // « Toutes les interfaces » proposé une seule fois (0.0.0.0 non répété)
+    expect(screen.getAllByRole('option', { name: /Toutes les interfaces/ })).toHaveLength(1);
   });
 });

@@ -326,11 +326,14 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
             {host && !interfaces.some(i => i.address === host) && (
               <option value={host}>{host}</option>
             )}
-            {interfaces.map(i => (
-              <option key={`${i.name}-${i.address}`} value={i.address}>
-                {i.address} ({i.name})
-              </option>
-            ))}
+            {/* 0.0.0.0 = « Toutes les interfaces » (déjà proposé) ; le nom porte déjà l'adresse */}
+            {interfaces
+              .filter(i => i.address !== '0.0.0.0')
+              .map(i => (
+                <option key={`${i.name}-${i.address}`} value={i.address}>
+                  {i.name}
+                </option>
+              ))}
           </select>
         </label>
         <label className="cyrano-option">
