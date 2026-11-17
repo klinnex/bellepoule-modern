@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Exercices",
+    "search": "Rechercher un exercice",
     "title": "Bibliothèque d'exercices ({{count}})",
     "help": "Vos échauffements, exercices techniques et tactiques, réutilisables dans tous les plans de séance et partageables par fichier.",
     "category": "Famille",

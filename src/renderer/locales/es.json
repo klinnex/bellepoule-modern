@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Ejercicios",
+    "search": "Buscar un ejercicio",
     "title": "Biblioteca de ejercicios ({{count}})",
     "help": "Sus calentamientos y ejercicios técnicos y tácticos, reutilizables en todos los planes y compartibles por archivo.",
     "category": "Familia",

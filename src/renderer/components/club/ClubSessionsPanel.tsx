@@ -529,7 +529,6 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           </h2>
           <div className="club-open-form">
             <div className="form-label">
-              {t('clubPlan.date')}
               <MiniCalendar
                 value={openDate}
                 today={today()}

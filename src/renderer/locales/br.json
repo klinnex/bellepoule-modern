@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Poelladennoù",
+    "search": "Klask un ejerezh",
     "title": "Levraoueg poelladennoù ({{count}})",
     "help": "Ho tommadurioù, poelladennoù teknikel ha taktikel, d'adimplijout en holl steuñvioù ha da rannañ dre restr.",
     "category": "Familh",

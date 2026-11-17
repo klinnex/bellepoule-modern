@@ -3799,6 +3799,7 @@
   },
   "clubExercises": {
     "tab": "Esercizi",
+    "search": "Cerca un esercizio",
     "title": "Libreria di esercizi ({{count}})",
     "help": "I tuoi riscaldamenti ed esercizi tecnici e tattici, riutilizzabili in tutti i piani e condivisibili via file.",
     "category": "Famiglia",

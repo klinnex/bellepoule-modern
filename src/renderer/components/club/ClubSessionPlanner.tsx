@@ -183,7 +183,6 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
     >
       <div className="club-row club-row--top">
         <div className="form-label">
-          {t('clubPlan.date')}
           <MiniCalendar
             value={date}
             today={defaultDate}

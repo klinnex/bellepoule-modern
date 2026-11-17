@@ -89,8 +89,8 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
           className="form-input club-grow"
           type="search"
           value={search}
-          placeholder={t('club.search')}
-          aria-label={t('club.search')}
+          placeholder={t('clubExercises.search')}
+          aria-label={t('clubExercises.search')}
           onChange={e => setSearch(e.target.value)}
         />
         {hasAgeRange(ageRange) && (
