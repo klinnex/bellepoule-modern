@@ -10,8 +10,12 @@
 > import / export de la liste.
 > Validation de fin unifiée : règles uniques dans `src/shared/utils/matchEndValidation.ts`,
 > partagées par l'appareil, la tablette et la fin de match d'arène.
-> Restent : bouton PREV de la tablette, cartons P, équipes, couche multi-protocole, test de bout
-> en bout en CI.
+> **Couche multi-protocole** (§ 2 sexies) : modèle commun `src/main/piste/`, pilote Cyrano,
+> barrière d'entrée des arènes (`ArenaInputGate`). **Équipes** (`Type=T`, § 2 septies) : relais FIE
+> de l'arène `/equipe{N}` sur l'appareil (relais, cumuls, remplaçant, NEXT / PREV).
+> Restent : bouton PREV de la tablette, pilotes RS422-FPA / Favero / OPP2-MQTT, équipes au format
+> « arène laser », vainqueur imposé en fin de rencontre par équipes, cartons d'appareil en équipes
+> (sans motif : non enregistrés comme cartons individuels).
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -39,9 +43,19 @@ EFP1.1 ajoute le carton P (champ 12 de chaque zone tireur, 0 à 5) et le chrono 
 | `names.ts` | `transliterate` (alphabet latin seul), `formatCyranoName(nom, prénom, 10 \| 12 \| 15 \| 20)` → `MARTIN P`, `formatCyranoNat` (3 caractères), `pickCyranoNat(tireur, 'country' \| 'club' \| 'region' \| 'auto')`. |
 | `disp.ts` | `buildDisp(match)` : descripteur neutre (phase, poule/tableau, n° de match, tireurs droit/gauche) → champs d'un `DISP`. Laser et CUSTOM : arme non transmise. `EMPTY_DISP` = « aucun match disponible ». |
 | `endValidation.ts` | Adaptateur vers `shared/utils/matchEndValidation.ts` (#1829). `validateCyranoEnd(info)` → `{ ok }` ou `{ ok: false, reason }` (`not_ending`, `missing_fencers`, `missing_scores`, `tie_without_priority`) ; `cyranoEndOutcome(info, côtés)` → vainqueur imposé par l'appareil (abandon, exclusion, V / D ou priorité à égalité), rapporté aux tireurs A / B par **Id**. |
-| `deviceState.ts` | Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
-| `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
+| `deviceState.ts` | Outils du protocole : Id tronqué (`cyranoFencerId`), chrono `m:ss` → secondes. Lecture d'un `INFO` rapportée au match de l'arène : Id tireur tronqué à **8 caractères** par le protocole (les UUID BellePoule en font 36) → correspondance par préfixe parmi les deux tireurs du match (`resolveCyranoSide`, `mapCyranoSides`) ; cartons (`cyranoCards`) ; chrono `m:ss` / `m:ss.cc` → secondes. |
+| `driver.ts` | `CyranoPisteDriver` : pilote du modèle commun (§ 2 sexies). INFO / NEXT / PREV → `PisteInput` (`cyranoToPisteState` : états, statuts, carton P 0-5 → jaune / rouge / noir P, chrono en secondes, priorité, type, relais ; n° de séquence attribué à la réception) ; `PisteCommand` → DISP / DISP vide / ACK / NAK (`pisteDisplayToDisp`, chrono `m:ss`). |
 | `server.ts` | `CyranoServer` : socket `dgram`, table des pistes (`setPistes`), liste blanche d'IP, HELLO toutes les 15 s, version du protocole par piste (`auto` = celle de la dernière trame reçue), supervision, journal borné des trames, événements `info` / `next` / `prev` / `status` / `unknown`, envois `sendDisp` / `sendAck` / `sendNak`. |
+
+Hors protocole (`src/main/piste/`) :
+
+| Fichier | Rôle |
+|---|---|
+| `types.ts` | Modèle commun : `PisteState`, `PisteInput`, `PisteCommand`, `PisteDisplay`, `PisteLink`, interface `PisteDriver` (§ 2 sexies). |
+| `pisteState.ts` | État d'appareil rapporté au match : côtés A / B par **Id** (`mapPisteSides`, troncature fournie par le pilote), cartons au format des arènes (`sideCards`, `cardCounts`), validation de fin (`validatePisteEnd`, `pisteEndOutcome`) sur les règles de `shared/utils/matchEndValidation.ts`. |
+| `arenaInputGate.ts` | `ArenaInputGate` : barrière d'entrée des arènes (séquence par source). |
+| `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
+| `teamRelayPiste.ts` | Relais par équipes sur l'appareil (§ 2 septies). |
 
 ### 2 bis. Raccordement aux arènes — mode appareil maître
 
@@ -171,6 +185,64 @@ terminé sur l'arène, ou match suivant en file) :
   qu'elle est vide, la table propre de l'épreuve est reprise. Le panneau l'indique et signale
   les pistes suivies par une autre épreuve (`cyrano:getPistesScope`, `cyrano:getRoutes`).
 
+### 2 sexies. Couche multi-protocole (#1829)
+
+```
+appareil ──trames──▶ pilote (CyranoPisteDriver, …) ──PisteInput──▶ ArenaInputGate ──▶ PisteHub ──▶ arènes
+appareil ◀─trames─── pilote ◀──────────────PisteCommand─────────────────────────── PisteHub
+```
+
+- **`PisteState`** : état normalisé d'un appareil — état (`fencing` / `halt` / `pause` / `waiting` /
+  `ending`), chrono en secondes, priorité (`none` / `right` / `left`), type (`individual` / `team`),
+  n° de période ou de relais ; par côté (droite / gauche) : Id, nom, nation, score, cartons
+  (jaune, rouges, jaune / rouge / noir P), statut (`normal` / `victory` / `defeat` / `abandon` /
+  `exclusion`), lumières, médical, remplaçant.
+- **`PisteInput`** : `state` | `next` | `prev`, avec la source (pilote + piste) et un **numéro de
+  séquence** strictement croissant par piste. Cyrano ne numérote pas ses trames : le pilote
+  numérote à la réception (aucun rejet possible en Cyrano, comportement inchangé).
+- **`PisteCommand`** : `display` (match ou relais à afficher : type, relais, arme, scores et
+  cartons repris, chrono d'un match rappelé, épreuve), `clear`, `ack`, `nak`.
+- **`PisteDriver`** : statuts de liaison (`getStatuses`, `findPiste`, `findAllByArena`, événement
+  `status`), émission des entrées (événement `input`), `send(piste, commande)`, `fencerId(id)`
+  (Id tel que l'appareil le renverra, ex. 8 caractères en Cyrano), capacités déclarées (noms,
+  télécommande, ACK, chrono, cartons P, équipes). Le PisteHub ne manipule plus de `CyranoMessage`.
+- **`ArenaInputGate`** (manque n°1) : barrière par arène. Une entrée d'appareil dont le numéro
+  n'est pas supérieur au dernier accepté pour la même source sur la même arène (double, désordre,
+  numéro illisible) est rejetée avant l'arène, journalisée (`logger.warn`) et gardée dans un journal
+  borné (`getRejections`). Les entrées de la tablette passent sans contrôle (chemin `arena_control`
+  inchangé). Une piste passée hors ligne est oubliée (`forget`) : un appareil redémarré peut
+  reprendre sa numérotation.
+- Nouveau pilote (RS422-FPA, Favero série, OPP2/MQTT) : implémenter `PisteDriver`, le passer au
+  `PisteHub` (`main.ts`). Un seul pilote par hub pour l'instant ; le pseudo-socket des entrées
+  d'appareil reste `cyrano:<piste>` (verrou appareil maître, `cyranoLock.ts`).
+
+### 2 septies. Équipes — relais FIE (`Type=T`, #1829)
+
+Existant : l'arène équipe `/equipe{N}` (`teamArena.ts`, #1086 / #1240) tient en direct une
+rencontre en **relais FIE** (9 relais de 3 contre 3, paliers de 5 jusqu'à 45, `teamRelayLive.ts`)
+ou au format « arène laser ». L'ordre des relais vient de `generateRelayOrder` (rotation diagonale,
+chaque titulaire rencontre chaque titulaire adverse une fois) ; les remplaçants sont déclarés dans
+l'équipe (`isReserve`). La tablette saisit les touches du relais en cours, le chrono, les cartons ;
+« relais suivant » enregistre le relais (`advanceTeamBout`).
+
+Raccordement : une piste rattachée à l'arène N suit l'arène équipe `N` quand une rencontre en
+relais FIE y est assignée (`setTeamArenaMatch`) ; sinon l'arène individuelle `arena{N}`. Toute
+modification de l'arène équipe (tablette, DT, appareil) prévient le hub (`cyranoTeamHook`).
+
+| Sens | Effet |
+|---|---|
+| DISP | `Type=T`, `Round` = n° du relais (1 à 9), zones tireur = tireurs du relais en cours (Id, nom en base, nation = équipe ; pays si compétition internationale ou source « pays »), **scores cumulés** de l'équipe ; phase / poule / match omis. Rencontre terminée ou retirée : DISP vide |
+| INFO actif | score cumulé → score du relais en cours (cumul − relais terminés ; un cumul inférieur aux relais terminés est ignoré, tracé, et le cumul de l'arène renvoyé) ; cartons de l'appareil reportés au relais en cours (`deviceCards`, état en mémoire : l'appareil ne donne pas le motif) ; chrono du relais (3 min − temps restant) |
+| END d'un relais intermédiaire | toujours correct : ACK, relais enregistré, puis DISP du relais suivant avec les cumuls (l'appareil ne remet pas les scores à zéro au BEGIN). END répété (ACK perdu) : nouvel ACK |
+| END du dernier relais | règles de fin individuelles (`validatePisteEnd`) ; vainqueur imposé (priorité à égalité, abandon, exclusion) → NAK tracé : le modèle d'équipe déduit le vainqueur du cumul, à saisir par le DT |
+| Remplaçant (`R11` / `L11` = `R`) | équipes seulement (en individuel : refusé, tracé) ; le remplaçant de l'équipe prend la place du tireur de la zone dans ses relais suivants non tirés (`team_bouts` mis à jour). Refusé et tracé : pas de remplaçant, remplaçant déjà présent dans la rencontre, plus de relais pour ce tireur. Demande répétée dans chaque INFO : traitée une fois |
+| NEXT | ne saute jamais un relais : relais en cours renvoyé ; rencontre terminée → DISP vide (rencontre suivante assignée par le DT) |
+| PREV | rappel du relais précédent (repasse en cours avec son score) si le relais en cours n'a pas commencé, ou après la fin de la rencontre ; sinon relais en cours renvoyé. Nouvel END → réenregistré |
+| BAD MATCH | tireurs d'un autre relais : alerte (`equipe{N}`), END → NAK |
+
+Modes : afficheur → DISP seul, END → NAK ; arme laser → affichage seul ; format « arène laser »
+non raccordé (assauts indépendants, pas de relais).
+
 ### Supervision
 
 | Statut | Condition |
@@ -226,6 +298,10 @@ Ses commandes reprennent la télécommande WSG des Saint-Georges SG31 / SG32 :
 - Chrono à 0:00 : GO refusé (comme l'appareil). `pause` lance la minute de repos ; à sa fin,
   le temps de la période revient et la période passe à la suivante ; `reset` l'écourte.
 - `reset` ne remet que le chrono ; `raz` efface tout (tireurs, scores, cartons, chrono).
+- Équipes (DISP `Type=T`) : `Round` = n° du relais fixé par le logiciel (`round+` / `round-`
+  refusés), scores cumulés repris de chaque DISP de relais, `resr` / `resl` = demande d'entrée du
+  remplaçant (champ 11 = `R`, effacé au DISP du relais suivant) ; `snapshot()` expose `team` et
+  `relay`.
 - Une commande impossible dans l'état courant est refusée avec sa raison (même règle pour la
   télécommande web, qui grise le bouton).
 
@@ -276,10 +352,10 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 
 ## 5. Suite prévue (#1720)
 
-1. Socle arènes : source d'entrée et numéro de séquence (`ArenaInputGate`), validation unifiée.
-   - **Couche multi-protocole avant tout raccordement** : modèle d'état de piste commun
+1. Socle arènes : source d'entrée et numéro de séquence (`ArenaInputGate`, fait #1829), validation unifiée.
+   - **Couche multi-protocole** (fait, #1829, § 2 sexies) : modèle d'état de piste commun
      (`PisteState`, `PisteInput`, `PisteCommand`) et pilotes déclarant leurs capacités
-     (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoServer` devient le premier
+     (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoPisteDriver` est le premier
      pilote ; RS422-FPA, Favero série (lecture seule) et OPP2/MQTT suivront sans toucher aux arènes.
    - **Une seule validation de fin** (fait, #1829) : `shared/utils/matchEndValidation.ts`
      (`validateMatchEnd`, `decideMatchWinner`, `resolveScoreLimit`, `passivityWinner`,
@@ -300,7 +376,7 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
    - Écoute limitée à l'interface réseau choisie ; journal des trames exportable et rejouable
      dans le simulateur.
 5. Vue arbitre : bandeau appareil, choix de match → DISP.
-6. Cartons P, équipes (`Type=T`, relais, remplaçant).
+6. Cartons P, équipes (`Type=T`, relais, remplaçant) — faits (#1829), sauf format « arène laser ».
 
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
