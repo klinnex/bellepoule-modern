@@ -12,7 +12,7 @@ function getThemesFilePath(): string {
 }
 
 // E/S asynchrones : le process principal sert aussi le serveur distant en direct (#1776).
-async function readThemesFile(): Promise<unknown[]> {
+async function readThemesFile(): Promise<Array<{ id?: unknown }>> {
   try {
     const raw = await fs.promises.readFile(getThemesFilePath(), 'utf-8');
     const parsed = JSON.parse(raw);
@@ -40,9 +40,9 @@ export function registerThemesHandlers(): void {
   ipcMain.handle('themes:save', (_, theme: unknown) =>
     serialized(async () => {
       try {
-        const themes = (await readThemesFile()) as any[];
+        const themes = await readThemesFile();
         const t = theme as { id: string };
-        const idx = themes.findIndex((x: any) => x.id === t.id);
+        const idx = themes.findIndex(x => x.id === t.id);
         if (idx >= 0) themes[idx] = t;
         else themes.push(t);
         await writeThemesFile(themes);
@@ -56,8 +56,8 @@ export function registerThemesHandlers(): void {
   ipcMain.handle('themes:delete', (_, id: string) =>
     serialized(async () => {
       try {
-        const themes = (await readThemesFile()) as any[];
-        await writeThemesFile(themes.filter((x: any) => x.id !== id));
+        const themes = await readThemesFile();
+        await writeThemesFile(themes.filter(x => x.id !== id));
         return { success: true };
       } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : 'Erreur' };

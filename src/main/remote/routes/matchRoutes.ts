@@ -50,6 +50,26 @@ export interface MatchRouteContext extends PoolRouteContext {
 }
 
 /** Matchs des arènes : liste, cartons noirs, fin de match, scores, synchronisation hors-ligne. */
+/**
+ * Les matchs de session (renderer) portent les champs du domaine `Match` sans les métadonnées
+ * (`maxScore`, dates) ; frontière unique de conversion pour les helpers d'ordre/jouabilité.
+ */
+const asDomainMatch = (m: MatchRouteContext['sessionMatches'][number]): Match =>
+  m as unknown as Match;
+
+/** Vue lâche d'un match (base ou mémoire) : champs lus pour carton noir et signature. */
+type FencerView = { id?: string; firstName?: string; lastName?: string };
+type FinishedMatchView = {
+  poolId?: string;
+  pool?: { id?: string };
+  number?: number;
+  fencerA?: FencerView | null;
+  fencerB?: FencerView | null;
+  fencerAId?: string | null;
+  fencerBId?: string | null;
+  referee?: { id?: string };
+};
+
 export function registerMatchRoutes(ctx: MatchRouteContext): void {
   // API pour récupérer les matchs d'une arène/poule
   ctx.app.get('/api/arenas/:arenaId/matches', (req, res) => {
@@ -83,7 +103,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         if (!arena || ctx.sessionMatches.length === 0) break;
         const taken = matchesTakenBySiblings(ctx.arenas, arenaId, id => ctx.isArenaMatchOpened(id));
         const rawPoolMatches = ctx.sessionMatches
-          .filter((m: any) => {
+          .filter(m => {
             const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
             if (matchPoolId !== currentPoolId) return false;
             // Tournoi des rapières : uniquement la vague active (#1118)
@@ -97,18 +117,20 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             const effectiveStatus = scoreUpdate?.status ?? m.status;
             if (effectiveStatus === MatchStatus.FINISHED) return false;
             // Exclure les matchs où un tireur est inactif (exclu/forfait/abandon)
-            return ctx.isMatchPlayable(m as Match);
+            return ctx.isMatchPlayable(asDomainMatch(m));
           })
-          .map((m: any) => {
+          .map(m => {
             const scoreUpdate = ctx.sessionMatchScores.get(m.id);
             return scoreUpdate ? { ...m, ...scoreUpdate } : m;
           });
         // Arbitre affiché sur la tablette : celui du match, sinon celui/ceux de la poule (#908)
         const poolReferee = ctx.resolvePoolReferee(currentPoolId);
-        const poolMatches = ctx.applySmartMatchOrder(rawPoolMatches as Match[]).map((m: any) => {
-          const referee = ctx.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
-          return referee ? { ...m, referee } : m;
-        });
+        const poolMatches = ctx
+          .applySmartMatchOrder(rawPoolMatches.map(asDomainMatch))
+          .map((m: Match & { refereeId?: string }) => {
+            const referee = ctx.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
+            return referee ? { ...m, referee } : m;
+          });
         // Matchs d'autres poules réassignés sur cette piste : en tête de liste (#1037)
         const cur = arena.currentMatch;
         const guests = [
@@ -278,7 +300,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       const dbMatch = ctx.db.getMatch(matchId);
       const inMemoryMatch = !dbMatch && ctx.sessionMatches.find(m => m.id === matchId);
       ctx.logDiag(
-        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${(dbMatch as any)?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map(m => m.id).join(',')}]`
+        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${dbMatch?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map(m => m.id).join(',')}]`
       );
       if (!dbMatch && !inMemoryMatch) {
         ctx.logDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
@@ -440,7 +462,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       // Carton noir : exclure le combattant fautif de la compétition
       if (blackCarded) {
-        const matchObj: any = dbMatch || inMemoryMatch;
+        const matchObj: FinishedMatchView | undefined = dbMatch || inMemoryMatch || undefined;
         const culpritId =
           blackCarded === 'A'
             ? (matchObj?.fencerA?.id ?? matchObj?.fencerAId)
@@ -480,7 +502,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               // Carton noir → appel DT automatique (rapport fédéral)
               const culprit = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;
               const arena = Array.from(ctx.arenas.values()).find(
-                (a: any) => a.currentMatch?.id === matchId
+                a => a.currentMatch?.id === matchId
               );
               recordRemoteEvent(ctx, {
                 type: 'dt_call',
@@ -527,7 +549,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       });
 
       // Signature requise après le match si c'est un match de tableau et l'option est activée
-      const matchObjForSig: any = dbMatch || inMemoryMatch;
+      const matchObjForSig: FinishedMatchView | undefined = dbMatch || inMemoryMatch || undefined;
       const isTableauMatch = !matchObjForSig?.poolId;
       let requireSignature = false;
       if (isTableauMatch && ctx.session) {

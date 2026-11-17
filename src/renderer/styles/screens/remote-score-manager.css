@@ -1,0 +1,55 @@
+/* Styles extraits de RemoteScoreManager.tsx (#1895) */
+.remote-score-manager-1.remote-score-manager-1.remote-score-manager-1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.remote-score-manager-2.remote-score-manager-2.remote-score-manager-2 {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.remote-score-manager-3.remote-score-manager-3.remote-score-manager-3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.remote-score-manager-4.remote-score-manager-4.remote-score-manager-4 {
+  width: auto;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.remote-score-manager-5.remote-score-manager-5.remote-score-manager-5 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.remote-score-manager-6.remote-score-manager-6.remote-score-manager-6 {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.remote-score-manager-7.remote-score-manager-7.remote-score-manager-7 {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}

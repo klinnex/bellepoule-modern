@@ -1,0 +1,6 @@
+/* Styles extraits de TeamManagerView.tsx (#1895) */
+.team-manager-view-1.team-manager-view-1.team-manager-view-1 {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}

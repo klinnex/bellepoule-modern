@@ -46,7 +46,7 @@ describe('main.css / design.css', () => {
         const key = `${context(rule)}|${sel}`;
         const props = design.get(key) ?? new Map<string, boolean>();
         rule.walkDecls(d => {
-          if (d.parent === rule) props.set(d.prop, (props.get(d.prop) ?? false) || d.important);
+          if (d.parent === rule) props.set(d.prop, (props.get(d.prop) ?? false) || d.important === true);
         });
         design.set(key, props);
       }

@@ -1,0 +1,23 @@
+/* Styles extraits de GlobalPoolColumnsMenu.tsx (#1895) */
+.global-pool-columns-menu-1.global-pool-columns-menu-1.global-pool-columns-menu-1 {
+  position: relative;
+  display: inline-block;
+}
+
+.global-pool-columns-menu-2.global-pool-columns-menu-2.global-pool-columns-menu-2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.25rem;
+}
+
+.global-pool-columns-menu-3.global-pool-columns-menu-3.global-pool-columns-menu-3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}

@@ -25,6 +25,7 @@ import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchA
 import { ArrowUpRight, Layers, Mic } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { CardIcon } from './common/CardIcon';
+import type { SpeechRecognitionWindow } from '../utils/speechRecognition';
 
 interface TouchOptimizedRefereeProps {
   match: Match;
@@ -244,12 +245,14 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
   useEffect(() => {
     if (!voiceEnabled || !onVoiceCommand) return;
 
-    const recognition = new (window as any).webkitSpeechRecognition();
+    const recognition = new (
+      window as unknown as SpeechRecognitionWindow
+    ).webkitSpeechRecognition!();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'fr-FR';
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = event => {
       const last = event.results.length - 1;
       const command = event.results[last][0].transcript.toLowerCase();
 
@@ -668,15 +671,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                     <span style={{ fontSize: '1rem', fontWeight: 800, color: chip.textColor }}>
                       {chip.delta}
                     </span>
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#6b7280',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {chip.score}
-                    </span>
+                    <span className="touch-optimized-referee-1">{chip.score}</span>
                   </div>
                 ))}
               </div>

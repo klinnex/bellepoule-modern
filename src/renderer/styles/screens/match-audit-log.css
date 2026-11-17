@@ -1,0 +1,86 @@
+/* Styles extraits de MatchAuditLog.tsx (#1895) */
+.match-audit-log-1.match-audit-log-1.match-audit-log-1 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.match-audit-log-2.match-audit-log-2.match-audit-log-2 {
+  background: var(--color-surface-2);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.match-audit-log-3.match-audit-log-3.match-audit-log-3 {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.match-audit-log-4.match-audit-log-4.match-audit-log-4 {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.match-audit-log-5.match-audit-log-5.match-audit-log-5 {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-light);
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.match-audit-log-6.match-audit-log-6.match-audit-log-6 {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+}
+
+.match-audit-log-7.match-audit-log-7.match-audit-log-7 {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-align: left;
+  font-size: inherit;
+}
+
+.match-audit-log-8.match-audit-log-8.match-audit-log-8 {
+  padding: 0.5rem 0.75rem;
+}
+
+.match-audit-log-9.match-audit-log-9.match-audit-log-9 {
+  padding: 1rem;
+}
+
+.match-audit-log-10.match-audit-log-10.match-audit-log-10 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.match-audit-log-11.match-audit-log-11.match-audit-log-11 {
+  z-index: 1000;
+}
+
+.match-audit-log-12.match-audit-log-12.match-audit-log-12 {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.match-audit-log-13.match-audit-log-13.match-audit-log-13 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.match-audit-log-14.match-audit-log-14.match-audit-log-14 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}

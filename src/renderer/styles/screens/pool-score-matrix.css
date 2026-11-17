@@ -1,0 +1,9 @@
+/* Styles extraits de PoolScoreMatrix.tsx (#1895) */
+.pool-score-matrix-1.pool-score-matrix-1.pool-score-matrix-1 {
+  cursor: default;
+  position: relative;
+  padding: 2px;
+  background: rgba(59, 130, 246, 0.08);
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}

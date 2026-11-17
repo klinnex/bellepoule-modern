@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import { ipcMain } from 'electron';
+import type { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { remoteServers } from '../remoteRegistry';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
@@ -123,7 +124,7 @@ export function registerRemoteSessionHandlers(): void {
           error: 'remote_not_started',
         };
       }
-      entry.server.updateTheme(theme as any);
+      entry.server.updateTheme(theme as DisplayTheme);
       return { success: true };
     } catch (error) {
       logger.error(LogCategory.NETWORK, 'Error updating theme:', toError(error));
@@ -133,7 +134,7 @@ export function registerRemoteSessionHandlers(): void {
 
   ipcMain.handle(
     'remote:updateArenaTheme',
-    async (_, competitionId: string, arenaId: string, theme: string, customTheme?: any) => {
+    async (_, competitionId: string, arenaId: string, theme: string, customTheme?: CustomTheme) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) {
@@ -142,7 +143,7 @@ export function registerRemoteSessionHandlers(): void {
             error: 'remote_not_started',
           };
         }
-        entry.server.updateArenaTheme(arenaId, theme as any, customTheme);
+        entry.server.updateArenaTheme(arenaId, theme as DisplayTheme, customTheme);
         return { success: true };
       } catch (error) {
         logger.error(LogCategory.NETWORK, 'Error updating arena theme:', toError(error));

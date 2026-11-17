@@ -85,18 +85,7 @@ const DTCallNotification: React.FC = () => {
   if (calls.length === 0) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        zIndex: 10001,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        maxWidth: '340px',
-      }}
-    >
+    <div className="dt-call-notification-1">
       {calls.map(call => (
         <div
           key={call.id}
@@ -110,31 +99,22 @@ const DTCallNotification: React.FC = () => {
             animation: 'slideInRight 0.3s ease-out',
           }}
         >
-          <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '4px' }}>
+          <div className="dt-call-notification-2">
             {t('dtCall.title')}
             {call.arenaNumber != null ? t('dtCall.strip', { n: call.arenaNumber }) : ''}
           </div>
           {call.reason === 'black_card' && (
-            <div
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 'bold',
-                color: '#fca5a5',
-                marginBottom: '4px',
-              }}
-            >
+            <div className="dt-call-notification-3">
               {t('dtCall.black_card')}
               {call.fencerName ? ` — ${call.fencerName}` : ''} {t('dtCall.black_card_note')}
             </div>
           )}
           {call.matchNumber != null && (
-            <div style={{ fontSize: '0.8125rem', color: '#9ca3af', marginBottom: '4px' }}>
+            <div className="dt-call-notification-4">
               {t('dtCall.match_n', { n: call.matchNumber })}
             </div>
           )}
-          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '10px' }}>
-            {formatTime(call.timestamp)}
-          </div>
+          <div className="dt-call-notification-5">{formatTime(call.timestamp)}</div>
           <button
             onClick={() => acknowledge(call)}
             disabled={call.acknowledging}

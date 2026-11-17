@@ -1,0 +1,8 @@
+/* Styles extraits de ConfirmDialog.tsx (#1895) */
+.confirm-dialog-1.confirm-dialog-1.confirm-dialog-1 {
+  z-index: 11000;
+}
+
+.confirm-dialog-2.confirm-dialog-2.confirm-dialog-2 {
+  max-width: 420px;
+}

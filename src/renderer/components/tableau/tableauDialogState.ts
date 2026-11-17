@@ -36,7 +36,7 @@ export type DESignatures = Record<string, { A?: string; B?: string }>;
 /** Signatures des tireurs saisies sur tablette (optionnelles : échec silencieux). */
 export async function loadDESignatures(matches: TableauMatch[]): Promise<DESignatures | undefined> {
   try {
-    const api = (window as any).electronAPI;
+    const api = window.electronAPI;
     const ids = matches.map(m => m.id).filter(Boolean);
     const rows = (await api?.db?.getDEMatchSignaturesByMatchIds?.(ids)) ?? [];
     if (rows.length === 0) return undefined;

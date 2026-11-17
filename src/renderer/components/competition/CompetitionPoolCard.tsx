@@ -83,7 +83,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
   categoryOf,
 }) => {
   return (
-    <div style={{ minWidth: 0, overflow: 'auto' }}>
+    <div className="competition-pool-card-1">
       <PoolView
         pool={pool}
         weapon={weapon}

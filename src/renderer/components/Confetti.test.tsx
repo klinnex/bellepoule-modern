@@ -19,8 +19,7 @@ describe('Confetti', () => {
     const { container } = render(<Confetti active={true} />);
     const canvas = container.querySelector('canvas');
     expect(canvas).not.toBeNull();
-    expect(canvas?.style.position).toBe('fixed');
-    expect(canvas?.style.pointerEvents).toBe('none');
+    expect(canvas?.classList.contains('confetti-1')).toBe(true);
   });
 
   it('ne rend rien quand désactivé dans les paramètres', () => {

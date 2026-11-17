@@ -86,20 +86,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         />
       )}
       {finalResults.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            padding: '0.625rem 1rem',
-            marginBottom: '0.75rem',
-            background: 'var(--color-notice-bg)',
-            border: '1px solid var(--color-notice-border)',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
-            color: 'var(--color-notice-text)',
-          }}
-        >
+        <div className="tableau-phase-1">
           <span>{t('competitionView.readonly')}</span>
           <button
             onClick={async () => {
@@ -107,17 +94,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
                 setFinalResults([]);
               }
             }}
-            style={{
-              marginLeft: 'auto',
-              background: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-            }}
+            className="tableau-phase-2"
           >
             {t('competitionView.edit_tableau')}
           </button>

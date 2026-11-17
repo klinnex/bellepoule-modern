@@ -192,7 +192,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         onBlur={hideTooltip}
         onKeyDown={e => e.key === 'Escape' && hideTooltip()}
         aria-describedby={isVisible ? tooltipId : undefined}
-        style={{ display: 'inline-block' }}
+        className="tooltip-1"
       >
         {children}
       </div>
@@ -286,24 +286,7 @@ interface HelpTooltipProps {
 export const HelpTooltip: React.FC<HelpTooltipProps> = ({ text }) => {
   return (
     <Tooltip content={text} position="right">
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '18px',
-          height: '18px',
-          borderRadius: '50%',
-          backgroundColor: 'var(--color-border)',
-          color: 'var(--color-text-light)',
-          fontSize: '0.75rem',
-          fontWeight: 'bold',
-          cursor: 'help',
-          marginLeft: '6px',
-        }}
-      >
-        ?
-      </span>
+      <span className="tooltip-2">?</span>
     </Tooltip>
   );
 };

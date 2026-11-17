@@ -49,8 +49,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         id="language-select"
         value={value !== undefined ? value : language}
         onChange={handleLanguageChange}
-        className="form-input form-select"
-        style={{ minWidth: '120px' }}
+        className="form-input form-select language-selector-1"
       >
         {availableLanguages.map(lang => (
           <option key={lang.code} value={lang.code}>

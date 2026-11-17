@@ -8,6 +8,7 @@ import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
 import PrivacySettingsSection from './PrivacySettingsSection';
+import McpSettingsSection from './McpSettingsSection';
 import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
@@ -242,16 +243,7 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
                 }}
               >
                 <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--text-muted, var(--color-text-muted))',
-                    display: 'block',
-                    marginTop: '0.25rem',
-                  }}
-                >
-                  {t('settings.logo_formats')}
-                </span>
+                <span className="settings-modal-1">{t('settings.logo_formats')}</span>
               </div>
               <input
                 ref={fileInputRef}
@@ -492,6 +484,8 @@ const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) 
         );
       case 'proxy':
         return <ProxySettingsSection />;
+      case 'mcp':
+        return <McpSettingsSection />;
       case 'privacy_network':
       case 'privacy_retention':
       case 'privacy_person':

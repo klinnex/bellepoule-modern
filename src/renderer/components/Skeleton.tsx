@@ -114,7 +114,7 @@ const TableSkeleton_: React.FC<{ rows?: number; columns?: number; label: string 
   columns = 5,
   label,
 }) => (
-  <div role="status" aria-busy="true" aria-label={label} style={{ padding: '1rem' }}>
+  <div role="status" aria-busy="true" aria-label={label} className="skeleton-1">
     {Array.from({ length: rows }, (_, i) => (
       <TableRowSkeleton key={i} columns={columns} />
     ))}

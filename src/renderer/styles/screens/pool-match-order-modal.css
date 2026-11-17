@@ -1,0 +1,105 @@
+/* Styles extraits de PoolMatchOrderModal.tsx (#1895) */
+.pool-match-order-modal-1.pool-match-order-modal-1.pool-match-order-modal-1 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12000;
+}
+
+.pool-match-order-modal-2.pool-match-order-modal-2.pool-match-order-modal-2 {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pool-match-order-modal-3.pool-match-order-modal-3.pool-match-order-modal-3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.pool-match-order-modal-4.pool-match-order-modal-4.pool-match-order-modal-4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pool-match-order-modal-5.pool-match-order-modal-5.pool-match-order-modal-5 {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: monospace;
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+.pool-match-order-modal-6.pool-match-order-modal-6.pool-match-order-modal-6 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.pool-match-order-modal-7.pool-match-order-modal-7.pool-match-order-modal-7 {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.pool-match-order-modal-8.pool-match-order-modal-8.pool-match-order-modal-8 {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.pool-match-order-modal-9.pool-match-order-modal-9.pool-match-order-modal-9 {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.pool-match-order-modal-10.pool-match-order-modal-10.pool-match-order-modal-10 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-2);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  gap: 0.5rem;
+}
+
+.pool-match-order-modal-11.pool-match-order-modal-11.pool-match-order-modal-11 {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  min-width: 30px;
+}
+
+.pool-match-order-modal-12.pool-match-order-modal-12.pool-match-order-modal-12 {
+  flex: 1;
+  font-weight: 500;
+}
+
+.pool-match-order-modal-13.pool-match-order-modal-13.pool-match-order-modal-13 {
+  color: var(--color-text-muted);
+  padding: 0 0.5rem;
+}
+
+.pool-match-order-modal-14.pool-match-order-modal-14.pool-match-order-modal-14 {
+  flex: 1;
+  text-align: right;
+  font-weight: 500;
+}

@@ -155,3 +155,44 @@ describe('generatePoolHTML – couleurs du modèle (#992)', () => {
     expect(html).not.toContain('display:none');
   });
 });
+
+describe('generatePoolHTML – cartons (#1829, t.124.3.e)', () => {
+  const withCards = (cards: Array<{ fencerId: string; type: string }>): Pool => {
+    const pool = makePool();
+    pool.matches[0] = {
+      ...pool.matches[0],
+      status: MatchStatus.FINISHED,
+      cards: cards.map((c, i) => ({ id: `c${i}`, matchId: 'm1', ...c })),
+    } as unknown as Match;
+    return pool;
+  };
+
+  it('sans carton : pas de section', () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('<table class="pool-cards-table"');
+  });
+
+  it('cartons P inscrits à part des cartons de faute', () => {
+    const html = generatePoolHTML(
+      withCards([
+        { fencerId: 'a', type: 'yellow' },
+        { fencerId: 'a', type: 'p-red' },
+        { fencerId: 'b', type: 'p-red' },
+        { fencerId: 'b', type: 'red' },
+        { fencerId: 'b', type: 'red' },
+      ]),
+      {}
+    );
+    expect(html).toContain('<table class="pool-cards-table"');
+    expect(html).toMatch(/ALPHA X<\/td><td>Jaune<\/td><td>Rouge P<\/td>/);
+    expect(html).toMatch(/BRAVO X<\/td><td>Rouge ×2<\/td><td>Rouge P<\/td>/);
+  });
+
+  it('modèle personnalisé sans la section : cartons quand même imprimés', () => {
+    const html = generatePoolHTML(
+      withCards([{ fencerId: 'a', type: 'p-black' }]),
+      {},
+      buildDefaultTemplate('pool')
+    );
+    expect(html).toContain('Noir P');
+  });
+});

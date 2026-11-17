@@ -151,7 +151,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       }
     >
       <div className="u-row">
-        <label htmlFor="planning-arena-count" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+        <label htmlFor="planning-arena-count" className="planning-assistant-1">
           {t('planning.strips')}
         </label>
         <input
@@ -161,21 +161,13 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           max={20}
           value={arenaCount}
           onChange={e => setArenaCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-          style={{ width: '4rem' }}
+          className="planning-assistant-2"
         />
       </div>
 
       {tableauResult && (
         <>
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              background: 'var(--color-surface-2)',
-              color: 'var(--color-text)',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="planning-assistant-3">
             <strong>{t('planning.finish')}</strong>{' '}
             {tableauResult.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
               hour: '2-digit',
@@ -191,39 +183,29 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           {tableauResult.recommendations.length === 0 ? (
             <p className="u-hint">{t('planning.no_issue')}</p>
           ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
+            <ul className="planning-assistant-4">
               {tableauResult.recommendations.map((r, i) => (
                 <li key={`tab-rec-${i}`}>{r}</li>
               ))}
             </ul>
           )}
-          <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
+          <div className="planning-assistant-5">
             {t('planning.rest', { n: DEFAULT_TOURNAMENT_CONFIG.minRestTime })}
           </div>
         </>
       )}
 
-      {!isTableau && loading && (
-        <p style={{ color: 'var(--color-text-light)' }}>{t('planning.computing')}</p>
-      )}
+      {!isTableau && loading && <p className="planning-assistant-6">{t('planning.computing')}</p>}
 
       {!isTableau && !loading && error && (
-        <p role="alert" style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}>
+        <p role="alert" className="planning-assistant-7">
           {t('planning.error', { error })}
         </p>
       )}
 
       {!isTableau && !loading && insights && (
         <>
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              background: 'var(--color-surface-2)',
-              color: 'var(--color-text)',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="planning-assistant-3">
             <strong>{t('planning.finish')}</strong>{' '}
             {insights.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
               hour: '2-digit',
@@ -236,16 +218,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           {recommendations.length === 0 && insights.bottlenecks.length === 0 ? (
             <p className="u-hint">{t('planning.no_issue')}</p>
           ) : (
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: '1.25rem',
-                fontSize: '0.875rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-              }}
-            >
+            <ul className="planning-assistant-8">
               {recommendations.map((r, i) => (
                 <li key={`rec-${i}`}>{r}</li>
               ))}
@@ -258,7 +231,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           )}
 
           {result && result.schedule.length > 0 && (
-            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
+            <div className="planning-assistant-5">
               {t('planning.wait', {
                 avg: Math.max(0, Math.round(result.metrics.averageWaitTime)),
                 max: Math.max(0, Math.round(result.metrics.maxFencerWait)),

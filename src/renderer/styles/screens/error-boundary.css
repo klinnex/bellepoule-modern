@@ -1,0 +1,68 @@
+/* Styles extraits de ErrorBoundary.tsx (#1895) */
+.error-boundary-1.error-boundary-1.error-boundary-1 {
+  padding: 20px;
+  margin: 20px;
+  border: 2px solid #ff4444;
+  border-radius: 8px;
+  background-color: #fff5f5;
+  font-family: Arial, sans-serif;
+}
+
+.error-boundary-2.error-boundary-2.error-boundary-2 {
+  color: #cc0000;
+  margin-top: 0;
+}
+
+.error-boundary-3.error-boundary-3.error-boundary-3 {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.error-boundary-4.error-boundary-4.error-boundary-4 {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.error-boundary-5.error-boundary-5.error-boundary-5 {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.error-boundary-6.error-boundary-6.error-boundary-6 {
+  margin-top: 10px;
+}
+
+.error-boundary-7.error-boundary-7.error-boundary-7 {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  overflow: auto;
+  max-height: 200px;
+}
+
+.error-boundary-8.error-boundary-8.error-boundary-8 {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.error-boundary-9.error-boundary-9.error-boundary-9 {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-boundary-10.error-boundary-10.error-boundary-10 {
+  padding: 20px;
+  text-align: center;
+}

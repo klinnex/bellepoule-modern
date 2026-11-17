@@ -101,36 +101,13 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
   return (
     <div className="is-b477c3">
       {/* Header */}
-      <header
-        style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          padding: '1.5rem 2rem',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1400px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+      <header className="live-dashboard-1">
+        <div className="live-dashboard-2">
           <div>
-            <h1
-              style={{ margin: 0, fontSize: '2rem', color: 'var(--color-text)', fontWeight: '700' }}
-            >
+            <h1 className="live-dashboard-3">
               <Icon icon={Trophy} /> {competition.title}
             </h1>
-            <p
-              style={{
-                margin: '0.5rem 0 0 0',
-                color: 'var(--color-text-light)',
-                fontSize: '1.1rem',
-              }}
-            >
+            <p className="live-dashboard-4">
               {new Date(competition.date).toLocaleDateString(getActiveLocale(), {
                 weekday: 'long',
                 day: 'numeric',
@@ -140,54 +117,23 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
               {competition.location && ` • ${competition.location}`}
             </p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div
-              style={{
-                fontSize: '2.5rem',
-                fontWeight: '700',
-                color: 'var(--color-text)',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {formatTime(currentTime)}
-            </div>
-            <div style={{ color: '#10b981', fontSize: '1rem', fontWeight: '500' }}>
-              {t('liveDashboard.live')}
-            </div>
+          <div className="live-dashboard-5">
+            <div className="live-dashboard-6">{formatTime(currentTime)}</div>
+            <div className="live-dashboard-7">{t('liveDashboard.live')}</div>
           </div>
         </div>
       </header>
 
       {/* Progress Bar */}
-      <div
-        style={{
-          background: 'white',
-          padding: '1rem 2rem',
-          borderBottom: '1px solid var(--color-border)',
-        }}
-      >
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '0.5rem',
-              color: 'var(--color-text)',
-            }}
-          >
+      <div className="live-dashboard-8">
+        <div className="live-dashboard-9">
+          <div className="live-dashboard-10">
             <span>{t('liveDashboard.progress', { rate: completionRate })}</span>
             <span>
               {t('liveDashboard.finished', { done: completedMatches.length, total: totalMatches })}
             </span>
           </div>
-          <div
-            style={{
-              height: '8px',
-              background: 'var(--color-border)',
-              borderRadius: '4px',
-              overflow: 'hidden',
-            }}
-          >
+          <div className="live-dashboard-11">
             <div
               style={{
                 height: '100%',
@@ -202,8 +148,8 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ background: 'white', borderBottom: '1px solid var(--color-border)' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex' }}>
+      <div className="live-dashboard-12">
+        <div className="live-dashboard-13">
           {(['pools', 'tableau', 'ranking'] as const).map(tab => (
             <button
               key={tab}
@@ -242,22 +188,16 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </div>
 
       {/* Main Content */}
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
+      <main className="live-dashboard-14">
         {activeTab === 'pools' && (
           <div>
             {/* Live Matches */}
             {matchesInProgress.length > 0 && (
-              <div style={{ marginBottom: '2rem' }}>
+              <div className="live-dashboard-15">
                 <h2 style={PANEL_TITLE}>
                   {t('liveDashboard.in_progress', { n: matchesInProgress.length })}
                 </h2>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-                    gap: '1rem',
-                  }}
-                >
+                <div className="live-dashboard-16">
                   {matchesInProgress.map((match, idx) => (
                     <LiveMatchCard
                       key={match.id}
@@ -276,13 +216,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
             {/* Pool Results */}
             <div>
               <h2 style={PANEL_TITLE}>{t('liveDashboard.pool_results')}</h2>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-                  gap: '1.5rem',
-                }}
-              >
+              <div className="live-dashboard-17">
                 {pools.map(pool => (
                   <PoolResultsCard key={pool.id} pool={pool} isLaserSabre={isLaserSabre} />
                 ))}
@@ -307,17 +241,9 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </main>
 
       {/* Footer */}
-      <footer
-        style={{
-          background: 'rgba(0,0,0,0.2)',
-          color: 'white',
-          textAlign: 'center',
-          padding: '1.5rem',
-          marginTop: '2rem',
-        }}
-      >
-        <p style={{ margin: 0, opacity: 0.8 }}>{t('liveDashboard.footer')}</p>
-        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', opacity: 0.6 }}>
+      <footer className="live-dashboard-18">
+        <p className="live-dashboard-19">{t('liveDashboard.footer')}</p>
+        <p className="live-dashboard-20">
           {t('liveDashboard.auto_refresh', { n: refreshInterval / 1000 })}
         </p>
       </footer>
@@ -340,37 +266,12 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number; elapsed: number }>
   };
 
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        boxShadow: '0 10px 15px rgba(0,0,0,0.1)',
-        border: '2px solid #fbbf24',
-        animation: 'pulse 2s infinite',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
-        <span
-          style={{
-            background: '#fef3c7',
-            color: '#92400e',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '9999px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-          }}
-        >
+    <div className="live-dashboard-21">
+      <div className="live-dashboard-22">
+        <span className="live-dashboard-23">
           {t('liveDashboard.live_badge', { t: formatElapsed(elapsed) })}
         </span>
-        <span style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+        <span className="live-dashboard-24">
           {t('liveDashboard.strip', { n: match.strip || index + 1 })}
         </span>
       </div>
@@ -383,28 +284,10 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number; elapsed: number }>
           <div style={SUB_TEXT}>{match.fencerA?.club}</div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem' }}>
-          <span
-            style={{
-              fontSize: '3rem',
-              fontWeight: '700',
-              color: '#dc2626',
-              fontFamily: 'var(--font-digital)',
-            }}
-          >
-            {match.scoreA?.value || 0}
-          </span>
-          <span style={{ fontSize: '1.5rem', color: 'var(--color-text-muted)' }}>:</span>
-          <span
-            style={{
-              fontSize: '3rem',
-              fontWeight: '700',
-              color: '#16a34a',
-              fontFamily: 'var(--font-digital)',
-            }}
-          >
-            {match.scoreB?.value || 0}
-          </span>
+        <div className="live-dashboard-25">
+          <span className="live-dashboard-26">{match.scoreA?.value || 0}</span>
+          <span className="live-dashboard-27">:</span>
+          <span className="live-dashboard-28">{match.scoreB?.value || 0}</span>
         </div>
 
         <div style={CELL_CENTER_FLEX}>

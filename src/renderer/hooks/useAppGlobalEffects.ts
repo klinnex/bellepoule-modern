@@ -7,6 +7,7 @@
 
 import { useEffect, useRef } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
+import { useCompetitionEvent } from './useCompetitionEvent';
 
 interface AppGlobalEffectsParams {
   loadCompetitions: () => unknown;
@@ -17,6 +18,9 @@ export function useAppGlobalEffects(params: AppGlobalEffectsParams): void {
   // Dernières fonctions lues au moment de l'événement (effets montés une seule fois)
   const ref = useRef(params);
   ref.current = params;
+
+  // Épreuve créée hors de l'écran (agent MCP, #1880) : liste rechargée
+  useCompetitionEvent('competitions:changed', undefined, () => ref.current.loadCompetitions());
 
   // Load competitions on mount — attendre db:ready si la fenêtre s'ouvre avant la DB
   useEffect(() => {

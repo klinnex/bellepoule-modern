@@ -28,16 +28,8 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal pdf-template-modal-1"
         onClick={e => e.stopPropagation()}
-        style={{
-          maxWidth: '1350px',
-          width: '98%',
-          maxHeight: '92vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
         role="dialog"
         aria-modal="true"
       >
@@ -54,9 +46,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         {/* Type selector */}
-        <div
-          style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.25rem 0', flexShrink: 0 }}
-        >
+        <div className="pdf-template-modal-2">
           {DOC_TYPES.map(type => (
             <Button
               key={type}
@@ -70,35 +60,15 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         {/* Body: editor + preview side by side */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1.25rem',
-            padding: '1rem 1.25rem',
-            flex: 1,
-            overflow: 'hidden',
-            minHeight: 0,
-          }}
-        >
+        <div className="pdf-template-modal-3">
           {/* Left: editor */}
-          <div style={{ flex: '0 0 440px', overflowY: 'auto', overflowX: 'hidden' }}>
+          <div className="pdf-template-modal-4">
             <PdfTemplateEditor template={current} onChange={handleChange} onReset={handleReset} />
           </div>
 
           {/* Right: live preview */}
-          <div style={{ flex: '1 1 0', minWidth: '300px', overflowY: 'auto', overflowX: 'hidden' }}>
-            <div
-              style={{
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'var(--color-muted, var(--color-text-muted))',
-                textTransform: 'uppercase',
-                letterSpacing: '0.8px',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {t('pdfModal.preview')}
-            </div>
+          <div className="pdf-template-modal-5">
+            <div className="pdf-template-modal-6">{t('pdfModal.preview')}</div>
             <PdfPreview template={current} docType={activeType} />
           </div>
         </div>

@@ -151,6 +151,58 @@ const statCols = (): StatCol[] => [
   },
 ];
 
+/** Libellés des cartons sur la feuille (cartons P à part, t.124.3.e) */
+const CARD_LABELS: Record<string, [string, string]> = {
+  white: ['card_white', 'Blanc'],
+  yellow: ['card_yellow', 'Jaune'],
+  red: ['card_red', 'Rouge'],
+  black: ['card_black', 'Noir'],
+  'p-yellow': ['card_p_yellow', 'Jaune P'],
+  'p-red': ['card_p_red', 'Rouge P'],
+  'p-black': ['card_p_black', 'Noir P'],
+};
+
+/**
+ * Cartons reçus en poule, par tireur (#1829) : cartons de faute d'un côté, cartons P
+ * (non-combativité, t.124) inscrits séparément comme l'exige t.124.3.e. Vide sans carton.
+ */
+export function poolCardsSectionHTML(pool: Pool): string {
+  const byFencer = new Map<string, { standard: string[]; p: string[] }>();
+  for (const m of pool.matches ?? []) {
+    for (const c of m.cards ?? []) {
+      const entry = byFencer.get(c.fencerId) ?? { standard: [], p: [] };
+      (c.type.startsWith('p-') ? entry.p : entry.standard).push(c.type);
+      byFencer.set(c.fencerId, entry);
+    }
+  }
+  if (byFencer.size === 0) return '';
+  const summary = (types: string[]): string => {
+    const counts = new Map<string, number>();
+    for (const t of types) counts.set(t, (counts.get(t) ?? 0) + 1);
+    return [...counts]
+      .map(([t, n]) => {
+        const [key, fr] = CARD_LABELS[t] ?? [t, t];
+        return `${escHtml(pdfT(key, fr))}${n > 1 ? ` ×${n}` : ''}`;
+      })
+      .join(', ');
+  };
+  const rows = (pool.fencers ?? [])
+    .filter(f => byFencer.has(f.id))
+    .map(f => {
+      const e = byFencer.get(f.id)!;
+      return `<tr><td>${escHtml(`${f.lastName.toUpperCase()} ${f.firstName ?? ''}`)}</td><td>${summary(e.standard) || '—'}</td><td>${summary(e.p) || '—'}</td></tr>`;
+    })
+    .join('');
+  return `
+  <div class="pool-cards">
+    <div class="section-label">${escHtml(pdfT('cards_title', 'Cartons'))}</div>
+    <table class="pool-cards-table">
+      <thead><tr><th>${escHtml(pdfT('fencer', 'Tireur'))}</th><th>${escHtml(pdfT('cards_standard', 'Cartons'))}</th><th>${escHtml(pdfT('cards_p', 'Cartons P (non-combativité)'))}</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
 export function generatePoolHTML(
   pool: Pool,
   options: PoolExportOptions,
@@ -335,6 +387,7 @@ export function generatePoolHTML(
   </table>${cardsSection}`,
     'pending-matches': pendingSection,
     'finished-matches': finishedSection,
+    cards: poolCardsSectionHTML(pool),
     footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
@@ -357,9 +410,13 @@ export function generatePoolHTML(
     'score-grid',
     'pending-matches',
     'finished-matches',
+    'cards',
     'footer',
   ];
-  const body = assembleBody(sections, template, defaultOrder);
+  // Cartons toujours imprimés, même avec un modèle antérieur à la section (t.124.3.e)
+  const body =
+    assembleBody(sections, template, defaultOrder) +
+    (template && !template.elements.some(e => e.id === 'cards') ? sections.cards : '');
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   return `<!DOCTYPE html>
@@ -515,6 +572,11 @@ export function generatePoolHTML(
     }
     .match-pending { background: var(--gold-bg); color: #92400e; border-left: 2px solid var(--gold); }
     .match-done    { background: var(--green-bg); color: var(--green); border-left: 2px solid #4ade80; }
+
+    /* Cartons (#1829) : cartons P en colonne séparée (t.124.3.e) */
+    .pool-cards-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; margin-bottom: 3mm; }
+    .pool-cards-table th, .pool-cards-table td { border: 1px solid #d1d5db; padding: 1mm 2mm; text-align: left; }
+    .pool-cards-table th { background: #f3f4f6; }
   </style>
 </head>
 <body>
@@ -668,7 +730,7 @@ export function allPoolsFileName(competitionName?: string): string {
 // ─── Impression Poule (dialogue d'impression natif) ───────────────────────────
 
 async function sendHtmlToPrint(html: string): Promise<void> {
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }

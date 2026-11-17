@@ -35,6 +35,7 @@ import { FileText, Hourglass, Square } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { Button } from './common/Button';
 import { useToast } from './Toast';
+import { countTableauBouts } from '../../shared/utils/tableauBouts';
 const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
@@ -436,10 +437,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   };
 
   // Matchs terminés : poules + tableau jusqu'au dernier match (#1817)
-  const tableauCounts = useMemo(() => {
-    const playable = tableauMatches.filter(m => !m.isBye && m.fencerA && m.fencerB);
-    return { done: playable.filter(m => m.winner).length, total: playable.length };
-  }, [tableauMatches]);
+  // Tous les tours du tableau, tireurs connus ou non (#1817)
+  const tableauCounts = useMemo(() => countTableauBouts(tableauMatches), [tableauMatches]);
   const latest = useMemo(
     () => ({
       data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe, timings),

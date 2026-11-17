@@ -7,11 +7,20 @@
 import { Competition, Fencer, Pool, Match } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 
+/** Charge utile d'une action en attente (ids ciblés + corps de la requête). */
+export interface PendingActionData {
+  matchId?: string;
+  fencerId?: string;
+  poolId?: string;
+  updates?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export interface PendingAction {
   id: string;
   type: 'UPDATE_MATCH' | 'UPDATE_FENCER' | 'CREATE_POOL' | 'DELETE_POOL';
   timestamp: number;
-  data: any;
+  data: PendingActionData;
   retryCount?: number;
 }
 
@@ -19,8 +28,8 @@ export interface SyncConflict {
   id: string;
   entityType: 'match' | 'fencer' | 'pool';
   entityId: string;
-  localVersion: any;
-  remoteVersion: any;
+  localVersion: unknown;
+  remoteVersion: unknown;
   timestamp: number;
   resolved?: boolean;
 }
@@ -114,26 +123,26 @@ export class OfflineStorageManager {
   // Retrieve cached data
   async getCachedCompetition(id: string): Promise<Competition | null> {
     await this.ensureDB();
-    return this.get('competitions', id);
+    return this.get<Competition>('competitions', id);
   }
 
   async getCachedFencers(competitionId?: string): Promise<Fencer[]> {
     await this.ensureDB();
-    const fencers = await this.getAll('fencers');
+    const fencers = await this.getAll<Fencer>('fencers');
     // For now, return all fencers - filtering would be done at competition level
     return fencers;
   }
 
   async getCachedPools(competitionId?: string): Promise<Pool[]> {
     await this.ensureDB();
-    const pools = await this.getAll('pools');
+    const pools = await this.getAll<Pool>('pools');
     // For now, return all pools - filtering would be done at competition level
     return pools;
   }
 
   async getCachedMatches(competitionId?: string): Promise<Match[]> {
     await this.ensureDB();
-    const matches = await this.getAll('matches');
+    const matches = await this.getAll<Match>('matches');
     // For now, return all matches - filtering would be done at competition level
     return matches;
   }
@@ -158,7 +167,7 @@ export class OfflineStorageManager {
 
   async getPendingActions(): Promise<PendingAction[]> {
     await this.ensureDB();
-    const actions = await this.getAll('pendingActions');
+    const actions = await this.getAll<PendingAction>('pendingActions');
     return actions.sort((a: PendingAction, b: PendingAction) => a.timestamp - b.timestamp);
   }
 
@@ -169,7 +178,7 @@ export class OfflineStorageManager {
 
   async incrementRetryCount(id: string): Promise<void> {
     await this.ensureDB();
-    const action = (await this.get('pendingActions', id)) as PendingAction;
+    const action = await this.get<PendingAction>('pendingActions', id);
     if (action) {
       action.retryCount = (action.retryCount || 0) + 1;
       await this.store('pendingActions', action);
@@ -191,13 +200,13 @@ export class OfflineStorageManager {
 
   async getConflicts(): Promise<SyncConflict[]> {
     await this.ensureDB();
-    const conflicts = await this.getAll('conflicts');
+    const conflicts = await this.getAll<SyncConflict>('conflicts');
     return conflicts.filter((c: SyncConflict) => !c.resolved);
   }
 
   async resolveConflict(id: string, resolution: 'local' | 'remote'): Promise<void> {
     await this.ensureDB();
-    const conflict = (await this.get('conflicts', id)) as SyncConflict;
+    const conflict = await this.get<SyncConflict>('conflicts', id);
     if (conflict) {
       conflict.resolved = true;
       await this.store('conflicts', conflict);
@@ -230,15 +239,15 @@ export class OfflineStorageManager {
 
     const stores = ['competitions', 'fencers', 'pools', 'matches'];
     for (const storeName of stores) {
-      const items = await this.getAll(storeName);
+      const items = await this.getAll<{ id: string; updatedAt?: string | number | Date }>(
+        storeName
+      );
       const oldItems = items.filter(
-        (item: any) => item.updatedAt && new Date(item.updatedAt).getTime() < cutoffTime
+        item => item.updatedAt && new Date(item.updatedAt).getTime() < cutoffTime
       );
 
       const tx = this.db!.transaction([storeName], 'readwrite');
-      await Promise.all(
-        oldItems.map((item: any) => this.deleteInTransaction(tx, storeName, item.id))
-      );
+      await Promise.all(oldItems.map(item => this.deleteInTransaction(tx, storeName, item.id)));
     }
   }
 
@@ -276,7 +285,7 @@ export class OfflineStorageManager {
     }
   }
 
-  private async store(storeName: string, data: any): Promise<void> {
+  private async store(storeName: string, data: unknown): Promise<void> {
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction([storeName], 'readwrite');
       const store = tx.objectStore(storeName);
@@ -290,7 +299,7 @@ export class OfflineStorageManager {
   private async storeInTransaction(
     tx: IDBTransaction,
     storeName: string,
-    data: any
+    data: unknown
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const store = tx.objectStore(storeName);
@@ -301,7 +310,7 @@ export class OfflineStorageManager {
     });
   }
 
-  private async get(storeName: string, id: string): Promise<any> {
+  private async get<T>(storeName: string, id: string): Promise<T | null> {
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction([storeName], 'readonly');
       const store = tx.objectStore(storeName);
@@ -312,7 +321,7 @@ export class OfflineStorageManager {
     });
   }
 
-  private async getAll(storeName: string): Promise<any[]> {
+  private async getAll<T = unknown>(storeName: string): Promise<T[]> {
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction([storeName], 'readonly');
       const store = tx.objectStore(storeName);

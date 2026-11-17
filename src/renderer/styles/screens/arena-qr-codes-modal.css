@@ -1,0 +1,9 @@
+/* Styles extraits de ArenaQrCodesModal.tsx (#1895) */
+.arena-qr-codes-modal-1.arena-qr-codes-modal-1.arena-qr-codes-modal-1 {
+  max-width: 440px;
+}
+
+.arena-qr-codes-modal-2.arena-qr-codes-modal-2.arena-qr-codes-modal-2 {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

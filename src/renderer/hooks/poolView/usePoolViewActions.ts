@@ -16,6 +16,7 @@ import type { PoolViewProps } from '../../components/pool/poolViewTypes';
 import { usePoolViewInput } from './usePoolViewInput';
 import { usePoolViewState } from './usePoolViewState';
 import { loadPoolCards } from '../../utils/poolPrintCards';
+import { withMatchCards } from '../../services/poolCards';
 
 type Ctx = PoolViewProps &
   ReturnType<typeof usePoolViewState> &
@@ -134,9 +135,13 @@ export function usePoolViewActions(ctx: Ctx) {
     // Capturer l'ancien score pour l'historique
     const match = pool.matches[editingMatch];
     const prevScoreA =
-      typeof match?.scoreA === 'number' ? match.scoreA : ((match?.scoreA as any)?.value ?? null);
+      typeof match?.scoreA === 'number'
+        ? match.scoreA
+        : ((match?.scoreA as { value?: number } | null | undefined)?.value ?? null);
     const prevScoreB =
-      typeof match?.scoreB === 'number' ? match.scoreB : ((match?.scoreB as any)?.value ?? null);
+      typeof match?.scoreB === 'number'
+        ? match.scoreB
+        : ((match?.scoreB as { value?: number } | null | undefined)?.value ?? null);
     const matchIdx = editingMatch;
 
     if (actualScoreA === actualScoreB) {
@@ -303,7 +308,9 @@ export function usePoolViewActions(ctx: Ctx) {
     try {
       const options = await buildPoolPrintOptions();
       const { printPoolHTML } = await import('../../../shared/utils/pdfExport');
-      await printPoolHTML(pool, options, poolTemplate);
+      // Cartons de la base sur la feuille, cartons P à part (#1829)
+      const [withCards] = await withMatchCards([pool]);
+      await printPoolHTML(withCards, options, poolTemplate);
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'impression de la poule", error as Error);
       showToast(t('poolView.print_error', { error: errorText(error) }), 'error');

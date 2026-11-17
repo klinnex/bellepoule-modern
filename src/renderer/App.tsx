@@ -280,7 +280,7 @@ const AppContent: React.FC = () => {
           {view === 'home' && (
             <ErrorBoundary
               fallback={
-                <div style={{ padding: '20px', textAlign: 'center' }}>
+                <div className="app-1">
                   <h3>{t('app.load_error_title')}</h3>
                   <p>{t('app.load_error_message')}</p>
                   <button onClick={() => window.location.reload()}>{t('app.reload')}</button>

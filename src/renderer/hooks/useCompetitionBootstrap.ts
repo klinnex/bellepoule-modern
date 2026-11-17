@@ -36,7 +36,7 @@ export function useCompetitionBootstrap({
   useEffect(() => {
     window.electronAPI.remote
       .getSession(competitionId)
-      .then((result: any) => {
+      .then(result => {
         if (result?.success && result?.session) setIsRemoteActive(true);
       })
       .catch(() => {});
@@ -66,7 +66,7 @@ export function useCompetitionBootstrap({
   // Restaurer l'état actif de la saisie distante si le serveur tourne déjà (ex : retour sur l'onglet)
   useEffect(() => {
     if (!window.electronAPI?.remote) return;
-    window.electronAPI.remote.getServerInfo(competitionId).then((res: any) => {
+    window.electronAPI.remote.getServerInfo(competitionId).then(res => {
       if (res?.success && res.serverInfo) {
         setIsRemoteActive(true);
         setRemoteServerUrl(res.serverInfo.url);
@@ -79,7 +79,7 @@ export function useCompetitionBootstrap({
     if (!isRemoteActive || !window.electronAPI?.remote) return;
     // Petit délai pour laisser le serveur démarrer si besoin
     const timer = setTimeout(() => {
-      window.electronAPI.remote.getServerInfo(competitionId).then((res: any) => {
+      window.electronAPI.remote.getServerInfo(competitionId).then(res => {
         if (res?.success && res.serverInfo) setRemoteServerUrl(res.serverInfo.url);
       });
     }, 500);

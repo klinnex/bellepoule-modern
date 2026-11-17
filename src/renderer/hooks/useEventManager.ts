@@ -123,7 +123,10 @@ export const useEventManager = () => {
 // Keyboard Event Hook
 // ============================================================================
 
-export const useKeyboardEvents = (keyMap: Record<string, () => void>, dependencies: any[] = []) => {
+export const useKeyboardEvents = (
+  keyMap: Record<string, () => void>,
+  dependencies: unknown[] = []
+) => {
   const { addEventListener, removeEventListener } = useEventManager();
 
   useEffect(() => {
@@ -229,14 +232,14 @@ export const useAutoSave = (
 // IPC Event Hook for Electron
 // ============================================================================
 
-export const useIPCEvents = (eventHandlers: Record<string, (...args: any[]) => void>) => {
+export const useIPCEvents = (eventHandlers: Record<string, (...args: unknown[]) => void>) => {
   const listenersRef = useRef<Array<() => void>>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.electronAPI) {
       // Register all event handlers
       Object.entries(eventHandlers).forEach(([event, handler]) => {
-        const ipcHandler = (...args: any[]) => {
+        const ipcHandler = (...args: unknown[]) => {
           try {
             handler(...args);
           } catch (error) {

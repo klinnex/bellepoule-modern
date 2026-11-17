@@ -1,0 +1,46 @@
+/* Styles extraits de TableauSignaturesModal.tsx (#1895) */
+.tableau-signatures-modal-1.tableau-signatures-modal-1.tableau-signatures-modal-1 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.tableau-signatures-modal-2.tableau-signatures-modal-2.tableau-signatures-modal-2 {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.tableau-signatures-modal-3.tableau-signatures-modal-3.tableau-signatures-modal-3 {
+  margin-left: 0.5rem;
+  opacity: 0.7;
+}
+
+.tableau-signatures-modal-4.tableau-signatures-modal-4.tableau-signatures-modal-4 {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.tableau-signatures-modal-5.tableau-signatures-modal-5.tableau-signatures-modal-5 {
+  max-width: 480px;
+}
+
+.tableau-signatures-modal-6.tableau-signatures-modal-6.tableau-signatures-modal-6 {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tableau-signatures-modal-7.tableau-signatures-modal-7.tableau-signatures-modal-7 {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tableau-signatures-modal-8.tableau-signatures-modal-8.tableau-signatures-modal-8 {
+  display: flex;
+  gap: 0.5rem;
+}

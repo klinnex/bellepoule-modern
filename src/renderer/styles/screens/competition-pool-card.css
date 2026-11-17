@@ -1,0 +1,5 @@
+/* Styles extraits de CompetitionPoolCard.tsx (#1895) */
+.competition-pool-card-1.competition-pool-card-1.competition-pool-card-1 {
+  min-width: 0;
+  overflow: auto;
+}

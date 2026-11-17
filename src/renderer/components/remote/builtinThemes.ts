@@ -272,6 +272,90 @@ const ARCADE: Record<ThemeTargetType, Record<string, string>> = {
   },
 };
 
+/** Motif répétable src/remote/licorne-pattern.svg : licornes arc-en-ciel et étoiles */
+const LICORNE_PATTERN = 'url(/licorne-pattern.svg) repeat';
+
+/**
+ * Licorne : fond violet nuit semé de licornes arc-en-ciel (motif SVG), accents pastel.
+ * Côté vert = menthe, côté rouge = rose bonbon ; chiffres lumineux.
+ */
+const LICORNE: Record<ThemeTargetType, Record<string, string>> = {
+  arena: {
+    '--bg': `${LICORNE_PATTERN}, linear-gradient(160deg, #2a1245 0%, #14072a 100%)`,
+    '--text': '#fdf4ff',
+    '--header-bg':
+      'linear-gradient(90deg, #ff5c8a 0%, #ffb347 20%, #ffe066 40%, #6be585 60%, #4dc9ff 80%, #b58cff 100%)',
+    '--match-bg': 'rgba(20, 7, 42, 0.78)',
+    '--fencer-name-color': '#ffffff',
+    '--fencer-club-color': '#f5d0fe',
+    '--green-side-bg': 'linear-gradient(135deg, #0d3b2a 0%, #14532d 100%)',
+    '--green-side-border': '#6be585',
+    '--red-side-bg': 'linear-gradient(135deg, #4a0d3a 0%, #6b1450 100%)',
+    '--red-side-border': '#ff5c8a',
+    '--score-bg': '#1a0a33',
+    '--score-green': '#6be585',
+    '--score-green-glow': 'rgba(107,229,133,0.9), rgba(107,229,133,0.45)',
+    '--score-red': '#ff7ab6',
+    '--score-red-glow': 'rgba(255,122,182,0.9), rgba(255,122,182,0.45)',
+    '--timer-bg': '#1a0a33',
+    '--timer-color': '#ffe066',
+    '--timer-glow': 'rgba(255,224,102,0.95), rgba(255,179,71,0.5)',
+    '--timer-border': '#4dc9ff',
+    '--timer-run-color': '#4dc9ff',
+    '--timer-run-glow': 'rgba(77,201,255,0.95), rgba(181,140,255,0.5)',
+    '--timer-run-border': '#b58cff',
+    '--waiting-color': '#ffe066',
+    '--idle-number-color': '#ffffff',
+    '--idle-label-color': 'rgba(245,208,254,0.85)',
+    '--score-font-family': 'Georgia, serif',
+    '--timer-font-family': 'Georgia, serif',
+    '--fencer-name-font-family': 'Georgia, serif',
+    '--vs-color': '#ffe066',
+    '--vs-font-family': 'Georgia, serif',
+  },
+  kiosk: {
+    '--k-bg': `${LICORNE_PATTERN}, linear-gradient(160deg, #2a1245 0%, #14072a 100%)`,
+    '--k-accent': '#ffe066',
+    '--k-accent2': '#4dc9ff',
+    '--k-card-bg': 'rgba(255, 255, 255, 0.07)',
+    '--k-border': 'rgba(181, 140, 255, 0.5)',
+    '--k-muted': '#f5d0fe',
+    '--k-progress': 'linear-gradient(90deg, #ff5c8a, #ffb347, #ffe066, #6be585, #4dc9ff, #b58cff)',
+  },
+  public: {
+    '--pub-bg': `${LICORNE_PATTERN}, linear-gradient(160deg, #2a1245 0%, #14072a 100%)`,
+    '--pub-header-bg': 'linear-gradient(90deg, #ff5c8a 0%, #ffe066 35%, #6be585 65%, #4dc9ff 100%)',
+    '--pub-accent': '#ffe066',
+    '--pub-accent2': '#6be585',
+    '--pub-text': '#fdf4ff',
+    '--pub-muted': '#f5d0fe',
+    '--pub-card-bg': 'rgba(255, 255, 255, 0.07)',
+    '--pub-border': 'rgba(181, 140, 255, 0.5)',
+  },
+  referee: {
+    '--ref-bg': `${LICORNE_PATTERN}, linear-gradient(160deg, #2a1245 0%, #14072a 100%)`,
+    '--ref-header-bg': 'linear-gradient(90deg, #ff5c8a 0%, #ffe066 35%, #6be585 65%, #4dc9ff 100%)',
+    '--ref-accent': '#ffe066',
+    '--ref-accent2': '#4dc9ff',
+    '--ref-text': '#fdf4ff',
+    '--ref-muted': '#f5d0fe',
+    '--ref-card-bg': 'rgba(255, 255, 255, 0.07)',
+    '--ref-border': 'rgba(181, 140, 255, 0.5)',
+    ...REFEREE_DARK_MATCH_VARS,
+  },
+  pool: {
+    '--pool-bg': `${LICORNE_PATTERN}, linear-gradient(160deg, #2a1245 0%, #14072a 100%)`,
+    '--pool-header-bg':
+      'linear-gradient(90deg, #ff5c8a 0%, #ffe066 35%, #6be585 65%, #4dc9ff 100%)',
+    '--pool-accent': '#ffe066',
+    '--pool-accent2': '#4dc9ff',
+    '--pool-text': '#fdf4ff',
+    '--pool-muted': '#f5d0fe',
+    '--pool-card-bg': 'rgba(255, 255, 255, 0.07)',
+    '--pool-border': 'rgba(181, 140, 255, 0.5)',
+  },
+};
+
 /**
  * Sumi-e : papier de riz, encre de Chine, rouge tampon (hanko). Clair et sobre.
  * Côté rouge = vermillon, côté vert = vert bambou ; chiffres à l'encre.
@@ -357,6 +441,7 @@ const DECORATIVE_THEMES: Record<string, Record<ThemeTargetType, Record<string, s
   musketeers: MUSKETEERS,
   arcade: ARCADE,
   sumie: SUMIE,
+  licorne: LICORNE,
 };
 
 type Translate = (key: string) => string;

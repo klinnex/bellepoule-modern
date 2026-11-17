@@ -588,27 +588,12 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                 if (e.key === 'Enter') sendMessage();
               }}
               placeholder={t('xiaomi.bottom_text')}
-              style={{
-                flex: 1,
-                padding: '0.4rem 0.6rem',
-                fontSize: '0.85rem',
-                background: 'var(--color-bg)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '6px',
-                color: 'inherit',
-              }}
+              className="xiaomi-remote-panel-1"
             />
             <select
               value={msgDuration}
               onChange={e => setMsgDuration(Number(e.target.value))}
-              style={{
-                padding: '0.4rem 0.3rem',
-                fontSize: '0.82rem',
-                background: 'var(--color-bg)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '6px',
-                color: 'inherit',
-              }}
+              className="xiaomi-remote-panel-2"
             >
               <option value={3}>3s</option>
               <option value={5}>5s</option>
@@ -630,53 +615,16 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
       {/* Modal config kiosk */}
       {kioskTarget && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1100,
-          }}
+          className="xiaomi-remote-panel-3"
           onClick={e => {
             if (e.target === e.currentTarget) setKioskTarget(null);
           }}
         >
-          <div
-            style={{
-              background: 'var(--color-surface, #1e293b)',
-              color: 'var(--color-text, #f1f5f9)',
-              border: '1px solid var(--color-border, rgba(255,255,255,0.1))',
-              borderRadius: '12px',
-              width: '360px',
-              maxWidth: '94vw',
-              padding: '1.25rem',
-            }}
-          >
-            <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.85rem' }}>
-              {t('ui.configure_kiosk')}
-            </div>
-            <div
-              style={{
-                fontSize: '0.82rem',
-                color: 'var(--color-text-light, #94a3b8)',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {t('ui.views_label')}
-            </div>
+          <div className="xiaomi-remote-panel-4">
+            <div className="xiaomi-remote-panel-5">{t('ui.configure_kiosk')}</div>
+            <div className="xiaomi-remote-panel-6">{t('ui.views_label')}</div>
             {kioskViews.map(({ key, label }) => (
-              <label
-                key={key}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  margin: '0.3rem 0',
-                  cursor: 'pointer',
-                }}
-              >
+              <label key={key} className="xiaomi-remote-panel-7">
                 <input
                   type="checkbox"
                   checked={kioskConfig[key] !== false}
@@ -685,18 +633,8 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                 {label}
               </label>
             ))}
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}
-            >
-              <label
-                style={{
-                  fontSize: '0.82rem',
-                  color: 'var(--color-text-light, #94a3b8)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('ui.rotation_label')}
-              </label>
+            <div className="xiaomi-remote-panel-8">
+              <label className="xiaomi-remote-panel-9">{t('ui.rotation_label')}</label>
               <input
                 type="number"
                 min={3}
@@ -708,17 +646,10 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     rotationSec: Math.max(3, parseInt(e.target.value) || 15),
                   }))
                 }
-                style={{
-                  width: '5rem',
-                  padding: '0.3rem 0.5rem',
-                  borderRadius: '5px',
-                  border: '1px solid var(--color-border, rgba(255,255,255,0.15))',
-                  background: 'var(--color-bg, rgba(255,255,255,0.06))',
-                  color: 'inherit',
-                }}
+                className="xiaomi-remote-panel-10"
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+            <div className="xiaomi-remote-panel-11">
               <Button variant="primary" className="flex-1" onClick={sendKiosk}>
                 {t('ui.send_kiosk')}
               </Button>

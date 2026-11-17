@@ -177,6 +177,11 @@ export interface ArenaMatch {
   duration?: number; // in seconds
   /** Temps de combat réel (chrono en marche, hors repos) remonté par la tablette (#1817) */
   fightSeconds?: number;
+  /**
+   * Chrono affiché (secondes) au dernier `update_timer` / `pause_timer` de la tablette (#1829) :
+   * persisté avec l'arène, renvoyé aux écrans qui (re)joignent après un redémarrage.
+   */
+  clockSeconds?: number;
   referee?: { id: string; name: string }; // Arbitre assigné au match
   /**
    * Fin validée sur l'appareil de piste (Cyrano, #1720) : présent si le match a été clos par

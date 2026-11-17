@@ -3,14 +3,14 @@
  * Licensed under GPL-3.0
  */
 
-import { app, BrowserWindow, ipcMain, dialog, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Notification, safeStorage } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getCyranoBadMatchLabels, getL, setUiLanguage } from './menuLabels';
-import { registerDbHandlers } from './ipc/dbHandlers';
+import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
 import { createMenuActions } from './menuActions';
@@ -43,6 +43,7 @@ import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
 import { PisteHub } from './cyrano/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
+import { createMcpController } from './ipc/mcpHandlers';
 import { parseCliArgs } from './cliArgs';
 
 // --headless : process main sans fenêtre (#1880)
@@ -156,6 +157,28 @@ registerRemoteServerHandlers({
 
 registerCyranoHandlers({ cyranoServer, pisteHub, db });
 
+// Serveur MCP intégré, en lecture, désactivé par défaut (#1880) : 127.0.0.1 + jeton
+const mcp = createMcpController({
+  deps: {
+    db,
+    // Écritures de l'agent : écran rafraîchi (#1880, lot 2)
+    notify: (type, competitionId) => emitCompetitionEvent(type, competitionId),
+    remoteServers: () => [...remoteServers.entries()],
+    cyranoStatus: () => {
+      const alerts = pisteHub.getAlerts();
+      return {
+        running: cyranoServer.running,
+        port: cyranoServer.port,
+        pistes: cyranoServer.getStatuses().map(p => ({ ...p, alert: alerts[p.piste] ?? null })),
+      };
+    },
+  },
+  userDataDir: () => app.getPath('userData'),
+  secretBox: safeStorage,
+  version: app.getVersion(),
+});
+mcp.register();
+
 registerRemoteMatchHandlers();
 
 registerRemoteSessionHandlers();
@@ -237,6 +260,8 @@ async function openDatabase(): Promise<void> {
   }
 
   await db.open(dbPath);
+  // MCP : démarré une fois la base ouverte, s'il est activé (#1880)
+  void mcp.apply();
   logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
   // Noms abrégés sur le réseau + purge automatique des données échues (RGPD, #1882)
   applyStoredPrivacySettings(db, userDataPath);
@@ -361,6 +386,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  void mcp.stop();
   shutdownDb(db); // no-op si déjà fermé
 });
 

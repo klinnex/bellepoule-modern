@@ -33,6 +33,7 @@ import type {
 } from './eventDay';
 import type { ClubAPI } from './club';
 import type { PrivacyAPI } from './privacy';
+import type { McpAPI } from './mcp';
 export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
@@ -1339,7 +1340,7 @@ export interface PrintDialogAPI {
 }
 
 /** Types d'événements du bus de données main → renderer (#1298) */
-export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed' | 'competitions:changed';
 
 // ============================================================================
 // Cyrano API (#1720)
@@ -1411,6 +1412,8 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   updater: UpdaterAPI;
   proxy: ProxyAPI;
   privacy: PrivacyAPI;
+  /** Serveur MCP intégré, agent IA en lecture (#1880) */
+  mcp: McpAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
   ftp: FtpAPI;

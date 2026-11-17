@@ -1,0 +1,7 @@
+/* Styles extraits de SettingsModal.tsx (#1895) */
+.settings-modal-1.settings-modal-1.settings-modal-1 {
+  font-size: 0.75rem;
+  color: var(--text-muted, var(--color-text-muted));
+  display: block;
+  margin-top: 0.25rem;
+}

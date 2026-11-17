@@ -179,7 +179,7 @@ export function useRemoteScoreSync({
     if (!isRemoteActive || !competitionId || !window.electronAPI?.remote) return;
     window.electronAPI.remote
       .getArenas(competitionId)
-      .then((res: any) => {
+      .then(res => {
         if (res?.success && res.arenas) setArenaStates(res.arenas);
       })
       .catch(() => {});

@@ -136,17 +136,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
           </nav>
 
           <article className="is-88019c">
-            <h1
-              style={{
-                fontSize: '1.4rem',
-                fontWeight: 800,
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--color-text)',
-              }}
-            >
+            <h1 className="wiki-modal-1">
               <span>{selectedArticle.icon}</span>
               {getTitle(selectedArticle, lang)}
             </h1>

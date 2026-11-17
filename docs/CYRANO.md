@@ -123,30 +123,10 @@ Réglages mémorisés dans le navigateur de l'application (`localStorage`) : tab
 
 `persistArenaState` sauvegarde chaque arène. Au démarrage de la séance de saisie distante, une
 arène sauvegardée **en cours** reprend son match et son score, si ce match n'est pas terminé en base ;
-la file DE sauvegardée est rétablie.
-
-**Chrono** (`arenaTimer.ts`) : le serveur retient le dernier chrono reçu pour le match de l'arène
-(`update_timer` / `pause_timer` / `reset_timer`, de la tablette ou de l'appareil) et le sauvegarde
-avec l'arène, joint au match (`current_match.savedTimer` : temps restant, temps supplémentaire ;
-pas de migration). Sauvegarde immédiate à l'arrêt du chrono, au plus toutes les 5 s quand il tourne ;
-le décompte de la minute de repos de l'appareil (état `P`) n'est pas retenu. À la reprise, le chrono
-du match est rétabli **à l'arrêt** : il n'est jamais relancé automatiquement. Il est renvoyé à
-chaque client qui rejoint l'arène (`time`, `timerStatus: 'paused'`) : l'écran d'arène affiche le
-temps restant, la tablette le reprend en rouvrant le match si elle n'a pas son propre chrono mémorisé
-(`localStorage`, prioritaire). L'appareil de piste garde son propre chrono (le `DISP` envoyé en
-plein combat n'en porte pas).
-
-### 2 quinquies. Cartons sur les feuilles imprimées (#1829)
-
-Tous les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
-figurent sur les feuilles imprimées ou exportées en PDF, par tireur : blanc, jaune, rouge (avec leur
-nombre), noir, puis les **cartons P à part** (P rouge, P noir), comme le veut le règlement FIE
-(t.124.3.e). Lecture en une requête (`db.getCardsByMatchIds`).
-
-| Feuille | Rendu |
-|---|---|
-| Feuille de poule (impression, PDF d'une poule ou de toutes) | section « Cartons » sous la grille : un tireur par ligne (numéro, nom, cartons reçus dans la poule), seulement ceux qui en ont |
-| Feuille de match de tableau (feuilles d'arbitrage) | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur ; vide (à remplir à la main) sans carton enregistré. Un match saisi à distance est relu sous son id composite `<compétition>-<match>` |
+la file DE sauvegardée est rétablie. Le chrono aussi : la dernière valeur envoyée par la tablette
+(`update_timer`, `pause_timer`, `reset_timer`) est gardée dans `currentMatch.clockSeconds`,
+persistée à chaque pause et au plus toutes les 15 s en marche, puis renvoyée en pause aux écrans
+qui rejoignent l'arène. La tablette garde de son côté son propre chrono (#1717).
 
 ### 2 quinquies. Pistes partagées entre épreuves (#1878)
 
@@ -170,6 +150,18 @@ terminé sur l'arène, ou match suivant en file) :
   de la journée (clé `day:<id>` dans `cyrano_pistes`), partagée par toutes ses épreuves ; tant
   qu'elle est vide, la table propre de l'épreuve est reprise. Le panneau l'indique et signale
   les pistes suivies par une autre épreuve (`cyrano:getPistesScope`, `cyrano:getRoutes`).
+
+### 2 sexies. Cartons sur les feuilles imprimées (#1829)
+
+Tous les cartons enregistrés (table `match_cards`, y compris `p-red` / `p-black` lus sur l'appareil)
+figurent sur les feuilles imprimées ou exportées en PDF, par tireur : blanc, jaune, rouge (avec leur
+nombre), noir, puis les **cartons P à part** (P rouge, P noir), comme le veut le règlement FIE
+(t.124.3.e). Lecture en une requête (`db.getCardsByMatchIds`).
+
+| Feuille | Rendu |
+|---|---|
+| Feuille de poule (impression, PDF d'une poule ou de toutes) | section « Cartons » sous la grille : un tireur par ligne (numéro, nom, cartons reçus dans la poule), seulement ceux qui en ont |
+| Feuille de match de tableau (feuilles d'arbitrage) | colonne « Cartons » entre score et signature, sur la ligne de chaque tireur ; vide (à remplir à la main) sans carton enregistré. Un match saisi à distance est relu sous son id composite `<compétition>-<match>` |
 
 ### Supervision
 
@@ -305,6 +297,10 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
 PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
 base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
+
+Livré ensuite (#1829) : cartons de la feuille de poule imprimée, **cartons P à part**
+(t.124.3.e) ; reprise du chrono au redémarrage (§ 2 quater) ; **rapport d'exclusion pré-rempli**
+pour la FFE (carton noir, annexe 14 : Résultats → Export → « Rapport FFE (carton noir) »).
 
 Questions encore ouvertes : rattachement des sous-arènes (`arena3s2`) à un appareil ;
 second poste BellePoule en secours (maître / esclave, cf. Fencing Fox).

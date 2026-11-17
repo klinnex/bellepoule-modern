@@ -40,6 +40,7 @@ const ASSETS = [
   '/js/timerFormat.js',
   '/fonts.css',
   '/refereePhone.css',
+  '/licorne-pattern.svg',
   '/fonts/Inter-latin-Variable.woff2',
 ];
 

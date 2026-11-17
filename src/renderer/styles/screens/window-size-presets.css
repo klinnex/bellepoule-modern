@@ -1,0 +1,10 @@
+/* Styles extraits de WindowSizePresets.tsx (#1895) */
+.window-size-presets-1.window-size-presets-1.window-size-presets-1 {
+  position: relative;
+  display: inline-block;
+}
+
+.window-size-presets-2.window-size-presets-2.window-size-presets-2 {
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}

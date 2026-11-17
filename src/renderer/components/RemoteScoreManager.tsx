@@ -190,15 +190,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                 />
               </div>
               {!portValid && <div className="rsm-port-error">{t('rsm.port_invalid')}</div>}
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  marginTop: '0.5rem',
-                  cursor: 'pointer',
-                }}
-              >
+              <label className="remote-score-manager-1">
                 <input
                   type="checkbox"
                   checked={useHttps}
@@ -211,16 +203,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                 {t('rsm.enable_https')}
               </label>
               {useHttps ? (
-                <div
-                  style={{
-                    fontSize: '0.78rem',
-                    color: '#94a3b8',
-                    marginTop: '0.25rem',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {t('rsm.https_hint')}
-                </div>
+                <div className="remote-score-manager-2">{t('rsm.https_hint')}</div>
               ) : (
                 <div role="alert" style={RSM_STYLES.httpWarning}>
                   {t('rsm.http_warning')}
@@ -332,10 +315,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
           <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
             <div className="arena-url-header u-row-between">
               <strong>{t('rsm.kiosk_card')}</strong>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div className="remote-score-manager-3">
                 <select
-                  className="form-input"
-                  style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
+                  className="form-input remote-score-manager-4"
                   value={kioskTheme ? '' : kioskPreset}
                   onChange={e => applyKioskPreset(e.target.value as KioskPreset)}
                   title={t('rsm.kiosk_look')}
@@ -386,29 +368,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                   <div className="arena-url-header">
                     <strong>{t('rsm.global_theme')}</strong>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.5rem',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      marginTop: '0.25rem',
-                    }}
-                  >
+                  <div className="remote-score-manager-5">
                     <select
                       value={globalThemeSection}
                       onChange={e => {
                         setGlobalThemeSection(e.target.value as typeof globalThemeSection);
                         setGlobalThemeId('');
                       }}
-                      style={{
-                        padding: '0.35rem 0.5rem',
-                        borderRadius: '0.3rem',
-                        border: '1px solid #475569',
-                        background: '#1e293b',
-                        color: '#e2e8f0',
-                        fontSize: '0.85rem',
-                      }}
+                      className="remote-score-manager-6"
                     >
                       <option value="all">{t('rsm.gt_all')}</option>
                       <option value="arena">{t('rsm.gt_arena')}</option>
@@ -420,16 +387,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = (props: RemoteScor
                     <select
                       value={globalThemeId}
                       onChange={e => setGlobalThemeId(e.target.value)}
-                      style={{
-                        flex: 1,
-                        minWidth: 120,
-                        padding: '0.35rem 0.5rem',
-                        borderRadius: '0.3rem',
-                        border: '1px solid #475569',
-                        background: '#1e293b',
-                        color: '#e2e8f0',
-                        fontSize: '0.85rem',
-                      }}
+                      className="remote-score-manager-7"
                     >
                       <option value="">{t('rsm.choose_theme')}</option>
                       <optgroup label={t('rsm.gt_builtin')}>
