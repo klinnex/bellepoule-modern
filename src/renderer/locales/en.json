@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "Port",
     "strip_mode": "Mode of the Cyrano device of strip {{number}}",
     "strip_invalid": "Invalid IPv4 address or port (strip {{number}})."
+  },
+  "clubSessionMenu": {
+    "button": "Planned sessions: {{count}}",
+    "button_open": "Session of {{date}} open",
+    "title": "Manage sessions",
+    "current": "Open session",
+    "none_open": "No session open.",
+    "open": "Open",
+    "today": "today",
+    "opened": "Session of {{date}} opened",
+    "switch_confirm": "Close the session of {{from}} and open the one of {{to}}?"
   }
 }

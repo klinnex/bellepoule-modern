@@ -3852,5 +3852,16 @@
     "strip_port_placeholder": "連接埠",
     "strip_mode": "劍道 {{number}} 的 Cyrano 裝置模式",
     "strip_invalid": "IPv4 位址或連接埠無效（劍道 {{number}}）。"
+  },
+  "clubSessionMenu": {
+    "button": "已計劃課堂：{{count}}",
+    "button_open": "{{date}} 課堂進行中",
+    "title": "管理課堂",
+    "current": "進行中的課堂",
+    "none_open": "沒有進行中的課堂。",
+    "open": "開始",
+    "today": "今天",
+    "opened": "{{date}} 課堂已開始",
+    "switch_confirm": "結束 {{from}} 的課堂並開始 {{to}} 的課堂？"
   }
 }

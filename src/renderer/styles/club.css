@@ -681,3 +681,17 @@
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
+/* Menu global des séances */
+.club-session-menu-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.club-session-menu-row {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.club-session-menu-row--today {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 4px;
+}
