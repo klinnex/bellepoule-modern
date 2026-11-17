@@ -86,16 +86,29 @@ function readImportFile(file: unknown, extensions: string[]): string {
   if (!extensions.includes(path.extname(p).toLowerCase())) {
     throw new McpToolError(`Extension acceptée : ${extensions.join(', ')}`);
   }
-  let stat: fs.Stats;
+  // Un seul descripteur : contrôle et lecture portent sur le même fichier (pas de course)
+  let fd: number;
   try {
-    stat = fs.statSync(p);
+    fd = fs.openSync(p, 'r');
   } catch {
     throw new McpToolError(`Fichier introuvable : ${p}`);
   }
-  if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) {
-    throw new McpToolError('Fichier absent ou trop volumineux (5 Mo maximum)');
+  try {
+    const stat = fs.fstatSync(fd);
+    if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) {
+      throw new McpToolError('Fichier absent ou trop volumineux (5 Mo maximum)');
+    }
+    const buf = Buffer.alloc(stat.size);
+    let read = 0;
+    while (read < stat.size) {
+      const n = fs.readSync(fd, buf, read, stat.size - read, read);
+      if (n === 0) break;
+      read += n;
+    }
+    return decodeTextFile(new Uint8Array(buf.subarray(0, read)));
+  } finally {
+    fs.closeSync(fd);
   }
-  return decodeTextFile(new Uint8Array(fs.readFileSync(p)));
 }
 
 /** Aperçu d'un fichier de tireurs (épreuve pas encore créée, dryRun) */
