@@ -1,0 +1,72 @@
+/* Styles extraits de LiveInterPoolRanking.tsx (#1895) */
+.live-inter-pool-ranking-1.live-inter-pool-ranking-1.live-inter-pool-ranking-1 {
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.live-inter-pool-ranking-2.live-inter-pool-ranking-2.live-inter-pool-ranking-2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.live-inter-pool-ranking-3.live-inter-pool-ranking-3.live-inter-pool-ranking-3 {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 1.5s infinite;
+}
+
+.live-inter-pool-ranking-4.live-inter-pool-ranking-4.live-inter-pool-ranking-4 {
+  margin: 0;
+}
+
+.live-inter-pool-ranking-5.live-inter-pool-ranking-5.live-inter-pool-ranking-5 {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.live-inter-pool-ranking-6.live-inter-pool-ranking-6.live-inter-pool-ranking-6 {
+  width: 200px;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.live-inter-pool-ranking-7.live-inter-pool-ranking-7.live-inter-pool-ranking-7 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.live-inter-pool-ranking-8.live-inter-pool-ranking-8.live-inter-pool-ranking-8 {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.live-inter-pool-ranking-9.live-inter-pool-ranking-9.live-inter-pool-ranking-9 {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.live-inter-pool-ranking-10.live-inter-pool-ranking-10.live-inter-pool-ranking-10 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.live-inter-pool-ranking-11.live-inter-pool-ranking-11.live-inter-pool-ranking-11 {
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+}
+
+.live-inter-pool-ranking-12.live-inter-pool-ranking-12.live-inter-pool-ranking-12 {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-muted);
+}

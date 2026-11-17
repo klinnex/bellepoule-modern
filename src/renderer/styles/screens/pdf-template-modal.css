@@ -1,0 +1,47 @@
+/* Styles extraits de PdfTemplateModal.tsx (#1895) */
+.pdf-template-modal-1.pdf-template-modal-1.pdf-template-modal-1 {
+  max-width: 1350px;
+  width: 98%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pdf-template-modal-2.pdf-template-modal-2.pdf-template-modal-2 {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0;
+  flex-shrink: 0;
+}
+
+.pdf-template-modal-3.pdf-template-modal-3.pdf-template-modal-3 {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.pdf-template-modal-4.pdf-template-modal-4.pdf-template-modal-4 {
+  flex: 0 0 440px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pdf-template-modal-5.pdf-template-modal-5.pdf-template-modal-5 {
+  flex: 1 1 0;
+  min-width: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pdf-template-modal-6.pdf-template-modal-6.pdf-template-modal-6 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-muted, var(--color-text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.5rem;
+}

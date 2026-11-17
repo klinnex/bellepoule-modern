@@ -1,0 +1,59 @@
+/* Styles extraits de HistoricalStats.tsx (#1895) */
+.historical-stats-1.historical-stats-1.historical-stats-1 {
+  max-width: 750px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.historical-stats-2.historical-stats-2.historical-stats-2 {
+  margin: 0;
+}
+
+.historical-stats-3.historical-stats-3.historical-stats-3 {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.historical-stats-4.historical-stats-4.historical-stats-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.historical-stats-5.historical-stats-5.historical-stats-5 {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.historical-stats-6.historical-stats-6.historical-stats-6 {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-family: monospace;
+}
+
+.historical-stats-7.historical-stats-7.historical-stats-7 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.historical-stats-8.historical-stats-8.historical-stats-8 {
+  background: var(--color-bg);
+}
+
+.historical-stats-9.historical-stats-9.historical-stats-9 {
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.historical-stats-10.historical-stats-10.historical-stats-10 {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+}

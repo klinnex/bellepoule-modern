@@ -39,6 +39,7 @@ import './styles/analytics.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
 import './styles/resize-guard.css';
+import './styles/screens.css';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 /// <reference path="./types.d.ts" />
 

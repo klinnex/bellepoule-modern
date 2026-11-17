@@ -1,0 +1,116 @@
+/* Styles extraits de CompetitionList.tsx (#1895) */
+.competition-list-1.competition-list-1.competition-list-1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 220px);
+  gap: 2.5rem;
+}
+
+.competition-list-2.competition-list-2.competition-list-2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.competition-list-3.competition-list-3.competition-list-3 {
+  color: var(--color-text-light);
+  font-size: 1rem;
+  max-width: 48ch;
+  margin: 0 auto;
+}
+
+.competition-list-4.competition-list-4.competition-list-4 {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.competition-list-5.competition-list-5.competition-list-5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100px;
+}
+
+.competition-list-6.competition-list-6.competition-list-6 {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.competition-list-7.competition-list-7.competition-list-7 {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.competition-list-8.competition-list-8.competition-list-8 {
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.competition-list-9.competition-list-9.competition-list-9 {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.competition-list-10.competition-list-10.competition-list-10 {
+  color: var(--color-text-light);
+  margin-top: 0.875rem;
+}
+
+.competition-list-11.competition-list-11.competition-list-11 {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.competition-list-12.competition-list-12.competition-list-12 {
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+}
+
+.competition-list-13.competition-list-13.competition-list-13 {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.competition-list-14.competition-list-14.competition-list-14 {
+  flex: 1;
+  min-width: 0;
+}
+
+.competition-list-15.competition-list-15.competition-list-15 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.competition-list-16.competition-list-16.competition-list-16 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.competition-list-17.competition-list-17.competition-list-17 {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,14 @@
+/* Styles extraits de PoolsToolbar.tsx (#1895) */
+.pools-toolbar-1.pools-toolbar-1.pools-toolbar-1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.pools-toolbar-2.pools-toolbar-2.pools-toolbar-2 {
+  width: auto;
+  font-weight: 600;
+}

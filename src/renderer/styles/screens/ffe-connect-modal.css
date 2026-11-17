@@ -1,0 +1,43 @@
+/* Styles extraits de FFEConnectModal.tsx (#1895) */
+.ffe-connect-modal-1.ffe-connect-modal-1.ffe-connect-modal-1 {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ffe-connect-modal-2.ffe-connect-modal-2.ffe-connect-modal-2 {
+  flex: 2;
+}
+
+.ffe-connect-modal-3.ffe-connect-modal-3.ffe-connect-modal-3 {
+  flex: none;
+  align-self: flex-end;
+}
+
+.ffe-connect-modal-4.ffe-connect-modal-4.ffe-connect-modal-4 {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  color: #dc2626;
+}
+
+.ffe-connect-modal-5.ffe-connect-modal-5.ffe-connect-modal-5 {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ffe-connect-modal-6.ffe-connect-modal-6.ffe-connect-modal-6 {
+  overflow-x: auto;
+}
+
+.ffe-connect-modal-7.ffe-connect-modal-7.ffe-connect-modal-7 {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.ffe-connect-modal-8.ffe-connect-modal-8.ffe-connect-modal-8 {
+  width: 36px;
+}

@@ -1,0 +1,44 @@
+/* Styles extraits de ThemeEditor.tsx (#1895) */
+.theme-editor-1.theme-editor-1.theme-editor-1 {
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.theme-editor-2.theme-editor-2.theme-editor-2 {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  user-select: none;
+  width: 14px;
+  text-align: center;
+}
+
+.theme-editor-3.theme-editor-3.theme-editor-3 {
+  flex: 1;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.theme-editor-4.theme-editor-4.theme-editor-4 {
+  font-size: 1.1rem;
+  color: #94a3b8;
+  user-select: none;
+  width: 14px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.theme-editor-5.theme-editor-5.theme-editor-5 {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.theme-editor-6.theme-editor-6.theme-editor-6 {
+  width: 32px;
+  height: 28px;
+  border: 1px solid #475569;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  padding: 2px;
+  background: #1e293b;
+}

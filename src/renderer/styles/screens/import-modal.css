@@ -1,0 +1,89 @@
+/* Styles extraits de ImportModal.tsx (#1895) */
+.import-modal-1.import-modal-1.import-modal-1 {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-bg);
+  border-radius: 6px;
+}
+
+.import-modal-2.import-modal-2.import-modal-2 {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  color: #dc2626;
+}
+
+.import-modal-3.import-modal-3.import-modal-3 {
+  color: #059669;
+  font-weight: bold;
+}
+
+.import-modal-4.import-modal-4.import-modal-4 {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.import-modal-5.import-modal-5.import-modal-5 {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.import-modal-6.import-modal-6.import-modal-6 {
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+.import-modal-7.import-modal-7.import-modal-7 {
+  color: #059669;
+}
+
+.import-modal-8.import-modal-8.import-modal-8 {
+  color: #dc2626;
+}
+
+.import-modal-9.import-modal-9.import-modal-9 {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #fef3c7;
+  border-radius: 6px;
+  color: #d97706;
+}
+
+.import-modal-10.import-modal-10.import-modal-10 {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+  max-height: 100px;
+  overflow: auto;
+}
+
+.import-modal-11.import-modal-11.import-modal-11 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.import-modal-12.import-modal-12.import-modal-12 {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-border);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.import-modal-13.import-modal-13.import-modal-13 {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-light);
+}
+
+.import-modal-14.import-modal-14.import-modal-14 {
+  text-align: center;
+  padding: 2rem;
+}

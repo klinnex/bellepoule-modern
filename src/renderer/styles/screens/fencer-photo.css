@@ -1,0 +1,41 @@
+/* Styles extraits de FencerPhoto.tsx (#1895) */
+.fencer-photo-1.fencer-photo-1.fencer-photo-1 {
+  font-size: 0.875rem;
+}
+
+.fencer-photo-2.fencer-photo-2.fencer-photo-2 {
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.fencer-photo-3.fencer-photo-3.fencer-photo-3 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.fencer-photo-4.fencer-photo-4.fencer-photo-4 {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  width: 480px;
+  max-width: 90vw;
+}
+
+.fencer-photo-5.fencer-photo-5.fencer-photo-5 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.fencer-photo-6.fencer-photo-6.fencer-photo-6 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}

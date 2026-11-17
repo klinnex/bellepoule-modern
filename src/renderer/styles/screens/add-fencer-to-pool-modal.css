@@ -1,0 +1,42 @@
+/* Styles extraits de AddFencerToPoolModal.tsx (#1895) */
+.add-fencer-to-pool-modal-1.add-fencer-to-pool-modal-1.add-fencer-to-pool-modal-1 {
+  max-width: 420px;
+}
+
+.add-fencer-to-pool-modal-2.add-fencer-to-pool-modal-2.add-fencer-to-pool-modal-2 {
+  padding: 0.75rem;
+  background: #fef3c7;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.add-fencer-to-pool-modal-3.add-fencer-to-pool-modal-3.add-fencer-to-pool-modal-3 {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.add-fencer-to-pool-modal-4.add-fencer-to-pool-modal-4.add-fencer-to-pool-modal-4 {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.add-fencer-to-pool-modal-5.add-fencer-to-pool-modal-5.add-fencer-to-pool-modal-5 {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+
+.add-fencer-to-pool-modal-6.add-fencer-to-pool-modal-6.add-fencer-to-pool-modal-6 {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}

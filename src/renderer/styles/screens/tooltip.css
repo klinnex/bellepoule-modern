@@ -1,0 +1,19 @@
+/* Styles extraits de Tooltip.tsx (#1895) */
+.tooltip-1.tooltip-1.tooltip-1 {
+  display: inline-block;
+}
+
+.tooltip-2.tooltip-2.tooltip-2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  color: var(--color-text-light);
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: help;
+  margin-left: 6px;
+}

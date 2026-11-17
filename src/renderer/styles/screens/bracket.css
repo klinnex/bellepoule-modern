@@ -1,0 +1,104 @@
+/* Styles extraits de Bracket.tsx (#1895) */
+.bracket-1.bracket-1.bracket-1 {
+  flex: 1;
+  padding: 4px 8px;
+  min-width: 0;
+}
+
+.bracket-2.bracket-2.bracket-2 {
+  font-size: 0.625rem;
+  color: #6c757d;
+}
+
+.bracket-3.bracket-3.bracket-3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.bracket-4.bracket-4.bracket-4 {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bracket-5.bracket-5.bracket-5 {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.bracket-6.bracket-6.bracket-6 {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.bracket-7.bracket-7.bracket-7 {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.bracket-8.bracket-8.bracket-8 {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.bracket-9.bracket-9.bracket-9 {
+  font-size: 0.8rem;
+}
+
+.bracket-10.bracket-10.bracket-10 {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bracket-11.bracket-11.bracket-11 {
+  text-align: center;
+  font-size: 0.625rem;
+  color: #6c757d;
+  margin-bottom: 2px;
+}
+
+.bracket-12.bracket-12.bracket-12 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bracket-13.bracket-13.bracket-13 {
+  overflow: auto;
+}
+
+.bracket-14.bracket-14.bracket-14 {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
