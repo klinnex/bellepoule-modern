@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 15 | 237 |
-| `src/main/` | 85 | 673 |
+| `src/main/` | 86 | 673 |
 | `src/renderer/services/` | 9 | 53 |
 | `src/renderer/hooks/` | 30 | 147 |
 | `src/renderer/components/` | 111 | 558 |
@@ -110,9 +110,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **440** | **3323** |
+| **Total** | **441** | **3323** |
 
-Unitaires : 430 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 431 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3882,7 +3882,66 @@ Unitaires : 430 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 107 tests</summary>
+<summary><code>src/main/remoteScoreServer.security.test.ts</code> — 43 tests</summary>
+
+- **RemoteScoreServer**
+  - **route /api/auth/login/:arenaId**
+    - retourne 401 si PIN incorrect pour une arène avec mot de passe
+    - retourne succès si mot de passe correct (stocké hashé via setArenaPassword)
+    - retourne succès si arène sans mot de passe
+  - **rate limiting score**
+    - checkScoreRateLimit retourne true pour le premier appel
+    - checkScoreRateLimit retourne false après SCORE\_RATE\_LIMIT appels
+    - SCORE\_RATE\_LIMIT est défini et \> 0
+  - **P0 : actions mutantes protégées par l'auth d'arène**
+    - POST /api/arenas/:arenaId/%s refuse sans cookie (401) _(each)_
+    - POST /api/arenas/:arenaId/score accepte avec un cookie valide
+    - POST /api/session/%s réservé au loopback (403) _(each)_
+    - POST /api/session/stop accepté depuis le loopback
+    - POST /api/sync refuse sans cookie (401)
+    - socket arena\_control refusé sans cookie, sans avoir rejoint l'arène
+    - socket arena\_control accepté avec cookie valide
+    - socket arena\_control toggle\_swap reste autorisé pour l'écran d'arène
+    - **événements team\_\***
+      - %s refusé sans cookie _(each)_
+      - team\_touch accepté avec cookie, points invalides ignorés
+      - **relais FIE (#1086)**
+        - touche simple uniquement (pas de zones hors mode points)
+        - relais suivant : vainqueur au cumul, score du relais persisté
+        - carton individuel : escalade, persistance, motif inconnu refusé
+        - état public : cumul, palier du relais, cible, motifs de carton
+  - **P1 : anti force brute**
+    - hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient
+    - refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé
+    - X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP
+    - X-Forwarded-For lu seulement si trustProxy activé
+    - limite par arène : 20 tentatives/min tous clients confondus
+    - blocage progressif après 5 échecs, même après la fenêtre d'une minute
+    - un succès remet à zéro les échecs de l'IP
+    - jeton expiré côté serveur refusé
+    - nombre de jetons plafonné par arène
+  - **P2 : durcissement réseau / DoS**
+    - isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée
+    - POST avec Origin étrangère refusé (403), Origin même hôte accepté
+    - limite JSON réduite sur les routes de connexion
+    - /api/debug réservé à la machine hôte
+    - refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion
+    - déconnecte une socket qui inonde le serveur d'événements
+    - client:register enregistre l'IP de la socket, pas X-Forwarded-For
+  - **#993/#995/#997 : DoS socket et XSS**
+    - %s avec données nulles : aucune exception _(each)_
+    - sanitizeAnnouncement : balises retirées, carton inconnu normalisé
+    - journal : numéro de piste non numérique refusé (400)
+    - résultats : identifiant de compétition hors format refusé (400)
+  - **#989 : espace formateurs**
+    - fermé tant que non activé / sans mot de passe
+    - login puis commentaire enregistré ; sans cookie → 401
+    - mauvais mot de passe refusé
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 64 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -3892,14 +3951,6 @@ Unitaires : 430 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - getLocalIPAddress retourne une chaîne non vide
     - start() appelle server.listen
     - stop() appelle server.close
-  - **route /api/auth/login/:arenaId**
-    - retourne 401 si PIN incorrect pour une arène avec mot de passe
-    - retourne succès si mot de passe correct (stocké hashé via setArenaPassword)
-    - retourne succès si arène sans mot de passe
-  - **rate limiting score**
-    - checkScoreRateLimit retourne true pour le premier appel
-    - checkScoreRateLimit retourne false après SCORE\_RATE\_LIMIT appels
-    - SCORE\_RATE\_LIMIT est défini et \> 0
   - **arenaEventBuffer**
     - le buffer est initialement vide pour toutes les arènes
     - pushArenaEvent ajoute un événement dans le buffer
@@ -3971,50 +4022,6 @@ Unitaires : 430 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - n'écrase pas un statut sportif (éliminé)
     - ferme l'appel hors phase CHECKIN
     - invalide les sessions quand le mot de passe change
-  - **P0 : actions mutantes protégées par l'auth d'arène**
-    - POST /api/arenas/:arenaId/%s refuse sans cookie (401) _(each)_
-    - POST /api/arenas/:arenaId/score accepte avec un cookie valide
-    - POST /api/session/%s réservé au loopback (403) _(each)_
-    - POST /api/session/stop accepté depuis le loopback
-    - POST /api/sync refuse sans cookie (401)
-    - socket arena\_control refusé sans cookie, sans avoir rejoint l'arène
-    - socket arena\_control accepté avec cookie valide
-    - socket arena\_control toggle\_swap reste autorisé pour l'écran d'arène
-    - **événements team\_\***
-      - %s refusé sans cookie _(each)_
-      - team\_touch accepté avec cookie, points invalides ignorés
-      - **relais FIE (#1086)**
-        - touche simple uniquement (pas de zones hors mode points)
-        - relais suivant : vainqueur au cumul, score du relais persisté
-        - carton individuel : escalade, persistance, motif inconnu refusé
-        - état public : cumul, palier du relais, cible, motifs de carton
-  - **P1 : anti force brute**
-    - hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient
-    - refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé
-    - X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP
-    - X-Forwarded-For lu seulement si trustProxy activé
-    - limite par arène : 20 tentatives/min tous clients confondus
-    - blocage progressif après 5 échecs, même après la fenêtre d'une minute
-    - un succès remet à zéro les échecs de l'IP
-    - jeton expiré côté serveur refusé
-    - nombre de jetons plafonné par arène
-  - **P2 : durcissement réseau / DoS**
-    - isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée
-    - POST avec Origin étrangère refusé (403), Origin même hôte accepté
-    - limite JSON réduite sur les routes de connexion
-    - /api/debug réservé à la machine hôte
-    - refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion
-    - déconnecte une socket qui inonde le serveur d'événements
-    - client:register enregistre l'IP de la socket, pas X-Forwarded-For
-  - **#993/#995/#997 : DoS socket et XSS**
-    - %s avec données nulles : aucune exception _(each)_
-    - sanitizeAnnouncement : balises retirées, carton inconnu normalisé
-    - journal : numéro de piste non numérique refusé (400)
-    - résultats : identifiant de compétition hors format refusé (400)
-  - **#989 : espace formateurs**
-    - fermé tant que non activé / sans mot de passe
-    - login puis commentaire enregistré ; sans cookie → 401
-    - mauvais mot de passe refusé
   - **finishPoolMatch (saisie dans l'application)**
     - conserve le drapeau forfait sur le perdant (#1144)
     - sans statut spécial : score simple, aucun drapeau
