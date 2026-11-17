@@ -2992,10 +2992,3 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/* Inversion nom / prénom (présentation seule) — icône personnage */
-.pool-prep-swap-names[aria-pressed='true'] {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
