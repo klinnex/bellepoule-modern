@@ -103,16 +103,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 15 | 237 |
 | `src/main/` | 86 | 673 |
 | `src/renderer/services/` | 9 | 53 |
-| `src/renderer/hooks/` | 30 | 147 |
-| `src/renderer/components/` | 111 | 558 |
+| `src/renderer/hooks/` | 32 | 151 |
+| `src/renderer/components/` | 112 | 560 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 58 | 383 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **441** | **3323** |
+| **Total** | **444** | **3329** |
 
-Unitaires : 431 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 434 fichiers, 3290 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4361,6 +4361,15 @@ Unitaires : 431 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useClubTab.test.tsx</code> — 2 tests</summary>
+
+- **useClubTab**
+  - mémorise l’onglet et le club, relit le club affiché
+  - état restauré au montage
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useColumnMeasures.test.tsx</code> — 2 tests</summary>
 
 - **useColumnMeasures**
@@ -4687,6 +4696,15 @@ Unitaires : 431 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - charge le thème sauvegardé au montage
   - isLight vrai en mode clair
   - expose 3 thèmes disponibles
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useTrainingSession.test.tsx</code> — 2 tests</summary>
+
+- **useTrainingSession**
+  - lance puis arrête une session
+  - session refusée : serveur arrêté, toast d’erreur
 
 </details>
 
@@ -5296,6 +5314,15 @@ Unitaires : 431 fichiers, 3284 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tournoi des rapières : mêmes indicateurs que l'épée
   - arme personnalisée hors rapières : indicateurs historiques
   - sabre laser : indicateurs historiques
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/app/AppTabBar.test.tsx</code> — 2 tests</summary>
+
+- **AppTabBar**
+  - affiche les onglets et relaie les actions
+  - glisser-déposer : réordonne les onglets
 
 </details>
 
