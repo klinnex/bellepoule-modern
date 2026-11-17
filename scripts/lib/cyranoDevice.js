@@ -240,7 +240,13 @@ class CyranoDevice extends EventEmitter {
         }
         return undefined;
       case 'NAK':
-        this.note('END refusé (NAK)');
+        // Fin refusée (spéc. § 4) : l'appareil reste actif ; il revient en halte pour que
+        // l'arbitre corrige (score, priorité) et valide à nouveau
+        this.note('END refusé (NAK) : corriger puis VALIDATE');
+        if (s.state === 'E') {
+          s.state = 'H';
+          return this.sendInfo();
+        }
         return this.emit('change');
       default:
         return undefined;
