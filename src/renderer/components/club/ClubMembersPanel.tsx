@@ -328,7 +328,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             </Button>
           )}
         </div>
-        <div className="club-row">
+        <div className="club-row club-row--align-end">
           <ClubWeaponSelect
             value={settings.weapon}
             label={t('clubWeapon.club_label')}
