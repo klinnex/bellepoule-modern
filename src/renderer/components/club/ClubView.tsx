@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : espace permanent du club, ouvert comme un
- * onglet de compétition. Sous-onglets Membres / Séances / Statistiques.
+ * onglet de compétition. Sous-onglets Membres / Maîtres d'armes / Séances / Statistiques.
  * Licensed under GPL-3.0
  */
 
@@ -10,6 +10,7 @@ import {
   BarChart3,
   CalendarDays,
   Dumbbell,
+  GraduationCap,
   Package,
   Save,
   Shield,
@@ -26,6 +27,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { ClubMembersPanel } from './ClubMembersPanel';
 import { ClubSessionsPanel } from './ClubSessionsPanel';
+import { ClubCoachesPanel } from './ClubCoachesPanel';
 import { ClubSessionMenu } from './ClubSessionMenu';
 import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubExercisesPanel } from './ClubExercisesPanel';
@@ -33,10 +35,15 @@ import { ClubInventoryPanel } from './ClubInventoryPanel';
 import { ClubTour } from './ClubTour';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
-type ClubTab = 'members' | 'sessions' | 'stats' | 'exercises' | 'inventory';
+type ClubTab = 'members' | 'coaches' | 'sessions' | 'stats' | 'exercises' | 'inventory';
 
 const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'members', icon: <Users size={15} aria-hidden="true" />, labelKey: 'club.tab_members' },
+  {
+    id: 'coaches',
+    icon: <GraduationCap size={15} aria-hidden="true" />,
+    labelKey: 'clubCoach.tab',
+  },
   {
     id: 'sessions',
     icon: <CalendarDays size={15} aria-hidden="true" />,
@@ -203,6 +210,7 @@ const ClubSpace: React.FC<{
             onCardsPrinted={onCardsPrinted}
           />
         )}
+        {tab === 'coaches' && <ClubCoachesPanel clubId={clubId} />}
         {tab === 'sessions' && (
           <ClubSessionsPanel
             clubId={clubId}

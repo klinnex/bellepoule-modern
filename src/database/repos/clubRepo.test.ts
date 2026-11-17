@@ -246,6 +246,54 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
   });
 
+  describe("maîtres d'armes", () => {
+    it('CRUD, archivage, encadrement des séances', () => {
+      expect(() => repo.createCoach(cid, { firstName: ' ', lastName: '' })).toThrow();
+      const a = repo.createCoach(cid, {
+        firstName: 'Jean',
+        lastName: 'Martin',
+        title: "Maître d'armes",
+        weapons: [Weapon.EPEE],
+      });
+      const b = repo.createCoach(cid, { firstName: 'Anne', lastName: 'Blanc' });
+      expect(a).toMatchObject({ title: "Maître d'armes", weapons: [Weapon.EPEE], active: true });
+      expect(repo.listCoaches(cid).map(c => c.lastName)).toEqual(['Blanc', 'Martin']);
+      expect(repo.updateCoach(a.id, { phone: '0601020304' })!.phone).toBe('0601020304');
+      expect(() => repo.updateCoach(a.id, { firstName: '', lastName: '' })).toThrow();
+
+      // Maître d'armes d'un autre club ignoré
+      const other = repo.createClub({ name: 'Autre' });
+      const x = repo.createCoach(other.id, { firstName: 'X', lastName: 'Y' });
+      const s = repo.createSession(cid, {
+        date: '2026-11-20',
+        planned: true,
+        coachIds: [a.id, x.id, a.id],
+      });
+      expect(s.coachIds).toEqual([a.id]);
+      expect(repo.updateSession(s.id, { coachIds: [a.id, b.id] })!.coachIds).toEqual([b.id, a.id]);
+      expect(repo.updateSession(s.id, { label: 'Soir' })!.coachIds).toHaveLength(2);
+
+      // Archivé : hors liste par défaut, reste sur la séance
+      repo.updateCoach(b.id, { active: false });
+      expect(repo.listCoaches(cid).map(c => c.id)).toEqual([a.id]);
+      expect(repo.listCoaches(cid, true)).toHaveLength(2);
+      expect(repo.getSession(s.id)!.coachIds).toContain(b.id);
+
+      // Série : encadrement copié sur chaque séance
+      const series = repo.createSeries(
+        cid,
+        { date: '2026-12-01', coachIds: [a.id] },
+        { everyDays: 7, count: 3 }
+      );
+      expect(series.every(x2 => x2.coachIds.join() === a.id)).toBe(true);
+
+      repo.deleteCoach(a.id);
+      expect(repo.getSession(s.id)!.coachIds).toEqual([b.id]);
+      repo.deleteClub(cid);
+      expect(repo.listCoaches(cid, true)).toEqual([]);
+    });
+  });
+
   describe('bibliothèque d’exercices', () => {
     it('CRUD, tri par famille, import sans doublon', () => {
       const png = 'data:image/png;base64,iVBORw0KGgo=';

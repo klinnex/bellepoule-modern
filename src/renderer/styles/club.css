@@ -660,6 +660,26 @@
   color: #78350f;
 }
 
+/* Maîtres d'armes d'une séance */
+.club-coach-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.club-coach-picker > legend {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+.club-coach-weapons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
 /* Inventaire : choix des colonnes du tableau du matériel */
 .club-columns {
   position: relative;

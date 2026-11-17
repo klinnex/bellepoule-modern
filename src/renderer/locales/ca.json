@@ -3370,6 +3370,27 @@
     "cards_pdf": "Desa els carnets en PDF",
     "arena_qr_pdf": "Desa els QR de les pistes en PDF"
   },
+  "clubCoach": {
+    "tab": "Mestres d'armes",
+    "title": "Mestres d'armes del club",
+    "intro": "Els mestres d'armes i educadors dirigeixen les sessions. No compten com a tiradors.",
+    "title_label": "Funció / titulació",
+    "title_ph": "Mestre d'armes, Prebost, Educador…",
+    "phone": "Telèfon",
+    "email": "Correu",
+    "contact": "Contacte",
+    "weapons": "Armes ensenyades",
+    "all_weapons": "Totes",
+    "notes": "Notes",
+    "none": "Cap mestre d'armes",
+    "none_desc": "Afegiu els mestres d'armes del club per triar-los a les sessions.",
+    "edit": "Editar la fitxa",
+    "edit_title": "Fitxa de {{name}}",
+    "delete_confirm": "Voleu suprimir definitivament {{name}}? Es retirarà de l'equip de les sessions.",
+    "session_label": "Mestres d'armes de la sessió",
+    "none_available": "Cap mestre d'armes: afegiu-los a la pestanya Mestres d'armes.",
+    "by": "Dirigida per: {{names}}"
+  },
   "clubTour": {
     "title": "Benvingut al Mode Club",
     "skip": "Ometre la guia",

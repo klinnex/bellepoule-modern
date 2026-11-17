@@ -1,6 +1,7 @@
 /**
  * BellePoule Modern - Mode Club : sauvegarde complète d'un club (tables brutes) pour la
- * recharger sur un autre poste. Membres, séances, présences, combats, inventaire, prêts,
+ * recharger sur un autre poste. Membres, maîtres d'armes, séances, présences, combats,
+ * inventaire, prêts,
  * catégories, marques et bibliothèque d'exercices.
  * Licensed under GPL-3.0
  */
@@ -12,6 +13,7 @@ export const CLUB_BACKUP_VERSION = 1;
 /** Tables propres au club (colonne club_id), dans l'ordre d'insertion */
 const CLUB_TABLES = [
   'club_members',
+  'club_coaches',
   'club_sessions',
   'club_bouts',
   'club_item_categories',
@@ -25,6 +27,7 @@ export const CLUB_BACKUP_TABLES = [
   'clubs',
   ...CLUB_TABLES,
   'club_attendance',
+  'club_session_coaches',
   'club_exercises',
 ] as const;
 
@@ -94,6 +97,13 @@ export class ClubBackupRepo {
         [clubId]
       );
     }
+    if (this.hasTable('club_session_coaches')) {
+      tables.club_session_coaches = this.sql.queryAll<ClubBackupRow>(
+        `SELECT sc.* FROM club_session_coaches sc
+         JOIN club_sessions s ON s.id = sc.session_id WHERE s.club_id = ?`,
+        [clubId]
+      );
+    }
     if (this.hasTable('club_exercises')) {
       tables.club_exercises = this.sql.queryAll<ClubBackupRow>('SELECT * FROM club_exercises');
     }
@@ -154,6 +164,12 @@ export class ClubBackupRepo {
         [clubId]
       );
     }
+    if (this.hasTable('club_session_coaches')) {
+      this.sql.run(
+        'DELETE FROM club_session_coaches WHERE session_id IN (SELECT id FROM club_sessions WHERE club_id = ?)',
+        [clubId]
+      );
+    }
     for (const table of [...CLUB_TABLES].reverse()) {
       if (this.hasTable(table)) this.sql.run(`DELETE FROM ${table} WHERE club_id = ?`, [clubId]);
     }
@@ -202,6 +218,9 @@ export class ClubBackupRepo {
     const sessionIds = new Set(
       (b.tables.club_sessions ?? []).map(s => s.id).filter((id): id is string => !!id)
     );
+    const coachIds = new Set(
+      (b.tables.club_coaches ?? []).map(c => c.id).filter((id): id is string => !!id)
+    );
     let rows = 0;
     this.sql.transaction(() => {
       if (exists) this.deleteClubData(clubId);
@@ -218,6 +237,12 @@ export class ClubBackupRepo {
       }
       rows += this.insertRows('club_attendance', b.tables.club_attendance ?? [], 'INSERT', row =>
         sessionIds.has(String(row.session_id))
+      );
+      rows += this.insertRows(
+        'club_session_coaches',
+        b.tables.club_session_coaches ?? [],
+        'INSERT OR IGNORE',
+        row => sessionIds.has(String(row.session_id)) && coachIds.has(String(row.coach_id))
       );
       rows += this.insertRows('club_exercises', b.tables.club_exercises ?? [], 'INSERT OR IGNORE');
     });

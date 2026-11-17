@@ -3370,6 +3370,27 @@
     "cards_pdf": "Enrollañ ar c'hartennoù e PDF",
     "arena_qr_pdf": "Enrollañ QR ar pistoù e PDF"
   },
+  "clubCoach": {
+    "tab": "Mestr-armoù",
+    "title": "Mestr-armoù ar c'hlub",
+    "intro": "Ar vestr-armoù hag ar gelennerien a ren an atersioù. N'int ket kontet e-touez ar c'hlezeidi.",
+    "title_label": "Karg / diplom",
+    "title_ph": "Mestr-armoù, Provost, Kelenner…",
+    "phone": "Pellgomz",
+    "email": "Postel",
+    "contact": "Darempred",
+    "weapons": "Armoù kelennet",
+    "all_weapons": "An holl",
+    "notes": "Notennoù",
+    "none": "Mestr-armoù ebet",
+    "none_desc": "Ouzhpennit mestr-armoù ar c'hlub evit o dibab en atersioù.",
+    "edit": "Kemmañ ar fichenn",
+    "edit_title": "Fichenn {{name}}",
+    "delete_confirm": "Dilemel da viken {{name}} ? Lamet e vo eus ar skipailh atersioù.",
+    "session_label": "Mestr-armoù an aters",
+    "none_available": "Mestr-armoù ebet : ouzhpennit anezho en ivinell Mestr-armoù.",
+    "by": "Renet gant : {{names}}"
+  },
   "clubTour": {
     "title": "Degemer mat er Mod Klub",
     "skip": "Tremen ar sturlevr",

@@ -88,6 +88,7 @@ describe('partage Mode Club (#1872)', () => {
       status: 'closed',
       openedAt: '',
       attendeeIds: ['a'],
+      coachIds: [],
       objectives: 'Quarte',
       notes: 'Rappel',
       plan: normalizePlan([

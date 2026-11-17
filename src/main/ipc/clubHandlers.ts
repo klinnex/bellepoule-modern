@@ -23,6 +23,7 @@ import type {
   ClubBoutFilter,
   ClubBoutInput,
   ClubBoutResult,
+  ClubCoachInput,
   ClubExerciseInput,
   ClubItemInput,
   ClubLoanFilter,
@@ -140,6 +141,17 @@ export function registerClubHandlers({ db }: ClubHandlersContext): void {
   ipcMain.handle('club:importMembers', (_, clubId: string, inputs: ClubMemberInput[]) =>
     repo.importMembers(clubId, Array.isArray(inputs) ? inputs : [])
   );
+  // Maîtres d'armes
+  ipcMain.handle('club:listCoaches', (_, clubId: string, includeInactive?: boolean) =>
+    repo.listCoaches(clubId, includeInactive === true)
+  );
+  ipcMain.handle('club:createCoach', (_, clubId: string, data: ClubCoachInput) =>
+    repo.createCoach(clubId, data ?? { firstName: '', lastName: '' })
+  );
+  ipcMain.handle('club:updateCoach', (_, id: string, data: Partial<ClubCoachInput>) =>
+    repo.updateCoach(id, data ?? {})
+  );
+  ipcMain.handle('club:deleteCoach', (_, id: string) => repo.deleteCoach(id));
   // Séances
   ipcMain.handle('club:listSessions', (_, clubId: string, range?: { from?: string; to?: string }) =>
     repo.listSessions(clubId, range ?? {})

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import type {
   ClubBout,
+  ClubCoach,
   ClubMember,
   ClubSession,
   ClubSessionFeedback,
@@ -54,6 +55,7 @@ import { Weapon } from '../../../shared/types';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
+import { ClubCoachPicker, coachNames } from './ClubCoachPicker';
 import { ClubSessionPlanCard } from './ClubSessionPlanCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -208,6 +210,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
 
   const [sessions, setSessions] = useState<ClubSession[]>([]);
   const [members, setMembers] = useState<ClubMember[]>([]);
+  const [coaches, setCoaches] = useState<ClubCoach[]>([]);
+  const [openCoachIds, setOpenCoachIds] = useState<string[]>([]);
   const [bouts, setBouts] = useState<ClubBout[]>([]);
   const [label, setLabel] = useState('');
   const [scanOpen, setScanOpen] = useState(false);
@@ -234,9 +238,14 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
 
   const load = useCallback(async () => {
     if (!api) return;
-    const [list, mem] = await Promise.all([api.listSessions(clubId), api.listMembers(clubId)]);
+    const [list, mem, coachList] = await Promise.all([
+      api.listSessions(clubId),
+      api.listMembers(clubId),
+      api.listCoaches(clubId, true),
+    ]);
     setSessions(list);
     setMembers(mem);
+    setCoaches(coachList);
     const open = list.find(s => s.status === 'open');
     setBouts(open ? await api.listBouts({ sessionId: open.id, includeUnfinished: true }) : []);
     setRemote(await api.remoteStatus());
@@ -295,9 +304,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     .filter(s => s.status === 'planned' && forCategory(s, listCategory))
     .sort((a, b) => a.date.localeCompare(b.date));
   const past = sessions.filter(s => s.status === 'closed' && forCategory(s, listCategory));
-  /** Intitulé + catégories du cours + série */
+  /** Intitulé + catégories du cours + maîtres d'armes + série */
+  const coachText = (s: ClubSession) => {
+    const names = coachNames(s.coachIds ?? [], coaches);
+    return names ? t('clubCoach.by', { names }) : '';
+  };
   const sessionLabel = (s: ClubSession) =>
-    [s.label ?? '', ageRangeText(s, t), s.seriesId ? t('clubPlan.series_badge') : '']
+    [s.label ?? '', ageRangeText(s, t), coachText(s), s.seriesId ? t('clubPlan.series_badge') : '']
       .filter(Boolean)
       .join(' · ');
 
@@ -408,6 +421,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       prefill={planner.prefill}
       defaultDate={today()}
       defaultWeapon={settings.weapon}
+      coaches={coaches}
       marks={dayMarks}
       onSave={savePlan}
       onClose={() => setPlanner(null)}
@@ -447,6 +461,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                 <ClubWeaponSelect value={openWeapon} onChange={setOpenWeapon} />
                 <AgeRangeSelect value={openRange} onChange={setOpenRange} />
               </div>
+              <ClubCoachPicker coaches={coaches} value={openCoachIds} onChange={setOpenCoachIds} />
               <div className="club-open-actions">
                 <Button
                   variant="primary"
@@ -461,8 +476,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
                         stripCount: settings.stripCount,
                         ageFrom: openRange.ageFrom,
                         ageTo: openRange.ageTo,
+                        coachIds: openCoachIds,
                       });
                       setLabel('');
+                      setOpenCoachIds([]);
                     })
                   }
                 >
@@ -683,6 +700,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             {t('clubSession.current', { date: current.date })}
             {current.label ? ` · ${current.label}` : ''}
             {ageRangeText(current, t) ? ` · ${ageRangeText(current, t)}` : ''}
+            {coachText(current) ? ` · ${coachText(current)}` : ''}
             {current.weapon ? ` · ${weaponLabel(current.weapon, t)}` : ''}
           </h2>
           <Button

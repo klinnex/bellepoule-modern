@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { ArrowDown, ArrowUp, BookmarkPlus, Library, Plus, Repeat, Trash2 } from 'lucide-react';
 import type {
+  ClubCoach,
   ClubExercise,
   ClubPlanItem,
   ClubRecurrence,
@@ -19,6 +20,7 @@ import {
   type AgeRange,
 } from '../../../shared/utils/clubAge';
 import { AgeRangeSelect } from './ClubAgeRange';
+import { ClubCoachPicker } from './ClubCoachPicker';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -42,6 +44,8 @@ interface ClubSessionPlannerProps {
   marks?: Readonly<Record<string, DayMark>>;
   /** Séances de la même série (suivi des exercices d'une semaine à l'autre) */
   series?: readonly ClubSession[];
+  /** Maîtres d'armes du club (encadrement de la séance) */
+  coaches?: readonly ClubCoach[];
   /** recurrence : nouvelle séance répétée (série) */
   onSave: (data: ClubSessionInput, recurrence?: ClubRecurrence) => void;
   onClose: () => void;
@@ -61,6 +65,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   defaultWeapon,
   marks,
   series = [],
+  coaches = [],
   onSave,
   onClose,
 }) => {
@@ -73,6 +78,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   const [notes, setNotes] = useState(src?.notes ?? '');
   const [plan, setPlan] = useState<ClubPlanItem[]>(src?.plan?.length ? src.plan : [newItem()]);
   const [picker, setPicker] = useState(false);
+  const [coachIds, setCoachIds] = useState<string[]>(session?.coachIds ?? []);
   const [range, setRange] = useState<AgeRange>({
     ageFrom: src?.ageFrom ?? undefined,
     ageTo: src?.ageTo ?? undefined,
@@ -163,6 +169,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
                   notes,
                   ageFrom: range.ageFrom ?? null,
                   ageTo: range.ageTo ?? null,
+                  coachIds,
                   plan: plan.filter(it => it.title.trim()),
                 },
                 recurrence
@@ -198,6 +205,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
         </label>
       </div>
       <AgeRangeSelect value={range} onChange={setRange} />
+      <ClubCoachPicker coaches={coaches} value={coachIds} onChange={setCoachIds} />
       {!session && (
         <fieldset className="club-repeat">
           <label className="club-nowrap">

@@ -35,6 +35,7 @@ beforeEach(() => {
     importPhotos: vi.fn().mockResolvedValue({ matched: 2, total: 3 }),
     updateClub: vi.fn().mockResolvedValue({ id: 'c1', name: 'Nouveau nom', stripCount: 3 }),
     listMembers: vi.fn().mockResolvedValue([member]),
+    listCoaches: vi.fn().mockResolvedValue([]),
     listSessions: vi.fn().mockResolvedValue([]),
     remoteStatus: vi.fn().mockResolvedValue({ active: false, url: null, strips: 0 }),
     createMember: vi.fn().mockResolvedValue(member),

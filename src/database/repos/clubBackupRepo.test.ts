@@ -70,7 +70,8 @@ describe.skipIf(!DatabaseSync)('ClubBackupRepo (sauvegarde / chargement d’un c
     cid = a.club.createClub({ name: 'Cercle' }).id;
     const m1 = a.club.createMember(cid, { firstName: 'Ada', lastName: 'Lovelace' });
     const m2 = a.club.createMember(cid, { firstName: 'Alan', lastName: 'Turing' });
-    const s = a.club.createSession(cid, { date: '2026-11-16' });
+    const k = a.club.createCoach(cid, { firstName: 'Jean', lastName: 'Maître' });
+    const s = a.club.createSession(cid, { date: '2026-11-16', coachIds: [k.id] });
     a.club.setAttendance(s.id, m1.id, true);
     a.club.createBout({ sessionId: s.id, memberAId: m1.id, memberBId: m2.id });
     const cat = a.inv.createCategory(cid, 'Lames');
@@ -93,6 +94,9 @@ describe.skipIf(!DatabaseSync)('ClubBackupRepo (sauvegarde / chargement d’un c
     expect(b.club.listMembers(cid, true).map(m => m.lastName)).toEqual(['Lovelace', 'Turing']);
     const [session] = b.club.listSessions(cid);
     expect(session).toBeDefined();
+    const [coach] = b.club.listCoaches(cid);
+    expect(coach.lastName).toBe('Maître');
+    expect(session.coachIds).toEqual([coach.id]);
     expect(b.club.listBouts({ clubId: cid, includeUnfinished: true })).toHaveLength(1);
     expect(b.inv.listCategories(cid).map(c => c.name)).toEqual(['Lames']);
     expect(b.inv.listBrands(cid).map(x => x.name)).toEqual(['Allstar']);
@@ -110,6 +114,8 @@ describe.skipIf(!DatabaseSync)('ClubBackupRepo (sauvegarde / chargement d’un c
     const r = b.backup.importClub(data, true);
     expect(r.replaced).toBe(true);
     expect(b.club.listMembers(cid, true)).toHaveLength(2);
+    expect(b.club.listCoaches(cid, true)).toHaveLength(1);
+    expect(b.club.listSessions(cid)[0].coachIds).toHaveLength(1);
     expect(b.inv.listItems(cid)).toHaveLength(1);
     expect(b.club.listExercises()).toHaveLength(1);
   });

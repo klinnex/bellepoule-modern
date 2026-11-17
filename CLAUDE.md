@@ -213,7 +213,7 @@ Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club, privacy) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 38 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 39 versions)
 ```
 
 ### Key Patterns
