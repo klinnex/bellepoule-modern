@@ -1151,7 +1151,11 @@
     "greg_level_A": "Kopa ar bed",
     "greg_level_F": "Pencampionelezhioù Frañs",
     "greg_level_IE": "Pencampionelezhioù ar bed",
-    "greg_level_X": "All"
+    "greg_level_X": "All",
+    "bout_order": "Urzh an emgannoù e boulenn",
+    "bout_order_fie": "Urzh FIE (kenbleizien lakaet)",
+    "bout_order_free": "Urzh dieub (rondoù)",
+    "bout_order_hint": "FIE : taolennoù o.69 ha o.70, ar c'hleizeien eus an hevelep klub pe bro a gav kentoc'h ac'hanted. Dieub : rondoù reizh, hep lakaat (klub, dresadeg)."
   },
   "plural": {
     "common_password_set_one": "Ger-tremen boutin termenet evit {{count}} leurenn",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} kleizeier — {{m}} emgann",
     "matches": "{{n}} emgann",
     "fencer": "Kleizeier {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Kenbleizien lakaet",
+    "table_trio6": "Urzh trio (boulenn 6)",
+    "table_quartet6": "Urzh kwartet (boulenn 6)",
+    "table_trio7": "Urzh trio (boulenn 7)",
+    "table_roundRobin": "Urzh dieub",
+    "group": "{{value}} : niv. {{positions}}",
+    "variant": "Stumm",
+    "variant_standard": "Urzh standard",
+    "variant_trio6": "Trio 6 (o.70.3.b)",
+    "variant_quartet6": "Kwartet 6 (o.70.3.c)",
+    "variant_trio7": "Trio 7 (o.70.4.b)",
+    "placement_trio6": "Trio eus an hevelep klub pe bro en niv. 1, 2 ha 3 ; eil strollad en niv. 4 ha 5 (pe 4, 5 ha 6).",
+    "placement_quartet6": "Pevar kleizeier eus an hevelep klub pe bro en niv. 1, 2, 3 ha 4.",
+    "placement_trio7": "Trio en niv. 1, 2 ha 3 ; paerioù en niv. 4 ha 5, goude 6 ha 7."
   },
   "competitionNav": {
     "back": "Distreiñ",

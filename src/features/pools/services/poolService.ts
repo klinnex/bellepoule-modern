@@ -8,9 +8,9 @@ import { Pool, PoolRanking } from '../../../shared/types';
 import { PoolGenerationConfig, ScoreUpdateDTO } from '../types/pool.types';
 import {
   distributeFencersToPoolsSerpentine,
-  generatePoolMatchOrder,
   calculatePoolRanking,
 } from '../../../shared/utils/poolCalculations';
+import { planPoolBouts } from '../../../shared/utils/poolBoutOrder';
 import { PoolCalculator } from './poolCalculator';
 
 export class PoolService {
@@ -46,11 +46,8 @@ export class PoolService {
       config.maxPoolSize
     );
 
-    const fencerGroups = distributeFencersToPoolsSerpentine(
-      fencers,
-      poolCount,
-      config.strategy === 'club_balanced' ? ['byClub'] : []
-    );
+    const separation = config.strategy === 'club_balanced' ? (['byClub'] as const) : [];
+    const fencerGroups = distributeFencersToPoolsSerpentine(fencers, poolCount, [...separation]);
 
     // Create or reuse the pool phase
     const existingPhases = await window.electronAPI.db.getPhasesByCompetition(competitionId);
@@ -61,16 +58,17 @@ export class PoolService {
     const pools: Pool[] = [];
 
     for (let i = 0; i < fencerGroups.length; i++) {
-      const group = fencerGroups[i];
+      // Coéquipiers : numéros réservés et tables FIE o.70 (#1964)
+      const plan = planPoolBouts(fencerGroups[i], ['byClub']);
+      const group = plan.positions;
       const pool = await window.electronAPI.db.createPool(poolPhase.id, i + 1);
 
       for (let j = 0; j < group.length; j++) {
         await window.electronAPI.db.addFencerToPool(pool.id, group[j].id, j);
       }
 
-      const matchOrder = generatePoolMatchOrder(group.length);
       const matches = await Promise.all(
-        matchOrder.map(([a, b], idx) =>
+        plan.bouts.map(([a, b], idx) =>
           window.electronAPI.db.createMatch({
             number: idx + 1,
             fencerAId: group[a - 1].id,

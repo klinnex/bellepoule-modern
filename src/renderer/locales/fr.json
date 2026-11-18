@@ -1151,7 +1151,11 @@
     "greg_level_A": "Coupe du monde",
     "greg_level_F": "Championnats de France",
     "greg_level_IE": "Championnats du monde",
-    "greg_level_X": "Autre"
+    "greg_level_X": "Autre",
+    "bout_order": "Ordre des matchs de poule",
+    "bout_order_fie": "Ordre FIE (coéquipiers placés)",
+    "bout_order_free": "Ordre libre (rondes)",
+    "bout_order_hint": "FIE : tables o.69 et o.70, les tireurs d'un même club ou pays se rencontrent en premier. Libre : rondes régulières, sans placement (club, entraînement)."
   },
   "plural": {
     "common_password_set_one": "Mot de passe commun défini pour {{count}} piste",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} tireurs — {{m}} matchs",
     "matches": "{{n}} matchs",
     "fencer": "Tireur {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Coéquipiers placés",
+    "table_trio6": "Ordre trio (poule de 6)",
+    "table_quartet6": "Ordre quatuor (poule de 6)",
+    "table_trio7": "Ordre trio (poule de 7)",
+    "table_roundRobin": "Ordre libre",
+    "group": "{{value}} : n° {{positions}}",
+    "variant": "Variante",
+    "variant_standard": "Ordre standard",
+    "variant_trio6": "Trio de 6 (o.70.3.b)",
+    "variant_quartet6": "Quatuor de 6 (o.70.3.c)",
+    "variant_trio7": "Trio de 7 (o.70.4.b)",
+    "placement_trio6": "Trio d'une même appartenance aux n° 1, 2 et 3 ; second groupe aux n° 4 et 5 (ou 4, 5 et 6).",
+    "placement_quartet6": "Quatre tireurs d'une même appartenance aux n° 1, 2, 3 et 4.",
+    "placement_trio7": "Trio aux n° 1, 2 et 3 ; paires aux n° 4 et 5, puis 6 et 7."
   },
   "competitionNav": {
     "back": "Retour",

@@ -191,6 +191,7 @@ export function generatePools(
       poolCount: options.poolCount,
       minPerPool: min,
       maxPerPool: max,
+      boutOrder: comp.settings?.poolBoutOrder,
       newId: uuidv4,
     });
   } catch (e) {

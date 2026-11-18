@@ -206,3 +206,30 @@ describe('PoolPrepView — pastille du critère prioritaire (#1440)', () => {
     expect(pills.filter(p => p.classList.contains('conflict'))).toHaveLength(0);
   });
 });
+
+describe('PoolPrepView — ordre officiel des matchs (#1964)', () => {
+  const seven = [1, 2, 3, 4, 5, 6, 7].map(n => ({
+    ...fencer(n),
+    club: [2, 4, 7].includes(n) ? 'ClubA' : `Solo${n}`,
+  }));
+
+  it('trio du même club : n° 1, 2, 3 et table « trio de 7 »', () => {
+    const onConfirm = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView fencers={seven} maxScore={5} onPoolsConfirm={onConfirm} />
+      </TranslationProvider>
+    );
+    expect(screen.getByTestId('pool-bout-table')).toHaveTextContent('Ordre trio (poule de 7)');
+    expect(screen.getByTestId('pool-bout-table')).toHaveAttribute('title', 'ClubA : n° 1, 2, 3');
+  });
+
+  it('ordre libre : pas de placement, pastille « Ordre libre »', () => {
+    render(
+      <TranslationProvider>
+        <PoolPrepView fencers={seven} maxScore={5} boutOrderMode="free" onPoolsConfirm={vi.fn()} />
+      </TranslationProvider>
+    );
+    expect(screen.getByTestId('pool-bout-table')).toHaveTextContent('Ordre libre');
+  });
+});

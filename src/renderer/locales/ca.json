@@ -1151,7 +1151,11 @@
     "greg_level_A": "Copa del món",
     "greg_level_F": "Campionats de França",
     "greg_level_IE": "Campionats del món",
-    "greg_level_X": "Altre"
+    "greg_level_X": "Altre",
+    "bout_order": "Ordre dels combats de poule",
+    "bout_order_fie": "Ordre FIE (companys col·locats)",
+    "bout_order_free": "Ordre lliure (rondes)",
+    "bout_order_hint": "FIE: taules o.69 i o.70, els tiradors de la mateixa pertinença es troben primer. Lliure: rondes regulars, sense col·locació (club, entrenament)."
   },
   "plural": {
     "common_password_set_one": "Contrasenya comuna definida per a {{count}} pista",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} tiradors — {{m}} combats",
     "matches": "{{n}} combats",
     "fencer": "Tirador {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Companys col·locats",
+    "table_trio6": "Ordre de trio (poule de 6)",
+    "table_quartet6": "Ordre de quartet (poule de 6)",
+    "table_trio7": "Ordre de trio (poule de 7)",
+    "table_roundRobin": "Ordre lliure",
+    "group": "{{value}}: núm. {{positions}}",
+    "variant": "Variant",
+    "variant_standard": "Ordre estàndard",
+    "variant_trio6": "Trio de 6 (o.70.3.b)",
+    "variant_quartet6": "Quartet de 6 (o.70.3.c)",
+    "variant_trio7": "Trio de 7 (o.70.4.b)",
+    "placement_trio6": "Trio de la mateixa pertinença als núm. 1, 2 i 3; segon grup als núm. 4 i 5 (o 4, 5 i 6).",
+    "placement_quartet6": "Quatre tiradors de la mateixa pertinença als núm. 1, 2, 3 i 4.",
+    "placement_trio7": "Trio als núm. 1, 2 i 3; parelles als núm. 4 i 5, i després 6 i 7."
   },
   "competitionNav": {
     "back": "Torna",

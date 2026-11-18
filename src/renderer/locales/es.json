@@ -1151,7 +1151,11 @@
     "greg_level_A": "Copa del mundo",
     "greg_level_F": "Campeonatos de Francia",
     "greg_level_IE": "Campeonatos del mundo",
-    "greg_level_X": "Otro"
+    "greg_level_X": "Otro",
+    "bout_order": "Orden de los combates de poule",
+    "bout_order_fie": "Orden FIE (compañeros colocados)",
+    "bout_order_free": "Orden libre (rondas)",
+    "bout_order_hint": "FIE: tablas o.69 y o.70, los tiradores de un mismo club o país se enfrentan primero. Libre: rondas regulares, sin colocación (club, entrenamiento)."
   },
   "plural": {
     "common_password_set_one": "Contraseña común definida para {{count}} pista",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} tiradores — {{m}} combates",
     "matches": "{{n}} combates",
     "fencer": "Tirador {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Compañeros colocados",
+    "table_trio6": "Orden trío (poule de 6)",
+    "table_quartet6": "Orden cuarteto (poule de 6)",
+    "table_trio7": "Orden trío (poule de 7)",
+    "table_roundRobin": "Orden libre",
+    "group": "{{value}}: n.º {{positions}}",
+    "variant": "Variante",
+    "variant_standard": "Orden estándar",
+    "variant_trio6": "Trío de 6 (o.70.3.b)",
+    "variant_quartet6": "Cuarteto de 6 (o.70.3.c)",
+    "variant_trio7": "Trío de 7 (o.70.4.b)",
+    "placement_trio6": "Trío de una misma pertenencia en los n.º 1, 2 y 3; segundo grupo en los n.º 4 y 5 (o 4, 5 y 6).",
+    "placement_quartet6": "Cuatro tiradores de una misma pertenencia en los n.º 1, 2, 3 y 4.",
+    "placement_trio7": "Trío en los n.º 1, 2 y 3; parejas en los n.º 4 y 5, luego 6 y 7."
   },
   "competitionNav": {
     "back": "Volver",
