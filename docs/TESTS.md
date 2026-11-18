@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 259 |
-| `src/main/` | 109 | 892 |
+| `src/main/` | 109 | 893 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 119 | 611 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 59 | 397 |
+| `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3734** |
+| **Total** | **490** | **3736** |
 
-Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3697 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4120,7 +4120,7 @@ Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/clubArena.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/clubArena.test.ts</code> — 9 tests</summary>
 
 - **saisie distante Mode Club (#1872)**
   - identifiant de match club
@@ -4132,6 +4132,7 @@ Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - deux cartes : présents pointés, combat enregistré et placé sur la piste
   - une carte passée : combat libre non enregistré, nom connu affiché
   - erreurs : carte inconnue, même tireur, piste occupée ou absente
+  - piste occupée : vue arbitre directe ; combat libre par défaut : lecture des cartes
 
 </details>
 
@@ -7454,16 +7455,17 @@ Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 7 tests</summary>
+<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 8 tests</summary>
 
 - **refereeClubCards (#1872)**
   - lit le QR de la carte ou le code en clair
-  - piste de l’URL, identification déjà faite
+  - piste de l’URL
   - messages d’erreur du serveur
   - hors Mode Club : rien n’est installé
   - séance reliée : bouton « Cartes » à côté de Retour
-  - sans caméra (HTTP) : interface arbitre directe, pas de fenêtre à l’ouverture
+  - combat déjà sur la piste : vue arbitre directe, cartes via l’en-tête
   - caméra utilisable : contexte sécurisé + getUserMedia
+  - piste sans combat : lecture des cartes à l’ouverture
 
 </details>
 
