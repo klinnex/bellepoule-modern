@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 894 |
+| `src/shared/utils/` | 81 | 896 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 19 | 258 |
+| `src/database/` | 19 | 259 |
 | `src/main/` | 109 | 889 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 117 | 602 |
+| `src/renderer/components/` | 119 | 608 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 394 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3716** |
+| **Total** | **490** | **3725** |
 
-Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -637,7 +637,7 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/eventDay.test.ts</code> — 7 tests</summary>
+<summary><code>src/shared/utils/eventDay.test.ts</code> — 9 tests</summary>
 
 - **eventDay (#1714)**
   - parse et sérialise les armes
@@ -647,6 +647,9 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - détecte les conflits sur toute la journée
   - pas de conflit pour deux poules successives sur la même piste
   - occupé ailleurs : ignore l’épreuve courante
+- **noms d’arbitres importés des épreuves (#1872)**
+  - rapproche les homonymes sans accents, casse ni ordre
+  - découpe « Prénom Nom » et « NOM Prénom »
 
 </details>
 
@@ -2814,13 +2817,14 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/eventDayRepo.test.ts</code> — 7 tests</summary>
+<summary><code>src/database/repos/eventDayRepo.test.ts</code> — 8 tests</summary>
 
 - **EventDayRepo (#1714)**
   - crée une journée et rattache des épreuves
   - borne le nombre de pistes
   - reporte les arbitres selon leur arme, sans doublon
   - reprend une fiche homonyme existante et répercute les modifications
+  - importe les arbitres des épreuves : homonymes fusionnés, armes cumulées (#1872)
   - n'agit pas sur une épreuve hors journée
   - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
   - délie les fiches quand on supprime arbitre, rattachement ou journée
@@ -3532,8 +3536,8 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
 <summary><code>src/main/ipc/eventDayHandlers.test.ts</code> — 4 tests</summary>
 
 - **handlers eventDay:\* (#1714)**
-  - synchronise toutes les épreuves de la journée
-  - rattacher synchronise, détacher non
+  - importe les arbitres des épreuves puis synchronise toutes les épreuves (#1872)
+  - rattacher importe et synchronise la journée, détacher non
   - vue d’ensemble : statut commun et conflits
   - occupé ailleurs : vide hors journée, sinon autres épreuves seulement
 
@@ -6045,6 +6049,15 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/club/ClubMemberQrModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubMemberQrModal (#1872)**
+  - affiche le QR du membre et imprime sa seule carte
+  - membre archivé : impression désactivée
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/club/ClubPicker.test.tsx</code> — 4 tests</summary>
 
 - **ClubsHomeSection (Général)**
@@ -6078,7 +6091,7 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 16 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 17 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
@@ -6086,6 +6099,7 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - piste 2 libre : appariement manuel parmi les présents
   - pointage (fenêtre, catégories du cours) et fermeture
   - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
+  - paramètres de la saisie distante : réseau mémorisé, thème et mot de passe appliqués
   - saisie distante active : lobby des pistes
   - ouverture avec les catégories d’âge du cours
   - séance préparée répétée chaque semaine
@@ -6133,6 +6147,16 @@ Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - importe un fichier FFE .fff
   - importe un tableau CSV du club (colonne Nom)
   - nombre de pistes enregistré, import des photos ZIP
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/clubRemoteSettings.test.ts</code> — 3 tests</summary>
+
+- **clubRemoteSettings (#1872)**
+  - valeurs invalides ou absentes : défauts
+  - mot de passe : vide ou 8 caractères minimum
+  - seuls interface, port et HTTPS demandent un redémarrage
 
 </details>
 

@@ -3299,7 +3299,8 @@
     "assign": "Assigna",
     "reservation": "Reserva",
     "strips_no_config": "Nombre de pistes no configurat.",
-    "kiosk_link": "Pantalla del dia (kiosk)"
+    "kiosk_link": "Pantalla del dia (kiosk)",
+    "imported": "{{count}} àrbitre(s) importat(s) de les proves"
   },
   "organisation": {
     "eta": "Final estimat",
@@ -3424,7 +3425,8 @@
     "delete_confirm": "Voleu suprimir definitivament {{name}}? Es retirarà de l'equip de les sessions.",
     "session_label": "Mestres d'armes de la sessió",
     "none_available": "Cap mestre d'armes: afegiu-los a la pestanya Mestres d'armes.",
-    "by": "Dirigida per: {{names}}"
+    "by": "Dirigida per: {{names}}",
+    "new_title": "Nou mestre d'armes"
   },
   "clubTour": {
     "title": "Benvingut al Mode Club",

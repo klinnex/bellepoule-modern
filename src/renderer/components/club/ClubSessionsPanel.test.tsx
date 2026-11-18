@@ -154,15 +154,15 @@ describe('ClubSessionsPanel', () => {
     ]);
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Pointage (2)' }));
-    expect(await screen.findByRole('checkbox', { name: /DELTA X/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /DELTA X/ })).toBeInTheDocument();
     // Plage de catégories : DELTA (vétéran) disparaît, la plage est retenue pour la séance
     fireEvent.change(screen.getByLabelText('De la catégorie'), { target: { value: 'U9' } });
     fireEvent.change(screen.getByLabelText('À la catégorie'), { target: { value: 'U15' } });
-    await waitFor(() => expect(screen.queryByRole('checkbox', { name: /DELTA X/ })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('button', { name: /DELTA X/ })).toBeNull());
     await waitFor(() =>
       expect(api.updateSession).toHaveBeenLastCalledWith('s1', { ageFrom: 'U9', ageTo: 'U15' })
     );
-    fireEvent.click(screen.getByRole('checkbox', { name: /CHARLIE X/ }));
+    fireEvent.click(screen.getByRole('button', { name: /CHARLIE X/ }));
     await waitFor(() => expect(api.setAttendance).toHaveBeenCalledWith('s1', 'c', true));
     const closeButtons = screen.getAllByRole('button', { name: 'Fermer' });
     fireEvent.click(closeButtons[closeButtons.length - 1]);
@@ -257,7 +257,7 @@ describe('ClubSessionsPanel', () => {
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);
     fireEvent.click((await screen.findAllByRole('button', { name: 'Préparer une séance' }))[0]);
     fireEvent.change(await screen.findByLabelText('Exercice 1'), { target: { value: 'Fentes' } });
-    fireEvent.click(screen.getByRole('checkbox', { name: /Répéter cette séance/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Répéter cette séance/ }));
     fireEvent.change(screen.getByLabelText('Séances'), { target: { value: '4' } });
     expect(screen.getByText(/Séances créées : 4/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
@@ -282,7 +282,7 @@ describe('ClubSessionsPanel', () => {
 
   it('séance en cours : exercice coché, notes enregistrées', async () => {
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);
-    fireEvent.click(await screen.findByRole('checkbox', { name: /Échauffement/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Échauffement/ }));
     await waitFor(() =>
       expect(api.updateSession).toHaveBeenCalledWith('s1', {
         plan: [{ id: 'e1', title: 'Échauffement', minutes: 15, done: true }],
@@ -429,7 +429,7 @@ describe('ClubSessionsPanel', () => {
     // Plan vide : la famille « Échauffement » est proposée d'abord
     expect(await screen.findByText('Footing')).toBeInTheDocument();
     expect(screen.queryByText('Parade')).toBeNull();
-    fireEvent.click(screen.getByRole('checkbox', { name: /Footing/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Footing/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter (1)' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
     await waitFor(() =>

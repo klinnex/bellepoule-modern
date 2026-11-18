@@ -3299,7 +3299,8 @@
     "assign": "Atribuir",
     "reservation": "Reserva",
     "strips_no_config": "Número de pistas não configurado.",
-    "kiosk_link": "Ecrã do dia (kiosk)"
+    "kiosk_link": "Ecrã do dia (kiosk)",
+    "imported": "{{count}} árbitro(s) importado(s) das provas"
   },
   "organisation": {
     "eta": "Fim estimado",
@@ -3424,7 +3425,8 @@
     "delete_confirm": "Eliminar definitivamente {{name}}? Será retirado da equipa das sessões.",
     "session_label": "Mestres de armas da sessão",
     "none_available": "Nenhum mestre de armas: adicione-os no separador Mestres de armas.",
-    "by": "Orientada por: {{names}}"
+    "by": "Orientada por: {{names}}",
+    "new_title": "Novo mestre de armas"
   },
   "clubTour": {
     "title": "Bem-vindo ao Modo Clube",

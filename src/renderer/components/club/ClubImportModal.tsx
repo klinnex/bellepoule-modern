@@ -5,10 +5,12 @@
  * Licensed under GPL-3.0
  */
 
+import { Check } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import type { ClubMemberInput } from '../../../shared/types/club';
 import type { ClubImportRowStatus } from '../../../shared/utils/clubImport';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 
@@ -140,14 +142,17 @@ export const ClubImportModal: React.FC<ClubImportModalProps> = ({
                 onClick={() => can && toggle(i)}
               >
                 <td>
-                  <input
-                    type="checkbox"
-                    checked={selected.has(i)}
-                    disabled={!can}
-                    aria-label={`${r.lastName} ${r.firstName}`}
-                    onClick={e => e.stopPropagation()}
-                    onChange={() => toggle(i)}
-                  />
+                  <span onClick={e => e.stopPropagation()}>
+                    <ToggleChip
+                      className="toggle-chip--icon"
+                      pressed={selected.has(i)}
+                      disabled={!can}
+                      aria-label={`${r.lastName} ${r.firstName}`}
+                      onToggle={() => toggle(i)}
+                    >
+                      <Check size={14} aria-hidden="true" />
+                    </ToggleChip>
+                  </span>
                 </td>
                 <td className="font-medium">{r.lastName}</td>
                 <td>{r.firstName}</td>

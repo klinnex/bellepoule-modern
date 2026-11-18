@@ -13,6 +13,7 @@ import {
 } from '../../../shared/utils/clubAge';
 import { categoryLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { AgeRangeSelect } from './ClubAgeRange';
@@ -97,17 +98,16 @@ export const ClubAttendanceModal: React.FC<ClubAttendanceModalProps> = ({
         <ul className="club-attendance-list">
           {rows.map(({ m, cat }) => (
             <li key={m.id}>
-              <label className="club-attendance-row">
-                <input
-                  type="checkbox"
-                  checked={present.has(m.id)}
-                  onChange={e => onToggle(m.id, e.target.checked)}
-                />
+              <ToggleChip
+                className="club-attendance-row"
+                pressed={present.has(m.id)}
+                onToggle={on => onToggle(m.id, on)}
+              >
                 <span className="club-grow">
                   {m.lastName} {m.firstName}
                 </span>
                 <span className="club-muted">{cat ? categoryLabel(cat, t) : '-'}</span>
-              </label>
+              </ToggleChip>
             </li>
           ))}
         </ul>

@@ -81,14 +81,20 @@ describe('EventDayModal', () => {
     render(<EventDayModal competitions={competitions} onClose={vi.fn()} />);
     expect(await screen.findByText('Anne Martin')).toBeInTheDocument();
     expect(screen.getByText(/Piste 3 · M15 Fleuret \(Poule 2\)/)).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /M15 Fleuret/ })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: /M17 Épée/ })).not.toBeChecked();
+    expect(screen.getByRole('button', { name: /M15 Fleuret/ })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /M17 Épée/ })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
     expect(screen.getByText('Aucun conflit.')).toBeInTheDocument();
   });
 
   it('rattache une épreuve et reporte les arbitres', async () => {
     render(<EventDayModal competitions={competitions} onClose={vi.fn()} />);
-    fireEvent.click(await screen.findByRole('checkbox', { name: /M17 Épée/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /M17 Épée/ }));
     await waitFor(() => expect(api.setCompetitionDay).toHaveBeenCalledWith('c2', 'd1'));
     expect(await screen.findByText('2 arbitre(s) ajouté(s), 0 mis à jour')).toBeInTheDocument();
   });
@@ -101,7 +107,8 @@ describe('EventDayModal', () => {
     fireEvent.change(screen.getAllByPlaceholderText('Nom').slice(-1)[0], {
       target: { value: 'Durand' },
     });
-    fireEvent.click(document.getElementById(`new-ref-${Weapon.EPEE}`)!);
+    // Première carte « Épée » : formulaire d'ajout (avant le tableau des arbitres)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Épée' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
     await waitFor(() =>
       expect(api.createReferee).toHaveBeenCalledWith('d1', {

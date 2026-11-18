@@ -5,6 +5,7 @@
 import React from 'react';
 import type { ClubCoach } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 
 /** Nom affiché d'un maître d'armes */
 export const coachName = (c: Pick<ClubCoach, 'firstName' | 'lastName'>): string =>
@@ -32,25 +33,22 @@ export const ClubCoachPicker: React.FC<ClubCoachPickerProps> = ({ coaches, value
   const selected = new Set(value);
   const shown = coaches.filter(c => c.active || selected.has(c.id));
   return (
-    <fieldset className="club-coach-picker">
-      <legend className="form-label">{t('clubCoach.session_label')}</legend>
+    <ToggleChipGroup legend={t('clubCoach.session_label')} className="club-coach-picker">
       {shown.length === 0 ? (
         <span className="club-muted">{t('clubCoach.none_available')}</span>
       ) : (
         shown.map(c => (
-          <label key={c.id} className="club-nowrap">
-            <input
-              type="checkbox"
-              checked={selected.has(c.id)}
-              onChange={e =>
-                onChange(e.target.checked ? [...value, c.id] : value.filter(id => id !== c.id))
-              }
-            />{' '}
+          <ToggleChip
+            key={c.id}
+            pressed={selected.has(c.id)}
+            title={c.title || undefined}
+            onToggle={on => onChange(on ? [...value, c.id] : value.filter(id => id !== c.id))}
+          >
             {coachName(c)}
-            {c.title ? <span className="club-muted"> · {c.title}</span> : null}
-          </label>
+            {c.title ? <span className="toggle-chip-sub"> · {c.title}</span> : null}
+          </ToggleChip>
         ))
       )}
-    </fieldset>
+    </ToggleChipGroup>
   );
 };
