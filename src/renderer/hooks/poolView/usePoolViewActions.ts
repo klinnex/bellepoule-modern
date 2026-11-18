@@ -73,14 +73,17 @@ export function usePoolViewActions(ctx: Ctx) {
     onMatchReset,
   } = ctx;
 
-  /** Validation d'une case ; `typed` : texte complet tapé (avancement automatique, sans Tab) */
-  const handleInlineSubmit = (typed?: string) => {
+  /**
+   * Validation d'une case ; `typed` : texte complet tapé (avancement automatique, sans Tab) ;
+   * `backward` : Maj+Tab, case précédente
+   */
+  const handleInlineSubmit = (typed?: string, backward = false) => {
     if (!inlineEditCell) return;
     const { key, rowId, colId, matchIndex, inverted, initial } = inlineEditCell;
     const raw = typed ?? inlineSingleScore;
     // Case déjà saisie, non modifiée : on passe à la suivante sans réenregistrer
     if (initial && raw.trim().toUpperCase() === initial.toUpperCase()) {
-      openNextCell(key, new Set(), cellScoreBuffer);
+      openNextCell(key, new Set(), cellScoreBuffer, backward);
       return;
     }
     const r = resolveInlineSubmit({
@@ -96,7 +99,7 @@ export function usePoolViewActions(ctx: Ctx) {
       recordedMirror: getRecordedCellScore(matchIndex, inverted, true), // #1046
       winnerCells: tieWinnerCellsRef.current,
     });
-    if (r.action === 'skip') openNextCell(key, new Set(), cellScoreBuffer);
+    if (r.action === 'skip') openNextCell(key, new Set(), cellScoreBuffer, backward);
     else if (r.action === 'error') {
       showToast(t(r.msgKey, { max: r.max ?? 0 }), 'error');
       // Saisie automatique refusée : case vidée, on retape directement
@@ -104,12 +107,12 @@ export function usePoolViewActions(ctx: Ctx) {
     } else if (r.action === 'modal') openScoreModal(matchIndex, inverted);
     else if (r.action === 'buffer') {
       setCellScoreBuffer(r.buffer);
-      openNextCell(key, new Set(), r.buffer);
+      openNextCell(key, new Set(), r.buffer, backward);
     } else {
       setCellScoreBuffer(r.restBuffer);
       if (r.winner) onScoreUpdate(matchIndex, r.scoreA, r.scoreB, r.winner);
       else onScoreUpdate(matchIndex, r.scoreA, r.scoreB);
-      openNextCell(key, new Set([key, r.mirrorKey]), r.restBuffer);
+      openNextCell(key, new Set([key, r.mirrorKey]), r.restBuffer, backward);
     }
   };
 

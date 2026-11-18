@@ -36,7 +36,7 @@ interface PoolScoreMatrixProps {
   inlineSingleScore?: string;
   cellScoreBuffer?: Record<string, number>;
   onInlineSingleScoreChange?: (value: string) => void;
-  onInlineSubmit?: (typed?: string) => void;
+  onInlineSubmit?: (typed?: string, backward?: boolean) => void;
   onInlineCancel?: () => void;
   /** Score max des poules (0 = illimité) : « V » seul au max, avancement automatique */
   maxScore?: number;
@@ -64,7 +64,7 @@ interface ScoreCellProps {
   inlineSingleScore?: string;
   bufferedScore?: number;
   onInlineSingleScoreChange?: (value: string) => void;
-  onInlineSubmit?: (typed?: string) => void;
+  onInlineSubmit?: (typed?: string, backward?: boolean) => void;
   onInlineCancel?: () => void;
   maxScore: number;
   isLaserSabre: boolean;
@@ -188,7 +188,8 @@ const ScoreCell = React.memo<ScoreCellProps>(
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === 'Tab') {
                 e.preventDefault();
-                onInlineSubmit?.();
+                // Maj+Tab : case précédente
+                onInlineSubmit?.(undefined, e.key === 'Tab' && e.shiftKey);
               }
               if (e.key === 'Escape') {
                 e.preventDefault();

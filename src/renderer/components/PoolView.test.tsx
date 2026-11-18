@@ -160,6 +160,15 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
     expect(screen.getByRole('textbox')).toHaveValue('2');
   });
 
+  it('Maj+Tab : case précédente (#1990)', () => {
+    render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Tab', shiftKey: true });
+
+    expect(screen.getByRole('textbox')).toHaveValue('V');
+  });
+
   it('chiffre sans ambiguïté : enregistré sans Entrée ni Tab (#1990)', () => {
     const onScoreUpdate = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);

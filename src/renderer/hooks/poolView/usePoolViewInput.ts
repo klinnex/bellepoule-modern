@@ -450,15 +450,18 @@ export function usePoolViewInput(ctx: Ctx) {
     return cells;
   };
 
+  /** Case suivante (ou précédente avec `backward`, Maj+Tab) dans l'ordre de la matrice */
   const openNextCell = (
     currentKey: string,
     skipKeys: Set<string>,
-    buffer: Record<string, number>
+    buffer: Record<string, number>,
+    backward = false
   ) => {
     const cells = getOrderedCells();
     const currentIndex = cells.findIndex(c => c.key === currentKey);
-    const startFrom = currentIndex === -1 ? 0 : currentIndex + 1;
-    for (let i = startFrom; i < cells.length; i++) {
+    const step = backward ? -1 : 1;
+    const startFrom = currentIndex === -1 ? (backward ? cells.length - 1 : 0) : currentIndex + step;
+    for (let i = startFrom; i >= 0 && i < cells.length; i += step) {
       if (!skipKeys.has(cells[i].key)) {
         const next = cells[i];
         const initial = cellInitialText(next.key, next.matchIndex, next.inverted, buffer);
