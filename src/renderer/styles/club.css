@@ -786,3 +786,16 @@
   gap: 0.5rem;
   margin: 0;
 }
+
+/* QR d'un membre (#1872) : à scanner depuis l'écran */
+.club-member-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-member-qr img {
+  background: #fff;
+  padding: 6px;
+  border-radius: 6px;
+}

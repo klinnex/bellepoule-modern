@@ -3398,7 +3398,12 @@
     "sort_name": "Nombre",
     "sort_category": "Categoría de edad",
     "cards_pdf": "Guardar las tarjetas en PDF",
-    "arena_qr_pdf": "Guardar los QR de las pistas en PDF"
+    "arena_qr_pdf": "Guardar los QR de las pistas en PDF",
+    "show_qr": "Mostrar el código QR",
+    "member_qr_title": "Código QR de {{name}}",
+    "member_qr_alt": "Código QR del carné de {{name}}",
+    "print_card": "Imprimir su carné",
+    "card_pdf": "Guardar su carné en PDF"
   },
   "clubCoach": {
     "tab": "Maestros de armas",

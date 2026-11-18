@@ -3398,7 +3398,12 @@
     "sort_name": "姓名",
     "sort_category": "年齡組別",
     "cards_pdf": "將會員卡儲存為 PDF",
-    "arena_qr_pdf": "將劍道二維碼儲存為 PDF"
+    "arena_qr_pdf": "將劍道二維碼儲存為 PDF",
+    "show_qr": "顯示 QR 碼",
+    "member_qr_title": "{{name}} 的 QR 碼",
+    "member_qr_alt": "{{name}} 會員證的 QR 碼",
+    "print_card": "列印此會員證",
+    "card_pdf": "將此會員證儲存為 PDF"
   },
   "clubCoach": {
     "tab": "劍擊教練",

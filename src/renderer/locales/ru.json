@@ -3398,7 +3398,12 @@
     "sort_name": "Имя",
     "sort_category": "Возрастная категория",
     "cards_pdf": "Сохранить карты в PDF",
-    "arena_qr_pdf": "Сохранить QR дорожек в PDF"
+    "arena_qr_pdf": "Сохранить QR дорожек в PDF",
+    "show_qr": "Показать QR-код",
+    "member_qr_title": "QR-код: {{name}}",
+    "member_qr_alt": "QR-код карты: {{name}}",
+    "print_card": "Печать карты",
+    "card_pdf": "Сохранить карту в PDF"
   },
   "clubCoach": {
     "tab": "Тренеры",
