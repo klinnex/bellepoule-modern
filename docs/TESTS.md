@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 620 |
+| `src/renderer/components/` | 119 | 628 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **493** | **3803** |
+| **Total** | **493** | **3811** |
 
-Unitaires : 483 fichiers, 3764 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 483 fichiers, 3772 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5805,12 +5805,14 @@ Unitaires : 483 fichiers, 3764 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 13 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
   - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
   - bouton « Lancer » puis « Relancer » une fois les poules lancées
+  - poules lancées non modifiées : « Aller aux poules », sans relance (#1992)
+  - poules lancées modifiées : « Relancer », puis « Annuler les modifications » (#1992)
   - brouillon : modifications reprises au retour depuis l'appel (#1649)
   - sans brouillon : publie l'état initial
 - **PoolPrepView – brouillon de préparation (#1649)**
@@ -6579,7 +6581,7 @@ Unitaires : 483 fichiers, 3764 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/poolLaunchState.test.ts</code> — 6 tests</summary>
+<summary><code>src/renderer/components/poolLaunchState.test.ts</code> — 12 tests</summary>
 
 - **poolsHaveScores**
   - faux sans poule ou sans match saisi
@@ -6590,6 +6592,14 @@ Unitaires : 483 fichiers, 3764 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **poolTabLock**
   - tout verrouillé avant « Préparer les poules »
   - Préparation libre une fois préparées, Poules libre une fois lancées
+- **scoredMatchesLost (#1992)**
+  - mêmes matchs : rien de perdu
+  - matchs saisis remplacés : perdus
+  - matchs non saisis remplacés : rien de perdu
+- **poolsMatchFencers (#1992)**
+  - mêmes tireurs, ordre indifférent : inchangé
+  - tireur pointé en plus ou en moins : modifié
+  - sans poule : faux
 
 </details>
 
