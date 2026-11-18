@@ -28,6 +28,7 @@ import {
   PostPoolSplitCriteria,
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
+import { GREG_DEFAULT_LEVEL, GREG_LEVELS, GregLevel } from '../../shared/utils/gregPublication';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
 import {
   deriveSettingsFromFormula,
@@ -106,6 +107,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? true);
   // Dossier dédié aux sauvegardes de cette compétition (facultatif, vide = dossier global)
   const [backupDir, setBackupDir] = useState(competition.settings?.backupDir ?? '');
+  // Niveau GREG de la publication des résultats (#1328) ; absent = Autre
+  const [gregLevel, setGregLevel] = useState<GregLevel>(
+    competition.settings?.gregLevel ?? GREG_DEFAULT_LEVEL
+  );
   const chooseBackupDir = () => {
     void window.electronAPI?.backup?.pickCompetitionDir?.().then(dir => {
       if (dir) setBackupDir(dir);
@@ -200,6 +205,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       expertMode,
       // Vide = pas de dossier dédié : clé retirée (JSON), le dossier global s'applique
       backupDir: backupDir || undefined,
+      gregLevel,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
       poolWinnersOnly,
@@ -300,6 +306,22 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             value={organizer}
             onChange={e => setOrganizer(e.target.value)}
           />
+        </div>
+        <div className="form-group">
+          <label htmlFor="greg-level">{t('properties.greg_level_label')}</label>
+          <select
+            id="greg-level"
+            className="form-input form-select"
+            value={gregLevel}
+            onChange={e => setGregLevel(e.target.value as GregLevel)}
+          >
+            {GREG_LEVELS.map(code => (
+              <option key={code} value={code}>
+                {t(`properties.greg_level_${code}`)}
+              </option>
+            ))}
+          </select>
+          <div style={HINT}>{t('properties.greg_level_hint')}</div>
         </div>
         <div className="is-80ae82">
           <div className="form-group">

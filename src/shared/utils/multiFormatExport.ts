@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { getActiveLocale } from './localeFormat';
 import { applyBlackCardRanking } from './blackCardRanking';
+import { GREG_DEFAULT_LEVEL } from './gregPublication';
 import type { TeamResultForFFF } from './fencerExport';
 
 /**
@@ -418,7 +419,7 @@ export function exportResultsXMLFFE(
       ` Couleur="${escapeXml(competition.color || '')}"` +
       federalHeaderAttributes(competition) +
       ` Organisateur="${escapeXml(competition.organizer || '')}"` +
-      ` Niveau=""` +
+      ` Niveau="${escapeXml(settings?.gregLevel ?? GREG_DEFAULT_LEVEL)}"` +
       ` TitreLong="${escapeXml(competition.title)}"` +
       ` URLorganisateur="${escapeXml(competition.organizerUrl || '')}"` +
       ` ScoreAleatoire="${settings?.randomScore ? '1' : '0'}"` +

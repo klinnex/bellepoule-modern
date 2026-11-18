@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Enables advanced editing of strips and the number of referees per pool / bout",
     "max_referees_pool": "Max referees per pool",
     "max_referees_match": "Max referees per bout (bracket)",
-    "save": "Save"
+    "save": "Save",
+    "greg_level_label": "GREG level",
+    "greg_level_hint": "Level sent to GREG (escrime-info.com) when publishing results.",
+    "greg_level_L": "League",
+    "greg_level_Z": "Regional",
+    "greg_level_CN": "Open",
+    "greg_level_A": "World cup",
+    "greg_level_F": "National championships",
+    "greg_level_IE": "World championships",
+    "greg_level_X": "Other"
   },
   "plural": {
     "common_password_set_one": "Shared password set for {{count}} strip",

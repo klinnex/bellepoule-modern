@@ -707,6 +707,7 @@ export interface CompetitionSettings {
   splitFromCompetitionId?: string; // Compétition d'origine (si créée par séparation)
   federal?: FederalCompetitionInfo; // Données de l'extranet fédéral (#1938)
   schedule?: CompetitionSchedule; // Horaires appel / scratch / début (#1938)
+  gregLevel?: 'L' | 'Z' | 'CN' | 'A' | 'F' | 'IE' | 'X'; // Niveau GREG (publication, #1328) ; absent = X (Autre)
 }
 
 export interface Phase extends BaseEntity {

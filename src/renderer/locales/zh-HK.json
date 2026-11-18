@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "啟用劍道及每組／每場裁判人數的進階編輯",
     "max_referees_pool": "每組最多裁判",
     "max_referees_match": "每場最多裁判（淘汰賽）",
-    "save": "儲存"
+    "save": "儲存",
+    "greg_level_label": "GREG 級別",
+    "greg_level_hint": "發布成績時傳送至 GREG（escrime-info.com）的級別。",
+    "greg_level_L": "CID",
+    "greg_level_Z": "區域",
+    "greg_level_CN": "全國巡迴賽",
+    "greg_level_A": "世界盃",
+    "greg_level_F": "法國錦標賽",
+    "greg_level_IE": "世界錦標賽",
+    "greg_level_X": "其他"
   },
   "plural": {
     "common_password_set_one": "已為 {{count}} 條劍道設定共用密碼",

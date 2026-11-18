@@ -9,6 +9,7 @@
  */
 
 import { Category, FederalCompetitionInfo, Gender, Weapon } from '../../types';
+import { isGregLevel, levelFromFederalDomain, GregLevel } from '../gregPublication';
 import { attrReader } from './common';
 
 const ROOT_RE =
@@ -24,6 +25,8 @@ export interface MappedCompetitionFields {
   category?: Category;
   location?: string;
   organizer?: string;
+  /** Niveau GREG : attribut `Niveau` d'un fichier BellePoule, sinon proposé d'après `Domaine` (#1328) */
+  gregLevel?: GregLevel;
   isTeamEvent: boolean;
   checkInTime?: string;
   scratchTime?: string;
@@ -152,6 +155,7 @@ export function parseCompetitionHeader(content: string): CompetitionHeader | nul
   const date = rawDate ? federalDateToIso(rawDate) : undefined;
   if (rawDate && !date) notices.push({ code: 'invalidDate', value: rawDate });
 
+  const niveau = get('Niveau');
   const fields: MappedCompetitionFields = {
     title: federal.title ?? federal.shortTitle,
     date,
@@ -160,6 +164,7 @@ export function parseCompetitionHeader(content: string): CompetitionHeader | nul
     category,
     location: federal.location,
     organizer: federal.organizer,
+    gregLevel: isGregLevel(niveau) ? niveau : levelFromFederalDomain(federal.domain, federal.title),
     isTeamEvent,
     checkInTime: normalizeFederalTime(get('Appel')),
     scratchTime: normalizeFederalTime(get('Scratch')),

@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Gweredekaat a ra an aozañ araokaet eus an tachennoù hag an niver a vreutaerien dre boull / genstrivadenn",
     "max_referees_pool": "Breutaerien d'ar muiañ dre boull",
     "max_referees_match": "Breutaerien d'ar muiañ dre genstrivadenn (taolenn)",
-    "save": "Enrollañ"
+    "save": "Enrollañ",
+    "greg_level_label": "Live GREG",
+    "greg_level_hint": "Live kaset da GREG (escrime-info.com) pa vez embannet an disoc'hoù.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Zone",
+    "greg_level_CN": "Circuit broadel",
+    "greg_level_A": "Kopa ar bed",
+    "greg_level_F": "Pencampionelezhioù Frañs",
+    "greg_level_IE": "Pencampionelezhioù ar bed",
+    "greg_level_X": "All"
   },
   "plural": {
     "common_password_set_one": "Ger-tremen boutin termenet evit {{count}} leurenn",

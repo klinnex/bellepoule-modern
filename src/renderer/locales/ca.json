@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Activa l'edició avançada de pistes i del nombre d'àrbitres per poule / combat",
     "max_referees_pool": "Àrbitres màx. per poule",
     "max_referees_match": "Àrbitres màx. per combat (quadre)",
-    "save": "Desa"
+    "save": "Desa",
+    "greg_level_label": "Nivell GREG",
+    "greg_level_hint": "Nivell enviat a GREG (escrime-info.com) en publicar els resultats.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Zona",
+    "greg_level_CN": "Circuit nacional",
+    "greg_level_A": "Copa del món",
+    "greg_level_F": "Campionats de França",
+    "greg_level_IE": "Campionats del món",
+    "greg_level_X": "Altre"
   },
   "plural": {
     "common_password_set_one": "Contrasenya comuna definida per a {{count}} pista",
