@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
-| `src/database/` | 19 | 259 |
-| `src/main/` | 109 | 893 |
+| `src/database/` | 19 | 261 |
+| `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 119 | 611 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **491** | **3752** |
+| **Total** | **492** | **3762** |
 
-Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 482 fichiers, 3723 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2774,7 +2774,7 @@ Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 44 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 46 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2822,6 +2822,9 @@ Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - annulé : non terminable
     - filtres : membre, plage, arme, terminés seuls par défaut
     - suppression
+  - **armes du club (#1872)**
+    - garde la liste (ordre canonique, artistique inclus) ; arme par défaut = 1re arme de compétition
+    - sans arme de compétition : pas d’arme par défaut
   - **catégories d’âge et séances récurrentes**
     - date de naissance : année déduite, date invalide ignorée
     - séance : catégories du cours (codes reconnus), effaçables
@@ -3139,6 +3142,23 @@ Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - --mcp-print-config implique --headless
   - --mcp-new-token : régénère puis affiche la configuration
   - --batch-import sans valeur : ignoré
+
+</details>
+
+<details>
+<summary><code>src/main/clubBackups.test.ts</code> — 8 tests</summary>
+
+- **backupsToRemove**
+  - garde les 2 plus récentes et supprime les plus anciennes
+  - ignore les fichiers qui ne sont pas des sauvegardes
+- **clubBackupFileName**
+  - produit un nom horodaté trié chronologiquement
+- **sauvegardes sur disque**
+  - rotation : la 3e sauvegarde supprime la plus ancienne
+  - liste vide tant qu’aucune sauvegarde n’existe
+  - restaure une sauvegarde en remplaçant le club
+  - refuse un identifiant de fichier hors format (pas de chemin arbitraire)
+  - refuse la restauration d’une sauvegarde d’un autre club
 
 </details>
 
@@ -6177,7 +6197,7 @@ Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - ajoute un membre
   - archive un membre, affiche les archivés
   - enregistre le nom du club (onglet Identité)
-  - le bouton de l'en-tête ouvre l'onglet Identité
+  - l'en-tête n'a plus de crayon d'édition de l'identité (#1872)
   - importe un fichier FFE .fff
   - importe un tableau CSV du club (colonne Nom)
   - nombre de pistes enregistré, import des photos ZIP
