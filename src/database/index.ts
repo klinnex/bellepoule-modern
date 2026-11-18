@@ -7,7 +7,7 @@
 import Database from 'better-sqlite3-multiple-ciphers';
 import * as path from 'path';
 import * as fs from 'fs';
-import { openDatabaseFile } from './encryption';
+import { applyDatabaseKey, openDatabaseFile } from './encryption';
 import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive';
 import { MigrationManager } from './migrations';
 import { SignatureRepo } from './repos/signatureRepo';
@@ -772,16 +772,35 @@ export class DatabaseManager {
 
   // Export/Import
   public async exportToFile(filepath: string): Promise<void> {
-    if (!this.db) throw new Error('Database not open');
-    await this.db.backup(filepath);
-    // La sauvegarde recopie aussi les pages libérées : VACUUM pour n'y laisser
-    // aucune donnée effacée (#1882)
-    const copy = new Database(filepath);
+    const copy = this.openPlainCopy(filepath);
     try {
       copy.pragma('journal_mode = DELETE');
       copy.exec('VACUUM');
     } finally {
       copy.close();
+    }
+  }
+
+  /**
+   * Copie en clair de la base ouverte, rendue ouverte.
+   * `backup()` refuse une source SQLCipher vers une cible en clair (octets réservés
+   * différents) : VACUUM INTO (copie chiffrée, même clé), puis `rekey=''` sur la copie.
+   */
+  private openPlainCopy(filepath: string): Database.Database {
+    if (!this.db) throw new Error('Database not open');
+    // VACUUM INTO refuse une cible existante non vide
+    fs.rmSync(filepath, { force: true });
+    this.db.prepare('VACUUM INTO ?').run(filepath);
+    const copy = new Database(filepath);
+    try {
+      if (this.encryptionKey) {
+        applyDatabaseKey(copy, this.encryptionKey);
+        copy.pragma("rekey=''");
+      }
+      return copy;
+    } catch (e) {
+      copy.close();
+      throw e;
     }
   }
 
@@ -804,9 +823,7 @@ export class DatabaseManager {
 
   /** Exporte une seule compétition (état d'avancement compris) dans un .bpm (#1117) */
   public async exportCompetitionToFile(competitionId: string, filepath: string): Promise<void> {
-    if (!this.db) throw new Error('Database not open');
-    await this.db.backup(filepath);
-    const copy = new Database(filepath);
+    const copy = this.openPlainCopy(filepath);
     try {
       // Fichier autonome (pas de -wal à côté)
       copy.pragma('journal_mode = DELETE');
