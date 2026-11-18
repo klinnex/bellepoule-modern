@@ -114,16 +114,10 @@ describe('ClubView', () => {
     expect(await screen.findByRole('heading', { name: 'Nouveau nom' })).toBeInTheDocument();
   });
 
-  it("le bouton de l'en-tête ouvre l'onglet Identité", async () => {
+  it("l'en-tête n'a plus de crayon d'édition de l'identité (#1872)", async () => {
     render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
-    const edit = await screen.findByRole('button', { name: 'Identité du club' });
-    fireEvent.click(edit);
-    expect(screen.getByRole('button', { name: 'Identité' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    );
-    const input = await screen.findByLabelText('Nom du club');
-    await waitFor(() => expect(input).toHaveValue('Cercle d’escrime'));
+    await screen.findByText('MARTIN');
+    expect(screen.queryByRole('button', { name: 'Identité du club' })).not.toBeInTheDocument();
   });
 
   it('importe un fichier FFE .fff', async () => {

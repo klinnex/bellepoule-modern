@@ -3420,7 +3420,8 @@
     "member_qr_title": "Kod QR {{name}}",
     "member_qr_alt": "Kod QR kartenn {{name}}",
     "print_card": "Moullañ e gartenn",
-    "card_pdf": "Enrollañ e gartenn e PDF"
+    "card_pdf": "Enrollañ e gartenn e PDF",
+    "weapons": "Armoù ar club"
   },
   "clubCoach": {
     "tab": "Mestr-armoù",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Sinkronelaad gweredekaet.",
     "sync_enable": "Dibab an teuliad ha gweredekaat",
     "sync_disable": "Diweredekaat",
-    "sync_now": "Sinkronelaat bremañ"
+    "sync_now": "Sinkronelaat bremañ",
+    "sync_card_state": "Stad ar sinkronelezh",
+    "backup_card": "Backup",
+    "backup_help": "Daou zilc'houarn eus configuration ar club war an urzhiataer-mañ. Un dilc'houarn nevez a erlec'h an hen. Adlakaat a erlec'h roadennoù ar club a zo bremañ.",
+    "backup_create": "Dilc'houarn nevez",
+    "backup_empty": "Dilc'houarn ebet c'hoazh.",
+    "backup_restore": "Adlakaat",
+    "backup_restore_confirm": "Adlakaat an dilc'houarn-mañ a erlec'h roadennoù ar club-mañ war an urzhiataer-mañ. Kenderc'hel ?",
+    "backup_restored": "Dilc'houarn adlakaet.",
+    "backup_created": "Dilc'houarn krouet."
   },
   "clubSchedule": {
     "open_btn": "Sevel abadennoù",

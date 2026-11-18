@@ -1193,4 +1193,16 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 43,
+    description: 'Mode Club : plusieurs armes par club (liste, copie de l’arme actuelle) (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN weapons TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      db.run(`UPDATE clubs SET weapons = weapon WHERE weapons IS NULL AND weapon IS NOT NULL`);
+    },
+  },
 ];

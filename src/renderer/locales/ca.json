@@ -3420,7 +3420,8 @@
     "member_qr_title": "Codi QR de {{name}}",
     "member_qr_alt": "Codi QR del carnet de {{name}}",
     "print_card": "Imprimeix el seu carnet",
-    "card_pdf": "Desa el seu carnet en PDF"
+    "card_pdf": "Desa el seu carnet en PDF",
+    "weapons": "Armes del club"
   },
   "clubCoach": {
     "tab": "Mestres d'armes",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Sincronització activada.",
     "sync_enable": "Triar carpeta i activar",
     "sync_disable": "Desactivar",
-    "sync_now": "Sincronitzar ara"
+    "sync_now": "Sincronitzar ara",
+    "sync_card_state": "Estat de la sincronització",
+    "backup_card": "Backup",
+    "backup_help": "Dues còpies de seguretat de la configuració del club en aquest equip. Una nova còpia substitueix la més antiga. Restaurar substitueix les dades actuals del club.",
+    "backup_create": "Nova còpia",
+    "backup_empty": "Cap còpia de seguretat.",
+    "backup_restore": "Restaura",
+    "backup_restore_confirm": "Restaurar aquesta còpia substitueix les dades actuals d'aquest club en aquest equip. Continuar?",
+    "backup_restored": "Còpia restaurada.",
+    "backup_created": "Còpia creada."
   },
   "clubSchedule": {
     "open_btn": "Generar sessions",

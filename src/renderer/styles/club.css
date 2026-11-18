@@ -882,3 +882,78 @@
 .club-card--rose {
   --club-tone: #e11d48;
 }
+
+/* Synchronisation : cartes Dossier / Fichier, État / Backup (#1872) */
+.club-sync-help,
+.club-sync-warning {
+  margin: 0 0 12px;
+  font-size: 0.9em;
+}
+.club-sync-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--warning, #d97706);
+}
+.club-sync-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.club-sync-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.club-sync-card .club-card-title {
+  margin: 0;
+}
+.club-sync-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9em;
+}
+.club-sync-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 600;
+}
+.club-sync-state--ok {
+  color: var(--success, #16a34a);
+}
+.club-sync-state--warn {
+  color: var(--danger, #ef4444);
+}
+.club-sync-conflict p {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+}
+.club-sync-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.club-backup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.club-backup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.9em;
+}
+@media (max-width: 640px) {
+  .club-sync-grid {
+    grid-template-columns: 1fr;
+  }
+}

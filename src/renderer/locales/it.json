@@ -3420,7 +3420,8 @@
     "member_qr_title": "Codice QR di {{name}}",
     "member_qr_alt": "Codice QR della tessera di {{name}}",
     "print_card": "Stampa la sua tessera",
-    "card_pdf": "Salva la sua tessera in PDF"
+    "card_pdf": "Salva la sua tessera in PDF",
+    "weapons": "Armi del club"
   },
   "clubCoach": {
     "tab": "Maestri d'armi",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Sincronizzazione attivata.",
     "sync_enable": "Scegli cartella e attiva",
     "sync_disable": "Disattiva",
-    "sync_now": "Sincronizza ora"
+    "sync_now": "Sincronizza ora",
+    "sync_card_state": "Stato della sincronizzazione",
+    "backup_card": "Backup",
+    "backup_help": "Due backup della configurazione del club su questo computer. Un nuovo backup sostituisce il più vecchio. Ripristinare sostituisce i dati attuali del club.",
+    "backup_create": "Nuovo backup",
+    "backup_empty": "Nessun backup.",
+    "backup_restore": "Ripristina",
+    "backup_restore_confirm": "Ripristinare questo backup sostituisce i dati attuali di questo club su questo computer. Continuare?",
+    "backup_restored": "Backup ripristinato.",
+    "backup_created": "Backup creato."
   },
   "clubSchedule": {
     "open_btn": "Genera sessioni",

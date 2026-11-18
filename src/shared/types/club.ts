@@ -75,8 +75,10 @@ export interface Club {
   name: string;
   logo?: string;
   stripCount: number;
-  /** Arme par défaut des séances (règles de la saisie distante) */
+  /** Arme par défaut des séances (règles de la saisie distante) : 1re arme de compétition de `weapons` */
   weapon?: Weapon;
+  /** Armes du club (codes E, F, S, L, A = escrime artistique) ; vide = non renseigné */
+  weapons?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -95,12 +97,14 @@ export interface ClubUpdate {
   logo?: string | null;
   stripCount?: number;
   weapon?: Weapon | null;
+  weapons?: string[];
 }
 
 /** Identité du club : en-tête des cartes de membre */
 export interface ClubSettings {
   name: string;
   weapon?: Weapon;
+  weapons?: string[];
   /** Logo en data URL image (png, jpeg, webp, svg) ; absent = pas de logo */
   logo?: string;
   /** Nombre de pistes de la salle (QR des pistes, séances) ; 1 par défaut */
@@ -669,11 +673,24 @@ export interface ClubAPI {
   syncNow: (clubId: string) => Promise<ClubSyncStatus>;
   /** Conflit : « file » garde le fichier, « app » garde ce poste */
   syncResolve: (clubId: string, keep: 'file' | 'app') => Promise<ClubSyncStatus>;
+  /** Sauvegardes locales du club (2 max, les plus récentes d'abord) */
+  backupList: (clubId: string) => Promise<ClubBackupEntry[]>;
+  /** Nouvelle sauvegarde ; la plus ancienne est supprimée. Renvoie la liste à jour */
+  backupCreate: (clubId: string) => Promise<ClubBackupEntry[]>;
+  /** Restaure une sauvegarde : remplace les données du club sur ce poste */
+  backupRestore: (clubId: string, id: string) => Promise<{ clubName: string }>;
   /** Reprise du fichier par synchro : la vue doit se recharger. Renvoie la désinscription. */
   onSynced: (callback: (clubId: string) => void) => () => void;
 }
 
 export type ClubSyncState = 'off' | 'synced' | 'conflict' | 'error';
+
+export interface ClubBackupEntry {
+  /** Nom du fichier : identifiant pour la restauration */
+  id: string;
+  /** Date de création (ISO) */
+  createdAt: string;
+}
 
 export interface ClubSyncStatus {
   clubId: string;

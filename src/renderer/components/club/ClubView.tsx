@@ -13,7 +13,6 @@ import {
   Dumbbell,
   GraduationCap,
   Package,
-  Pencil,
   RefreshCw,
   Save,
   Shield,
@@ -27,7 +26,7 @@ import { exportClubBackup } from './clubBackup';
 import { ClubSyncModal } from './ClubSyncModal';
 import { ClubPicker } from './ClubPicker';
 import { ClubIdentityCard } from './ClubIdentityCard';
-import type { ClubSettings } from '../../../shared/types/club';
+import type { ClubSettings, ClubSyncState } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { ClubMembersPanel } from './ClubMembersPanel';
@@ -96,6 +95,8 @@ const ClubSpace: React.FC<{
   // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
   const [menuRevision, setMenuRevision] = useState(0);
   const [syncOpen, setSyncOpen] = useState(false);
+  // État de synchro du club : colore le bouton (vert = synchro active et connectée)
+  const [syncState, setSyncState] = useState<ClubSyncState>('off');
   const [panelRevision, setPanelRevision] = useState(0);
   const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
   const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
@@ -146,6 +147,16 @@ const ClubSpace: React.FC<{
     }
   };
 
+  const loadSyncState = useCallback(async () => {
+    const api = window.electronAPI?.club;
+    if (!api) return;
+    try {
+      setSyncState((await api.syncStatus(clubId)).state);
+    } catch {
+      /* état indisponible : le bouton garde son dernier état */
+    }
+  }, [clubId]);
+
   const onCardsPrinted = useCallback(() => {
     markCardsPrinted();
     setCardsPrinted(true);
@@ -161,9 +172,17 @@ const ClubSpace: React.FC<{
       if (id !== clubId) return;
       void loadSettings();
       bumpPanel();
+      void loadSyncState();
     });
     return () => off?.();
-  }, [clubId, loadSettings, bumpPanel]);
+  }, [clubId, loadSettings, bumpPanel, loadSyncState]);
+
+  // Couleur du bouton Synchronisation : relue à l'ouverture et toutes les 30 s (cycle de synchro)
+  useEffect(() => {
+    void loadSyncState();
+    const timer = setInterval(() => void loadSyncState(), 30_000);
+    return () => clearInterval(timer);
+  }, [loadSyncState]);
 
   return (
     <div className="club-view">
@@ -176,14 +195,6 @@ const ClubSpace: React.FC<{
         <div className="club-grow">
           <div className="club-title-group">
             <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<Pencil size={14} aria-hidden="true" />}
-              aria-label={t('club.identity')}
-              title={t('club.identity')}
-              onClick={() => setTab('identity')}
-            />
           </div>
           <p className="club-header-sub">{t('club.subtitle')}</p>
         </div>
@@ -205,7 +216,9 @@ const ClubSpace: React.FC<{
           {t('clubTour.restart')}
         </Button>
         <Button
-          variant="ghost"
+          variant={
+            syncState === 'synced' ? 'success' : syncState === 'off' ? 'secondary' : 'danger'
+          }
           icon={<RefreshCw size={15} aria-hidden="true" />}
           title={t('clubs.sync_button_help')}
           onClick={() => setSyncOpen(true)}
@@ -236,7 +249,17 @@ const ClubSpace: React.FC<{
       </header>
 
       {syncOpen && (
-        <ClubSyncModal clubId={clubId} onChanged={bumpPanel} onClose={() => setSyncOpen(false)} />
+        <ClubSyncModal
+          clubId={clubId}
+          onChanged={() => {
+            bumpPanel();
+            void loadSyncState();
+          }}
+          onClose={() => {
+            setSyncOpen(false);
+            void loadSyncState();
+          }}
+        />
       )}
 
       <nav className="club-nav" aria-label={t('club.nav_label')}>

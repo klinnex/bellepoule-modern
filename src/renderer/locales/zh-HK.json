@@ -3420,7 +3420,8 @@
     "member_qr_title": "{{name}} 的 QR 碼",
     "member_qr_alt": "{{name}} 會員證的 QR 碼",
     "print_card": "列印此會員證",
-    "card_pdf": "將此會員證儲存為 PDF"
+    "card_pdf": "將此會員證儲存為 PDF",
+    "weapons": "俱樂部武器"
   },
   "clubCoach": {
     "tab": "劍擊教練",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "同步已啟用。",
     "sync_enable": "選擇資料夾並啟用",
     "sync_disable": "停用",
-    "sync_now": "立即同步"
+    "sync_now": "立即同步",
+    "sync_card_state": "同步狀態",
+    "backup_card": "Backup",
+    "backup_help": "本機保存兩份俱樂部設定備份。新備份會取代最舊的一份。還原會取代俱樂部目前的資料。",
+    "backup_create": "新增備份",
+    "backup_empty": "暫無備份。",
+    "backup_restore": "還原",
+    "backup_restore_confirm": "還原此備份會取代本機上此俱樂部目前的資料。繼續？",
+    "backup_restored": "已還原備份。",
+    "backup_created": "已建立備份。"
   },
   "clubSchedule": {
     "open_btn": "生成課節",

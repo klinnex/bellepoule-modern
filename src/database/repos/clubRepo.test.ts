@@ -610,6 +610,20 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
     });
   });
 
+  describe('armes du club (#1872)', () => {
+    it('garde la liste (ordre canonique, artistique inclus) ; arme par défaut = 1re arme de compétition', () => {
+      const club = repo.updateClub(cid, { weapons: ['S', 'A', 'F'] })!;
+      expect(club.weapons).toEqual(['F', 'S', 'A']);
+      expect(club.weapon).toBe(Weapon.FOIL);
+    });
+
+    it('sans arme de compétition : pas d’arme par défaut', () => {
+      const club = repo.updateClub(cid, { weapons: ['A'] })!;
+      expect(club.weapons).toEqual(['A']);
+      expect(club.weapon).toBeUndefined();
+    });
+  });
+
   describe('catégories d’âge et séances récurrentes', () => {
     it('date de naissance : année déduite, date invalide ignorée', () => {
       const m = member('Ader', { birthDate: '2014-05-06' });

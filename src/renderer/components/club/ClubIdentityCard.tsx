@@ -8,9 +8,11 @@ import React, { useState } from 'react';
 import { FileDown, QrCode, Save, Trash2 } from 'lucide-react';
 import type { ClubSettings, ClubUpdate } from '../../../shared/types/club';
 import { exportArenaQrToPDF, printArenaQr } from '../../../shared/utils/pdfExport/clubCardsPdf';
-import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { EXERCISE_WEAPONS } from '../../../shared/utils/clubWeapon';
+import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
+import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 import { useToast } from '../Toast';
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -68,6 +70,13 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
     reader.readAsDataURL(file);
   };
 
+  /** Armes du club : cartes activables (A = escrime artistique, hors compétition) */
+  const toggleWeapon = (code: string, on: boolean) => {
+    const current = settings.weapons ?? [];
+    const next = on ? [...current, code] : current.filter(w => w !== code);
+    void run(() => saveClub({ weapons: next }));
+  };
+
   const printArenas = (mode: 'print' | 'pdf') =>
     run(() =>
       mode === 'pdf'
@@ -115,11 +124,17 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
         )}
       </div>
       <div className="club-row club-row--align-end">
-        <ClubWeaponSelect
-          value={settings.weapon}
-          label={t('clubWeapon.club_label')}
-          onChange={w => void run(() => saveClub({ weapon: w }))}
-        />
+        <ToggleChipGroup legend={t('club.weapons')} className="club-weapon-chips">
+          {EXERCISE_WEAPONS.map(code => (
+            <ToggleChip
+              key={code}
+              pressed={(settings.weapons ?? []).includes(code)}
+              onToggle={on => toggleWeapon(code, on)}
+            >
+              {code === 'A' ? t('clubExercises.weapon_artistic') : weaponLabel(code, t)}
+            </ToggleChip>
+          ))}
+        </ToggleChipGroup>
         <label className="form-label club-field-stack" data-tour="club-strips">
           {t('club.strip_count')}
           <input

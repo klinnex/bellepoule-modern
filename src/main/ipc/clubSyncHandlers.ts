@@ -6,6 +6,8 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
 import { ClubSyncService, type ClubSyncStatus } from '../clubSync';
+import { createClubBackup, listClubBackups, restoreClubBackup } from '../clubBackups';
+import type { ClubBackupEntry } from '../../shared/types/club';
 
 export interface ClubSyncHandlersContext {
   db: DatabaseManager;
@@ -60,4 +62,18 @@ export function registerClubSyncHandlers(ctx: ClubSyncHandlersContext): void {
   ipcMain.handle('club:syncResolve', (_, clubId: string, keep: unknown) =>
     svc.resolve(clubId, keep === 'file' ? 'file' : 'app')
   );
+
+  // Sauvegardes locales (2 par club) : liste, création (rotation), restauration
+  ipcMain.handle('club:backupList', (_, clubId: string): ClubBackupEntry[] =>
+    listClubBackups(ctx.userDataPath, clubId)
+  );
+  ipcMain.handle('club:backupCreate', (_, clubId: string) =>
+    createClubBackup(ctx.db, ctx.userDataPath, clubId)
+  );
+  ipcMain.handle('club:backupRestore', async (_, clubId: string, id: string) => {
+    const result = await restoreClubBackup(ctx.db, ctx.userDataPath, clubId, id);
+    // Les vues du club se rechargent comme après une reprise de synchro
+    notifyWindows('club:synced', clubId);
+    return result;
+  });
 }

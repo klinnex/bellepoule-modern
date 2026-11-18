@@ -72,6 +72,7 @@ interface ClubRow {
   name: string | null;
   logo: string | null;
   weapon: string | null;
+  weapons: string | null;
   strip_count: number | null;
   created_at: string;
   updated_at: string;
@@ -291,6 +292,7 @@ export class ClubRepo {
       logo: opt(r.logo),
       stripCount: clampInt(r.strip_count ?? 1, 1, MAX_STRIPS, 1),
       weapon: opt(oneWeapon(r.weapon)),
+      weapons: normalizeExerciseWeapons(r.weapons ? r.weapons.split(',') : []),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -376,6 +378,14 @@ export class ClubRepo {
     if (data.weapon !== undefined) {
       sets.push('weapon = ?');
       values.push(oneWeapon(data.weapon));
+    }
+    if (data.weapons !== undefined) {
+      // Liste des armes du club (E, F, S, L, A) ; l'arme par défaut des séances = 1re arme de compétition
+      const list = normalizeExerciseWeapons(data.weapons);
+      sets.push('weapons = ?');
+      values.push(list.join(','));
+      sets.push('weapon = ?');
+      values.push(oneWeapon(list.find(w => w !== 'A') ?? null));
     }
     if (sets.length > 0) {
       this.sql.run(`UPDATE clubs SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`, [

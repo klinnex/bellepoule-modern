@@ -3420,7 +3420,8 @@
     "member_qr_title": "QR code of {{name}}",
     "member_qr_alt": "Card QR code of {{name}}",
     "print_card": "Print card",
-    "card_pdf": "Save card as PDF"
+    "card_pdf": "Save card as PDF",
+    "weapons": "Club weapons"
   },
   "clubCoach": {
     "tab": "Fencing masters",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Sync enabled.",
     "sync_enable": "Choose folder and enable",
     "sync_disable": "Disable",
-    "sync_now": "Sync now"
+    "sync_now": "Sync now",
+    "sync_card_state": "Sync status",
+    "backup_card": "Backup",
+    "backup_help": "Two backups of the club configuration on this computer. A new backup replaces the oldest one. Restoring replaces the club's current data.",
+    "backup_create": "New backup",
+    "backup_empty": "No backup yet.",
+    "backup_restore": "Restore",
+    "backup_restore_confirm": "Restoring this backup replaces this club's current data on this computer. Continue?",
+    "backup_restored": "Backup restored.",
+    "backup_created": "Backup created."
   },
   "clubSchedule": {
     "open_btn": "Generate sessions",

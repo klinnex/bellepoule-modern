@@ -3420,7 +3420,8 @@
     "member_qr_title": "Código QR de {{name}}",
     "member_qr_alt": "Código QR del carné de {{name}}",
     "print_card": "Imprimir su carné",
-    "card_pdf": "Guardar su carné en PDF"
+    "card_pdf": "Guardar su carné en PDF",
+    "weapons": "Armas del club"
   },
   "clubCoach": {
     "tab": "Maestros de armas",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Sincronización activada.",
     "sync_enable": "Elegir carpeta y activar",
     "sync_disable": "Desactivar",
-    "sync_now": "Sincronizar ahora"
+    "sync_now": "Sincronizar ahora",
+    "sync_card_state": "Estado de la sincronización",
+    "backup_card": "Backup",
+    "backup_help": "Dos copias de seguridad de la configuración del club en este equipo. Una nueva copia reemplaza la más antigua. Restaurar reemplaza los datos actuales del club.",
+    "backup_create": "Nueva copia",
+    "backup_empty": "No hay copias de seguridad.",
+    "backup_restore": "Restaurar",
+    "backup_restore_confirm": "Restaurar esta copia reemplaza los datos actuales de este club en este equipo. ¿Continuar?",
+    "backup_restored": "Copia restaurada.",
+    "backup_created": "Copia creada."
   },
   "clubSchedule": {
     "open_btn": "Generar sesiones",

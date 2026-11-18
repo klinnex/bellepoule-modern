@@ -346,6 +346,10 @@ const electronApi = {
     syncNow: (clubId: string) => ipcRenderer.invoke('club:syncNow', clubId),
     syncResolve: (clubId: string, keep: 'file' | 'app') =>
       ipcRenderer.invoke('club:syncResolve', clubId, keep),
+    backupList: (clubId: string) => ipcRenderer.invoke('club:backupList', clubId),
+    backupCreate: (clubId: string) => ipcRenderer.invoke('club:backupCreate', clubId),
+    backupRestore: (clubId: string, id: string) =>
+      ipcRenderer.invoke('club:backupRestore', clubId, id),
     onSynced: (callback: (clubId: string) => void) => {
       const handler = (_: IpcRendererEvent, clubId: string) => callback(clubId);
       ipcRenderer.on('club:synced', handler);

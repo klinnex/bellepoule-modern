@@ -3420,7 +3420,8 @@
     "member_qr_title": "QR-Code von {{name}}",
     "member_qr_alt": "Ausweis-QR-Code von {{name}}",
     "print_card": "Ausweis drucken",
-    "card_pdf": "Ausweis als PDF speichern"
+    "card_pdf": "Ausweis als PDF speichern",
+    "weapons": "Vereinswaffen"
   },
   "clubCoach": {
     "tab": "Fechtmeister",
@@ -3621,7 +3622,16 @@
     "sync_enabled": "Synchronisation aktiviert.",
     "sync_enable": "Ordner wählen und aktivieren",
     "sync_disable": "Deaktivieren",
-    "sync_now": "Jetzt synchronisieren"
+    "sync_now": "Jetzt synchronisieren",
+    "sync_card_state": "Synchronisationsstatus",
+    "backup_card": "Backup",
+    "backup_help": "Zwei Sicherungen der Vereinskonfiguration auf diesem Rechner. Eine neue Sicherung ersetzt die älteste. Wiederherstellen ersetzt die aktuellen Daten des Vereins.",
+    "backup_create": "Neue Sicherung",
+    "backup_empty": "Noch keine Sicherung.",
+    "backup_restore": "Wiederherstellen",
+    "backup_restore_confirm": "Diese Sicherung wiederherzustellen ersetzt die aktuellen Daten dieses Vereins auf diesem Rechner. Fortfahren?",
+    "backup_restored": "Sicherung wiederhergestellt.",
+    "backup_created": "Sicherung erstellt."
   },
   "clubSchedule": {
     "open_btn": "Trainings erzeugen",

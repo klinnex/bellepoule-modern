@@ -12,7 +12,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 | Onglet              | Contenu                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Identité**        | Nom, logo, arme par défaut, nombre de pistes, QR des pistes (aussi : crayon de l'en-tête).                                           |
+| **Identité**        | Nom, logo, armes du club (cartes : F, E, S, L, A = escrime artistique ; la 1re arme de compétition sert d'arme par défaut), nombre de pistes, QR des pistes. |
 | **Membres**         | Annuaire, cartes de membre.                                                                                                          |
 | **Maîtres d'armes** | Encadrement du club : fonction / diplôme, contact, armes enseignées, notes, archivage.                                               |
 | **Séances**         | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
