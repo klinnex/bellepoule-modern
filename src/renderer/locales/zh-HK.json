@@ -3466,6 +3466,7 @@
     "cancel_bout": "取消對賽",
     "fencer_n": "劍手 {{n}} — 劍道 {{strip}}",
     "choose_fencer": "選擇劍手",
+    "no_attendee": "本節未有劍手報到",
     "launch": "開始",
     "open_title": "新訓練",
     "label": "標題（可選）",

@@ -3466,6 +3466,7 @@
     "cancel_bout": "Gefecht abbrechen",
     "fencer_n": "Fechter {{n}} — Bahn {{strip}}",
     "choose_fencer": "Fechter wählen",
+    "no_attendee": "Kein Fechter für diese Einheit eingecheckt",
     "launch": "Starten",
     "open_title": "Neues Training",
     "label": "Titel (optional)",

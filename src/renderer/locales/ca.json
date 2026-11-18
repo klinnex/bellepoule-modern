@@ -3466,6 +3466,7 @@
     "cancel_bout": "Anul·lar el combat",
     "fencer_n": "Tirador {{n}} — pista {{strip}}",
     "choose_fencer": "Triar un tirador",
+    "no_attendee": "Cap tirador registrat a la sessió",
     "launch": "Iniciar",
     "open_title": "Nova sessió",
     "label": "Títol (opcional)",

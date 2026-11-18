@@ -173,25 +173,30 @@ const FreeStrip: React.FC<{
           {m.lastName} {m.firstName}
         </option>
       ));
+  // Aucun présent pointé : le menu le dit au lieu de rester vide
+  const none = candidates.length === 0;
+  const placeholder = t(none ? 'clubSession.no_attendee' : 'clubSession.choose_fencer');
   return (
     <div className="club-bout-free">
       <select
         className="form-input"
         value={a}
+        disabled={none}
         aria-label={t('clubSession.fencer_n', { n: 1, strip })}
         onChange={e => setA(e.target.value)}
       >
-        <option value="">{t('clubSession.choose_fencer')}</option>
+        <option value="">{placeholder}</option>
         {options(b)}
       </select>
       <span className="club-vs">VS</span>
       <select
         className="form-input"
         value={b}
+        disabled={none}
         aria-label={t('clubSession.fencer_n', { n: 2, strip })}
         onChange={e => setB(e.target.value)}
       >
-        <option value="">{t('clubSession.choose_fencer')}</option>
+        <option value="">{placeholder}</option>
         {options(a)}
       </select>
       <Button

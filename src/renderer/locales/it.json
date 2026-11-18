@@ -3466,6 +3466,7 @@
     "cancel_bout": "Annulla l'assalto",
     "fencer_n": "Schermidore {{n}} — pedana {{strip}}",
     "choose_fencer": "Scegli uno schermidore",
+    "no_attendee": "Nessuno schermidore registrato nella seduta",
     "launch": "Avvia",
     "open_title": "Nuova seduta",
     "label": "Titolo (facoltativo)",

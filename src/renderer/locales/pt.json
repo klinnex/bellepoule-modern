@@ -3466,6 +3466,7 @@
     "cancel_bout": "Anular o assalto",
     "fencer_n": "Atirador {{n}} — pista {{strip}}",
     "choose_fencer": "Escolher um atirador",
+    "no_attendee": "Nenhum atirador registado na sessão",
     "launch": "Iniciar",
     "open_title": "Nova sessão",
     "label": "Título (opcional)",

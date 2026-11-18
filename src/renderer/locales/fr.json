@@ -3466,6 +3466,7 @@
     "cancel_bout": "Annuler le combat",
     "fencer_n": "Tireur {{n}} — piste {{strip}}",
     "choose_fencer": "Choisir un tireur",
+    "no_attendee": "Aucun combattant pointé sur la séance",
     "launch": "Lancer",
     "open_title": "Nouvelle séance",
     "label": "Intitulé (facultatif)",

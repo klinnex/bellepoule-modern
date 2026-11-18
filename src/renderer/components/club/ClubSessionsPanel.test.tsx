@@ -220,6 +220,15 @@ describe('ClubSessionsPanel', () => {
     );
   });
 
+  it('aucun présent pointé : menus des pistes libres explicites et désactivés', async () => {
+    api.listSessions.mockResolvedValue([{ ...session, attendeeIds: [] }]);
+    api.listBouts.mockResolvedValue([]);
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    const select = await screen.findByLabelText('Tireur 1 — piste 1');
+    expect(select).toBeDisabled();
+    expect(select).toHaveTextContent('Aucun combattant pointé sur la séance');
+  });
+
   it('saisie distante active : lobby des pistes', async () => {
     api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
     render(<ClubSessionsPanel clubId="c1" settings={settings} />);

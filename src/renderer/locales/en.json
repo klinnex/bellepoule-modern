@@ -3466,6 +3466,7 @@
     "cancel_bout": "Cancel bout",
     "fencer_n": "Fencer {{n}} — strip {{strip}}",
     "choose_fencer": "Choose a fencer",
+    "no_attendee": "No fencer checked in for this session",
     "launch": "Start",
     "open_title": "New session",
     "label": "Title (optional)",
