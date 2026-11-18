@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 83 | 927 |
+| `src/shared/utils/` | 83 | 938 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 614 |
+| `src/renderer/components/` | 119 | 620 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **493** | **3786** |
+| **Total** | **493** | **3803** |
 
-Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 483 fichiers, 3764 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -943,7 +943,7 @@ Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/inlineScoreInput.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/inlineScoreInput.test.ts</code> — 17 tests</summary>
 
 - **parseInlineScoreInput**
   - vide
@@ -952,6 +952,20 @@ Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - V sans score max = invalide
   - W+chiffre = victoire de départage
   - formats invalides
+- **resolveInlineSubmit : règlement o.17**
+  - W5 contre 5 : égalité au score max refusée
+  - V contre 5 : refusé, sans fenêtre de départage
+  - W4 contre 4 : victoire à égalité sous le max acceptée
+  - Sabre Laser : égalité au max acceptée avec vainqueur
+  - Sabre Laser : égalité sans vainqueur → départage, jamais de match nul
+  - Sabre Laser : V refusé
+- **isInlineScoreComplete**
+  - max 5 : tout chiffre et V sont complets
+  - max 15 : « 1 » attend un second chiffre
+  - incomplet : W seul, vide, sans max, V au laser
+- **inlineCellText / victoryLabel**
+  - victoire au max = V, à égalité = W, sinon le score
+  - affichage : V seul au max, V+score sinon, toujours V+score au laser
 
 </details>
 
@@ -5820,7 +5834,7 @@ Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 19 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 24 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -5829,6 +5843,11 @@ Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolView - saisie simplifiée : correction d'un score enregistré (#1046)**
   - préremplit la case avec le score enregistré
   - Entrée enregistre le nouveau score en gardant celui de l'adversaire
+  - victoire au score max préremplie en « V » (#1990)
+  - Tab sur une case enregistrée non modifiée : case suivante, sans réenregistrer (#1990)
+  - Maj+Tab : case précédente (#1990)
+  - chiffre sans ambiguïté : enregistré sans Entrée ni Tab (#1990)
+  - égalité au score max refusée (#1990)
 - **PoolView - couverture saisie, matrice et statuts (#1084)**
   - matrice : affiche victoire/défaite dans les cases du match terminé
   - matrice : case non saisie proposée à la saisie
@@ -6481,12 +6500,13 @@ Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 10 tests</summary>
 
 - **PoolScoreMatrix**
   - affiche les noms des tireurs en en-tête de ligne
   - affiche la colonne Victoires quand isVisible le permet
-  - affiche le score V5 pour un match gagné
+  - affiche V seul pour une victoire au score max (#1990)
+  - affiche V + score pour une victoire sous le score max
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
   - rapières : cases de la vague en cours surlignées en violet (#1118)
