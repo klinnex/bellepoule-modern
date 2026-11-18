@@ -12,6 +12,7 @@ import type {
   DayRefereeConflict,
   DayRefereeStatus,
   DayStripStatus,
+  DaySyncResult,
   EventDay,
 } from '../../shared/types/eventDay';
 import { weaponLabel } from '../../shared/utils/categoryLabel';
@@ -23,6 +24,7 @@ import { Icon } from './common/Icon';
 import { formatAssignment } from './eventDayFormat';
 import { DayStripBoardPanel } from './DayStripBoardPanel';
 import { useConfirm } from './ConfirmDialog';
+import { ToggleChip } from './common/ToggleChip';
 
 const REFEREE_WEAPONS: Weapon[] = [Weapon.FOIL, Weapon.EPEE, Weapon.SABRE, Weapon.LASER];
 const POLL_MS = 10_000;
@@ -34,24 +36,22 @@ interface EventDayModalProps {
   onClose: () => void;
 }
 
+/** Armes de l'arbitre : cartes activables (#1872) */
 const WeaponChecks: React.FC<{
   value: Weapon[];
   onChange: (w: Weapon[]) => void;
-  idPrefix: string;
-}> = ({ value, onChange, idPrefix }) => {
+}> = ({ value, onChange }) => {
   const { t } = useTranslation();
   return (
     <span className="event-day-weapons">
       {REFEREE_WEAPONS.map(w => (
-        <label key={w} htmlFor={`${idPrefix}-${w}`} className="event-day-nowrap">
-          <input
-            id={`${idPrefix}-${w}`}
-            type="checkbox"
-            checked={value.includes(w)}
-            onChange={e => onChange(e.target.checked ? [...value, w] : value.filter(x => x !== w))}
-          />{' '}
+        <ToggleChip
+          key={w}
+          pressed={value.includes(w)}
+          onToggle={on => onChange(on ? [...value, w] : value.filter(x => x !== w))}
+        >
           {weaponLabel(w, t)}
-        </label>
+        </ToggleChip>
       ))}
     </span>
   );
@@ -155,6 +155,14 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
 
   if (!api) return null;
 
+  const syncMessage = (r: DaySyncResult) =>
+    [
+      r.imported ? t('eventDay.imported', { count: r.imported }) : '',
+      t('eventDay.sync_done', { added: r.added, updated: r.updated }),
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
   const createDay = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!draft.name.trim()) return;
@@ -187,7 +195,7 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
   const toggleCompetition = async (c: Competition, attach: boolean) => {
     if (!selected) return;
     const r = await api.setCompetitionDay(c.id, attach ? selected.id : null);
-    if (attach) setMessage(t('eventDay.sync_done', { added: r.added, updated: r.updated }));
+    if (attach) setMessage(syncMessage(r));
     await loadDays();
     await loadDay();
   };
@@ -219,7 +227,8 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
   const sync = async () => {
     if (!selected) return;
     const r = await api.syncReferees(selected.id);
-    setMessage(t('eventDay.sync_done', { added: r.added, updated: r.updated }));
+    setMessage(syncMessage(r));
+    await loadDay();
   };
 
   return (
@@ -271,6 +280,24 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
               {t('eventDay.create')}
             </Button>
           </form>
+          <div className="event-day-aside-actions">
+            <Button
+              type="button"
+              variant="primary"
+              disabled={!selected || !edit.name.trim()}
+              onClick={() => void saveDay()}
+            >
+              {t('eventDay.save')}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={!selected}
+              onClick={() => void deleteDay()}
+            >
+              {t('actions.delete')}
+            </Button>
+          </div>
         </aside>
 
         <section className="event-day-main">
@@ -306,12 +333,6 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                     onChange={e => setEdit({ ...edit, stripCount: Number(e.target.value) })}
                   />
                 </label>
-                <Button type="button" variant="primary" onClick={() => void saveDay()}>
-                  {t('eventDay.save')}
-                </Button>
-                <Button type="button" variant="danger" onClick={() => void deleteDay()}>
-                  {t('actions.delete')}
-                </Button>
               </div>
 
               <h3>{t('eventDay.competitions')}</h3>
@@ -322,20 +343,19 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                   const checked = owner === selected.id;
                   return (
                     <li key={c.id}>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={e => void toggleCompetition(c, e.target.checked)}
-                        />{' '}
+                      <ToggleChip
+                        className="event-day-competition"
+                        pressed={checked}
+                        onToggle={on => void toggleCompetition(c, on)}
+                      >
                         <strong>{c.title}</strong> · {weaponLabel(c.weapon, t)}
                         {owner && !checked && (
-                          <span className="text-muted">
+                          <span className="event-day-competition-other">
                             {' '}
                             ({t('eventDay.other_day', { name: dayName.get(owner) ?? '' })})
                           </span>
                         )}
-                      </label>
+                      </ToggleChip>
                     </li>
                   );
                 })}
@@ -395,7 +415,6 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                   onChange={e => setNewRef({ ...newRef, club: e.target.value })}
                 />
                 <WeaponChecks
-                  idPrefix="new-ref"
                   value={newRef.weapons}
                   onChange={weapons => setNewRef({ ...newRef, weapons })}
                 />
@@ -428,7 +447,6 @@ export const EventDayModal: React.FC<EventDayModalProps> = ({ competitions, onCl
                         <td>{r.club ?? '—'}</td>
                         <td>
                           <WeaponChecks
-                            idPrefix={`ref-${r.id}`}
                             value={r.weapons}
                             onChange={w => void updateWeapons(r, w)}
                           />

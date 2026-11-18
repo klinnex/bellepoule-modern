@@ -570,18 +570,6 @@
   flex-wrap: wrap;
   align-items: flex-end;
 }
-.club-age-checks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  margin: 0;
-}
-.club-age-checks legend {
-  padding: 0 0.25rem;
-}
 .club-date-input {
   width: auto;
   min-width: 9.5rem;
@@ -603,9 +591,6 @@
   padding: 0.3rem 0.4rem;
   border-radius: 6px;
   cursor: pointer;
-}
-.club-attendance-row:hover {
-  background: var(--color-surface-hover, var(--color-surface));
 }
 /* Séances récurrentes */
 .club-repeat {
@@ -680,24 +665,6 @@
 }
 
 /* Maîtres d'armes d'une séance */
-.club-coach-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  align-items: center;
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-.club-coach-picker > legend {
-  width: 100%;
-  margin-bottom: 0.25rem;
-}
-.club-coach-weapons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-}
 
 /* Inventaire : choix des colonnes du tableau du matériel */
 .club-columns {
@@ -787,6 +754,50 @@
   margin: 0;
 }
 
+/* #1872 : cartes activables, titres avec bouton, libellé au-dessus du champ */
+.club-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+}
+.club-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.club-chip-hint {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+  color: var(--color-text-light);
+}
+.toggle-chip-sub {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+.club-title-group .club-card-title {
+  flex: 0 1 auto;
+}
+.toggle-chip.club-exercise-pick,
+.toggle-chip.club-attendance-row,
+.toggle-chip.club-plan-check {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  font-size: inherit;
+}
+.toggle-chip.is-on .club-muted,
+.toggle-chip.is-on .club-plan-details {
+  color: inherit;
+  opacity: 0.85;
+}
+.toggle-chip--icon {
+  padding: 0.2rem;
+}
+.toggle-chip--icon:not(.is-on) svg {
+  visibility: hidden;
+}
 /* QR d'un membre (#1872) : à scanner depuis l'écran */
 .club-member-qr {
   display: flex;

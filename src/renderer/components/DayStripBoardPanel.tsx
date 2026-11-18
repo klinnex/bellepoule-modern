@@ -17,6 +17,7 @@ import {
   TABLEAU_LIMITS,
 } from '../../shared/utils/stripRules';
 import { useTranslation } from '../hooks/useTranslation';
+import { ToggleChip } from './common/ToggleChip';
 import { Button } from './common/Button';
 
 const POLL_MS = 5000;
@@ -77,31 +78,29 @@ const RuleEditor: React.FC<{
     <div className="event-day-strip-rule">
       <span className="text-muted">{t('eventDay.res_competitions')}</span>
       {competitions.map(c => (
-        <label key={c.id} className="event-day-check">
-          <input
-            type="checkbox"
-            checked={allowed(c.id)}
-            onChange={e => toggleCompetition(c.id, e.target.checked)}
-          />
+        <ToggleChip
+          key={c.id}
+          className="event-day-check"
+          pressed={allowed(c.id)}
+          onToggle={on => toggleCompetition(c.id, on)}
+        >
           {c.title}
-        </label>
+        </ToggleChip>
       ))}
-      <label className="event-day-check">
-        <input
-          type="checkbox"
-          checked={draft.pools}
-          onChange={e => setDraft({ ...draft, pools: e.target.checked })}
-        />
+      <ToggleChip
+        className="event-day-check"
+        pressed={draft.pools}
+        onToggle={on => setDraft({ ...draft, pools: on })}
+      >
         {t('eventDay.res_pools')}
-      </label>
-      <label className="event-day-check">
-        <input
-          type="checkbox"
-          checked={draft.tableau}
-          onChange={e => setDraft({ ...draft, tableau: e.target.checked })}
-        />
+      </ToggleChip>
+      <ToggleChip
+        className="event-day-check"
+        pressed={draft.tableau}
+        onToggle={on => setDraft({ ...draft, tableau: on })}
+      >
         {t('eventDay.res_tableau')}
-      </label>
+      </ToggleChip>
       <select
         className="form-input"
         aria-label={t('eventDay.res_tableau_limit')}
@@ -167,17 +166,17 @@ export const DayStripBoardPanel: React.FC<Props> = ({ dayId, competitions, occup
 
   return (
     <div className="event-day-strip-board">
-      <label className="event-day-check">
-        <input
-          type="checkbox"
-          checked={board.autoAssign}
-          onChange={async e => {
-            await api.setAutoAssign(dayId, e.target.checked);
+      <div>
+        <ToggleChip
+          pressed={board.autoAssign}
+          onToggle={async on => {
+            await api.setAutoAssign(dayId, on);
             await load();
           }}
-        />
-        {t('eventDay.auto_assign')}
-      </label>
+        >
+          {t('eventDay.auto_assign')}
+        </ToggleChip>
+      </div>
       {!board.live && <p className="text-muted">{t('eventDay.live_offline')}</p>}
       <ul className="event-day-strips">
         {board.strips.map(s => {

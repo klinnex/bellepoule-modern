@@ -9,6 +9,7 @@ import { ClipboardList, FileDown, Pencil, Printer, Save, Share2 } from 'lucide-r
 import type { ClubSession } from '../../../shared/types/club';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 
 interface ClubSessionPlanCardProps {
@@ -76,15 +77,14 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
         <ol className="club-plan">
           {session.plan.map(it => (
             <li key={it.id} className={it.done ? 'is-done' : undefined}>
-              <label className="club-plan-check">
-                <input
-                  type="checkbox"
-                  checked={!!it.done}
-                  onChange={e => onToggle(it.id, e.target.checked)}
-                />
+              <ToggleChip
+                className="club-plan-check"
+                pressed={!!it.done}
+                onToggle={on => onToggle(it.id, on)}
+              >
                 <span className="font-medium">{it.title}</span>
                 <span className="club-muted">{formatMinutes(it.minutes)}</span>
-              </label>
+              </ToggleChip>
               {it.details && <p className="club-plan-details">{it.details}</p>}
               {it.images && it.images.length > 0 && (
                 <div className="club-images club-plan-images">

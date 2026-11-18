@@ -96,7 +96,7 @@ describe('ClubView', () => {
     await screen.findByText('MARTIN');
     fireEvent.click(screen.getByRole('button', { name: 'Archiver' }));
     await waitFor(() => expect(api.updateMember).toHaveBeenCalledWith('m1', { active: false }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Afficher les archivés' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher les archivés' }));
     await waitFor(() => expect(api.listMembers).toHaveBeenLastCalledWith('c1', true));
   });
 
@@ -125,8 +125,11 @@ describe('ClubView', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Importer (.fff, .csv, .xlsx)' }));
     // Sélection : MARTIN déjà présent (non importable), DURAND nouveau et coché
     expect(await screen.findByText('Déjà présent')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'MARTIN Anne' })).toBeDisabled();
-    expect(screen.getByRole('checkbox', { name: 'DURAND Paul' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'MARTIN Anne' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'DURAND Paul' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Importer la sélection (1)' }));
     await waitFor(() => expect(api.importMembers).toHaveBeenCalled());
     const rows = api.importMembers.mock.calls[0][1] as { lastName: string; firstName: string }[];
@@ -142,8 +145,11 @@ describe('ClubView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Importer (.fff, .csv, .xlsx)' }));
     // Casse du fichier conservée ; Martin Anne est déjà présent (licence + sexe identiques)
-    expect(await screen.findByRole('checkbox', { name: 'Durand Paul' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Martin Anne' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Durand Paul' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Martin Anne' })).toBeDisabled();
   });
 
   it('nombre de pistes enregistré, import des photos ZIP', async () => {

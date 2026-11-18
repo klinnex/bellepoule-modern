@@ -33,6 +33,7 @@ import { AgeRangeSelect } from './ClubAgeRange';
 import { ClubCoachPicker } from './ClubCoachPicker';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
@@ -204,7 +205,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
         </>
       }
     >
-      <div className="club-row club-row--top">
+      <div className="club-open-form">
         <div className="form-label">
           <MiniCalendar
             value={date}
@@ -214,107 +215,112 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
             onChange={setDate}
           />
         </div>
-        <ClubWeaponSelect value={weapon} onChange={setWeapon} />
-        <div className="form-label">
-          <label>
-            {t('clubSession.start_time')}
-            <input
-              className="form-input club-time-input"
-              type="time"
-              value={startTime}
-              onChange={e => setStartTime(e.target.value)}
-            />
-          </label>
-          {startTime && (
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<X size={14} aria-hidden="true" />}
-              aria-label={t('clubSession.start_time_clear')}
-              title={t('clubSession.start_time_clear')}
-              onClick={() => setStartTime('')}
-            />
+        <div className="club-open-fields">
+          <div className="club-row">
+            <ClubWeaponSelect value={weapon} onChange={setWeapon} />
+            <div className="form-label">
+              <label>
+                {t('clubSession.start_time')}
+                <input
+                  className="form-input club-time-input"
+                  type="time"
+                  value={startTime}
+                  onChange={e => setStartTime(e.target.value)}
+                />
+              </label>
+              {startTime && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<X size={14} aria-hidden="true" />}
+                  aria-label={t('clubSession.start_time_clear')}
+                  title={t('clubSession.start_time_clear')}
+                  onClick={() => setStartTime('')}
+                />
+              )}
+            </div>
+            <label className="form-label club-grow">
+              {t('clubSession.label')}
+              <input
+                className="form-input"
+                value={label}
+                maxLength={100}
+                placeholder={t('clubSession.label_ph')}
+                onChange={e => setLabel(e.target.value)}
+              />
+            </label>
+          </div>
+          {!session && (
+            <fieldset className="club-repeat">
+              <div className="club-row">
+                <ToggleChip pressed={repeat} onToggle={setRepeat}>
+                  <Repeat size={14} aria-hidden="true" /> {t('clubPlan.repeat')}
+                </ToggleChip>
+              </div>
+              {repeat && (
+                <div className="club-row">
+                  <label className="form-label">
+                    {t('clubPlan.every_days')}
+                    <input
+                      className="form-input club-score-input"
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={everyDays}
+                      onChange={e => setEveryDays(Number(e.target.value))}
+                    />
+                  </label>
+                  <label className="form-label">
+                    {t('clubPlan.repeat_end')}
+                    <select
+                      className="form-input"
+                      value={repeatEnd}
+                      onChange={e => setRepeatEnd(e.target.value as 'count' | 'until')}
+                    >
+                      <option value="count">{t('clubPlan.repeat_count')}</option>
+                      <option value="until">{t('clubPlan.repeat_until')}</option>
+                    </select>
+                  </label>
+                  {repeatEnd === 'count' ? (
+                    <label className="form-label">
+                      {t('clubPlan.occurrences')}
+                      <input
+                        className="form-input club-score-input"
+                        type="number"
+                        min={1}
+                        max={MAX_SERIES_OCCURRENCES}
+                        value={count}
+                        onChange={e => setCount(Number(e.target.value))}
+                      />
+                    </label>
+                  ) : (
+                    <label className="form-label">
+                      {t('clubPlan.until_date')}
+                      <input
+                        className="form-input"
+                        type="date"
+                        min={date}
+                        value={until}
+                        onChange={e => setUntil(e.target.value)}
+                      />
+                    </label>
+                  )}
+                  <span className="club-muted">
+                    {occurrences.length > 0
+                      ? t('clubPlan.repeat_summary', {
+                          count: occurrences.length,
+                          last: occurrences[occurrences.length - 1],
+                        })
+                      : t('clubPlan.repeat_none')}
+                  </span>
+                </div>
+              )}
+            </fieldset>
           )}
         </div>
-        <label className="form-label club-grow">
-          {t('clubSession.label')}
-          <input
-            className="form-input"
-            value={label}
-            maxLength={100}
-            placeholder={t('clubSession.label_ph')}
-            onChange={e => setLabel(e.target.value)}
-          />
-        </label>
       </div>
       <AgeRangeSelect value={range} onChange={setRange} />
       <ClubCoachPicker coaches={coaches} value={coachIds} onChange={setCoachIds} />
-      {!session && (
-        <fieldset className="club-repeat">
-          <label className="club-nowrap">
-            <input type="checkbox" checked={repeat} onChange={e => setRepeat(e.target.checked)} />{' '}
-            <Repeat size={14} aria-hidden="true" /> {t('clubPlan.repeat')}
-          </label>
-          {repeat && (
-            <div className="club-row">
-              <label className="form-label">
-                {t('clubPlan.every_days')}
-                <input
-                  className="form-input club-score-input"
-                  type="number"
-                  min={1}
-                  max={365}
-                  value={everyDays}
-                  onChange={e => setEveryDays(Number(e.target.value))}
-                />
-              </label>
-              <label className="form-label">
-                {t('clubPlan.repeat_end')}
-                <select
-                  className="form-input"
-                  value={repeatEnd}
-                  onChange={e => setRepeatEnd(e.target.value as 'count' | 'until')}
-                >
-                  <option value="count">{t('clubPlan.repeat_count')}</option>
-                  <option value="until">{t('clubPlan.repeat_until')}</option>
-                </select>
-              </label>
-              {repeatEnd === 'count' ? (
-                <label className="form-label">
-                  {t('clubPlan.occurrences')}
-                  <input
-                    className="form-input club-score-input"
-                    type="number"
-                    min={1}
-                    max={MAX_SERIES_OCCURRENCES}
-                    value={count}
-                    onChange={e => setCount(Number(e.target.value))}
-                  />
-                </label>
-              ) : (
-                <label className="form-label">
-                  {t('clubPlan.until_date')}
-                  <input
-                    className="form-input"
-                    type="date"
-                    min={date}
-                    value={until}
-                    onChange={e => setUntil(e.target.value)}
-                  />
-                </label>
-              )}
-              <span className="club-muted">
-                {occurrences.length > 0
-                  ? t('clubPlan.repeat_summary', {
-                      count: occurrences.length,
-                      last: occurrences[occurrences.length - 1],
-                    })
-                  : t('clubPlan.repeat_none')}
-              </span>
-            </div>
-          )}
-        </fieldset>
-      )}
       {history.length > 0 && (
         <details className="club-series-history">
           <summary>{t('clubPlan.series_history', { count: history.length })}</summary>

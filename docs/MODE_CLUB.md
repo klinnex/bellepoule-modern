@@ -47,6 +47,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 ### Maîtres d'armes
 
+- **Ajouter** (à droite du titre) ouvre la fiche vierge ; même fiche pour modifier.
 - Fiche : nom, prénom, fonction / diplôme (Maître d'armes, Prévôt, Éducateur…), téléphone,
   e-mail, armes enseignées (vide = toutes), notes, actif / archivé.
 - Distincts des membres : pas de carte, pas de pointage, pas de combats ni de statistiques.
@@ -63,7 +64,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 - Ouverture : date (mini-calendrier), intitulé, arme (règles de la saisie distante),
   **catégories d'âge du cours** (de … à …, bornes incluses), **maîtres d'armes** de la séance
-  (cases à cocher, plusieurs possibles ; modifiables ensuite dans l'éditeur de séance, copiés
+  (cartes activables, plusieurs possibles ; modifiables ensuite dans l'éditeur de séance, copiés
   sur chaque séance d'une série). Affichés avec l'intitulé (« Encadrement : … »).
 - Préparation : objectifs, plan de cours (exercices avec durée, famille, consignes, 3 images),
   notes ; export PDF, impression, partage du plan (fichier JSON sans date ni présents).
@@ -72,7 +73,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
   modifiable d'une semaine à l'autre ; l'éditeur montre les plans des autres séances de la
   série (suivi de l'évolution des exercices).
 - **Séances sur jours d'ouverture** (bouton de la liste des séances préparées, « Générer des
-  séances ») : cocher les jours (lun → dim), une ou plusieurs périodes du / au (**Ajouter une
+  séances ») : sélectionner les jours (lun → dim), une ou plusieurs périodes du / au (**Ajouter une
   période** ; 366 jours au plus par période, 10 périodes au plus, 1 000 séances au plus par
   action), intitulé, catégories d'âge et encadrement. Crée une série de séances **préparées**,
   une par date ; une même date n'est créée qu'une fois ; les dates déjà occupées par une séance
@@ -100,7 +101,7 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 ### Pointage
 
 Bouton **Pointage (n)** de la séance en cours : fenêtre listant les membres des catégories du
-cours (plage début → fin modifiable, retenue pour la séance), recherche, cases à cocher,
+cours (plage début → fin modifiable, retenue pour la séance), recherche, cartes activables,
 **Tout cocher**. Les membres déjà pointés restent visibles hors de la plage.
 
 ## 4. Pistes et combats
@@ -164,7 +165,7 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   **état** (neuf, bon, usé, abîmé, hors service), **emplacement** de rangement, notes.
   Contrôles : nom requis, dates AAAA-MM-JJ, garantie non antérieure à l'achat, prix 0 à 10 M€,
   quantité 1 à 999.
-- **Ajout en série** (nouvelle fiche, case _Ajouter en série_) : N fiches d'un exemplaire chacune
+- **Ajout en série** (nouvelle fiche, carte _Ajouter en série_) : N fiches d'un exemplaire chacune
   (1 à 200), nommées `Nom-01`, `Nom-02`… Numérotation reprise après le plus grand suffixe déjà
   présent (`Plastron-07` existe → `Plastron-08`), aucun doublon de nom (casse ignorée), deux
   chiffres minimum. Le numéro de série n'est pas recopié. Une seule transaction.
@@ -178,7 +179,7 @@ Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exe
   qu'il est verrouillé, aucune fiche, prêt, retour, import, catégorie ou marque ne peut être modifié
   (refusé côté base aussi). Consultation et export restent possibles. Le verrou est propre au club.
 - **Réformer** retire la fiche des prêts sans l'effacer (historique conservé) ; **Remettre en
-  service** l'inverse. Affichage des réformés : case à cocher.
+  service** l'inverse. Affichage des réformés : carte activable.
 - **Prêter** : choix du tireur (membres actifs du club uniquement), quantité (dans la limite des
   disponibles), retour prévu facultatif (date future), état au départ, remarque. La modale affiche
   ce que le tireur détient déjà.
@@ -253,3 +254,5 @@ Interface : `src/renderer/components/club/ClubInventoryPanel.tsx`, `ClubItemEdit
 - **Séances passées** : suppression possible (efface aussi les combats de la séance, après confirmation).
 - **Contrat de prêt** : bouton « Imprimer le contrat de prêt » sur chaque prêt (`src/shared/utils/clubLoanContract.ts`), zones de signature prêteur / emprunteur.
 - **Facture PDF** : import sur la fiche matériel, stocké en data URL dans `club_items.invoice_pdf` (migration 41), 5 Mo maximum.
+- **Cartes activables** : les cases à cocher du Mode Club et de la journée multi-épreuves sont des boutons à bascule (`src/renderer/components/common/ToggleChip.tsx`, `aria-pressed`), bleus quand sélectionnés.
+- **Mise en page** : « + Nouveau membre » et « Ajouter » (maîtres d'armes) à droite du titre de carte ; libellé « Nombre de pistes » au-dessus du champ ; préparation de séance : répétition sous l'arme et l'intitulé.

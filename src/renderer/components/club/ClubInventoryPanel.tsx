@@ -47,6 +47,7 @@ import {
   rowsToItems,
 } from '../../../shared/utils/clubInventoryIO';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { useConfirm } from '../ConfirmDialog';
@@ -516,14 +517,9 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
               )}
             </select>
           </label>
-          <label className="form-label club-row">
-            <input
-              type="checkbox"
-              checked={showRetired}
-              onChange={e => setShowRetired(e.target.checked)}
-            />
+          <ToggleChip pressed={showRetired} onToggle={setShowRetired}>
             {t('clubInventory.show_retired')}
-          </label>
+          </ToggleChip>
           <div className="club-columns" ref={colMenuRef}>
             <Button
               title={t('clubInventory.columns_title')}
@@ -540,10 +536,9 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
                 aria-label={t('clubInventory.columns_title')}
               >
                 {INVENTORY_COLUMNS.map(c => (
-                  <label key={c} className="club-nowrap">
-                    <input type="checkbox" checked={cols.has(c)} onChange={() => toggleCol(c)} />
+                  <ToggleChip key={c} pressed={cols.has(c)} onToggle={() => toggleCol(c)}>
                     {t(INVENTORY_COLUMN_LABEL[c])}
-                  </label>
+                  </ToggleChip>
                 ))}
               </div>
             )}

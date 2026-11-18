@@ -21,6 +21,7 @@ import {
 import { AgeRangeSelect } from './ClubAgeRange';
 import { ClubCoachPicker } from './ClubCoachPicker';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 
@@ -218,14 +219,9 @@ export const ClubScheduleModal: React.FC<ClubScheduleModalProps> = ({
             <legend className="form-label">{t('clubSchedule.days')}</legend>
             <div className="club-row">
               {WEEK_ORDER.map(d => (
-                <label key={d} className="club-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={weekdays.includes(d)}
-                    onChange={() => toggleDay(d)}
-                  />{' '}
+                <ToggleChip key={d} pressed={weekdays.includes(d)} onToggle={() => toggleDay(d)}>
                   {dayLabel(d)}
-                </label>
+                </ToggleChip>
               ))}
             </div>
           </fieldset>

@@ -131,6 +131,47 @@ describe.skipIf(!DatabaseSync)('EventDayRepo (#1714)', () => {
     expect(competitionReferees('foilM15')[0].name).toBe('Anne Fleuret-Dupont');
   });
 
+  it('importe les arbitres des épreuves : homonymes fusionnés, armes cumulées (#1872)', () => {
+    const day = repo.createDay({ name: 'NEC', date: '2026-11-12' });
+    for (const c of ['foilM15', 'epeeM17']) repo.setCompetitionDay(c, day.id);
+    const addRef = (id: string, comp: string, ref: number, name: string, club?: string) =>
+      sql.run(
+        `INSERT INTO referees (id, competition_id, ref, name, club, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'available', ?, ?)`,
+        [id, comp, ref, name, club ?? null, NOW, NOW]
+      );
+    addRef('f1', 'foilM15', 1, 'Anne Martin', 'NEC');
+    addRef('f2', 'foilM15', 2, 'Paul Seul');
+    addRef('e1', 'epeeM17', 1, 'MARTIN  Anne');
+    // Déjà dans la journée, fleuret seul : l'épée s'ajoute
+    const zoe = repo.createReferee(day.id, {
+      firstName: 'Zoé',
+      lastName: 'Roux',
+      weapons: [Weapon.FOIL],
+    });
+    addRef('e2', 'epeeM17', 2, 'Zoe Roux');
+    // Toutes armes : reste toutes armes
+    const max = repo.createReferee(day.id, { firstName: 'Max', lastName: 'Tout' });
+    addRef('f3', 'foilM15', 3, 'Max Tout');
+
+    expect(repo.importCompetitionReferees(day.id)).toEqual({ added: 0, updated: 1, imported: 2 });
+    const refs = repo.listReferees(day.id);
+    const anne = refs.find(r => r.lastName.toLowerCase() === 'martin')!;
+    expect(anne).toMatchObject({ firstName: 'Anne', club: 'NEC' });
+    expect([...anne.weapons].sort()).toEqual([Weapon.EPEE, Weapon.FOIL].sort());
+    expect(refs.find(r => r.lastName === 'Seul')!.weapons).toEqual([Weapon.FOIL]);
+    expect([...refs.find(r => r.id === zoe.id)!.weapons].sort()).toEqual(
+      [Weapon.EPEE, Weapon.FOIL].sort()
+    );
+    expect(refs.find(r => r.id === max.id)!.weapons).toEqual([]);
+    expect(refs).toHaveLength(4);
+    // Fiches d'épreuve liées
+    expect(competitionReferees('epeeM17').map(r => r.day_referee_id)).toEqual([anne.id, zoe.id]);
+    expect(competitionReferees('foilM15')[2].day_referee_id).toBe(max.id);
+    // Second import : rien à faire
+    expect(repo.importCompetitionReferees(day.id)).toEqual({ added: 0, updated: 0, imported: 0 });
+  });
+
   it("n'agit pas sur une épreuve hors journée", () => {
     expect(repo.syncCompetition('foilM15')).toEqual({ added: 0, updated: 0 });
   });

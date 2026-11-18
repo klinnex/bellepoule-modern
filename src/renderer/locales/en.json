@@ -3248,10 +3248,10 @@
     "empty": "No day yet",
     "select_hint": "Select or create a day.",
     "competitions": "Events",
-    "competitions_hint": "Tick the events of the day. Day referees are copied into them according to their weapon.",
+    "competitions_hint": "Select the events of the day. Their referees are imported into the day (namesakes merged, weapons combined), then copied into each event according to their weapon.",
     "other_day": "day {{name}}",
     "referees": "Day referees",
-    "referees_hint": "Entered once, copied into every event of their weapon. No weapon ticked = all weapons.",
+    "referees_hint": "Entered once, copied into every event of their weapon. No weapon selected = all weapons.",
     "referee": "Referee",
     "first_name": "First name",
     "last_name": "Last name",
@@ -3266,7 +3266,7 @@
     "add_referee": "Add",
     "referee_delete_confirm": "Remove \"{{name}}\" from the day? Their records in the events are kept.",
     "sync": "Copy into events",
-    "sync_title": "Create or update the referee records of each event according to weapon",
+    "sync_title": "Import the events' referees, then create or update their records in each event according to weapon",
     "sync_done": "{{added}} referee(s) added, {{updated}} updated",
     "refresh": "Refresh",
     "conflicts": "Conflicts across the day",
@@ -3299,7 +3299,8 @@
     "assign": "Assign",
     "reservation": "Reservation",
     "strips_no_config": "Strip count not configured.",
-    "kiosk_link": "Day display (kiosk)"
+    "kiosk_link": "Day display (kiosk)",
+    "imported": "{{count}} referee(s) imported from the events"
   },
   "organisation": {
     "eta": "Estimated end",
@@ -3424,7 +3425,8 @@
     "delete_confirm": "Permanently delete {{name}}? They will be removed from session staff.",
     "session_label": "Session fencing masters",
     "none_available": "No fencing master: add them in the Fencing masters tab.",
-    "by": "Coached by: {{names}}"
+    "by": "Coached by: {{names}}",
+    "new_title": "New fencing master"
   },
   "clubTour": {
     "title": "Welcome to Club mode",

@@ -9,6 +9,7 @@ import type { ClubExercise, ClubExerciseCategory } from '../../../shared/types/c
 import { EXERCISE_CATEGORIES, formatMinutes } from '../../../shared/utils/clubPlan';
 import { exerciseMatchesRange, hasAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 
@@ -98,14 +99,9 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
           onChange={e => setSearch(e.target.value)}
         />
         {hasAgeRange(ageRange) && (
-          <label className="club-nowrap">
-            <input
-              type="checkbox"
-              checked={forCourse}
-              onChange={e => setForCourse(e.target.checked)}
-            />{' '}
+          <ToggleChip pressed={forCourse} onToggle={setForCourse}>
             {t('clubAge.only_course')}
-          </label>
+          </ToggleChip>
         )}
       </div>
       {all !== null && visible.length === 0 ? (
@@ -114,12 +110,11 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
         <ul className="club-exercise-list">
           {visible.map(e => (
             <li key={e.id}>
-              <label className="club-exercise-pick">
-                <input
-                  type="checkbox"
-                  checked={picked.includes(e.id)}
-                  onChange={() => toggle(e.id)}
-                />
+              <ToggleChip
+                className="club-exercise-pick"
+                pressed={picked.includes(e.id)}
+                onToggle={() => toggle(e.id)}
+              >
                 <span className="club-grow">
                   <span className="font-medium">{e.title}</span>{' '}
                   <span className="club-muted">
@@ -128,7 +123,7 @@ export const ClubExercisePicker: React.FC<ClubExercisePickerProps> = ({
                   {e.details && <span className="club-plan-details">{e.details}</span>}
                 </span>
                 {e.images[0] && <img className="club-exercise-thumb" src={e.images[0]} alt="" />}
-              </label>
+              </ToggleChip>
             </li>
           ))}
         </ul>

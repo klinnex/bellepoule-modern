@@ -38,6 +38,34 @@ export function dayRefereeFullName(ref: Pick<DayReferee, 'firstName' | 'lastName
   return `${ref.firstName ?? ''} ${ref.lastName ?? ''}`.trim();
 }
 
+/** Clé de rapprochement d'un nom d'arbitre : sans accents ni casse, ordre des mots ignoré */
+export function refereeNameKey(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort()
+    .join(' ');
+}
+
+/**
+ * Découpe un nom d'épreuve : « Prénom Nom », ou « NOM Prénom » quand le premier mot seul
+ * est en capitales
+ */
+export function splitRefereeName(name: string): { firstName: string; lastName: string } {
+  const clean = name.trim().replace(/\s+/g, ' ');
+  const i = clean.indexOf(' ');
+  if (i < 0) return { firstName: '', lastName: clean };
+  const head = clean.slice(0, i);
+  const rest = clean.slice(i + 1);
+  const caps = (w: string) => /\p{L}{2}/u.test(w) && w === w.toUpperCase();
+  return caps(head) && !caps(rest)
+    ? { firstName: rest, lastName: head }
+    : { firstName: head, lastName: rest };
+}
+
 function groupByReferee(
   assignments: readonly DayRefereeAssignment[]
 ): Map<string, DayRefereeAssignment[]> {
