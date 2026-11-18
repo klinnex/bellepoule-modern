@@ -315,6 +315,25 @@
   flex-direction: column;
   gap: 0.75rem;
 }
+.club-time-input {
+  width: 7.5rem;
+}
+.club-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  padding: 0.35rem 0.1rem;
+  color: var(--color-text-light);
+  cursor: grab;
+  user-select: none;
+}
+.club-drag-handle:active {
+  cursor: grabbing;
+}
+.club-plan-edit-item--drop {
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 -2px 0 0 var(--color-primary, #2563eb);
+}
 .club-plan-edit-item {
   border: 1px solid var(--color-border);
   border-radius: 6px;

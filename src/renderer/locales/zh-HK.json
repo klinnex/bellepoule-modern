@@ -3433,6 +3433,8 @@
     "hint_cards": "「列印會員證」會產生每頁 10 張的 PDF：標誌、姓名及識別 QR 碼，可剪下使用。"
   },
   "clubSession": {
+    "start_time": "開始時間",
+    "start_time_clear": "清除時間",
     "delete_past_confirm": "刪除 {{date}} 的訓練及其所有比賽？無法復原。",
     "camera_unavailable": "此裝置無法使用相機",
     "camera_denied": "相機存取被拒絕",
@@ -3594,6 +3596,8 @@
     "too_many": "每次操作最多 {{max}} 個期間或日期。"
   },
   "clubPlan": {
+    "drag_hint": "拖曳左側手柄即可重新排列練習。",
+    "drag_n": "拖曳第 {{n}} 項練習",
     "edit_title": "修改訓練",
     "new_title": "準備訓練",
     "date": "日期",

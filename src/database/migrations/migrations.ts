@@ -1182,4 +1182,15 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 42,
+    description: 'Mode Club : heure de début des séances (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_sessions ADD COLUMN start_time TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

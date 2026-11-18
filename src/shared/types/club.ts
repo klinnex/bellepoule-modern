@@ -174,6 +174,8 @@ export interface ClubSession {
   /** Date ISO AAAA-MM-JJ */
   date: string;
   label?: string;
+  /** Heure de début (HH:MM, optionnelle, ex. 20:30) */
+  startTime?: string;
   weapon?: Weapon;
   stripCount: number;
   status: ClubSessionStatus;
@@ -205,6 +207,8 @@ export interface ClubSession {
 export interface ClubSessionInput {
   date: string;
   label?: string;
+  /** Heure de début HH:MM ; null ou vide efface l'heure */
+  startTime?: string | null;
   /** Maîtres d'armes de la séance (ids du club) */
   coachIds?: string[];
   weapon?: Weapon;

@@ -328,7 +328,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     return names ? t('clubCoach.by', { names }) : '';
   };
   const sessionLabel = (s: ClubSession) =>
-    [s.label ?? '', ageRangeText(s, t), coachText(s), s.seriesId ? t('clubPlan.series_badge') : '']
+    [
+      s.startTime ?? '',
+      s.label ?? '',
+      ageRangeText(s, t),
+      coachText(s),
+      s.seriesId ? t('clubPlan.series_badge') : '',
+    ]
       .filter(Boolean)
       .join(' · ');
 

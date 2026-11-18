@@ -196,6 +196,19 @@ describe.skipIf(!DatabaseSync)('ClubRepo (#1872)', () => {
   });
 
   describe('préparation et bilan des séances', () => {
+    it('heure de début optionnelle : HH:MM valide, sinon absente ; effacée sur null', () => {
+      const s = repo.createSession(cid, { date: '2026-11-20', planned: true, startTime: '20:30' });
+      expect(s.startTime).toBe('20:30');
+      expect(
+        repo.createSession(cid, { date: '2026-11-21', planned: true }).startTime
+      ).toBeUndefined();
+      expect(
+        repo.createSession(cid, { date: '2026-11-22', planned: true, startTime: '25:00' }).startTime
+      ).toBeUndefined();
+      expect(repo.updateSession(s.id, { startTime: null })?.startTime).toBeUndefined();
+      expect(repo.updateSession(s.id, { startTime: '08:05' })?.startTime).toBe('08:05');
+    });
+
     it('séance préparée : plan, objectifs, démarrage, une seule ouverte', () => {
       const s = repo.createSession(cid, {
         date: '2026-11-20',
