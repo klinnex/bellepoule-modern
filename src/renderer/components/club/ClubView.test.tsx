@@ -6,7 +6,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 import { ClubView } from './ClubView';
 
@@ -108,6 +108,18 @@ describe('ClubView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
     await waitFor(() => expect(api.updateClub).toHaveBeenCalledWith('c1', { name: 'Nouveau nom' }));
     expect(await screen.findByRole('heading', { name: 'Nouveau nom' })).toBeInTheDocument();
+  });
+
+  it("modifie l'identité depuis le bouton de l'en-tête", async () => {
+    render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
+    const edit = await screen.findByRole('button', { name: 'Identité du club' });
+    fireEvent.click(edit);
+    const dialog = await screen.findByRole('dialog');
+    const input = within(dialog).getByLabelText('Nom du club');
+    await waitFor(() => expect(input).toHaveValue('Cercle d’escrime'));
+    fireEvent.change(input, { target: { value: 'Nouveau nom' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sauvegarder' }));
+    await waitFor(() => expect(api.updateClub).toHaveBeenCalledWith('c1', { name: 'Nouveau nom' }));
   });
 
   it('importe un fichier FFE .fff', async () => {

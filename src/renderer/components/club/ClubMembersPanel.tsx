@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Mode Club (#1872) : identité du club (nom, logo), annuaire des
+ * BellePoule Modern - Mode Club (#1872) : identité du club (ClubIdentityCard), annuaire des
  * membres (ajout, archivage, effacement, nouveau code carte) et impression des cartes.
  * Licensed under GPL-3.0
  */
@@ -9,14 +9,12 @@ import {
   Archive,
   ArchiveRestore,
   Download,
-  FileDown,
   IdCard,
   Pencil,
   Printer,
   QrCode,
   Plus,
   RefreshCw,
-  Save,
   Trash2,
   Upload,
 } from 'lucide-react';
@@ -38,17 +36,12 @@ import { toCsv } from '../../../shared/utils/clubInventory';
 import { isMemberTable, membersToRows, rowsToMembers } from '../../../shared/utils/clubMembersIO';
 import { ClubExchangeMenu } from './ClubExchangeMenu';
 import { openMemberFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
-import {
-  exportArenaQrToPDF,
-  exportClubCardsToPDF,
-  printArenaQr,
-  printClubCards,
-} from '../../../shared/utils/pdfExport/clubCardsPdf';
+import { exportClubCardsToPDF, printClubCards } from '../../../shared/utils/pdfExport/clubCardsPdf';
 import { compareByAgeCategory, memberAgeCategory } from '../../../shared/utils/clubAge';
 import { categoryLabel } from '../../../shared/utils/categoryLabel';
 import { AgeCategoryFilter } from './ClubAgeRange';
 import { FencerPhoto } from '../FencerPhoto';
-import { ClubWeaponSelect } from './ClubWeaponSelect';
+import { ClubIdentityCard } from './ClubIdentityCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -56,7 +49,6 @@ import { ToggleChip } from '../common/ToggleChip';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const today = () => new Date().toISOString().slice(0, 10);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -85,9 +77,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState('');
-  // null = nom enregistré (pas d'édition en cours)
-  const [nameEdit, setNameEdit] = useState<string | null>(null);
-  const clubName = nameEdit ?? settings.name;
   const [creating, setCreating] = useState(false);
   const [ageFilter, setAgeFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
@@ -171,33 +160,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     });
   };
 
-  /** Enregistre l'identité du club (nom, logo, pistes) et la remonte à la vue */
-  const saveClub = async (data: Parameters<typeof api.updateClub>[1]) => {
-    const club = await api.updateClub(clubId, data);
-    if (club) onSettingsChange(club);
-  };
-
-  const saveName = () =>
-    run(async () => {
-      await saveClub({ name: clubName });
-      setNameEdit(null);
-      showToast(t('club.settings_saved'), 'success');
-    });
-
-  const pickLogo = (file: File | undefined) => {
-    if (!file) return;
-    if (file.size > MAX_LOGO_BYTES) {
-      showToast(t('club.logo_too_big'), 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () =>
-      void run(async () => {
-        await saveClub({ logo: String(reader.result) });
-      });
-    reader.readAsDataURL(file);
-  };
-
   const removeMember = async (m: ClubMember) => {
     const ok = await confirm({
       message: t('club.delete_confirm', { name: `${m.firstName} ${m.lastName}` }),
@@ -253,17 +215,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
       const r = await api.importMembers(clubId, selectedRows);
       showToast(t('club.import_done', { ...r }), 'success');
     });
-  };
-
-  const saveStrips = (n: number) => run(async () => saveClub({ stripCount: n }));
-
-  const printArenas = async (mode: 'print' | 'pdf') => {
-    try {
-      if (mode === 'pdf') await exportArenaQrToPDF(settings.stripCount, settings);
-      else await printArenaQr(settings.stripCount, settings);
-    } catch (e) {
-      showToast(errText(e), 'error');
-    }
   };
 
   /** Photos par licence depuis un ZIP, comme dans la liste des tireurs */
@@ -324,77 +275,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   return (
     <div className="club-members">
-      <section className="club-card" aria-labelledby="club-identity-title">
-        <h2 id="club-identity-title" className="club-card-title">
-          {t('club.identity')}
-        </h2>
-        <div className="club-row club-row--align-end">
-          <label className="form-label club-grow" data-tour="club-name">
-            {t('club.name')}
-            <input
-              className="form-input"
-              value={clubName}
-              maxLength={100}
-              onChange={e => setNameEdit(e.target.value)}
-            />
-          </label>
-          <Button icon={<Save size={15} aria-hidden="true" />} onClick={() => void saveName()}>
-            {t('actions.save')}
-          </Button>
-        </div>
-        <div className="club-row">
-          <label className="form-label" data-tour="club-logo">
-            {t('club.logo')}
-            <input
-              className="form-input"
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              onChange={e => pickLogo(e.target.files?.[0])}
-            />
-          </label>
-          {settings.logo && (
-            <Button
-              variant="ghost"
-              icon={<Trash2 size={15} aria-hidden="true" />}
-              onClick={() => void run(async () => saveClub({ logo: null }))}
-            >
-              {t('club.logo_remove')}
-            </Button>
-          )}
-        </div>
-        <div className="club-row club-row--align-end">
-          <ClubWeaponSelect
-            value={settings.weapon}
-            label={t('clubWeapon.club_label')}
-            onChange={w => void run(async () => saveClub({ weapon: w }))}
-          />
-          <label className="form-label club-field-stack" data-tour="club-strips">
-            {t('club.strip_count')}
-            <input
-              className="form-input club-strips-input"
-              type="number"
-              min={1}
-              max={99}
-              value={settings.stripCount}
-              onChange={e => void saveStrips(Number(e.target.value))}
-            />
-          </label>
-          <Button
-            icon={<QrCode size={15} aria-hidden="true" />}
-            data-tour="club-arena-qr"
-            onClick={() => void printArenas('print')}
-          >
-            {t('club.print_arena_qr')}
-          </Button>
-          <Button
-            variant="ghost"
-            icon={<FileDown size={15} aria-hidden="true" />}
-            aria-label={t('club.arena_qr_pdf')}
-            title={t('club.arena_qr_pdf')}
-            onClick={() => void printArenas('pdf')}
-          />
-        </div>
-      </section>
+      <ClubIdentityCard clubId={clubId} settings={settings} onSettingsChange={onSettingsChange} />
 
       <section className="club-card" aria-labelledby="club-members-title">
         <div className="club-row club-row--between">
