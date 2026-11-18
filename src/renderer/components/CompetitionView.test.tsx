@@ -202,8 +202,10 @@ describe('CompetitionView', () => {
       expect(steps()[2]).not.toHaveClass('phase-step-disabled');
       expect(screen.getByRole('button', { name: /Repréparer les poules/ })).toBeEnabled();
 
+      // Poules lancées, rien de modifié en préparation : « Aller aux poules », sans alerte (#1992)
       fireEvent.click(steps()[1]);
-      expect(await screen.findByRole('button', { name: /Relancer les poules/ })).toBeEnabled();
+      fireEvent.click(await screen.findByRole('button', { name: /Aller aux poules/ }));
+      await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
     });
   });
 

@@ -401,8 +401,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             poolsLaunched={poolsLaunched || relaunchPending}
             draft={poolPrepDraft}
             onDraftChange={setPoolPrepDraft}
+            onGoToPools={
+              poolsLaunched && !relaunchPending
+                ? () => {
+                    setPoolPrepDraft(null);
+                    setCurrentPhase('pools');
+                  }
+                : undefined
+            }
             onPoolsConfirm={async preparedPools => {
-              if (!(await confirmScoresLoss())) return;
+              if (!(await confirmScoresLoss(preparedPools))) return;
               let confirmedPools = preparedPools;
               if (isRapieres && preparedPools.some(p => hasClassicOrder(p.fencers.length))) {
                 const order = await askMatchOrder();

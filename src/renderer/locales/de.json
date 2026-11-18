@@ -360,6 +360,9 @@
     "prep_min": "Fechter Min",
     "prep_max": "Fechter Max",
     "prep_relaunch": "Pools neu starten",
+    "prep_goto": "Zu den Pools",
+    "prep_discard": "Änderungen verwerfen",
+    "prep_discard_title": "Zu den gestarteten Pools zurückkehren (Ergebnisse bleiben erhalten)",
     "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
     "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?",
     "prep_moved": "Fechter verschoben"

@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Fencer, Pool, Match, MatchStatus } from '../../shared/types';
 import {
   calculateOptimalPoolCount,
@@ -19,6 +19,7 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import { poolsLayoutKey } from './poolLaunchState';
 import {
   planPoolBouts,
   type PoolBoutOrderMode,
@@ -70,6 +71,11 @@ interface PoolPrepViewProps {
   /** Poules déjà lancées une fois : le bouton devient « Relancer les poules » (#1499) */
   poolsLaunched?: boolean;
   onPoolsConfirm: (pools: Pool[]) => void;
+  /**
+   * Poules lancées : sans modification, le bouton devient « Aller aux poules » (sans alerte),
+   * et « Annuler les modifications » revient aux poules lancées (#1992)
+   */
+  onGoToPools?: () => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
   /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
@@ -128,6 +134,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onStripChange,
   poolsLaunched = false,
   onPoolsConfirm,
+  onGoToPools,
   onSkipPools,
   onSettingsChange,
   onLaunchActionChange,
@@ -651,16 +658,33 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     return ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length) : null;
   };
 
+  // Poules lancées : modifiées ou non en préparation (#1992)
+  const launchedKey = useMemo(
+    () => (onGoToPools && initialPools?.length ? poolsLayoutKey(initialPools) : null),
+    [onGoToPools, initialPools]
+  );
+  const prepUnchanged = launchedKey !== null && poolsLayoutKey(pools) === launchedKey;
+  const prepModified = launchedKey !== null && !prepUnchanged;
+  const handleDiscardChanges = () => {
+    if (!initialPools) return;
+    saveToHistory();
+    setPools(initialPools);
+    setPoolCount(initialPools.length);
+  };
+
   const launchDisabled =
     poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
   const launchLabel =
     poolCount === 0
       ? t('pools.prep_skip_pools')
-      : t(poolsLaunched ? 'pools.prep_relaunch' : 'pools.prep_launch');
+      : prepUnchanged
+        ? t('pools.prep_goto')
+        : t(poolsLaunched ? 'pools.prep_relaunch' : 'pools.prep_launch');
   // Tireurs ajoutés depuis l'appel après la préparation : placés seulement à la repréparation (#1499)
   const placedIds = new Set(pools.flatMap(p => p.fencers.map(f => f.id)));
   const unplacedCount = poolCount > 0 ? fencers.filter(f => !placedIds.has(f.id)).length : 0;
   const handleLaunch = () => {
+    if (prepUnchanged && onGoToPools) return onGoToPools();
     // Poules transmises (écrans distants / sync) : annulation refusée (#1301)
     undoStack.lock();
     return poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools);
@@ -1155,6 +1179,16 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               </div>
             )}
           </div>
+
+          {prepModified && (
+            <Button
+              onClick={handleDiscardChanges}
+              title={t('pools.prep_discard_title')}
+              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+            >
+              {t('pools.prep_discard')}
+            </Button>
+          )}
 
           {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
           {!onLaunchActionChange && (

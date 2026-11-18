@@ -4,7 +4,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { MatchStatus, Pool } from '../../shared/types';
-import { inferPoolsLaunched, poolsHaveScores, poolTabLock } from './poolLaunchState';
+import {
+  inferPoolsLaunched,
+  poolsHaveScores,
+  poolTabLock,
+  scoredMatchesLost,
+} from './poolLaunchState';
 
 const pool = (matches: Array<Partial<{ status: MatchStatus; scoreA: number | null }>>): Pool =>
   ({
@@ -58,5 +63,27 @@ describe('poolTabLock', () => {
       prepLocked: false,
       poolsLocked: false,
     });
+  });
+});
+
+describe('scoredMatchesLost (#1992)', () => {
+  const withIds = (ids: string[], scored: boolean): Pool =>
+    ({
+      id: 'p',
+      matches: ids.map(id => ({
+        id,
+        status: scored ? MatchStatus.FINISHED : MatchStatus.NOT_STARTED,
+        scoreA: scored ? 5 : null,
+      })),
+    }) as unknown as Pool;
+
+  it('mêmes matchs : rien de perdu', () => {
+    expect(scoredMatchesLost([withIds(['a', 'b'], true)], [withIds(['a', 'b'], true)])).toBe(false);
+  });
+  it('matchs saisis remplacés : perdus', () => {
+    expect(scoredMatchesLost([withIds(['a'], true)], [withIds(['x'], false)])).toBe(true);
+  });
+  it('matchs non saisis remplacés : rien de perdu', () => {
+    expect(scoredMatchesLost([withIds(['a'], false)], [withIds(['x'], false)])).toBe(false);
   });
 });
