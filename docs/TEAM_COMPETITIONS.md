@@ -8,6 +8,15 @@ titulaire d'une équipe affronte chaque titulaire de l'équipe adverse exactemen
 fois, soit **N² relais** au total (9 relais pour des équipes de 3, conformément au
 règlement FIE).
 
+**Ordre des relais** (`relayOrderFor`, `teamCalculations.ts`) :
+
+| Arme | Ordre |
+| ---- | ----- |
+| Épée, fleuret (3 titulaires) | Ordre officiel FIE : 3-6, 1-5, 2-4, 1-6, 3-4, 2-5, 1-4, 2-6, 3-5 (équipe A = 1-2-3, équipe B = 4-5-6) |
+| Sabre, Sabre Laser (relais et arène), arme à la carte, autre nombre de titulaires | Rotation diagonale : 1-4, 2-5, 3-6, 1-5, 2-6, 3-4, 1-6, 2-4, 3-5 |
+
+Le choix est fait à la création des rencontres : les rencontres déjà générées gardent leur ordre.
+
 Les relais sont **progressifs** : le score de la rencontre est le cumul des touches
 (ou points) marqués par chaque équipe sur l'ensemble des relais déjà joués. Chaque
 relais s'arrête dès que le cumul d'une équipe atteint le palier de ce relais

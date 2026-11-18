@@ -7,6 +7,8 @@ import { describe, it, expect } from 'vitest';
 import {
   generateRelayBouts,
   generateRelayOrder,
+  relayOrderFor,
+  FIE_RELAY_ORDER_3,
   calculateTeamScore,
   validateTeamComposition,
   isTeamMatchComplete,
@@ -167,7 +169,7 @@ describe('isTeamMatchComplete / getTeamMatchWinner', () => {
 });
 
 describe('generateRelayOrder', () => {
-  it('génère le motif FIE standard pour une équipe de 3', () => {
+  it('génère la rotation en diagonale pour une équipe de 3', () => {
     expect(generateRelayOrder(3)).toEqual([
       [0, 0],
       [1, 1],
@@ -191,6 +193,52 @@ describe('generateRelayOrder', () => {
         expect(seen.has(`${i}-${j}`)).toBe(true);
       }
     }
+  });
+});
+
+/** Relais au format feuille de match : A = 1-2-3, B = 4-5-6 */
+const asSheet = (order: [number, number][]) => order.map(([a, b]) => `${a + 1}-${b + 4}`);
+
+describe('relayOrderFor', () => {
+  const FIE_SHEET = ['3-6', '1-5', '2-4', '1-6', '3-4', '2-5', '1-4', '2-6', '3-5'];
+  const ROTATION_SHEET = ['1-4', '2-5', '3-6', '1-5', '2-6', '3-4', '1-6', '2-4', '3-5'];
+
+  it.each([Weapon.EPEE, Weapon.FOIL])('arme %s à 3 : ordre officiel FIE', weapon => {
+    expect(asSheet(relayOrderFor(3, weapon))).toEqual(FIE_SHEET);
+  });
+
+  it.each([Weapon.SABRE, Weapon.LASER, Weapon.CUSTOM])('arme %s : ordre inchangé', weapon => {
+    expect(asSheet(relayOrderFor(3, weapon))).toEqual(ROTATION_SHEET);
+    expect(relayOrderFor(3, weapon)).toEqual(generateRelayOrder(3));
+  });
+
+  it('sans arme ou avec une autre taille d’équipe : ordre inchangé', () => {
+    expect(relayOrderFor(3)).toEqual(generateRelayOrder(3));
+    expect(relayOrderFor(4, Weapon.EPEE)).toEqual(generateRelayOrder(4));
+    expect(relayOrderFor(2, Weapon.FOIL)).toEqual(generateRelayOrder(2));
+  });
+
+  it('ordre FIE : chaque titulaire rencontre chaque adversaire une fois, jamais deux relais de suite', () => {
+    const order = relayOrderFor(3, Weapon.EPEE);
+    expect(new Set(order.map(([a, b]) => `${a}-${b}`)).size).toBe(9);
+    for (let k = 1; k < order.length; k++) {
+      expect(order[k][0]).not.toBe(order[k - 1][0]);
+      expect(order[k][1]).not.toBe(order[k - 1][1]);
+    }
+  });
+
+  it('renvoie une copie : la constante FIE n’est pas modifiable par l’appelant', () => {
+    const order = relayOrderFor(3, Weapon.FOIL);
+    order[0][0] = 99;
+    expect(FIE_RELAY_ORDER_3[0][0]).toBe(2);
+  });
+
+  it('generateRelayBouts suit l’arme : relais 1 = 3 contre 6 à l’épée, 1 contre 4 au sabre', () => {
+    const epee = generateRelayBouts(teamA(), teamB(), 5, Weapon.EPEE);
+    expect([epee[0].fencerA.id, epee[0].fencerB.id]).toEqual(['a3', 'b3']);
+    expect([epee[8].fencerA.id, epee[8].fencerB.id]).toEqual(['a3', 'b2']);
+    const sabre = generateRelayBouts(teamA(), teamB(), 5, Weapon.SABRE);
+    expect([sabre[0].fencerA.id, sabre[0].fencerB.id]).toEqual(['a1', 'b1']);
   });
 });
 

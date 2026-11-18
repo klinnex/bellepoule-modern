@@ -26,6 +26,8 @@ export type {
 // Utils
 export {
   generateRelayOrder,
+  relayOrderFor,
+  FIE_RELAY_ORDER_3,
   generateRelayBouts,
   calculateTeamScore,
   validateTeamComposition,

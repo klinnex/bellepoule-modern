@@ -13,7 +13,7 @@ import {
   TeamMatchCardRow,
 } from '../../features/teams/types/team.types';
 import {
-  generateRelayOrder,
+  relayOrderFor,
   getTeamTargetRule,
   calculateTeamPoolRanking,
   calculateTableSize,
@@ -205,7 +205,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
               .filter(f => !f.isReserve)
               .sort((x, y) => x.teamOrder - y.teamOrder);
             if (mainA.length >= teamSize && mainB.length >= teamSize) {
-              const relayOrder = generateRelayOrder(teamSize);
+              const relayOrder = relayOrderFor(teamSize, competition.weapon);
               for (let k = 0; k < relayOrder.length; k++) {
                 const [oi, oj] = relayOrder[k];
                 await window.electronAPI.db.createTeamBout(
@@ -339,7 +339,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           .filter(f => !f.isReserve)
           .sort((x, y) => x.teamOrder - y.teamOrder);
         if (mainA.length >= teamSize && mainB.length >= teamSize) {
-          const relayOrder = generateRelayOrder(teamSize);
+          const relayOrder = relayOrderFor(teamSize, competition.weapon);
           for (let k = 0; k < relayOrder.length; k++) {
             const [oi, oj] = relayOrder[k];
             await window.electronAPI.db.createTeamBout(
@@ -372,7 +372,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
         const mainB = b.fencers.filter(f => !f.isReserve).sort((x, y) => x.teamOrder - y.teamOrder);
 
         if (mainA.length >= teamSize && mainB.length >= teamSize) {
-          const relayOrder = generateRelayOrder(teamSize);
+          const relayOrder = relayOrderFor(teamSize, competition.weapon);
           for (let k = 0; k < relayOrder.length; k++) {
             const [oi, oj] = relayOrder[k];
             await window.electronAPI.db.createTeamBout(
