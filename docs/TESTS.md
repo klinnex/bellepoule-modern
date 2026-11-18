@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 19 | 257 |
+| `src/database/` | 19 | 258 |
 | `src/main/` | 109 | 889 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3701** |
+| **Total** | **488** | **3702** |
 
-Unitaires : 478 fichiers, 3662 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2658,10 +2658,11 @@ Unitaires : 478 fichiers, 3662 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/databaseEncryption.test.ts</code> — 1 test</summary>
+<summary><code>src/database/databaseEncryption.test.ts</code> — 2 tests</summary>
 
 - **DatabaseManager chiffré (#1882)**
   - migration en clair puis ouverture chiffrée avec migrations
+  - export / sauvegarde auto depuis une base chiffrée : copie en clair lisible
 
 </details>
 
