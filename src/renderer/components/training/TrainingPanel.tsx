@@ -21,13 +21,7 @@ import { Button } from '../common/Button';
 import type { TrainingTheme } from '../../../shared/utils/trainingThemes';
 
 // Thèmes intégrés (pas de thème personnalisé en entraînement) : piste, kiosk, arbitre et lobby
-const TRAINING_THEME_OPTIONS: { value: TrainingTheme; labelKey?: string; label?: string }[] = [
-  { value: 'dark', labelKey: 'rsm.theme_dark' },
-  { value: 'light', labelKey: 'rsm.theme_light' },
-  { value: 'neon', labelKey: 'rsm.theme_neon' },
-  { value: 'unicorn', label: 'Unicorn' },
-  { value: 'musketeers', labelKey: 'rsm.theme_musketeers' },
-];
+import { TRAINING_THEME_OPTIONS } from './trainingThemeOptions';
 
 const WEAPON_LABELS: Record<string, string> = {
   E: 'weapons.epee',

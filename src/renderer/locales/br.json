@@ -3527,6 +3527,18 @@
     "col_period": "Prantad",
     "leaderboard": "Renkadur ar c'hlub"
   },
+  "clubRemote": {
+    "open": "Arventennoù",
+    "title": "Arventennoù an enrollañ a-bell",
+    "port": "Porzh",
+    "screens": "Skrammoù ha tabletennoù",
+    "theme": "Neuz ar skrammoù",
+    "password": "Ger-tremen boutin ar roudennoù",
+    "password_hint": "Goullo = digor d'an holl ; a-hend-all 8 arouezenn d'an nebeutañ. Miret er memor betek serriñ an arload, biken enrollet.",
+    "restart_hint": "Enrollañ a-bell war ober : etrefas, porzh hag HTTPS a vo lakaet da vat er c'hentañ loc'hañ.",
+    "saved": "Arventennoù an enrollañ a-bell lakaet da vat",
+    "saved_restart": "Neuz ha ger-tremen lakaet da vat ; paouezit hag adloc'hit an enrollañ a-bell evit ar rouedad"
+  },
   "clubImport": {
     "title": "Enporzhiañ diwar « {{file}} »",
     "help": "Merkit an dud da enporzhiañ. An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, morse eilet.",

@@ -15,7 +15,7 @@ import {
   FileDown,
   Lock,
   MessageSquare,
-  Network,
+  Settings2,
   UserCheck,
   Pencil,
   Play,
@@ -46,6 +46,15 @@ import { inAgeRange, type AgeRange } from '../../../shared/utils/clubAge';
 import { AgeCategoryFilter, AgeRangeSelect, ageRangeText } from './ClubAgeRange';
 import { ClubAttendanceModal } from './ClubAttendanceModal';
 import { ClubLobbyQr } from './ClubLobbyQr';
+import { ClubRemoteSettingsModal } from './ClubRemoteSettingsModal';
+import {
+  ALL_INTERFACES,
+  TRAINING_SERVER_ID,
+  loadClubRemoteSettings,
+  networkChanged,
+  saveClubRemoteSettings,
+  type ClubRemoteSettings,
+} from './clubRemoteSettings';
 import { ClubSessionFeedbackModal } from './ClubSessionFeedback';
 import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { MiniCalendar, type DayMark } from './MiniCalendar';
@@ -80,16 +89,6 @@ interface RemoteState {
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
-const ALL_INTERFACES = '0.0.0.0';
-/** Interface réseau mémorisée (partagée avec le mode entraînement) */
-const INTERFACE_STORAGE_KEY = 'bellepoule-training-interface';
-const loadInterface = (): string => {
-  try {
-    return localStorage.getItem(INTERFACE_STORAGE_KEY) ?? ALL_INTERFACES;
-  } catch {
-    return ALL_INTERFACES;
-  }
-};
 /** Séance pour la catégorie choisie : plage du cours contenant la catégorie ('' = toutes) */
 const forCategory = (s: ClubSession, cat: string) => !cat || inAgeRange(cat, s);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -242,7 +241,10 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   // Vue liste (ouverture, séances prévues et passées) alors que des séances sont ouvertes
   const [listMode, setListMode] = useState(false);
   const [listCategory, setListCategory] = useState('');
-  const [iface, setIface] = useState(loadInterface);
+  const [remoteCfg, setRemoteCfg] = useState<ClubRemoteSettings>(loadClubRemoteSettings);
+  // Mot de passe commun des pistes : en mémoire seulement, jamais enregistré
+  const [arenaPassword, setArenaPassword] = useState('');
+  const [remoteSettingsOpen, setRemoteSettingsOpen] = useState(false);
   const [interfaces, setInterfaces] = useState<{ name: string; address: string }[]>([]);
   const [openDate, setOpenDate] = useState(today);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -281,7 +283,9 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
         const list = res?.success ? res.interfaces : undefined;
         if (list?.length) {
           setInterfaces(list);
-          setIface(prev => (list.some(i => i.address === prev) ? prev : ALL_INTERFACES));
+          setRemoteCfg(prev =>
+            list.some(i => i.address === prev.iface) ? prev : { ...prev, iface: ALL_INTERFACES }
+          );
         }
       })
       .catch(() => undefined);
@@ -772,12 +776,42 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     if (r === 'busy') showToast(t('clubSession.remote_busy'), 'warning');
   };
 
+  /** Thème des écrans et mot de passe commun des pistes, sur le serveur en cours */
+  const applyScreens = async (theme: ClubRemoteSettings['theme'], pwd: string, strips: number) => {
+    const res = await window.electronAPI?.training?.setTheme?.(theme);
+    if (res && !res.success) throw new Error(res.error ?? t('clubSession.remote_error'));
+    const remoteApi = window.electronAPI?.remote;
+    if (!remoteApi) return;
+    for (let n = 1; n <= strips; n++) {
+      const r = await remoteApi.setArenaPassword(TRAINING_SERVER_ID, `arena${n}`, pwd);
+      if (!r.success) throw new Error(r.error ?? t('clubSession.remote_error'));
+    }
+  };
+
+  const saveRemoteSettings = async (next: ClubRemoteSettings, pwd: string) => {
+    const restart = remote.active && networkChanged(remoteCfg, next);
+    setRemoteCfg(next);
+    setArenaPassword(pwd);
+    saveClubRemoteSettings(next);
+    setRemoteSettingsOpen(false);
+    if (!remote.active) return;
+    try {
+      await applyScreens(next.theme, pwd, current.stripCount);
+      showToast(
+        t(restart ? 'clubRemote.saved_restart' : 'clubRemote.saved'),
+        restart ? 'warning' : 'success'
+      );
+    } catch (e) {
+      showToast(errText(e), 'error');
+    }
+  };
+
   const startRemote = async () => {
     const training = window.electronAPI?.training;
     if (!training) return;
     setRemoteBusy(true);
     try {
-      const srv = await training.startServer(undefined, iface, true);
+      const srv = await training.startServer(remoteCfg.port, remoteCfg.iface, remoteCfg.https);
       if (!srv.success && srv.error !== 'training_already_started') {
         throw new Error(srv.error ?? t('clubSession.remote_error'));
       }
@@ -788,6 +822,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
       if (!ses.success && !(await api.remoteStatus()).active) {
         throw new Error(ses.error ?? t('clubSession.remote_error'));
       }
+      await applyScreens(remoteCfg.theme, arenaPassword, current.stripCount);
       await api.linkRemote(current.id);
       for (const b of bouts.filter(isLive)) await api.pushBout(b.id);
     } catch (e) {
@@ -945,52 +980,33 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           <h2 id="club-remote-title" className="club-card-title">
             {t('clubSession.remote')}
           </h2>
-          {remote.active ? (
-            <>
-              <Button
-                icon={<QrCode size={15} aria-hidden="true" />}
-                onClick={() => setQrOpen(true)}
-              >
-                {t('clubSession.remote_qr')}
-              </Button>
-              <Button
-                variant="danger"
-                icon={<WifiOff size={15} aria-hidden="true" />}
-                loading={remoteBusy}
-                onClick={() => void stopRemote()}
-              >
-                {t('clubSession.remote_stop')}
-              </Button>
-            </>
-          ) : (
-            <div className="club-row">
-              <label className="form-label">
-                <span>
-                  <Network size={13} aria-hidden="true" /> {t('trainingLauncher.network')}
-                </span>
-                <select
-                  className="form-input"
-                  value={iface}
-                  disabled={remoteBusy}
-                  onChange={e => {
-                    setIface(e.target.value);
-                    try {
-                      localStorage.setItem(INTERFACE_STORAGE_KEY, e.target.value);
-                    } catch {
-                      /* stockage indisponible */
-                    }
-                  }}
+          <div className="club-row">
+            <Button
+              variant="ghost"
+              icon={<Settings2 size={15} aria-hidden="true" />}
+              disabled={remoteBusy}
+              onClick={() => setRemoteSettingsOpen(true)}
+            >
+              {t('clubRemote.open')}
+            </Button>
+            {remote.active ? (
+              <>
+                <Button
+                  icon={<QrCode size={15} aria-hidden="true" />}
+                  onClick={() => setQrOpen(true)}
                 >
-                  <option value={ALL_INTERFACES}>{t('trainingLauncher.all_interfaces')}</option>
-                  {interfaces
-                    .filter(i => i.address !== ALL_INTERFACES)
-                    .map(i => (
-                      <option key={i.address} value={i.address}>
-                        {i.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
+                  {t('clubSession.remote_qr')}
+                </Button>
+                <Button
+                  variant="danger"
+                  icon={<WifiOff size={15} aria-hidden="true" />}
+                  loading={remoteBusy}
+                  onClick={() => void stopRemote()}
+                >
+                  {t('clubSession.remote_stop')}
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="primary"
                 data-tour="club-remote"
@@ -1000,8 +1016,8 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
               >
                 {t('clubSession.remote_start')}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <p className="club-muted">
           {remote.active && remote.url
@@ -1013,6 +1029,16 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             <p className="club-muted">{t('clubSession.remote_cards_hint')}</p>
             <ClubLobbyQr url={`${remote.url}/entrainement-lobby`} />
           </>
+        )}
+        {remoteSettingsOpen && (
+          <ClubRemoteSettingsModal
+            value={remoteCfg}
+            password={arenaPassword}
+            interfaces={interfaces}
+            active={remote.active}
+            onSave={(next, pwd) => void saveRemoteSettings(next, pwd)}
+            onClose={() => setRemoteSettingsOpen(false)}
+          />
         )}
       </section>
 

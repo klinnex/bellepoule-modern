@@ -3527,6 +3527,18 @@
     "col_period": "Període",
     "leaderboard": "Classificació del club"
   },
+  "clubRemote": {
+    "open": "Paràmetres",
+    "title": "Paràmetres de la puntuació remota",
+    "port": "Port",
+    "screens": "Pantalles i tauletes",
+    "theme": "Tema de les pantalles",
+    "password": "Contrasenya comuna de les pistes",
+    "password_hint": "Buit = accés lliure; si no, 8 caràcters mínim. Es guarda en memòria fins que es tanca l'aplicació, mai no es desa.",
+    "restart_hint": "Puntuació remota en curs: la interfície, el port i l'HTTPS s'aplicaran a la propera engegada.",
+    "saved": "Paràmetres de la puntuació remota aplicats",
+    "saved_restart": "Tema i contrasenya aplicats; atureu i torneu a engegar la puntuació remota per a la xarxa"
+  },
   "clubImport": {
     "title": "Importar des de « {{file}} »",
     "help": "Marqueu les persones a importar. Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, mai es dupliquen.",
