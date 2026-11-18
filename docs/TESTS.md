@@ -88,9 +88,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 889 |
+| `src/shared/utils/` | 81 | 894 |
 | `src/shared/services/` | 8 | 95 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3707** |
+| **Total** | **488** | **3716** |
 
-Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3677 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1653,7 +1653,7 @@ Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/tableauBouts.test.ts</code> — 7 tests</summary>
+<summary><code>src/shared/utils/tableauBouts.test.ts</code> — 12 tests</summary>
 
 - **tableauBouts (#1817)**
   - premier tour = plus grand numéro de tour
@@ -1663,6 +1663,12 @@ Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - petite finale comptée avec la finale
   - sans numéro de tour : seuls les matchs aux deux tireurs connus
   - vagues restantes : tours enchaînés, pistes partagées dans un tour
+- **toutes les places (#1817)**
+  - tableau complet de 2^k : 2^(k−1) × k matchs
+  - exempts au premier tour
+  - barrages : tireurs au-delà de la puissance de 2
+  - taille du champ déduite des barrages
+  - deux décomptes : principal et compétition, consolantes jouées comprises
 
 </details>
 
@@ -1962,7 +1968,7 @@ Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 19 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 22 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -1992,16 +1998,20 @@ Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - poules en cours : fin des poules + tableau projeté
   - poules finies : fin réelle des poules, tableau généré = ETA globale
   - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
+  - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
+  - tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)
+  - toutes les places : total de la compétition et deux décomptes (#1817)
 
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/scheduleBaseline.test.ts</code> — 3 tests</summary>
+<summary><code>src/features/analytics/services/scheduleBaseline.test.ts</code> — 4 tests</summary>
 
 - **scheduleBaseline**
   - fin planifiée par phase, repli sur la 1re estimation
   - écart final mémorisé puis effacé
   - JSON corrompu : valeurs vides
+  - fin de compétition projetée conservée après génération du tableau (#1817)
 
 </details>
 
