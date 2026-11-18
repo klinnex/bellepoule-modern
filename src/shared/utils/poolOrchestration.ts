@@ -24,6 +24,7 @@ import {
 } from './poolCalculations';
 import { planPoolBouts, type PoolBoutOrderMode } from './poolBoutOrder';
 import { mergeRoundRankings } from './poolRounds';
+import { isTieAtScoreLimit } from './matchEndValidation';
 
 export const MIN_FENCERS_FOR_POOLS = 4;
 
@@ -171,7 +172,7 @@ export function applyScoreToPool(
 /**
  * Validation d'un score de poule, identique à la saisie de l'écran :
  * entiers ≥ 0, pas au-delà du score max, égalité tranchée (vainqueur ou priorité),
- * pas d'égalité au Sabre Laser. Renvoie un code d'erreur ou null.
+ * pas d'égalité au score max (o.17, hors Sabre Laser), pas d'égalité au Sabre Laser. Renvoie un code d'erreur ou null.
  */
 export function validatePoolScore(input: {
   scoreA: number;
@@ -190,6 +191,9 @@ export function validatePoolScore(input: {
   // Score max 0 = illimité (comme l'écran)
   if (!input.specialStatus && maxScore > 0 && (scoreA > maxScore || scoreB > maxScore))
     return 'score_above_max';
+  // Égalité au score max impossible au règlement (o.17), hors Sabre Laser
+  if (!input.specialStatus && !input.isLaserSabre && isTieAtScoreLimit(scoreA, scoreB, maxScore))
+    return 'tie_at_max';
   if (scoreA === scoreB && !input.winner && !input.specialStatus) {
     if (input.isLaserSabre) return 'draw_not_allowed';
     if (!input.priority) return 'draw_needs_winner';

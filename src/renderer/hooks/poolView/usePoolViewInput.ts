@@ -8,6 +8,7 @@ import { nextChainedPair } from '../../components/pool/poolChainedInput';
 import { useModalResize } from '../useModalResize';
 import { useFocusTrap } from '../useFocusTrap';
 import { Fencer, MatchStatus, FencerStatus } from '../../../shared/types';
+import { inlineCellText } from '../../../shared/utils/inlineScoreInput';
 import type { PoolViewProps } from '../../components/pool/poolViewTypes';
 import { usePoolViewState } from './usePoolViewState';
 
@@ -434,8 +435,8 @@ export function usePoolViewInput(ctx: Ctx) {
         const matchIndex = getMatchIndex(rowFencer, colFencer);
         if (matchIndex === -1) continue;
         const match = pool.matches[matchIndex];
-        if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED)
-          continue;
+        // Les matchs terminés restent visités : Tab repasse sur chaque case, modifiable
+        if (match.status === MatchStatus.CANCELLED) continue;
         const inverted = match.fencerA?.id === colFencer.id;
         cells.push({
           rowFencer,
@@ -460,14 +461,16 @@ export function usePoolViewInput(ctx: Ctx) {
     for (let i = startFrom; i < cells.length; i++) {
       if (!skipKeys.has(cells[i].key)) {
         const next = cells[i];
+        const initial = cellInitialText(next.key, next.matchIndex, next.inverted, buffer);
         setInlineEditCell({
           key: next.key,
           rowId: next.rowFencer.id,
           colId: next.colFencer.id,
           matchIndex: next.matchIndex,
           inverted: next.inverted,
+          initial,
         });
-        setInlineSingleScore(buffer[next.key] !== undefined ? String(buffer[next.key]) : '');
+        setInlineSingleScore(initial);
         return;
       }
     }
@@ -483,6 +486,28 @@ export function usePoolViewInput(ctx: Ctx) {
     return side?.value ?? undefined;
   };
 
+  // Texte proposé dans une case : score en attente, sinon score enregistré (« V », « W3 », nombre)
+  const cellInitialText = (
+    key: string,
+    matchIndex: number,
+    inverted: boolean,
+    buffer: Record<string, number>
+  ): string => {
+    if (buffer[key] !== undefined) return String(buffer[key]);
+    const match = pool.matches[matchIndex];
+    if (!match || match.status !== MatchStatus.FINISHED) return '';
+    const own = inverted ? match.scoreB : match.scoreA;
+    const other = inverted ? match.scoreA : match.scoreB;
+    if (own?.value == null) return '';
+    return inlineCellText({
+      value: own.value,
+      isVictory: !!own.isVictory,
+      opponent: other?.value ?? -1,
+      maxScore: maxScore || match.maxScore || 0,
+      isLaserSabre,
+    });
+  };
+
   const handleCellClick = (rowFencer: Fencer, colFencer: Fencer) => {
     if (isLocked) return;
     if (rowFencer.id === colFencer.id) return;
@@ -492,9 +517,16 @@ export function usePoolViewInput(ctx: Ctx) {
     const inverted = match.fencerA?.id === colFencer.id;
     if (simplifiedInputMode) {
       const key = `${rowFencer.id}-${colFencer.id}`;
-      setInlineEditCell({ key, rowId: rowFencer.id, colId: colFencer.id, matchIndex, inverted });
-      const current = cellScoreBuffer[key] ?? getRecordedCellScore(matchIndex, inverted);
-      setInlineSingleScore(current !== undefined ? String(current) : '');
+      const initial = cellInitialText(key, matchIndex, inverted, cellScoreBuffer);
+      setInlineEditCell({
+        key,
+        rowId: rowFencer.id,
+        colId: colFencer.id,
+        matchIndex,
+        inverted,
+        initial,
+      });
+      setInlineSingleScore(initial);
       return;
     }
     openScoreModal(matchIndex, inverted, chainedInputMode);

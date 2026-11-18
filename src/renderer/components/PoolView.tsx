@@ -184,6 +184,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
           onInlineSingleScoreChange={setInlineSingleScore}
           onInlineSubmit={handleInlineSubmit}
           onInlineCancel={handleInlineCancel}
+          maxScore={maxScore}
           categoryOf={categoryOf}
         />
       </div>

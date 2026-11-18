@@ -140,6 +140,46 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
 
     expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 3);
   });
+
+  it('victoire au score max préremplie en « V » (#1990)', () => {
+    render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i));
+
+    expect(screen.getByRole('textbox')).toHaveValue('V');
+  });
+
+  it('Tab sur une case enregistrée non modifiée : case suivante, sans réenregistrer (#1990)', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
+
+    fireEvent.click(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i));
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Tab' });
+
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox')).toHaveValue('2');
+  });
+
+  it('chiffre sans ambiguïté : enregistré sans Entrée ni Tab (#1990)', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
+
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '4' } });
+
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 4);
+  });
+
+  it('égalité au score max refusée (#1990)', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
+
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'W5' } });
+
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox')).toHaveValue('');
+  });
 });
 
 describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
@@ -182,7 +222,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
 
     expect(
       screen.getByLabelText(/Dupont F poolView.cell_vs Martin F : poolView.cell_victory 5/i)
-    ).toHaveTextContent('V5');
+    ).toHaveTextContent(/^V$/);
     expect(
       screen.getByLabelText(/Martin F poolView.cell_vs Dupont F : poolView.cell_defeat 2/i)
     ).toHaveTextContent('2');

@@ -84,6 +84,18 @@ describe('validation des scores de poule (identique à l’écran)', () => {
     expect(validatePoolScore({ ...base, scoreA: 6, scoreB: 2 })).toBe('score_above_max');
     expect(validatePoolScore({ ...base, scoreA: 3, scoreB: 3 })).toBe('draw_needs_winner');
     expect(validatePoolScore({ ...base, scoreA: 3, scoreB: 3, priority: 'A' })).toBeNull();
+    // Règlement o.17 : pas d'égalité au score max, même avec vainqueur (#1990)
+    expect(validatePoolScore({ ...base, scoreA: 5, scoreB: 5, winner: 'A' })).toBe('tie_at_max');
+    expect(
+      validatePoolScore({
+        ...base,
+        isLaserSabre: true,
+        maxScore: 21,
+        scoreA: 21,
+        scoreB: 21,
+        winner: 'A',
+      })
+    ).toBeNull();
     expect(
       validatePoolScore({ ...base, tieByVictory: false, scoreA: 3, scoreB: 3, priority: 'A' })
     ).toBe('priority_not_allowed');

@@ -877,6 +877,8 @@
     "select_referee": "Seleziona l'arbitro per il girone {{n}}:",
     "max_score": "Punteggio massimo: {{max}}",
     "draw_impossible": "Pareggio impossibile!",
+    "tie_at_max": "Parità impossibile a {{max}} stoccate: il vincitore ha {{max}}, il perdente meno",
+    "inline_v_laser": "Spada laser: inserire il punteggio, non V (assalto a tempo)",
     "inline_invalid": "Invalid input: number, V or W+digit",
     "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "Il punteggio dello schermidore A non può superare {{max}}",

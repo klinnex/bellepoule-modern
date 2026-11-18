@@ -92,9 +92,15 @@ describe('PoolScoreMatrix', () => {
     expect(screen.getByText('ranking.victories')).toBeInTheDocument();
   });
 
-  it('affiche le score V5 pour un match gagné', () => {
+  it('affiche V seul pour une victoire au score max (#1990)', () => {
     renderMatrix(match(MatchStatus.FINISHED, 5, 2));
-    expect(screen.getByText('V5')).toBeInTheDocument();
+    expect(screen.getByText('V')).toBeInTheDocument();
+    expect(screen.queryByText('V5')).toBeNull();
+  });
+
+  it('affiche V + score pour une victoire sous le score max', () => {
+    renderMatrix(match(MatchStatus.FINISHED, 4, 2));
+    expect(screen.getByText('V4')).toBeInTheDocument();
   });
 
   it('clic sur une cellule éditable déclenche onCellClick', () => {

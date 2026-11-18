@@ -877,6 +877,8 @@
     "select_referee": "Sélectionnez l'arbitre pour la poule {{n}} :",
     "max_score": "Score maximum : {{max}}",
     "draw_impossible": "Match nul impossible !",
+    "tie_at_max": "Égalité impossible à {{max}} touches : le vainqueur a {{max}}, le perdant moins",
+    "inline_v_laser": "Sabre Laser : saisissez le score, pas V (match au temps)",
     "inline_invalid": "Saisie invalide : nombre, V ou W+chiffre",
     "inline_win_tie_only": "W+chiffre : uniquement pour départager une égalité",
     "max_score_a": "Le score du tireur A ne peut pas dépasser {{max}}",

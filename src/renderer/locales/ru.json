@@ -877,6 +877,8 @@
     "select_referee": "Выберите судью для пула {{n}}:",
     "max_score": "Максимальный счёт: {{max}}",
     "draw_impossible": "Ничья не допускается!",
+    "tie_at_max": "Ничья при {{max}} уколах невозможна: у победителя {{max}}, у проигравшего меньше",
+    "inline_v_laser": "Лазерный меч: введите счёт, а не V (бой на время)",
     "inline_invalid": "Invalid input: number, V or W+digit",
     "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "Счёт фехтовальщика A не может превышать {{max}}",
