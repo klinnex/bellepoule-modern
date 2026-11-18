@@ -101,7 +101,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 19 | 256 |
+| `src/database/` | 19 | 257 |
 | `src/main/` | 109 | 889 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3695** |
+| **Total** | **488** | **3696** |
 
-Unitaires : 478 fichiers, 3656 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3657 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2720,7 +2720,7 @@ Unitaires : 478 fichiers, 3656 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 43 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 44 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2737,6 +2737,7 @@ Unitaires : 478 fichiers, 3656 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - nom + logo + pistes du club, logo validé, null efface
     - migration 26 : codes générés pour les membres existants
   - **préparation et bilan des séances**
+    - heure de début optionnelle : HH:MM valide, sinon absente ; effacée sur null
     - séance préparée : plan, objectifs, démarrage, une seule ouverte
     - bilan de séance et remarques par tireur
   - **maîtres d'armes**
