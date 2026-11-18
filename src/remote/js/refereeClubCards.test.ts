@@ -17,11 +17,9 @@ describe('refereeClubCards (#1872)', () => {
     expect(cards.parseCard(null)).toBeNull();
   });
 
-  it('piste de l’URL, identification déjà faite', () => {
+  it('piste de l’URL', () => {
     expect(cards.arenaFromPath('/arene4/arbitre')).toBe(4);
     expect(cards.arenaFromPath('/kiosk')).toBeNull();
-    expect(cards.alreadyDone('?lobby=1&club=1')).toBe(true);
-    expect(cards.alreadyDone('?lobby=1')).toBe(false);
   });
 
   it('messages d’erreur du serveur', () => {
@@ -37,16 +35,16 @@ describe('refereeClubCards (#1872)', () => {
       document: { getElementById: vi.fn() },
     };
     expect(await cards.install(win, () => null)).toBe(false);
-    expect(win.fetch).toHaveBeenCalledWith('/api/club/identify');
+    expect(win.fetch).toHaveBeenCalledWith('/api/club/identify?arena=2');
   });
 
   it('séance reliée : bouton « Cartes » à côté de Retour', async () => {
     document.body.innerHTML =
       '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
     const win = {
-      location: { pathname: '/arene2/arbitre', search: '?club=1' },
+      location: { pathname: '/arene2/arbitre', search: '' },
       fetch: vi.fn().mockResolvedValue({
-        json: () => Promise.resolve({ active: true, club: 'Cercle' }),
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: true }),
       }),
       document,
     };
@@ -54,26 +52,28 @@ describe('refereeClubCards (#1872)', () => {
     const btn = document.getElementById('btn-club-cards');
     expect(btn?.textContent).toBe('Cartes');
     expect(btn?.className).toBe('btn-x');
-    // ?club=1 : identification déjà faite, pas de fenêtre ouverte
     expect(document.getElementById('club-card-overlay')).toBeNull();
   });
 
-  it('sans caméra (HTTP) : interface arbitre directe, pas de fenêtre à l’ouverture', async () => {
+  it('combat déjà sur la piste : vue arbitre directe, cartes via l’en-tête', async () => {
     document.body.innerHTML =
+      '<div class="header"><button id="btn-header-menu"></button></div>' +
       '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
     const win = {
       location: { pathname: '/arene1/arbitre', search: '' },
-      isSecureContext: false,
-      navigator: {},
+      isSecureContext: true,
+      navigator: { mediaDevices: { getUserMedia: vi.fn() } },
       fetch: vi.fn().mockResolvedValue({
-        json: () => Promise.resolve({ active: true, club: 'Cercle' }),
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: true }),
       }),
       document,
     };
-    expect(cards.cameraUsable(win)).toBe(false);
     expect(await cards.install(win, () => null)).toBe(true);
-    expect(document.getElementById('btn-club-cards')).not.toBeNull();
     expect(document.getElementById('club-card-overlay')).toBeNull();
+    const header = document.getElementById('btn-club-cards-header');
+    expect(header?.getAttribute('aria-label')).toMatch(/carte de club/);
+    header?.click();
+    expect(document.getElementById('club-card-overlay')).not.toBeNull();
   });
 
   it('caméra utilisable : contexte sécurisé + getUserMedia', () => {
@@ -84,5 +84,23 @@ describe('refereeClubCards (#1872)', () => {
       })
     ).toBe(true);
     expect(cards.cameraUsable({ isSecureContext: true, navigator: {} })).toBe(false);
+  });
+
+  it('piste sans combat : lecture des cartes à l’ouverture', async () => {
+    document.body.innerHTML =
+      '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
+    const win = {
+      location: { pathname: '/arene3/arbitre', search: '' },
+      isSecureContext: false,
+      navigator: {},
+      fetch: vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: false }),
+      }),
+      setTimeout,
+      clearTimeout,
+      document,
+    };
+    expect(await cards.install(win, () => null)).toBe(true);
+    expect(document.getElementById('club-card-overlay')).not.toBeNull();
   });
 });

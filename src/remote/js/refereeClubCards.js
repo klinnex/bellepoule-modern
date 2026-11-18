@@ -1,8 +1,9 @@
 /**
  * BellePoule Modern - Arbitre : identification des tireurs par leur carte de club (#1872).
- * Séance du Mode Club reliée au serveur d'entraînement : à l'arrivée sur la piste, la tablette
- * demande la carte du tireur A puis celle du tireur B (caméra ou code en clair), chacune
- * pouvant être passée. Deux cartes : combat enregistré dans la séance ; sinon combat libre.
+ * Séance du Mode Club reliée au serveur d'entraînement : combat déjà sur la piste (scanné ou
+ * lancé depuis le poste) → vue arbitre directe ; sinon la tablette demande la carte du tireur A
+ * puis celle du tireur B (caméra ou code en clair), chacune pouvant être passée. Bouton
+ * « Cartes » (en-tête et vue du combat) : nouvelle identification. Deux cartes : combat enregistré dans la séance ; sinon combat libre.
  * Caméra : BarcodeDetector si disponible, sinon jsQR (/js/jsQR.js) ; HTTPS requis.
  * Script classique : window.BPRefereeClubCards. Servi en /js (CSP 'self').
  * Licensed under GPL-3.0
@@ -10,7 +11,6 @@
 (function (root) {
   'use strict';
 
-  var DONE_PARAM = 'club';
   var CODE_RE = /^[0-9A-F]{10}$/;
 
   function tr(key, fallback, params) {
@@ -31,11 +31,6 @@
   function arenaFromPath(pathname) {
     var m = /arene(\d+)/i.exec(pathname || '') || /arena(\d+)/i.exec(pathname || '');
     return m ? Number(m[1]) : null;
-  }
-
-  /** Identification déjà faite (retour après lancement du combat) */
-  function alreadyDone(search) {
-    return new URLSearchParams(search || '').get(DONE_PARAM) === '1';
   }
 
   function el(doc, tag, css, text) {
@@ -326,11 +321,10 @@
     return false;
   }
 
-  /** Recharge la page arbitre sur le combat lancé (ouvert directement, sans redemander) */
+  /** Recharge la page arbitre sur le combat lancé (ouvert directement) */
   function reloadOnMatch(win) {
     var url = new URL(win.location.href);
     url.searchParams.set('lobby', '1');
-    url.searchParams.set(DONE_PARAM, '1');
     win.location.replace(url.pathname + url.search + url.hash);
   }
 
@@ -349,10 +343,29 @@
     return btn;
   }
 
+  /** Bouton « Cartes » de l'en-tête : visible aussi depuis la liste des matchs */
+  function addHeaderButton(doc, onClick) {
+    var menu = doc.getElementById('btn-header-menu');
+    if (!menu || !menu.parentNode || doc.getElementById('btn-club-cards-header')) return null;
+    var btn = doc.createElement('button');
+    btn.id = 'btn-club-cards-header';
+    btn.type = 'button';
+    btn.className = 'swap-btn';
+    var label = tr('referee.club_cards_title', 'Identifier les tireurs par leur carte de club');
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    var icon = doc.createElement('span');
+    icon.setAttribute('data-icon', 'users');
+    btn.appendChild(icon);
+    if (root && root.BPIcons) root.BPIcons.hydrate(btn);
+    btn.addEventListener('click', onClick);
+    menu.parentNode.insertBefore(btn, menu);
+    return btn;
+  }
+
   /**
-   * Démarre l'identification si une séance du club est reliée. Résout `false` sinon
-   * (hors Mode Club, démo, page sans piste). Sans caméra (HTTP) : pas de fenêtre à
-   * l'ouverture, l'interface d'arbitrage s'affiche ; bouton « Cartes » pour saisir les codes.
+   * Séance du club reliée : boutons « Cartes » ; lecture des cartes à l'ouverture seulement
+   * si aucun combat n'est sur la piste. Résout `false` sinon (hors Mode Club, démo, page sans piste).
    */
   async function install(win, app) {
     var arena = arenaFromPath(win.location.pathname);
@@ -361,7 +374,7 @@
     if (params.get('demo') === '1') return false;
     var info;
     try {
-      info = await (await win.fetch('/api/club/identify')).json();
+      info = await (await win.fetch('/api/club/identify?arena=' + arena)).json();
     } catch (_) {
       return false;
     }
@@ -379,17 +392,18 @@
       }
     }
     addButton(win.document, run);
-    if (!alreadyDone(win.location.search) && cameraUsable(win)) run();
+    addHeaderButton(win.document, run);
+    if (!info.hasMatch) run();
     return true;
   }
 
   var api = {
     parseCard: parseCard,
     arenaFromPath: arenaFromPath,
-    alreadyDone: alreadyDone,
     cameraUsable: cameraUsable,
     errorMessage: errorMessage,
     addButton: addButton,
+    addHeaderButton: addHeaderButton,
     install: install,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

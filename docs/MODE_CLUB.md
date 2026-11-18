@@ -122,17 +122,17 @@ cours (plage début → fin modifiable, retenue pour la séance), recherche, car
   choisissent une piste libre (même lobby que le mode entraînement).
 - Les combats lancés depuis le poste sont envoyés à la tablette de leur piste ; le score
   validé revient dans la séance (rafraîchie toutes les 5 s).
-- **Cartes sur la tablette** (`src/remote/js/refereeClubCards.js`) : à l'arrivée sur la piste,
-  si la caméra est utilisable (HTTPS), la tablette demande la carte du tireur A puis celle du tireur B (caméra arrière :
-  `BarcodeDetector`, sinon `jsQR` servi en `/js/jsQR.js` ; ou code en clair saisi).
-  Chaque carte peut être **passée** :
+- **Cartes sur la tablette** (`src/remote/js/refereeClubCards.js`) : combat déjà sur la
+  piste (scanné ou lancé depuis le poste, `arenaHasMatch`) → vue arbitre directe ; sinon la
+  tablette demande la carte du tireur A puis celle du tireur B. Bouton **Cartes** (en-tête,
+  et vue du combat à côté de Retour / Lobby) : nouvelle identification (caméra arrière si
+  contexte sécurisé : `BarcodeDetector`, sinon `jsQR` servi en `/js/jsQR.js` ; ou code en
+  clair saisi). Chaque carte peut être **passée** :
   - deux cartes reconnues : membres pointés, combat enregistré dans la séance et chargé sur
     la piste (un combat prévu non commencé sur cette piste est annulé) ;
   - une ou aucune carte : combat libre avec les noms connus, **non comptabilisé** ;
   - **Arbitrer sans cartes** : la piste garde son combat libre.
-    Bouton **Cartes** de la vue arbitre : nouvelle identification. Sans caméra (HTTP), l'interface
-    d'arbitrage s'ouvre directement ; ce bouton permet de saisir les codes.
-- API : `GET /api/club/identify` (scan proposé ? nom du club), `POST /api/club/identify`
+- API : `GET /api/club/identify?arena=N` (scan proposé ? nom du club, `hasMatch`), `POST /api/club/identify`
   `{ arena, codeA, codeB }` (codes `null` = passés ; limite de débit de la saisie des scores).
   Erreurs : `no_session`, `no_arena`, `busy`, `unknown_card` (+ `side`), `same_member`.
   La séance est reliée par `club.linkRemote(sessionId)` ; fermer la séance la délie.
