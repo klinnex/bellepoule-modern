@@ -524,7 +524,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     return (
       <div className="club-members">
         {opened.length > 0 && (
-          <section className="club-card" aria-labelledby="club-opened-title">
+          <section className="club-card club-card--green" aria-labelledby="club-opened-title">
             <h2 id="club-opened-title" className="club-card-title">
               {t('clubSessionMenu.opened_list', { count: opened.length })}
             </h2>
@@ -550,7 +550,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             </table>
           </section>
         )}
-        <section className="club-card" aria-labelledby="club-open-title">
+        <section className="club-card club-card--blue" aria-labelledby="club-open-title">
           <h2 id="club-open-title" className="club-card-title">
             {t('clubSession.open_title')}
           </h2>
@@ -608,7 +608,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             </div>
           </div>
         </section>
-        <section className="club-card" aria-labelledby="club-planned-title">
+        <section className="club-card club-card--violet" aria-labelledby="club-planned-title">
           <div className="club-row club-row--between">
             <h2 id="club-planned-title" className="club-card-title">
               {t('clubPlan.upcoming')}
@@ -716,7 +716,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             </table>
           )}
         </section>
-        <section className="club-card" aria-labelledby="club-past-title">
+        <section className="club-card club-card--slate" aria-labelledby="club-past-title">
           <h2 id="club-past-title" className="club-card-title">
             {t('clubSession.past')}
           </h2>
@@ -892,7 +892,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
 
   return (
     <div className="club-members">
-      <section className="club-card">
+      <section className="club-card club-card--green">
         <div className="club-row club-row--between">
           <h2 className="club-card-title">
             {t('clubSession.current', { date: current.date })}
@@ -983,7 +983,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
         onSaveNotes={notes => void run(() => api.updateSession(current.id, { notes }))}
       />
 
-      <section className="club-card" aria-labelledby="club-remote-title">
+      <section className="club-card club-card--cyan" aria-labelledby="club-remote-title">
         <div className="club-row club-row--between club-row--align-end">
           <h2 id="club-remote-title" className="club-card-title">
             {t('clubSession.remote')}
@@ -1050,7 +1050,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
         )}
       </section>
 
-      <section className="club-card" aria-labelledby="club-strips-title">
+      <section className="club-card club-card--orange" aria-labelledby="club-strips-title">
         <h2 id="club-strips-title" className="club-card-title">
           {t('clubSession.strips')}
         </h2>
@@ -1113,7 +1113,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
         </ul>
       </section>
 
-      <section className="club-card" aria-labelledby="club-results-title">
+      <section className="club-card club-card--rose" aria-labelledby="club-results-title">
         <h2 id="club-results-title" className="club-card-title">
           {t('clubSession.results', { count: finished.length })}
         </h2>

@@ -851,3 +851,34 @@
   padding: 4px;
   border-radius: 6px;
 }
+/* Séances : une couleur d'accent par section */
+.club-card[class*='club-card--'] {
+  border-left: 4px solid var(--club-tone);
+  background: color-mix(in srgb, var(--club-tone) 5%, var(--color-surface));
+}
+.club-card[class*='club-card--'] > .club-card-title,
+.club-card[class*='club-card--'] > .club-row > .club-card-title,
+.club-card[class*='club-card--'] > .club-row > .club-title-group > .club-card-title {
+  color: var(--club-tone);
+}
+.club-card--green {
+  --club-tone: #16a34a;
+}
+.club-card--blue {
+  --club-tone: #2563eb;
+}
+.club-card--violet {
+  --club-tone: #7c3aed;
+}
+.club-card--slate {
+  --club-tone: #64748b;
+}
+.club-card--cyan {
+  --club-tone: #0891b2;
+}
+.club-card--orange {
+  --club-tone: #ea580c;
+}
+.club-card--rose {
+  --club-tone: #e11d48;
+}

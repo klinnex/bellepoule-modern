@@ -38,7 +38,7 @@ export const ClubSessionPlanCard: React.FC<ClubSessionPlanCardProps> = ({
   const done = session.plan.filter(it => it.done).length;
 
   return (
-    <section className="club-card" aria-labelledby="club-plan-title">
+    <section className="club-card club-card--violet" aria-labelledby="club-plan-title">
       <div className="club-row club-row--between">
         <h2 id="club-plan-title" className="club-card-title">
           <ClipboardList size={16} aria-hidden="true" /> {t('clubPlan.plan')}
