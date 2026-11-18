@@ -825,3 +825,9 @@ button.pv-pill {
   border-color: var(--color-primary);
   color: white;
 }
+
+/* Préparation : « Annuler les modifications » (#1992) */
+.pool-prep-discard-btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}

@@ -601,6 +601,8 @@ export interface Competition extends BaseEntity {
 
   // Participants
   fencers: Fencer[]; // Liste des tireurs
+  /** Nombre de tireurs en base, fourni par la liste des compétitions (tireurs non chargés, #1994) */
+  fencerCount?: number;
   referees: Referee[]; // Liste des arbitres
 
   // Phases

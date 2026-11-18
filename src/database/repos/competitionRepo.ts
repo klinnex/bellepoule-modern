@@ -53,7 +53,11 @@ export class CompetitionRepo {
 
   public getAllCompetitions(): Competition[] {
     if (!this.sql.db) throw new Error('Database not open');
-    const rows = this.sql.queryAll<SqlRow>('SELECT * FROM competitions ORDER BY date DESC');
+    // Nombre de tireurs pour les cartes de l'accueil, sans charger les tireurs (#1994)
+    const rows = this.sql.queryAll<SqlRow>(
+      `SELECT c.*, (SELECT COUNT(*) FROM fencers f WHERE f.competition_id = c.id) AS fencer_count
+       FROM competitions c ORDER BY c.date DESC`
+    );
     return rows.map(r => parseCompetitionRow(r));
   }
 

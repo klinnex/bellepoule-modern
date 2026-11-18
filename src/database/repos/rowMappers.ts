@@ -65,6 +65,7 @@ export function parseCompetitionRow(row: SqlRow): Competition {
       status: row.status as Competition['status'],
       settings,
       fencers: [],
+      ...(row.fencer_count != null ? { fencerCount: Number(row.fencer_count) } : {}),
       referees: [],
       phases: [],
       createdAt: row.created_at ? new Date(row.created_at as string) : new Date(),

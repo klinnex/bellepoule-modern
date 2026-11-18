@@ -535,7 +535,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 
               <div className="comp-card-footer">
                 <span className="comp-card-fencers">
-                  {t('competitionList.fencers', { n: competition.fencers.length })}
+                  {t('competitionList.fencers', {
+                    // Décompte de la base, tenu à jour à l'ouverture (#1994)
+                    n: competition.fencerCount ?? competition.fencers.length,
+                  })}
                 </span>
                 <span className="comp-card-open">{t('competitionList.open')}</span>
               </div>
