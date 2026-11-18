@@ -290,6 +290,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         getCheckedInFencers={getCheckedInFencers}
         pools={pools}
         tableauMatches={tableauMatches}
+        consolationBrackets={consolationBrackets}
+        playAllPositions={playAllPositions}
         onOpenPlanningAssistant={() => modals.setShowPlanningAssistant(true)}
         isTeamEvent={isTeamEvent}
         tourReady={isLoaded}
@@ -757,6 +759,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         fencers={fencers}
         pools={pools}
         tableauMatches={tableauMatches}
+        consolationBrackets={consolationBrackets}
         overallRanking={overallRanking}
         finalResults={finalResults}
         poolMaxScore={poolMaxScore}

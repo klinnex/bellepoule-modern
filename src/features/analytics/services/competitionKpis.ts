@@ -15,10 +15,16 @@ import {
   RemoteEvent,
 } from '../../../shared/types';
 import { estimatePhaseEta, median as medianOf } from '../../../shared/utils/phaseEta';
-import { countTableauBouts, tableauRemainingWaves } from '../../../shared/utils/tableauBouts';
+import {
+  allPlacesCompetitionBouts,
+  countCompetitionBouts,
+  tableauRemainingWaves,
+} from '../../../shared/utils/tableauBouts';
 
 /** Durée d'un match supposée tant que moins de 3 matchs sont chronométrés (#1817) */
 const DEFAULT_MATCH_MS = 3 * 60_000;
+/** Match de tableau (15 touches) supposé tant que moins de 3 sont chronométrés (#1817) */
+const DEFAULT_TABLEAU_MATCH_MS = 4.5 * 60_000;
 /** Délai entre deux matchs sur une piste tant qu'il n'est pas mesuré (#1817) */
 const DEFAULT_CHANGEOVER_MS = 3 * 60_000;
 /** Au-delà, l'écart entre deux matchs d'une piste est une pause, pas un enchaînement */
@@ -285,6 +291,18 @@ export interface OrganisationKpis {
   tableauProjectionMs: number | null;
   /** Tableau généré */
   hasTableau: boolean;
+  /** Cadence du tableau (#1817) : match de 15 touches (4 min 30 par défaut) + délai entre deux matchs */
+  tableauCadence: { perMatchMs: number; strips: number; basis: 'measured' | 'default' };
+  /** Matchs de tableau restants (consolantes « toutes les places » comprises) */
+  tableauRemaining: number;
+  /** Décompte du tableau : principal et, en « toutes les places », compétition complète */
+  tableauCount: {
+    mainDone: number;
+    mainTotal: number;
+    done: number;
+    total: number;
+    allPlaces: boolean;
+  };
   /** Fin du dernier match terminé (ms) ; null si aucun horodatage */
   lastEndAt: number | null;
   /** Instant du calcul (ms) */
@@ -321,13 +339,25 @@ export function markLatePools(rows: Array<{ done: number; total: number; late: b
 export function organisationKpis(input: {
   pools: Pool[];
   tableauMatches?: KpiTableauMatch[];
+  /** Consolantes du mode « toutes les places » */
+  consolationMatches?: KpiTableauMatch[][];
+  playAllPositions?: boolean;
   timings?: MatchTiming[];
   events?: RemoteEvent[];
   /** Pistes du serveur distant (match en cours = status in_progress) */
   arenas?: LiveArena[];
   now: number;
 }): OrganisationKpis {
-  const { pools, tableauMatches = [], timings = [], events = [], arenas = [], now } = input;
+  const {
+    pools,
+    tableauMatches = [],
+    consolationMatches = [],
+    playAllPositions = false,
+    timings = [],
+    events = [],
+    arenas = [],
+    now,
+  } = input;
   const live = arenas.filter(a => a.status === 'in_progress' && a.matchId);
   const liveIds = new Set(live.map(a => a.matchId as string));
 
@@ -351,16 +381,21 @@ export function organisationKpis(input: {
   });
   markLatePools(poolRows);
 
-  // Tous les tours du tableau, tireurs connus ou non (#1817)
-  const tableauBouts = countTableauBouts(tableauMatches);
-  const tableauDone = tableauBouts.done;
+  // Tous les tours du tableau, tireurs connus ou non ; consolantes en « toutes les places » (#1817)
+  const competitionBouts = countCompetitionBouts(
+    tableauMatches,
+    consolationMatches.map(matches => ({ matches })),
+    playAllPositions
+  );
+  const tableauBouts = competitionBouts.main;
+  const tableauDone = competitionBouts.done;
   const poolMatchIds = new Set(pools.flatMap(p => (p.matches ?? []).map(m => m.id)));
   const tableauInProgress = live.filter(a => !poolMatchIds.has(a.matchId as string)).length;
 
   const poolDone = poolRows.reduce((s, p) => s + p.done, 0);
   const poolTotal = poolRows.reduce((s, p) => s + p.total, 0);
   const done = poolDone + tableauDone;
-  const total = poolTotal + tableauBouts.total;
+  const total = poolTotal + competitionBouts.total;
   const inProgress = Math.min(
     poolRows.reduce((s, p) => s + p.inProgress, 0) + tableauInProgress,
     total - done
@@ -368,7 +403,11 @@ export function organisationKpis(input: {
 
   const finishedTimed = timings.filter(t => t.endTime && t.startTime);
   const wallMs = finishedTimed
-    .map(t => ({ end: time(t.endTime), ms: time(t.endTime) - time(t.startTime) }))
+    .map(t => ({
+      id: t.matchId,
+      end: time(t.endTime),
+      ms: time(t.endTime) - time(t.startTime),
+    }))
     .filter(x => x.ms > 0)
     .sort((a, b) => a.end - b.end);
   const fights = finishedTimed.map(t => t.duration ?? 0).filter(d => d > 0);
@@ -444,6 +483,16 @@ export function organisationKpis(input: {
   const poolsEndAt =
     poolTotal > 0 && poolRemainingTotal === 0 && poolEnds.length ? Math.max(...poolEnds) : null;
 
+  // Cadence du tableau (#1817) : matchs en 15 touches, plus longs qu'en poule. Durée
+  // mesurée sur les matchs de tableau chronométrés, sinon 4 min 30 ; même délai entre matchs.
+  const tableauEta = estimatePhaseEta({
+    ...etaCommon,
+    durationsMs: wallMs.filter(x => !poolMatchIds.has(x.id)).map(x => x.ms),
+    fallbackMatchMs: DEFAULT_TABLEAU_MATCH_MS,
+    remainingMatches: 0,
+  });
+  const tableauPerMatchMs = tableauEta.perMatchMs;
+
   // Tableau non généré : projection d'un tableau à élimination directe des tireurs de poule
   const hasTableau = tableauMatches.length > 0;
   let tableauProjectionMs: number | null = null;
@@ -454,12 +503,20 @@ export function organisationKpis(input: {
         if (m.fencerA?.id) fencerIds.add(m.fencerA.id);
         if (m.fencerB?.id) fencerIds.add(m.fencerB.id);
       }
-    tableauProjectionMs = tableauWaves(fencerIds.size, parallel) * perMatchMs;
+    let waves = tableauWaves(fencerIds.size, parallel);
+    if (playAllPositions)
+      waves = Math.max(waves, Math.ceil(allPlacesCompetitionBouts(fencerIds.size) / parallel));
+    tableauProjectionMs = waves * tableauPerMatchMs;
   }
-  const tableauWavesLeft = tableauRemainingWaves(tableauBouts, parallel);
+  // Tours du principal enchaînés ; consolantes réparties sur les pistes en parallèle
+  const tableauRemaining = Math.max(0, competitionBouts.total - competitionBouts.done);
+  const tableauWavesLeft = Math.max(
+    tableauRemainingWaves(tableauBouts, parallel),
+    Math.ceil(tableauRemaining / parallel)
+  );
   const competitionEtaAt = hasTableau
     ? tableauWavesLeft > 0
-      ? (poolsEtaAt ?? now) + tableauWavesLeft * perMatchMs
+      ? (poolsEtaAt ?? now) + tableauWavesLeft * tableauPerMatchMs
       : etaAt
     : tableauProjectionMs != null
       ? (poolsEtaAt ?? poolsEndAt ?? now) + tableauProjectionMs
@@ -513,6 +570,15 @@ export function organisationKpis(input: {
     competitionEtaAt,
     tableauProjectionMs,
     hasTableau,
+    tableauCadence: { perMatchMs: tableauPerMatchMs, strips: parallel, basis: tableauEta.basis },
+    tableauRemaining,
+    tableauCount: {
+      mainDone: tableauBouts.done,
+      mainTotal: tableauBouts.total,
+      done: competitionBouts.done,
+      total: competitionBouts.total,
+      allPlaces: competitionBouts.allPlaces,
+    },
     lastEndAt: ends.length ? Math.max(...ends) : null,
     now,
     lastHourThroughput: ends.filter(e => e > now - 3_600_000 && e <= now).length,

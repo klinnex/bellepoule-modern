@@ -1779,7 +1779,11 @@
     "withdrawals": "Mèdic / exclusions / incompareixences",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assalts al temps límit",
-    "time_limit_hint": "Assalts disputats acabats sense que cap tirador arribi a la puntuació màxima"
+    "time_limit_hint": "Assalts disputats acabats sense que cap tirador arribi a la puntuació màxima",
+    "scope_pools": "Poules",
+    "scope_tableau": "Quadre",
+    "completed_detail": "Poules {{pools}} · Quadre principal {{main}}",
+    "completed_all_places": "Tots els llocs {{n}}"
   },
   "refereeManager": {
     "title": "Gestió d'àrbitres",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
     "next_step_hint": "Pas següent un cop acabades les poules",
     "regenerate": "Repreparar les poules",
-    "coach_dismiss": "No ho tornis a mostrar"
+    "coach_dismiss": "No ho tornis a mostrar",
+    "all_places": "{{a}}/{{b}} assalts (tots els llocs)",
+    "all_places_title": "Assalts de la competició: quadre principal i classificació de tots els llocs"
   },
   "offline": {
     "never": "Mai",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Final estimat de la competició",
     "eta_projected": "Quadre projectat (no generat)",
     "planned_projected": "Previst (poules + quadre projectat): {{time}}",
-    "planned_estimate": "Referència (1a estimació): {{time}}"
+    "planned_estimate": "Referència (1a estimació): {{time}}",
+    "eta_cadence_tableau": "Quadre: {{match}} per assalt + {{gap}} entre dos assalts · {{strips}} pista(es) en paral·lel",
+    "tableau_remaining": "{{n}} assalt(s) de quadre restant(s)"
   },
   "club": {
     "new_member": "Nou membre",

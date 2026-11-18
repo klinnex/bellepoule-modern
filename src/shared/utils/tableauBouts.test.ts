@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  allPlacesBracketBouts,
+  allPlacesCompetitionBouts,
+  allPlacesFieldSize,
+  countCompetitionBouts,
   countTableauBouts,
   firstTableauRound,
   isTableauBout,
@@ -72,5 +76,41 @@ describe('tableauBouts (#1817)', () => {
     const c = countTableauBouts(table8());
     expect(tableauRemainingWaves(c, 1)).toBe(5);
     expect(tableauRemainingWaves(c, 4)).toBe(3);
+  });
+});
+
+describe('toutes les places (#1817)', () => {
+  it('tableau complet de 2^k : 2^(k−1) × k matchs', () => {
+    expect(allPlacesBracketBouts(2)).toBe(1);
+    expect(allPlacesBracketBouts(4)).toBe(4);
+    expect(allPlacesBracketBouts(8)).toBe(12);
+    expect(allPlacesBracketBouts(64)).toBe(192);
+  });
+
+  it('exempts au premier tour', () => {
+    // 6 tireurs, tableau de 8 : 2 + (2 + 1 + 1) + 1, perdants du 1er tour en finale de places
+    expect(allPlacesBracketBouts(6)).toBe(2 + 1 + 2 + 1 + 1);
+  });
+
+  it('barrages : tireurs au-delà de la puissance de 2', () => {
+    // 10 tireurs : 2 barrages + tableau de 8 complet + places 9-10
+    expect(allPlacesCompetitionBouts(10)).toBe(2 + 12 + 1);
+  });
+
+  it('taille du champ déduite des barrages', () => {
+    const main: TableauBoutLike[] = [m(16, F, F), m(16, F, F)];
+    for (let r = 8; r >= 2; r /= 2) for (let i = 0; i < r / 2; i++) main.push(m(r, null, null));
+    expect(allPlacesFieldSize(main)).toBe(10);
+  });
+
+  it('deux décomptes : principal et compétition, consolantes jouées comprises', () => {
+    const main: TableauBoutLike[] = [];
+    for (let r = 8; r >= 2; r /= 2) for (let i = 0; i < r / 2; i++) main.push(m(r, F, F, F));
+    main.push(m(3, null, null));
+    const cons = [{ matches: [m(4, F, F, F), m(4, F, F), m(3, null, null), m(2, null, null)] }];
+    const c = countCompetitionBouts(main, cons, true);
+    expect(c.main).toMatchObject({ done: 7, total: 8 });
+    expect(c).toMatchObject({ done: 8, total: 12, allPlaces: true });
+    expect(countCompetitionBouts(main, cons, false)).toMatchObject({ total: 8, allPlaces: false });
   });
 });

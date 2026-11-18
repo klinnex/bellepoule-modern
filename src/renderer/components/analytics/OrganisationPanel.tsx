@@ -14,9 +14,11 @@ import type { OrganisationKpis } from '../../../features/analytics/services/comp
 import {
   getFinalDeviation,
   getPlannedEnd,
+  getProjectedEnd,
   hasPlannedEnd,
   setFinalDeviation,
   setPlannedEnd,
+  setProjectedEnd,
   type FinalDeviation,
   type SchedulePhase,
 } from '../../../features/analytics/services/scheduleBaseline';
@@ -28,6 +30,14 @@ function fmtDuration(seconds: number): string {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+/** Durée courte : « 4 min 30 », « 3 min » */
+function fmtMinutes(ms: number): string {
+  const s = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return r ? `${m} min ${String(r).padStart(2, '0')}` : `${m} min`;
 }
 
 const fmtClock = (ms: number) =>
@@ -146,13 +156,22 @@ export const OrganisationPanel: React.FC<{
   }, [plannedPools, kpis.poolsEtaAt, competitionId]);
   const poolsDeviation = minutesBetween(kpis.poolsEtaAt ?? kpis.poolsEndAt, poolsBaseline);
 
-  // Compétition : fin planifiée du tableau ; avant le tableau, fin des poules + tableau projeté
+  // Compétition : fin planifiée du tableau ; avant le tableau, fin des poules + tableau projeté.
+  // Tableau généré sans assistant de planning : la dernière projection reste la référence (#1817)
   const tableauFromPlanning = hasPlannedEnd(competitionId, 'tableau');
-  const plannedCompetition = tableauFromPlanning
-    ? getPlannedEnd(competitionId, 'tableau')
-    : poolsBaseline != null && kpis.tableauProjectionMs != null
+  const projectedNow =
+    !kpis.hasTableau && poolsBaseline != null && kpis.tableauProjectionMs != null
       ? poolsBaseline + kpis.tableauProjectionMs
       : null;
+  const storedProjected = getProjectedEnd(competitionId);
+  useEffect(() => {
+    if (projectedNow != null) setProjectedEnd(competitionId, projectedNow);
+    else if (kpis.hasTableau && storedProjected == null && kpis.competitionEtaAt != null)
+      setProjectedEnd(competitionId, kpis.competitionEtaAt);
+  }, [projectedNow, kpis.hasTableau, storedProjected, kpis.competitionEtaAt, competitionId]);
+  const plannedCompetition = tableauFromPlanning
+    ? getPlannedEnd(competitionId, 'tableau')
+    : (projectedNow ?? storedProjected ?? (kpis.hasTableau ? kpis.competitionEtaAt : null));
 
   // Compétition terminée (tableau compris) : retard / avance final figé (#1817)
   const finished = kpis.hasTableau && kpis.total > 0 && kpis.done >= kpis.total;
@@ -245,9 +264,25 @@ export const OrganisationPanel: React.FC<{
                   : '—'
           }
           etaHint={
-            !kpis.hasTableau && kpis.tableauProjectionMs != null
-              ? t('organisation.eta_projected')
-              : undefined
+            !final && kpis.competitionEtaAt != null ? (
+              <>
+                {/* Base du calcul du tableau : 15 touches, pistes en parallèle (#1817) */}
+                <div>
+                  {t('organisation.eta_cadence_tableau', {
+                    match: fmtMinutes(kpis.tableauCadence.perMatchMs - kpis.cadence.changeoverMs),
+                    gap: fmtMinutes(kpis.cadence.changeoverMs),
+                    strips: kpis.tableauCadence.strips,
+                  })}
+                </div>
+                {!kpis.hasTableau && kpis.tableauProjectionMs != null ? (
+                  <div>{t('organisation.eta_projected')}</div>
+                ) : (
+                  kpis.tableauRemaining > 0 && (
+                    <div>{t('organisation.tableau_remaining', { n: kpis.tableauRemaining })}</div>
+                  )
+                )}
+              </>
+            ) : undefined
           }
           deviationLabel={t('organisation.final_deviation')}
           deviationMin={competitionDeviation}

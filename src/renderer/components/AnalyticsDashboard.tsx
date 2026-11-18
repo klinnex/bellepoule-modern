@@ -21,6 +21,7 @@ import {
 import { FencerStatsTable } from '../../features/analytics/components/FencerStatsTable';
 import { AnalyticsCharts } from './analytics/AnalyticsCharts';
 import { OrganisationPanel } from './analytics/OrganisationPanel';
+import { CompletedMatchesTile } from './analytics/CompletedMatchesTile';
 import { WeaponStatsCard } from './analytics/WeaponStatsCard';
 import { ColumnsMenu, useColumnVisibility, type ColumnDef } from './analytics/ColumnsMenu';
 import {
@@ -35,7 +36,6 @@ import { FileText, Hourglass, Square } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { Button } from './common/Button';
 import { useToast } from './Toast';
-import { countTableauBouts } from '../../shared/utils/tableauBouts';
 const MatchAuditLog = React.lazy(() =>
   import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog }))
 );
@@ -88,6 +88,8 @@ export interface AnalyticsDashboardProps {
   fencers: Fencer[];
   /** Matchs du tableau (KPI par tireur, organisation) — #1817 */
   tableauMatches?: KpiTableauMatch[];
+  /** Consolantes du mode « toutes les places » (décompte des matchs, #1817) */
+  consolationBrackets?: Array<{ matches: KpiTableauMatch[] }>;
   /** Classement général après poules */
   overallRanking?: PoolRanking[];
   /** Classement final après tableaux */
@@ -309,6 +311,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   matches,
   fencers,
   tableauMatches = [],
+  consolationBrackets = [],
   overallRanking = [],
   finalResults = [],
   className = '',
@@ -403,17 +406,20 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     return () => window.clearInterval(id);
   }, [autoRefresh, activeTab, loadOrganisation]);
 
+  const playAll = !!competition.settings?.playAllPositions;
   const orgKpis = useMemo(
     () =>
       organisationKpis({
         pools,
         tableauMatches,
+        consolationMatches: consolationBrackets.map(b => b.matches),
+        playAllPositions: playAll,
         timings,
         events: remoteEvents,
         arenas: liveArenas,
         now,
       }),
-    [pools, tableauMatches, timings, remoteEvents, liveArenas, now]
+    [pools, tableauMatches, consolationBrackets, playAll, timings, remoteEvents, liveArenas, now]
   );
   const poolRanks = useMemo(
     () => new Map(overallRanking.map(r => [r.fencer.id, r.rank])),
@@ -436,9 +442,8 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     }
   };
 
-  // Matchs terminés : poules + tableau jusqu'au dernier match (#1817)
-  // Tous les tours du tableau, tireurs connus ou non (#1817)
-  const tableauCounts = useMemo(() => countTableauBouts(tableauMatches), [tableauMatches]);
+  // Matchs terminés : tableau compté (tous les tours, consolantes) en période « Tout » (#1817)
+  const withTableau = selectedTimeframe === 'all' && tableauMatches.length > 0;
   const latest = useMemo(
     () => ({
       data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe, timings),
@@ -668,18 +673,12 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
                         {analyticsData.totalFencers}
                       </div>
                     </div>
-                    <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-green-600 text-sm font-medium">
-                        {t('analytics.completed')}
-                      </div>
-                      <div className="text-2xl font-bold text-green-800">
-                        {selectedTimeframe === 'all'
-                          ? `${analyticsData.completedMatches + tableauCounts.done}/${
-                              analyticsData.totalMatches + tableauCounts.total
-                            }`
-                          : `${analyticsData.completedMatches}/${analyticsData.totalMatches}`}
-                      </div>
-                    </div>
+                    <CompletedMatchesTile
+                      poolDone={analyticsData.completedMatches}
+                      poolTotal={analyticsData.totalMatches}
+                      withTableau={withTableau}
+                      tableau={orgKpis.tableauCount}
+                    />
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-purple-600 text-sm font-medium">
                         {t('analytics.avg_duration')}

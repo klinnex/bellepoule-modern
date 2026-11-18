@@ -1779,7 +1779,11 @@
     "withdrawals": "Médico / exclusões / faltas de comparência",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assaltos no tempo limite",
-    "time_limit_hint": "Assaltos disputados terminados sem que nenhum atirador atinja a pontuação máxima"
+    "time_limit_hint": "Assaltos disputados terminados sem que nenhum atirador atinja a pontuação máxima",
+    "scope_pools": "Poules",
+    "scope_tableau": "Quadro",
+    "completed_detail": "Poules {{pools}} · Quadro principal {{main}}",
+    "completed_all_places": "Todos os lugares {{n}}"
   },
   "refereeManager": {
     "title": "Gestão de árbitros",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Clique aqui quando todos os esgrimistas tiverem a presença registada",
     "next_step_hint": "Passo seguinte quando as poules terminarem",
     "regenerate": "Repreparar poules",
-    "coach_dismiss": "Não mostrar novamente"
+    "coach_dismiss": "Não mostrar novamente",
+    "all_places": "{{a}}/{{b}} assaltos (todos os lugares)",
+    "all_places_title": "Assaltos da competição: quadro principal e classificação de todos os lugares"
   },
   "offline": {
     "never": "Nunca",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Fim estimado da competição",
     "eta_projected": "Quadro projetado (não gerado)",
     "planned_projected": "Previsto (poules + quadro projetado): {{time}}",
-    "planned_estimate": "Referência (1.ª estimativa): {{time}}"
+    "planned_estimate": "Referência (1.ª estimativa): {{time}}",
+    "eta_cadence_tableau": "Quadro: {{match}} por assalto + {{gap}} entre dois assaltos · {{strips}} pista(s) em paralelo",
+    "tableau_remaining": "{{n}} assalto(s) de quadro restante(s)"
   },
   "club": {
     "new_member": "Novo membro",

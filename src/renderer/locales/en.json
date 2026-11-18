@@ -1779,7 +1779,11 @@
     "withdrawals": "Medical / exclusions / forfeits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Bouts reaching time limit",
-    "time_limit_hint": "Fenced bouts ending without either fencer reaching the maximum score"
+    "time_limit_hint": "Fenced bouts ending without either fencer reaching the maximum score",
+    "scope_pools": "Pools",
+    "scope_tableau": "Table",
+    "completed_detail": "Pools {{pools}} · Main table {{main}}",
+    "completed_all_places": "All places {{n}}"
   },
   "refereeManager": {
     "title": "Referee management",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Click here once all your fencers are checked in",
     "next_step_hint": "Next step once the pools are finished",
     "regenerate": "Re-prepare pools",
-    "coach_dismiss": "Don't show again"
+    "coach_dismiss": "Don't show again",
+    "all_places": "{{a}}/{{b}} bouts (all places)",
+    "all_places_title": "Competition bouts: main table and classification of all places"
   },
   "offline": {
     "never": "Never",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Estimated competition end",
     "eta_projected": "Projected table (not generated)",
     "planned_projected": "Planned (pools + projected table): {{time}}",
-    "planned_estimate": "Reference (first estimate): {{time}}"
+    "planned_estimate": "Reference (first estimate): {{time}}",
+    "eta_cadence_tableau": "Table: {{match}} per bout + {{gap}} between bouts · {{strips}} strip(s) in parallel",
+    "tableau_remaining": "{{n}} table bout(s) remaining"
   },
   "club": {
     "new_member": "New member",

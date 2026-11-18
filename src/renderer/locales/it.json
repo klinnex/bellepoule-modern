@@ -1779,7 +1779,11 @@
     "withdrawals": "Medico / esclusioni / forfait",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Assalti al tempo limite",
-    "time_limit_hint": "Assalti disputati terminati senza che nessuno raggiunga il punteggio massimo"
+    "time_limit_hint": "Assalti disputati terminati senza che nessuno raggiunga il punteggio massimo",
+    "scope_pools": "Gironi",
+    "scope_tableau": "Tabellone",
+    "completed_detail": "Gironi {{pools}} · Tabellone principale {{main}}",
+    "completed_all_places": "Tutti i posti {{n}}"
   },
   "refereeManager": {
     "title": "Gestione degli arbitri",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Clicca qui dopo aver confermato la presenza di tutti i tuoi schermidori",
     "next_step_hint": "Passaggio successivo una volta terminati i gironi",
     "regenerate": "Riprepara i gironi",
-    "coach_dismiss": "Non mostrare più"
+    "coach_dismiss": "Non mostrare più",
+    "all_places": "{{a}}/{{b}} assalti (tutti i posti)",
+    "all_places_title": "Assalti della gara: tabellone principale e classificazione di tutti i posti"
   },
   "offline": {
     "never": "Mai",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Fine stimata della gara",
     "eta_projected": "Tabellone stimato (non generato)",
     "planned_projected": "Previsto (gironi + tabellone stimato): {{time}}",
-    "planned_estimate": "Riferimento (1ª stima): {{time}}"
+    "planned_estimate": "Riferimento (1ª stima): {{time}}",
+    "eta_cadence_tableau": "Tabellone: {{match}} per assalto + {{gap}} tra due assalti · {{strips}} pedana/e in parallelo",
+    "tableau_remaining": "{{n}} assalto/i di tabellone rimanente/i"
   },
   "club": {
     "new_member": "Nuovo membro",

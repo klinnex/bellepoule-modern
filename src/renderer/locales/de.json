@@ -1779,7 +1779,11 @@
     "withdrawals": "Medizinisch / Ausschlüsse / Forfaits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Gefechte bis Zeitablauf",
-    "time_limit_hint": "Ausgetragene Gefechte, in denen kein Fechter die Höchstpunktzahl erreicht hat"
+    "time_limit_hint": "Ausgetragene Gefechte, in denen kein Fechter die Höchstpunktzahl erreicht hat",
+    "scope_pools": "Runden",
+    "scope_tableau": "Tableau",
+    "completed_detail": "Runden {{pools}} · Haupttableau {{main}}",
+    "completed_all_places": "Alle Plätze {{n}}"
   },
   "refereeManager": {
     "title": "Kampfrichterverwaltung",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
     "next_step_hint": "Nächster Schritt nach Abschluss der Pools",
     "regenerate": "Pools neu vorbereiten",
-    "coach_dismiss": "Nicht mehr anzeigen"
+    "coach_dismiss": "Nicht mehr anzeigen",
+    "all_places": "{{a}}/{{b}} Gefechte (alle Plätze)",
+    "all_places_title": "Gefechte des Turniers: Haupttableau und Ausfechten aller Plätze"
   },
   "offline": {
     "never": "Nie",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Voraussichtliches Wettkampfende",
     "eta_projected": "Hochgerechnetes Tableau (nicht erstellt)",
     "planned_projected": "Geplant (Pools + hochgerechnetes Tableau): {{time}}",
-    "planned_estimate": "Referenz (erste Schätzung): {{time}}"
+    "planned_estimate": "Referenz (erste Schätzung): {{time}}",
+    "eta_cadence_tableau": "Tableau: {{match}} pro Gefecht + {{gap}} zwischen zwei Gefechten · {{strips}} Bahn(en) parallel",
+    "tableau_remaining": "{{n}} Tableau-Gefecht(e) verbleibend"
   },
   "club": {
     "new_member": "Neues Mitglied",

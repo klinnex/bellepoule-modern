@@ -26,7 +26,8 @@ import { usePhaseShortcuts } from './usePhaseShortcuts';
 import { registerPhases } from './phaseRegistry';
 import { phaseStepStates, nextBlockedReason } from './phaseStepper';
 import { Button } from '../common/Button';
-import { countTableauBouts } from '../../../shared/utils/tableauBouts';
+import { countCompetitionBouts } from '../../../shared/utils/tableauBouts';
+import { FencingMaskIcon } from '../common/FencingMaskIcon';
 
 interface PhaseItem {
   id: string;
@@ -80,6 +81,9 @@ interface CompetitionNavProps {
   getCheckedInFencers: () => Fencer[];
   pools: PoolItem[];
   tableauMatches: TableauMatchItem[];
+  /** Consolantes du mode « toutes les places » (décompte des matchs, #1817) */
+  consolationBrackets?: Array<{ matches: TableauMatchItem[] }>;
+  playAllPositions?: boolean;
   onOpenPlanningAssistant?: () => void;
   /** Compétition par équipes : l'appel mène à la composition des équipes (#1085) */
   isTeamEvent?: boolean;
@@ -106,6 +110,8 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   getCheckedInFencers,
   pools,
   tableauMatches,
+  consolationBrackets = [],
+  playAllPositions = false,
   onOpenPlanningAssistant,
   isTeamEvent = false,
   tourReady = false,
@@ -134,7 +140,13 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
     onFlowPhase ? currentPhase : lastFlowPhase
   );
   const blockedReason = nextBlockedReason(phases, currentPhase);
-  const tableauBouts = countTableauBouts(tableauMatches);
+  // Tableau principal + compétition complète en « toutes les places » (#1817)
+  const competitionBouts = countCompetitionBouts(
+    tableauMatches,
+    consolationBrackets,
+    playAllPositions
+  );
+  const tableauBouts = competitionBouts.main;
   return (
     <>
       {tourReady && !isTeamEvent && (
@@ -322,7 +334,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         <div className="comp-stats-bar">
           <div className="comp-stats-bar-item">
             <span className="comp-stats-bar-icon">
-              <Swords size={13} />
+              <FencingMaskIcon size={13} />
             </span>
             <span>
               {t('competitionNav.fencers', { a: getCheckedInFencers().length, b: fencers.length })}
@@ -373,6 +385,26 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   })}
                 </span>
               </div>
+              {competitionBouts.allPlaces && (
+                <>
+                  <div className="comp-stats-bar-sep" />
+                  <div
+                    className="comp-stats-bar-item"
+                    title={t('competitionNav.all_places_title')}
+                    data-testid="stats-all-places"
+                  >
+                    <span className="comp-stats-bar-icon">
+                      <Swords size={13} />
+                    </span>
+                    <span>
+                      {t('competitionNav.all_places', {
+                        a: competitionBouts.done,
+                        b: competitionBouts.total,
+                      })}
+                    </span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
