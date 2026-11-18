@@ -23,7 +23,7 @@ export class DatabaseEncryptionError extends Error {}
 export function isPlainSqliteFile(file: string): boolean {
   let fd: number;
   try {
-    fd = fs.openSync(file, 'r');
+    fd = fs.openSync(file, 'r', 0o600);
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return false;
     throw e;
@@ -99,7 +99,7 @@ export function openDatabaseFile(file: string, key: Buffer | null): Database.Dat
 export function shredFile(file: string): void {
   let fd: number;
   try {
-    fd = fs.openSync(file, 'r+');
+    fd = fs.openSync(file, 'r+', 0o600);
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return;
     throw e;
