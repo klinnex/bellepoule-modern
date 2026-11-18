@@ -101,19 +101,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
-| `src/database/` | 19 | 261 |
+| `src/database/` | 20 | 262 |
 | `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
-| `src/renderer/hooks/` | 33 | 158 |
+| `src/renderer/hooks/` | 33 | 159 |
 | `src/renderer/components/` | 119 | 628 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **493** | **3811** |
+| **Total** | **494** | **3813** |
 
-Unitaires : 483 fichiers, 3772 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2881,6 +2881,13 @@ Unitaires : 483 fichiers, 3772 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/competitionFencerCount.test.ts</code> — 1 test</summary>
+
+- décompte par compétition, tireurs non chargés
+
+</details>
+
+<details>
 <summary><code>src/database/repos/cyranoRepo.test.ts</code> — 3 tests</summary>
 
 - **CyranoRepo (#1829)**
@@ -5074,7 +5081,7 @@ Unitaires : 483 fichiers, 3772 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 8 tests</summary>
 
 - **useAppState - état initial**
   - démarre sur la vue home, en chargement
@@ -5082,6 +5089,8 @@ Unitaires : 483 fichiers, 3772 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - handleBack ramène à home
 - **handleUpdateCompetition**
   - met à jour la compétition courante, la liste et les onglets
+- **handleUpdateCompetition : nombre de tireurs de l’accueil (#1994)**
+  - décompte de la base conservé, puis suivi de la liste des tireurs chargée
 - **handleTabSwitch**
   - bascule sur l’onglet ouvert correspondant
   - ne fait rien pour un onglet inexistant
