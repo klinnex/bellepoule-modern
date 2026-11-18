@@ -99,6 +99,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     phases,
     handleGoBack,
     handleGeneratePools,
+    checkinUnchanged,
     poolsNextAction,
     poolPrepLaunch,
     questEnabled,
@@ -282,6 +283,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         t={t}
         handleGoBack={handleGoBack}
         handleGeneratePools={handleGeneratePools}
+        checkinUnchanged={checkinUnchanged}
         poolsNextAction={poolsNextAction}
         poolPrepLaunch={currentPhase === 'poolprep' ? poolPrepLaunch : null}
         questEnabled={questEnabled}
@@ -401,8 +403,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             poolsLaunched={poolsLaunched || relaunchPending}
             draft={poolPrepDraft}
             onDraftChange={setPoolPrepDraft}
+            onGoToPools={
+              poolsLaunched && !relaunchPending
+                ? () => {
+                    setPoolPrepDraft(null);
+                    setCurrentPhase('pools');
+                  }
+                : undefined
+            }
             onPoolsConfirm={async preparedPools => {
-              if (!(await confirmScoresLoss())) return;
+              if (!(await confirmScoresLoss(preparedPools))) return;
               let confirmedPools = preparedPools;
               if (isRapieres && preparedPools.some(p => hasClassicOrder(p.fencers.length))) {
                 const order = await askMatchOrder();

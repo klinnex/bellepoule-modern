@@ -216,6 +216,9 @@
     "prep_min": "Tireurs Min",
     "prep_max": "Tireurs Max",
     "prep_relaunch": "Relancer les poules",
+    "prep_goto": "Aller aux poules",
+    "prep_discard": "Annuler les modifications",
+    "prep_discard_title": "Revenir aux poules lancées (scores conservés)",
     "prep_unplaced": "{{count}} tireur(s) ajouté(s) depuis l'appel, non placé(s) : cliquez sur « Repréparer les poules » pour les intégrer.",
     "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?",
     "prep_moved": "Tireur déplacé"
@@ -2668,6 +2671,7 @@
     "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
     "next_step_hint": "Étape suivante une fois les poules terminées",
     "regenerate": "Repréparer les poules",
+    "goto_prep": "Aller à la préparation",
     "coach_dismiss": "Ne plus afficher",
     "all_places": "{{a}}/{{b}} matchs (toutes les places)",
     "all_places_title": "Matchs de la compétition : tableau principal et classement de toutes les places"

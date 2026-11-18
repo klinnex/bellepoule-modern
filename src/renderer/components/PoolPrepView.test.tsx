@@ -98,6 +98,54 @@ describe('PoolPrepView (#1499)', () => {
     );
   });
 
+  it('poules lancées non modifiées : « Aller aux poules », sans relance (#1992)', () => {
+    const onLaunch = vi.fn();
+    const onGoToPools = vi.fn();
+    const onPoolsConfirm = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          poolsLaunched
+          onGoToPools={onGoToPools}
+          onPoolsConfirm={onPoolsConfirm}
+          onLaunchActionChange={onLaunch}
+        />
+      </TranslationProvider>
+    );
+    const last = onLaunch.mock.lastCall?.[0];
+    expect(last.label).toBe('Aller aux poules');
+    last.action();
+    expect(onGoToPools).toHaveBeenCalledTimes(1);
+    expect(onPoolsConfirm).not.toHaveBeenCalled();
+    expect(screen.queryByText('Annuler les modifications')).toBeNull();
+  });
+
+  it('poules lancées modifiées : « Relancer », puis « Annuler les modifications » (#1992)', () => {
+    const onLaunch = vi.fn();
+    render(
+      <TranslationProvider>
+        <PoolPrepView
+          fencers={base}
+          initialPools={[pool(base)]}
+          maxScore={5}
+          poolsLaunched
+          onGoToPools={vi.fn()}
+          onPoolsConfirm={vi.fn()}
+          onLaunchActionChange={onLaunch}
+          draft={{ pools: [{ ...pool(base.slice(0, 3)), id: 'pd' }], poolCount: 1, criteria: [] }}
+        />
+      </TranslationProvider>
+    );
+    expect(onLaunch.mock.lastCall?.[0].label).toBe('Relancer les poules');
+
+    fireEvent.click(screen.getByText('Annuler les modifications'));
+    expect(onLaunch.mock.lastCall?.[0].label).toBe('Aller aux poules');
+    expect(screen.queryByText('Annuler les modifications')).toBeNull();
+  });
+
   it("brouillon : modifications reprises au retour depuis l'appel (#1649)", () => {
     const onDraft = vi.fn();
     const draftPools = [{ ...pool(base.slice(0, 3)), id: 'pd' }];

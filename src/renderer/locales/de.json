@@ -360,6 +360,9 @@
     "prep_min": "Fechter Min",
     "prep_max": "Fechter Max",
     "prep_relaunch": "Pools neu starten",
+    "prep_goto": "Zu den Pools",
+    "prep_discard": "Änderungen verwerfen",
+    "prep_discard_title": "Zu den gestarteten Pools zurückkehren (Ergebnisse bleiben erhalten)",
     "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
     "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?",
     "prep_moved": "Fechter verschoben"
@@ -2668,6 +2671,7 @@
     "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
     "next_step_hint": "Nächster Schritt nach Abschluss der Pools",
     "regenerate": "Pools neu vorbereiten",
+    "goto_prep": "Zur Vorbereitung",
     "coach_dismiss": "Nicht mehr anzeigen",
     "all_places": "{{a}}/{{b}} Gefechte (alle Plätze)",
     "all_places_title": "Gefechte des Turniers: Haupttableau und Ausfechten aller Plätze"

@@ -216,6 +216,9 @@
     "prep_min": "Kleizeidi Min",
     "prep_max": "Kleizeidi Max",
     "prep_relaunch": "Adloc'hañ ar poulloù",
+    "prep_goto": "Mont d'ar poulloù",
+    "prep_discard": "Nullañ ar c'hemmoù",
+    "prep_discard_title": "Distreiñ d'ar poulloù loc'het (skorioù miret)",
     "prep_unplaced": "{{count}} kleizeur(ez) ouzhpennet adalek ar c'halv n'eo ket lakaet c'hoazh: klikit war « Adprientiñ ar poulennoù » evit o lakaat.",
     "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?",
     "prep_moved": "Ergerzher dilec'het"
@@ -2668,6 +2671,7 @@
     "generate_hint": "Klikit amañ goude bezañ merket hoc'h holl glezeourien",
     "next_step_hint": "Pazenn da heul pa vo echu ar poulloù",
     "regenerate": "Adprientiñ ar poulennoù",
+    "goto_prep": "Mont d'ar prientiñ",
     "coach_dismiss": "Arabat diskouez en-dro",
     "all_places": "{{a}}/{{b}} emgann (an holl lec'hioù)",
     "all_places_title": "Emgannoù ar genstrivadeg : taolenn bennañ ha renkadur an holl lec'hioù"

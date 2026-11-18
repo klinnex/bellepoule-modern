@@ -200,10 +200,14 @@ describe('CompetitionView', () => {
       await waitFor(() => expect(steps()[0]).toHaveClass('phase-step-active'));
       expect(steps()[1]).not.toHaveClass('phase-step-disabled');
       expect(steps()[2]).not.toHaveClass('phase-step-disabled');
-      expect(screen.getByRole('button', { name: /Repréparer les poules/ })).toBeEnabled();
+      // Appel inchangé : « Aller à la préparation », sans régénérer ni alerte (#1992)
+      expect(screen.getByRole('button', { name: /Aller à la préparation/ })).toBeEnabled();
+      expect(screen.queryByRole('button', { name: /Repréparer les poules/ })).toBeNull();
 
+      // Poules lancées, rien de modifié en préparation : « Aller aux poules », sans alerte (#1992)
       fireEvent.click(steps()[1]);
-      expect(await screen.findByRole('button', { name: /Relancer les poules/ })).toBeEnabled();
+      fireEvent.click(await screen.findByRole('button', { name: /Aller aux poules/ }));
+      await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
     });
   });
 

@@ -73,6 +73,8 @@ interface CompetitionNavProps {
   t: (key: string, params?: { [key: string]: string | number }) => string;
   handleGoBack: () => void;
   handleGeneratePools: () => void;
+  /** Appel inchangé depuis la préparation : « Aller à la préparation », sans régénérer (#1992) */
+  checkinUnchanged?: boolean;
   poolsNextAction: PoolsNextAction | null;
   poolPrepLaunch?: PoolPrepLaunchItem | null;
   questEnabled: boolean;
@@ -102,6 +104,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   t,
   handleGoBack,
   handleGeneratePools,
+  checkinUnchanged = false,
   poolsNextAction,
   poolPrepLaunch,
   questEnabled,
@@ -261,7 +264,13 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  {t(pools.length > 0 ? 'competitionNav.regenerate' : 'competitionNav.generate')}
+                  {t(
+                    pools.length === 0
+                      ? 'competitionNav.generate'
+                      : checkinUnchanged
+                        ? 'competitionNav.goto_prep'
+                        : 'competitionNav.regenerate'
+                  )}
                   {getCheckedInFencers().length < 4 && (
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}

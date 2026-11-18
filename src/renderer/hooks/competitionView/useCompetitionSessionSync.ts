@@ -6,7 +6,11 @@
 import { usePrintShortcut } from '../usePrintShortcut';
 import { useState, useCallback } from 'react';
 import { FencerStatus, Pool } from '../../../shared/types';
-import { poolsHaveScores } from '../../components/poolLaunchState';
+import {
+  poolsHaveScores,
+  poolsMatchFencers,
+  scoredMatchesLost,
+} from '../../components/poolLaunchState';
 import { persistPools } from '../../components/poolPersistence';
 import type { PoolPrepDraft } from '../../components/PoolPrepView';
 import { useSplitGroups } from '../useSplitGroups';
@@ -238,11 +242,22 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     }
   };
 
-  /** Alerte « scores perdus » avant de régénérer des poules déjà saisies (#1499) */
-  const confirmScoresLoss = async (): Promise<boolean> =>
-    !poolsHaveScores(pools) || (await confirm(t('pools.relaunch_confirm')));
+  /**
+   * Alerte « scores perdus » avant de régénérer des poules déjà saisies (#1499).
+   * `next` : poules qui remplaceront les actuelles ; alerte seulement si des matchs saisis disparaissent (#1992)
+   */
+  const confirmScoresLoss = async (next?: Pool[]): Promise<boolean> =>
+    !(next ? scoredMatchesLost(pools, next) : poolsHaveScores(pools)) ||
+    (await confirm(t('pools.relaunch_confirm')));
+
+  /** Appel inchangé (mêmes tireurs pointés que dans les poules) : préparation sans régénérer (#1992) */
+  const checkinUnchanged = poolsMatchFencers(pools, getSeededCheckedInFencers());
 
   const handleGeneratePools = async () => {
+    if (checkinUnchanged) {
+      setCurrentPhase('poolprep');
+      return;
+    }
     if (!(await confirmScoresLoss())) return;
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
@@ -421,6 +436,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     persistPoolsToDB,
     handleCheckInFencer,
     confirmScoresLoss,
+    checkinUnchanged,
     handleGeneratePools,
     rapieresViewProps,
     rapieresTeams,

@@ -216,6 +216,9 @@
     "prep_min": "Schermidori Min",
     "prep_max": "Schermidori Max",
     "prep_relaunch": "Rilancia i gironi",
+    "prep_goto": "Vai ai gironi",
+    "prep_discard": "Annulla le modifiche",
+    "prep_discard_title": "Torna ai gironi avviati (punteggi conservati)",
     "prep_unplaced": "{{count}} schermidore/i aggiunto/i dall'appello non ancora assegnato/i: clicca su «Riprepara i gironi» per includerli.",
     "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?",
     "prep_moved": "Schermidore spostato"
@@ -2668,6 +2671,7 @@
     "generate_hint": "Clicca qui dopo aver confermato la presenza di tutti i tuoi schermidori",
     "next_step_hint": "Passaggio successivo una volta terminati i gironi",
     "regenerate": "Riprepara i gironi",
+    "goto_prep": "Vai alla preparazione",
     "coach_dismiss": "Non mostrare più",
     "all_places": "{{a}}/{{b}} assalti (tutti i posti)",
     "all_places_title": "Assalti della gara: tabellone principale e classificazione di tutti i posti"

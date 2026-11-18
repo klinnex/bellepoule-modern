@@ -216,6 +216,9 @@
     "prep_min": "Tiradors mín.",
     "prep_max": "Tiradors màx.",
     "prep_relaunch": "Rellançar les poules",
+    "prep_goto": "Anar a les poules",
+    "prep_discard": "Descarta els canvis",
+    "prep_discard_title": "Torna a les poules llançades (resultats conservats)",
     "prep_unplaced": "{{count}} tirador(s) afegit(s) des de la llista de crida sense ubicar: feu clic a «Repreparar les poules» per incloure'ls.",
     "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?",
     "prep_moved": "Tirador mogut"
@@ -2668,6 +2671,7 @@
     "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
     "next_step_hint": "Pas següent un cop acabades les poules",
     "regenerate": "Repreparar les poules",
+    "goto_prep": "Anar a la preparació",
     "coach_dismiss": "No ho tornis a mostrar",
     "all_places": "{{a}}/{{b}} assalts (tots els llocs)",
     "all_places_title": "Assalts de la competició: quadre principal i classificació de tots els llocs"
