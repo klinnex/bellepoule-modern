@@ -2671,6 +2671,7 @@
     "generate_hint": "Clique aqui quando todos os esgrimistas tiverem a presença registada",
     "next_step_hint": "Passo seguinte quando as poules terminarem",
     "regenerate": "Repreparar poules",
+    "goto_prep": "Ir para a preparação",
     "coach_dismiss": "Não mostrar novamente",
     "all_places": "{{a}}/{{b}} assaltos (todos os lugares)",
     "all_places_title": "Assaltos da competição: quadro principal e classificação de todos os lugares"

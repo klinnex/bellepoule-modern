@@ -8,6 +8,7 @@ import {
   inferPoolsLaunched,
   poolsHaveScores,
   poolTabLock,
+  poolsMatchFencers,
   scoredMatchesLost,
 } from './poolLaunchState';
 
@@ -85,5 +86,24 @@ describe('scoredMatchesLost (#1992)', () => {
   });
   it('matchs non saisis remplacés : rien de perdu', () => {
     expect(scoredMatchesLost([withIds(['a'], false)], [withIds(['x'], false)])).toBe(false);
+  });
+});
+
+describe('poolsMatchFencers (#1992)', () => {
+  const withFencers = (ids: string[]): Pool =>
+    ({ id: 'p', fencers: ids.map(id => ({ id })), matches: [] }) as unknown as Pool;
+  const f = (...ids: string[]) => ids.map(id => ({ id }));
+
+  it('mêmes tireurs, ordre indifférent : inchangé', () => {
+    expect(poolsMatchFencers([withFencers(['a', 'b']), withFencers(['c'])], f('c', 'a', 'b'))).toBe(
+      true
+    );
+  });
+  it('tireur pointé en plus ou en moins : modifié', () => {
+    expect(poolsMatchFencers([withFencers(['a', 'b'])], f('a', 'b', 'c'))).toBe(false);
+    expect(poolsMatchFencers([withFencers(['a', 'b'])], f('a'))).toBe(false);
+  });
+  it('sans poule : faux', () => {
+    expect(poolsMatchFencers([], f('a'))).toBe(false);
   });
 });

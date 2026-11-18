@@ -6,7 +6,11 @@
 import { usePrintShortcut } from '../usePrintShortcut';
 import { useState, useCallback } from 'react';
 import { FencerStatus, Pool } from '../../../shared/types';
-import { poolsHaveScores, scoredMatchesLost } from '../../components/poolLaunchState';
+import {
+  poolsHaveScores,
+  poolsMatchFencers,
+  scoredMatchesLost,
+} from '../../components/poolLaunchState';
 import { persistPools } from '../../components/poolPersistence';
 import type { PoolPrepDraft } from '../../components/PoolPrepView';
 import { useSplitGroups } from '../useSplitGroups';
@@ -246,7 +250,14 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     !(next ? scoredMatchesLost(pools, next) : poolsHaveScores(pools)) ||
     (await confirm(t('pools.relaunch_confirm')));
 
+  /** Appel inchangé (mêmes tireurs pointés que dans les poules) : préparation sans régénérer (#1992) */
+  const checkinUnchanged = poolsMatchFencers(pools, getSeededCheckedInFencers());
+
   const handleGeneratePools = async () => {
+    if (checkinUnchanged) {
+      setCurrentPhase('poolprep');
+      return;
+    }
     if (!(await confirmScoresLoss())) return;
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
@@ -425,6 +436,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     persistPoolsToDB,
     handleCheckInFencer,
     confirmScoresLoss,
+    checkinUnchanged,
     handleGeneratePools,
     rapieresViewProps,
     rapieresTeams,

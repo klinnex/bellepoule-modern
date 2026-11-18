@@ -2671,6 +2671,7 @@
     "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
     "next_step_hint": "Pas següent un cop acabades les poules",
     "regenerate": "Repreparar les poules",
+    "goto_prep": "Anar a la preparació",
     "coach_dismiss": "No ho tornis a mostrar",
     "all_places": "{{a}}/{{b}} assalts (tots els llocs)",
     "all_places_title": "Assalts de la competició: quadre principal i classificació de tots els llocs"

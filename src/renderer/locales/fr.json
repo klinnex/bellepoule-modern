@@ -2671,6 +2671,7 @@
     "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
     "next_step_hint": "Étape suivante une fois les poules terminées",
     "regenerate": "Repréparer les poules",
+    "goto_prep": "Aller à la préparation",
     "coach_dismiss": "Ne plus afficher",
     "all_places": "{{a}}/{{b}} matchs (toutes les places)",
     "all_places_title": "Matchs de la compétition : tableau principal et classement de toutes les places"

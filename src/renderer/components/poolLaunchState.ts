@@ -29,6 +29,13 @@ export const scoredMatchesLost = (current: Pool[], next: Pool[]): boolean => {
   return current.some(p => (p.matches ?? []).some(m => isScored(m) && !kept.has(m.id)));
 };
 
+/** Les poules contiennent exactement ces tireurs (appel inchangé depuis la préparation, #1992) */
+export const poolsMatchFencers = (pools: Pool[], fencers: { id: string }[]): boolean => {
+  if (pools.length === 0) return false;
+  const placed = new Set(pools.flatMap(p => p.fencers.map(f => f.id)));
+  return placed.size === fencers.length && fencers.every(f => placed.has(f.id));
+};
+
 const POST_LAUNCH_PHASES: Phase[] = ['pools', 'ranking', 'quest', 'tableau', 'results'];
 
 /** Session sans drapeau persisté (ancienne version) : déduit si les poules ont déjà été lancées */

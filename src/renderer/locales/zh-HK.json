@@ -2671,6 +2671,7 @@
     "generate_hint": "所有選手報到後按此",
     "next_step_hint": "分組賽完成後的下一步",
     "regenerate": "重新準備小組",
+    "goto_prep": "前往準備",
     "coach_dismiss": "不再顯示",
     "all_places": "{{a}}/{{b}} 場（全部名次）",
     "all_places_title": "比賽場次：主淘汰賽及全部名次排位賽"

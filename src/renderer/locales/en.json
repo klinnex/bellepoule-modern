@@ -2671,6 +2671,7 @@
     "generate_hint": "Click here once all your fencers are checked in",
     "next_step_hint": "Next step once the pools are finished",
     "regenerate": "Re-prepare pools",
+    "goto_prep": "Go to preparation",
     "coach_dismiss": "Don't show again",
     "all_places": "{{a}}/{{b}} bouts (all places)",
     "all_places_title": "Competition bouts: main table and classification of all places"

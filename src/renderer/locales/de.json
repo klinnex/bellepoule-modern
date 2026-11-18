@@ -2671,6 +2671,7 @@
     "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
     "next_step_hint": "Nächster Schritt nach Abschluss der Pools",
     "regenerate": "Pools neu vorbereiten",
+    "goto_prep": "Zur Vorbereitung",
     "coach_dismiss": "Nicht mehr anzeigen",
     "all_places": "{{a}}/{{b}} Gefechte (alle Plätze)",
     "all_places_title": "Gefechte des Turniers: Haupttableau und Ausfechten aller Plätze"

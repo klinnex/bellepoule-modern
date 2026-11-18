@@ -2671,6 +2671,7 @@
     "generate_hint": "Haga clic aquí después de marcar a todos sus tiradores",
     "next_step_hint": "Paso siguiente una vez terminadas las poules",
     "regenerate": "Reprepar las poules",
+    "goto_prep": "Ir a la preparación",
     "coach_dismiss": "No volver a mostrar",
     "all_places": "{{a}}/{{b}} asaltos (todos los puestos)",
     "all_places_title": "Asaltos de la competición: cuadro principal y clasificación de todos los puestos"

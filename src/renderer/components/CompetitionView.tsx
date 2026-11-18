@@ -99,6 +99,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     phases,
     handleGoBack,
     handleGeneratePools,
+    checkinUnchanged,
     poolsNextAction,
     poolPrepLaunch,
     questEnabled,
@@ -282,6 +283,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         t={t}
         handleGoBack={handleGoBack}
         handleGeneratePools={handleGeneratePools}
+        checkinUnchanged={checkinUnchanged}
         poolsNextAction={poolsNextAction}
         poolPrepLaunch={currentPhase === 'poolprep' ? poolPrepLaunch : null}
         questEnabled={questEnabled}

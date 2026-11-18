@@ -2671,6 +2671,7 @@
     "generate_hint": "Clicca qui dopo aver confermato la presenza di tutti i tuoi schermidori",
     "next_step_hint": "Passaggio successivo una volta terminati i gironi",
     "regenerate": "Riprepara i gironi",
+    "goto_prep": "Vai alla preparazione",
     "coach_dismiss": "Non mostrare più",
     "all_places": "{{a}}/{{b}} assalti (tutti i posti)",
     "all_places_title": "Assalti della gara: tabellone principale e classificazione di tutti i posti"
