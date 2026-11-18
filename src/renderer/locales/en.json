@@ -3398,7 +3398,12 @@
     "sort_name": "Name",
     "sort_category": "Age category",
     "cards_pdf": "Save the cards as PDF",
-    "arena_qr_pdf": "Save the strip QR codes as PDF"
+    "arena_qr_pdf": "Save the strip QR codes as PDF",
+    "show_qr": "Show QR code",
+    "member_qr_title": "QR code of {{name}}",
+    "member_qr_alt": "Card QR code of {{name}}",
+    "print_card": "Print card",
+    "card_pdf": "Save card as PDF"
   },
   "clubCoach": {
     "tab": "Fencing masters",

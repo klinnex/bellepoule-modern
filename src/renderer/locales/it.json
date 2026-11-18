@@ -3398,7 +3398,12 @@
     "sort_name": "Nome",
     "sort_category": "Categoria d'età",
     "cards_pdf": "Salva le tessere in PDF",
-    "arena_qr_pdf": "Salva i QR delle pedane in PDF"
+    "arena_qr_pdf": "Salva i QR delle pedane in PDF",
+    "show_qr": "Mostra codice QR",
+    "member_qr_title": "Codice QR di {{name}}",
+    "member_qr_alt": "Codice QR della tessera di {{name}}",
+    "print_card": "Stampa la sua tessera",
+    "card_pdf": "Salva la sua tessera in PDF"
   },
   "clubCoach": {
     "tab": "Maestri d'armi",
