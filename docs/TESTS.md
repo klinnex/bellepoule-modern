@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 82 | 906 |
+| `src/shared/utils/` | 83 | 927 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 612 |
+| `src/renderer/components/` | 119 | 614 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **492** | **3763** |
+| **Total** | **493** | **3786** |
 
-Unitaires : 482 fichiers, 3724 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 483 fichiers, 3747 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1326,6 +1326,36 @@ Unitaires : 482 fichiers, 3724 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - plus de poules que de pistes : répartition sur la piste la moins chargée
   - aucun groupe → 0 vague
   - estimatePhaseEta tient compte des pistes pour les poules
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolBoutOrder.test.ts</code> — 21 tests</summary>
+
+- **tables officielles (o.69, o.70)**
+  - poules de 6 et 7 : tables o.69
+  - tables spéciales o.70.3.b, o.70.3.c et o.70.4.b
+  - tables 3 à 8 inchangées (non-régression)
+  - tables 9 à 12 : première et dernière rencontre de la table d’usage
+  - chaque table est un tournoi complet, sans match consécutif dès 5 tireurs
+- **detectTeammateGroups**
+  - suit l’ordre des critères ; un tireur appartient au premier groupe trouvé
+  - ignore la casse et les espaces, pas les valeurs vides
+- **planPoolBouts**
+  - sans coéquipiers : numéros et ordre identiques à aujourd’hui
+  - poule de 6, deux tireurs du même club : n°1 et 2, premier match, table o.69
+  - poule de 6, trois paires : (1,2) (3,4) (5,6), chacune tire son premier match entre elle
+  - poule de 6, trio + paire : trio en 1-2-3, paire en 4-5, table trio de 6
+  - poule de 6, deux trios : 1-2-3 et 4-5-6
+  - poule de 6, quatuor : 1 à 4, table quatuor de 6
+  - poule de 7, paires : (1,4) (2,5) (3,6), table o.69
+  - poule de 7, trio + deux paires : 1-2-3, 4-5, 6-7, table trio de 7
+  - autres tailles (o.70.1) : poule de 5, paire en 1-2 ; poule de 8, paire en 2-3
+  - trio de poule de 8 : trois matchs entre eux le plus tôt possible
+  - groupe majoritaire (o.70.2) : pas de placement automatique
+  - keepPositions : garde les numéros et ne prend la table spéciale que s’ils conviennent
+  - ordre libre : rondes de Berger, numéros du serpentin
+  - au-delà de 12 tireurs : pas de placement
 
 </details>
 
@@ -5761,7 +5791,7 @@ Unitaires : 482 fichiers, 3724 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 11 tests</summary>
 
 - **PoolPrepView (#1499)**
   - titres Min / Max séparés au-dessus des deux champs
@@ -5775,6 +5805,9 @@ Unitaires : 482 fichiers, 3724 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolPrepView — pastille du critère prioritaire (#1440)**
   - club en priorité 1 : pastille club, orange si doublon dans la poule
   - doublon inévitable (quota BellePoule) : pas d’alerte
+- **PoolPrepView — ordre officiel des matchs (#1964)**
+  - trio du même club : n° 1, 2, 3 et table « trio de 7 »
+  - ordre libre : pas de placement, pastille « Ordre libre »
 
 </details>
 
