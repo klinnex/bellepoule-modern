@@ -57,4 +57,32 @@ describe('refereeClubCards (#1872)', () => {
     // ?club=1 : identification déjà faite, pas de fenêtre ouverte
     expect(document.getElementById('club-card-overlay')).toBeNull();
   });
+
+  it('sans caméra (HTTP) : interface arbitre directe, pas de fenêtre à l’ouverture', async () => {
+    document.body.innerHTML =
+      '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
+    const win = {
+      location: { pathname: '/arene1/arbitre', search: '' },
+      isSecureContext: false,
+      navigator: {},
+      fetch: vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ active: true, club: 'Cercle' }),
+      }),
+      document,
+    };
+    expect(cards.cameraUsable(win)).toBe(false);
+    expect(await cards.install(win, () => null)).toBe(true);
+    expect(document.getElementById('btn-club-cards')).not.toBeNull();
+    expect(document.getElementById('club-card-overlay')).toBeNull();
+  });
+
+  it('caméra utilisable : contexte sécurisé + getUserMedia', () => {
+    expect(
+      cards.cameraUsable({
+        isSecureContext: true,
+        navigator: { mediaDevices: { getUserMedia() {} } },
+      })
+    ).toBe(true);
+    expect(cards.cameraUsable({ isSecureContext: true, navigator: {} })).toBe(false);
+  });
 });

@@ -47,6 +47,12 @@
 
   // ─── Lecture caméra ─────────────────────────────────────────────────────────
 
+  /** Caméra accessible : contexte sécurisé (HTTPS ou localhost) et getUserMedia présent */
+  function cameraUsable(win) {
+    var md = win && win.navigator && win.navigator.mediaDevices;
+    return !!(win && win.isSecureContext && md && md.getUserMedia);
+  }
+
   var jsQrPromise = null;
   function loadJsQr(win) {
     if (win.jsQR) return Promise.resolve(win.jsQR);
@@ -71,11 +77,13 @@
    * Renvoie une fonction d'arrêt, ou null si la caméra est indisponible.
    */
   async function startCamera(win, video, onText) {
-    var md = win.navigator && win.navigator.mediaDevices;
-    if (!md || !md.getUserMedia || !win.isSecureContext) return null;
+    if (!cameraUsable(win)) return null;
     var stream;
     try {
-      stream = await md.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      stream = await win.navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
     } catch (_) {
       return null;
     }
@@ -343,7 +351,8 @@
 
   /**
    * Démarre l'identification si une séance du club est reliée. Résout `false` sinon
-   * (hors Mode Club, démo, page sans piste).
+   * (hors Mode Club, démo, page sans piste). Sans caméra (HTTP) : pas de fenêtre à
+   * l'ouverture, l'interface d'arbitrage s'affiche ; bouton « Cartes » pour saisir les codes.
    */
   async function install(win, app) {
     var arena = arenaFromPath(win.location.pathname);
@@ -370,7 +379,7 @@
       }
     }
     addButton(win.document, run);
-    if (!alreadyDone(win.location.search)) run();
+    if (!alreadyDone(win.location.search) && cameraUsable(win)) run();
     return true;
   }
 
@@ -378,6 +387,7 @@
     parseCard: parseCard,
     arenaFromPath: arenaFromPath,
     alreadyDone: alreadyDone,
+    cameraUsable: cameraUsable,
     errorMessage: errorMessage,
     addButton: addButton,
     install: install,
