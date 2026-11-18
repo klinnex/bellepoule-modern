@@ -69,7 +69,20 @@ export function useAppState(
 
   const handleUpdateCompetition = useCallback((updated: Competition) => {
     setCurrentCompetition(prev => (prev?.id === updated.id ? updated : prev));
-    setCompetitions(prev => prev.map(c => (c.id === updated.id ? updated : c)));
+    // Décompte des tireurs de l'accueil tenu à jour quand la liste des tireurs change (#1994)
+    setCompetitions(prev =>
+      prev.map(c =>
+        c.id === updated.id
+          ? {
+              ...updated,
+              fencerCount:
+                updated.fencers && updated.fencers !== c.fencers
+                  ? updated.fencers.length
+                  : (updated.fencerCount ?? c.fencerCount),
+            }
+          : c
+      )
+    );
     setOpenCompetitions(prev =>
       prev.map(open =>
         open.competition.id === updated.id ? { ...open, competition: updated, isDirty: true } : open

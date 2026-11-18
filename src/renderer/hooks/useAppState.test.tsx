@@ -51,6 +51,26 @@ describe('handleUpdateCompetition', () => {
   });
 });
 
+describe('handleUpdateCompetition : nombre de tireurs de l’accueil (#1994)', () => {
+  it('décompte de la base conservé, puis suivi de la liste des tireurs chargée', () => {
+    const { result } = renderHook(() => useAppState(noopToast));
+    const listed = { ...comp('1'), fencers: [], fencerCount: 12 } as Competition;
+    act(() => result.current.setCompetitions([listed]));
+
+    act(() => result.current.handleUpdateCompetition({ ...listed, title: 'Renommée' }));
+    expect(result.current.competitions[0].fencerCount).toBe(12);
+
+    const twoFencers = [{ id: 'a' }, { id: 'b' }] as unknown as Competition['fencers'];
+    act(() => result.current.handleUpdateCompetition({ ...listed, fencers: twoFencers }));
+    expect(result.current.competitions[0].fencerCount).toBe(2);
+
+    act(() =>
+      result.current.handleUpdateCompetition({ ...result.current.competitions[0], fencers: [] })
+    );
+    expect(result.current.competitions[0].fencerCount).toBe(0);
+  });
+});
+
 describe('handleTabSwitch', () => {
   it('bascule sur l’onglet ouvert correspondant', () => {
     const { result } = renderHook(() => useAppState(noopToast));
