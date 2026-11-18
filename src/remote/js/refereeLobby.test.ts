@@ -102,6 +102,37 @@ describe('refereeLobby.js', () => {
   });
 });
 
+describe('refereeLobby.js : piste reprise par une autre tablette', () => {
+  it('install : la vérification périodique renvoie au lobby (?taken=N) sans RAZ', async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchFn = vi.fn(async (url: string) => {
+        if (url === '/api/training/lobby') return { json: async () => ({ training: true }) };
+        if (url.startsWith('/api/training/lobby?client='))
+          return { json: async () => ({ arenas: [{ number: 3, occupied: true, mine: false }] }) };
+        return { status: 200 };
+      });
+      const replace = vi.fn();
+      const emit = vi.fn();
+      const win = {
+        location: { pathname: '/arene3/arbitre', search: '', replace },
+        fetch: fetchFn,
+        sessionStorage: { getItem: () => null, setItem: () => undefined },
+        document: { getElementById: () => null, addEventListener: () => undefined },
+        addEventListener: () => undefined,
+        setInterval: (fn: () => void, ms: number) => setInterval(fn, ms),
+        navigator: {},
+      };
+      expect(await L.install(win, () => ({ socket: { emit }, arenaId: 'arena3' }))).toBe(true);
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(replace).toHaveBeenCalledWith('/entrainement-lobby?taken=3');
+      expect(emit).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe('refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)', () => {
   it('fromLobby : ?lobby=1 uniquement', () => {
     expect(L.fromLobby('?lobby=1')).toBe(true);
@@ -215,5 +246,8 @@ describe('referee.html et trainingLobby.html (#1500)', () => {
     expect(lobby).toContain('traininglobby.occupied');
     expect(lobby).toContain('<script src="/i18n.js"></script>');
     expect(lobby).not.toMatch(/innerHTML/);
+    // Piste occupée : « Reprendre » après confirmation
+    expect(lobby).toContain('/api/training/lobby/takeover');
+    expect(lobby).toContain('traininglobby.takeover_confirm');
   });
 });

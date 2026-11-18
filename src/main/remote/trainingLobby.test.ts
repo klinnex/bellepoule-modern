@@ -49,6 +49,18 @@ describe('TrainingLobby (#1500)', () => {
     expect(l.list([2], 'x', 3)[0].occupied).toBe(false);
   });
 
+  it('takeover : prend la piste d’un autre client et libère sa propre piste précédente', () => {
+    const l = new TrainingLobby();
+    l.claim(1, 'client-aaaa', 0);
+    l.claim(2, 'client-bbbb', 0);
+    l.takeover(1, 'client-bbbb', 1);
+    expect(l.list([1, 2], 'client-bbbb', 2)).toEqual([
+      { number: 1, occupied: true, mine: true },
+      { number: 2, occupied: false, mine: false },
+    ]);
+    expect(l.claim(1, 'client-aaaa', 3)).toBe(false);
+  });
+
   it('changer de piste libère la précédente', () => {
     const l = new TrainingLobby();
     l.claim(1, 'client-aaaa', 0);
@@ -160,6 +172,29 @@ describe('routes du lobby entraînement (#1500)', () => {
     routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: B } }, r);
     expect(r.statusCode).toBe(409);
     expect(r.body).toEqual({ error: 'arena_occupied' });
+  });
+
+  it('takeover : reprend une piste occupée, l’ancien client est refusé ensuite', () => {
+    const notifyKioskData = vi.fn();
+    const { routes } = makeRoutes({ notifyKioskData });
+    routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: A } }, res());
+    const t = res();
+    routes.get('POST /api/training/lobby/takeover')!({ body: { arena: 1, clientId: B } }, t);
+    expect(t.body).toEqual({ ok: true });
+    expect(notifyKioskData).toHaveBeenCalled();
+    const old = res();
+    routes.get('POST /api/training/lobby/claim')!({ body: { arena: 1, clientId: A } }, old);
+    expect(old.statusCode).toBe(409);
+    const bad = res();
+    routes.get('POST /api/training/lobby/takeover')!({ body: { arena: 9, clientId: B } }, bad);
+    expect(bad.statusCode).toBe(404);
+  });
+
+  it('takeover hors entraînement : refusé', () => {
+    const { routes } = makeRoutes({ isTrainingMode: false });
+    const r = res();
+    routes.get('POST /api/training/lobby/takeover')!({ body: { arena: 1, clientId: A } }, r);
+    expect(r.statusCode).toBe(409);
   });
 
   it('validation : piste inconnue 404, client invalide 400', () => {

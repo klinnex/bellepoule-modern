@@ -205,12 +205,49 @@
       return !!(a && a.timerRunning);
     });
     var lastTouch = Date.now();
+    var lost = false;
+    /** Piste reprise par une autre tablette (« Reprendre » du lobby) : retour au lobby, sans RAZ */
+    function onTaken() {
+      if (lost) return;
+      lost = true;
+      released = true;
+      finishHook = null;
+      win.location.replace(LOBBY_URL + '?taken=' + arena);
+    }
+    function claim() {
+      lastTouch = Date.now();
+      var p = post(win, '/api/training/lobby/claim', body);
+      if (p && typeof p.then === 'function') {
+        p.then(function (r) {
+          if (r && r.status === 409) onTaken();
+        }).catch(function () {
+          /* réseau indisponible : nouvel essai à la prochaine action */
+        });
+      }
+    }
+    /** Toujours titulaire de la piste ? (reprise détectée même sans action sur la tablette) */
+    function checkOwner() {
+      win
+        .fetch('/api/training/lobby?client=' + encodeURIComponent(id))
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (d) {
+          var list = (d && d.arenas) || [];
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].number === arena && list[i].occupied && !list[i].mine) onTaken();
+          }
+        })
+        .catch(function () {
+          /* réseau indisponible */
+        });
+    }
     function onActivity() {
       tracker.activity();
+      if (lost) return;
       if (released || Date.now() - lastTouch >= TOUCH_EVERY_MS) {
         released = false; // page restaurée après pagehide : on reprend la piste
-        lastTouch = Date.now();
-        post(win, '/api/training/lobby/claim', body);
+        claim();
       }
     }
     ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
@@ -219,15 +256,14 @@
 
     // Chrono en cours sans interaction : on rafraîchit côté serveur, sinon retour forcé
     win.setInterval(function () {
+      if (lost) return;
       if (tracker.expired()) {
         goLobby();
         return;
       }
+      checkOwner();
       var a = app && app();
-      if (a && a.timerRunning && Date.now() - lastTouch >= TOUCH_EVERY_MS) {
-        lastTouch = Date.now();
-        post(win, '/api/training/lobby/claim', body);
-      }
+      if (a && a.timerRunning && Date.now() - lastTouch >= TOUCH_EVERY_MS) claim();
     }, 5000);
 
     win.addEventListener('pagehide', function () {

@@ -67,8 +67,10 @@
   'referee.club_cards': 'Cards',
   'referee.club_cards_title': 'Identify the fencers with their club card',
   'referee.referee_label': 'Referee:',
-  'referee.cyrano_master_lock': 'Input locked: the track device is in master mode. Correct by removal only.',
-  'referee.cyrano_master_card_lock': 'Cards locked: the track device is in master mode. Correct by removal only.',
+  'referee.cyrano_master_lock':
+    'Input locked: the track device is in master mode. Correct by removal only.',
+  'referee.cyrano_master_card_lock':
+    'Cards locked: the track device is in master mode. Correct by removal only.',
   'arena.resting_label': 'Rest',
   'referee.cyrano_bar': 'Track {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Master',
@@ -131,7 +133,8 @@
   'referee.black_cards': 'Black cards',
   'referee.against': 'vs',
   'referee.cancel_card': 'Cancel card',
-  'referee.confirm_cancel_black': 'Cancel this black card?\nThe fencer is reinstated: their results and those of their opponents count again, and the interrupted match is reopened.',
+  'referee.confirm_cancel_black':
+    'Cancel this black card?\nThe fencer is reinstated: their results and those of their opponents count again, and the interrupted match is reopened.',
   'referee.black_card_cancelled': 'Black card cancelled — fencer reinstated',
   'referee.sd_zone_c': 'SUDDEN DEATH – Zone C only!',
   'referee.sd_zone_c_notif': 'Sudden death: Zone C only!',
@@ -185,7 +188,8 @@
   'referee.tie_launch': 'Tie! Press “Start {{label}}” to begin extra time.',
   'referee.launch_overtime': 'Start {{label}}',
   'referee.ot_challenger': '30s EXTRA TIME – Tie! Zone C only (Challenger sudden death).',
-  'referee.ot_modern': '1 MIN EXTRA TIME – Tie! The winner is drawn by lot if still tied at the end.',
+  'referee.ot_modern':
+    '1 MIN EXTRA TIME – Tie! The winner is drawn by lot if still tied at the end.',
   'referee.ot_laser': '30s EXTRA TIME – Tie at time! All zones are valid.',
   'referee.tie_coin': 'Tie! Correct the score if needed, or press “Coin toss”.',
   'referee.coin_anim': 'Coin toss — animation in progress...',
@@ -398,7 +402,8 @@
   'team.reset_bout': 'Reset bout',
   'team.next_relay': 'Next relay →',
   'team.all_bouts_played': 'Match complete — all bouts have been fenced.',
-  'team.cyrano_master_relay_lock': 'Relay locked: the scoring machine is in master mode and validates the end of the relay.',
+  'team.cyrano_master_relay_lock':
+    'Relay locked: the scoring machine is in master mode and validates the end of the relay.',
   'team.touch_remove': 'Remove a touch (side {{side}})',
   'team.touch_side': '+ Touch (side {{side}})',
   'team.card_title': '{{type}} card E',
@@ -497,9 +502,11 @@
   'register.first_name': 'First name',
   'register.gender': 'Gender',
   'register.camera_unavailable': 'Camera unavailable',
-  'register.photo_consent': "I agree that my photo may be used for the competition (with a parent's consent if I am a minor).",
+  'register.photo_consent':
+    "I agree that my photo may be used for the competition (with a parent's consent if I am a minor).",
   'register.photo_consent_required': 'Tick the consent box to send the photo, or remove it.',
-  'register.privacy_notice': "Your data (name, gender, club, licence, nationality, date of birth, photo) is processed by the organiser to run the competition. Name, club and results may be shown on the competition's screens and documents. To access, correct or erase it, contact the organiser.",
+  'register.privacy_notice':
+    "Your data (name, gender, club, licence, nationality, date of birth, photo) is processed by the organiser to run the competition. Name, club and results may be shown on the competition's screens and documents. To access, correct or erase it, contact the organiser.",
   'register.required': 'Last name, first name and gender are required',
   'register.server_error': 'Server error',
   'register.network_error': 'Network error',
@@ -567,6 +574,12 @@
   'traininglobby.none': 'No strip: training mode is not started.',
   'traininglobby.idle_notice': 'A strip is released after 3 minutes of inactivity.',
   'traininglobby.idle_kick': 'Strip {{n}} released after 3 minutes of inactivity.',
+  'traininglobby.takeover': 'Take over',
+  'traininglobby.takeover_confirm':
+    'Take over strip {{n}}? The tablet holding it will be sent back to the lobby.',
+  'traininglobby.taken': 'Strip {{n}} was taken over by another tablet.',
+  'traininglobby.occupied_hint':
+    'Strip {{n}} is already open on another tablet or tab. Tap “Take over” if it is no longer in use.',
   'matchs.pool': 'Pool',
   'trainer.not_open': 'The trainer area is not open for this competition.',
   'trainer.in_match': 'In a bout — {{label}}',
@@ -582,7 +595,8 @@
   'error.arena_not_found': 'Strip not found',
   'error.auth_required': 'Authentication required',
   'error.black_card_not_found': 'Black card not found for this strip',
-  'error.cancel_tableau_forbidden': 'Cannot cancel for a bracket bout (correct it from the DT station)',
+  'error.cancel_tableau_forbidden':
+    'Cannot cancel for a bracket bout (correct it from the DT station)',
   'error.checkin_closed': 'Check-in closed',
   'error.checkin_not_configured': 'Check-in not configured',
   'error.competition_not_found': 'Competition not found',
@@ -605,7 +619,8 @@
   'error.invalid_signature': 'Invalid signature data',
   'error.last_name_required': 'Last name required',
   'error.match_not_found': 'Bout not found',
-  'error.cyrano_master_lock': 'Cards locked: the track device is in master mode. Correct by removal only.',
+  'error.cyrano_master_lock':
+    'Cards locked: the track device is in master mode. Correct by removal only.',
   'error.matches_fetch_failed': 'Could not load the bouts',
   'error.no_competition': 'No active competition',
   'error.no_pool_for_arena': 'No pool assigned to this strip',
@@ -695,7 +710,8 @@
   'referee.fault_olympic_2_11': 'Hitting violently',
   'referee.fault_olympic_2_12': "Turning one's back on the opponent",
   'referee.fault_olympic_2_13': 'Refusing to obey the referee',
-  'referee.fault_olympic_3_01': 'Using the unarmed arm or hand for an offensive or defensive action',
+  'referee.fault_olympic_3_01':
+    'Using the unarmed arm or hand for an offensive or defensive action',
   'referee.fault_olympic_3_02': 'Deliberately dropping the weapon during the fencing phrase',
   'referee.fault_olympic_3_03': 'Deliberately hitting somewhere other than the opponent',
   'referee.fault_olympic_3_04': 'Hitting with the guard / pommel',

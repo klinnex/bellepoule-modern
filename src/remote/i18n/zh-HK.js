@@ -129,7 +129,8 @@
   'referee.black_cards': '黑牌',
   'referee.against': '對',
   'referee.cancel_card': '撤銷罰牌',
-  'referee.confirm_cancel_black': '撤銷此黑牌？\n選手將被恢復：其本人及對手的成績重新計算，被中斷的比賽將重新開放。',
+  'referee.confirm_cancel_black':
+    '撤銷此黑牌？\n選手將被恢復：其本人及對手的成績重新計算，被中斷的比賽將重新開放。',
   'referee.black_card_cancelled': '黑牌已撤銷 — 選手已恢復',
   'referee.sd_zone_c': '驟死 – 只限 C 區！',
   'referee.sd_zone_c_notif': '驟死：只限 C 區！',
@@ -495,7 +496,8 @@
   'register.camera_unavailable': '無法使用相機',
   'register.photo_consent': '我同意比賽使用我的相片（如未成年，須經家長同意）。',
   'register.photo_consent_required': '請勾選同意以傳送相片，或刪除相片。',
-  'register.privacy_notice': '你的資料（姓、名、性別、會所、牌照、國籍、出生日期、相片）由主辦單位處理以管理比賽。姓名、會所及成績可能會在比賽的螢幕及文件上顯示。如需查閱、更正或刪除，請聯絡主辦單位。',
+  'register.privacy_notice':
+    '你的資料（姓、名、性別、會所、牌照、國籍、出生日期、相片）由主辦單位處理以管理比賽。姓名、會所及成績可能會在比賽的螢幕及文件上顯示。如需查閱、更正或刪除，請聯絡主辦單位。',
   'register.required': '姓、名及性別為必填',
   'register.server_error': '伺服器錯誤',
   'register.network_error': '網絡錯誤',
@@ -562,6 +564,11 @@
   'traininglobby.none': '沒有劍道：訓練模式尚未啟動。',
   'traininglobby.idle_notice': '劍道在閒置 3 分鐘後會自動釋放。',
   'traininglobby.idle_kick': '劍道 {{n}} 因閒置 3 分鐘而已釋放。',
+  'traininglobby.takeover': '接手',
+  'traininglobby.takeover_confirm': '接手劍道 {{n}}？佔用它的平板將返回大堂。',
+  'traininglobby.taken': '劍道 {{n}} 已被另一部平板接手。',
+  'traininglobby.occupied_hint':
+    '劍道 {{n}} 已在另一部平板或分頁開啟。如已不再使用，請按「接手」。',
   'matchs.pool': '小組',
   'trainer.not_open': '此比賽未開放導師專區。',
   'trainer.in_match': '比賽中 — {{label}}',
