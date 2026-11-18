@@ -94,6 +94,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [printing, setPrinting] = useState(false);
   const [qrMember, setQrMember] = useState<ClubMember | null>(null);
   const [editing, setEditing] = useState<ClubMember | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [importDraft, setImportDraft] = useState<{
     fileName: string;
     rows: ClubMemberInput[];
@@ -104,6 +105,9 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
     if (!api) return;
     const list = await api.listMembers(clubId, showArchived);
     setMembers(list);
+    // Sélection : seuls les membres encore présents restent cochés
+    const ids = new Set(list.map(m => m.id));
+    setSelected(prev => new Set([...prev].filter(id => ids.has(id))));
     onMembersLoaded?.(list.filter(m => m.active).length);
   }, [api, clubId, showArchived, onMembersLoaded]);
 
@@ -138,7 +142,34 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
       : list;
   }, [members, search, ageFilter, sortBy, ageCat]);
 
+  const selectedVisible = filtered.filter(m => selected.has(m.id));
+  const allSelected = filtered.length > 0 && selectedVisible.length === filtered.length;
+
   if (!api) return null;
+
+  /** 1er clic : coche tous les membres affichés ; 2e clic : décoche tout */
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map(m => m.id)));
+
+  const toggleOne = (id: string) =>
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const removeSelected = async () => {
+    const list = selectedVisible;
+    if (list.length === 0) return;
+    const ok = await confirm({
+      message: t('club.delete_selected_confirm', { count: list.length }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (!ok) return;
+    await run(async () => {
+      for (const m of list) await api.deleteMember(m.id);
+    });
+  };
 
   /** Enregistre l'identité du club (nom, logo, pistes) et la remonte à la vue */
   const saveClub = async (data: Parameters<typeof api.updateClub>[1]) => {
@@ -457,12 +488,32 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           </ToggleChip>
         </div>
 
+        {filtered.length > 0 && (
+          <div className="club-row">
+            <Button size="sm" onClick={toggleAll}>
+              {allSelected ? t('club.select_none') : t('club.select_all')}
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              icon={<Trash2 size={14} aria-hidden="true" />}
+              disabled={selectedVisible.length === 0}
+              onClick={() => void removeSelected()}
+            >
+              {t('club.delete_selected_n', { count: selectedVisible.length })}
+            </Button>
+          </div>
+        )}
+
         {filtered.length === 0 ? (
           <EmptyState title={t('club.no_members')} description={t('club.no_members_desc')} />
         ) : (
           <table className="table">
             <thead>
               <tr>
+                <th scope="col">
+                  <span className="sr-only">{t('club.selection')}</span>
+                </th>
                 <th scope="col">
                   <span className="sr-only">{t('club.photo')}</span>
                 </th>
@@ -481,6 +532,16 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             <tbody>
               {filtered.map(m => (
                 <tr key={m.id} className={m.active ? undefined : 'club-row-archived'}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(m.id)}
+                      aria-label={t('club.select_member', {
+                        name: `${m.firstName} ${m.lastName}`,
+                      })}
+                      onChange={() => toggleOne(m.id)}
+                    />
+                  </td>
                   {/* Même présentation de l'identité que la liste des tireurs d'une compétition */}
                   <td>
                     <FencerPhoto
