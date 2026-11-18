@@ -107,13 +107,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 119 | 610 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 59 | 395 |
+| `src/remote/` | 59 | 397 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3731** |
+| **Total** | **490** | **3733** |
 
-Unitaires : 480 fichiers, 3692 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3694 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -7453,7 +7453,7 @@ Unitaires : 480 fichiers, 3692 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 7 tests</summary>
 
 - **refereeClubCards (#1872)**
   - lit le QR de la carte ou le code en clair
@@ -7461,6 +7461,8 @@ Unitaires : 480 fichiers, 3692 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - messages d’erreur du serveur
   - hors Mode Club : rien n’est installé
   - séance reliée : bouton « Cartes » à côté de Retour
+  - sans caméra (HTTP) : interface arbitre directe, pas de fenêtre à l’ouverture
+  - caméra utilisable : contexte sécurisé + getUserMedia
 
 </details>
 
