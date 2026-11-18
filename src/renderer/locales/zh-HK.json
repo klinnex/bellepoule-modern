@@ -1151,7 +1151,11 @@
     "greg_level_A": "世界盃",
     "greg_level_F": "法國錦標賽",
     "greg_level_IE": "世界錦標賽",
-    "greg_level_X": "其他"
+    "greg_level_X": "其他",
+    "bout_order": "小組比賽次序",
+    "bout_order_fie": "FIE 次序（隊友分開排列）",
+    "bout_order_free": "自由次序（循環賽）",
+    "bout_order_hint": "FIE：表 o.69 和 o.70，同會或同國家的劍手優先對賽。自由：均勻循環，不作排列（會內、訓練）。"
   },
   "plural": {
     "common_password_set_one": "已為 {{count}} 條劍道設定共用密碼",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} 名劍手 — {{m}} 場",
     "matches": "{{n}} 場",
     "fencer": "劍手 {{n}}",
-    "vs": "對"
+    "vs": "對",
+    "table_standard": "隊友分開排列",
+    "table_trio6": "三人組次序（6人小組）",
+    "table_quartet6": "四人組次序（6人小組）",
+    "table_trio7": "三人組次序（7人小組）",
+    "table_roundRobin": "自由次序",
+    "group": "{{value}}：第 {{positions}} 號",
+    "variant": "變體",
+    "variant_standard": "標準次序",
+    "variant_trio6": "6人三人組（o.70.3.b）",
+    "variant_quartet6": "6人四人組（o.70.3.c）",
+    "variant_trio7": "7人三人組（o.70.4.b）",
+    "placement_trio6": "同一所屬（會或國家）的三人組排第 1、2、3 號；第二組排第 4、5 號（或第 4、5、6 號）。",
+    "placement_quartet6": "同一所屬（會或國家）的四名劍手排第 1、2、3、4 號。",
+    "placement_trio7": "三人組排第 1、2、3 號；兩人組排第 4、5 號，然後第 6、7 號。"
   },
   "competitionNav": {
     "back": "返回",

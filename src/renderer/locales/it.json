@@ -1151,7 +1151,11 @@
     "greg_level_A": "Coppa del mondo",
     "greg_level_F": "Campionati francesi",
     "greg_level_IE": "Campionati mondiali",
-    "greg_level_X": "Altro"
+    "greg_level_X": "Altro",
+    "bout_order": "Ordine degli incontri di girone",
+    "bout_order_fie": "Ordine FIE (compagni di squadra distanziati)",
+    "bout_order_free": "Ordine libero (turni)",
+    "bout_order_hint": "FIE: tabelle o.69 e o.70, gli schermidori dello stesso club o paese si incontrano per primi. Libero: turni regolari, senza collocazione (club, allenamento)."
   },
   "plural": {
     "common_password_set_one": "Password comune impostata per {{count}} pedana",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} schermidori — {{m}} incontri",
     "matches": "{{n}} incontri",
     "fencer": "Schermidore {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Compagni di squadra distanziati",
+    "table_trio6": "Ordine a terna (girone da 6)",
+    "table_quartet6": "Ordine a quartetto (girone da 6)",
+    "table_trio7": "Ordine a terna (girone da 7)",
+    "table_roundRobin": "Ordine libero",
+    "group": "{{value}}: n. {{positions}}",
+    "variant": "Variante",
+    "variant_standard": "Ordine standard",
+    "variant_trio6": "Terna da 6 (o.70.3.b)",
+    "variant_quartet6": "Quartetto da 6 (o.70.3.c)",
+    "variant_trio7": "Terna da 7 (o.70.4.b)",
+    "placement_trio6": "Terna della stessa appartenenza ai n. 1, 2 e 3; secondo gruppo ai n. 4 e 5 (o 4, 5 e 6).",
+    "placement_quartet6": "Quattro schermidori della stessa appartenenza ai n. 1, 2, 3 e 4.",
+    "placement_trio7": "Terna ai n. 1, 2 e 3; coppie ai n. 4 e 5, poi 6 e 7."
   },
   "competitionNav": {
     "back": "Indietro",

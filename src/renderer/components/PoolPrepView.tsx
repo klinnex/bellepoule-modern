@@ -10,7 +10,6 @@ import {
   calculateOptimalPoolCount,
   distributeFencersToPoolsSerpentine,
   distributeFencersGroupedByLevel,
-  generatePoolMatchOrder,
   separationQuota,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
@@ -20,6 +19,11 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import {
+  planPoolBouts,
+  type PoolBoutOrderMode,
+  type PoolBoutPlan,
+} from '../../shared/utils/poolBoutOrder';
 import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from './Toast';
@@ -85,6 +89,8 @@ interface PoolPrepViewProps {
   positionOf?: (fencer: Fencer) => number | string | undefined;
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
+  /** Ordre des matchs : FIE o.69/o.70 (défaut) ou libre, rondes de Berger (#1964) */
+  boutOrderMode?: PoolBoutOrderMode;
   /** Brouillon conservé hors de la vue : modifications gardées au retour vers l'appel (#1649) */
   draft?: PoolPrepDraft | null;
   onDraftChange?: (draft: PoolPrepDraft) => void;
@@ -130,6 +136,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   separationKeys,
   fencerDisplay,
   customMatchOrder,
+  boutOrderMode = 'fie',
   positionOf,
   draft,
   onDraftChange,
@@ -273,6 +280,19 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     return `${minutes}m ${secs}s`;
   };
 
+  /**
+   * Numéros et ordre des matchs (#1964) : coéquipiers sur les numéros réservés (o.70),
+   * sauf échange manuel (keepPositions) où seule la table est choisie.
+   */
+  const planFor = (
+    poolFencers: Fencer[],
+    criteria: SeparationCriterionKey[],
+    keepPositions = false
+  ): Pick<PoolBoutPlan, 'positions' | 'bouts'> =>
+    customMatchOrder
+      ? { positions: poolFencers, bouts: customMatchOrder(poolFencers) }
+      : planPoolBouts(poolFencers, criteria, { mode: boutOrderMode, keepPositions });
+
   // Génère les poules avec la config passée explicitement (évite les closures périmées)
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
@@ -293,10 +313,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             return distributeFencersToPoolsSerpentine(fencers, count, above, below);
           })();
 
-    const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
-      const matchOrder = customMatchOrder
-        ? customMatchOrder(poolFencers)
-        : generatePoolMatchOrder(poolFencers.length);
+    const generatedPools: Pool[] = distribution.map((drawn, index) => {
+      const { positions: poolFencers, bouts: matchOrder } = planFor(
+        drawn,
+        getActiveCriteria(criteria)
+      );
       const now = new Date();
       // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
       const poolId = crypto.randomUUID();
@@ -380,10 +401,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     }
   };
 
-  const regenerateMatches = (pool: Pool): Pool => {
-    const matchOrder = customMatchOrder
-      ? customMatchOrder(pool.fencers)
-      : generatePoolMatchOrder(pool.fencers.length);
+  const regenerateMatches = (pool: Pool, keepPositions = false): Pool => {
+    const { positions, bouts: matchOrder } = planFor(
+      pool.fencers,
+      getActiveCriteria(separationCriteria),
+      keepPositions
+    );
+    pool = { ...pool, fencers: positions };
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
@@ -407,6 +431,28 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       ranking: [],
       updatedAt: now,
     };
+  };
+
+  /** Table retenue et coéquipiers placés (o.70), ex. « Ordre trio (poule de 7) » (#1964) */
+  const boutBadge = (pool: Pool) => {
+    if (customMatchOrder) return null;
+    const plan = planPoolBouts(pool.fencers, getActiveCriteria(separationCriteria), {
+      mode: boutOrderMode,
+      keepPositions: true,
+    });
+    if (plan.table === 'standard' && plan.groups.length === 0) return null;
+    const detail = plan.groups
+      .map(g => t('matchOrder.group', { value: g.value, positions: g.positions.join(', ') }))
+      .join(' · ');
+    return (
+      <span
+        className="pool-prep-badge-unique pool-prep-badge-order"
+        title={detail || undefined}
+        data-testid="pool-bout-table"
+      >
+        {t(`matchOrder.table_${plan.table}`)}
+      </span>
+    );
   };
 
   const handleDragStart = (fencer: Fencer, poolIndex: number) => {
@@ -442,7 +488,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       newFencers.splice(insertAt, 0, movedFencer);
       setPools(
         pools.map((p, i) =>
-          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
+          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }, true) : p
         )
       );
       showUndoToast(t('pools.prep_moved'), handleRestore);
@@ -908,6 +954,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     {pools.length === 1 && (
                       <span className="pool-prep-badge-unique">{t('pools.prep_unique')}</span>
                     )}
+                    {boutBadge(pool)}
                     {topClubConflict && (
                       <span
                         className="pool-prep-conflict-warning"

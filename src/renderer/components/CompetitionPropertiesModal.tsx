@@ -81,6 +81,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [signTableauMatches, setSignTableauMatches] = useState(
     competition.settings?.signTableauMatches ?? false
   );
+  const [poolBoutOrder, setPoolBoutOrder] = useState<'fie' | 'free'>(
+    competition.settings?.poolBoutOrder ?? 'fie'
+  );
   const [playAllPositions, setPlayAllPositions] = useState(
     competition.settings?.playAllPositions ?? false
   );
@@ -188,6 +191,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       hasDirectElimination,
       thirdPlaceMatch,
       signTableauMatches,
+      poolBoutOrder,
       playAllPositions,
       defaultPoolMaxScore: poolMaxScore,
       defaultTableMaxScore: tableMaxScore,
@@ -469,6 +473,19 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     <option value="gender">{t('properties.coupled_gender')}</option>
                   </select>
                   <small style={HINT}>{t('properties.coupled_hint')}</small>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="poolBoutOrder">{t('properties.bout_order')}</label>
+                  <select
+                    id="poolBoutOrder"
+                    className="form-input form-select"
+                    value={poolBoutOrder}
+                    onChange={e => setPoolBoutOrder(e.target.value as 'fie' | 'free')}
+                  >
+                    <option value="fie">{t('properties.bout_order_fie')}</option>
+                    <option value="free">{t('properties.bout_order_free')}</option>
+                  </select>
+                  <small style={HINT}>{t('properties.bout_order_hint')}</small>
                 </div>
               </div>
             )}

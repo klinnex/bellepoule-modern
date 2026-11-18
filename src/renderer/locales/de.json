@@ -1151,7 +1151,11 @@
     "greg_level_A": "Weltcup",
     "greg_level_F": "Französische Meisterschaften",
     "greg_level_IE": "Weltmeisterschaften",
-    "greg_level_X": "Andere"
+    "greg_level_X": "Andere",
+    "bout_order": "Gefechtsreihenfolge der Poule",
+    "bout_order_fie": "FIE-Reihenfolge (Mannschaftskameraden verteilt)",
+    "bout_order_free": "Freie Reihenfolge (Runden)",
+    "bout_order_hint": "FIE: Tabellen o.69 und o.70, Fechter desselben Vereins oder Landes treffen zuerst aufeinander. Frei: gleichmäßige Runden, ohne Platzierung (Verein, Training)."
   },
   "plural": {
     "common_password_set_one": "Gemeinsames Passwort für {{count}} Bahn festgelegt",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} Fechter — {{m}} Gefechte",
     "matches": "{{n}} Gefechte",
     "fencer": "Fechter {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Mannschaftskameraden verteilt",
+    "table_trio6": "Trio-Reihenfolge (Pool mit 6)",
+    "table_quartet6": "Quartett-Reihenfolge (Pool mit 6)",
+    "table_trio7": "Trio-Reihenfolge (Pool mit 7)",
+    "table_roundRobin": "Freie Reihenfolge",
+    "group": "{{value}}: Nr. {{positions}}",
+    "variant": "Variante",
+    "variant_standard": "Standardreihenfolge",
+    "variant_trio6": "Trio aus 6 (o.70.3.b)",
+    "variant_quartet6": "Quartett aus 6 (o.70.3.c)",
+    "variant_trio7": "Trio aus 7 (o.70.4.b)",
+    "placement_trio6": "Trio derselben Zugehörigkeit auf Nr. 1, 2 und 3; zweite Gruppe auf Nr. 4 und 5 (bzw. 4, 5 und 6).",
+    "placement_quartet6": "Vier Fechter derselben Zugehörigkeit auf Nr. 1, 2, 3 und 4.",
+    "placement_trio7": "Trio auf Nr. 1, 2 und 3; Paare auf Nr. 4 und 5, dann 6 und 7."
   },
   "competitionNav": {
     "back": "Zurück",

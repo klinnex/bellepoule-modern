@@ -1151,7 +1151,11 @@
     "greg_level_A": "Copa do mundo",
     "greg_level_F": "Campeonatos da França",
     "greg_level_IE": "Campeonatos do mundo",
-    "greg_level_X": "Outro"
+    "greg_level_X": "Outro",
+    "bout_order": "Ordem dos combates de poule",
+    "bout_order_fie": "Ordem FIE (companheiros de equipe separados)",
+    "bout_order_free": "Ordem livre (rondas)",
+    "bout_order_hint": "FIE: tabelas o.69 e o.70, os esgrimistas do mesmo clube ou país encontram-se primeiro. Livre: rondas regulares, sem colocação (clube, treino)."
   },
   "plural": {
     "common_password_set_one": "Palavra-passe partilhada definida para {{count}} pista",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} esgrimistas — {{m}} combates",
     "matches": "{{n}} combates",
     "fencer": "Esgrimista {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Companheiros de equipe separados",
+    "table_trio6": "Ordem de trio (poule de 6)",
+    "table_quartet6": "Ordem de quarteto (poule de 6)",
+    "table_trio7": "Ordem de trio (poule de 7)",
+    "table_roundRobin": "Ordem livre",
+    "group": "{{value}}: n.º {{positions}}",
+    "variant": "Variante",
+    "variant_standard": "Ordem padrão",
+    "variant_trio6": "Trio de 6 (o.70.3.b)",
+    "variant_quartet6": "Quarteto de 6 (o.70.3.c)",
+    "variant_trio7": "Trio de 7 (o.70.4.b)",
+    "placement_trio6": "Trio da mesma pertença nos n.º 1, 2 e 3; segundo grupo nos n.º 4 e 5 (ou 4, 5 e 6).",
+    "placement_quartet6": "Quatro esgrimistas da mesma pertença nos n.º 1, 2, 3 e 4.",
+    "placement_trio7": "Trio nos n.º 1, 2 e 3; pares nos n.º 4 e 5, depois 6 e 7."
   },
   "competitionNav": {
     "back": "Voltar",

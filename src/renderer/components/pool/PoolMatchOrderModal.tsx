@@ -5,7 +5,13 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { generatePoolMatchOrder } from '../../../shared/utils/poolCalculations';
+import { boutsForTable, type PoolBoutTable } from '../../../shared/utils/poolBoutOrder';
+
+/** Variantes réglementaires par taille (FIE o.70.3 et o.70.4, #1964) */
+const VARIANTS: Record<number, PoolBoutTable[]> = {
+  6: ['standard', 'trio6', 'quartet6'],
+  7: ['standard', 'trio7'],
+};
 
 interface PoolMatchOrderModalProps {
   onClose: () => void;
@@ -14,8 +20,11 @@ interface PoolMatchOrderModalProps {
 const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const [poolSize, setPoolSize] = useState(6);
+  const [variant, setVariant] = useState<PoolBoutTable>('standard');
+  const variants = VARIANTS[poolSize] ?? ['standard'];
+  const table = variants.includes(variant) ? variant : 'standard';
 
-  const matches = generatePoolMatchOrder(poolSize);
+  const matches = boutsForTable(table, poolSize);
   const matchCount = (poolSize * (poolSize - 1)) / 2;
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -44,20 +53,41 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
           <select
             id="pool-order-size"
             value={poolSize}
-            onChange={e => setPoolSize(Number(e.target.value))}
+            onChange={e => {
+              setPoolSize(Number(e.target.value));
+              setVariant('standard');
+            }}
             className="pool-match-order-modal-8"
           >
-            {[3, 4, 5, 6, 7, 8, 9].map(n => (
+            {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
               <option key={n} value={n}>
                 {t('matchOrder.option', { n, m: (n * (n - 1)) / 2 })}
-                {n >= 9 ? ' (Berger)' : ''}
               </option>
             ))}
           </select>
+          {variants.length > 1 && (
+            <select
+              aria-label={t('matchOrder.variant')}
+              value={table}
+              onChange={e => setVariant(e.target.value as PoolBoutTable)}
+              className="pool-match-order-modal-8"
+              data-testid="pool-order-variant"
+            >
+              {variants.map(v => (
+                <option key={v} value={v}>
+                  {t(`matchOrder.variant_${v}`)}
+                </option>
+              ))}
+            </select>
+          )}
           <span className="pool-match-order-modal-9">
             {t('matchOrder.matches', { n: matchCount })}
           </span>
         </div>
+
+        {table !== 'standard' && (
+          <p className="pool-match-order-modal-9">{t(`matchOrder.placement_${table}`)}</p>
+        )}
 
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}
         <div className="u-stack-2">

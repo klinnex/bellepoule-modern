@@ -392,6 +392,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             maxScore={poolMaxScore}
             minFencersPerPool={isRapieres ? 2 : minFencersPerPool}
             maxFencersPerPool={isRapieres ? RAPIERES_MAX_POOL_SIZE : maxFencersPerPool}
+            boutOrderMode={competition.settings?.poolBoutOrder}
             {...(isRapieres ? rapieresViewProps.poolPrep : {})}
             expertMode={expertMode}
             arenaCount={remoteArenaCount}

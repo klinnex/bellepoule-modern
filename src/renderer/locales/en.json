@@ -1151,7 +1151,11 @@
     "greg_level_A": "World cup",
     "greg_level_F": "National championships",
     "greg_level_IE": "World championships",
-    "greg_level_X": "Other"
+    "greg_level_X": "Other",
+    "bout_order": "Pool bout order",
+    "bout_order_fie": "FIE order (teammates placed)",
+    "bout_order_free": "Free order (rounds)",
+    "bout_order_hint": "FIE: tables o.69 and o.70, fencers from the same club or country meet first. Free: even rounds, no placement (club, training)."
   },
   "plural": {
     "common_password_set_one": "Shared password set for {{count}} strip",
@@ -2630,7 +2634,21 @@
     "option": "{{n}} fencers — {{m}} bouts",
     "matches": "{{n}} bouts",
     "fencer": "Fencer {{n}}",
-    "vs": "vs"
+    "vs": "vs",
+    "table_standard": "Teammates placed",
+    "table_trio6": "Trio order (pool of 6)",
+    "table_quartet6": "Quartet order (pool of 6)",
+    "table_trio7": "Trio order (pool of 7)",
+    "table_roundRobin": "Free order",
+    "group": "{{value}}: no. {{positions}}",
+    "variant": "Variant",
+    "variant_standard": "Standard order",
+    "variant_trio6": "Trio of 6 (o.70.3.b)",
+    "variant_quartet6": "Quartet of 6 (o.70.3.c)",
+    "variant_trio7": "Trio of 7 (o.70.4.b)",
+    "placement_trio6": "Trio from the same club or country at nos. 1, 2 and 3; second group at nos. 4 and 5 (or 4, 5 and 6).",
+    "placement_quartet6": "Four fencers from the same club or country at nos. 1, 2, 3 and 4.",
+    "placement_trio7": "Trio at nos. 1, 2 and 3; pairs at nos. 4 and 5, then 6 and 7."
   },
   "competitionNav": {
     "back": "Back",

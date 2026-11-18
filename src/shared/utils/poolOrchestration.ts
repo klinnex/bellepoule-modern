@@ -20,8 +20,9 @@ import {
   calculatePoolRanking,
   calculatePoolRankingQuest,
   distributeFencersToPoolsSerpentine,
-  generatePoolMatchOrder,
+  type SeparationCriterionKey,
 } from './poolCalculations';
+import { planPoolBouts, type PoolBoutOrderMode } from './poolBoutOrder';
 import { mergeRoundRankings } from './poolRounds';
 
 export const MIN_FENCERS_FOR_POOLS = 4;
@@ -34,6 +35,8 @@ export interface BuildPoolsOptions {
   poolCount?: number;
   minPerPool?: number;
   maxPerPool?: number;
+  /** Ordre des matchs : règlement FIE (défaut) ou rondes sans placement (#1964) */
+  boutOrder?: PoolBoutOrderMode;
   newId: () => string;
   now?: () => Date;
 }
@@ -54,29 +57,26 @@ export function buildPools(fencers: Fencer[], options: BuildPoolsOptions): Pool[
     options.poolCount ??
     calculateOptimalPoolCount(fencers.length, options.minPerPool ?? 5, options.maxPerPool ?? 7);
   // Classement en rang 1 : club/région résolus par échanges dans le chapeau
-  const distribution = distributeFencersToPoolsSerpentine(
-    fencers,
-    poolCount,
-    [],
-    ['byClub', 'byRegion']
-  );
-  return distribution.map((poolFencers, index) => {
+  const criteria: SeparationCriterionKey[] = ['byClub', 'byRegion'];
+  const distribution = distributeFencersToPoolsSerpentine(fencers, poolCount, [], criteria);
+  return distribution.map((drawn, index) => {
     const poolId = options.newId();
-    const matches: Match[] = generatePoolMatchOrder(poolFencers.length).map(
-      ([a, b], matchIndex) => ({
-        id: options.newId(),
-        poolId,
-        number: matchIndex + 1,
-        fencerA: poolFencers[a - 1],
-        fencerB: poolFencers[b - 1],
-        scoreA: null,
-        scoreB: null,
-        maxScore: options.poolMaxScore,
-        status: MatchStatus.NOT_STARTED,
-        createdAt: now(),
-        updatedAt: now(),
-      })
-    );
+    // Coéquipiers restés ensemble : numéros réservés et tables FIE o.70 (#1964)
+    const plan = planPoolBouts(drawn, criteria, { mode: options.boutOrder });
+    const poolFencers = plan.positions;
+    const matches: Match[] = plan.bouts.map(([a, b], matchIndex) => ({
+      id: options.newId(),
+      poolId,
+      number: matchIndex + 1,
+      fencerA: poolFencers[a - 1],
+      fencerB: poolFencers[b - 1],
+      scoreA: null,
+      scoreB: null,
+      maxScore: options.poolMaxScore,
+      status: MatchStatus.NOT_STARTED,
+      createdAt: now(),
+      updatedAt: now(),
+    }));
     return {
       id: poolId,
       number: index + 1,
