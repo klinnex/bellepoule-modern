@@ -142,9 +142,10 @@ export const MUSKETEERS_THEME: Record<ThemeTargetType, Record<string, string>> =
     '--ref-modal-text': '#14224d',
     '--ref-final-bg': '#d3af6d',
     '--ref-final-text': '#14224d',
-    '--ref-btn-bg': 'rgba(20, 34, 77, 0.12)',
-    '--ref-btn-border': '#7a5424',
-    '--ref-btn-text': '#14224d',
+    // Boutons « Retour » / « Arbitre » : bleu roi et texte blanc, comme « Lobby » (#1936)
+    '--ref-btn-bg': '#4169e1',
+    '--ref-btn-border': '#2a4fb8',
+    '--ref-btn-text': '#ffffff',
   },
   pool: {
     '--pool-bg': '#0e1d47',

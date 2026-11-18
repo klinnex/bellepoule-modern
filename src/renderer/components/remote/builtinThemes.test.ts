@@ -92,7 +92,17 @@ describe('Toutes sources (#1795)', () => {
     ]);
     expect(resolveAllSourcesTheme('builtin:neon', [], t)).toEqual([
       { section: 'arena', preset: 'neon' },
+      ...THEME_SECTIONS.filter(s => s !== 'arena').map(section => ({
+        section,
+        theme: resolveBuiltinTheme(section, 'builtin:default', t)?.theme,
+      })),
     ]);
+  });
+  it('retour à Sombre/Clair/Néon après un décoratif : tous les écrans sont réinitialisés (#1936)', () => {
+    const apps = resolveAllSourcesTheme('builtin:dark', [], t);
+    expect(apps.map(a => a.section)).toEqual([...THEME_SECTIONS]);
+    expect(apps.filter(a => a.theme).length).toBe(THEME_SECTIONS.length - 1);
+    expect(apps.find(a => a.section === 'arena')).toEqual({ section: 'arena', preset: 'dark' });
   });
   it('thème sauvegardé → son type d’écran', () => {
     const saved = { id: 'c1', name: 'X', targetType: 'pool' as const, variables: {} };

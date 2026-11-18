@@ -540,8 +540,14 @@ export function resolveAllSourcesTheme(
 ): ThemeApplication[] {
   if (isBuiltinThemeId(id)) {
     const out: ThemeApplication[] = [];
+    const key = id.slice(BUILTIN_THEME_PREFIX.length);
+    const isArenaPreset = (ARENA_PRESETS as readonly string[]).includes(key);
     for (const section of THEME_SECTIONS) {
-      const r = resolveBuiltinTheme(section, id, t);
+      // Retour à Sombre/Clair/Néon (#1936) : les écrans sans préréglage piste
+      // reviennent à leurs valeurs par défaut, sinon le thème décoratif reste figé
+      const r =
+        resolveBuiltinTheme(section, id, t) ??
+        (isArenaPreset ? resolveBuiltinTheme(section, `${BUILTIN_THEME_PREFIX}default`, t) : null);
       if (r?.preset) out.push({ section, preset: r.preset });
       else if (r?.theme) out.push({ section, theme: r.theme });
     }
