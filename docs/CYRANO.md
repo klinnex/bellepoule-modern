@@ -233,8 +233,8 @@ appareil ◀─trames─── pilote ◀─────────────
 
 Existant : l'arène équipe `/equipe{N}` (`teamArena.ts`, #1086 / #1240) tient en direct une
 rencontre en **relais FIE** (9 relais de 3 contre 3, paliers de 5 jusqu'à 45, `teamRelayLive.ts`)
-ou au format « arène laser ». L'ordre des relais vient de `relayOrderFor` : ordre officiel FIE à l'épée et au
-fleuret (3-6, 1-5, 2-4…), rotation diagonale `generateRelayOrder` au sabre, au Sabre Laser et
+ou au format « arène laser ». L'ordre des relais vient de `relayOrderFor` : ordre officiel FIE à l'épée, au
+fleuret et au sabre (3-6, 1-5, 2-4…, o.99.3), rotation diagonale `generateRelayOrder` au Sabre Laser et
 pour l'arme à la carte (chaque titulaire rencontre chaque titulaire adverse une fois) ; les remplaçants sont déclarés dans
 l'équipe (`isReserve`). La tablette saisit les touches du relais en cours, le chrono, les cartons ;
 « relais suivant » enregistre le relais (`advanceTeamBout`).
