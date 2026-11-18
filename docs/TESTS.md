@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 110 | 901 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 611 |
+| `src/renderer/components/` | 119 | 612 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **492** | **3762** |
+| **Total** | **492** | **3763** |
 
-Unitaires : 482 fichiers, 3723 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 482 fichiers, 3724 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -6661,7 +6661,7 @@ Unitaires : 482 fichiers, 3723 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 12 tests</summary>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 13 tests</summary>
 
 - **builtinThemes**
   - liste jamais vide pour chaque section
@@ -6675,6 +6675,7 @@ Unitaires : 482 fichiers, 3723 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **Toutes sources (#1795)**
   - liste préréglages piste et décoratifs
   - décoratif → tous les écrans, préréglage → piste seule
+  - retour à Sombre/Clair/Néon après un décoratif : tous les écrans sont réinitialisés (#1936)
   - thème sauvegardé → son type d’écran
   - éditeur : thèmes prédéfinis aux variables complètes
 
