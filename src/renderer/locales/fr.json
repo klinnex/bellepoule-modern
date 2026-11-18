@@ -3248,10 +3248,10 @@
     "empty": "Aucune journée",
     "select_hint": "Sélectionnez ou créez une journée.",
     "competitions": "Épreuves",
-    "competitions_hint": "Cochez les épreuves de la journée. Les arbitres de la journée y sont reportés selon leur arme.",
+    "competitions_hint": "Sélectionnez les épreuves de la journée. Leurs arbitres sont importés dans la journée (homonymes fusionnés, armes cumulées) puis reportés dans chaque épreuve selon leur arme.",
     "other_day": "journée {{name}}",
     "referees": "Arbitres de la journée",
-    "referees_hint": "Saisis une seule fois, reportés dans chaque épreuve de leur arme. Aucune arme cochée = toutes armes.",
+    "referees_hint": "Saisis une seule fois, reportés dans chaque épreuve de leur arme. Aucune arme sélectionnée = toutes armes.",
     "referee": "Arbitre",
     "first_name": "Prénom",
     "last_name": "Nom",
@@ -3266,7 +3266,7 @@
     "add_referee": "Ajouter",
     "referee_delete_confirm": "Retirer « {{name}} » de la journée ? Ses fiches dans les épreuves sont conservées.",
     "sync": "Reporter dans les épreuves",
-    "sync_title": "Créer ou mettre à jour les fiches arbitres de chaque épreuve selon l'arme",
+    "sync_title": "Importer les arbitres des épreuves, puis créer ou mettre à jour leurs fiches dans chaque épreuve selon l'arme",
     "sync_done": "{{added}} arbitre(s) ajouté(s), {{updated}} mis à jour",
     "refresh": "Actualiser",
     "conflicts": "Conflits sur la journée",
@@ -3299,7 +3299,8 @@
     "assign": "Affecter",
     "reservation": "Réservation",
     "strips_no_config": "Nombre de pistes non configuré.",
-    "kiosk_link": "Affichage journée (kiosk)"
+    "kiosk_link": "Affichage journée (kiosk)",
+    "imported": "{{count}} arbitre(s) importé(s) des épreuves"
   },
   "organisation": {
     "eta": "Fin estimée",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "Supprimer définitivement {{name}} ? Il sera retiré de l'encadrement des séances.",
     "session_label": "Maîtres d'armes de la séance",
     "none_available": "Aucun maître d'armes : ajoutez-les dans l'onglet Maîtres d'armes.",
-    "by": "Encadrement : {{names}}"
+    "by": "Encadrement : {{names}}",
+    "new_title": "Nouveau maître d'armes"
   },
   "clubTour": {
     "title": "Bienvenue dans le Mode Club",

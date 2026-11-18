@@ -12,30 +12,30 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
 import { Modal } from '../common/Modal';
+import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 import { CLUB_WEAPONS } from './ClubWeaponSelect';
 import { coachName } from './ClubCoachPicker';
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
-const EMPTY_DRAFT = { firstName: '', lastName: '', title: '' };
 
-/** Fiche d'un maître d'armes */
+/** Fiche d'un maître d'armes (création si `coach` est absent) */
 const CoachEditor: React.FC<{
-  coach: ClubCoach;
-  onSave: (data: Partial<ClubCoachInput>) => void;
+  coach?: ClubCoach;
+  onSave: (data: ClubCoachInput) => void;
   onClose: () => void;
 }> = ({ coach, onSave, onClose }) => {
   const { t } = useTranslation();
   const [d, setD] = useState({
-    firstName: coach.firstName,
-    lastName: coach.lastName,
-    title: coach.title ?? '',
-    phone: coach.phone ?? '',
-    email: coach.email ?? '',
-    notes: coach.notes ?? '',
+    firstName: coach?.firstName ?? '',
+    lastName: coach?.lastName ?? '',
+    title: coach?.title ?? '',
+    phone: coach?.phone ?? '',
+    email: coach?.email ?? '',
+    notes: coach?.notes ?? '',
   });
-  const [weapons, setWeapons] = useState<Weapon[]>(coach.weapons);
+  const [weapons, setWeapons] = useState<Weapon[]>(coach?.weapons ?? []);
   const field = (key: keyof typeof d, label: string, type = 'text') => (
     <label className="form-label club-grow">
       {label}
@@ -44,13 +44,16 @@ const CoachEditor: React.FC<{
         type={type}
         value={d[key]}
         maxLength={key === 'email' ? 120 : 100}
+        placeholder={key === 'title' ? t('clubCoach.title_ph') : undefined}
         onChange={e => setD(cur => ({ ...cur, [key]: e.target.value }))}
       />
     </label>
   );
   return (
     <Modal
-      title={t('clubCoach.edit_title', { name: coachName(coach) })}
+      title={
+        coach ? t('clubCoach.edit_title', { name: coachName(coach) }) : t('clubCoach.new_title')
+      }
       onClose={onClose}
       size="md"
       footer={
@@ -75,23 +78,17 @@ const CoachEditor: React.FC<{
         {field('phone', t('clubCoach.phone'), 'tel')}
         {field('email', t('clubCoach.email'), 'email')}
       </div>
-      <fieldset className="club-coach-picker">
-        <legend className="form-label">{t('clubCoach.weapons')}</legend>
-        <div className="club-coach-weapons">
-          {CLUB_WEAPONS.map(w => (
-            <label key={w} className="club-nowrap">
-              <input
-                type="checkbox"
-                checked={weapons.includes(w)}
-                onChange={e =>
-                  setWeapons(cur => (e.target.checked ? [...cur, w] : cur.filter(x => x !== w)))
-                }
-              />{' '}
-              {weaponLabel(w, t)}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <ToggleChipGroup legend={t('clubCoach.weapons')}>
+        {CLUB_WEAPONS.map(w => (
+          <ToggleChip
+            key={w}
+            pressed={weapons.includes(w)}
+            onToggle={on => setWeapons(cur => (on ? [...cur, w] : cur.filter(x => x !== w)))}
+          >
+            {weaponLabel(w, t)}
+          </ToggleChip>
+        ))}
+      </ToggleChipGroup>
       <label className="form-label">
         {t('clubCoach.notes')}
         <textarea
@@ -112,7 +109,7 @@ export const ClubCoachesPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   const api = window.electronAPI?.club;
   const [coaches, setCoaches] = useState<ClubCoach[]>([]);
   const [showArchived, setShowArchived] = useState(false);
-  const [draft, setDraft] = useState(EMPTY_DRAFT);
+  const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<ClubCoach | null>(null);
 
   const load = useCallback(async () => {
@@ -135,15 +132,6 @@ export const ClubCoachesPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
 
   if (!api) return null;
 
-  const add = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!draft.firstName.trim() && !draft.lastName.trim()) return;
-    void run(async () => {
-      await api.createCoach(clubId, draft);
-      setDraft(EMPTY_DRAFT);
-    });
-  };
-
   const remove = async (c: ClubCoach) => {
     const ok = await confirm({
       message: t('clubCoach.delete_confirm', { name: coachName(c) }),
@@ -157,53 +145,27 @@ export const ClubCoachesPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
   return (
     <div className="club-members">
       <section className="club-card" aria-labelledby="club-coaches-title">
-        <h2 id="club-coaches-title" className="club-card-title">
-          {t('clubCoach.title')}
-        </h2>
+        <div className="club-row">
+          <div className="club-title-group">
+            <h2 id="club-coaches-title" className="club-card-title">
+              {t('clubCoach.title')}
+            </h2>
+            <Button
+              variant="success"
+              icon={<Plus size={15} aria-hidden="true" />}
+              onClick={() => setCreating(true)}
+            >
+              {t('actions.add')}
+            </Button>
+          </div>
+        </div>
         <p className="club-muted">{t('clubCoach.intro')}</p>
 
-        <form className="club-row club-row--end" onSubmit={add}>
-          <label className="form-label">
-            {t('club.first_name')}
-            <input
-              className="form-input"
-              value={draft.firstName}
-              maxLength={100}
-              onChange={e => setDraft(d => ({ ...d, firstName: e.target.value }))}
-            />
-          </label>
-          <label className="form-label">
-            {t('club.last_name')}
-            <input
-              className="form-input"
-              value={draft.lastName}
-              maxLength={100}
-              onChange={e => setDraft(d => ({ ...d, lastName: e.target.value }))}
-            />
-          </label>
-          <label className="form-label">
-            {t('clubCoach.title_label')}
-            <input
-              className="form-input"
-              value={draft.title}
-              maxLength={100}
-              placeholder={t('clubCoach.title_ph')}
-              onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
-            />
-          </label>
-          <Button type="submit" variant="success" icon={<Plus size={15} aria-hidden="true" />}>
-            {t('actions.add')}
-          </Button>
-        </form>
-
-        <label className="club-nowrap">
-          <input
-            type="checkbox"
-            checked={showArchived}
-            onChange={e => setShowArchived(e.target.checked)}
-          />{' '}
-          {t('club.show_archived')}
-        </label>
+        <div className="club-row">
+          <ToggleChip pressed={showArchived} onToggle={setShowArchived}>
+            {t('club.show_archived')}
+          </ToggleChip>
+        </div>
 
         {shown.length === 0 ? (
           <EmptyState title={t('clubCoach.none')} description={t('clubCoach.none_desc')} />
@@ -273,6 +235,15 @@ export const ClubCoachesPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
           </table>
         )}
       </section>
+      {creating && (
+        <CoachEditor
+          onClose={() => setCreating(false)}
+          onSave={data => {
+            setCreating(false);
+            void run(() => api.createCoach(clubId, data));
+          }}
+        />
+      )}
       {editing && (
         <CoachEditor
           coach={editing}

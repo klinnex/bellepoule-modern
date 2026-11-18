@@ -106,7 +106,7 @@ describe('ClubInventoryPanel (inventaire du club)', () => {
     const summary = screen.getByTestId('club-inventory-summary');
     expect(within(summary).getByText('3')).toBeInTheDocument(); // exemplaires
     expect(screen.getByText('En retard')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('checkbox', { name: /réformés/i }));
+    fireEvent.click(screen.getByRole('button', { name: /réformés/i }));
     expect(await screen.findByText('Veste vieille')).toBeInTheDocument();
   });
 
@@ -119,8 +119,8 @@ describe('ClubInventoryPanel (inventaire du club)', () => {
     expect(screen.getByRole('columnheader', { name: 'Emplacement' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Colonnes' }));
     const menu = screen.getByRole('group', { name: /colonnes/i });
-    fireEvent.click(within(menu).getByRole('checkbox', { name: 'Fournisseur' }));
-    fireEvent.click(within(menu).getByRole('checkbox', { name: 'Emplacement' }));
+    fireEvent.click(within(menu).getByRole('button', { name: 'Fournisseur' }));
+    fireEvent.click(within(menu).getByRole('button', { name: 'Emplacement' }));
     expect(screen.getByRole('columnheader', { name: 'Fournisseur' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: 'Escrime Shop' })).toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Emplacement' })).toBeNull();

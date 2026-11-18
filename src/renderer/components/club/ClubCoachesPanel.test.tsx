@@ -6,7 +6,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 import { ClubCoachesPanel } from './ClubCoachesPanel';
 import { ClubCoachPicker, coachNames } from './ClubCoachPicker';
@@ -50,12 +50,16 @@ describe('ClubCoachesPanel', () => {
     expect(screen.queryByText('ANCIEN')).not.toBeInTheDocument();
     expect(api.listCoaches).toHaveBeenCalledWith('c1', true);
 
-    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'NOUVEAU' } });
+    // « Ajouter » (à droite du titre) ouvre la fiche vierge
     fireEvent.click(screen.getByRole('button', { name: /Ajouter/ }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Nom'), { target: { value: 'NOUVEAU' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Épée' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sauvegarder' }));
     await waitFor(() =>
       expect(api.createCoach).toHaveBeenCalledWith(
         'c1',
-        expect.objectContaining({ lastName: 'NOUVEAU' })
+        expect.objectContaining({ lastName: 'NOUVEAU', weapons: ['E'] })
       )
     );
 
@@ -76,10 +80,10 @@ describe('ClubCoachPicker', () => {
       <ClubCoachPicker coaches={coaches} value={[]} onChange={onChange} />
     );
     expect(screen.queryByText(/ANCIEN/)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('checkbox', { name: /MARTIN/ }));
+    fireEvent.click(screen.getByRole('button', { name: /MARTIN/ }));
     expect(onChange).toHaveBeenCalledWith(['k1']);
     rerender(<ClubCoachPicker coaches={coaches} value={['k2']} onChange={onChange} />);
-    expect(screen.getByRole('checkbox', { name: /ANCIEN/ })).toBeChecked();
+    expect(screen.getByRole('button', { name: /ANCIEN/ })).toHaveAttribute('aria-pressed', 'true');
     expect(coachNames(['k2', 'k1', 'x'], coaches)).toBe('Jean ANCIEN, Jean MARTIN');
   });
 });

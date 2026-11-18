@@ -31,11 +31,17 @@ describe('ClubImportModal (#1872)', () => {
         onClose={vi.fn()}
       />
     );
-    expect(screen.getByRole('checkbox', { name: 'NEUF Léa' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'MARTIN Anne' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'ROUX Zoé' })).toBeDisabled();
-    expect(screen.getByRole('checkbox', { name: 'NEUF Lea' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'NEUF Léa' }));
+    expect(screen.getByRole('button', { name: 'NEUF Léa' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'MARTIN Anne' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'ROUX Zoé' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'NEUF Lea' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'NEUF Léa' }));
     fireEvent.click(screen.getByRole('button', { name: 'Importer la sélection (1)' }));
     expect(onConfirm).toHaveBeenCalledWith([rows[1]]);
   });

@@ -15,14 +15,20 @@ Liste des compétitions → bouton **Journées**.
 |---|---|
 | Nom, date | Identification |
 | Pistes de la salle | Nombre de pistes ; table des appareils Cyrano partagée par les épreuves (voir CYRANO.md § 2 quinquies) |
-| Épreuves | Cases à cocher. Une épreuve appartient à une seule journée |
+| Épreuves | Cartes activables. Une épreuve appartient à une seule journée |
+
+**Enregistrer** / **Supprimer** (colonne de gauche, sous **Créer**) : actifs seulement si une journée est sélectionnée.
 
 Supprimer une journée conserve les épreuves et leurs arbitres (liens retirés).
 
 ## Arbitres de la journée
 
 - Saisis **une fois**, avec leurs **armes d'arbitrage** (fleuret, épée, sabre, sabre laser).
-  Aucune arme cochée = toutes armes.
+  Aucune arme sélectionnée = toutes armes.
+- **Importés des épreuves** (#1872) : au rattachement d'une épreuve, ou via **Reporter dans les
+  épreuves**, les arbitres des épreuves sélectionnées entrent dans la liste de la journée.
+  Homonymes (nom + prénom, accents, casse et ordre ignorés) fusionnés en un seul arbitre ;
+  ses armes = armes des épreuves où il figure (cumulées). Un arbitre « toutes armes » le reste.
 - Reportés dans chaque épreuve de leur arme : au rattachement de l'épreuve, ou via
   **Reporter dans les épreuves**.
   - fiche déjà liée → mise à jour (nom, club, licence, niveau) ;

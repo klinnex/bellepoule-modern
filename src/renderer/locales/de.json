@@ -3299,7 +3299,8 @@
     "assign": "Zuteilen",
     "reservation": "Reservierung",
     "strips_no_config": "Anzahl Pisten nicht konfiguriert.",
-    "kiosk_link": "Tagesanzeige (Kiosk)"
+    "kiosk_link": "Tagesanzeige (Kiosk)",
+    "imported": "{{count}} Kampfrichter aus den Turnieren importiert"
   },
   "organisation": {
     "eta": "Voraussichtliches Ende",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "{{name}} endgültig löschen? Er/sie wird aus der Betreuung der Einheiten entfernt.",
     "session_label": "Fechtmeister der Einheit",
     "none_available": "Kein Fechtmeister: im Reiter Fechtmeister hinzufügen.",
-    "by": "Betreut von: {{names}}"
+    "by": "Betreut von: {{names}}",
+    "new_title": "Neuer Fechtmeister"
   },
   "clubTour": {
     "title": "Willkommen im Vereinsmodus",

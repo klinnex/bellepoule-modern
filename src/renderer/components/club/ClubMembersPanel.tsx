@@ -51,6 +51,7 @@ import { ClubWeaponSelect } from './ClubWeaponSelect';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
+import { ToggleChip } from '../common/ToggleChip';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
 
@@ -334,7 +335,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             label={t('clubWeapon.club_label')}
             onChange={w => void run(async () => saveClub({ weapon: w }))}
           />
-          <label className="form-label" data-tour="club-strips">
+          <label className="form-label club-field-stack" data-tour="club-strips">
             {t('club.strip_count')}
             <input
               className="form-input club-strips-input"
@@ -364,9 +365,19 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
       <section className="club-card" aria-labelledby="club-members-title">
         <div className="club-row club-row--between">
-          <h2 id="club-members-title" className="club-card-title">
-            {t('club.members_count', { count: members.length })}
-          </h2>
+          <div className="club-title-group">
+            <h2 id="club-members-title" className="club-card-title">
+              {t('club.members_count', { count: members.length })}
+            </h2>
+            <Button
+              variant="success"
+              data-tour="club-add-member"
+              icon={<Plus size={15} aria-hidden="true" />}
+              onClick={() => setCreating(true)}
+            >
+              {t('club.new_member')}
+            </Button>
+          </div>
           <ClubExchangeMenu
             label={t('club.import_menu')}
             icon={<Upload size={15} aria-hidden="true" />}
@@ -418,17 +429,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
           />
         </div>
 
-        <div className="club-row club-row--end">
-          <Button
-            variant="success"
-            data-tour="club-add-member"
-            icon={<Plus size={15} aria-hidden="true" />}
-            onClick={() => setCreating(true)}
-          >
-            {t('club.new_member')}
-          </Button>
-        </div>
-
         <div className="club-row">
           <input
             className="form-input club-grow"
@@ -450,14 +450,9 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
               <option value="category">{t('club.sort_category')}</option>
             </select>
           </label>
-          <label className="club-nowrap">
-            <input
-              type="checkbox"
-              checked={showArchived}
-              onChange={e => setShowArchived(e.target.checked)}
-            />{' '}
+          <ToggleChip pressed={showArchived} onToggle={setShowArchived}>
             {t('club.show_archived')}
-          </label>
+          </ToggleChip>
         </div>
 
         {filtered.length === 0 ? (

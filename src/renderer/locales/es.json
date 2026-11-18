@@ -3299,7 +3299,8 @@
     "assign": "Asignar",
     "reservation": "Reserva",
     "strips_no_config": "Número de pistas no configurado.",
-    "kiosk_link": "Pantalla del día (kiosk)"
+    "kiosk_link": "Pantalla del día (kiosk)",
+    "imported": "{{count}} árbitro(s) importado(s) de las pruebas"
   },
   "organisation": {
     "eta": "Fin estimada",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "¿Eliminar definitivamente a {{name}}? Se quitará del equipo de las sesiones.",
     "session_label": "Maestros de armas de la sesión",
     "none_available": "Ningún maestro de armas: añádalos en la pestaña Maestros de armas.",
-    "by": "Dirigida por: {{names}}"
+    "by": "Dirigida por: {{names}}",
+    "new_title": "Nuevo maestro de armas"
   },
   "clubTour": {
     "title": "Bienvenido al Modo Club",

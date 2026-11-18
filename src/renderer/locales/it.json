@@ -3299,7 +3299,8 @@
     "assign": "Assegna",
     "reservation": "Riserva",
     "strips_no_config": "Numero di pedane non configurato.",
-    "kiosk_link": "Display del giorno (kiosk)"
+    "kiosk_link": "Display del giorno (kiosk)",
+    "imported": "{{count}} arbitro/i importato/i dalle gare"
   },
   "organisation": {
     "eta": "Fine stimata",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "Eliminare definitivamente {{name}}? Sarà rimosso dallo staff delle sessioni.",
     "session_label": "Maestri d'armi della sessione",
     "none_available": "Nessun maestro d'armi: aggiungili nella scheda Maestri d'armi.",
-    "by": "Guidata da: {{names}}"
+    "by": "Guidata da: {{names}}",
+    "new_title": "Nuovo maestro d'armi"
   },
   "clubTour": {
     "title": "Benvenuto nella modalità Club",

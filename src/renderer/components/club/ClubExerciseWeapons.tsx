@@ -1,12 +1,13 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : armes visées par un exercice (épée, fleuret,
- * sabre, sabre laser, escrime artistique) — cases à cocher (édition) et filtre (recherche).
+ * sabre, sabre laser, escrime artistique) — cartes activables (édition) et filtre (recherche).
  * Licensed under GPL-3.0
  */
 import React from 'react';
 import { EXERCISE_WEAPONS, type ExerciseWeapon } from '../../../shared/utils/clubWeapon';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 
 type TFn = (key: string) => string;
 
@@ -28,16 +29,14 @@ export const ExerciseWeaponChecks: React.FC<{
   const toggle = (w: ExerciseWeapon) =>
     onChange(value.includes(w) ? value.filter(x => x !== w) : [...value, w]);
   return (
-    <fieldset className="club-weapon-checks">
-      <legend className="form-label">{t('clubExercises.weapons_label')}</legend>
+    <ToggleChipGroup legend={t('clubExercises.weapons_label')} className="club-weapon-checks">
       {EXERCISE_WEAPONS.map(w => (
-        <label key={w} className="club-nowrap">
-          <input type="checkbox" checked={value.includes(w)} onChange={() => toggle(w)} />{' '}
+        <ToggleChip key={w} pressed={value.includes(w)} onToggle={() => toggle(w)}>
           {exerciseWeaponLabel(w, t)}
-        </label>
+        </ToggleChip>
       ))}
-      <p className="text-sm">{t('clubExercises.weapons_hint')}</p>
-    </fieldset>
+      <p className="text-sm club-chip-hint">{t('clubExercises.weapons_hint')}</p>
+    </ToggleChipGroup>
   );
 };
 

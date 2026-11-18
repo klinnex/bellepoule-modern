@@ -3299,7 +3299,8 @@
     "assign": "分配",
     "reservation": "預留",
     "strips_no_config": "未設定劍道數量。",
-    "kiosk_link": "當日顯示（查詢站）"
+    "kiosk_link": "當日顯示（查詢站）",
+    "imported": "已從賽事匯入 {{count}} 名裁判"
   },
   "organisation": {
     "eta": "預計結束",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "永久刪除 {{name}}？將從所有訓練課的教練名單中移除。",
     "session_label": "本課教練",
     "none_available": "未有教練：請在「劍擊教練」分頁加入。",
-    "by": "教練：{{names}}"
+    "by": "教練：{{names}}",
+    "new_title": "新增劍擊教練"
   },
   "clubTour": {
     "title": "歡迎使用會館模式",

@@ -113,3 +113,55 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Cartes / boutons activables (remplacent les cases à cocher, #1872) */
+.toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.toggle-chip:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+.toggle-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.toggle-chip.is-on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.toggle-chip.is-on:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+.toggle-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.toggle-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+.toggle-chip-group > legend {
+  padding: 0 0.25rem;
+}

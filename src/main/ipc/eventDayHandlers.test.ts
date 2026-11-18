@@ -25,6 +25,7 @@ describe('handlers eventDay:* (#1714)', () => {
   const repo = {
     getDay: vi.fn(() => ({ competitionIds: ['c1', 'c2'] })),
     syncCompetition: vi.fn(() => ({ added: 1, updated: 2 })),
+    importCompetitionReferees: vi.fn(() => ({ added: 0, updated: 1, imported: 3 })),
     setCompetitionDay: vi.fn(),
     listReferees: vi.fn(() => [{ id: 'dr1', weapons: [Weapon.EPEE] }]),
     getAssignments: vi.fn(() => [assignment('c1', 'r1'), assignment('c2', 'r2')]),
@@ -41,16 +42,22 @@ describe('handlers eventDay:* (#1714)', () => {
 
   const call = (ch: string, ...args: unknown[]) => handlers.get(ch)!({}, ...args);
 
-  it('synchronise toutes les épreuves de la journée', () => {
-    expect(call('eventDay:syncReferees', 'd1')).toEqual({ added: 2, updated: 4 });
+  it('importe les arbitres des épreuves puis synchronise toutes les épreuves (#1872)', () => {
+    expect(call('eventDay:syncReferees', 'd1')).toEqual({ added: 2, updated: 5, imported: 3 });
+    expect(repo.importCompetitionReferees).toHaveBeenCalledWith('d1');
     expect(repo.syncCompetition).toHaveBeenCalledTimes(2);
   });
 
-  it('rattacher synchronise, détacher non', () => {
-    expect(call('eventDay:setCompetitionDay', 'c1', 'd1')).toEqual({ added: 1, updated: 2 });
+  it('rattacher importe et synchronise la journée, détacher non', () => {
+    expect(call('eventDay:setCompetitionDay', 'c1', 'd1')).toEqual({
+      added: 2,
+      updated: 5,
+      imported: 3,
+    });
     expect(call('eventDay:setCompetitionDay', 'c1', null)).toEqual({ added: 0, updated: 0 });
     expect(repo.setCompetitionDay).toHaveBeenLastCalledWith('c1', null);
-    expect(repo.syncCompetition).toHaveBeenCalledTimes(1);
+    expect(repo.importCompetitionReferees).toHaveBeenCalledTimes(1);
+    expect(repo.syncCompetition).toHaveBeenCalledTimes(2);
   });
 
   it('vue d’ensemble : statut commun et conflits', () => {

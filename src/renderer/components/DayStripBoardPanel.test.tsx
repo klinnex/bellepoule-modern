@@ -101,7 +101,7 @@ describe('DayStripBoardPanel (#1878)', () => {
     render(<DayStripBoardPanel dayId="d1" competitions={competitions} occupation={[]} />);
     const buttons = await screen.findAllByRole('button', { name: 'Réservation' });
     fireEvent.click(buttons[0]);
-    fireEvent.click(screen.getByRole('checkbox', { name: 'M15 Fleuret' }));
+    fireEvent.click(screen.getByRole('button', { name: 'M15 Fleuret' }));
     fireEvent.change(screen.getByRole('combobox', { name: 'Taille maximale du tableau' }), {
       target: { value: '8' },
     });
@@ -119,7 +119,7 @@ describe('DayStripBoardPanel (#1878)', () => {
   it('affectation automatique activée depuis la case', async () => {
     render(<DayStripBoardPanel dayId="d1" competitions={competitions} occupation={[]} />);
     fireEvent.click(
-      await screen.findByRole('checkbox', { name: 'Affecter automatiquement les pistes libérées' })
+      await screen.findByRole('button', { name: 'Affecter automatiquement les pistes libérées' })
     );
     await waitFor(() => expect(api.setAutoAssign).toHaveBeenCalledWith('d1', true));
   });

@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { Weapon } from '../types';
 import type { DayRefereeAssignment } from '../types/eventDay';
 import {
+  refereeNameKey,
+  splitRefereeName,
   busyElsewhere,
   canOfficiate,
   computeDayStatuses,
@@ -80,5 +82,23 @@ describe('eventDay (#1714)', () => {
       r1: [a({ competitionId: 'c2', strip: 4 })],
     });
     expect(busyElsewhere(list, 'c1', {})).toEqual({});
+  });
+});
+
+describe('noms d’arbitres importés des épreuves (#1872)', () => {
+  it('rapproche les homonymes sans accents, casse ni ordre', () => {
+    expect(refereeNameKey('MARTIN  Anne')).toBe(refereeNameKey('anne Martin'));
+    expect(refereeNameKey('Zoé Roux')).toBe(refereeNameKey('Zoe ROUX'));
+    expect(refereeNameKey('Anne Martin')).not.toBe(refereeNameKey('Anne Martine'));
+  });
+
+  it('découpe « Prénom Nom » et « NOM Prénom »', () => {
+    expect(splitRefereeName('Anne Martin')).toEqual({ firstName: 'Anne', lastName: 'Martin' });
+    expect(splitRefereeName('MARTIN Anne')).toEqual({ firstName: 'Anne', lastName: 'MARTIN' });
+    expect(splitRefereeName('Jean de La Tour')).toEqual({
+      firstName: 'Jean',
+      lastName: 'de La Tour',
+    });
+    expect(splitRefereeName('Solo')).toEqual({ firstName: '', lastName: 'Solo' });
   });
 });

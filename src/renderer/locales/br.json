@@ -3299,7 +3299,8 @@
     "assign": "Reiñ",
     "reservation": "Miradur",
     "strips_no_config": "Niver pistenn digenset.",
-    "kiosk_link": "Skrin an deiz (kiosk)"
+    "kiosk_link": "Skrin an deiz (kiosk)",
+    "imported": "{{count}} breutaer enporzhiet eus an abadennoù"
   },
   "organisation": {
     "eta": "Fin diouzh ar jedadenn",
@@ -3419,7 +3420,8 @@
     "delete_confirm": "Dilemel da viken {{name}} ? Lamet e vo eus ar skipailh atersioù.",
     "session_label": "Mestr-armoù an aters",
     "none_available": "Mestr-armoù ebet : ouzhpennit anezho en ivinell Mestr-armoù.",
-    "by": "Renet gant : {{names}}"
+    "by": "Renet gant : {{names}}",
+    "new_title": "Mestr-skrim nevez"
   },
   "clubTour": {
     "title": "Degemer mat er Mod Klub",

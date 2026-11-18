@@ -23,6 +23,7 @@ import {
 } from '../../../shared/utils/clubInventory';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip } from '../common/ToggleChip';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 
@@ -167,10 +168,9 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         </label>
         {canSeries && (
           <div className="club-grow">
-            <label className="club-nowrap">
-              <input type="checkbox" checked={series} onChange={e => setSeries(e.target.checked)} />
+            <ToggleChip pressed={series} onToggle={setSeries}>
               {t('clubInventory.series_toggle')}
-            </label>
+            </ToggleChip>
             {series && (
               <>
                 <label className="form-label">

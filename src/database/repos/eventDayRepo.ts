@@ -12,7 +12,9 @@ import {
   canOfficiate,
   dayRefereeFullName,
   parseWeapons,
+  refereeNameKey,
   serializeWeapons,
+  splitRefereeName,
 } from '../../shared/utils/eventDay';
 import type { SqlExecutor } from './sqlExecutor';
 import { parsePoolRefereeIds } from './rowMappers';
@@ -289,6 +291,79 @@ export class EventDayRepo {
     this.sql.transaction(() => {
       this.sql.run('UPDATE referees SET day_referee_id = NULL WHERE day_referee_id = ?', [id]);
       this.sql.run('DELETE FROM event_day_referees WHERE id = ?', [id]);
+    });
+  }
+
+  // ─── Import depuis les épreuves (#1872) ──────────────────────────────────────
+
+  /**
+   * Importe dans la journée les arbitres des épreuves rattachées. Homonymes (nom et
+   * prénom, accents et ordre ignorés) fusionnés en un seul arbitre ; ses armes sont
+   * celles des épreuves où il figure (un arbitre « toutes armes » le reste).
+   * Les fiches d'épreuve sont liées à l'arbitre de la journée.
+   */
+  public importCompetitionReferees(dayId: string): DaySyncResult {
+    if (!this.sql.db) throw new Error('Database not open');
+    const rows = this.sql.queryAll<CompetitionRefereeRow & { weapon: string }>(
+      `SELECT r.id, r.name, r.club, r.license, r.category, r.day_referee_id, c.weapon
+         FROM referees r JOIN competitions c ON c.id = r.competition_id
+        WHERE c.event_day_id = ? ORDER BY c.date, c.title, r.ref`,
+      [dayId]
+    );
+    const dayRefs = this.listReferees(dayId);
+    const byId = new Map(dayRefs.map(r => [r.id, r]));
+    const byKey = new Map(dayRefs.map(r => [refereeNameKey(dayRefereeFullName(r)), r]));
+    const groups = new Map<
+      string,
+      { dayRef?: DayReferee; rows: typeof rows; weapons: Set<Weapon> }
+    >();
+    for (const row of rows) {
+      const key = refereeNameKey(row.name ?? '');
+      const dayRef = (row.day_referee_id && byId.get(row.day_referee_id)) || byKey.get(key);
+      if (!dayRef && !key) continue;
+      const gk = dayRef ? dayRef.id : `name:${key}`;
+      const g = groups.get(gk) ?? { dayRef, rows: [], weapons: new Set<Weapon>() };
+      g.rows.push(row);
+      g.weapons.add(row.weapon as Weapon);
+      groups.set(gk, g);
+    }
+    return this.sql.transaction(() => {
+      let imported = 0;
+      let updated = 0;
+      for (const g of groups.values()) {
+        let dayRef = g.dayRef;
+        const weapons = parseWeapons([...g.weapons].join(','));
+        if (!dayRef) {
+          const first = g.rows[0];
+          const pick = (k: 'club' | 'license' | 'category') =>
+            g.rows.find(r => r[k])?.[k] ?? undefined;
+          dayRef = this.createReferee(dayId, {
+            ...splitRefereeName(first.name ?? ''),
+            club: pick('club'),
+            license: pick('license'),
+            category: pick('category'),
+            weapons,
+          });
+          imported++;
+        } else if (dayRef.weapons.length > 0) {
+          const merged = parseWeapons([...dayRef.weapons, ...weapons].join(','));
+          if (merged.length !== dayRef.weapons.length) {
+            this.updateReferee(dayRef.id, { weapons: merged });
+            updated++;
+          }
+        }
+        const target = dayRef.id;
+        const now = new Date().toISOString();
+        for (const r of g.rows) {
+          if (r.day_referee_id === target) continue;
+          this.sql.run('UPDATE referees SET day_referee_id = ?, updated_at = ? WHERE id = ?', [
+            target,
+            now,
+            r.id,
+          ]);
+        }
+      }
+      return { added: 0, updated, imported };
     });
   }
 

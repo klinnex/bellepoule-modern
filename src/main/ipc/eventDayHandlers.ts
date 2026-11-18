@@ -4,7 +4,7 @@
  */
 import { ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
-import type { DayRefereeInput } from '../../shared/types/eventDay';
+import type { DayRefereeInput, DaySyncResult } from '../../shared/types/eventDay';
 import type { EventDayOverview } from '../../shared/types/preload';
 import { busyElsewhere, computeDayStatuses, detectDayConflicts } from '../../shared/utils/eventDay';
 
@@ -24,6 +24,16 @@ export function syncDay(db: DatabaseManager, dayId: string): { added: number; up
   return total;
 }
 
+/**
+ * Importe les arbitres des épreuves dans la journée puis les reporte dans chaque
+ * épreuve selon son arme (#1872)
+ */
+export function importAndSyncDay(db: DatabaseManager, dayId: string): DaySyncResult {
+  const { imported = 0, updated } = db.eventDays.importCompetitionReferees(dayId);
+  const r = syncDay(db, dayId);
+  return { added: r.added, updated: r.updated + updated, imported };
+}
+
 export function buildOverview(db: DatabaseManager, dayId: string): EventDayOverview {
   const refs = db.eventDays.listReferees(dayId);
   const assignments = db.eventDays.getAssignments(dayId);
@@ -41,8 +51,8 @@ export function registerEventDayHandlers({ db }: EventDayHandlersContext): void 
   ipcMain.handle('eventDay:delete', (_, id: string) => repo.deleteDay(id));
   ipcMain.handle('eventDay:setCompetitionDay', (_, competitionId: string, dayId: string | null) => {
     repo.setCompetitionDay(competitionId, dayId);
-    // Rattachement : arbitres de la journée reportés aussitôt dans l'épreuve
-    return dayId ? repo.syncCompetition(competitionId) : { added: 0, updated: 0 };
+    // Rattachement : arbitres de l'épreuve importés dans la journée, puis reportés partout
+    return dayId ? importAndSyncDay(db, dayId) : { added: 0, updated: 0 };
   });
   ipcMain.handle('eventDay:listReferees', (_, dayId: string) => repo.listReferees(dayId));
   ipcMain.handle('eventDay:createReferee', (_, dayId: string, data: DayRefereeInput) =>
@@ -52,7 +62,7 @@ export function registerEventDayHandlers({ db }: EventDayHandlersContext): void 
     repo.updateReferee(id, data)
   );
   ipcMain.handle('eventDay:deleteReferee', (_, id: string) => repo.deleteReferee(id));
-  ipcMain.handle('eventDay:syncReferees', (_, dayId: string) => syncDay(db, dayId));
+  ipcMain.handle('eventDay:syncReferees', (_, dayId: string) => importAndSyncDay(db, dayId));
   ipcMain.handle('eventDay:getOverview', (_, dayId: string) => buildOverview(db, dayId));
   ipcMain.handle('eventDay:getBusyElsewhere', (_, competitionId: string) => {
     const dayId = repo.getCompetitionDayId(competitionId);

@@ -70,6 +70,8 @@ export interface DayRefereeConflict {
 export interface DaySyncResult {
   added: number;
   updated: number;
+  /** Arbitres des épreuves ajoutés à la journée (#1872) */
+  imported?: number;
 }
 
 /** Occupation d'une piste de la salle sur toute la journée */

@@ -1,13 +1,14 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : choix des catégories d'âge (M9 … V4).
  * Plage de début / fin (séance, pointage, statistiques), catégorie seule (filtre de liste),
- * ou cases à cocher (public visé par un exercice ; aucune case = commun à tous).
+ * ou cartes activables (public visé par un exercice ; aucune case = commun à tous).
  * Licensed under GPL-3.0
  */
 import React from 'react';
 import { AGE_CATEGORIES, type AgeRange } from '../../../shared/utils/clubAge';
 import { categoryLabel } from '../../../shared/utils/categoryLabel';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 
 interface AgeRangeSelectProps {
   value: AgeRange;
@@ -78,26 +79,25 @@ export const AgeCategoryChecks: React.FC<AgeCategoryChecksProps> = ({ value, onC
   const toggle = (c: string, on: boolean) =>
     onChange(AGE_CATEGORIES.filter(x => (x === c ? on : value.includes(x))));
   return (
-    <fieldset className="club-age-checks">
-      <legend className="form-label">
-        {t('clubAge.audience')}{' '}
-        <span className="club-muted">
-          {value.length === 0
-            ? t('clubAge.common')
-            : t('clubAge.selected', { count: value.length })}
-        </span>
-      </legend>
+    <ToggleChipGroup
+      className="club-age-checks"
+      legend={
+        <>
+          {t('clubAge.audience')}{' '}
+          <span className="club-muted">
+            {value.length === 0
+              ? t('clubAge.common')
+              : t('clubAge.selected', { count: value.length })}
+          </span>
+        </>
+      }
+    >
       {AGE_CATEGORIES.map(c => (
-        <label key={c} className="club-nowrap">
-          <input
-            type="checkbox"
-            checked={value.includes(c)}
-            onChange={e => toggle(c, e.target.checked)}
-          />{' '}
+        <ToggleChip key={c} pressed={value.includes(c)} onToggle={on => toggle(c, on)}>
           {categoryLabel(c, t)}
-        </label>
+        </ToggleChip>
       ))}
-    </fieldset>
+    </ToggleChipGroup>
   );
 };
 
