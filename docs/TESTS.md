@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 109 | 892 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 610 |
+| `src/renderer/components/` | 119 | 611 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 397 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3733** |
+| **Total** | **490** | **3734** |
 
-Unitaires : 480 fichiers, 3694 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -6142,13 +6142,14 @@ Unitaires : 480 fichiers, 3694 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 8 tests</summary>
 
 - **ClubView**
   - affiche le club, ses sous-onglets et les membres
   - ajoute un membre
   - archive un membre, affiche les archivés
   - enregistre le nom du club
+  - modifie l'identité depuis le bouton de l'en-tête
   - importe un fichier FFE .fff
   - importe un tableau CSV du club (colonne Nom)
   - nombre de pistes enregistré, import des photos ZIP
