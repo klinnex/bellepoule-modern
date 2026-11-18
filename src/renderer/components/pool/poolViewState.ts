@@ -12,6 +12,8 @@ export interface InlineEditCell {
   colId: string;
   matchIndex: number;
   inverted: boolean;
+  /** Texte proposé à l'ouverture (score déjà saisi) : inchangé → case suivante sans réenregistrer */
+  initial?: string;
 }
 
 /** Saisie du score (modale et cellule inline) */

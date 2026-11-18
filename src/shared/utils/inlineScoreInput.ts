@@ -3,7 +3,11 @@
  * - « 4 »  : score numérique
  * - « V »  : victoire au score maximum
  * - « W3 » : victoire au score 3, réservée au départage d'une égalité
+ * Règlement (o.17) : pas d'égalité au score max (5-5) hors Sabre Laser ; au Sabre Laser
+ * (match au temps), pas de « V » et un vainqueur obligatoire en cas d'égalité.
  */
+import { isTieAtScoreLimit } from './matchEndValidation';
+
 export type InlineScoreParse =
   | { kind: 'empty' }
   | { kind: 'score'; value: number }
@@ -61,6 +65,9 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
   if (parsed.kind === 'tieWin' && !p.tieByVictory) {
     return { action: 'error', msgKey: 'poolView.inline_win_tie_only' };
   }
+  if (parsed.kind === 'victory' && p.isLaserSabre) {
+    return { action: 'error', msgKey: 'poolView.inline_v_laser' };
+  }
   const score = parsed.value;
   const mirrorKey = `${p.colId}-${p.rowId}`;
   const buffer = { ...p.buffer, [p.key]: score };
@@ -76,6 +83,10 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
   if (p.maxScore > 0 && (scoreA > p.maxScore || scoreB > p.maxScore)) {
     return { action: 'error', msgKey: 'poolView.max_score', max: p.maxScore };
   }
+  if (!p.isLaserSabre && isTieAtScoreLimit(scoreA, scoreB, p.maxScore)) {
+    p.winnerCells.delete(p.key);
+    return { action: 'error', msgKey: 'poolView.tie_at_max', max: p.maxScore };
+  }
   const tie = scoreA === scoreB;
   if (!tie && (parsed.kind === 'tieWin' || p.winnerCells.has(mirrorKey))) {
     p.winnerCells.delete(p.key);
@@ -86,14 +97,55 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
     if (p.winnerCells.has(p.key)) winner = p.inverted ? 'B' : 'A';
     else if (p.winnerCells.has(mirrorKey)) winner = p.inverted ? 'A' : 'B';
   }
-  if (tie && !p.isLaserSabre && !winner) {
-    // L'égalité se tranche dans la fenêtre de saisie (V ou prioritaire)
-    return p.tieByVictory
-      ? { action: 'modal' }
-      : { action: 'error', msgKey: 'poolView.draw_impossible' };
+  if (tie && !winner) {
+    // L'égalité se tranche dans la fenêtre de saisie (V ou prioritaire) ; jamais de match nul
+    if (p.tieByVictory) return { action: 'modal' };
+    return {
+      action: 'error',
+      msgKey: p.isLaserSabre ? 'poolView.draw_laser' : 'poolView.draw_impossible',
+    };
   }
   p.winnerCells.delete(p.key);
   p.winnerCells.delete(mirrorKey);
   const { [p.key]: _a, [mirrorKey]: _b, ...restBuffer } = buffer;
   return { action: 'commit', scoreA, scoreB, winner, restBuffer, mirrorKey };
+}
+
+/**
+ * Saisie sans ambiguïté, validable sans Tab : « V », ou nombre (seul ou après W) auquel
+ * aucun chiffre ne peut plus s'ajouter sans dépasser le score max. Sans score max : jamais.
+ */
+export function isInlineScoreComplete(
+  raw: string,
+  maxScore: number,
+  isLaserSabre: boolean
+): boolean {
+  const text = raw.trim().toUpperCase();
+  if (text === 'V') return !isLaserSabre && maxScore > 0;
+  const m = /^W?(\d+)$/.exec(text);
+  if (!m || maxScore <= 0) return false;
+  const value = parseInt(m[1], 10);
+  return m[1] === '0' || value * 10 > maxScore;
+}
+
+/**
+ * Texte proposé dans une case déjà enregistrée, relu par `parseInlineScoreInput` :
+ * « V » pour une victoire au score max, « W3 » pour une victoire à égalité, sinon le score.
+ */
+export function inlineCellText(p: {
+  value: number;
+  isVictory: boolean;
+  /** Score de l'adversaire */
+  opponent: number;
+  maxScore: number;
+  isLaserSabre: boolean;
+}): string {
+  if (p.isVictory && p.value === p.opponent) return `W${p.value}`;
+  if (p.isVictory && !p.isLaserSabre && p.maxScore > 0 && p.value === p.maxScore) return 'V';
+  return String(p.value);
+}
+
+/** Affichage d'une victoire dans la matrice : « V » seul au score max, sinon « V » + score */
+export function victoryLabel(value: number, maxScore: number, isLaserSabre: boolean): string {
+  return !isLaserSabre && maxScore > 0 && value === maxScore ? 'V' : `V${value}`;
 }

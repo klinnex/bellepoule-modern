@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { resolveInlineSubmit } from '../../../shared/utils/inlineScoreInput';
+import { isTieAtScoreLimit } from '../../../shared/utils/matchEndValidation';
 import { MatchStatus, Weapon } from '../../../shared/types';
 import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
@@ -72,11 +73,21 @@ export function usePoolViewActions(ctx: Ctx) {
     onMatchReset,
   } = ctx;
 
-  const handleInlineSubmit = () => {
+  /**
+   * Validation d'une case ; `typed` : texte complet tapé (avancement automatique, sans Tab) ;
+   * `backward` : Maj+Tab, case précédente
+   */
+  const handleInlineSubmit = (typed?: string, backward = false) => {
     if (!inlineEditCell) return;
-    const { key, rowId, colId, matchIndex, inverted } = inlineEditCell;
+    const { key, rowId, colId, matchIndex, inverted, initial } = inlineEditCell;
+    const raw = typed ?? inlineSingleScore;
+    // Case déjà saisie, non modifiée : on passe à la suivante sans réenregistrer
+    if (initial && raw.trim().toUpperCase() === initial.toUpperCase()) {
+      openNextCell(key, new Set(), cellScoreBuffer, backward);
+      return;
+    }
     const r = resolveInlineSubmit({
-      raw: inlineSingleScore,
+      raw,
       maxScore: maxScore || pool.matches[matchIndex]?.maxScore || 0,
       tieByVictory,
       isLaserSabre,
@@ -88,17 +99,20 @@ export function usePoolViewActions(ctx: Ctx) {
       recordedMirror: getRecordedCellScore(matchIndex, inverted, true), // #1046
       winnerCells: tieWinnerCellsRef.current,
     });
-    if (r.action === 'skip') openNextCell(key, new Set(), cellScoreBuffer);
-    else if (r.action === 'error') showToast(t(r.msgKey, { max: r.max ?? 0 }), 'error');
-    else if (r.action === 'modal') openScoreModal(matchIndex, inverted);
+    if (r.action === 'skip') openNextCell(key, new Set(), cellScoreBuffer, backward);
+    else if (r.action === 'error') {
+      showToast(t(r.msgKey, { max: r.max ?? 0 }), 'error');
+      // Saisie automatique refusée : case vidée, on retape directement
+      if (typed !== undefined) setInlineSingleScore('');
+    } else if (r.action === 'modal') openScoreModal(matchIndex, inverted);
     else if (r.action === 'buffer') {
       setCellScoreBuffer(r.buffer);
-      openNextCell(key, new Set(), r.buffer);
+      openNextCell(key, new Set(), r.buffer, backward);
     } else {
       setCellScoreBuffer(r.restBuffer);
       if (r.winner) onScoreUpdate(matchIndex, r.scoreA, r.scoreB, r.winner);
       else onScoreUpdate(matchIndex, r.scoreA, r.scoreB);
-      openNextCell(key, new Set([key, r.mirrorKey]), r.restBuffer);
+      openNextCell(key, new Set([key, r.mirrorKey]), r.restBuffer, backward);
     }
   };
 
@@ -142,6 +156,12 @@ export function usePoolViewActions(ctx: Ctx) {
         ? match.scoreB
         : ((match?.scoreB as { value?: number } | null | undefined)?.value ?? null);
     const matchIdx = editingMatch;
+
+    // Égalité au score max impossible au règlement (o.17), hors Sabre Laser
+    if (!isLaserSabre && isTieAtScoreLimit(actualScoreA, actualScoreB, effectiveMax)) {
+      showToast(t('poolView.tie_at_max', { max: effectiveMax }), 'error');
+      return;
+    }
 
     if (actualScoreA === actualScoreB) {
       if (tieByVictory && (victoryA || victoryB)) {

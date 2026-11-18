@@ -100,6 +100,17 @@ export function decideMatchWinner(input: MatchWinnerInput): MatchWinner {
   return { winner: null };
 }
 
+/**
+ * Égalité au score limite (5-5 en poule, 15-15 au tableau), impossible au règlement
+ * (o.17) : à l'épée, à une touche du maximum, les coups doubles ne comptent plus ;
+ * au fleuret et au sabre, la convention n'accorde qu'une touche. Une victoire à égalité
+ * n'existe que sous la limite (V4-D4… V0-D0, tirage au sort de la minute supplémentaire).
+ * Ne s'applique pas au Sabre Laser (match au temps). `maxScore` 0 = illimité.
+ */
+export function isTieAtScoreLimit(scoreA: number, scoreB: number, maxScore: number): boolean {
+  return maxScore > 0 && scoreA === scoreB && scoreA >= maxScore;
+}
+
 /** Vainqueur au seul score (égalité : aucun) */
 export function winnerByScore(scoreA: number, scoreB: number): MatchSide | null {
   return scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null;

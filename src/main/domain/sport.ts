@@ -32,6 +32,7 @@ import {
 } from '../../shared/utils/poolOrchestration';
 import { propagatePoolReferee } from '../../shared/utils/refereeStats';
 import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
+import { isTieAtScoreLimit } from '../../shared/utils/matchEndValidation';
 import {
   getActiveFormula,
   resolveCompetitionSettings,
@@ -711,6 +712,9 @@ function recordBracketScore(
   const max = effectiveSettings(comp).tableMaxScore;
   if (!input.specialStatus && max > 0 && (scoreA > max || scoreB > max)) {
     throw new DomainError('score_above_max', `Score refusé : ${max} touches maximum`);
+  }
+  if (!input.specialStatus && !isLaser(comp) && isTieAtScoreLimit(scoreA, scoreB, max)) {
+    throw new DomainError('tie_at_max', `Score refusé : égalité impossible à ${max} touches`);
   }
   if (scoreA === scoreB && !input.winner) {
     throw new DomainError(
