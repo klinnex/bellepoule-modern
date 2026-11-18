@@ -3529,6 +3529,18 @@
     "col_period": "Periodo",
     "leaderboard": "Clasificación del club"
   },
+  "clubRemote": {
+    "open": "Ajustes",
+    "title": "Ajustes de la puntuación remota",
+    "port": "Puerto",
+    "screens": "Pantallas y tabletas",
+    "theme": "Tema de las pantallas",
+    "password": "Contraseña común de las pistas",
+    "password_hint": "Vacío = acceso libre; si no, 8 caracteres mínimo. Se guarda en memoria hasta cerrar la aplicación, nunca se graba.",
+    "restart_hint": "Puntuación remota en curso: la interfaz, el puerto y HTTPS se aplicarán en el próximo inicio.",
+    "saved": "Ajustes de la puntuación remota aplicados",
+    "saved_restart": "Tema y contraseña aplicados; detenga y reinicie la puntuación remota para la red"
+  },
   "clubImport": {
     "title": "Importar desde « {{file}} »",
     "help": "Marque las personas que desea importar. Los socios ya presentes (misma licencia, o mismo nombre y apellido) se completan, nunca se duplican.",

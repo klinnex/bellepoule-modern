@@ -3529,6 +3529,18 @@
     "col_period": "Period",
     "leaderboard": "Club ranking"
   },
+  "clubRemote": {
+    "open": "Settings",
+    "title": "Remote scoring settings",
+    "port": "Port",
+    "screens": "Screens and tablets",
+    "theme": "Screen theme",
+    "password": "Common strip password",
+    "password_hint": "Empty = open access; otherwise 8 characters minimum. Kept in memory until the app closes, never saved.",
+    "restart_hint": "Remote scoring running: interface, port and HTTPS will apply at the next start.",
+    "saved": "Remote scoring settings applied",
+    "saved_restart": "Theme and password applied; stop and restart remote scoring for the network"
+  },
   "clubImport": {
     "title": "Import from « {{file}} »",
     "help": "Tick the people to import. Members already present (same licence, or same first and last name) are completed, never duplicated.",

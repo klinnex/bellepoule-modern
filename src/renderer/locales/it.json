@@ -3529,6 +3529,18 @@
     "col_period": "Periodo",
     "leaderboard": "Classifica del club"
   },
+  "clubRemote": {
+    "open": "Impostazioni",
+    "title": "Impostazioni del punteggio remoto",
+    "port": "Porta",
+    "screens": "Schermi e tablet",
+    "theme": "Tema degli schermi",
+    "password": "Password comune delle pedane",
+    "password_hint": "Vuota = accesso libero; altrimenti almeno 8 caratteri. Tenuta in memoria fino alla chiusura dell'app, mai salvata.",
+    "restart_hint": "Punteggio remoto in corso: interfaccia, porta e HTTPS saranno applicati al prossimo avvio.",
+    "saved": "Impostazioni del punteggio remoto applicate",
+    "saved_restart": "Tema e password applicati; arresta e riavvia il punteggio remoto per la rete"
+  },
   "clubImport": {
     "title": "Importa da « {{file}} »",
     "help": "Seleziona le persone da importare. I soci già presenti (stessa licenza, o stesso nome e cognome) vengono completati, mai duplicati.",

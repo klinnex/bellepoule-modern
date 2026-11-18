@@ -3529,6 +3529,18 @@
     "col_period": "Période",
     "leaderboard": "Classement du club"
   },
+  "clubRemote": {
+    "open": "Paramètres",
+    "title": "Paramètres de la saisie distante",
+    "port": "Port",
+    "screens": "Écrans et tablettes",
+    "theme": "Thème des écrans",
+    "password": "Mot de passe commun des pistes",
+    "password_hint": "Vide = accès libre ; sinon 8 caractères minimum. Gardé en mémoire jusqu'à la fermeture de l'application, jamais enregistré.",
+    "restart_hint": "Saisie distante en cours : interface, port et HTTPS seront appliqués au prochain démarrage.",
+    "saved": "Paramètres de la saisie distante appliqués",
+    "saved_restart": "Thème et mot de passe appliqués ; arrêtez puis relancez la saisie distante pour le réseau"
+  },
   "clubImport": {
     "title": "Importer depuis « {{file}} »",
     "help": "Cochez les personnes à importer. Les membres déjà présents (même licence, ou même nom et prénom) sont complétés, jamais dupliqués.",

@@ -57,6 +57,7 @@ const settings = { name: 'Club', stripCount: 2 };
 
 let api: Record<string, ReturnType<typeof vi.fn>>;
 let training: Record<string, ReturnType<typeof vi.fn>>;
+let remoteApi: Record<string, ReturnType<typeof vi.fn>>;
 
 beforeEach(() => {
   api = {
@@ -87,8 +88,15 @@ beforeEach(() => {
     startSession: vi.fn().mockResolvedValue({ success: true }),
     stopSession: vi.fn().mockResolvedValue({ success: true }),
     stopServer: vi.fn().mockResolvedValue({ success: true }),
+    setTheme: vi.fn().mockResolvedValue({ success: true }),
   };
-  (window as unknown as { electronAPI: unknown }).electronAPI = { club: api, training };
+  remoteApi = { setArenaPassword: vi.fn().mockResolvedValue({ success: true }) };
+  localStorage.clear();
+  (window as unknown as { electronAPI: unknown }).electronAPI = {
+    club: api,
+    training,
+    remote: remoteApi,
+  };
 });
 
 describe('ClubSessionsPanel', () => {
@@ -167,9 +175,10 @@ describe('ClubSessionsPanel', () => {
     const start = await screen.findByRole('button', { name: 'Activer la saisie distante' });
     api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
     fireEvent.click(start);
-    await waitFor(() =>
-      expect(training.startServer).toHaveBeenCalledWith(undefined, '0.0.0.0', true)
-    );
+    await waitFor(() => expect(training.startServer).toHaveBeenCalledWith(8066, '0.0.0.0', true));
+    expect(training.setTheme).toHaveBeenCalledWith('dark');
+    // Sans mot de passe : pistes en accès libre
+    expect(remoteApi.setArenaPassword).toHaveBeenCalledWith('__training__', 'arena1', '');
     await waitFor(() => expect(api.linkRemote).toHaveBeenCalledWith('s1'));
     expect(training.startSession).toHaveBeenCalledWith(2, 'E');
     await waitFor(() => expect(api.pushBout).toHaveBeenCalledWith('bt1'));
@@ -184,6 +193,31 @@ describe('ClubSessionsPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Désactiver' }));
     await waitFor(() => expect(training.stopServer).toHaveBeenCalled());
     expect(api.linkRemote).toHaveBeenCalledWith(null);
+  });
+
+  it('paramètres de la saisie distante : réseau mémorisé, thème et mot de passe appliqués', async () => {
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Paramètres' }));
+    fireEvent.change(screen.getByLabelText('Port'), { target: { value: '9000' } });
+    fireEvent.click(screen.getByLabelText('Activer HTTPS (connexion chiffrée)'));
+    fireEvent.change(screen.getByLabelText('Thème des écrans'), { target: { value: 'neon' } });
+    const pwd = screen.getByLabelText('Mot de passe commun des pistes');
+    fireEvent.change(pwd, { target: { value: 'court' } });
+    expect(screen.getByRole('button', { name: 'Sauvegarder' })).toBeDisabled();
+    fireEvent.change(pwd, { target: { value: 'secret-club' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder' }));
+    // Mot de passe jamais stocké
+    expect(JSON.stringify({ ...localStorage })).not.toContain('secret-club');
+
+    api.remoteStatus.mockResolvedValue({ active: true, url: 'http://10.0.0.2:9000', strips: 2 });
+    fireEvent.click(screen.getByRole('button', { name: 'Activer la saisie distante' }));
+    await waitFor(() => expect(training.startServer).toHaveBeenCalledWith(9000, '0.0.0.0', false));
+    await waitFor(() => expect(training.setTheme).toHaveBeenCalledWith('neon'));
+    expect(remoteApi.setArenaPassword).toHaveBeenCalledWith(
+      '__training__',
+      'arena2',
+      'secret-club'
+    );
   });
 
   it('saisie distante active : lobby des pistes', async () => {
