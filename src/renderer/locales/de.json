@@ -3433,6 +3433,8 @@
     "hint_cards": "« Ausweise drucken » erstellt ein PDF mit 10 Ausweisen pro Seite: Logo, Name und QR-Code zum Ausschneiden."
   },
   "clubSession": {
+    "start_time": "Beginnzeit",
+    "start_time_clear": "Uhrzeit löschen",
     "delete_past_confirm": "Training vom {{date}} und alle Gefechte löschen? Nicht rückgängig zu machen.",
     "camera_unavailable": "Kamera auf diesem Gerät nicht verfügbar",
     "camera_denied": "Kamerazugriff verweigert",
@@ -3594,6 +3596,8 @@
     "too_many": "Höchstens {{max}} Zeiträume oder Daten pro Aktion."
   },
   "clubPlan": {
+    "drag_hint": "Übungen am Griff ziehen, um sie neu anzuordnen.",
+    "drag_n": "Übung {{n}} ziehen",
     "edit_title": "Training bearbeiten",
     "new_title": "Training vorbereiten",
     "date": "Datum",

@@ -253,6 +253,10 @@ export interface TableauMatchForXML {
   /** Arbitre principal + arbitres multiples (#1328 : publiés sur GREG) */
   referee?: { id: string } | null;
   referees?: Array<{ id: string }>;
+  /** Score cible du tour (#1957) : 10, 15… ; 15 si absent */
+  maxScore?: number;
+  /** Heure de début prévue du match (#1957) → attributs Date / Heure */
+  startTime?: Date | string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -378,6 +382,7 @@ export function exportResultsXMLFFE(
   // Arbitres (#1328) : liste courante prioritaire sur l'instantané de la compétition
   const allReferees = new Map<string, Referee>();
   for (const a of [...(competition.referees ?? []), ...(referees ?? [])]) allReferees.set(a.id, a);
+  // Rôle FIE 3.3 : P = principal, A = deuxième arbitre (le premier de la liste est P)
   const refereeRefs = (list: Array<{ id: string } | null | undefined>): string[] => {
     const seen = new Set<string>();
     const out: string[] = [];
@@ -385,10 +390,19 @@ export function exportResultsXMLFFE(
       const ref = r ? allReferees.get(r.id)?.ref : undefined;
       if (r && ref != null && !seen.has(r.id)) {
         seen.add(r.id);
-        out.push(`<Arbitre REF="${ref}"/>`);
+        const role = out.length === 0 ? 'P' : 'A';
+        out.push(`<Arbitre REF="${ref}" Role="${role}"/>`);
       }
     }
     return out;
+  };
+  // Latéralité FIE : G = gaucher, D = droitier
+  const lateralite = (f: Fencer): string => (f.handedness === 'L' ? 'G' : 'D');
+  // Date / Heure du match (#1957) : jj.mm.aaaa / HH:MM
+  const matchDateAttrs = (t?: Date | string): string => {
+    const date = formatDateFR(t);
+    if (!date) return '';
+    return ` Date="${date}" Heure="${formatTimeFR(t)}"`;
   };
 
   const rootTag = competition.isTeamEvent ? 'CompetitionParEquipes' : 'CompetitionIndividuelle';
@@ -400,6 +414,7 @@ export function exportResultsXMLFFE(
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(
     `<${rootTag}` +
+      ` Version="3.3"` +
       ` Couleur="${escapeXml(competition.color || '')}"` +
       federalHeaderAttributes(competition) +
       ` Organisateur="${escapeXml(competition.organizer || '')}"` +
@@ -436,7 +451,7 @@ export function exportResultsXMLFFE(
         ` Exporte="0"` +
         ` Statut="${escapeXml(f.status)}"` +
         ` Points=""` +
-        ` Lateralite=""` +
+        ` Lateralite="${lateralite(f)}"` +
         ` Departement=""` +
         ` RangPoules="${r.rank}"` +
         ` RangFinal="${finalRank}"/>`
@@ -523,7 +538,7 @@ export function exportResultsXMLFFE(
               : sB?.isVictory
                 ? 'V'
                 : 'D';
-        lines.push(`    <Match ID="${matchId++}">`);
+        lines.push(`    <Match ID="${matchId++}"${matchDateAttrs(match.startTime)}>`);
         lines.push(
           `     <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`
         );
@@ -539,7 +554,7 @@ export function exportResultsXMLFFE(
   }
 
   if (tableauMatches && tableauMatches.length > 0) {
-    const tableScoreMax = 15;
+    const tableScoreMax = tableauMatches.find(m => m.maxScore != null)?.maxScore ?? 15;
     lines.push(`  <PhaseDeTableaux PhaseID="3" ScoreMax="${tableScoreMax}">`);
     for (const r of poolRanking) {
       const finalRank = finalRankMap.get(r.fencer.id) ?? '';
@@ -557,18 +572,20 @@ export function exportResultsXMLFFE(
       );
       matchesOfRound.forEach((m, idx) => {
         // Exempt (#1328) : le vainqueur par exempt est placé dans sa case, qualifié sans adversaire
+        // Exempt (#1957) : deux <Tireur>, celui de l'exempt reste vide (ni score ni statut)
         if (!m.fencerA || !m.fencerB) {
           const solo = m.fencerA ?? m.fencerB;
           if (!solo) return;
-          lines.push(`     <Match ID="${idx + 1}">`);
+          lines.push(`     <Match ID="${idx + 1}"${matchDateAttrs(m.startTime)}>`);
           lines.push(`      <Tireur REF="${solo.ref}" Score="0" Statut="Q"/>`);
+          lines.push(`      <Tireur/>`);
           lines.push(`     </Match>`);
           return;
         }
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
         const piste = m.arena != null ? ` Piste="${m.arena}"` : '';
-        lines.push(`     <Match ID="${idx + 1}"${piste}>`);
+        lines.push(`     <Match ID="${idx + 1}"${piste}${matchDateAttrs(m.startTime)}>`);
         lines.push(
           `      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`
         );

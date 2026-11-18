@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 875 |
+| `src/shared/utils/` | 81 | 884 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 19 | 256 |
-| `src/main/` | 109 | 888 |
+| `src/database/` | 19 | 257 |
+| `src/main/` | 109 | 889 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
 | `src/renderer/components/` | 117 | 602 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3690** |
+| **Total** | **488** | **3701** |
 
-Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3662 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -503,7 +503,7 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 10 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 14 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -516,6 +516,11 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
   - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
   - resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)
+- **remoteCustomScoring (#1936)**
+  - armes modernes, barème standard : vue olympique (aucun barème envoyé)
+  - armes modernes, barème à zones : seules les phases à zones sont envoyées
+  - Sabre Laser : barème de la formule conservé
+  - autre arme ou rapières : aucun barème
 
 </details>
 
@@ -992,7 +997,7 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 48 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 53 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -1049,6 +1054,12 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+- **exportResultsXMLFFE — FIE 3.3 (#1957)**
+  - porte Version="3.3" à la racine
+  - exporte la latéralité G pour un gaucher, D sinon
+  - exporte le score cible réel du tableau (maxScore), 15 par défaut
+  - un exempt produit deux \<Tireur\>, le second vide
+  - ajoute Date et Heure au match à partir de startTime
 
 </details>
 
@@ -2715,7 +2726,7 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/clubRepo.test.ts</code> — 43 tests</summary>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 44 tests</summary>
 
 - **ClubRepo (#1872)**
   - **membres**
@@ -2732,6 +2743,7 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
     - nom + logo + pistes du club, logo validé, null efface
     - migration 26 : codes générés pour les membres existants
   - **préparation et bilan des séances**
+    - heure de début optionnelle : HH:MM valide, sinon absente ; effacée sur null
     - séance préparée : plan, objectifs, démarrage, une seule ouverte
     - bilan de séance et remarques par tireur
   - **maîtres d'armes**
@@ -3785,10 +3797,11 @@ Unitaires : 478 fichiers, 3651 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/mcp/plugin.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/mcp/plugin.test.ts</code> — 4 tests</summary>
 
 - **plugin bellepoule**
   - manifestes : plugin, marketplace, serveur MCP local à jeton
+  - userConfig : jeton sensible, repli sur les variables d'environnement (#1947)
   - commandes : description en en-tête
   - outils cités dans la skill et les commandes : tous publiés
 

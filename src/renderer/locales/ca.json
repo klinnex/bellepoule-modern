@@ -3433,6 +3433,8 @@
     "hint_cards": "« Imprimir els carnets » crea un PDF de 10 carnets per pàgina: logotip, nom i codi QR d'identificació per retallar."
   },
   "clubSession": {
+    "start_time": "Hora d'inici",
+    "start_time_clear": "Esborra l'hora",
     "delete_past_confirm": "Eliminar la sessió del {{date}} i tots els seus combats? No es pot desfer.",
     "camera_unavailable": "Càmera no disponible en aquest aparell",
     "camera_denied": "Accés a la càmera denegat",
@@ -3594,6 +3596,8 @@
     "too_many": "Com a màxim {{max}} períodes o dates per acció."
   },
   "clubPlan": {
+    "drag_hint": "Arrossega els exercicis per l'agafador per reordenar-los.",
+    "drag_n": "Arrossega l'exercici {{n}}",
     "edit_title": "Modificar la sessió",
     "new_title": "Preparar una sessió",
     "date": "Data",

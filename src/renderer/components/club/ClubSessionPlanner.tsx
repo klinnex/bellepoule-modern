@@ -5,7 +5,17 @@
  */
 
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, BookmarkPlus, Library, Plus, Repeat, Trash2 } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  BookmarkPlus,
+  GripVertical,
+  Library,
+  Plus,
+  Repeat,
+  Trash2,
+  X,
+} from 'lucide-react';
 import type {
   ClubCoach,
   ClubExercise,
@@ -74,9 +84,13 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   const src = session ?? prefill ?? null;
   const [label, setLabel] = useState(src?.label ?? '');
   const [weapon, setWeapon] = useState<Weapon | undefined>(src?.weapon ?? defaultWeapon);
+  const [startTime, setStartTime] = useState(src?.startTime ?? '');
   const [objectives, setObjectives] = useState(src?.objectives ?? '');
   const [notes, setNotes] = useState(src?.notes ?? '');
   const [plan, setPlan] = useState<ClubPlanItem[]>(src?.plan?.length ? src.plan : [newItem()]);
+  // Glisser-déposer des exercices : index de départ et de survol
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
   const [picker, setPicker] = useState(false);
   const [coachIds, setCoachIds] = useState<string[]>(session?.coachIds ?? []);
   const [range, setRange] = useState<AgeRange>({
@@ -136,14 +150,22 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
 
   const patch = (i: number, p: Partial<ClubPlanItem>) =>
     setPlan(list => list.map((it, j) => (j === i ? { ...it, ...p } : it)));
-  const move = (i: number, d: -1 | 1) =>
+  /** Déplace l'exercice `from` à la position `to` (décalage des autres) */
+  const reorder = (from: number, to: number) =>
     setPlan(list => {
-      const j = i + d;
-      if (j < 0 || j >= list.length) return list;
+      if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) {
+        return list;
+      }
       const next = [...list];
-      [next[i], next[j]] = [next[j], next[i]];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
       return next;
     });
+  const move = (i: number, d: -1 | 1) => reorder(i, i + d);
+  const endDrag = () => {
+    setDragFrom(null);
+    setDragOver(null);
+  };
 
   const total = planDuration(plan.filter(it => it.title.trim()));
 
@@ -171,6 +193,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
                   ageTo: range.ageTo ?? null,
                   coachIds,
                   plan: plan.filter(it => it.title.trim()),
+                  startTime: startTime || null,
                 },
                 recurrence
               )
@@ -192,6 +215,27 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
           />
         </div>
         <ClubWeaponSelect value={weapon} onChange={setWeapon} />
+        <div className="form-label">
+          <label>
+            {t('clubSession.start_time')}
+            <input
+              className="form-input club-time-input"
+              type="time"
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
+            />
+          </label>
+          {startTime && (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={<X size={14} aria-hidden="true" />}
+              aria-label={t('clubSession.start_time_clear')}
+              title={t('clubSession.start_time_clear')}
+              onClick={() => setStartTime('')}
+            />
+          )}
+        </div>
         <label className="form-label club-grow">
           {t('clubSession.label')}
           <input
@@ -306,10 +350,43 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
           {t('clubPlan.total', { duration: formatMinutes(total) })}
         </span>
       </div>
+      <p className="club-muted">{t('clubPlan.drag_hint')}</p>
       <ol className="club-plan-edit">
         {plan.map((it, i) => (
-          <li key={it.id} className="club-plan-edit-item">
+          <li
+            key={it.id}
+            className={`club-plan-edit-item${dragOver === i && dragFrom !== null && dragFrom !== i ? ' club-plan-edit-item--drop' : ''}`}
+            draggable={dragFrom === i}
+            onDragOver={e => {
+              if (dragFrom === null) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              setDragOver(i);
+            }}
+            onDrop={e => {
+              if (dragFrom === null) return;
+              e.preventDefault();
+              reorder(dragFrom, i);
+              endDrag();
+            }}
+            onDragEnd={endDrag}
+          >
             <div className="club-row">
+              <span
+                className="club-drag-handle"
+                role="button"
+                tabIndex={-1}
+                aria-label={t('clubPlan.drag_n', { n: i + 1 })}
+                title={t('clubPlan.drag_n', { n: i + 1 })}
+                onMouseDown={() => setDragFrom(i)}
+                onMouseUp={() => setDragFrom(null)}
+                onDragStart={e => {
+                  e.dataTransfer.effectAllowed = 'move';
+                  e.dataTransfer.setData('text/plain', it.id);
+                }}
+              >
+                <GripVertical size={16} aria-hidden="true" />
+              </span>
               <label className="form-label club-grow">
                 {t('clubPlan.exercise_n', { n: i + 1 })}
                 <input

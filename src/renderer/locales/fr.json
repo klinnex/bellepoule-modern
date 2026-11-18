@@ -3433,6 +3433,8 @@
     "hint_cards": "« Imprimer les cartes » crée un PDF de 10 cartes par page : logo, nom et QR code d'identification à découper."
   },
   "clubSession": {
+    "start_time": "Heure de début",
+    "start_time_clear": "Effacer l'heure",
     "delete_past_confirm": "Supprimer la séance du {{date}} et tous ses combats ? Action irréversible.",
     "camera_unavailable": "Caméra indisponible sur cet appareil",
     "camera_denied": "Accès à la caméra refusé",
@@ -3594,6 +3596,8 @@
     "too_many": "Au plus {{max}} périodes ou dates par action."
   },
   "clubPlan": {
+    "drag_hint": "Glissez les exercices par la poignée pour les réordonner.",
+    "drag_n": "Glisser l'exercice {{n}}",
     "edit_title": "Modifier la séance",
     "new_title": "Préparer une séance",
     "date": "Date",

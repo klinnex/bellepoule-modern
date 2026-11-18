@@ -333,10 +333,11 @@ describe('exportResultsXMLFFE', () => {
     );
     expect(xml).toContain('<Arbitre ID="7"');
     expect(xml).toContain('<Poule ID="1" Piste="3">');
-    expect(xml).toContain('    <Arbitre REF="7"/>');
+    expect(xml).toContain('    <Arbitre REF="7" Role="P"/>');
     expect(xml).toContain('<Match ID="1" Piste="2">');
-    expect(xml.split('<Arbitre REF="8"/>')).toHaveLength(2); // r2 dédoublonné
-    expect(xml).toContain('      <Arbitre REF="7"/>\n     </Match>');
+    expect(xml.split('<Arbitre REF="8"')).toHaveLength(2); // r2 dédoublonné (Role="P")
+    expect(xml).toContain('      <Arbitre REF="8" Role="P"/>');
+    expect(xml).toContain('      <Arbitre REF="7" Role="A"/>\n     </Match>');
   });
 
   it('maps ABANDONED to A', () => {
@@ -714,5 +715,70 @@ describe('export pour la fédération (#1949)', () => {
     expect(xml).toContain('Prenom="Noé"');
     expect(xml).toContain('<Arbitre ID="7" Nom="MARTIN"');
     expect(xml.trimEnd().endsWith('</CompetitionParEquipes>')).toBe(true);
+  });
+});
+
+// ============================================================================
+// exportResultsXMLFFE — conformité FIE 3.3 (#1957, partie 1)
+// ============================================================================
+
+describe('exportResultsXMLFFE — FIE 3.3 (#1957)', () => {
+  it('porte Version="3.3" à la racine', () => {
+    const xml = exportResultsXMLFFE(makeCompetition(), [], []);
+    expect(xml).toMatch(/<CompetitionIndividuelle Version="3\.3"/);
+  });
+
+  it('exporte la latéralité G pour un gaucher, D sinon', () => {
+    const gauche = makeFencer('f1', 1, { handedness: 'L' });
+    const droit = makeFencer('f2', 2);
+    const xml = exportResultsXMLFFE(
+      makeCompetition(),
+      [makeRanking(gauche), makeRanking(droit)],
+      []
+    );
+    expect(xml).toContain('Lateralite="G"');
+    expect(xml).toContain('Lateralite="D"');
+    expect(xml).not.toContain('Lateralite=""');
+  });
+
+  it('exporte le score cible réel du tableau (maxScore), 15 par défaut', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const dix = [
+      { round: 2, fencerA: f1, fencerB: f2, scoreA: 10, scoreB: 5, isBye: false, maxScore: 10 },
+    ];
+    expect(exportResultsXMLFFE(makeCompetition(), [], [], undefined, dix)).toContain(
+      '<PhaseDeTableaux PhaseID="3" ScoreMax="10">'
+    );
+    const quinze = [{ round: 2, fencerA: f1, fencerB: f2, scoreA: 15, scoreB: 5, isBye: false }];
+    expect(exportResultsXMLFFE(makeCompetition(), [], [], undefined, quinze)).toContain(
+      '<PhaseDeTableaux PhaseID="3" ScoreMax="15">'
+    );
+  });
+
+  it('un exempt produit deux <Tireur>, le second vide', () => {
+    const tableauMatches = [
+      { round: 4, fencerA: { ref: 1 }, fencerB: null, scoreA: null, scoreB: null, isBye: true },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Tireur REF="1" Score="0" Statut="Q"/>\n      <Tireur/>');
+  });
+
+  it('ajoute Date et Heure au match à partir de startTime', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const tableauMatches = [
+      {
+        round: 2,
+        fencerA: f1,
+        fencerB: f2,
+        scoreA: 15,
+        scoreB: 10,
+        isBye: false,
+        startTime: new Date(2026, 2, 15, 9, 5),
+      },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Match ID="1" Date="15.03.2026" Heure="09:05">');
   });
 });

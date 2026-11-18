@@ -3433,6 +3433,8 @@
     "hint_cards": "« Print cards » creates a PDF with 10 cards per page: logo, name and identification QR code, ready to cut out."
   },
   "clubSession": {
+    "start_time": "Start time",
+    "start_time_clear": "Clear time",
     "delete_past_confirm": "Delete the session of {{date}} and all its bouts? This cannot be undone.",
     "camera_unavailable": "Camera unavailable on this device",
     "camera_denied": "Camera access denied",
@@ -3594,6 +3596,8 @@
     "too_many": "At most {{max}} periods or dates per action."
   },
   "clubPlan": {
+    "drag_hint": "Drag exercises by the handle to reorder them.",
+    "drag_n": "Drag exercise {{n}}",
     "edit_title": "Edit session",
     "new_title": "Prepare a session",
     "date": "Date",

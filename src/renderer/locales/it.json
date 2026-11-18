@@ -3433,6 +3433,8 @@
     "hint_cards": "« Stampa tessere » crea un PDF con 10 tessere per pagina: logo, nome e codice QR di identificazione da ritagliare."
   },
   "clubSession": {
+    "start_time": "Ora di inizio",
+    "start_time_clear": "Cancella l'ora",
     "delete_past_confirm": "Eliminare la sessione del {{date}} e tutti i suoi incontri? Operazione irreversibile.",
     "camera_unavailable": "Fotocamera non disponibile su questo dispositivo",
     "camera_denied": "Accesso alla fotocamera negato",
@@ -3594,6 +3596,8 @@
     "too_many": "Massimo {{max}} periodi o date per azione."
   },
   "clubPlan": {
+    "drag_hint": "Trascina gli esercizi dall'impugnatura per riordinarli.",
+    "drag_n": "Trascina l'esercizio {{n}}",
     "edit_title": "Modifica la seduta",
     "new_title": "Prepara una seduta",
     "date": "Data",

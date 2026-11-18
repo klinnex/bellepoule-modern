@@ -120,6 +120,7 @@ interface SessionRow {
   feedback: string | null;
   age_from: string | null;
   age_to: string | null;
+  start_time: string | null;
   series_id: string | null;
   club_id: string | null;
   date: string;
@@ -176,6 +177,10 @@ const entryMode = (v: unknown): ClubEntryMode =>
 const oneWeapon = (v: unknown): Weapon | null =>
   parseWeapons(typeof v === 'string' ? v : null)[0] ?? null;
 const opt = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
+
+/** Heure de début HH:MM (00:00 à 23:59) ; autre valeur = absente */
+const normalizeStartTime = (v: unknown): string | null =>
+  typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : null;
 const newCardCode = (): string => randomBytes(5).toString('hex').toUpperCase();
 /** Logo accepté : data URL image base64, 2 Mo max */
 const LOGO_RE = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
@@ -866,6 +871,7 @@ export class ClubRepo {
       memberFeedback: this.memberFeedbackOf(r.id),
       ageFrom: opt(normalizeAgeCategory(r.age_from) ?? null),
       ageTo: opt(normalizeAgeCategory(r.age_to) ?? null),
+      startTime: opt(normalizeStartTime(r.start_time)),
       seriesId: opt(r.series_id),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
@@ -908,8 +914,8 @@ export class ClubRepo {
     const now = new Date().toISOString();
     this.sql.run(
       `INSERT INTO club_sessions (id, club_id, date, label, weapon, strip_count, status,
-         objectives, plan, notes, age_from, age_to, series_id, opened_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         objectives, plan, notes, age_from, age_to, start_time, series_id, opened_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         clubId,
@@ -923,6 +929,7 @@ export class ClubRepo {
         cleanLongText(data.notes) ?? null,
         normalizeAgeCategory(data.ageFrom) ?? null,
         normalizeAgeCategory(data.ageTo) ?? null,
+        normalizeStartTime(data.startTime),
         seriesId ?? null,
         now,
         now,
@@ -1102,6 +1109,10 @@ export class ClubRepo {
         sets.push(`${col} = ?`);
         values.push(normalizeAgeCategory(updates[key]) ?? null);
       }
+    }
+    if (updates.startTime !== undefined) {
+      sets.push('start_time = ?');
+      values.push(normalizeStartTime(updates.startTime));
     }
     if (updates.plan !== undefined) {
       sets.push('plan = ?');

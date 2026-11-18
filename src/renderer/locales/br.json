@@ -3433,6 +3433,8 @@
     "hint_cards": "« Moullañ ar c'hartennoù » a grou ur PDF gant 10 karten dre bajenn : logo, anv ha kod QR, da droc'hañ."
   },
   "clubSession": {
+    "start_time": "Eur kregiñ",
+    "start_time_clear": "Dilemel an eur",
     "delete_past_confirm": "Diverkañ an degemer eus {{date}} hag an holl emgannoù? Ne vez ket gallet dizober.",
     "camera_unavailable": "Kamera dihegerz war an ardivink-mañ",
     "camera_denied": "Nac'het an tremen d'ar gamera",
@@ -3594,6 +3596,8 @@
     "too_many": "Hebiou {{max}} padenn pe deiziad dre obererezh."
   },
   "clubPlan": {
+    "drag_hint": "Lakit an arc'hadennoù dre an dorn evit o urzhiañ.",
+    "drag_n": "Lakaat an arc'hadenn {{n}}",
     "edit_title": "Kemmañ an abadenn",
     "new_title": "Prientiñ un abadenn",
     "date": "Deiziad",

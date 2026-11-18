@@ -25,13 +25,22 @@ interroge la salle en langage naturel, prépare une journée, tire les poules, s
 
 ## Plugin Claude Code
 
-```bash
-export BELLEPOULE_MCP_TOKEN=<jeton copié depuis les Paramètres>
-```
+Dans Claude Code : `/plugin install bellepoule --marketplace BellePoule-Modern/bellepoule-modern`
+(depuis un clone : `claude --plugin-dir plugins/bellepoule`), puis `/plugin configure bellepoule`
+et `/reload-plugins`. Options (`userConfig`, #1947) :
 
-Puis dans Claude Code : `/plugin install bellepoule --marketplace BellePoule-Modern/bellepoule-modern`
-(depuis un clone : `claude --plugin-dir plugins/bellepoule`). Commandes : `/bp-etat` (état de la
-salle, lecture seule), `/bp-journee <dossier>` (préparer une journée), `/bp-epreuve <épreuve>`
+| Option | Rangement | Repli si non renseignée |
+|---|---|---|
+| `mcp_token` | Stockage sécurisé du système | `BELLEPOULE_MCP_TOKEN` |
+| `mcp_port` | `settings.json` | `BELLEPOULE_MCP_PORT`, sinon 8067 |
+
+Le repli passe par la valeur par défaut des options (`${BELLEPOULE_MCP_TOKEN:-}`), développée
+par Claude Code après `${user_config.…}`. Une variable exportée dans `~/.zshrc` ou `~/.bashrc`
+n'atteint pas un Claude Code lancé depuis VS Code ou un lanceur graphique : préférer
+`/plugin configure`. Après « Nouveau jeton », le reconfigurer. Un jeton absent ou périmé donne
+HTTP 401 (`Jeton invalide`), affiché par Claude Code comme `AUTH_HEADER_REJECTED`.
+
+Commandes : `/bp-etat` (état de la salle, lecture seule), `/bp-journee <dossier>` (préparer une journée), `/bp-epreuve <épreuve>`
 (conduire une épreuve). Le test `src/main/mcp/plugin.test.ts` vérifie que chaque outil cité par
 la skill et les commandes existe.
 

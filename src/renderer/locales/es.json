@@ -3433,6 +3433,8 @@
     "hint_cards": "« Imprimir los carnés » crea un PDF de 10 carnés por página: logotipo, nombre y código QR de identificación para recortar."
   },
   "clubSession": {
+    "start_time": "Hora de inicio",
+    "start_time_clear": "Borrar la hora",
     "delete_past_confirm": "¿Eliminar la sesión del {{date}} y todos sus combates? No se puede deshacer.",
     "camera_unavailable": "Cámara no disponible en este dispositivo",
     "camera_denied": "Acceso a la cámara denegado",
@@ -3594,6 +3596,8 @@
     "too_many": "Como máximo {{max}} periodos o fechas por acción."
   },
   "clubPlan": {
+    "drag_hint": "Arrastra los ejercicios por el asa para reordenarlos.",
+    "drag_n": "Arrastrar el ejercicio {{n}}",
     "edit_title": "Modificar la sesión",
     "new_title": "Preparar una sesión",
     "date": "Fecha",
