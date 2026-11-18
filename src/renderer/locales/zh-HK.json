@@ -3353,6 +3353,7 @@
   },
   "club": {
     "new_member": "新成員",
+    "tab_identity": "身分",
     "tab_members": "會員",
     "tab_sessions": "訓練",
     "tab_stats": "統計",

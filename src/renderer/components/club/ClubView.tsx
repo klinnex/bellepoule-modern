@@ -1,6 +1,7 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : espace permanent du club, ouvert comme un
- * onglet de compétition. Sous-onglets Membres / Maîtres d'armes / Séances / Statistiques.
+ * onglet de compétition. Sous-onglets Identité / Membres / Maîtres d'armes / Séances /
+ * Statistiques / Exercices / Matériel.
  * Licensed under GPL-3.0
  */
 
@@ -26,7 +27,6 @@ import { exportClubBackup } from './clubBackup';
 import { ClubSyncModal } from './ClubSyncModal';
 import { ClubPicker } from './ClubPicker';
 import { ClubIdentityCard } from './ClubIdentityCard';
-import { Modal } from '../common/Modal';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -38,11 +38,14 @@ import { ClubStatsPanel } from './ClubStatsPanel';
 import { ClubExercisesPanel } from './ClubExercisesPanel';
 import { ClubInventoryPanel } from './ClubInventoryPanel';
 import { ClubTour } from './ClubTour';
+import type { ClubTourStepId } from './clubTourFlags';
 import { markCardsPrinted, readCardsPrinted, restartClubTour } from './clubTourFlags';
 
-type ClubTab = 'members' | 'coaches' | 'sessions' | 'stats' | 'exercises' | 'inventory';
+type ClubTab =
+  'identity' | 'members' | 'coaches' | 'sessions' | 'stats' | 'exercises' | 'inventory';
 
 const TABS: { id: ClubTab; icon: React.ReactNode; labelKey: string }[] = [
+  { id: 'identity', icon: <Shield size={15} aria-hidden="true" />, labelKey: 'club.tab_identity' },
   { id: 'members', icon: <Users size={15} aria-hidden="true" />, labelKey: 'club.tab_members' },
   {
     id: 'coaches',
@@ -93,7 +96,6 @@ const ClubSpace: React.FC<{
   // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
   const [menuRevision, setMenuRevision] = useState(0);
   const [syncOpen, setSyncOpen] = useState(false);
-  const [identityOpen, setIdentityOpen] = useState(false);
   const [panelRevision, setPanelRevision] = useState(0);
   const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
   const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
@@ -102,6 +104,11 @@ const ClubSpace: React.FC<{
   const showSession = useCallback((id: string) => {
     setActiveSessionId(id);
     setTab('sessions');
+  }, []);
+
+  // Parcours guidé : l'onglet suit l'étape (nom et logo → Identité ; membres, cartes → Membres)
+  const showTourStep = useCallback((step: ClubTourStepId) => {
+    setTab(step === 'identity' || step === 'logo' ? 'identity' : 'members');
   }, []);
 
   const loadSettings = useCallback(async () => {
@@ -175,7 +182,7 @@ const ClubSpace: React.FC<{
               icon={<Pencil size={14} aria-hidden="true" />}
               aria-label={t('club.identity')}
               title={t('club.identity')}
-              onClick={() => setIdentityOpen(true)}
+              onClick={() => setTab('identity')}
             />
           </div>
           <p className="club-header-sub">{t('club.subtitle')}</p>
@@ -232,17 +239,6 @@ const ClubSpace: React.FC<{
         <ClubSyncModal clubId={clubId} onChanged={bumpPanel} onClose={() => setSyncOpen(false)} />
       )}
 
-      {identityOpen && (
-        <Modal title={t('club.identity')} onClose={() => setIdentityOpen(false)} size="md">
-          <ClubIdentityCard
-            clubId={clubId}
-            settings={settings}
-            onSettingsChange={setSettings}
-            bare
-          />
-        </Modal>
-      )}
-
       <nav className="club-nav" aria-label={t('club.nav_label')}>
         {TABS.map(item => (
           <Button
@@ -258,11 +254,13 @@ const ClubSpace: React.FC<{
       </nav>
 
       <section className="club-content">
+        {tab === 'identity' && (
+          <ClubIdentityCard clubId={clubId} settings={settings} onSettingsChange={setSettings} />
+        )}
         {tab === 'members' && (
           <ClubMembersPanel
             clubId={clubId}
             settings={settings}
-            onSettingsChange={setSettings}
             onMembersLoaded={setMembersCount}
             onCardsPrinted={onCardsPrinted}
           />
@@ -289,6 +287,7 @@ const ClubSpace: React.FC<{
         hasLogo={!!settings.logo}
         membersCount={membersCount ?? 0}
         cardsPrinted={cardsPrinted}
+        onStep={showTourStep}
       />
     </div>
   );

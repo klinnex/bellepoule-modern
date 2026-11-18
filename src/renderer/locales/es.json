@@ -3353,6 +3353,7 @@
   },
   "club": {
     "new_member": "Nuevo miembro",
+    "tab_identity": "Identidad",
     "tab_members": "Socios",
     "tab_sessions": "Sesiones",
     "tab_stats": "Estadísticas",

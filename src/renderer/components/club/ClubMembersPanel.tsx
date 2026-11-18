@@ -1,6 +1,5 @@
 /**
- * BellePoule Modern - Mode Club (#1872) : identité du club (ClubIdentityCard), annuaire des
- * membres (ajout, archivage, effacement, nouveau code carte) et impression des cartes.
+ * BellePoule Modern - Mode Club (#1872) : annuaire des membres (ajout, archivage, effacement, nouveau code carte) et impression des cartes.
  * Licensed under GPL-3.0
  */
 
@@ -41,7 +40,6 @@ import { compareByAgeCategory, memberAgeCategory } from '../../../shared/utils/c
 import { categoryLabel } from '../../../shared/utils/categoryLabel';
 import { AgeCategoryFilter } from './ClubAgeRange';
 import { FencerPhoto } from '../FencerPhoto';
-import { ClubIdentityCard } from './ClubIdentityCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -55,7 +53,6 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 interface ClubMembersPanelProps {
   clubId: string;
   settings: ClubSettings;
-  onSettingsChange: (s: ClubSettings) => void;
   /** Nombre de membres actifs après chaque chargement (parcours guidé) */
   onMembersLoaded?: (activeCount: number) => void;
   /** Cartes exportées (parcours guidé) */
@@ -65,7 +62,6 @@ interface ClubMembersPanelProps {
 export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   clubId,
   settings,
-  onSettingsChange,
   onMembersLoaded,
   onCardsPrinted,
 }) => {
@@ -275,8 +271,6 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
 
   return (
     <div className="club-members">
-      <ClubIdentityCard clubId={clubId} settings={settings} onSettingsChange={onSettingsChange} />
-
       <section className="club-card" aria-labelledby="club-members-title">
         <div className="club-row club-row--between">
           <div className="club-title-group">

@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : identité du club (nom, logo, arme, pistes, QR des
- * pistes). Carte de l'onglet Membres et fenêtre ouverte depuis l'en-tête du club.
+ * pistes). Onglet Identité de l'espace club.
  * Licensed under GPL-3.0
  */
 
@@ -20,15 +20,12 @@ interface ClubIdentityCardProps {
   clubId: string;
   settings: ClubSettings;
   onSettingsChange: (s: ClubSettings) => void;
-  /** Sans cadre ni titre (contenu d'une fenêtre) ; sans repères du parcours guidé */
-  bare?: boolean;
 }
 
 export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
   clubId,
   settings,
   onSettingsChange,
-  bare = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -36,7 +33,6 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
   // null = nom enregistré (pas d'édition en cours)
   const [nameEdit, setNameEdit] = useState<string | null>(null);
   const clubName = nameEdit ?? settings.name;
-  const tour = (id: string) => (bare ? undefined : id);
 
   if (!api) return null;
 
@@ -82,7 +78,7 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
   const body = (
     <>
       <div className="club-row club-row--align-end">
-        <label className="form-label club-grow" data-tour={tour('club-name')}>
+        <label className="form-label club-grow" data-tour="club-name">
           {t('club.name')}
           <input
             className="form-input"
@@ -99,7 +95,7 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
         </Button>
       </div>
       <div className="club-row">
-        <label className="form-label" data-tour={tour('club-logo')}>
+        <label className="form-label" data-tour="club-logo">
           {t('club.logo')}
           <input
             className="form-input"
@@ -124,7 +120,7 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
           label={t('clubWeapon.club_label')}
           onChange={w => void run(() => saveClub({ weapon: w }))}
         />
-        <label className="form-label club-field-stack" data-tour={tour('club-strips')}>
+        <label className="form-label club-field-stack" data-tour="club-strips">
           {t('club.strip_count')}
           <input
             className="form-input club-strips-input"
@@ -137,7 +133,7 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
         </label>
         <Button
           icon={<QrCode size={15} aria-hidden="true" />}
-          data-tour={tour('club-arena-qr')}
+          data-tour="club-arena-qr"
           onClick={() => void printArenas('print')}
         >
           {t('club.print_arena_qr')}
@@ -153,7 +149,6 @@ export const ClubIdentityCard: React.FC<ClubIdentityCardProps> = ({
     </>
   );
 
-  if (bare) return body;
   return (
     <section className="club-card" aria-labelledby="club-identity-title">
       <h2 id="club-identity-title" className="club-card-title">

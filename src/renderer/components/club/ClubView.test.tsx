@@ -6,7 +6,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 import { ClubView } from './ClubView';
 
@@ -100,8 +100,12 @@ describe('ClubView', () => {
     await waitFor(() => expect(api.listMembers).toHaveBeenLastCalledWith('c1', true));
   });
 
-  it('enregistre le nom du club', async () => {
+  it('enregistre le nom du club (onglet Identité)', async () => {
     render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
+    await screen.findByText('MARTIN');
+    // L'identité n'est plus sur l'onglet Membres
+    expect(screen.queryByLabelText('Nom du club')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Identité' }));
     const input = await screen.findByLabelText('Nom du club');
     await waitFor(() => expect(input).toHaveValue('Cercle d’escrime'));
     fireEvent.change(input, { target: { value: 'Nouveau nom' } });
@@ -110,16 +114,16 @@ describe('ClubView', () => {
     expect(await screen.findByRole('heading', { name: 'Nouveau nom' })).toBeInTheDocument();
   });
 
-  it("modifie l'identité depuis le bouton de l'en-tête", async () => {
+  it("le bouton de l'en-tête ouvre l'onglet Identité", async () => {
     render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
     const edit = await screen.findByRole('button', { name: 'Identité du club' });
     fireEvent.click(edit);
-    const dialog = await screen.findByRole('dialog');
-    const input = within(dialog).getByLabelText('Nom du club');
+    expect(screen.getByRole('button', { name: 'Identité' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    const input = await screen.findByLabelText('Nom du club');
     await waitFor(() => expect(input).toHaveValue('Cercle d’escrime'));
-    fireEvent.change(input, { target: { value: 'Nouveau nom' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Sauvegarder' }));
-    await waitFor(() => expect(api.updateClub).toHaveBeenCalledWith('c1', { name: 'Nouveau nom' }));
   });
 
   it('importe un fichier FFE .fff', async () => {
@@ -169,11 +173,14 @@ describe('ClubView', () => {
       openFile: vi.fn().mockResolvedValue({ filePath: '/tmp/photos.zip' }),
     };
     render(<ClubView clubId="c1" onSelectClub={vi.fn()} />);
+    await screen.findByText('MARTIN');
+    fireEvent.click(screen.getByRole('button', { name: 'Identité' }));
     const strips = await screen.findByLabelText('Nombre de pistes');
     await waitFor(() => expect(strips).toHaveValue(3));
     fireEvent.change(strips, { target: { value: '6' } });
     await waitFor(() => expect(api.updateClub).toHaveBeenCalledWith('c1', { stripCount: 6 }));
-    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Membres' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Importer' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Importer photos (.zip)' }));
     await waitFor(() => expect(api.importPhotos).toHaveBeenCalledWith('c1', '/tmp/photos.zip'));
   });
