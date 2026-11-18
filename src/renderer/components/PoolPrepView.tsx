@@ -1184,7 +1184,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             <Button
               onClick={handleDiscardChanges}
               title={t('pools.prep_discard_title')}
-              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              className="pool-prep-discard-btn"
             >
               {t('pools.prep_discard')}
             </Button>
