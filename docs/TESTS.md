@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 879 |
+| `src/shared/utils/` | 81 | 884 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3696** |
+| **Total** | **488** | **3701** |
 
-Unitaires : 478 fichiers, 3657 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3662 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -997,7 +997,7 @@ Unitaires : 478 fichiers, 3657 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 48 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 53 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -1054,6 +1054,12 @@ Unitaires : 478 fichiers, 3657 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+- **exportResultsXMLFFE — FIE 3.3 (#1957)**
+  - porte Version="3.3" à la racine
+  - exporte la latéralité G pour un gaucher, D sinon
+  - exporte le score cible réel du tableau (maxScore), 15 par défaut
+  - un exempt produit deux \<Tireur\>, le second vide
+  - ajoute Date et Heure au match à partir de startTime
 
 </details>
 
