@@ -631,6 +631,8 @@
     "redo": "Refazer um resultado de poule",
     "new_competition": "Nova competição",
     "validate": "Validar / Abrir",
+    "simplified_tab": "Introdução simplificada da poule: validar e ir para a célula seguinte / anterior (resultado existente selecionado, editável). Um resultado sem ambiguidade avança sozinho",
+    "simplified_v": "Introdução simplificada da poule: V = vitória com a pontuação máxima; W + algarismo (ex. W3) = vitória em empate, abaixo do máximo",
     "print_sheets": "Imprimir folhas de poule / de combate",
     "next_phase": "Fase seguinte",
     "add_fencer": "Adicionar um esgrimista",

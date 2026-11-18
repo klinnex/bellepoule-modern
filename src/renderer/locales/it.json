@@ -631,6 +631,8 @@
     "redo": "Ripristina un inserimento del girone",
     "new_competition": "Nuova competizione",
     "validate": "Convalida / Apri",
+    "simplified_tab": "Inserimento semplificato del girone: conferma e vai alla cella successiva / precedente (punteggio esistente selezionato, modificabile). Un punteggio univoco avanza da solo",
+    "simplified_v": "Inserimento semplificato del girone: V = vittoria al punteggio massimo; W + cifra (es. W3) = vittoria in parità, sotto il massimo",
     "print_sheets": "Stampa i fogli di girone / di incontro",
     "next_phase": "Fase successiva",
     "add_fencer": "Aggiungi uno schermidore",

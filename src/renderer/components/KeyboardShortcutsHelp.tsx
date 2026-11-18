@@ -41,6 +41,13 @@ const SHORTCUTS: Shortcut[] = [
   // Competition
   { key: 'N', descriptionKey: 'shortcuts.next_match', category: 'competition' },
   { key: 'Enter', descriptionKey: 'shortcuts.validate', category: 'competition' },
+  // Saisie simplifiée de la matrice de poule (#1990)
+  {
+    key: 'Tab / Shift + Tab',
+    descriptionKey: 'shortcuts.simplified_tab',
+    category: 'competition',
+  },
+  { key: 'V / W + n', descriptionKey: 'shortcuts.simplified_v', category: 'competition' },
 
   // Commandes « / » de la palette Ctrl+K (docs/COMMANDES.md)
   ...SLASH_COMMANDS.map(c => ({

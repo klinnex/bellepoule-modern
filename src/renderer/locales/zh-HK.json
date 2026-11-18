@@ -631,6 +631,8 @@
     "redo": "重做分組比分",
     "new_competition": "新增比賽",
     "validate": "確認 / 開啟",
+    "simplified_tab": "簡易分組輸入：確認並移至下一格／上一格（已輸入的比分會被選取，可修改）。明確的比分會自動跳至下一格",
+    "simplified_v": "簡易分組輸入：V = 以最高分勝出；W + 數字（例如 W3）= 平分時勝出，低於最高分",
     "print_sheets": "列印小組賽 / 對戰表",
     "next_phase": "下一階段",
     "add_fencer": "新增選手",

@@ -631,6 +631,8 @@
     "redo": "Refer un marcador de poule",
     "new_competition": "Nova competició",
     "validate": "Validar / Obrir",
+    "simplified_tab": "Entrada simplificada de poule: validar i anar a la cel·la següent / anterior (resultat existent seleccionat, modificable). Un resultat sense ambigüitat avança sol",
+    "simplified_v": "Entrada simplificada de poule: V = victòria amb la puntuació màxima; W + xifra (p. ex. W3) = victòria en empat, per sota del màxim",
     "print_sheets": "Imprimir els fulls de poule / de combat",
     "next_phase": "Fase següent",
     "add_fencer": "Afegir un tirador",

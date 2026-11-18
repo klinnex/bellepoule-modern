@@ -631,6 +631,8 @@
     "redo": "Rétablir une saisie de poule",
     "new_competition": "Nouvelle compétition",
     "validate": "Valider / Ouvrir",
+    "simplified_tab": "Saisie simplifiée de poule : valider et aller à la case suivante / précédente (score déjà saisi sélectionné, modifiable). Un score sans ambiguïté passe seul à la case suivante",
+    "simplified_v": "Saisie simplifiée de poule : V = victoire au score max ; W + chiffre (ex. W3) = victoire à égalité, sous le score max",
     "print_sheets": "Imprimer les feuilles de poule / de match",
     "next_phase": "Phase suivante",
     "add_fencer": "Ajouter un tireur",

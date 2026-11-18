@@ -631,6 +631,8 @@
     "redo": "Redo a pool score",
     "new_competition": "New competition",
     "validate": "Validate / Open",
+    "simplified_tab": "Simplified pool entry: confirm and go to the next / previous cell (existing score selected, editable). An unambiguous score moves on by itself",
+    "simplified_v": "Simplified pool entry: V = win at max score; W + digit (e.g. W3) = win on a tie, below the max score",
     "print_sheets": "Print pool / match sheets",
     "next_phase": "Next phase",
     "add_fencer": "Add a fencer",

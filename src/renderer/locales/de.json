@@ -604,6 +604,8 @@
     "title": "Tastaturkürzel",
     "undo": "Pool-Eingabe rückgängig",
     "validate": "Bestätigen / Öffnen",
+    "simplified_tab": "Vereinfachte Pool-Eingabe: bestätigen und zur nächsten / vorherigen Zelle (vorhandenes Ergebnis markiert, änderbar). Ein eindeutiges Ergebnis springt automatisch weiter",
+    "simplified_v": "Vereinfachte Pool-Eingabe: V = Sieg mit Höchstpunktzahl; W + Ziffer (z. B. W3) = Sieg bei Gleichstand, unter der Höchstpunktzahl",
     "next_phase": "Nächste Phase",
     "add_fencer": "Fechter hinzufügen",
     "next_match": "Pools: nächstes Gefecht eingeben",
