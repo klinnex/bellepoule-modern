@@ -109,6 +109,33 @@ Format: NOM,PRENOM,DATE,SEXE,NATION	TAB	LIGUE	TAB	CLUB	TAB	LICENCE
 5. **Validation**: Check required fields and data types
 6. **Normalization**: Standardize formats and values
 
+### Results Export for the Federation (#1949)
+
+Shape of the files accepted by the federation extranet (Engarde, BellePoule 3). When the competition was created from the federation files (#1938), the original values stored in `settings.federal` are written back unchanged.
+
+**FFF** (Windows-1252, `exportResultsToFFF` / `exportTeamResultsToFFF`):
+
+```
+FFF;WIN;competition;<organizer>;individuel          (or par_equipes)
+7/6/2027;fleuret;M;senior;<title>;<short title>
+DURAND,Hugo,1/1/2000,M,FRA;;012345,LIGUE,CLUB,,,;1,T              individual: rank,T|P
+DURAND,Hugo,1/1/2000,M,FRA,,CLUB 1;,,;012345,LIGUE,CLUB,,,;1,     team member: team name, team rank
+,,,,FRA,,CLUB 1;,,;,LIGUE,CLUB,,;1,                               team line (no fencer)
+```
+
+**XML** (UTF-8, `exportResultsXMLFFE` / `exportTeamResultsXMLFFE`):
+
+| Attribute | Value |
+|---|---|
+| `ID` | federation ID (`settings.federal.id`); empty otherwise, never the internal ID |
+| `Annee` | original season; otherwise computed season `2026 - 2027` (September → August) |
+| `Championnat`, `Federation`, `Domaine`, `Arme`, `Sexe`, `Categorie`, `Date` | original values when known |
+| `Appel`, `Scratch`, `Debut` | `settings.schedule` |
+| `Tireur/@Classement` | **final rank** in the competition (not the national ranking) |
+| `Tireur/@LicenceNat`, `@IdOrigine` | licence, leading zeros kept |
+
+Team events: root `CompetitionParEquipes`, `<Equipe Nom="<federation team name>" Classement="<final rank>">` with nested `<Tireur>`, then `<Arbitres>`. Exported from the team ranking screen.
+
 ## 📊 CSV Import/Export Format
 
 Comma-Separated Values format for easy integration with spreadsheets and other systems.

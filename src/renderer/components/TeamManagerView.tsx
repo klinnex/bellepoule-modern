@@ -545,6 +545,45 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     }
   };
 
+  // Résultats pour la fédération (#1949) : classement final, noms d'équipe et licences conservés
+  const handleExportFederal = async (format: 'fff' | 'xml') => {
+    try {
+      const [{ computeTeamFinalRanking }, fff, xml] = await Promise.all([
+        import('../../shared/utils/pdfExport/teamPdf'),
+        import('../../shared/utils/fencerExport'),
+        import('../../shared/utils/multiFormatExport'),
+      ]);
+      const { rows } = computeTeamFinalRanking(rankedTeamsForBracket, tableauMatches);
+      const results = rows.map(r => ({
+        rank: r.rank,
+        name: r.team.name,
+        club: r.team.club,
+        fencers: [...r.team.fencers]
+          .sort((a, b) => Number(a.isReserve) - Number(b.isReserve) || a.teamOrder - b.teamOrder)
+          .map(tf => fencerById.get(tf.fencerId))
+          .filter((f): f is Fencer => !!f),
+      }));
+      const blob =
+        format === 'fff'
+          ? new Blob(
+              [fff.encodeFFFWin1252(fff.exportTeamResultsToFFF(competition, results)) as BlobPart],
+              { type: 'text/plain;charset=windows-1252' }
+            )
+          : new Blob(
+              [xml.exportTeamResultsXMLFFE(competition, results, competition.referees ?? [])],
+              { type: 'application/xml' }
+            );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   const toolbarButtons = (
     <>
       {view === 'teams' && teams.length >= 2 && (
@@ -1000,6 +1039,18 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 }}
               >
                 {t('teamManager.export_csv')}
+              </Button>
+              <Button
+                className="team-manager-export-btn"
+                onClick={() => void handleExportFederal('xml')}
+              >
+                {t('results.export_xml_ffe')}
+              </Button>
+              <Button
+                className="team-manager-export-btn"
+                onClick={() => void handleExportFederal('fff')}
+              >
+                {t('results.export_fff')}
               </Button>
             </div>
           )}
