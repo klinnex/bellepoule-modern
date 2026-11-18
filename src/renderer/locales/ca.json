@@ -3468,6 +3468,7 @@
     "cancel_bout": "Anul·lar el combat",
     "fencer_n": "Tirador {{n}} — pista {{strip}}",
     "choose_fencer": "Triar un tirador",
+    "no_attendee": "Cap tirador registrat a la sessió",
     "launch": "Iniciar",
     "open_title": "Nova sessió",
     "label": "Títol (opcional)",
@@ -3540,6 +3541,15 @@
     "restart_hint": "Puntuació remota en curs: la interfície, el port i l'HTTPS s'aplicaran a la propera engegada.",
     "saved": "Paràmetres de la puntuació remota aplicats",
     "saved_restart": "Tema i contrasenya aplicats; atureu i torneu a engegar la puntuació remota per a la xarxa"
+  },
+  "clubStrip": {
+    "open": "Enllaços i codis QR de la pista {{n}}",
+    "title": "Pista {{n}} — enllaços",
+    "display": "Pantalla de la pista",
+    "referee": "Vista de l'àrbitre",
+    "copy": "Copia l'URL: {{title}}",
+    "qr_alt": "Codi QR: {{title}}",
+    "needs_remote": "Activeu la puntuació remota per obtenir els enllaços de les pistes"
   },
   "clubImport": {
     "title": "Importar des de « {{file}} »",

@@ -21,8 +21,10 @@
   'checkin.present': '✓ Anwesend',
   'checkin.absent': 'Abwesend',
   'checkin.empty': 'Keine Ergebnisse',
-  'checkin.closed': 'Die Anwesenheitskontrolle ist geschlossen (Turnier gestartet oder Server gestoppt).',
-  'checkin.not_configured': 'Anwesenheitskontrolle nicht eingerichtet: Die Turnierleitung muss ein Passwort festlegen.',
+  'checkin.closed':
+    'Die Anwesenheitskontrolle ist geschlossen (Turnier gestartet oder Server gestoppt).',
+  'checkin.not_configured':
+    'Anwesenheitskontrolle nicht eingerichtet: Die Turnierleitung muss ein Passwort festlegen.',
   /* commun */
   'remote.arena': 'Arena',
   'remote.piste': 'Bahn',
@@ -59,7 +61,8 @@
   'referee.club_card_skip': 'Überspringen (Fechter nicht identifiziert)',
   'referee.club_card_cancel': 'Ohne Karten leiten',
   'referee.club_card_invalid': 'Karte nicht erkannt',
-  'referee.club_card_no_camera': 'Kamera nicht verfügbar: Geben Sie den Code unter dem QR-Code ein.',
+  'referee.club_card_no_camera':
+    'Kamera nicht verfügbar: Geben Sie den Code unter dem QR-Code ein.',
   'referee.club_card_unknown': 'Karte in diesem Verein unbekannt',
   'referee.club_card_same': 'Beide Karten gehören demselben Fechter',
   'referee.club_card_busy': 'Auf dieser Bahn läuft ein Gefecht',
@@ -67,8 +70,10 @@
   'referee.club_cards': 'Karten',
   'referee.club_cards_title': 'Fechter mit ihrer Vereinskarte identifizieren',
   'referee.referee_label': 'Kampfrichter:',
-  'referee.cyrano_master_lock': 'Eingabe gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
-  'referee.cyrano_master_card_lock': 'Karten gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
+  'referee.cyrano_master_lock':
+    'Eingabe gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
+  'referee.cyrano_master_card_lock':
+    'Karten gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
   'arena.resting_label': 'Pause',
   'referee.cyrano_bar': 'Bahn {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Hauptgerät',
@@ -78,7 +83,8 @@
   'referee.cyrano_offline': 'offline',
   'referee.change': 'Ändern',
   'referee.black_card_title': 'Schwarze Karte',
-  'referee.black_card_desc': 'Der Fechter verliert das Gefecht und wird vom Turnier ausgeschlossen. Die Turnierleitung wird automatisch gerufen.',
+  'referee.black_card_desc':
+    'Der Fechter verliert das Gefecht und wird vom Turnier ausgeschlossen. Die Turnierleitung wird automatisch gerufen.',
   'referee.cancel': 'Abbrechen',
   'referee.black_card_confirm': 'Ausschluss bestätigen',
   'referee.coin_flip_winner': 'Losentscheid — Sieger:',
@@ -130,7 +136,8 @@
   'referee.black_cards': 'Schwarze Karten',
   'referee.against': 'gegen',
   'referee.cancel_card': 'Karte zurücknehmen',
-  'referee.confirm_cancel_black': 'Diese schwarze Karte zurücknehmen?\nDer Fechter wird wieder aufgenommen: Seine Ergebnisse und die seiner Gegner zählen wieder, das unterbrochene Gefecht wird wieder geöffnet.',
+  'referee.confirm_cancel_black':
+    'Diese schwarze Karte zurücknehmen?\nDer Fechter wird wieder aufgenommen: Seine Ergebnisse und die seiner Gegner zählen wieder, das unterbrochene Gefecht wird wieder geöffnet.',
   'referee.black_card_cancelled': 'Schwarze Karte zurückgenommen — Fechter wieder aufgenommen',
   'referee.sd_zone_c': 'SUDDEN DEATH – Nur Zone C!',
   'referee.sd_zone_c_notif': 'Sudden Death: Nur Zone C!',
@@ -181,12 +188,14 @@
   'referee.fencer_default': 'Fechter {{pos}}',
   'referee.time_up': 'Zeit abgelaufen!',
   'referee.timer_reset': 'Timer zurückgesetzt',
-  'referee.tie_launch': 'Gleichstand! Drücken Sie „{{label}} starten“, um die Verlängerung zu beginnen.',
+  'referee.tie_launch':
+    'Gleichstand! Drücken Sie „{{label}} starten“, um die Verlängerung zu beginnen.',
   'referee.launch_overtime': '{{label}} starten',
   'referee.ot_challenger': '30s VERLÄNGERUNG – Gleichstand! Nur Zone C (Sudden Death Challenger).',
   'referee.ot_modern': '1 MIN VERLÄNGERUNG – Gleichstand! Losentscheid, wenn am Ende Gleichstand.',
   'referee.ot_laser': '30s VERLÄNGERUNG – Gleichstand nach Zeit! Alle Zonen sind gültig.',
-  'referee.tie_coin': 'Gleichstand! Korrigieren Sie bei Bedarf das Ergebnis oder drücken Sie „Losentscheid“.',
+  'referee.tie_coin':
+    'Gleichstand! Korrigieren Sie bei Bedarf das Ergebnis oder drücken Sie „Losentscheid“.',
   'referee.coin_anim': 'Losentscheid — Animation läuft...',
   'referee.coin_btn': 'Losentscheid',
   'referee.reason_coin': 'Losentscheid',
@@ -360,7 +369,8 @@
   'kiosk.no_session': 'Keine aktive Sitzung',
   'kiosk.updated': 'Aktualisiert',
   'kiosk.no_finished_bout': 'Kein beendetes Gefecht',
-  'kiosk.not_finished_long': 'Turnier nicht beendet — die Endrangliste erscheint am Ende des K.-o.-Tableaus.',
+  'kiosk.not_finished_long':
+    'Turnier nicht beendet — die Endrangliste erscheint am Ende des K.-o.-Tableaus.',
   'kiosk.no_next_done': 'Alle Gefechte sind beendet oder keine aktive Sitzung',
   'kiosk.no_pool': 'Ohne Poule',
   'kiosk.no_strips': 'Keine Bahn konfiguriert',
@@ -396,7 +406,8 @@
   'team.reset_bout': 'Gefecht zurücksetzen',
   'team.next_relay': 'Nächste Staffel →',
   'team.all_bouts_played': 'Begegnung beendet — alle Gefechte wurden ausgetragen.',
-  'team.cyrano_master_relay_lock': 'Staffel gesperrt: Der Meldeapparat ist im Master-Modus und bestätigt das Ende der Staffel.',
+  'team.cyrano_master_relay_lock':
+    'Staffel gesperrt: Der Meldeapparat ist im Master-Modus und bestätigt das Ende der Staffel.',
   'team.touch_remove': 'Treffer entfernen (Seite {{side}})',
   'team.touch_side': '+ Treffer (Seite {{side}})',
   'team.card_title': 'Karte {{type}} M',
@@ -452,15 +463,18 @@
   'overlay.score_inner': '[Punkte·Name] | [Name·Punkte] — Mitte',
   'overlay.logo': 'Turnierlogo (optional)',
   'overlay.logo_url': 'Bild-URL (im lokalen Netz per HTTP erreichbar)',
-  'overlay.logo_tip': 'Tipp: In OBS kannst du auch eine Bildquelle direkt über deine Szene legen, um mehr Kontrolle zu haben.',
+  'overlay.logo_tip':
+    'Tipp: In OBS kannst du auch eine Bildquelle direkt über deine Szene legen, um mehr Kontrolle zu haben.',
   'overlay.url_title': 'URL zum Einfügen in OBS',
   'overlay.copy_url': 'URL kopieren',
   'overlay.open': 'Öffnen',
   'overlay.preview': 'Live-Vorschau',
-  'overlay.preview_hint': 'Das Schachbrett simuliert die OBS-Transparenz. Das Ergebnis hängt von deinem Szenenhintergrund ab.',
+  'overlay.preview_hint':
+    'Das Schachbrett simuliert die OBS-Transparenz. Das Ergebnis hängt von deinem Szenenhintergrund ab.',
   'overlay.waiting': 'Warten auf ein Gefecht…',
   'overlay.config_title': 'Streaming-Overlay — Konfigurator',
-  'overlay.obs_howto': 'In OBS: Quellen → + → Browser → URL einfügen → Breite und Höhe von oben eingeben → Aktualisieren, wenn die Szene aktiv wird.',
+  'overlay.obs_howto':
+    'In OBS: Quellen → + → Browser → URL einfügen → Breite und Höhe von oben eingeben → Aktualisieren, wenn die Szene aktiv wird.',
   'overlay.copied': '✓ Kopiert!',
   'register.page_title': 'Fechter-Anmeldung',
   'register.title': 'Teilnehmer-Anmeldung',
@@ -492,9 +506,12 @@
   'register.first_name': 'Vorname',
   'register.gender': 'Geschlecht',
   'register.camera_unavailable': 'Kamera nicht verfügbar',
-  'register.photo_consent': 'Ich bin einverstanden, dass mein Foto für den Wettkampf verwendet wird (bei Minderjährigen mit Zustimmung eines Elternteils).',
-  'register.photo_consent_required': 'Einwilligung ankreuzen, um das Foto zu senden, oder Foto entfernen.',
-  'register.privacy_notice': 'Deine Daten (Name, Vorname, Geschlecht, Verein, Lizenz, Nationalität, Geburtsdatum, Foto) werden vom Veranstalter zur Durchführung des Wettkampfs verarbeitet. Name, Vorname, Verein und Ergebnisse können auf den Bildschirmen und Dokumenten des Wettkampfs erscheinen. Für Auskunft, Berichtigung oder Löschung wende dich an den Veranstalter.',
+  'register.photo_consent':
+    'Ich bin einverstanden, dass mein Foto für den Wettkampf verwendet wird (bei Minderjährigen mit Zustimmung eines Elternteils).',
+  'register.photo_consent_required':
+    'Einwilligung ankreuzen, um das Foto zu senden, oder Foto entfernen.',
+  'register.privacy_notice':
+    'Deine Daten (Name, Vorname, Geschlecht, Verein, Lizenz, Nationalität, Geburtsdatum, Foto) werden vom Veranstalter zur Durchführung des Wettkampfs verarbeitet. Name, Vorname, Verein und Ergebnisse können auf den Bildschirmen und Dokumenten des Wettkampfs erscheinen. Für Auskunft, Berichtigung oder Löschung wende dich an den Veranstalter.',
   'register.required': 'Nachname, Vorname und Geschlecht sind Pflichtfelder',
   'register.server_error': 'Serverfehler',
   'register.network_error': 'Netzwerkfehler',
@@ -512,8 +529,10 @@
   'ocr.import': 'Ergebnisse importieren →',
   'ocr.done': 'Import abgeschlossen',
   'ocr.back_short': 'Zurück',
-  'ocr.scan_hint': 'Das Blatt muss von BellePoule erstellt worden sein (QR-Code unten rechts). Legen Sie es flach hin und fotografieren Sie es von vorne.',
-  'ocr.corners_hint': 'Ziehen Sie die 4 goldenen Griffe auf die 4 Ecken des Ergebnisrasters (Bereich der S/N-Zellen, ohne die Spalten Name, #, Statistik und Unterschrift).',
+  'ocr.scan_hint':
+    'Das Blatt muss von BellePoule erstellt worden sein (QR-Code unten rechts). Legen Sie es flach hin und fotografieren Sie es von vorne.',
+  'ocr.corners_hint':
+    'Ziehen Sie die 4 goldenen Griffe auf die 4 Ecken des Ergebnisrasters (Bereich der S/N-Zellen, ohne die Spalten Name, #, Statistik und Unterschrift).',
   'ocr.validate_hint_yellow': 'Gelbe Felder = geringe OCR-Sicherheit — bitte prüfen.',
   'ocr.validate_hint_empty': 'Leere Felder = Ergebnis nicht erkannt — manuell eingeben.',
   'ocr.image_error': 'Bild konnte nicht geladen werden',
@@ -560,6 +579,12 @@
   'traininglobby.none': 'Keine Bahn: Der Trainingsmodus ist nicht gestartet.',
   'traininglobby.idle_notice': 'Eine Bahn wird nach 3 Minuten Inaktivität freigegeben.',
   'traininglobby.idle_kick': 'Bahn {{n}} nach 3 Minuten Inaktivität freigegeben.',
+  'traininglobby.takeover': 'Übernehmen',
+  'traininglobby.takeover_confirm':
+    'Bahn {{n}} übernehmen? Das Tablet, das sie belegt, wird zur Lobby zurückgeschickt.',
+  'traininglobby.taken': 'Bahn {{n}} wurde von einem anderen Tablet übernommen.',
+  'traininglobby.occupied_hint':
+    'Bahn {{n}} ist bereits auf einem anderen Tablet oder Tab geöffnet. Tippen Sie auf „Übernehmen“, wenn sie nicht mehr genutzt wird.',
   'matchs.pool': 'Poule',
   'trainer.not_open': 'Der Ausbilderbereich ist für dieses Turnier nicht geöffnet.',
   'trainer.in_match': 'Im Gefecht — {{label}}',
@@ -575,7 +600,8 @@
   'error.arena_not_found': 'Arena nicht gefunden',
   'error.auth_required': 'Authentifizierung erforderlich',
   'error.black_card_not_found': 'Keine schwarze Karte für diese Arena gefunden',
-  'error.cancel_tableau_forbidden': 'Zurücknahme bei einem K.-o.-Gefecht nicht möglich (an der TL-Station korrigieren)',
+  'error.cancel_tableau_forbidden':
+    'Zurücknahme bei einem K.-o.-Gefecht nicht möglich (an der TL-Station korrigieren)',
   'error.checkin_closed': 'Anwesenheitskontrolle geschlossen',
   'error.checkin_not_configured': 'Anwesenheitskontrolle nicht eingerichtet',
   'error.competition_not_found': 'Turnier nicht gefunden',
@@ -598,7 +624,8 @@
   'error.invalid_signature': 'Ungültige Unterschriftsdaten',
   'error.last_name_required': 'Nachname erforderlich',
   'error.match_not_found': 'Gefecht nicht gefunden',
-  'error.cyrano_master_lock': 'Karten gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
+  'error.cyrano_master_lock':
+    'Karten gesperrt: Das Bahngerät ist im Hauptmodus. Nur durch Entfernen korrigieren.',
   'error.matches_fetch_failed': 'Fehler beim Abrufen der Gefechte',
   'error.no_competition': 'Kein aktives Turnier',
   'error.no_pool_for_arena': 'Dieser Arena ist keine Poule zugewiesen',
@@ -688,7 +715,8 @@
   'referee.fault_olympic_2_11': 'Gewaltsam treffen',
   'referee.fault_olympic_2_12': 'Dem Gegner den Rücken zuwenden',
   'referee.fault_olympic_2_13': 'Sich weigern, dem Kampfrichter zu gehorchen',
-  'referee.fault_olympic_3_01': 'Einsatz des unbewaffneten Arms oder der Hand für eine Angriffs- oder Abwehraktion',
+  'referee.fault_olympic_3_01':
+    'Einsatz des unbewaffneten Arms oder der Hand für eine Angriffs- oder Abwehraktion',
   'referee.fault_olympic_3_02': 'Absichtliches Loslassen der Waffe während der Fechtphrase',
   'referee.fault_olympic_3_03': 'Absichtlich woanders als auf den Gegner treffen',
   'referee.fault_olympic_3_04': 'Schlag mit der Glocke / dem Knauf',

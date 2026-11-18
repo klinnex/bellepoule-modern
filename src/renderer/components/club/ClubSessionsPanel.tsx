@@ -16,6 +16,7 @@ import {
   Lock,
   MessageSquare,
   Settings2,
+  Link2,
   UserCheck,
   Pencil,
   Play,
@@ -47,6 +48,7 @@ import { AgeCategoryFilter, AgeRangeSelect, ageRangeText } from './ClubAgeRange'
 import { ClubAttendanceModal } from './ClubAttendanceModal';
 import { ClubLobbyQr } from './ClubLobbyQr';
 import { ClubRemoteSettingsModal } from './ClubRemoteSettingsModal';
+import { ClubStripLinksModal } from './ClubStripLinksModal';
 import {
   ALL_INTERFACES,
   TRAINING_SERVER_ID,
@@ -173,25 +175,30 @@ const FreeStrip: React.FC<{
           {m.lastName} {m.firstName}
         </option>
       ));
+  // Aucun présent pointé : le menu le dit au lieu de rester vide
+  const none = candidates.length === 0;
+  const placeholder = t(none ? 'clubSession.no_attendee' : 'clubSession.choose_fencer');
   return (
     <div className="club-bout-free">
       <select
         className="form-input"
         value={a}
+        disabled={none}
         aria-label={t('clubSession.fencer_n', { n: 1, strip })}
         onChange={e => setA(e.target.value)}
       >
-        <option value="">{t('clubSession.choose_fencer')}</option>
+        <option value="">{placeholder}</option>
         {options(b)}
       </select>
       <span className="club-vs">VS</span>
       <select
         className="form-input"
         value={b}
+        disabled={none}
         aria-label={t('clubSession.fencer_n', { n: 2, strip })}
         onChange={e => setB(e.target.value)}
       >
-        <option value="">{t('clubSession.choose_fencer')}</option>
+        <option value="">{placeholder}</option>
         {options(a)}
       </select>
       <Button
@@ -230,6 +237,7 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const [remote, setRemote] = useState<RemoteState>({ active: false, url: null, strips: 0 });
   const [remoteBusy, setRemoteBusy] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [linksStrip, setLinksStrip] = useState<number | null>(null);
   const [planner, setPlanner] = useState<{
     session: ClubSession | null;
     prefill?: Omit<ClubSessionInput, 'date'>;
@@ -1057,6 +1065,15 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
             return (
               <li key={n} className="club-strip">
                 <span className="club-strip-label">{t('clubSession.strip_n', { n })}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<Link2 size={14} aria-hidden="true" />}
+                  disabled={!remote.active || !remote.url}
+                  aria-label={t('clubStrip.open', { n })}
+                  title={remote.active ? t('clubStrip.open', { n }) : t('clubStrip.needs_remote')}
+                  onClick={() => setLinksStrip(n)}
+                />
                 {bout ? (
                   <LiveBout
                     key={bout.id}
@@ -1153,6 +1170,13 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
           session={current}
           onClose={() => setScanOpen(false)}
           onLaunched={boutId => void pushToTablet(boutId).finally(() => void load())}
+        />
+      )}
+      {linksStrip !== null && remote.url && (
+        <ClubStripLinksModal
+          baseUrl={remote.url}
+          strip={linksStrip}
+          onClose={() => setLinksStrip(null)}
         />
       )}
       {qrOpen && remote.url && (

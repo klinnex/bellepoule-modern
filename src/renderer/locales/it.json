@@ -3468,6 +3468,7 @@
     "cancel_bout": "Annulla l'assalto",
     "fencer_n": "Schermidore {{n}} — pedana {{strip}}",
     "choose_fencer": "Scegli uno schermidore",
+    "no_attendee": "Nessuno schermidore registrato nella seduta",
     "launch": "Avvia",
     "open_title": "Nuova seduta",
     "label": "Titolo (facoltativo)",
@@ -3540,6 +3541,15 @@
     "restart_hint": "Punteggio remoto in corso: interfaccia, porta e HTTPS saranno applicati al prossimo avvio.",
     "saved": "Impostazioni del punteggio remoto applicate",
     "saved_restart": "Tema e password applicati; arresta e riavvia il punteggio remoto per la rete"
+  },
+  "clubStrip": {
+    "open": "Link e codici QR della pedana {{n}}",
+    "title": "Pedana {{n}} — link",
+    "display": "Schermo della pedana",
+    "referee": "Vista arbitro",
+    "copy": "Copia l'URL: {{title}}",
+    "qr_alt": "Codice QR: {{title}}",
+    "needs_remote": "Attiva il punteggio remoto per ottenere i link delle pedane"
   },
   "clubImport": {
     "title": "Importa da « {{file}} »",

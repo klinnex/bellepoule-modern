@@ -22,7 +22,8 @@
   'checkin.absent': 'Absent',
   'checkin.empty': 'Cap resultat',
   'checkin.closed': "El control d'assistència està tancat (competició iniciada o servidor aturat).",
-  'checkin.not_configured': "Control d'assistència no configurat: el DT ha de definir una contrasenya.",
+  'checkin.not_configured':
+    "Control d'assistència no configurat: el DT ha de definir una contrasenya.",
   /* commun */
   'remote.arena': 'Arena',
   'remote.piste': 'Pista',
@@ -67,8 +68,10 @@
   'referee.club_cards': 'Carnets',
   'referee.club_cards_title': 'Identificar els tiradors amb el carnet del club',
   'referee.referee_label': 'Àrbitre:',
-  'referee.cyrano_master_lock': "Entrada bloquejada: l'aparell de pista és en mode mestre. Corregiu només traient.",
-  'referee.cyrano_master_card_lock': "Targetes bloquejades: l'aparell de pista és en mode mestre. Corregiu només traient.",
+  'referee.cyrano_master_lock':
+    "Entrada bloquejada: l'aparell de pista és en mode mestre. Corregiu només traient.",
+  'referee.cyrano_master_card_lock':
+    "Targetes bloquejades: l'aparell de pista és en mode mestre. Corregiu només traient.",
   'arena.resting_label': 'Descans',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Mestre',
@@ -78,7 +81,8 @@
   'referee.cyrano_offline': 'fora de línia',
   'referee.change': 'Canviar',
   'referee.black_card_title': 'Targeta negra',
-  'referee.black_card_desc': 'El tirador perd el combat i queda exclòs de la competició. Es cridarà automàticament el DT.',
+  'referee.black_card_desc':
+    'El tirador perd el combat i queda exclòs de la competició. Es cridarà automàticament el DT.',
   'referee.cancel': 'Cancel·lar',
   'referee.black_card_confirm': "Confirmar l'eliminació",
   'referee.coin_flip_winner': 'Sorteig — Guanyador:',
@@ -130,7 +134,8 @@
   'referee.black_cards': 'Targetes negres',
   'referee.against': 'contra',
   'referee.cancel_card': 'Anul·lar la targeta',
-  'referee.confirm_cancel_black': 'Anul·lar aquesta targeta negra?\nEl tirador queda reintegrat: els seus resultats i els dels seus adversaris tornen a comptar, i el combat interromput es reobre.',
+  'referee.confirm_cancel_black':
+    'Anul·lar aquesta targeta negra?\nEl tirador queda reintegrat: els seus resultats i els dels seus adversaris tornen a comptar, i el combat interromput es reobre.',
   'referee.black_card_cancelled': 'Targeta negra anul·lada — tirador reintegrat',
   'referee.sd_zone_c': 'MORT SOBTADA – Només zona C!',
   'referee.sd_zone_c_notif': 'Mort sobtada: només zona C!',
@@ -360,7 +365,8 @@
   'kiosk.no_session': 'Cap sessió activa',
   'kiosk.updated': 'Actualitzat',
   'kiosk.no_finished_bout': 'Cap combat acabat',
-  'kiosk.not_finished_long': "Competició no acabada — la classificació final apareixerà al final del quadre d'eliminació.",
+  'kiosk.not_finished_long':
+    "Competició no acabada — la classificació final apareixerà al final del quadre d'eliminació.",
   'kiosk.no_next_done': 'Tots els combats han acabat o no hi ha cap sessió activa',
   'kiosk.no_pool': 'Sense poule',
   'kiosk.no_strips': 'Cap pista configurada',
@@ -396,7 +402,8 @@
   'team.reset_bout': "Reiniciar l'assalt",
   'team.next_relay': 'Relleu següent →',
   'team.all_bouts_played': "Encontre acabat — s'han disputat tots els assalts.",
-  'team.cyrano_master_relay_lock': "Relleu bloquejat: l'aparell de pista està en mode mestre i valida el final del relleu.",
+  'team.cyrano_master_relay_lock':
+    "Relleu bloquejat: l'aparell de pista està en mode mestre i valida el final del relleu.",
   'team.touch_remove': 'Treure un tocat (costat {{side}})',
   'team.touch_side': '+ Tocat (costat {{side}})',
   'team.card_title': 'Targeta {{type}} E',
@@ -452,15 +459,18 @@
   'overlay.score_inner': '[Punts·Nom] | [Nom·Punts] — costat central',
   'overlay.logo': 'Logotip de la competició (opcional)',
   'overlay.logo_url': 'URL de la imatge (accessible per HTTP local)',
-  'overlay.logo_tip': 'Consell: a OBS també pots superposar una font Imatge directament a la teva escena per tenir més control.',
+  'overlay.logo_tip':
+    'Consell: a OBS també pots superposar una font Imatge directament a la teva escena per tenir més control.',
   'overlay.url_title': 'URL per enganxar a OBS',
   'overlay.copy_url': "Copiar l'URL",
   'overlay.open': 'Obrir',
   'overlay.preview': 'Previsualització en directe',
-  'overlay.preview_hint': "El tauler d'escacs simula la transparència d'OBS. El resultat final depèn del fons de la teva escena.",
+  'overlay.preview_hint':
+    "El tauler d'escacs simula la transparència d'OBS. El resultat final depèn del fons de la teva escena.",
   'overlay.waiting': 'Esperant un combat…',
   'overlay.config_title': 'Overlay de streaming — Configurador',
-  'overlay.obs_howto': "A OBS: Fonts → + → Navegador → enganxar l'URL → introduir l'amplada i l'alçada indicades a dalt → Actualitzar quan l'escena s'activi.",
+  'overlay.obs_howto':
+    "A OBS: Fonts → + → Navegador → enganxar l'URL → introduir l'amplada i l'alçada indicades a dalt → Actualitzar quan l'escena s'activi.",
   'overlay.copied': '✓ Copiat!',
   'register.page_title': 'Inscripció de tirador',
   'register.title': 'Inscripció de competidor',
@@ -492,9 +502,11 @@
   'register.first_name': 'Nom',
   'register.gender': 'Gènere',
   'register.camera_unavailable': 'Càmera no disponible',
-  'register.photo_consent': "Accepto que la meva foto s'utilitzi per a la competició (amb el consentiment d'un pare o mare si soc menor).",
+  'register.photo_consent':
+    "Accepto que la meva foto s'utilitzi per a la competició (amb el consentiment d'un pare o mare si soc menor).",
   'register.photo_consent_required': 'Marqueu el consentiment per enviar la foto, o suprimiu-la.',
-  'register.privacy_notice': "Les teves dades (cognom, nom, gènere, club, llicència, nacionalitat, data de naixement, foto) les tracta l'organitzador per gestionar la competició. Cognom, nom, club i resultats es poden mostrar a les pantalles i documents de la competició. Per accedir-hi, rectificar-les o esborrar-les, adreça't a l'organitzador.",
+  'register.privacy_notice':
+    "Les teves dades (cognom, nom, gènere, club, llicència, nacionalitat, data de naixement, foto) les tracta l'organitzador per gestionar la competició. Cognom, nom, club i resultats es poden mostrar a les pantalles i documents de la competició. Per accedir-hi, rectificar-les o esborrar-les, adreça't a l'organitzador.",
   'register.required': 'Cognom, nom i gènere són obligatoris',
   'register.server_error': 'Error del servidor',
   'register.network_error': 'Error de xarxa',
@@ -512,8 +524,10 @@
   'ocr.import': 'Importar els resultats →',
   'ocr.done': 'Importació acabada',
   'ocr.back_short': 'Tornar',
-  'ocr.scan_hint': "El full ha d'haver estat generat per BellePoule (codi QR a baix a la dreta). Col·loqueu-lo pla i fotografieu-lo de cara.",
-  'ocr.corners_hint': 'Moveu les 4 nanses daurades a les 4 cantonades de la graella de resultats (zona de les cel·les V/D, sense les columnes Nom, #, Estadístiques i Signatura).',
+  'ocr.scan_hint':
+    "El full ha d'haver estat generat per BellePoule (codi QR a baix a la dreta). Col·loqueu-lo pla i fotografieu-lo de cara.",
+  'ocr.corners_hint':
+    'Moveu les 4 nanses daurades a les 4 cantonades de la graella de resultats (zona de les cel·les V/D, sense les columnes Nom, #, Estadístiques i Signatura).',
   'ocr.validate_hint_yellow': 'Caselles en groc = poca confiança OCR — comproveu-les.',
   'ocr.validate_hint_empty': 'Caselles buides = resultat no reconegut — introduïu-lo manualment.',
   'ocr.image_error': 'No es pot carregar la imatge',
@@ -560,6 +574,12 @@
   'traininglobby.none': 'Cap pista: el mode entrenament no està iniciat.',
   'traininglobby.idle_notice': "Una pista s'allibera després de 3 minuts d'inactivitat.",
   'traininglobby.idle_kick': "Pista {{n}} alliberada després de 3 minuts d'inactivitat.",
+  'traininglobby.takeover': 'Reprendre',
+  'traininglobby.takeover_confirm':
+    "Voleu reprendre la pista {{n}}? La tauleta que l'ocupa tornarà al vestíbul.",
+  'traininglobby.taken': 'Pista {{n}} represa per una altra tauleta.',
+  'traininglobby.occupied_hint':
+    "La pista {{n}} ja està oberta en una altra tauleta o pestanya. Toqueu «Reprendre» si ja no s'utilitza.",
   'matchs.pool': 'Poule',
   'trainer.not_open': "L'espai de formadors no està obert per a aquesta competició.",
   'trainer.in_match': 'En combat — {{label}}',
@@ -575,7 +595,8 @@
   'error.arena_not_found': 'Arena no trobada',
   'error.auth_required': 'Autenticació necessària',
   'error.black_card_not_found': "No s'ha trobat cap targeta negra per a aquesta arena",
-  'error.cancel_tableau_forbidden': 'No es pot anul·lar un combat de quadre (corregiu-ho des del lloc del DT)',
+  'error.cancel_tableau_forbidden':
+    'No es pot anul·lar un combat de quadre (corregiu-ho des del lloc del DT)',
   'error.checkin_closed': "Control d'assistència tancat",
   'error.checkin_not_configured': "Control d'assistència no configurat",
   'error.competition_not_found': 'Competició no trobada',
@@ -598,7 +619,8 @@
   'error.invalid_signature': 'Dades de signatura no vàlides',
   'error.last_name_required': 'Cognom obligatori',
   'error.match_not_found': 'Combat no trobat',
-  'error.cyrano_master_lock': "Targetes bloquejades: l'aparell de pista és en mode mestre. Corregiu només traient.",
+  'error.cyrano_master_lock':
+    "Targetes bloquejades: l'aparell de pista és en mode mestre. Corregiu només traient.",
   'error.matches_fetch_failed': 'Error en obtenir els combats',
   'error.no_competition': 'Cap competició activa',
   'error.no_pool_for_arena': 'Cap poule assignada a aquesta arena',
@@ -631,7 +653,7 @@
   'error.signature_tableau_only': 'Signatura de combat reservada al quadre',
   'error.signature_too_large': 'Signatura massa gran (màx. 150 KB)',
   'error.status_locked': 'Estat del tirador no modificable',
-  'error.journee_status_failed': 'No s\'ha pogut carregar l\'estat de la jornada',
+  'error.journee_status_failed': "No s'ha pogut carregar l'estat de la jornada",
   'error.too_many_attempts': "Massa intents. Torneu-ho a provar d'aquí a {{retryAfter}} s.",
   'error.too_many_cells': 'Massa cel·les (màx. 120)',
   'error.trainer_closed': 'Espai de formadors tancat',
@@ -724,11 +746,12 @@
   'results.match_pending': 'Pendent',
   'selfCheckin.page_title': 'Registre – BellePoule',
   'selfCheckin.title': 'Registre',
-  'selfCheckin.intro': 'Introdueix el número de llicència i la data de naixement per confirmar la teva presència.',
+  'selfCheckin.intro':
+    'Introdueix el número de llicència i la data de naixement per confirmar la teva presència.',
   'selfCheckin.license': 'Número de llicència',
   'selfCheckin.birth_date': 'Data de naixement',
   'selfCheckin.submit': 'Soc present',
-  'selfCheckin.hint': 'Si hi ha cap problema, adreça\'t a la taula de registre.',
+  'selfCheckin.hint': "Si hi ha cap problema, adreça't a la taula de registre.",
   'selfCheckin.success': 'Presència confirmada: {{name}}',
   'selfCheckin.already': '{{name}} ja està registrat.',
   'selfCheckin.err_input': 'Omple la llicència i la data de naixement.',

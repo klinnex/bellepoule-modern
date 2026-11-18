@@ -3468,6 +3468,7 @@
     "cancel_bout": "Cancel bout",
     "fencer_n": "Fencer {{n}} — strip {{strip}}",
     "choose_fencer": "Choose a fencer",
+    "no_attendee": "No fencer checked in for this session",
     "launch": "Start",
     "open_title": "New session",
     "label": "Title (optional)",
@@ -3540,6 +3541,15 @@
     "restart_hint": "Remote scoring running: interface, port and HTTPS will apply at the next start.",
     "saved": "Remote scoring settings applied",
     "saved_restart": "Theme and password applied; stop and restart remote scoring for the network"
+  },
+  "clubStrip": {
+    "open": "Links and QR codes of strip {{n}}",
+    "title": "Strip {{n}} — links",
+    "display": "Strip display",
+    "referee": "Referee view",
+    "copy": "Copy URL: {{title}}",
+    "qr_alt": "QR code: {{title}}",
+    "needs_remote": "Enable remote scoring to get the strip links"
   },
   "clubImport": {
     "title": "Import from « {{file}} »",

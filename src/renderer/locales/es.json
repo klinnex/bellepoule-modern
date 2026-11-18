@@ -3468,6 +3468,7 @@
     "cancel_bout": "Anular el asalto",
     "fencer_n": "Tirador {{n}} — pista {{strip}}",
     "choose_fencer": "Elegir un tirador",
+    "no_attendee": "Ningún tirador registrado en la sesión",
     "launch": "Iniciar",
     "open_title": "Nueva sesión",
     "label": "Título (opcional)",
@@ -3540,6 +3541,15 @@
     "restart_hint": "Puntuación remota en curso: la interfaz, el puerto y HTTPS se aplicarán en el próximo inicio.",
     "saved": "Ajustes de la puntuación remota aplicados",
     "saved_restart": "Tema y contraseña aplicados; detenga y reinicie la puntuación remota para la red"
+  },
+  "clubStrip": {
+    "open": "Enlaces y códigos QR de la pista {{n}}",
+    "title": "Pista {{n}} — enlaces",
+    "display": "Pantalla de la pista",
+    "referee": "Vista del árbitro",
+    "copy": "Copiar la URL: {{title}}",
+    "qr_alt": "Código QR: {{title}}",
+    "needs_remote": "Active la puntuación remota para obtener los enlaces de las pistas"
   },
   "clubImport": {
     "title": "Importar desde « {{file}} »",

@@ -3468,6 +3468,7 @@
     "cancel_bout": "Annuler le combat",
     "fencer_n": "Tireur {{n}} — piste {{strip}}",
     "choose_fencer": "Choisir un tireur",
+    "no_attendee": "Aucun combattant pointé sur la séance",
     "launch": "Lancer",
     "open_title": "Nouvelle séance",
     "label": "Intitulé (facultatif)",
@@ -3540,6 +3541,15 @@
     "restart_hint": "Saisie distante en cours : interface, port et HTTPS seront appliqués au prochain démarrage.",
     "saved": "Paramètres de la saisie distante appliqués",
     "saved_restart": "Thème et mot de passe appliqués ; arrêtez puis relancez la saisie distante pour le réseau"
+  },
+  "clubStrip": {
+    "open": "Liens et QR codes de la piste {{n}}",
+    "title": "Piste {{n}} — liens",
+    "display": "Affichage de la piste",
+    "referee": "Vue arbitre",
+    "copy": "Copier l'URL : {{title}}",
+    "qr_alt": "QR code : {{title}}",
+    "needs_remote": "Activez la saisie distante pour obtenir les liens des pistes"
   },
   "clubImport": {
     "title": "Importer depuis « {{file}} »",

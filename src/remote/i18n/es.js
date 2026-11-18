@@ -21,8 +21,10 @@
   'checkin.present': '✓ Presente',
   'checkin.absent': 'Ausente',
   'checkin.empty': 'Sin resultados',
-  'checkin.closed': 'El control de asistencia está cerrado (competición iniciada o servidor detenido).',
-  'checkin.not_configured': 'Control de asistencia no configurado: el DT debe definir una contraseña.',
+  'checkin.closed':
+    'El control de asistencia está cerrado (competición iniciada o servidor detenido).',
+  'checkin.not_configured':
+    'Control de asistencia no configurado: el DT debe definir una contraseña.',
   /* commun */
   'remote.arena': 'Arena',
   'remote.piste': 'Pista',
@@ -59,7 +61,8 @@
   'referee.club_card_skip': 'Omitir (tirador no identificado)',
   'referee.club_card_cancel': 'Arbitrar sin tarjetas',
   'referee.club_card_invalid': 'Tarjeta no reconocida',
-  'referee.club_card_no_camera': 'Cámara no disponible: escriba el código impreso bajo el código QR.',
+  'referee.club_card_no_camera':
+    'Cámara no disponible: escriba el código impreso bajo el código QR.',
   'referee.club_card_unknown': 'Tarjeta desconocida en este club',
   'referee.club_card_same': 'Las dos tarjetas son del mismo tirador',
   'referee.club_card_busy': 'Hay un asalto en curso en esta pista',
@@ -67,8 +70,10 @@
   'referee.club_cards': 'Tarjetas',
   'referee.club_cards_title': 'Identificar a los tiradores con su tarjeta de club',
   'referee.referee_label': 'Árbitro:',
-  'referee.cyrano_master_lock': 'Entrada bloqueada: el aparato de pista está en modo maestro. Corrija solo quitando.',
-  'referee.cyrano_master_card_lock': 'Tarjetas bloqueadas: el aparato de pista está en modo maestro. Corrija solo quitando.',
+  'referee.cyrano_master_lock':
+    'Entrada bloqueada: el aparato de pista está en modo maestro. Corrija solo quitando.',
+  'referee.cyrano_master_card_lock':
+    'Tarjetas bloqueadas: el aparato de pista está en modo maestro. Corrija solo quitando.',
   'arena.resting_label': 'Descanso',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Maestro',
@@ -78,7 +83,8 @@
   'referee.cyrano_offline': 'sin conexión',
   'referee.change': 'Cambiar',
   'referee.black_card_title': 'Tarjeta negra',
-  'referee.black_card_desc': 'El tirador pierde el combate y queda excluido de la competición. Se llamará automáticamente al DT.',
+  'referee.black_card_desc':
+    'El tirador pierde el combate y queda excluido de la competición. Se llamará automáticamente al DT.',
   'referee.cancel': 'Cancelar',
   'referee.black_card_confirm': 'Confirmar la eliminación',
   'referee.coin_flip_winner': 'Sorteo — Ganador:',
@@ -130,7 +136,8 @@
   'referee.black_cards': 'Tarjetas negras',
   'referee.against': 'contra',
   'referee.cancel_card': 'Anular la tarjeta',
-  'referee.confirm_cancel_black': '¿Anular esta tarjeta negra?\nEl tirador queda reintegrado: sus resultados y los de sus adversarios vuelven a contar, y el combate interrumpido se reabre.',
+  'referee.confirm_cancel_black':
+    '¿Anular esta tarjeta negra?\nEl tirador queda reintegrado: sus resultados y los de sus adversarios vuelven a contar, y el combate interrumpido se reabre.',
   'referee.black_card_cancelled': 'Tarjeta negra anulada — tirador reintegrado',
   'referee.sd_zone_c': 'MUERTE SÚBITA – ¡Solo zona C!',
   'referee.sd_zone_c_notif': 'Muerte súbita: ¡solo zona C!',
@@ -360,7 +367,8 @@
   'kiosk.no_session': 'Ninguna sesión activa',
   'kiosk.updated': 'Actualizado',
   'kiosk.no_finished_bout': 'Ningún combate terminado',
-  'kiosk.not_finished_long': 'Competición no terminada — la clasificación final aparecerá al final del cuadro de eliminación.',
+  'kiosk.not_finished_long':
+    'Competición no terminada — la clasificación final aparecerá al final del cuadro de eliminación.',
   'kiosk.no_next_done': 'Todos los combates han terminado o no hay sesión activa',
   'kiosk.no_pool': 'Sin poule',
   'kiosk.no_strips': 'Ninguna pista configurada',
@@ -396,7 +404,8 @@
   'team.reset_bout': 'Reiniciar el asalto',
   'team.next_relay': 'Siguiente relevo →',
   'team.all_bouts_played': 'Encuentro terminado — se han disputado todos los asaltos.',
-  'team.cyrano_master_relay_lock': 'Relevo bloqueado: el aparato de pista está en modo maestro y valida el final del relevo.',
+  'team.cyrano_master_relay_lock':
+    'Relevo bloqueado: el aparato de pista está en modo maestro y valida el final del relevo.',
   'team.touch_remove': 'Quitar un tocado (lado {{side}})',
   'team.touch_side': '+ Tocado (lado {{side}})',
   'team.card_title': 'Tarjeta {{type}} E',
@@ -452,15 +461,18 @@
   'overlay.score_inner': '[Puntos·Nombre] | [Nombre·Puntos] — lado central',
   'overlay.logo': 'Logo de la competición (opcional)',
   'overlay.logo_url': 'URL de la imagen (accesible por HTTP local)',
-  'overlay.logo_tip': 'Consejo: en OBS también puedes superponer una fuente Imagen directamente en tu escena para tener más control.',
+  'overlay.logo_tip':
+    'Consejo: en OBS también puedes superponer una fuente Imagen directamente en tu escena para tener más control.',
   'overlay.url_title': 'URL para pegar en OBS',
   'overlay.copy_url': 'Copiar la URL',
   'overlay.open': 'Abrir',
   'overlay.preview': 'Vista previa en directo',
-  'overlay.preview_hint': 'El damero simula la transparencia de OBS. El resultado final depende del fondo de tu escena.',
+  'overlay.preview_hint':
+    'El damero simula la transparencia de OBS. El resultado final depende del fondo de tu escena.',
   'overlay.waiting': 'Esperando un combate…',
   'overlay.config_title': 'Overlay de streaming — Configurador',
-  'overlay.obs_howto': 'En OBS: Fuentes → + → Navegador → pegar la URL → introducir el ancho y el alto indicados arriba → Actualizar cuando la escena se active.',
+  'overlay.obs_howto':
+    'En OBS: Fuentes → + → Navegador → pegar la URL → introducir el ancho y el alto indicados arriba → Actualizar cuando la escena se active.',
   'overlay.copied': '✓ ¡Copiado!',
   'register.page_title': 'Inscripción de tirador',
   'register.title': 'Inscripción de competidor',
@@ -492,9 +504,11 @@
   'register.first_name': 'Nombre',
   'register.gender': 'Género',
   'register.camera_unavailable': 'Cámara no disponible',
-  'register.photo_consent': 'Acepto que mi foto se utilice para la competición (con el consentimiento de un padre si soy menor).',
+  'register.photo_consent':
+    'Acepto que mi foto se utilice para la competición (con el consentimiento de un padre si soy menor).',
   'register.photo_consent_required': 'Marque el consentimiento para enviar la foto, o elimínela.',
-  'register.privacy_notice': 'Tus datos (apellido, nombre, género, club, licencia, nacionalidad, fecha de nacimiento, foto) los trata el organizador para gestionar la competición. Apellido, nombre, club y resultados pueden mostrarse en las pantallas y documentos de la competición. Para acceder a ellos, rectificarlos o borrarlos, dirígete al organizador.',
+  'register.privacy_notice':
+    'Tus datos (apellido, nombre, género, club, licencia, nacionalidad, fecha de nacimiento, foto) los trata el organizador para gestionar la competición. Apellido, nombre, club y resultados pueden mostrarse en las pantallas y documentos de la competición. Para acceder a ellos, rectificarlos o borrarlos, dirígete al organizador.',
   'register.required': 'Apellido, nombre y género son obligatorios',
   'register.server_error': 'Error del servidor',
   'register.network_error': 'Error de red',
@@ -512,10 +526,13 @@
   'ocr.import': 'Importar los resultados →',
   'ocr.done': 'Importación terminada',
   'ocr.back_short': 'Volver',
-  'ocr.scan_hint': 'La hoja debe haber sido generada por BellePoule (código QR abajo a la derecha). Colóquela plana y fotografíela de frente.',
-  'ocr.corners_hint': 'Mueva las 4 asas doradas a las 4 esquinas de la cuadrícula de resultados (zona de las celdas V/D, sin las columnas Nombre, #, Estadísticas y Firma).',
+  'ocr.scan_hint':
+    'La hoja debe haber sido generada por BellePoule (código QR abajo a la derecha). Colóquela plana y fotografíela de frente.',
+  'ocr.corners_hint':
+    'Mueva las 4 asas doradas a las 4 esquinas de la cuadrícula de resultados (zona de las celdas V/D, sin las columnas Nombre, #, Estadísticas y Firma).',
   'ocr.validate_hint_yellow': 'Casillas en amarillo = baja confianza OCR — compruébelas.',
-  'ocr.validate_hint_empty': 'Casillas vacías = resultado no reconocido — introdúzcalo manualmente.',
+  'ocr.validate_hint_empty':
+    'Casillas vacías = resultado no reconocido — introdúzcalo manualmente.',
   'ocr.image_error': 'No se puede cargar la imagen',
   'ocr.qr_not_found': 'QR no detectado — seleccione la poule manualmente',
   'ocr.qr_found': 'QR detectado (poule {{id}}…)',
@@ -560,6 +577,12 @@
   'traininglobby.none': 'Ninguna pista: el modo entrenamiento no está iniciado.',
   'traininglobby.idle_notice': 'Una pista se libera tras 3 minutos de inactividad.',
   'traininglobby.idle_kick': 'Pista {{n}} liberada tras 3 minutos de inactividad.',
+  'traininglobby.takeover': 'Recuperar',
+  'traininglobby.takeover_confirm':
+    '¿Recuperar la pista {{n}}? La tableta que la ocupa volverá al lobby.',
+  'traininglobby.taken': 'Pista {{n}} recuperada por otra tableta.',
+  'traininglobby.occupied_hint':
+    'La pista {{n}} ya está abierta en otra tableta o pestaña. Toque «Recuperar» si ya no se usa.',
   'matchs.pool': 'Poule',
   'trainer.not_open': 'El espacio de formadores no está abierto para esta competición.',
   'trainer.in_match': 'En combate — {{label}}',
@@ -575,7 +598,8 @@
   'error.arena_not_found': 'Arena no encontrada',
   'error.auth_required': 'Autenticación requerida',
   'error.black_card_not_found': 'Tarjeta negra no encontrada para esta arena',
-  'error.cancel_tableau_forbidden': 'No se puede anular un combate de cuadro (corregir desde el puesto del DT)',
+  'error.cancel_tableau_forbidden':
+    'No se puede anular un combate de cuadro (corregir desde el puesto del DT)',
   'error.checkin_closed': 'Control de asistencia cerrado',
   'error.checkin_not_configured': 'Control de asistencia no configurado',
   'error.competition_not_found': 'Competición no encontrada',
@@ -598,7 +622,8 @@
   'error.invalid_signature': 'Datos de firma no válidos',
   'error.last_name_required': 'Apellido obligatorio',
   'error.match_not_found': 'Combate no encontrado',
-  'error.cyrano_master_lock': 'Tarjetas bloqueadas: el aparato de pista está en modo maestro. Corrija solo quitando.',
+  'error.cyrano_master_lock':
+    'Tarjetas bloqueadas: el aparato de pista está en modo maestro. Corrija solo quitando.',
   'error.matches_fetch_failed': 'Error al obtener los combates',
   'error.no_competition': 'Ninguna competición activa',
   'error.no_pool_for_arena': 'Ninguna poule asignada a esta arena',
@@ -659,7 +684,8 @@
   'referee.fault_laser_1_07': 'Material no conforme',
   'referee.fault_laser_1_08': 'No presentarse en el área de combate',
   'referee.fault_laser_1_09': 'Reclamación injustificada',
-  'referee.fault_laser_1_10': 'Empujones / juego desordenado / quitarse la careta antes de «¡Alto!»',
+  'referee.fault_laser_1_10':
+    'Empujones / juego desordenado / quitarse la careta antes de «¡Alto!»',
   'referee.fault_laser_1_11': 'Empezar antes del «¡Adelante!»',
   'referee.fault_laser_1_12': 'Continuar después del «¡Alto!»',
   'referee.fault_laser_2_01': 'Acto violento, vengativo o peligroso',
@@ -667,7 +693,8 @@
   'referee.fault_laser_2_03': 'Petición de parada por lesión no reconocida',
   'referee.fault_laser_2_04': 'Tocado de estocada',
   'referee.fault_laser_2_05': 'Tocado muy brutal',
-  'referee.fault_laser_2_06': 'Tocado durante / después de una caída o desplazamiento descontrolado',
+  'referee.fault_laser_2_06':
+    'Tocado durante / después de una caída o desplazamiento descontrolado',
   'referee.fault_laser_2_07': 'Salir voluntariamente de la arena para evitar un tocado',
   'referee.fault_laser_2_08': 'Uso del brazo o la mano no armada',
   'referee.fault_laser_2_09': 'Falta de marca de control en el material',
@@ -724,7 +751,8 @@
   'results.match_pending': 'Pendiente',
   'selfCheckin.page_title': 'Registro – BellePoule',
   'selfCheckin.title': 'Registro',
-  'selfCheckin.intro': 'Introduce tu número de licencia y tu fecha de nacimiento para confirmar tu presencia.',
+  'selfCheckin.intro':
+    'Introduce tu número de licencia y tu fecha de nacimiento para confirmar tu presencia.',
   'selfCheckin.license': 'Número de licencia',
   'selfCheckin.birth_date': 'Fecha de nacimiento',
   'selfCheckin.submit': 'Estoy presente',

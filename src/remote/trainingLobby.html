@@ -97,9 +97,14 @@
       .strip small { font-size: 0.8rem; font-weight: 600; color: var(--lb-free-text); }
       .strip.mine { border-color: var(--lb-mine); }
       .strip.mine small { color: var(--lb-mine-text); }
-      .strip.occupied {
-        border-color: var(--lb-occ); color: var(--lb-muted); cursor: not-allowed; pointer-events: none; opacity: 0.7;
+      .strip.occupied { border-color: var(--lb-occ); color: var(--lb-muted); }
+      .strip.occupied > span, .strip.occupied > small { opacity: 0.7; }
+      .takeover {
+        margin-top: 0.35rem; padding: 0.35rem 0.75rem; border-radius: 0.5rem; cursor: pointer;
+        border: 1px solid var(--lb-occ-text); background: transparent; color: var(--lb-occ-text);
+        font: inherit; font-size: 0.8rem; font-weight: 600;
       }
+      .flash { color: var(--lb-occ-text); font-weight: 600; margin-bottom: 1rem; }
       .strip.occupied small { color: var(--lb-occ-text); }
       .empty { color: var(--lb-muted); padding: 2rem 0; }
     </style>
@@ -109,6 +114,7 @@
       <h1 data-i18n="traininglobby.title">Lobby entraînement</h1>
       <p class="subtitle" data-i18n="traininglobby.subtitle">Choisissez une piste pour arbitrer.</p>
       <p class="notice" data-i18n="traininglobby.idle_notice">Une piste se libère après 3 minutes d'inactivité.</p>
+      <p id="flash" class="flash" role="status" style="display:none"></p>
       <div id="strips" class="grid" aria-live="polite"></div>
       <p id="empty" class="empty" style="display:none" data-i18n="traininglobby.none">Aucune piste.</p>
     </div>
@@ -122,6 +128,33 @@
       if (!/^[\w-]{8,64}$/.test(clientId)) {
         clientId = 'c' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
         try { sessionStorage.setItem('bp_training_client', clientId); } catch (_) {}
+      }
+
+      // Arrivée après un refus (?occupied=N) ou une reprise par une autre tablette (?taken=N)
+      (function () {
+        const q = new URLSearchParams(location.search);
+        const taken = q.get('taken');
+        const occupied = q.get('occupied');
+        const n = Number(taken || occupied);
+        if (!Number.isInteger(n) || n < 1) return;
+        const flash = document.getElementById('flash');
+        flash.textContent = window.T(taken ? 'traininglobby.taken' : 'traininglobby.occupied_hint', { n });
+        flash.style.display = 'block';
+      })();
+
+      // Reprise d'une piste occupée (tablette oubliée, onglet resté ouvert), après confirmation
+      async function takeover(n) {
+        if (!window.confirm(window.T('traininglobby.takeover_confirm', { n }))) return;
+        try {
+          const r = await fetch('/api/training/lobby/takeover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ arena: n, clientId }),
+          });
+          if (r.ok) location.href = '/arene' + encodeURIComponent(n) + '/arbitre?lobby=1';
+        } catch (_) {
+          /* réseau indisponible : le lobby se rafraîchit */
+        }
       }
 
       // Retour au lobby = piste libérée
@@ -159,6 +192,14 @@
             a.occupied ? (a.mine ? 'traininglobby.mine' : 'traininglobby.occupied') : 'traininglobby.free'
           );
           el.append(name, state);
+          if (a.occupied && !a.mine) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'takeover';
+            btn.textContent = window.T('traininglobby.takeover');
+            btn.addEventListener('click', () => takeover(a.number));
+            el.appendChild(btn);
+          }
           grid.appendChild(el);
         }
       }

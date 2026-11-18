@@ -22,7 +22,8 @@
   'checkin.absent': 'Ausente',
   'checkin.empty': 'Sem resultados',
   'checkin.closed': 'A chamada está encerrada (competição iniciada ou servidor parado).',
-  'checkin.not_configured': 'Chamada não configurada: o DT deve definir uma palavra-passe de chamada.',
+  'checkin.not_configured':
+    'Chamada não configurada: o DT deve definir uma palavra-passe de chamada.',
   /* commun */
   'remote.arena': 'Pista',
   'remote.piste': 'Pista',
@@ -67,8 +68,10 @@
   'referee.club_cards': 'Cartões',
   'referee.club_cards_title': 'Identificar os atiradores com o cartão do clube',
   'referee.referee_label': 'Árbitro:',
-  'referee.cyrano_master_lock': 'Entrada bloqueada: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
-  'referee.cyrano_master_card_lock': 'Cartões bloqueados: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
+  'referee.cyrano_master_lock':
+    'Entrada bloqueada: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
+  'referee.cyrano_master_card_lock':
+    'Cartões bloqueados: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
   'arena.resting_label': 'Descanso',
   'referee.cyrano_bar': 'Pista {{piste}}: {{mode}} — {{state}}',
   'referee.cyrano_mode_master': 'Mestre',
@@ -83,7 +86,8 @@
   'referee.cancel': 'Cancelar',
   'referee.black_card_confirm': 'Confirmar a eliminação',
   'referee.coin_flip_winner': 'Sorteio — Vencedor:',
-  'referee.priority_applies': 'Minuto de prioridade: o esgrimista sorteado vence se não houver toque',
+  'referee.priority_applies':
+    'Minuto de prioridade: o esgrimista sorteado vence se não houver toque',
   'referee.pool_complete': 'POULE CONCLUÍDA',
   'referee.pool_complete_sub': 'Todos os combates estão concluídos',
   'referee.sig_title': 'Assinaturas dos esgrimistas',
@@ -131,7 +135,8 @@
   'referee.black_cards': 'Cartões pretos',
   'referee.against': 'vs',
   'referee.cancel_card': 'Anular cartão',
-  'referee.confirm_cancel_black': 'Anular este cartão preto?\nO esgrimista é reintegrado: os seus resultados e os dos seus adversários voltam a contar e o combate interrompido é reaberto.',
+  'referee.confirm_cancel_black':
+    'Anular este cartão preto?\nO esgrimista é reintegrado: os seus resultados e os dos seus adversários voltam a contar e o combate interrompido é reaberto.',
   'referee.black_card_cancelled': 'Cartão preto anulado — esgrimista reintegrado',
   'referee.sd_zone_c': 'MORTE SÚBITA – Apenas zona C!',
   'referee.sd_zone_c_notif': 'Morte súbita: apenas zona C!',
@@ -184,8 +189,10 @@
   'referee.timer_reset': 'Cronómetro reposto',
   'referee.tie_launch': 'Empate! Prima «Iniciar {{label}}» para começar o prolongamento.',
   'referee.launch_overtime': 'Iniciar {{label}}',
-  'referee.ot_challenger': 'PROLONGAMENTO DE 30 s – Empate! Apenas zona C (morte súbita Challenger).',
-  'referee.ot_modern': 'PROLONGAMENTO DE 1 MIN – Empate! O vencedor é sorteado se o empate persistir no fim.',
+  'referee.ot_challenger':
+    'PROLONGAMENTO DE 30 s – Empate! Apenas zona C (morte súbita Challenger).',
+  'referee.ot_modern':
+    'PROLONGAMENTO DE 1 MIN – Empate! O vencedor é sorteado se o empate persistir no fim.',
   'referee.ot_laser': 'PROLONGAMENTO DE 30 s – Empate no tempo! Todas as zonas são válidas.',
   'referee.tie_coin': 'Empate! Corrija o resultado se necessário ou prima «Sorteio».',
   'referee.coin_anim': 'Sorteio — animação em curso...',
@@ -398,7 +405,8 @@
   'team.reset_bout': 'Repor o assalto',
   'team.next_relay': 'Próximo revezamento →',
   'team.all_bouts_played': 'Combate concluído — todos os assaltos foram disputados.',
-  'team.cyrano_master_relay_lock': 'Revezamento bloqueado: o aparelho de pista está em modo mestre e valida o fim do revezamento.',
+  'team.cyrano_master_relay_lock':
+    'Revezamento bloqueado: o aparelho de pista está em modo mestre e valida o fim do revezamento.',
   'team.touch_remove': 'Retirar um toque (lado {{side}})',
   'team.touch_side': '+ Toque (lado {{side}})',
   'team.card_title': 'Cartão {{type}} E',
@@ -497,9 +505,11 @@
   'register.first_name': 'Nome próprio',
   'register.gender': 'Género',
   'register.camera_unavailable': 'Câmara indisponível',
-  'register.photo_consent': 'Aceito que a minha foto seja usada na competição (com o consentimento de um dos pais se for menor).',
+  'register.photo_consent':
+    'Aceito que a minha foto seja usada na competição (com o consentimento de um dos pais se for menor).',
   'register.photo_consent_required': 'Marque o consentimento para enviar a foto, ou remova-a.',
-  'register.privacy_notice': 'Os teus dados (apelido, nome, género, clube, licença, nacionalidade, data de nascimento, foto) são tratados pelo organizador para gerir a competição. Apelido, nome, clube e resultados podem ser mostrados nos ecrãs e documentos da competição. Para aceder, retificar ou apagar, contacta o organizador.',
+  'register.privacy_notice':
+    'Os teus dados (apelido, nome, género, clube, licença, nacionalidade, data de nascimento, foto) são tratados pelo organizador para gerir a competição. Apelido, nome, clube e resultados podem ser mostrados nos ecrãs e documentos da competição. Para aceder, retificar ou apagar, contacta o organizador.',
   'register.required': 'Apelido, nome próprio e género são obrigatórios',
   'register.server_error': 'Erro do servidor',
   'register.network_error': 'Erro de rede',
@@ -522,7 +532,8 @@
   'ocr.corners_hint':
     'Arraste as 4 alças douradas para os 4 cantos da grelha de resultados (apenas as células V/D, sem as colunas Nome, N.º, Estatísticas e Assinatura).',
   'ocr.validate_hint_yellow': 'Células amarelas = baixa confiança do OCR — verifique.',
-  'ocr.validate_hint_empty': 'Células vazias = resultado não reconhecido — introduza-o manualmente.',
+  'ocr.validate_hint_empty':
+    'Células vazias = resultado não reconhecido — introduza-o manualmente.',
   'ocr.image_error': 'Não foi possível carregar a imagem',
   'ocr.qr_not_found': 'QR não detetado — selecione a poule manualmente',
   'ocr.qr_found': 'QR detetado (poule {{id}}…)',
@@ -567,6 +578,11 @@
   'traininglobby.none': 'Nenhuma pista: o modo de treino não está iniciado.',
   'traininglobby.idle_notice': 'Uma pista é libertada após 3 minutos de inatividade.',
   'traininglobby.idle_kick': 'Pista {{n}} libertada após 3 minutos de inatividade.',
+  'traininglobby.takeover': 'Retomar',
+  'traininglobby.takeover_confirm': 'Retomar a pista {{n}}? O tablet que a ocupa voltará ao lobby.',
+  'traininglobby.taken': 'Pista {{n}} retomada por outro tablet.',
+  'traininglobby.occupied_hint':
+    'A pista {{n}} já está aberta noutro tablet ou separador. Toque em «Retomar» se já não estiver em uso.',
   'matchs.pool': 'Poule',
   'trainer.not_open': 'A área do treinador não está aberta para esta competição.',
   'trainer.in_match': 'Em combate — {{label}}',
@@ -582,7 +598,8 @@
   'error.arena_not_found': 'Pista não encontrada',
   'error.auth_required': 'Autenticação necessária',
   'error.black_card_not_found': 'Cartão preto não encontrado para esta pista',
-  'error.cancel_tableau_forbidden': 'Não é possível anular num combate de quadro (corrija a partir do posto do DT)',
+  'error.cancel_tableau_forbidden':
+    'Não é possível anular num combate de quadro (corrija a partir do posto do DT)',
   'error.checkin_closed': 'Chamada encerrada',
   'error.checkin_not_configured': 'Chamada não configurada',
   'error.competition_not_found': 'Competição não encontrada',
@@ -605,7 +622,8 @@
   'error.invalid_signature': 'Dados de assinatura inválidos',
   'error.last_name_required': 'Apelido obrigatório',
   'error.match_not_found': 'Combate não encontrado',
-  'error.cyrano_master_lock': 'Cartões bloqueados: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
+  'error.cyrano_master_lock':
+    'Cartões bloqueados: o aparelho da pista está em modo mestre. Corrija apenas retirando.',
   'error.matches_fetch_failed': 'Não foi possível carregar os combates',
   'error.no_competition': 'Nenhuma competição ativa',
   'error.no_pool_for_arena': 'Nenhuma poule atribuída a esta pista',
@@ -695,7 +713,8 @@
   'referee.fault_olympic_2_11': 'Tocar com violência',
   'referee.fault_olympic_2_12': 'Virar as costas ao adversário',
   'referee.fault_olympic_2_13': 'Recusar obedecer ao árbitro',
-  'referee.fault_olympic_3_01': 'Utilizar o braço ou a mão não armada numa ação ofensiva ou defensiva',
+  'referee.fault_olympic_3_01':
+    'Utilizar o braço ou a mão não armada numa ação ofensiva ou defensiva',
   'referee.fault_olympic_3_02': 'Largar deliberadamente a arma durante a frase de armas',
   'referee.fault_olympic_3_03': 'Tocar deliberadamente noutro sítio que não o adversário',
   'referee.fault_olympic_3_04': 'Tocar com a guarda / o pomo',
@@ -731,7 +750,8 @@
   'results.match_pending': 'Por disputar',
   'selfCheckin.page_title': 'Chamada – BellePoule',
   'selfCheckin.title': 'Chamada',
-  'selfCheckin.intro': 'Introduza o número de licença e a data de nascimento para confirmar a presença.',
+  'selfCheckin.intro':
+    'Introduza o número de licença e a data de nascimento para confirmar a presença.',
   'selfCheckin.license': 'Número de licença',
   'selfCheckin.birth_date': 'Data de nascimento',
   'selfCheckin.submit': 'Estou presente',

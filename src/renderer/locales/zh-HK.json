@@ -3468,6 +3468,7 @@
     "cancel_bout": "取消對賽",
     "fencer_n": "劍手 {{n}} — 劍道 {{strip}}",
     "choose_fencer": "選擇劍手",
+    "no_attendee": "本節未有劍手報到",
     "launch": "開始",
     "open_title": "新訓練",
     "label": "標題（可選）",
@@ -3540,6 +3541,15 @@
     "restart_hint": "遠端計分進行中：介面、連接埠及 HTTPS 將於下次啟動時套用。",
     "saved": "已套用遠端計分設定",
     "saved_restart": "已套用主題及密碼；請停止並重新啟動遠端計分以套用網絡設定"
+  },
+  "clubStrip": {
+    "open": "劍道 {{n}} 的連結及 QR 碼",
+    "title": "劍道 {{n}} — 連結",
+    "display": "劍道顯示",
+    "referee": "裁判畫面",
+    "copy": "複製網址：{{title}}",
+    "qr_alt": "QR 碼：{{title}}",
+    "needs_remote": "請啟用遠端計分以取得劍道連結"
   },
   "clubImport": {
     "title": "從「{{file}}」匯入",

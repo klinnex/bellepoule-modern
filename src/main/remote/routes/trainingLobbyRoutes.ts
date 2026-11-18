@@ -54,6 +54,22 @@ export function registerTrainingLobbyRoutes(ctx: RouteContext, lobby = new Train
     res.json({ ok: true });
   });
 
+  // Reprend une piste occupée (confirmée dans le lobby) : l'ancienne tablette retourne au lobby
+  ctx.app.post('/api/training/lobby/takeover', (req, res) => {
+    if (!ctx.session || !ctx.isTrainingMode) return res.status(409).json({ error: 'not_training' });
+    const { arena, clientId } = (req.body ?? {}) as { arena?: unknown; clientId?: unknown };
+    const n = Number(arena);
+    if (!Number.isInteger(n) || !arenaNumbers(ctx).includes(n)) {
+      return res.status(404).json({ error: 'arena_not_found' });
+    }
+    if (typeof clientId !== 'string' || !CLIENT_ID_RE.test(clientId)) {
+      return res.status(400).json({ error: 'invalid_client' });
+    }
+    lobby.takeover(n, clientId);
+    ctx.notifyKioskData?.();
+    res.json({ ok: true });
+  });
+
   // Libère la piste (retour lobby, fermeture de page via sendBeacon)
   ctx.app.post('/api/training/lobby/release', (req, res) => {
     const { arena, clientId } = (req.body ?? {}) as { arena?: unknown; clientId?: unknown };

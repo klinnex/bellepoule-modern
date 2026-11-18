@@ -43,6 +43,17 @@ export class TrainingLobby {
     return true;
   }
 
+  /**
+   * Reprend la piste même tenue par un autre client (tablette oubliée, onglet resté ouvert).
+   * L'ancien client la perd : sa prochaine réservation échoue et le renvoie au lobby.
+   */
+  takeover(arena: number, clientId: string, now: number = Date.now()): void {
+    for (const [other, c] of this.claims) {
+      if (c.clientId === clientId && other !== arena) this.claims.delete(other);
+    }
+    this.claims.set(arena, { clientId, lastActivity: now });
+  }
+
   /** Libère la piste si elle est tenue par ce client (sans effet sinon). */
   release(arena: number, clientId: string): void {
     if (this.claims.get(arena)?.clientId === clientId) this.claims.delete(arena);
