@@ -12,6 +12,7 @@ import {
   Dumbbell,
   GraduationCap,
   Package,
+  Pencil,
   RefreshCw,
   Save,
   Shield,
@@ -24,6 +25,8 @@ import { useToast } from '../Toast';
 import { exportClubBackup } from './clubBackup';
 import { ClubSyncModal } from './ClubSyncModal';
 import { ClubPicker } from './ClubPicker';
+import { ClubIdentityCard } from './ClubIdentityCard';
+import { Modal } from '../common/Modal';
 import type { ClubSettings } from '../../../shared/types/club';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
@@ -90,6 +93,7 @@ const ClubSpace: React.FC<{
   // Synchronisation menu global ↔ onglet Séances (chacun recharge quand l'autre modifie)
   const [menuRevision, setMenuRevision] = useState(0);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [identityOpen, setIdentityOpen] = useState(false);
   const [panelRevision, setPanelRevision] = useState(0);
   const bumpMenu = useCallback(() => setMenuRevision(r => r + 1), []);
   const bumpPanel = useCallback(() => setPanelRevision(r => r + 1), []);
@@ -163,7 +167,17 @@ const ClubSpace: React.FC<{
           <Shield className="club-header-logo club-header-logo--empty" aria-hidden="true" />
         )}
         <div className="club-grow">
-          <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
+          <div className="club-title-group">
+            <h1 className="club-header-title">{settings.name || t('club.default_name')}</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Pencil size={14} aria-hidden="true" />}
+              aria-label={t('club.identity')}
+              title={t('club.identity')}
+              onClick={() => setIdentityOpen(true)}
+            />
+          </div>
           <p className="club-header-sub">{t('club.subtitle')}</p>
         </div>
         <ClubSessionMenu
@@ -216,6 +230,17 @@ const ClubSpace: React.FC<{
 
       {syncOpen && (
         <ClubSyncModal clubId={clubId} onChanged={bumpPanel} onClose={() => setSyncOpen(false)} />
+      )}
+
+      {identityOpen && (
+        <Modal title={t('club.identity')} onClose={() => setIdentityOpen(false)} size="md">
+          <ClubIdentityCard
+            clubId={clubId}
+            settings={settings}
+            onSettingsChange={setSettings}
+            bare
+          />
+        </Modal>
       )}
 
       <nav className="club-nav" aria-label={t('club.nav_label')}>
