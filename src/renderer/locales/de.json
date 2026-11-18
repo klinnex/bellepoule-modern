@@ -3399,7 +3399,12 @@
     "sort_name": "Name",
     "sort_category": "Altersklasse",
     "cards_pdf": "Karten als PDF speichern",
-    "arena_qr_pdf": "Bahn-QR-Codes als PDF speichern"
+    "arena_qr_pdf": "Bahn-QR-Codes als PDF speichern",
+    "show_qr": "QR-Code anzeigen",
+    "member_qr_title": "QR-Code von {{name}}",
+    "member_qr_alt": "Ausweis-QR-Code von {{name}}",
+    "print_card": "Ausweis drucken",
+    "card_pdf": "Ausweis als PDF speichern"
   },
   "clubCoach": {
     "tab": "Fechtmeister",

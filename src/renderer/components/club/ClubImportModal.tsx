@@ -76,6 +76,10 @@ export const ClubImportModal: React.FC<ClubImportModalProps> = ({
       return next;
     });
 
+  const visibleImportable = visible.filter(i => importable(statuses[i]));
+  const allVisibleSelected =
+    visibleImportable.length > 0 && visibleImportable.every(i => selected.has(i));
+
   return (
     <Modal
       title={t('clubImport.title', { file: fileName })}
@@ -105,11 +109,12 @@ export const ClubImportModal: React.FC<ClubImportModalProps> = ({
           aria-label={t('club.search')}
           onChange={e => setSearch(e.target.value)}
         />
-        <Button size="sm" onClick={() => setVisible(true)}>
-          {t('clubImport.select_all')}
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => setVisible(false)}>
-          {t('clubImport.select_none')}
+        <Button
+          size="sm"
+          disabled={visibleImportable.length === 0}
+          onClick={() => setVisible(!allVisibleSelected)}
+        >
+          {allVisibleSelected ? t('clubImport.select_none') : t('clubImport.select_all')}
         </Button>
       </div>
       <table className="table">

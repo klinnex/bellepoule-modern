@@ -3399,7 +3399,12 @@
     "sort_name": "Nom",
     "sort_category": "Catégorie d'âge",
     "cards_pdf": "Enregistrer les cartes en PDF",
-    "arena_qr_pdf": "Enregistrer les QR des pistes en PDF"
+    "arena_qr_pdf": "Enregistrer les QR des pistes en PDF",
+    "show_qr": "Afficher le QR code",
+    "member_qr_title": "QR code de {{name}}",
+    "member_qr_alt": "QR code de la carte de {{name}}",
+    "print_card": "Imprimer sa carte",
+    "card_pdf": "Enregistrer sa carte en PDF"
   },
   "clubCoach": {
     "tab": "Maîtres d'armes",

@@ -3399,7 +3399,12 @@
     "sort_name": "Anv",
     "sort_category": "Rummad oad",
     "cards_pdf": "Enrollañ ar c'hartennoù e PDF",
-    "arena_qr_pdf": "Enrollañ QR ar pistoù e PDF"
+    "arena_qr_pdf": "Enrollañ QR ar pistoù e PDF",
+    "show_qr": "Diskouez ar c'hod QR",
+    "member_qr_title": "Kod QR {{name}}",
+    "member_qr_alt": "Kod QR kartenn {{name}}",
+    "print_card": "Moullañ e gartenn",
+    "card_pdf": "Enrollañ e gartenn e PDF"
   },
   "clubCoach": {
     "tab": "Mestr-armoù",

@@ -29,6 +29,7 @@ import {
 } from '../../../shared/utils/clubImport';
 import { ClubImportModal } from './ClubImportModal';
 import { ClubMemberEditModal } from './ClubMemberEditModal';
+import { ClubMemberQrModal } from './ClubMemberQrModal';
 import { parseFFEFile, parseXMLFile } from '../../../shared/utils/fileParser';
 import { resolveFencerFileFormat } from '../../../shared/utils/fileParser/detect';
 import { exportClubMembersToFFF } from '../../../shared/utils/fencerExport';
@@ -91,6 +92,7 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   const [ageFilter, setAgeFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
   const [printing, setPrinting] = useState(false);
+  const [qrMember, setQrMember] = useState<ClubMember | null>(null);
   const [editing, setEditing] = useState<ClubMember | null>(null);
   const [importDraft, setImportDraft] = useState<{
     fileName: string;
@@ -273,8 +275,8 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
   };
 
   /** Cartes des membres affichés : boîte d'impression, ou fichier PDF */
-  const printCards = async (mode: 'print' | 'pdf') => {
-    const list = filtered.filter(m => m.active);
+  const printCards = async (mode: 'print' | 'pdf', only?: ClubMember) => {
+    const list = (only ? [only] : filtered).filter(m => m.active);
     if (list.length === 0) return;
     setPrinting(true);
     try {
@@ -534,6 +536,15 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
                     <Button
                       size="sm"
                       variant="ghost"
+                      icon={<QrCode size={14} aria-hidden="true" />}
+                      aria-label={t('club.show_qr')}
+                      title={t('club.show_qr')}
+                      disabled={!m.cardCode}
+                      onClick={() => setQrMember(m)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       icon={<RefreshCw size={14} aria-hidden="true" />}
                       aria-label={t('club.regenerate')}
                       title={t('club.regenerate')}
@@ -585,6 +596,14 @@ export const ClubMembersPanel: React.FC<ClubMembersPanelProps> = ({
             await load();
           }}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {qrMember && (
+        <ClubMemberQrModal
+          member={qrMember}
+          printing={printing}
+          onPrint={mode => printCards(mode, qrMember)}
+          onClose={() => setQrMember(null)}
         />
       )}
       {importDraft && (

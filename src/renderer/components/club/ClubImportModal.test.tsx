@@ -56,10 +56,13 @@ describe('ClubImportModal (#1872)', () => {
         onClose={vi.fn()}
       />
     );
+    expect(screen.queryByRole('button', { name: 'Tout cocher' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Tout décocher' }));
     expect(screen.getByRole('button', { name: 'Importer la sélection (0)' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Tout décocher' })).toBeNull();
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'martin' } });
     fireEvent.click(screen.getByRole('button', { name: 'Tout cocher' }));
     expect(screen.getByRole('button', { name: 'Importer la sélection (1)' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Tout décocher' })).toBeInTheDocument();
   });
 });
