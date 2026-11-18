@@ -54,6 +54,6 @@ describe('trainingThemes (#1500)', () => {
     expect(light['--ref-match-bg']).toBe(REFEREE_LIGHT_MATCH_VARS['--ref-match-bg']);
     expect(light['--ref-btn-text']).toBe('#1f2937');
     const musk = resolveTrainingTheme('musketeers').referee?.variables ?? {};
-    expect(musk['--ref-btn-text']).toBe('#14224d');
+    expect(musk['--ref-btn-text']).toBe('#ffffff');
   });
 });
