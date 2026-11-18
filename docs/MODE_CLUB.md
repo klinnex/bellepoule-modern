@@ -153,6 +153,212 @@ famille et par catégorie (une catégorie montre aussi les exercices communs). D
 séance, **Depuis la bibliothèque** propose les exercices des catégories du cours et les
 exercices communs. Export / import JSON (doublons titre + famille ignorés).
 
+### Exemples d'exercices détaillés
+
+Chaque exemple suit les champs de la fiche : titre, famille, durée, catégories d'âge, armes,
+consignes. Les consignes se recopient telles quelles dans le champ « consignes ».
+
+#### Exemple 1 : Déplacements et rythme (échauffement)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Échauffement                                 |
+| Durée      | 10 min                                       |
+| Âges       | Aucune (commun à tous)                       |
+| Armes      | Toutes                                       |
+
+Consignes :
+
+1. (2 min) Garde en position, pieds en équerre, genoux fléchis. Pas avant puis pas arrière
+   sur la longueur de la salle, 5 allers-retours, dos droit, sans sauter.
+2. (4 min) Enchaînement **pas avant, fente, retour en garde**. 3 séries de 10 répétitions,
+   lentes puis plus rapides. La fente part du pied arrière, le retour se fait sur la jambe avant.
+3. (4 min) Jeu du signal : le maître d'armes crie « avant », « arrière » ou « fente ». L'élève
+   réagit sans regarder ses pieds. Le premier qui se trompe sort du jeu pour un tour.
+
+Points de vigilance : regard à hauteur de la cible, pas de pas croisés, épaules détendues.
+Variante jeunes (U9 / U11) : remplacer le signal par un jeu « chat et souris » sur un
+couloir de 10 m.
+
+#### Exemple 2 : Attaque simple et retour en garde (technique, fleuret)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Technique                                    |
+| Durée      | 15 min                                       |
+| Âges       | U13, U15, U17                                |
+| Armes      | Fleuret (F)                                  |
+
+Consignes :
+
+1. (2 min) Démonstration par le maître d'armes : extension du bras d'abord, fente ensuite,
+   pointe à hauteur de plastron. Retour en garde immédiat.
+2. (3 min) Par binômes, sans cible : attaque à vide, en gardant le bras tendu.
+3. (5 min) Attaque sur plastron fixe. 3 séries de 8 attaques, rôles inversés à chaque série.
+4. (5 min) Attaque sur signal : le partenaire lève la main, l'élève attaque dès qu'il la voit.
+
+Critère de réussite : au moins 6 touches sur 8 sur le plastron, retour en garde après chaque
+attaque, sans reculer le pied avant.
+Erreurs fréquentes : fente avant extension du bras, retour sans reprendre la garde, regard
+baissé sur la pointe.
+
+#### Exemple 3 : Parade et riposte (technique, épée)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Technique                                    |
+| Durée      | 15 min                                       |
+| Âges       | U15, U17, SENIOR                             |
+| Armes      | Épée (E)                                     |
+
+Consignes :
+
+1. (3 min) Parade de quarte seule, à vide : la lame reste au-dessus de la main, le poignet
+   ne se plie pas.
+2. (6 min) Binôme en attaque lente : l'attaquant joue une attaque simple, le défenseur
+   pare puis riposte directement (riposte sur la même ligne). 2 séries de 10.
+3. (6 min) Même exercice à vitesse normale, puis avec un changement de ligne par
+   l'attaquant (haute ou basse) que le défenseur doit suivre avant de riposter.
+
+Critère de réussite : parade propre sur 8 attaques sur 10, sans toucher le bras de l'attaquant
+avec la coquille.
+
+#### Exemple 4 : Lecture de la distance (tactique)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Tactique                                     |
+| Durée      | 15 min                                       |
+| Âges       | U17, SENIOR, V1, V2                          |
+| Armes      | Épée (E), fleuret (F), sabre (S)             |
+
+Consignes :
+
+1. (2 min) Rappel : à la distance de fente, la touche part au premier mouvement de l'adversaire.
+   Un tireur qui avance sans attaquer donne de la distance à son adversaire.
+2. (10 min) Binôme en distance libre, à 4 m environ. Chacun n'attaque que lorsque l'autre
+   s'approche. Sur 3 minutes, compter les touches, puis inverser les rôles.
+3. (3 min) Bilan oral : quelle distance a été décisive, à quel moment la touche a été donnée
+   (avant, pendant ou après un déplacement de l'adversaire).
+
+Remarque : l'exercice est plus utile après une séance de technique. Ne pas le proposer
+en début de séance.
+
+#### Exemple 5 : Assaut à thème, 3 touches (assauts)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Assauts                                      |
+| Durée      | 20 min                                       |
+| Âges       | U11 et plus                                  |
+| Armes      | Toutes                                       |
+
+Consignes :
+
+1. (2 min) Règle du jeu : premier à 3 touches, deux minutes maximum par assaut, arbitrage
+   du maître d'armes.
+2. (12 min) Assauts par binômes, en tournant à chaque nouveau partenaire. Thème annoncé
+   avant chaque tour (ex. : « attaques au fer seulement », « défense par parade »).
+3. (6 min) Chaque tireur donne à son partenaire un point fort et un point à améliorer, puis
+   le maître d'armes ajoute une remarque par tireur.
+
+Adaptation : les tireurs qui débutent jouent un assaut à 2 touches, sans thème imposé.
+
+#### Exemple 6 : Frappes par zones (technique, sabre laser)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Technique                                    |
+| Durée      | 12 min                                       |
+| Âges       | U13, U15, U17, SENIOR                        |
+| Armes      | Sabre laser (L)                              |
+
+Consignes :
+
+1. (2 min) Rappel des zones : A = 1 point, B = 3 points, C = 5 points. Le tireur vise la zone
+   annoncée, pas la zone la plus facile.
+2. (8 min) Sur tablette ou cible au mur, le maître d'armes annonce une zone à chaque signal.
+   Le tireur frappe la zone demandée et reprend sa garde. Une série de 10 frappes, puis
+   bilan : nombre de frappes justes, points cumulés.
+3. (2 min) Même exercice en se déplaçant d'un pas entre deux frappes.
+
+Critère de réussite : 8 frappes justes sur 10 dans la zone demandée.
+
+#### Exemple 7 : Circuit jambes et gainage (physique)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Physique                                     |
+| Durée      | 15 min                                       |
+| Âges       | U13 et plus                                  |
+| Armes      | Toutes                                       |
+
+Consignes :
+
+1. (2 min) Échauffement articulaire : chevilles, genoux, hanches, épaules, 10 mouvements
+   chacun.
+2. (10 min) Circuit de 4 postes, 40 secondes par poste, 20 secondes de repos entre deux
+   postes, 2 tours :
+   - fentes alternées sans appui ;
+   - sauts latéraux au-dessus d'une ligne ;
+   - gainage planche (position sur les avant-bras) ;
+   - pas chassé d'un bout à l'autre de la salle.
+3. (3 min) Retour au calme, puis hydratation.
+
+Adaptation : réduire la durée des postes pour les U13 ; pour les V2 et plus, remplacer les
+sauts par de la marche rapide.
+
+#### Exemple 8 : Étirements (retour au calme)
+
+| Champ      | Valeur                                       |
+| ---------- | -------------------------------------------- |
+| Famille    | Retour au calme                              |
+| Durée      | 5 min                                        |
+| Âges       | Aucune (commun à tous)                       |
+| Armes      | Toutes                                       |
+
+Consignes :
+
+1. Quadriceps : debout, talon contre la fesse, 20 secondes par jambe.
+2. Ischio-jambiers : jambe tendue, buste penché vers l'avant, 20 secondes par jambe.
+3. Mollets : jambe arrière tendue, talon au sol, 20 secondes par jambe.
+4. Épaule : bras tendu en travers du corps, tiré vers l'autre épaule, 20 secondes par bras.
+5. Poignet et avant-bras : bras tendu, paume vers le haut puis vers le bas, 15 secondes chacun.
+
+Respirer calmement pendant chaque posture, ne pas bouger en rebond.
+
+#### Exemple d'import JSON
+
+Le fichier d'import est un tableau de fiches. Seul le champ `title` est obligatoire ; les
+autres sont facultatifs. `minutes` est un nombre entier, `ageCategories` et `weapons` sont des
+listes de codes (`U9` … `V4`, `SENIOR` ; `F`, `E`, `S`, `L`, `A`).
+
+```json
+[
+  {
+    "title": "Attaque simple et retour en garde",
+    "category": "technique",
+    "minutes": 15,
+    "details": "Démonstration, attaque à vide, plastron fixe, attaque sur signal.",
+    "images": [],
+    "ageCategories": ["U13", "U15", "U17"],
+    "weapons": ["F"]
+  },
+  {
+    "title": "Déplacements et rythme",
+    "category": "warmup",
+    "minutes": 10,
+    "details": "Pas avant / arrière, fente, retour en garde, jeu du signal.",
+    "images": [],
+    "ageCategories": [],
+    "weapons": []
+  }
+]
+```
+
+Familles acceptées pour `category` : `warmup`, `technique`, `tactics`, `bouts`, `physical`,
+`cooldown`, `other`. Un titre et une famille déjà présents sont ignorés à l'import.
+
 ## 7. Inventaire
 
 Matériel possédé par le club, suivi par **fiche** (un modèle, `quantity` exemplaires) et par
