@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Activa la edición avanzada de pistas y del número de árbitros por poule / combate",
     "max_referees_pool": "Árbitros máx. por poule",
     "max_referees_match": "Árbitros máx. por combate (cuadro)",
-    "save": "Guardar"
+    "save": "Guardar",
+    "greg_level_label": "Nivel GREG",
+    "greg_level_hint": "Nivel enviado a GREG (escrime-info.com) al publicar los resultados.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Zona",
+    "greg_level_CN": "Circuito nacional",
+    "greg_level_A": "Copa del mundo",
+    "greg_level_F": "Campeonatos de Francia",
+    "greg_level_IE": "Campeonatos del mundo",
+    "greg_level_X": "Otro"
   },
   "plural": {
     "common_password_set_one": "Contraseña común definida para {{count}} pista",

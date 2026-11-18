@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Включает расширенное редактирование дорожек и числа судей на пул / бой",
     "max_referees_pool": "Макс. судей на пул",
     "max_referees_match": "Макс. судей на бой (таблица)",
-    "save": "Сохранить"
+    "save": "Сохранить",
+    "greg_level_label": "Уровень GREG",
+    "greg_level_hint": "Уровень, передаваемый в GREG (escrime-info.com) при публикации результатов.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Региональный",
+    "greg_level_CN": "Национальный цикл",
+    "greg_level_A": "Кубок мира",
+    "greg_level_F": "Чемпионаты Франции",
+    "greg_level_IE": "Чемпионаты мира",
+    "greg_level_X": "Другое"
   },
   "plural": {
     "common_password_set_one": "Общий пароль задан для дорожек: {{count}}",

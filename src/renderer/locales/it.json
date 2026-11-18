@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Attiva la modifica avanzata delle pedane e del numero di arbitri per girone / incontro",
     "max_referees_pool": "Arbitri max per girone",
     "max_referees_match": "Arbitri max per incontro (tabellone)",
-    "save": "Salva"
+    "save": "Salva",
+    "greg_level_label": "Livello GREG",
+    "greg_level_hint": "Livello inviato a GREG (escrime-info.com) alla pubblicazione dei risultati.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Zona",
+    "greg_level_CN": "Circuito nazionale",
+    "greg_level_A": "Coppa del mondo",
+    "greg_level_F": "Campionati francesi",
+    "greg_level_IE": "Campionati mondiali",
+    "greg_level_X": "Altro"
   },
   "plural": {
     "common_password_set_one": "Password comune impostata per {{count}} pedana",

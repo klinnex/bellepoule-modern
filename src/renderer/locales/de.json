@@ -1142,7 +1142,16 @@
     "expert_mode_hint": "Aktiviert die erweiterte Bearbeitung der Bahnen und der Kampfrichterzahl pro Pool / Gefecht",
     "max_referees_pool": "Max. Kampfrichter pro Pool",
     "max_referees_match": "Max. Kampfrichter pro Gefecht (Tableau)",
-    "save": "Speichern"
+    "save": "Speichern",
+    "greg_level_label": "GREG-Niveau",
+    "greg_level_hint": "Niveau, das beim Veröffentlichen der Ergebnisse an GREG (escrime-info.com) übermittelt wird.",
+    "greg_level_L": "CID",
+    "greg_level_Z": "Regional",
+    "greg_level_CN": "Nationaler Circuit",
+    "greg_level_A": "Weltcup",
+    "greg_level_F": "Französische Meisterschaften",
+    "greg_level_IE": "Weltmeisterschaften",
+    "greg_level_X": "Andere"
   },
   "plural": {
     "common_password_set_one": "Gemeinsames Passwort für {{count}} Bahn festgelegt",

@@ -166,6 +166,8 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
         ? { federal: { ...header.federal, ...(unlocked ? { unlocked: true } : {}) } }
         : {}),
       ...(Object.keys(schedule).length > 0 ? { schedule } : {}),
+      // Niveau GREG proposé à l'import (fichier BellePoule ou Domaine fédéral), modifiable ensuite (#1328)
+      ...(header?.fields.gregLevel ? { gregLevel: header.fields.gregLevel } : {}),
       // Arbitres importés : gestion des arbitres activée d'office (#1504)
       ...(payload && payload.referees.length > 0 ? { refereeFeatureEnabled: true } : {}),
     };
