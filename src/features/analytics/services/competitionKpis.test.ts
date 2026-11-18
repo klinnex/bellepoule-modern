@@ -486,7 +486,8 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     });
     expect(withTableau.hasTableau).toBe(true);
     expect(withTableau.tableauProjectionMs).toBeNull();
-    expect(withTableau.competitionEtaAt).toBe(withTableau.etaAt);
+    // 1 match de tableau restant, cadence du tableau (4 min 30 + 3 min par défaut)
+    expect(withTableau.competitionEtaAt).toBe(NOW + withTableau.tableauCadence.perMatchMs);
   });
 
   it('tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)', () => {
@@ -515,7 +516,59 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     });
     expect(k.total).toBe(7);
     expect(k.pending).toBe(7);
-    // 1 piste (repli) : 7 vagues, une par match
-    expect(k.competitionEtaAt).toBe(NOW + 7 * k.cadence.perMatchMs);
+    // 1 piste (repli) : 7 vagues, une par match, cadence du tableau
+    expect(k.competitionEtaAt).toBe(NOW + 7 * k.tableauCadence.perMatchMs);
+  });
+
+  it('tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)', () => {
+    const k = organisationKpis({ pools: [], now: NOW });
+    expect(k.tableauCadence.perMatchMs).toBe(7.5 * 60_000);
+    expect(k.tableauCadence.basis).toBe('default');
+  });
+
+  it('tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)', () => {
+    const tableauMatches = [];
+    for (let r = 64; r >= 2; r /= 2)
+      for (let i = 0; i < r / 2; i++)
+        tableauMatches.push({
+          id: `${r}-${i}`,
+          round: r,
+          fencerA: r === 64 ? { id: `a${i}` } : null,
+          fencerB: r === 64 ? { id: `b${i}` } : null,
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        });
+    const arenas = Array.from({ length: 10 }, (_, i) => ({
+      number: i + 1,
+      status: 'idle',
+      matchId: null,
+    }));
+    const k = organisationKpis({ pools: [], tableauMatches, arenas, now: NOW });
+    expect(k.total).toBe(63);
+    // 32/10 → 4, 16 → 2, 8 → 1, 4 → 1, 2 → 1, 1 → 1 : 10 vagues
+    expect(k.competitionEtaAt).toBe(NOW + 10 * 7.5 * 60_000);
+  });
+
+  it('toutes les places : total de la compétition et deux décomptes (#1817)', () => {
+    const tableauMatches = [];
+    for (let r = 8; r >= 2; r /= 2)
+      for (let i = 0; i < r / 2; i++)
+        tableauMatches.push({
+          id: `${r}-${i}`,
+          round: r,
+          fencerA: r === 8 ? { id: `a${i}` } : null,
+          fencerB: r === 8 ? { id: `b${i}` } : null,
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        });
+    tableauMatches.push({ ...tableauMatches[6], id: '3-0', round: 3 });
+    const k = organisationKpis({ pools: [], tableauMatches, playAllPositions: true, now: NOW });
+    expect(k.tableauCount).toMatchObject({ mainTotal: 8, total: 12, allPlaces: true });
+    expect(k.total).toBe(12);
+    expect(k.tableauRemaining).toBe(12);
   });
 });

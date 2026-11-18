@@ -1779,7 +1779,11 @@
     "withdrawals": "傷病 / 驅逐 / 棄權",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "打滿時間的比賽",
-    "time_limit_hint": "已進行的比賽中，雙方均未達到最高分即結束"
+    "time_limit_hint": "已進行的比賽中，雙方均未達到最高分即結束",
+    "scope_pools": "小組賽",
+    "scope_tableau": "淘汰賽",
+    "completed_detail": "小組賽 {{pools}} · 主淘汰賽 {{main}}",
+    "completed_all_places": "全部名次 {{n}}"
   },
   "refereeManager": {
     "title": "裁判管理",
@@ -2633,7 +2637,9 @@
     "generate_hint": "所有選手報到後按此",
     "next_step_hint": "分組賽完成後的下一步",
     "regenerate": "重新準備小組",
-    "coach_dismiss": "不再顯示"
+    "coach_dismiss": "不再顯示",
+    "all_places": "{{a}}/{{b}} 場（全部名次）",
+    "all_places_title": "比賽場次：主淘汰賽及全部名次排位賽"
   },
   "offline": {
     "never": "從未",
@@ -3340,7 +3346,9 @@
     "eta_competition": "比賽預計結束",
     "eta_projected": "預測淘汰賽（未生成）",
     "planned_projected": "計劃（小組賽 + 預測淘汰賽）：{{time}}",
-    "planned_estimate": "參考（首次估算）：{{time}}"
+    "planned_estimate": "參考（首次估算）：{{time}}",
+    "eta_cadence_tableau": "淘汰賽：每場 {{match}} + 兩場之間 {{gap}} · {{strips}} 條劍道同時進行",
+    "tableau_remaining": "淘汰賽剩餘 {{n}} 場"
   },
   "club": {
     "new_member": "新成員",

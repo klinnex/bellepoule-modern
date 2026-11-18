@@ -6,9 +6,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   getFinalDeviation,
   getPlannedEnd,
+  getProjectedEnd,
   hasPlannedEnd,
   setFinalDeviation,
   setPlannedEnd,
+  setProjectedEnd,
 } from './scheduleBaseline';
 
 describe('scheduleBaseline', () => {
@@ -40,5 +42,14 @@ describe('scheduleBaseline', () => {
     localStorage.setItem('bp-org-schedule-c1', '{oops');
     expect(getFinalDeviation('c1')).toBeNull();
     expect(getPlannedEnd('c1', 'pools')).toBeNull();
+  });
+
+  it('fin de compétition projetée conservée après génération du tableau (#1817)', () => {
+    expect(getProjectedEnd('c3')).toBeNull();
+    setProjectedEnd('c3', 5000);
+    setPlannedEnd('c3', 'pools', 2000);
+    expect(getProjectedEnd('c3')).toBe(5000);
+    setProjectedEnd('c3', Number.NaN);
+    expect(getProjectedEnd('c3')).toBe(5000);
   });
 });

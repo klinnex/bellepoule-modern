@@ -1779,7 +1779,11 @@
     "withdrawals": "Yec'hed / ermaeziadennoù / forfedoù",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Emgannoù betek an amzer bevenn",
-    "time_limit_hint": "Emgannoù echu hep na vefe tizhet ar skor uhelañ gant hini ebet"
+    "time_limit_hint": "Emgannoù echu hep na vefe tizhet ar skor uhelañ gant hini ebet",
+    "scope_pools": "Poulennoù",
+    "scope_tableau": "Taolenn",
+    "completed_detail": "Poulennoù {{pools}} · Taolenn bennañ {{main}}",
+    "completed_all_places": "An holl lec'hioù {{n}}"
   },
   "refereeManager": {
     "title": "Merañ an arbitred",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Klikit amañ goude bezañ merket hoc'h holl glezeourien",
     "next_step_hint": "Pazenn da heul pa vo echu ar poulloù",
     "regenerate": "Adprientiñ ar poulennoù",
-    "coach_dismiss": "Arabat diskouez en-dro"
+    "coach_dismiss": "Arabat diskouez en-dro",
+    "all_places": "{{a}}/{{b}} emgann (an holl lec'hioù)",
+    "all_places_title": "Emgannoù ar genstrivadeg : taolenn bennañ ha renkadur an holl lec'hioù"
   },
   "offline": {
     "never": "Biken",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Fin diouzh ar jedadenn ar genstrivadeg",
     "eta_projected": "Taolenn rakwelet (n'eo ket bet krouet)",
     "planned_projected": "Raktreset (poulennoù + taolenn rakwelet) : {{time}}",
-    "planned_estimate": "Dave (priziadur kentañ) : {{time}}"
+    "planned_estimate": "Dave (priziadur kentañ) : {{time}}",
+    "eta_cadence_tableau": "Taolenn : {{match}} dre emgann + {{gap}} etre daou emgann · {{strips}} roudenn(où) asambles",
+    "tableau_remaining": "{{n}} emgann(où) taolenn a chom"
   },
   "club": {
     "new_member": "Ezel nevez",

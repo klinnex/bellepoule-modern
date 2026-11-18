@@ -5,7 +5,7 @@
  */
 import React, { Suspense } from 'react';
 import type { Competition, Fencer, Pool, PoolRanking } from '../../../shared/types';
-import type { FinalResult, TableauMatch } from '../tableau/tableauTypes';
+import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
 import type { usePoolManagement } from '../../hooks/usePoolManagement';
 import { QRCodeShare } from '../QRCodeShare';
 import KioskScoreEntry from './KioskScoreEntry';
@@ -32,6 +32,7 @@ interface CompetitionSecondaryModalsProps {
   fencers: Fencer[];
   pools: Pool[];
   tableauMatches: TableauMatch[];
+  consolationBrackets?: ConsolationBracket[];
   overallRanking?: PoolRanking[];
   finalResults?: FinalResult[];
   poolMaxScore: number;
@@ -47,6 +48,7 @@ const CompetitionSecondaryModals: React.FC<CompetitionSecondaryModalsProps> = ({
   fencers,
   pools,
   tableauMatches,
+  consolationBrackets,
   overallRanking,
   finalResults,
   poolMaxScore,
@@ -77,6 +79,7 @@ const CompetitionSecondaryModals: React.FC<CompetitionSecondaryModalsProps> = ({
             matches={pools.flatMap(p => p.matches ?? [])}
             fencers={fencers}
             tableauMatches={tableauMatches}
+            consolationBrackets={consolationBrackets}
             overallRanking={overallRanking}
             finalResults={finalResults}
             onClose={() => modals.setShowAnalytics(false)}

@@ -1779,7 +1779,11 @@
     "withdrawals": "Médico / exclusiones / incomparecencias",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Asaltos al tiempo límite",
-    "time_limit_hint": "Asaltos disputados terminados sin que ningún tirador alcance la puntuación máxima"
+    "time_limit_hint": "Asaltos disputados terminados sin que ningún tirador alcance la puntuación máxima",
+    "scope_pools": "Poules",
+    "scope_tableau": "Cuadro",
+    "completed_detail": "Poules {{pools}} · Cuadro principal {{main}}",
+    "completed_all_places": "Todos los puestos {{n}}"
   },
   "refereeManager": {
     "title": "Gestión de árbitros",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Haga clic aquí después de marcar a todos sus tiradores",
     "next_step_hint": "Paso siguiente una vez terminadas las poules",
     "regenerate": "Reprepar las poules",
-    "coach_dismiss": "No volver a mostrar"
+    "coach_dismiss": "No volver a mostrar",
+    "all_places": "{{a}}/{{b}} asaltos (todos los puestos)",
+    "all_places_title": "Asaltos de la competición: cuadro principal y clasificación de todos los puestos"
   },
   "offline": {
     "never": "Nunca",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Fin estimada de la competición",
     "eta_projected": "Cuadro proyectado (no generado)",
     "planned_projected": "Previsto (poules + cuadro proyectado): {{time}}",
-    "planned_estimate": "Referencia (1.ª estimación): {{time}}"
+    "planned_estimate": "Referencia (1.ª estimación): {{time}}",
+    "eta_cadence_tableau": "Cuadro: {{match}} por asalto + {{gap}} entre dos asaltos · {{strips}} pista(s) en paralelo",
+    "tableau_remaining": "{{n}} asalto(s) de cuadro restante(s)"
   },
   "club": {
     "new_member": "Nuevo miembro",

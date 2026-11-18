@@ -19,6 +19,8 @@ export interface FinalDeviation {
 interface Stored {
   pools?: number;
   tableau?: number;
+  /** Fin de compétition prévue avant la génération du tableau (poules + tableau projeté) */
+  projected?: number;
   final?: FinalDeviation;
 }
 
@@ -66,6 +68,20 @@ export function hasPlannedEnd(competitionId: string, phase: SchedulePhase): bool
 export function setPlannedEnd(competitionId: string, phase: SchedulePhase, at: number): void {
   if (!valid(at)) return;
   write(competitionId, { ...read(competitionId), [phase]: at });
+}
+
+/**
+ * Fin de compétition prévue (poules + tableau projeté), figée à la génération du tableau :
+ * référence de l'écart final quand l'assistant de planning du tableau n'a pas été ouvert (#1817).
+ */
+export function getProjectedEnd(competitionId: string): number | null {
+  const v = read(competitionId).projected;
+  return valid(v) ? v : null;
+}
+
+export function setProjectedEnd(competitionId: string, at: number): void {
+  if (!valid(at) || read(competitionId).projected === at) return;
+  write(competitionId, { ...read(competitionId), projected: at });
 }
 
 export function getFinalDeviation(competitionId: string): FinalDeviation | null {

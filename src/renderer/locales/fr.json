@@ -1779,7 +1779,11 @@
     "withdrawals": "Médical / exclusions / forfaits",
     "withdrawals_value": "{{a}} / {{x}} / {{f}}",
     "time_limit": "Matchs au temps limite",
-    "time_limit_hint": "Matchs disputés terminés sans qu'aucun tireur n'atteigne le score maximum"
+    "time_limit_hint": "Matchs disputés terminés sans qu'aucun tireur n'atteigne le score maximum",
+    "scope_pools": "Poules",
+    "scope_tableau": "Tableau",
+    "completed_detail": "Poules {{pools}} · Tableau principal {{main}}",
+    "completed_all_places": "Toutes les places {{n}}"
   },
   "refereeManager": {
     "title": "Gestion des Arbitres",
@@ -2633,7 +2637,9 @@
     "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
     "next_step_hint": "Étape suivante une fois les poules terminées",
     "regenerate": "Repréparer les poules",
-    "coach_dismiss": "Ne plus afficher"
+    "coach_dismiss": "Ne plus afficher",
+    "all_places": "{{a}}/{{b}} matchs (toutes les places)",
+    "all_places_title": "Matchs de la compétition : tableau principal et classement de toutes les places"
   },
   "offline": {
     "never": "Jamais",
@@ -3340,7 +3346,9 @@
     "eta_competition": "Fin estimée de la compétition",
     "eta_projected": "Tableau projeté (non généré)",
     "planned_projected": "Prévu (poules + tableau projeté) : {{time}}",
-    "planned_estimate": "Référence (1re estimation) : {{time}}"
+    "planned_estimate": "Référence (1re estimation) : {{time}}",
+    "eta_cadence_tableau": "Tableau : {{match}} par match + {{gap}} entre deux matchs · {{strips}} piste(s) en parallèle",
+    "tableau_remaining": "{{n}} match(s) de tableau restant(s)"
   },
   "club": {
     "new_member": "Nouveau membre",
