@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 875 |
+| `src/shared/utils/` | 81 | 879 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3691** |
+| **Total** | **488** | **3695** |
 
-Unitaires : 478 fichiers, 3652 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3656 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -503,7 +503,7 @@ Unitaires : 478 fichiers, 3652 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 10 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 14 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -516,6 +516,11 @@ Unitaires : 478 fichiers, 3652 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
   - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
   - resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)
+- **remoteCustomScoring (#1936)**
+  - armes modernes, barème standard : vue olympique (aucun barème envoyé)
+  - armes modernes, barème à zones : seules les phases à zones sont envoyées
+  - Sabre Laser : barème de la formule conservé
+  - autre arme ou rapières : aucun barème
 
 </details>
 
