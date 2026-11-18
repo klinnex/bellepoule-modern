@@ -1,11 +1,11 @@
 /**
  * BellePoule Modern - Mode Club (#1872) : identification des tireurs par leur carte de club
  * depuis la tablette arbitre (serveur d'entraînement relié à une séance ouverte).
- * GET /api/club/identify (scan proposé ?), POST /api/club/identify (cartes A et B lues).
+ * GET /api/club/identify?arena=N (scan proposé ? combat déjà sur la piste ?), POST /api/club/identify (cartes A et B lues).
  * Licensed under GPL-3.0
  */
 import type { ApiRouteContext } from './apiRoutes';
-import { identifyClubBout, linkedOpenSession } from '../clubArena';
+import { arenaHasMatch, identifyClubBout, linkedOpenSession } from '../clubArena';
 import { normalizeCardCode, parseClubQr } from '../../../shared/utils/clubQr';
 
 /** Code lu (QR `BPC1:M:<code>` ou code en clair), null = identification passée */
@@ -18,11 +18,17 @@ function readCode(v: unknown): string | null | 'invalid' {
 }
 
 export function registerClubRoutes(ctx: ApiRouteContext): void {
-  ctx.app.get('/api/club/identify', (_req, res) => {
+  ctx.app.get('/api/club/identify', (req, res) => {
     res.set('Cache-Control', 'no-store');
     const session = ctx.isTrainingMode && ctx.session ? linkedOpenSession(ctx.db) : null;
     const club = session ? ctx.db.club.getClub(session.clubId) : null;
-    res.json({ active: !!session, club: club?.name ?? '' });
+    const arena = Number(req.query.arena);
+    const hasMatch =
+      !!session &&
+      Number.isInteger(arena) &&
+      arena > 0 &&
+      arenaHasMatch(ctx.getArena(`arena${arena}`));
+    res.json({ active: !!session, club: club?.name ?? '', hasMatch });
   });
 
   ctx.app.post('/api/club/identify', (req, res) => {

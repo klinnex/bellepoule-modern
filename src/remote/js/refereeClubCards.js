@@ -1,8 +1,9 @@
 /**
  * BellePoule Modern - Arbitre : identification des tireurs par leur carte de club (#1872).
- * Séance du Mode Club reliée au serveur d'entraînement : l'URL arbitre ouvre l'interface
- * d'arbitrage ; le bouton « Cartes » (en-tête et vue du combat) demande la carte du tireur A
- * puis celle du tireur B (caméra ou code en clair), chacune pouvant être passée. Deux cartes : combat enregistré dans la séance ; sinon combat libre.
+ * Séance du Mode Club reliée au serveur d'entraînement : combat déjà sur la piste (scanné ou
+ * lancé depuis le poste) → vue arbitre directe ; sinon la tablette demande la carte du tireur A
+ * puis celle du tireur B (caméra ou code en clair), chacune pouvant être passée. Bouton
+ * « Cartes » (en-tête et vue du combat) : nouvelle identification. Deux cartes : combat enregistré dans la séance ; sinon combat libre.
  * Caméra : BarcodeDetector si disponible, sinon jsQR (/js/jsQR.js) ; HTTPS requis.
  * Script classique : window.BPRefereeClubCards. Servi en /js (CSP 'self').
  * Licensed under GPL-3.0
@@ -363,9 +364,8 @@
   }
 
   /**
-   * Séance du club reliée : boutons « Cartes » (identification à la demande, jamais à
-   * l'ouverture : l'URL arbitre arrive sur l'interface d'arbitrage). Résout `false` sinon
-   * (hors Mode Club, démo, page sans piste).
+   * Séance du club reliée : boutons « Cartes » ; lecture des cartes à l'ouverture seulement
+   * si aucun combat n'est sur la piste. Résout `false` sinon (hors Mode Club, démo, page sans piste).
    */
   async function install(win, app) {
     var arena = arenaFromPath(win.location.pathname);
@@ -374,7 +374,7 @@
     if (params.get('demo') === '1') return false;
     var info;
     try {
-      info = await (await win.fetch('/api/club/identify')).json();
+      info = await (await win.fetch('/api/club/identify?arena=' + arena)).json();
     } catch (_) {
       return false;
     }
@@ -393,6 +393,7 @@
     }
     addButton(win.document, run);
     addHeaderButton(win.document, run);
+    if (!info.hasMatch) run();
     return true;
   }
 

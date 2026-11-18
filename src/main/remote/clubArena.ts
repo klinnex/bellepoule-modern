@@ -109,6 +109,21 @@ export interface ClubIdentifyDeps {
 const fullName = (m: ClubMember | null, fallback: string) =>
   m ? `${m.lastName} ${m.firstName}`.trim() : fallback;
 
+/**
+ * Piste occupée par un combat (tablette arbitre : vue arbitre directe, sinon lecture des
+ * cartes) : combat club (scanné ou lancé depuis le poste), match en cours ou commencé, ou
+ * tireurs nommés. Le combat libre par défaut (« Tireur A » / « Tireur B », 0-0) ne compte pas.
+ */
+export function arenaHasMatch(arena: Arena | null | undefined): boolean {
+  const m = arena?.currentMatch;
+  if (!arena || !m) return false;
+  if (arena.status === 'in_progress' || m.status === 'in_progress') return true;
+  if (clubBoutIdOf(m.id)) return true;
+  if (m.poolId !== '__training__') return true;
+  if (m.scoreA > 0 || m.scoreB > 0) return true;
+  return m.fencerA.id !== 'training-A' || m.fencerB.id !== 'training-B';
+}
+
 /** Séance reliée et ouverte, sinon null */
 export function linkedOpenSession(deps: Pick<ClubIdentifyDeps, 'club'>) {
   if (!linkedSessionId) return null;

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
+  arenaHasMatch,
   clubBoutIdOf,
   clubBoutToArenaMatch,
   identifyClubBout,
@@ -10,6 +11,7 @@ import {
 } from './clubArena';
 import type { ClubBout, ClubMember, ClubSession } from '../../shared/types/club';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import type { Arena } from '../../shared/types/remote';
 
 const bout = { id: 'b1', strip: 2, status: 'in_progress' } as ClubBout;
 const anne = { id: 'a', firstName: 'Anne', lastName: 'MARTIN' } as ClubMember;
@@ -148,5 +150,27 @@ describe('cartes scannées sur la tablette arbitre (#1872)', () => {
       error: 'no_arena',
     });
     setLinkedClubSession(null);
+  });
+
+  it('piste occupée : vue arbitre directe ; combat libre par défaut : lecture des cartes', () => {
+    const free = {
+      id: 'training-1',
+      poolId: '__training__',
+      fencerA: { id: 'training-A' },
+      fencerB: { id: 'training-B' },
+      scoreA: 0,
+      scoreB: 0,
+      status: 'not_started',
+    };
+    const arena = (m: object | null, status = 'ready') =>
+      ({ currentMatch: m, status }) as unknown as Arena;
+    expect(arenaHasMatch(null)).toBe(false);
+    expect(arenaHasMatch(arena(null, 'idle'))).toBe(false);
+    expect(arenaHasMatch(arena(free))).toBe(false);
+    expect(arenaHasMatch(arena({ ...free, id: 'club:b1' }))).toBe(true);
+    expect(arenaHasMatch(arena({ ...free, fencerA: { id: 'a' } }))).toBe(true);
+    expect(arenaHasMatch(arena({ ...free, scoreB: 2 }))).toBe(true);
+    expect(arenaHasMatch(arena(free, 'in_progress'))).toBe(true);
+    expect(arenaHasMatch(arena({ ...free, poolId: 'p1' }))).toBe(true);
   });
 });

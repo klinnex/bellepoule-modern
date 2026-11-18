@@ -35,7 +35,7 @@ describe('refereeClubCards (#1872)', () => {
       document: { getElementById: vi.fn() },
     };
     expect(await cards.install(win, () => null)).toBe(false);
-    expect(win.fetch).toHaveBeenCalledWith('/api/club/identify');
+    expect(win.fetch).toHaveBeenCalledWith('/api/club/identify?arena=2');
   });
 
   it('séance reliée : bouton « Cartes » à côté de Retour', async () => {
@@ -44,7 +44,7 @@ describe('refereeClubCards (#1872)', () => {
     const win = {
       location: { pathname: '/arene2/arbitre', search: '' },
       fetch: vi.fn().mockResolvedValue({
-        json: () => Promise.resolve({ active: true, club: 'Cercle' }),
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: true }),
       }),
       document,
     };
@@ -55,7 +55,7 @@ describe('refereeClubCards (#1872)', () => {
     expect(document.getElementById('club-card-overlay')).toBeNull();
   });
 
-  it('caméra disponible : interface arbitre à l’ouverture, cartes via l’en-tête', async () => {
+  it('combat déjà sur la piste : vue arbitre directe, cartes via l’en-tête', async () => {
     document.body.innerHTML =
       '<div class="header"><button id="btn-header-menu"></button></div>' +
       '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
@@ -64,7 +64,7 @@ describe('refereeClubCards (#1872)', () => {
       isSecureContext: true,
       navigator: { mediaDevices: { getUserMedia: vi.fn() } },
       fetch: vi.fn().mockResolvedValue({
-        json: () => Promise.resolve({ active: true, club: 'Cercle' }),
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: true }),
       }),
       document,
     };
@@ -84,5 +84,23 @@ describe('refereeClubCards (#1872)', () => {
       })
     ).toBe(true);
     expect(cards.cameraUsable({ isSecureContext: true, navigator: {} })).toBe(false);
+  });
+
+  it('piste sans combat : lecture des cartes à l’ouverture', async () => {
+    document.body.innerHTML =
+      '<div><button id="btn-back-to-list" class="btn-x">Retour</button></div>';
+    const win = {
+      location: { pathname: '/arene3/arbitre', search: '' },
+      isSecureContext: false,
+      navigator: {},
+      fetch: vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ active: true, club: 'Cercle', hasMatch: false }),
+      }),
+      setTimeout,
+      clearTimeout,
+      document,
+    };
+    expect(await cards.install(win, () => null)).toBe(true);
+    expect(document.getElementById('club-card-overlay')).not.toBeNull();
   });
 });
