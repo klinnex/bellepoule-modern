@@ -3542,6 +3542,15 @@
     "saved": "Arventennoù an enrollañ a-bell lakaet da vat",
     "saved_restart": "Neuz ha ger-tremen lakaet da vat ; paouezit hag adloc'hit an enrollañ a-bell evit ar rouedad"
   },
+  "clubStrip": {
+    "open": "Liammoù ha kodoù QR ar roudenn {{n}}",
+    "title": "Roudenn {{n}} — liammoù",
+    "display": "Diskwel ar roudenn",
+    "referee": "Gwel ar barner",
+    "copy": "Eilañ an URL : {{title}}",
+    "qr_alt": "Kod QR : {{title}}",
+    "needs_remote": "Gweredekait an enrollañ a-bell evit kaout liammoù ar roudennoù"
+  },
   "clubImport": {
     "title": "Enporzhiañ diwar « {{file}} »",
     "help": "Merkit an dud da enporzhiañ. An izili a zo dija (memes lañvaz, pe memes anv hag anv-bihan) a vez klokaet, morse eilet.",

@@ -5,7 +5,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 vi.mock('../ConfirmDialog', () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(true) }),
@@ -227,6 +227,22 @@ describe('ClubSessionsPanel', () => {
     const select = await screen.findByLabelText('Tireur 1 — piste 1');
     expect(select).toBeDisabled();
     expect(select).toHaveTextContent('Aucun combattant pointé sur la séance');
+  });
+
+  it('piste : liens affichage et arbitre une fois la saisie distante active', async () => {
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    expect(
+      await screen.findByRole('button', { name: 'Liens et QR codes de la piste 2' })
+    ).toBeDisabled();
+    cleanup();
+    api.remoteStatus.mockResolvedValue({ active: true, url: 'https://10.0.0.2:8066', strips: 2 });
+    render(<ClubSessionsPanel clubId="c1" settings={settings} />);
+    const btn = await screen.findByRole('button', { name: 'Liens et QR codes de la piste 2' });
+    await waitFor(() => expect(btn).toBeEnabled());
+    fireEvent.click(btn);
+    expect(screen.getByText('https://10.0.0.2:8066/arene2')).toBeInTheDocument();
+    expect(screen.getByText('https://10.0.0.2:8066/arene2/arbitre')).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'QR code : Vue arbitre' })).toBeInTheDocument();
   });
 
   it('saisie distante active : lobby des pistes', async () => {

@@ -829,3 +829,25 @@
   font-weight: 600;
   padding: 0 0.25rem;
 }
+
+/* Liens d'une piste en saisie distante (#1872) : affichage et arbitre côte à côte */
+.club-strip-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.club-strip-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-strip-link-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.club-strip-link img {
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+}

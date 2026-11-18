@@ -3542,6 +3542,15 @@
     "saved": "Remote scoring settings applied",
     "saved_restart": "Theme and password applied; stop and restart remote scoring for the network"
   },
+  "clubStrip": {
+    "open": "Links and QR codes of strip {{n}}",
+    "title": "Strip {{n}} — links",
+    "display": "Strip display",
+    "referee": "Referee view",
+    "copy": "Copy URL: {{title}}",
+    "qr_alt": "QR code: {{title}}",
+    "needs_remote": "Enable remote scoring to get the strip links"
+  },
   "clubImport": {
     "title": "Import from « {{file}} »",
     "help": "Tick the people to import. Members already present (same licence, or same first and last name) are completed, never duplicated.",

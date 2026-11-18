@@ -3542,6 +3542,15 @@
     "saved": "Definições da pontuação remota aplicadas",
     "saved_restart": "Tema e palavra-passe aplicados; pare e reinicie a pontuação remota para a rede"
   },
+  "clubStrip": {
+    "open": "Ligações e códigos QR da pista {{n}}",
+    "title": "Pista {{n}} — ligações",
+    "display": "Ecrã da pista",
+    "referee": "Vista do árbitro",
+    "copy": "Copiar o URL: {{title}}",
+    "qr_alt": "Código QR: {{title}}",
+    "needs_remote": "Ative a pontuação remota para obter as ligações das pistas"
+  },
   "clubImport": {
     "title": "Importar de « {{file}} »",
     "help": "Marque as pessoas a importar. Os sócios já existentes (mesma licença, ou mesmo nome e apelido) são completados, nunca duplicados.",

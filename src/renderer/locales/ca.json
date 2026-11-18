@@ -3542,6 +3542,15 @@
     "saved": "Paràmetres de la puntuació remota aplicats",
     "saved_restart": "Tema i contrasenya aplicats; atureu i torneu a engegar la puntuació remota per a la xarxa"
   },
+  "clubStrip": {
+    "open": "Enllaços i codis QR de la pista {{n}}",
+    "title": "Pista {{n}} — enllaços",
+    "display": "Pantalla de la pista",
+    "referee": "Vista de l'àrbitre",
+    "copy": "Copia l'URL: {{title}}",
+    "qr_alt": "Codi QR: {{title}}",
+    "needs_remote": "Activeu la puntuació remota per obtenir els enllaços de les pistes"
+  },
   "clubImport": {
     "title": "Importar des de « {{file}} »",
     "help": "Marqueu les persones a importar. Els socis ja presents (mateixa llicència, o mateix nom i cognom) es completen, mai es dupliquen.",

@@ -3542,6 +3542,15 @@
     "saved": "Impostazioni del punteggio remoto applicate",
     "saved_restart": "Tema e password applicati; arresta e riavvia il punteggio remoto per la rete"
   },
+  "clubStrip": {
+    "open": "Link e codici QR della pedana {{n}}",
+    "title": "Pedana {{n}} — link",
+    "display": "Schermo della pedana",
+    "referee": "Vista arbitro",
+    "copy": "Copia l'URL: {{title}}",
+    "qr_alt": "Codice QR: {{title}}",
+    "needs_remote": "Attiva il punteggio remoto per ottenere i link delle pedane"
+  },
   "clubImport": {
     "title": "Importa da « {{file}} »",
     "help": "Seleziona le persone da importare. I soci già presenti (stessa licenza, o stesso nome e cognome) vengono completati, mai duplicati.",

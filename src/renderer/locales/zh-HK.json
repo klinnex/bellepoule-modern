@@ -3542,6 +3542,15 @@
     "saved": "已套用遠端計分設定",
     "saved_restart": "已套用主題及密碼；請停止並重新啟動遠端計分以套用網絡設定"
   },
+  "clubStrip": {
+    "open": "劍道 {{n}} 的連結及 QR 碼",
+    "title": "劍道 {{n}} — 連結",
+    "display": "劍道顯示",
+    "referee": "裁判畫面",
+    "copy": "複製網址：{{title}}",
+    "qr_alt": "QR 碼：{{title}}",
+    "needs_remote": "請啟用遠端計分以取得劍道連結"
+  },
   "clubImport": {
     "title": "從「{{file}}」匯入",
     "help": "勾選要匯入的人。已存在的會員（相同牌照，或相同姓名）只會補充資料，不會重複。",
