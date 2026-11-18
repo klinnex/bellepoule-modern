@@ -6148,8 +6148,8 @@ Unitaires : 480 fichiers, 3695 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - affiche le club, ses sous-onglets et les membres
   - ajoute un membre
   - archive un membre, affiche les archivés
-  - enregistre le nom du club
-  - modifie l'identité depuis le bouton de l'en-tête
+  - enregistre le nom du club (onglet Identité)
+  - le bouton de l'en-tête ouvre l'onglet Identité
   - importe un fichier FFE .fff
   - importe un tableau CSV du club (colonne Nom)
   - nombre de pistes enregistré, import des photos ZIP
