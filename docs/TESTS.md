@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 884 |
+| `src/shared/utils/` | 81 | 889 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 34 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **488** | **3702** |
+| **Total** | **488** | **3707** |
 
-Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 478 fichiers, 3668 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -651,7 +651,7 @@ Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 18 tests</summary>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 19 tests</summary>
 
 - **exportFencersToFFF**
   - commence par l’en-tête FFF;WIN;COMPETITION puis la ligne de compétition
@@ -669,10 +669,12 @@ Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **exportFencersToFFF — département (#1504)**
   - écrit le département après le classement
 - **exportResultsToFFF (spécification FFF)**
-  - écrit l’en-tête FFF;WIN;COMPETITION;organisateur puis la ligne de compétition
+  - écrit l’en-tête FFF;WIN;competition;organisateur;individuel puis la ligne de compétition
   - écrit général;FIE;national;rang,T pour un tireur ayant participé au tableau
   - marque P pour un tireur éliminé dans les poules
   - trie par rang, met les rangs vides en dernier et omet les exclus
+- **exportTeamResultsToFFF (#1949)**
+  - suit la forme Engarde : en-tête par\_equipes, tireurs, puis ligne d’équipe sans tireur
 - **encodeFFFWin1252**
   - encode les accents en cp1252 (é = 0xE9, € = 0x80)
   - remplace les caractères hors cp1252 par ?
@@ -997,7 +999,7 @@ Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 53 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 57 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -1017,7 +1019,7 @@ Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - escapes XML special chars in title
   - uses final rank from finalResults when available
   - uses CompetitionIndividuelle root tag
-  - uses CompetitionParEquipe root tag for team events
+  - uses CompetitionParEquipes root tag for team events (#1949)
   - includes pool phase when pools provided
   - inclut les exempts du 1er tour dans leurs cases (#1328)
   - includes elimination bracket when tableauMatches provided
@@ -1054,6 +1056,11 @@ Unitaires : 478 fichiers, 3663 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+- **export pour la fédération (#1949)**
+  - calcule la saison sportive septembre → août
+  - sans données fédérales : ID vide (jamais l’identifiant interne), saison calculée
+  - aller-retour import → export : ID, saison, domaine et valeurs brutes restitués
+  - équipes : racine CompetitionParEquipes, nom fédéral, tireurs imbriqués, classement
 - **exportResultsXMLFFE — FIE 3.3 (#1957)**
   - porte Version="3.3" à la racine
   - exporte la latéralité G pour un gaucher, D sinon
