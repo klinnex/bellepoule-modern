@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 81 | 896 |
+| `src/shared/utils/` | 82 | 906 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3742** |
+| **Total** | **491** | **3752** |
 
-Unitaires : 480 fichiers, 3703 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 481 fichiers, 3713 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -861,6 +861,26 @@ Unitaires : 480 fichiers, 3703 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - exclusion : carton noir seulement si confirmé
 - **finalRankLabel carton noir (#1418)**
   - rang null : « - »
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/gregLevel.test.ts</code> — 10 tests</summary>
+
+- **niveau GREG (#1328)**
+  - garde les 7 codes de l’ancien BellePoule, « Autre » par défaut
+  - envoie le niveau choisi dans le champ niveau du formulaire
+  - envoie « Autre » tant qu’aucun niveau n’est choisi
+- **levelFromFederalDomain (#1328)**
+  - propose le niveau d’après le Domaine de l’extranet
+  - retombe sur « Autre » pour I, C, \* et les valeurs inconnues
+  - ne propose rien sans Domaine
+- **niveau à l’import (#1328)**
+  - lit l’attribut Niveau d’un fichier BellePoule
+  - propose le niveau d’après Domaine quand Niveau est absent
+  - n’invente rien sans Niveau ni Domaine
+- **export XML : attribut Niveau (#1328)**
+  - écrit « X » par défaut et le niveau choisi sinon
 
 </details>
 
