@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 19 | 259 |
-| `src/main/` | 109 | 889 |
+| `src/main/` | 109 | 892 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 33 | 158 |
-| `src/renderer/components/` | 119 | 608 |
+| `src/renderer/components/` | 119 | 610 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 59 | 394 |
+| `src/remote/` | 59 | 395 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3725** |
+| **Total** | **490** | **3731** |
 
-Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3692 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4452,7 +4452,7 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/trainingLobby.test.ts</code> — 14 tests</summary>
+<summary><code>src/main/remote/trainingLobby.test.ts</code> — 17 tests</summary>
 
 - **TrainingLobby (#1500)**
   - occupe une piste : un autre client est refusé
@@ -4460,6 +4460,7 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - libération après 3 minutes sans activité
   - l'activité repousse l'expiration
   - release : seulement par le propriétaire ; releaseAll libère tout
+  - takeover : prend la piste d’un autre client et libère sa propre piste précédente
   - changer de piste libère la précédente
 - **routes du lobby entraînement (#1500)**
   - sert la page /entrainement-lobby
@@ -4468,6 +4469,8 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - transmet le thème des écrans d’entraînement (défaut sombre)
   - prévient le kiosk quand une piste est prise puis libérée
   - piste occupée : 409 arena\_occupied pour un autre client
+  - takeover : reprend une piste occupée, l’ancien client est refusé ensuite
+  - takeover hors entraînement : refusé
   - validation : piste inconnue 404, client invalide 400
   - release libère la piste (ou toutes sans numéro)
 
@@ -6091,7 +6094,7 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 17 tests</summary>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 19 tests</summary>
 
 - **ClubSessionsPanel**
   - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
@@ -6100,6 +6103,8 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - pointage (fenêtre, catégories du cours) et fermeture
   - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
   - paramètres de la saisie distante : réseau mémorisé, thème et mot de passe appliqués
+  - aucun présent pointé : menus des pistes libres explicites et désactivés
+  - piste : liens affichage et arbitre une fois la saisie distante active
   - saisie distante active : lobby des pistes
   - ouverture avec les catégories d’âge du cours
   - séance préparée répétée chaque semaine
@@ -7538,7 +7543,7 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeLobby.test.ts</code> — 16 tests</summary>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 17 tests</summary>
 
 - **refereeLobby.js**
   - arenaFromPath : /areneN/arbitre et /arenaN
@@ -7549,6 +7554,8 @@ Unitaires : 480 fichiers, 3686 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - install : hors entraînement, rien (pas de claim, pas de bouton)
   - install : miroir de démo (?demo=1) ignoré
   - install : piste occupée (409) → redirection vers le lobby
+- **refereeLobby.js : piste reprise par une autre tablette**
+  - install : la vérification périodique renvoie au lobby (?taken=N) sans RAZ
 - **refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)**
   - fromLobby : ?lobby=1 uniquement
   - pickMatch : en cours prioritaire, sinon premier à jouer, sinon null
