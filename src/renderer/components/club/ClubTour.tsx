@@ -27,9 +27,11 @@ import {
 interface ClubTourProps extends ClubTourState {
   /** Données du club chargées : évite de démarrer sur un état vide transitoire */
   ready: boolean;
+  /** Étape affichée : l'espace club ouvre l'onglet où se trouve l'élément mis en évidence */
+  onStep?: (step: ClubTourStepId) => void;
 }
 
-export const ClubTour: React.FC<ClubTourProps> = ({ ready, ...state }) => {
+export const ClubTour: React.FC<ClubTourProps> = ({ ready, onStep, ...state }) => {
   const { t } = useTranslation();
   const [flag, setFlag] = useState<ClubTourFlag | null>(readClubTourFlag);
 
@@ -54,6 +56,9 @@ export const ClubTour: React.FC<ClubTourProps> = ({ ready, ...state }) => {
   const active = flag === 'active';
 
   useTourHalos(active && current ? CLUB_TOUR_HALOS[current] : null);
+  useEffect(() => {
+    if (active && current) onStep?.(current);
+  }, [active, current, onStep]);
 
   const close = useCallback(() => {
     writeClubTourFlag('done');

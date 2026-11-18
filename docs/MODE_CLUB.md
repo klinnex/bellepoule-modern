@@ -12,7 +12,8 @@ l'accueil. Un parcours guidé accompagne la première ouverture.
 
 | Onglet              | Contenu                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Membres**         | Identité du club (nom, logo, arme par défaut, nombre de pistes), annuaire, cartes de membre, QR des pistes.                          |
+| **Identité**        | Nom, logo, arme par défaut, nombre de pistes, QR des pistes (aussi : crayon de l'en-tête).                                           |
+| **Membres**         | Annuaire, cartes de membre.                                                                                                          |
 | **Maîtres d'armes** | Encadrement du club : fonction / diplôme, contact, armes enseignées, notes, archivage.                                               |
 | **Séances**         | Ouverture du jour, séances préparées (plan de cours, récurrence), séance en cours (pistes, pointage, saisie distante, notes, bilan). |
 | **Statistiques**    | Classement du club et fiche membre par période et par catégories d'âge.                                                              |

@@ -3353,6 +3353,7 @@
   },
   "club": {
     "new_member": "Новый участник",
+    "tab_identity": "Профиль",
     "tab_members": "Члены клуба",
     "tab_sessions": "Тренировки",
     "tab_stats": "Статистика",
