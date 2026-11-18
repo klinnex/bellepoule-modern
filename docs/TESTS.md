@@ -100,7 +100,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
-| Feature `teams` (`src/features/teams/`) | 7 | 53 |
+| Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 19 | 259 |
 | `src/main/` | 109 | 893 |
 | `src/renderer/services/` | 11 | 57 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **490** | **3736** |
+| **Total** | **490** | **3742** |
 
-Unitaires : 480 fichiers, 3697 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 480 fichiers, 3703 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2536,7 +2536,7 @@ Unitaires : 480 fichiers, 3697 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 21 tests</summary>
+<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 27 tests</summary>
 
 - **generateRelayBouts**
   - génère 9 relais dans l’ordre standard
@@ -2552,8 +2552,15 @@ Unitaires : 480 fichiers, 3697 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - est complet après 9 relais terminés
   - retourne null si le match n’est pas terminé
 - **generateRelayOrder**
-  - génère le motif FIE standard pour une équipe de 3
+  - génère la rotation en diagonale pour une équipe de 3
   - génère N² relais où chaque titulaire rencontre chaque adversaire exactement une fois (N=4)
+- **relayOrderFor**
+  - arme %s à 3 : ordre officiel FIE (o.99.3) _(each)_
+  - arme %s : ordre inchangé _(each)_
+  - sans arme ou avec une autre taille d’équipe : ordre inchangé
+  - ordre FIE : chaque titulaire rencontre chaque adversaire une fois, jamais deux relais de suite
+  - renvoie une copie : la constante FIE n’est pas modifiable par l’appelant
+  - generateRelayBouts suit l’arme : relais 1 = 3 contre 6 en sabre, 1 contre 4 en Sabre Laser
 - **getTeamTargetRule / getRelayCap**
   - E/F/S comptent toujours en touches, cible = stepSize × N²
   - Sabre Laser respecte le mode configuré (touches ou points)
