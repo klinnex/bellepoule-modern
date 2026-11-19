@@ -34,3 +34,22 @@
   color: #6b7280;
   margin-bottom: 10px;
 }
+
+/* Abandon signalé par l'appareil de piste : confirmation par le DT (#2000) */
+.dt-call-notification-confirm {
+  background-color: #b91c1c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.dt-call-notification-confirm:disabled {
+  background-color: #374151;
+  cursor: not-allowed;
+}

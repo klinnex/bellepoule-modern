@@ -12,6 +12,9 @@ import { NotificationService } from '../../shared/services/notificationService';
 import { propagateWinners, isBracketComplete } from '../components/tableau/tableauTypes';
 import type { ConsolationBracket, TableauMatch } from '../components/tableau/tableauTypes';
 import type { useFencerManagement } from './useFencerManagement';
+import { checkInStatusUpdate } from '../../shared/utils/forfeit';
+import { DT_CONFIRM_ABANDON_EVENT } from '../services/dtCallEvents';
+import type { DtConfirmAbandonDetail } from '../services/dtCallEvents';
 import type { usePoolManagement } from './usePoolManagement';
 
 interface UseRemoteScoreSyncParams {
@@ -303,6 +306,21 @@ export function useRemoteScoreSync({
     fireWebhookNotif,
     competitionTitle,
   ]);
+
+  // Abandon signalé par l'appareil de piste, confirmé par le DT depuis l'appel (#2000) :
+  // même traitement qu'un statut posé à l'appel (DNS #1256, matchs restants annulés)
+  useEffect(() => {
+    const onConfirm = (e: Event) => {
+      const detail = (e as CustomEvent<DtConfirmAbandonDetail>).detail;
+      if (!detail || (detail.competitionId && detail.competitionId !== competitionId)) return;
+      detail.handled = true;
+      const update = checkInStatusUpdate(poolsRef.current, detail.fencerId, FencerStatus.ABANDONED);
+      void handleFencerForfeitRef.current(detail.fencerId, 'abandon');
+      updateFencer(detail.fencerId, update);
+    };
+    window.addEventListener(DT_CONFIRM_ABANDON_EVENT, onConfirm);
+    return () => window.removeEventListener(DT_CONFIRM_ABANDON_EVENT, onConfirm);
+  }, [competitionId, poolsRef, handleFencerForfeitRef, updateFencer]);
 
   return { fireWebhookNotif };
 }

@@ -3013,7 +3013,10 @@
     "black_card_note": "(exclusion, rapport fédéral)",
     "match_n": "Match n° {{n}}",
     "pending": "En cours…",
-    "resolve": "DT en route — Résolu"
+    "resolve": "DT en route — Résolu",
+    "abandon": "Abandon",
+    "abandon_note": "(à confirmer par le DT)",
+    "confirm_abandon": "Enregistrer l'abandon"
   },
   "qrShare": {
     "generating": "Génération du QR code…",

@@ -3013,7 +3013,10 @@
     "black_card_note": "(исключение, рапорт в федерацию)",
     "match_n": "Бой № {{n}}",
     "pending": "Выполняется…",
-    "resolve": "DT уже идёт — Решено"
+    "resolve": "DT уже идёт — Решено",
+    "abandon": "Снятие с боя",
+    "abandon_note": "(подтверждает DT)",
+    "confirm_abandon": "Записать снятие"
   },
   "qrShare": {
     "generating": "Создание QR-кода…",

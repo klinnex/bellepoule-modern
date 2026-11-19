@@ -206,6 +206,7 @@ function proposeAbandonToDT(
     competitionId: ctx.session?.competitionId ?? null,
     timestamp: Date.now(),
     reason: 'abandon',
+    fencerId: abandoning?.id ?? null,
     fencerName: abandoning
       ? `${abandoning.lastName ?? ''} ${abandoning.firstName ?? ''}`.trim()
       : null,

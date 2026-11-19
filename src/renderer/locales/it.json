@@ -3013,7 +3013,10 @@
     "black_card_note": "(esclusione, rapporto federale)",
     "match_n": "Incontro n. {{n}}",
     "pending": "In corso…",
-    "resolve": "DT in arrivo — Risolto"
+    "resolve": "DT in arrivo — Risolto",
+    "abandon": "Abbandono",
+    "abandon_note": "(da confermare dal DT)",
+    "confirm_abandon": "Registra l'abbandono"
   },
   "qrShare": {
     "generating": "Generazione del QR code…",

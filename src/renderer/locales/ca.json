@@ -3013,7 +3013,10 @@
     "black_card_note": "(exclusió, informe federatiu)",
     "match_n": "Combat núm. {{n}}",
     "pending": "En curs…",
-    "resolve": "DT en camí — Resolt"
+    "resolve": "DT en camí — Resolt",
+    "abandon": "Abandonament",
+    "abandon_note": "(a confirmar pel DT)",
+    "confirm_abandon": "Registrar l'abandonament"
   },
   "qrShare": {
     "generating": "Generant el codi QR…",

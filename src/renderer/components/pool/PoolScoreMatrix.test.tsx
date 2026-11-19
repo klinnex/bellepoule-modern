@@ -103,6 +103,30 @@ describe('PoolScoreMatrix', () => {
     expect(screen.getByText('V4')).toBeInTheDocument();
   });
 
+  describe('abandon signalé par l appareil de piste (#2000)', () => {
+    const abandonMatch = (loser: Fencer): Match => ({
+      ...match(MatchStatus.FINISHED, 5, 2),
+      fencerB: loser,
+      scoreB: { value: 2, isVictory: false, isAbstention: true } as any,
+    });
+    const vCells = () =>
+      Array.from(document.querySelectorAll('.is-5c05f4')).map(e => e.textContent);
+
+    it('statut inchangé : combat compté comme victoire normale (V+1)', () => {
+      renderMatrix(abandonMatch({ ...f2, status: FencerStatus.CHECKED_IN }), {
+        isVisible: () => true,
+      });
+      expect(vCells()).toContain('1');
+    });
+
+    it('statut ABANDONED posé par le DT : combat annulé (V reste 0)', () => {
+      renderMatrix(abandonMatch({ ...f2, status: FencerStatus.ABANDONED }), {
+        isVisible: () => true,
+      });
+      expect(vCells()).not.toContain('1');
+    });
+  });
+
   it('clic sur une cellule éditable déclenche onCellClick', () => {
     const props = renderMatrix(match(MatchStatus.NOT_STARTED));
     // cellule Dupont vs Martin (aria-label commence par "Dupont")

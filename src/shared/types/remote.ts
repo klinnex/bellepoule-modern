@@ -272,3 +272,15 @@ export interface FirewallDiagnosis {
 export interface RemoteFirewallAPI {
   firewallCheck: (port: number) => Promise<FirewallDiagnosis>;
 }
+
+/** Appel DT remonté au renderer (`remote:dt_call`) : carton noir ou abandon signalé par l'appareil (#2000). */
+export interface DTCallEvent {
+  arenaId: string;
+  arenaNumber: number | null;
+  matchNumber: number | null;
+  competitionId: string | null;
+  timestamp: number;
+  reason?: 'black_card' | 'abandon';
+  fencerId?: string | null;
+  fencerName?: string | null;
+}
