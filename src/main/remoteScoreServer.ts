@@ -140,6 +140,7 @@ import type { DemoPlayer } from './remote/demoMode';
 import {
   finishArenaMatch,
   recallPrevMatch,
+  recallPrevMatchResult,
   type MatchFinishContext,
   MATCH_FINISH_CONTEXT_KEYS,
 } from './remote/matchFinish';
@@ -1103,6 +1104,10 @@ export class RemoteScoreServer {
     return prev
       ? void recallPrevMatch(this.matchFinishCtx, arenaId)
       : loadNextMatch(this.arenaQueueCtx, arenaId);
+  }
+  /** PREV depuis la tablette : verdict avec motif de refus, affiché à l'arbitre (#2001) */
+  public recallPrev(arenaId: string): ReturnType<typeof recallPrevMatchResult> {
+    return recallPrevMatchResult(this.matchFinishCtx, arenaId);
   }
   public hasSession(): boolean {
     return this.session !== null;

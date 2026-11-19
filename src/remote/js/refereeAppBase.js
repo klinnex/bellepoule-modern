@@ -590,6 +590,10 @@ class RefereeAppBase {
       this.showFinishModal();
     });
 
+    // PREV (#2001) : verdict du rappel du match précédent ; pause sabre à 8 touches (t.39.1)
+    this.socket.on(`arena:${this.arenaId}:prev_result`, v => this.onPrevResult(v));
+    this.socket.on(`arena:${this.arenaId}:sabre_break`, d => this.onSabreBreak(d));
+
     this.socket.on(`arena:${this.arenaId}:dt_call_ack`, () => {
       const btn = document.getElementById('btn-dt-icon');
       if (btn) {

@@ -42,6 +42,7 @@ export interface ArenaControlContext {
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
+  readonly recallPrev: S['recallPrev'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
   readonly logDiag: S['logDiag'];
@@ -255,10 +256,13 @@ export function handleArenaControl(
       }
       break;
     }
-    case 'prev':
-      // Rappel du match précédent pour correction, fenêtre bornée (#1829) ; refus silencieux côté tablette
-      ctx.loadNextMatch(data.arenaId, true);
+    case 'prev': {
+      // Rappel du match précédent pour correction, fenêtre bornée (#1829). Le verdict (succès ou
+      // motif du refus) revient à la tablette demandeuse, qui l'affiche (#2001)
+      const verdict = ctx.recallPrev(data.arenaId);
+      socket.emit(`arena:${data.arenaId}:prev_result`, verdict);
       break;
+    }
     case 'next':
       ctx.loadNextMatch(data.arenaId);
       ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
@@ -567,6 +571,7 @@ export const ARENA_CONTROL_CONTEXT_KEYS = {
     'getArena',
     'loadNextMatch',
     'pauseArenaMatch',
+    'recallPrev',
     'resolveReferee',
     'logDiag',
     'stampArenaEvents',

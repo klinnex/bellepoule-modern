@@ -41,7 +41,9 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `arena:{…}:coin_flip` | ✓ | `arena.html`, `public.html` |
 | `arena:{…}:dt_call_ack` | ✓ | `referee.html` |
 | `arena:{…}:exit_announcement` | ✓ | `arena.html` |
+| `arena:{…}:prev_result` | ✓ | `referee.html` |
 | `arena:{…}:replay` | ✓ | `overlay.html` |
+| `arena:{…}:sabre_break` | ✓ | `referee.html` |
 | `arena:{…}:score_limit_reached` | ✓ | `referee.html` |
 | `arena:{…}:sign_request` | ✓ | `referee.html` |
 | `arena:{…}:update` | ✓ | `arena.html`, `overlay.html`, `public.html`, `referee.html` |

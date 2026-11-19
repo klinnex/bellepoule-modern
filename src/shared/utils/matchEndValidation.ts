@@ -175,7 +175,7 @@ export const SABRE_BREAK_TOUCHES = 8;
 
 /**
  * Sabre, élimination directe à 15 touches : la première période s'arrête dès qu'un tireur
- * atteint 8 touches. Règle pure, non branchée : les périodes de la tablette sont au temps.
+ * atteint 8 touches. Branchée côté serveur (`arenaOps.ts`, événement `sabre_break` vers la tablette).
  */
 export function crossedSabreBreak(
   isSabre: boolean,
