@@ -17,11 +17,13 @@ Merci pour votre soutien ! / Thank you for your support!
 | Public | Document |
 |---|---|
 | Aperçu | **[Captures d'écran des menus](docs/SCREENSHOTS.md)** |
-| Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) |
-| Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** |
-| Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
+| Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) · **[Journée multi-épreuves](docs/JOURNEE_MULTI_EPREUVES.md)** |
+| Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** · **[Appareils de piste Cyrano](docs/CYRANO.md)** |
+| Club | **[Mode Club](docs/MODE_CLUB.md)** |
+| Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) · [Sabre Laser](docs/PROCEDURE_SABRE_LASER.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |
-| Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Contribuer](CONTRIBUTING.md) |
+| Données | **[RGPD et données personnelles](docs/RGPD.md)** · **[Agent IA (MCP)](docs/MCP.md)** |
+| Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Versionnage](docs/VERSIONING.md) · [Contribuer](CONTRIBUTING.md) |
 | Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · **[Commandes Ctrl+K](docs/COMMANDES.md)** · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Politique de sécurité](SECURITY.md) · [Index complet](docs/README.md) |
 
 ### 📸 **Captures d'écran**
@@ -29,14 +31,16 @@ Merci pour votre soutien ! / Thank you for your support!
 | Poules | Tableau |
 |---|---|
 | [![Poules](docs/screenshots/06-poules.png)](docs/SCREENSHOTS.md#poules) | [![Tableau](docs/screenshots/08-tableau.png)](docs/SCREENSHOTS.md#tableau) |
+| **Journée multi-épreuves** | **Mode Club** |
+| [![Journée multi-épreuves](docs/screenshots/21-journee-multi-epreuves.png)](docs/SCREENSHOTS.md#journée-multi-épreuves) | [![Mode Club](docs/screenshots/22-mode-club.png)](docs/SCREENSHOTS.md#mode-club--membres) |
 
-Tous les menus : **[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
+Tous les écrans : **[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
 
 ### 🔧 **Installation**
 
 - **Windows** : installeur NSIS ou exécutable portable (x64)
 - **macOS** : DMG ou ZIP (Intel x64 et Apple Silicon arm64)
-- **Linux** : AppImage, .deb ou .rpm (x64)
+- **Linux** : AppImage, .deb ou .rpm (x64) ; AppImage ou .deb (arm64, Raspberry Pi…) ; paquet Nix ([INSTALLATION.md](INSTALLATION.md#nix-flake))
 
 ### 🚀 [**Télécharger la dernière version stable**](https://github.com/BellePoule-Modern/bellepoule-modern/releases/latest)
 
@@ -44,221 +48,188 @@ Tous les menus : **[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
 
 > ⚠️ **Version de test** : Contient les dernières fonctionnalités mais peut être instable
 
-## 🆕 Nouveautés Récentes
+## 🆕 Nouveautés de la version 2.0
 
-### ⚔️ **Sabre Laser équipe — format arène (Nouveau !)**
+> ⚠️ **Version majeure.** Au premier lancement, la base locale est **chiffrée** (SQLCipher) et
+> migrée vers le nouveau schéma : elle ne pourra plus être ouverte par une version 1.x.
+> Exportez vos compétitions (`.bpm`) avant la mise à jour si vous devez revenir en arrière.
 
-Nouveau format de compétition par équipes pour le Sabre Laser, basé sur le
-règlement de l'ASL-FFE :
+### 🏟️ **Journée multi-épreuves**
 
-- 🎯 **Assauts plafonnés** à 5 touches ou 3 minutes (au lieu du relais FIE à
-  cible cumulée progressive)
-- 🏆 **Score de rencontre** = total des points marqués, classement de poule
-  par points cumulés
-- 🟨 **Cartons d'équipe « E »** persistés (blanc/jaune/rouge/noir)
-- 📅 **Calendriers de poule figés** pour 8 ou 12 équipes, avec équipes
-  assesseurs
-- 🔀 **Évitement de revanche** au 1er tour du tableau à élimination directe
-- 📱 **Saisie temps réel sur tablette arbitre** avec compteur de touches
-  déclenchant automatiquement le changement de relayeur, et affichage arène
-  dédié
+- Plusieurs épreuves d'une même salle regroupées dans une **journée**
+- **Arbitres saisis une fois**, reportés dans chaque épreuve selon leur arme, conflits signalés
+- **Pistes partagées** : pistes libérées proposées aux épreuves en attente, réservation par piste, kiosque de la journée
+- **Salles et pistes** enregistrées dans les paramètres, plan des pistes, pistes indisponibles
 
-Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail
-complet et les limites connues.
+Voir [docs/JOURNEE_MULTI_EPREUVES.md](docs/JOURNEE_MULTI_EPREUVES.md).
 
-### 🚀 **Fonctionnalités majeures**
+### 📟 **Appareils de piste Cyrano**
 
-Ces versions apportent de nombreuses fonctionnalités demandées par la communauté :
+- Protocole **Cyrano EFP1 / EFP1.1** (UDP) : appareils raccordés aux arènes, score et chrono remontés de l'appareil
+- Pistes ajoutées en lot, mode maître / esclave, journal des trames, supervision
+- Relais par équipes (FIE) piloté depuis l'appareil de piste
+- Simulateur et télécommande web pour tester sans matériel (`npm run cyrano:sim`, `npm run cyrano:remote`)
 
-#### ✨ **Nouvelles Fonctionnalités**
+Voir [docs/CYRANO.md](docs/CYRANO.md).
 
-- ⌨️ **Commandes Ctrl+K** - `/update quiet`, `/remote start`, `/remote stop`, `/phase tableau`… ([liste](docs/COMMANDES.md))
-- 👨‍⚖️ **Gestion Avancée des Arbitres** - Assignation automatique avec détection de conflits
-- 🖥️ **Tableau de Bord Live** - Affichage public en temps réel pour les salles d'armes
-- 🔔 **Webhooks** - Notifications Discord/Slack (HTTPS) depuis le serveur de saisie distante
-- 🎨 **Gestion des Photos** - Import photos des tireurs avec drag & drop
-- 🖥️ **Mode Kiosk** - Affichage public (TV) configurable : tableau, poules, classement
-- 🇪🇸🇩🇪🇭🇰 **Nouvelles Langues** - Support complet de l'espagnol, de l'allemand, du catalan et du chinois traditionnel (Hong Kong)
+### 🛡️ **Mode Club**
 
-#### 🔧 **Améliorations Techniques**
+- Espace permanent du club : **membres** (carte à code, photo webcam, import / export), **maîtres d'armes**
+- **Séances** préparées ou libres : scan des cartes, pointage, plan de cours, exercices, combats libres sur tablette
+- **Statistiques** par période et catégorie d'âge, **inventaire** du matériel et prêts
+- Sauvegarde `.bpclub` et synchronisation entre postes
 
-- ⚡ **Services de Performance** - Cache intelligent, listes virtuelles, monitoring
-- 🎯 **Classement Corrigé** - Départage par touches au-delà de la 4e place
-- 📊 **Performance Optimisée** - Virtualisation, memoïsation
+Voir [docs/MODE_CLUB.md](docs/MODE_CLUB.md).
+
+### 🔐 **RGPD et sécurité des données**
+
+- **Base chiffrée au repos** (SQLCipher, clé dans le trousseau du système)
+- Recherche d'une personne, **export** JSON / PDF, **anonymisation**, **effacement**
+- Durée de conservation, noms masqués sur le réseau, archives `.bpm` **chiffrées par mot de passe**
+
+Voir [docs/RGPD.md](docs/RGPD.md).
+
+### 🤖 **Agent IA (MCP)**
+
+- Serveur **MCP** intégré, désactivé par défaut, sur `127.0.0.1` avec jeton
+- Lecture de l'état d'une journée ou d'une salle (retards, pistes libres, arbitres, tablettes) ; écriture sur autorisation (pointage, poules, scores, imports)
+- Mode `--headless` et import par manifeste (`--batch-import`), plugin Claude Code fourni
+
+Voir [docs/MCP.md](docs/MCP.md).
+
+### ✨ **Et aussi**
+
+- ⌨️ **Navigation clavier** : palette `Ctrl+K`, phases `Ctrl+1…8` / `Ctrl+←→`, `Ctrl+Z` pour annuler la dernière action ([liste](docs/COMMANDES.md))
+- 🧭 **Parcours guidé**, infobulles accessibles, densité d'affichage réglable, logo et icônes refaits
+- 🏠 **Accueil** : compétitions récentes et épinglées, filtres arme / sexe / catégorie, recherche
+- 🎯 **Poules** : saisie simplifiée (`V`, `W`+chiffre), ordre officiel des matchs, échanges au plus proche classement, impression de toutes les feuilles en une fois
+- 📱 **Tablettes** : dixièmes de seconde, match précédent, pause sabre à 8 touches, badge de synchronisation, ergonomie tactile
+- 🟥 **Carton noir** : rang « - » et décalage des suivants, rapport FFE d'exclusion pré-rempli, DNF / DNS pour les forfaits en poules
+- 📊 **Analytics** : KPI des armes olympiques, onglets Organisation / Arbitres / Journal, rapport PDF post-tournoi
+- 📄 **PDF** : dossier de compétition (sections et ordre au choix), cartons sur la feuille de poule, export de toutes les poules en un fichier
+- 🎨 **Thèmes** d'écrans prédéfinis (Steampunk, Mousquetaires, Arcade 8-bit, Sumi-e, Licorne…)
+- 🗡️ **Tournoi des rapières** et format arène **Sabre Laser équipe** (ASL-FFE)
+- 🌍 Trois nouvelles langues : **italien**, **portugais**, **russe**
 
 ### 🔮 **Fonctionnalités à venir**
 
-D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à jour incluront :
+Chantiers ouverts ([issues GitHub](https://github.com/BellePoule-Modern/bellepoule-modern/issues)) :
 
-#### 🏆 **En Développement**
+- 🖧 **Moteur headless multi-postes** : comptes et rôles, plusieurs écrans sur la même épreuve
+- 📐 **Formules FFE / FIE** étendues : tirages, tableaux préparés avant la fin des poules
+- 🗓️ **Planning prévisionnel** de la journée (Gantt des pistes) et durées de match de référence
+- 👨‍⚖️ **Affectation automatique des arbitres** : répartition optimale, neutralité club
+- 📤 **Export XML FIE 3.3** complet et publication des résultats sur **GREG** (escrime-info.com)
+- 📡 Pilote d'appareils **OPP2** (JSON sur MQTT), à côté de Cyrano
 
-- 👥 **Compétitions par Équipes (relais FIE)** - Poules et tableau à élimination directe par équipes, relais arme-aware — le format arène Sabre Laser (ci-dessus) est disponible dès maintenant ; le relais FIE générique (Épée/Fleuret/Sabre) reste en développement (voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail et les limites connues)
-- ⚖️ **Système de Pénalités** - Cartons jaunes/rouges/noirs avec impact sur scores
-- ⏰ **Gestion des Retardataires** - Auto-forfait après délai configurable
-- 🏅 **Double Élimination** - Brackets gagnants et perdants
-
-#### 🚀 **Planifiées**
-
-- 📊 **Classement Elo** - Calcul automatique et historique
-- 🎥 **Replay Vidéo** - Analyse frame par frame des matchs
-- 💰 **Gestion Financière** - Frais d'inscription et suivi des dépenses
-- 🏟️ **Gestion des Lieux** - Plan interactif des pistes
-- 🌐 **Portail d'Inscription** - Pré-inscription en ligne
-
-[Voir ROADMAP.md pour la liste complète](./ROADMAP.md)
-
-### 📄 Export PDF optimisé
-
-- **⚡ Performance 60-70% améliorée** - Export PDF jusqu'à 3x plus rapide
-- **🏗️ Architecture modulaire** - Code maintenable et évolutif
-- **📋 Format professionnel** - Cadre "PISTE X" et matchs en colonnes
-- **🔧 Gestion d'erreurs robuste** - Multiples fallbacks pour fiabilité maximale
-
-### 🎯 Fonctionnalités PDF
-
-- **Export individuel** : Poules avec cadre piste et 4 matchs maximum
-- **Export multiple** : Toutes les poules dans un seul document unifié
-- **Options avancées** : Filtrage des matchs, classements, personnalisations
-- **Compatibilité totale** : A4 paysage optimisé pour l'escrime
+[Voir ROADMAP.md](./ROADMAP.md)
 
 ## 🌐 Langues disponibles
 
 - 🇫🇷 **Français** (par défaut)
-- 🇺🇸 **Anglais**
+- 🇬🇧 **Anglais**
 - 🇫🇷 **Brezhoneg (Breton)**
-- 🇪🇸 **Català (Catalan)** _(Nouveau !)_
-- 🇩🇪 **Deutsch (Allemand)** _(Nouveau !)_
+- 🇪🇸 **Català (Catalan)**
+- 🇩🇪 **Deutsch (Allemand)**
 - 🇪🇸 **Español (Espagnol)**
 - 🇵🇹 **Português (Portugais)** _(Nouveau !)_
-- 🇮🇹 **Italiano (Italien)**
+- 🇮🇹 **Italiano (Italien)** _(Nouveau !)_
 - 🇷🇺 **Русский (Russe)** _(Nouveau !)_
-- 🇭🇰 **繁體中文 (Chinois traditionnel – Hong Kong)** _(Nouveau !)_
+- 🇭🇰 **繁體中文 (Chinois traditionnel – Hong Kong)**
 
 ## 🎯 Caractéristiques principales
 
-- **🗂️ Base de données SQLite** pour stocker toutes les données de compétition
+- **🗂️ Base de données SQLite chiffrée** (SQLCipher) pour toutes les données de compétition et de club
 - **🌐 Interface moderne** avec design épuré et responsive
-- **📱 Gestion en temps réel** des scores et arènes
+- **📱 Gestion en temps réel** des scores et arènes, tablettes et appareils de piste Cyrano
+- **🏟️ Journées multi-épreuves** avec pistes et arbitres partagés
+- **🛡️ Mode Club** : membres, séances, statistiques, inventaire
 - **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, portugais, italien, russe, chinois traditionnel HK)
 - **👨‍⚖️ Gestion des arbitres** avec assignation automatique et rotation
 - **🔔 Webhooks** Discord/Slack
-- **🖥️ Tableau de bord Live** pour affichage public en temps réel
+- **🖥️ Tableau de bord Live** et **Mode Kiosk** pour affichage public
 - **📱 Mode déconnecté** pour les tablettes arbitres
-- **🖥️ Mode Kiosk** affichage public
 - **⚡️ Sauvegarde automatique** des données
 - **📊 Export des résultats** en multiple formats
-- **⚡ Optimisation performance** cache intelligent et listes virtuelles
-- **🔐 Sécurité** chiffrement des données sensibles
+- **🤖 Agent IA (MCP)** local, désactivé par défaut
+- **🔐 Sécurité et RGPD** : chiffrement, export, anonymisation, effacement
 
 ## 🎯 Fonctionnalités principales
 
 ### 📋 **Appel (pointage)**
 
-- ✅ Inscription et gestion des tireurs
+- ✅ Inscription et gestion des tireurs (nationalité, département, latéralité)
+- ✅ Import FFE / XML / CSV / Excel, modèle d'import téléchargeable
 - ✅ Pointage/dépointage
 - ✅ Support abandon et forfait avec impact automatique sur tous les matchs
 - ✅ Mise à jour automatique des classements
 
-### 📄 **Export PDF Optimisé (Nouveauté !)**
+### 🎯 **Poules**
 
-- ⚡ **Performance 60-70% améliorée** - Export PDF ultra-rapide
-- 🏗️ **Architecture modulaire** - Code maintenable et évolutif
-- 📋 **Format professionnel** - Cadre "PISTE X" et matchs en colonnes
-- 🔧 **Gestion d'erreurs robuste** - Fiabilité maximale avec fallbacks
-- 📊 **Monitoring performance** - Suivi des métriques en temps réel
-- 🎯 **Support complet** - Export simple et multiple de poules
-- 📚 **Documentation avancée** - Guides techniques et utilisateur complets
+- ✅ Génération automatique des poules serpentine, critères de séparation (club, région, nation)
+- ✅ Configuration personnalisée (nombre de tireurs par poule, tours de poules)
+- ✅ Saisie rapide (souris, clavier simplifié), annulation / rétablissement
+- ✅ Système de chronométrage des matchs
+- ✅ Support des défections (abandon, forfait, exclusion)
+- 📄 **Intégration PDF** - Feuilles de poule avec piste, cartons et signatures
 
-### 🚀 **Performance Optimizations (Nouveauté !)**
+### 🏆 **Tableau et résultats**
 
-- 🔧 **Memory Management** - Correction des fuites mémoire avec Promise.allSettled
-- ⚡ **React Performance** - Optimisation des re-renders et dépendances useMemo
-- 📊 **Algorithm Efficiency** - Calculs de classement optimisés avec Map et WeakMap
-- 🎨 **CSS Optimisé** - Variables CSS et classes utilitaires pour maintenabilité
-- 📈 **Batch Processing** - Traitement par lot des statistiques tireurs
-- 🛡️ **Error Handling** - Logging amélioré avec IDs spécifiques pour debug
+- ✅ Élimination directe, petite finale, vues tableau / pyramide
+- ✅ Podium et classement final, exports XML FFE / CSV / PDF
+- ✅ Historique horodaté de chaque modification de score
 
-### 📊 **Analytics Dashboard (Nouveauté !)**
+### 📄 **Export PDF**
 
-- 📈 **Real-time Metrics** - Statistiques en temps réel pour les entraîneurs
-- 🏆 **Top Performers** - Classement des tireurs les plus performants
-- 🎯 **Weapon Statistics** - Analyse détaillée par arme et match
-- 📱 **Auto-refresh** - Mises à jour automatiques toutes les 5 secondes
-- 📋 **Pool Progress** - Suivi de l'avancement des poules en direct
+- 📋 **Format professionnel** - Cadre "PISTE X" et matchs en colonnes, A4 paysage
+- 🎯 **Export simple et multiple** - Une poule ou toutes les poules dans un seul document
+- 📚 **Dossier de compétition** - Sections et ordre au choix (individuel et équipes)
+- 🔧 **Options avancées** - Filtrage des matchs, classements, modèles personnalisables
 
-### 📱 **Tablet Interface (Nouveauté !)**
+### 📊 **Tableau de bord analytique**
 
-- 🎯 **Touch Optimization** - Interface optimisée pour tablettes avec zones de touch
-- 👆 **Swipe Gestures** - Glisser pour ajouter des points rapidement
+- 📈 **Métriques en temps réel** - Avancement des poules, durée moyenne des matchs
+- 🏆 **Meilleurs tireurs** - Classement des tireurs les plus performants
+- 🎯 **Statistiques par arme** - KPI des armes olympiques, zones de touches (Sabre Laser)
+- 🕒 **Organisation** - Poules en retard, écart au planning, arbitres
+- 📄 **Rapport PDF** post-tournoi
+
+### 📱 **Interface tablette**
+
+- 🎯 **Optimisation tactile** - Grandes zones de touche, retour à l'appui
 - 🔊 **Minuteur vocal** - Annonces du temps restant sur la tablette d'arbitrage (TTS)
-- ⏱️ **Large Timer** - Chronomètre visible de loin pour les arènes
-- 🔄 **Quick Actions** - Boutons géraux pour les actions fréquentes
+- ⏱️ **Grand chronomètre** - Visible de loin, dixièmes de seconde
+- 🔄 **Actions rapides** - Cartons, match précédent, fin de match validée
 
-### 🔄 **Tournament Flow Management (Nouveauté !)**
+### 👨‍⚖️ **Gestion des arbitres**
 
-- 🎯 **Smart Scheduling** - Optimisation automatique des plannings
-- 🏟️ **Arena Balancing** - Répartition intelligente des matchs sur les pistes
-- ⏰ **Rest Time Management** - Respect des temps de repos pour les tireurs
-- 📊 **Flow Analytics** - Identification des goulots d'étranglement
-- 🔮 **Predictive Insights** - Prédictions de durée et optimisations
+- ⚖️ **Assignation automatique** - Distribution des arbitres sur les poules et les matchs
+- 🔄 **Rotation** - Équilibrage des assignations avec temps de repos
+- ⚠️ **Détection de conflits** - Alerte si un arbitre doit arbitrer son propre club ou est pris sur une autre épreuve de la journée
+- 📊 **Statistiques** - Suivi des matchs arbitrés par arbitre
 
-### 👨‍⚖️ **Gestion Avancée des Arbitres** _(Nouveau !)_
+### 🖥️ **Tableau de bord Live et Mode Kiosk**
 
-- ⚖️ **Assignation Automatique** - Algorithme intelligent de distribution des arbitres
-- 🔄 **Rotation des Arbitres** - Équilibrage des assignations avec temps de repos
-- ⚠️ **Détection de Conflits** - Alerte si un arbitre doit arbitrer son propre club
-- 📊 **Rapports de Statistiques** - Suivi des matchs arbitrés par arbitre
-- 🎛️ **Configuration Flexible** - Paramètres de rotation personnalisables
-
-### 🖥️ **Tableau de Bord Live**
-
-- 📺 **Affichage Public** (`/kiosk`, `/areneN/public`) - Interface optimisée pour écrans géants
-- 🔴 **Matchs en Direct** - Suivi en temps réel des scores avec animations
-- 📊 **3 Vues Disponibles** : Poules / Tableau / Classement Final
-- 📱 **Design Responsive** - Adapté pour tous les écrans
-- 🔄 **Auto-refresh** - Mises à jour automatiques
+- 📺 **Affichage public** (`/kiosk`, `/areneN/public`) - Tableau, poules, classement en temps réel sur TV
+- 🎨 **Thèmes et note** - Thèmes prédéfinis, message affiché (ex. « Déjeuner des arbitres »)
+- 🎛️ **Télécommande** - Pilotage des écrans depuis l'application ([docs/TELECOMMANDE_TV.md](docs/TELECOMMANDE_TV.md))
 
 ### 🔔 **Webhooks**
 
 - 🔗 **Discord / Slack** - URL HTTPS configurée dans les Paramètres, transmise au serveur de saisie distante
 - 🎯 **Événements** : fin de match et événements de compétition
 
-### ⚡ **Services de Performance** _(Nouveau !)_
+### 🎨 **Gestion des Photos**
 
-- 💾 **Cache Intelligent** - Mise en cache avec expiration (TTL) configurable
-- 📜 **Mémoïsation** - Optimisation des calculs répétés
-- 📋 **Listes Virtuelles** - Rendu optimisé pour grandes listes (>500 éléments)
-- 🖼️ **Optimisation Images** - Compression et redimensionnement automatique
-- 📊 **Monitoring** - Suivi des performances avec métriques détaillées
-
-### 🎨 **Gestion des Photos** _(Nouveau !)_
-
-- 🖼️ **Photos des Tireurs** - Import et affichage des photos par tireur
-- 📤 **Upload Drag & Drop** - Glisser-déposer pour ajouter des photos
-- 🗜️ **Compression Auto** - Redimensionnement (300x300px max) et compression JPEG
+- 🖼️ **Photos des tireurs et des membres** - Import, glisser-déposer ou webcam
+- 🗜️ **Compression auto** - Redimensionnement (300x300px max) et compression JPEG
 - 🔤 **Initiales** - Affichage des initiales si pas de photo
-- 📄 **Intégration Feuilles** - Photos visibles sur les feuilles de match
-
-### 🖥️ **Mode Kiosk**
-
-- 📺 **Affichage public** (`/kiosk`) - Tableau, poules, classement en temps réel sur TV
-- 🎨 **Thème et note** - Thème dédié, message affiché (ex. « Déjeuner des arbitres »)
-- 🎛️ **Télécommande** - Pilotage des écrans depuis l'application ([docs/TELECOMMANDE_TV.md](docs/TELECOMMANDE_TV.md))
-
-### 🎯 **Poules**
-
-- ✅ Génération automatique des poules sérpentine
-- ✅ Configuration personnalisée (nombre de tireurs par poule, tours de poules)
-- ✅ Système de chronométrage des matchs
-- ✅ Support des défections (abandon, forfait, exclusion)
-- ✅ Vue en arborescence
-- 📄 **Intégration PDF** - Export direct des poules vers PDF professionnel
 
 ### 🎯 **Saisie distante**
 
-- 📡 Serveur WebSocket pour les arbitres
-- 📱 Interfaces pour tablettes
-- 📡 Affichage temps réel sur les arènes
+- 📡 Serveur WebSocket pour les arbitres, bouton **Saisie distante / Piste** dans le bandeau
+- 📱 Interfaces pour tablettes, réglages **Basique** / **Expert**
+- 📡 Affichage temps réel sur les arènes, appareils Cyrano raccordés
 - 🎯 Contrôle total (démarrer, pause, terminer, réinitialiser)
 
 ### 📡 **Arènes**
@@ -272,7 +243,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### 📡 **Exports**
 
-- 📊 Formats multiples (CSV, JSON)
+- 📊 Formats multiples (CSV, JSON, PDF)
 - 📊 Fiches XML FFE compatibles
 - 📊 Résultats complets avec classements
 
@@ -319,9 +290,10 @@ Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md)
 
 | Plateforme | Fichiers |
 |---|---|
-| **Windows** x64 | `BellePoule Modern-<version>-setup.exe` (installeur), `-portable.exe` |
+| **Windows** x64 | `BellePoule-Modern-<version>-win-x64-setup.exe` (installeur), `-portable.exe` |
 | **macOS** x64 / arm64 | `BellePoule-Modern-<version>-mac-<arch>.dmg` — quelle version ? → [docs/MAC_VERSION.md](docs/MAC_VERSION.md) |
-| **Linux** x64 | `BellePoule Modern-<version>-<arch>.AppImage` / `.deb` / `.rpm` |
+| **Linux** x64 | `BellePoule-Modern-<version>-linux-x86_64.AppImage` / `.deb` / `.rpm` |
+| **Linux** arm64 | `BellePoule-Modern-<version>-linux-arm64.AppImage` / `.deb` (Raspberry Pi…) |
 
 ### 🧪 **Version de Développement** (Tests)
 
@@ -472,5 +444,5 @@ Les contributions sont bienvenues ! Voir [CONTRIBUTING.md](./CONTRIBUTING.md) po
 
 📄 **Développé par** : Yann Deboeuf & communauté  
 📄 **Licence** : GPL-3.0  
-📄 **Dernière mise à jour** : 9 octobre 2026  
-📄 **Version actuelle** : v1.0.3 Build #1365
+📄 **Dernière mise à jour** : 19 novembre 2026  
+📄 **Version actuelle** : v2.0.0
