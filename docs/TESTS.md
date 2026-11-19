@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 83 | 938 |
+| `src/shared/utils/` | 84 | 945 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 20 | 262 |
-| `src/main/` | 110 | 901 |
+| `src/main/` | 110 | 902 |
 | `src/renderer/services/` | 11 | 57 |
-| `src/renderer/hooks/` | 33 | 159 |
-| `src/renderer/components/` | 119 | 628 |
+| `src/renderer/hooks/` | 35 | 172 |
+| `src/renderer/components/` | 120 | 636 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 59 | 398 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **494** | **3813** |
+| **Total** | **498** | **3842** |
 
-Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1438,6 +1438,21 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - nation vide : pas de conflit entre tireurs sans nationalité
   - club après classement : pas de descente hors du chapeau
   - club après classement : échange dans le chapeau si possible
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolCorrectionImpact.test.ts</code> — 7 tests</summary>
+
+- **arePoolsFrozenByTableau (#1996)**
+  - figées dès qu’un tableau ou une consolante existe
+- **computePoolCorrectionImpact (#1996)**
+  - aucun changement : tableau intact
+  - têtes de série inversées : tableau obsolète, sans entrant ni sortant
+  - qualification : e entre, d sort
+  - rangs du tirage lus sur le tableau, pas sur le classement courant
+  - matchs joués comptés (tableau + consolantes), exempts exclus
+  - tireur exclu après tirage : pas compté parmi les qualifiés corrigés
 
 </details>
 
@@ -3621,11 +3636,12 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 4 tests</summary>
 
 - **bus d’événements db (#1298)**
   - emitCompetitionEvent diffuse aux fenêtres
   - db:updateMatch et db:createMatch émettent matches:changed
+  - db:updateMatch : motif de correction au journal, jamais écrit dans le match (#1996)
   - db:addFencer émet fencers:changed pour la compétition
 
 </details>
@@ -5056,6 +5072,25 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/renderer/hooks/`
 
 <details>
+<summary><code>src/renderer/hooks/competitionView/usePoolCorrection.test.tsx</code> — 11 tests</summary>
+
+- **usePoolCorrection (#1996)**
+  - sans tableau : score appliqué directement, poules non figées
+  - tableau tiré : poules figées, mode correction par poule
+  - tableau tiré : impact affiché, rien n’est appliqué avant la décision
+  - garder le tableau : score appliqué avec motif, tableau intact
+  - refaire le tableau : matchs joués → mot de confirmation exigé
+  - abandon / forfait / exclusion refusés une fois le tableau tiré
+  - **corrections cumulées, tableau refait en une fois**
+    - sans correction : tableau conforme, pas d’écart
+    - correction gardée : écart persistant mesuré depuis le tirage
+    - correction suivante : impact cumulé depuis le tirage (retour au tirage = conforme)
+    - refaire le tableau sans nouvelle correction : pas de score, tableau effacé
+    - refaire le tableau avec matchs joués : mot de confirmation exigé
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/remoteScoreManager/useRemoteServerState.test.tsx</code> — 7 tests</summary>
 
 - **fetchVenueStripCount**
@@ -5151,6 +5186,15 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - filtre par type : matches:changed n'active pas fencers:changed
   - se désabonne au démontage
   - ne plante pas sans electronAPI
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionNavigation.test.tsx</code> — 2 tests</summary>
+
+- **handleGoToTableau (#1996)**
+  - tableau déjà tiré : retour au tableau, rien n’est effacé
+  - pas encore de tableau : choix de la petite finale avant le tirage
 
 </details>
 
@@ -5845,7 +5889,7 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 24 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 26 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -5874,6 +5918,9 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
   - feuille signée par tous : bandeau de verrouillage et saisie bloquée
   - tireur abandonné : case de la matrice marquée comme statut spécial
+- **PoolView - poule figée par le tableau (#1996)**
+  - tableau tiré : bandeau, cases verrouillées, pas de saisie
+  - mode correction : saisie possible, transmise pour vérification
 
 </details>
 
@@ -6031,12 +6078,14 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 3 tests</summary>
 
 - **ScoreAuditLog — colonne Arbitre (#1031)**
   - affiche l'arbitre saisi, sinon le ou les arbitres assignés au match
 - **ScoreAuditLog — compacter / déplier (#1123)**
   - masque les entrées au-delà des premières en mode compact, puis les réaffiche
+- **ScoreAuditLog — motif de correction après tirage du tableau (#1996)**
+  - motif affiché pour une correction, motif technique masqué, auteur générique non affiché
 
 </details>
 
@@ -6832,6 +6881,15 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/tableau/TableauDriftBanner.test.tsx</code> — 2 tests</summary>
+
+- **TableauDriftBanner (#1996)**
+  - liste les écarts cumulés et propose de refaire le tableau
+  - replie les têtes de série au-delà de 6
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 15 tests</summary>
 
 - **TableauScoreModal**
@@ -6879,7 +6937,7 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 6 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
@@ -6891,6 +6949,10 @@ Unitaires : 484 fichiers, 3774 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **generateFIESeeding (#1080)**
   - tables en dur identiques à la construction FIE générique
   - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
+- **rangs figés au tirage du tableau (#1996)**
+  - premier tour : rang de sortie de poules de chaque tireur
+  - barrages : rangs posés sur les matchs de barrage
+  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
 
 </details>
 
