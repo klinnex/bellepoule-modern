@@ -5,8 +5,18 @@
 import type { Fencer, Pool, Referee, Weapon } from '../../../shared/types';
 import type { Arena } from '../../../shared/types/remote';
 
+/** Poules figées par le tirage du tableau (#1996) */
+export interface PoolTableauFreeze {
+  /** Correction en cours sur cette poule : saisie déverrouillée, chaque score vérifié */
+  correcting: boolean;
+  onStartCorrection: () => void;
+  onEndCorrection: () => void;
+}
+
 export interface PoolViewProps {
   pool: Pool;
+  /** Tableau tiré : poule figée, correction explicite seulement (#1996) */
+  tableauFreeze?: PoolTableauFreeze;
   maxScore?: number;
   weapon?: Weapon;
   /** Égalité tranchée par V (olympique, rapières, laser) — défaut : laser */

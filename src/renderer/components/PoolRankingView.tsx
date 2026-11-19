@@ -34,7 +34,7 @@ import {
 import { useToast } from './Toast';
 import { CardIcon } from './common/CardIcon';
 import { Icon } from './common/Icon';
-import { Funnel, Printer } from 'lucide-react';
+import { Funnel, Lock, Printer } from 'lucide-react';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
 import {
   CollapseToggle,
@@ -66,6 +66,8 @@ interface PoolRankingViewProps {
   nextRoundAction?: { label: string; onClick: () => void };
   /** Tournoi des rapières : « Nom » / « Prénom » deviennent « Équipe » / « Tireurs » (#1279) */
   rapieres?: boolean;
+  /** Tableau tiré : classement figé, ni recalcul ni modification manuelle (#1996) */
+  rankingFrozen?: boolean;
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -73,6 +75,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   weapon,
   ranking: externalRanking,
   isInitialRanking = false,
+  rankingFrozen = false,
   onGoToTableau,
   onGoToResults,
   hasDirectElimination = true,
@@ -433,9 +436,14 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               : `${t('poolRanking.pools_count', { count: pools.length })} • ${t('poolRanking.fencers_count', { count: editedRanking.length })}`}
             {isEditing && ` (${t('poolRanking.edit_mode')})`}
           </p>
+          {rankingFrozen && (
+            <p className="pool-ranking-frozen" role="status">
+              <Icon icon={Lock} /> {t('poolRanking.frozen')}
+            </p>
+          )}
         </div>
         <div className="is-5c17a8">
-          {!isInitialRanking && pools.length > 0 && (
+          {!isInitialRanking && !rankingFrozen && pools.length > 0 && (
             <Button
               className="is-22b62c"
               onClick={handleRecalculate}
@@ -459,7 +467,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             icon={<Icon icon={Printer} />}
           />
           <div className="is-4565f9" />
-          {!isInSplitGroupTab && (
+          {!isInSplitGroupTab && !rankingFrozen && (
             <Button
               variant={isEditing ? 'primary' : 'secondary'}
               className="is-22b62c"
@@ -800,9 +808,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               )
             ) : (
               <Button variant="primary" data-tour="go-tableau" onClick={() => onGoToTableau?.()}>
-                {poolWinnersOnly
-                  ? t('poolRanking.go_tableau_winners', { n: poolWinnerIds?.size ?? '?' })
-                  : t('poolRanking.go_tableau')}
+                {rankingFrozen
+                  ? t('poolRanking.see_tableau')
+                  : poolWinnersOnly
+                    ? t('poolRanking.go_tableau_winners', { n: poolWinnerIds?.size ?? '?' })
+                    : t('poolRanking.go_tableau')}
               </Button>
             )
           ) : (

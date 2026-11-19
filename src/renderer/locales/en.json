@@ -910,7 +910,11 @@
     "priority_holder": "Priority: {{name}}",
     "tie_choose_winner": "Who is the winner?",
     "tie_none": "None",
-    "score_cleared": "Score cleared"
+    "score_cleared": "Score cleared",
+    "tableau_locked": "Bracket drawn: pool locked. Any correction is checked before it is applied.",
+    "tableau_correcting": "Correction in progress: each changed score shows its impact on the ranking and the bracket.",
+    "tableau_correction_start": "Correct a result",
+    "tableau_correction_end": "End correction"
   },
   "presentation": {
     "no_club": "No club",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Laser Sabre points",
     "legend_qm_full": "Quest points / bouts",
     "go_tableau_winners": "Bracket ({{n}} winners) →",
-    "go_tableau": "Go to bracket →"
+    "go_tableau": "Go to bracket →",
+    "frozen": "Bracket drawn: ranking locked. To correct a result, use the Pools tab.",
+    "see_tableau": "View the bracket →"
   },
   "poolMatrix": {
     "not_fenced": "Bout not fenced (medical/forfeit)",
@@ -4134,5 +4140,47 @@
     "scratch": "Scratch",
     "start": "Start",
     "imported": "Imported: {{fencers}} fencer(s), {{teams}} team(s), {{referees}} referee(s)"
+  },
+  "poolCorrection": {
+    "title": "Correct a pool result",
+    "intro": "The bracket has already been drawn. Check the impact of the correction before applying it.",
+    "pool_n": "Pool {{n}}",
+    "ranking_title": "Ranking after pools",
+    "ranking_none": "No change in the ranking.",
+    "col_fencer": "Fencer",
+    "col_before": "Before",
+    "col_after": "After",
+    "more_one": "… and {{count}} other fencer",
+    "more_other": "… and {{count}} other fencers",
+    "tableau_title": "Bracket",
+    "tableau_ok": "The bracket is not affected: seeds and qualified fencers unchanged.",
+    "tableau_outdated": "The drawn bracket no longer matches the corrected ranking.",
+    "seed_change": "{{name}}: seed {{from}} → {{to}}",
+    "entering": "Would enter the bracket: {{names}}",
+    "leaving": "Would leave the bracket: {{names}}",
+    "choice": "Keep the bracket: bouts and seeds from the draw stay unchanged. Redraw the bracket: new draw on the corrected ranking.",
+    "played_one": "{{count}} bracket bout already fenced.",
+    "played_other": "{{count}} bracket bouts already fenced.",
+    "rebuild_warning_one": "Redrawing the bracket deletes {{count}} bout already fenced. Type {{word}} to confirm:",
+    "rebuild_warning_other": "Redrawing the bracket deletes {{count}} bouts already fenced. Type {{word}} to confirm:",
+    "rebuild_word": "REDRAW",
+    "rebuild_word_aria": "Confirmation word",
+    "cancel": "Cancel",
+    "keep": "Correct, keep the bracket",
+    "keep_ok": "Apply the correction",
+    "rebuild": "Correct and redraw the bracket",
+    "reason_ok": "Correction after the bracket draw, no impact on the bracket",
+    "reason_keep": "Correction after the bracket draw, bracket kept",
+    "reason_rebuild": "Correction after the bracket draw, bracket redrawn",
+    "special_refused": "Withdrawal, forfeit or exclusion after the bracket draw: enter it in the bracket.",
+    "applied_ok": "Correction applied",
+    "applied_keep": "Correction applied, bracket kept as drawn",
+    "applied_rebuild": "Correction applied, bracket redrawn on the corrected ranking",
+    "rebuild_title": "Redo the tableau",
+    "rebuild_intro": "Pool corrections were kept. The tableau is redrawn from the corrected ranking.",
+    "rebuild_only": "Redo the tableau",
+    "rebuilt": "Tableau redrawn from the corrected ranking",
+    "drift_title": "Tableau does not match the corrected ranking",
+    "drift_hint": "Corrections kept after the draw. Redo the tableau once the technical directorate approves the corrections."
   }
 }

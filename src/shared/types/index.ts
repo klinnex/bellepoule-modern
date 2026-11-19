@@ -287,6 +287,8 @@ export interface Match extends BaseEntity {
   tableId?: string; // ID du tableau (si match de tableau)
   round?: number; // Tour du tableau (64, 32, 16, 8, 4, 2, 1)
   position?: number; // Position dans le tour
+  /** Dernière correction après tirage du tableau : motif inscrit au journal des scores (#1996) */
+  correction?: { reason: string; at: string };
 
   // Sabre Laser specific
   mode?: MatchMode;

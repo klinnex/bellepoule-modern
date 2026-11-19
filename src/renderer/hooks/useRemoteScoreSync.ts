@@ -162,6 +162,15 @@ export function useRemoteScoreSync({
         );
       }
 
+      // Tableau tiré : poules figées, un score de poule distant est ignoré (#1996)
+      if (!inTableau && !inConsolation && tableauMatchesRef.current.length > 0) {
+        logger.warn(
+          LogCategory.UI,
+          `[applyRemoteScore] match=${matchId} : score de poule ignoré, tableau déjà tiré`
+        );
+        return;
+      }
+
       // Match de poule uniquement s'il n'est pas dans le tableau/consolante
       if (!inTableau && !inConsolation) {
         logger.warn(

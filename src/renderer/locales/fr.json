@@ -910,7 +910,11 @@
     "priority_holder": "Prioritaire : {{name}}",
     "tie_choose_winner": "Quel est le vainqueur ?",
     "tie_none": "Aucun",
-    "score_cleared": "Score effacé"
+    "score_cleared": "Score effacé",
+    "tableau_locked": "Tableau tiré : poule figée. Toute correction est vérifiée avant d'être appliquée.",
+    "tableau_correcting": "Correction en cours : chaque score modifié affiche son impact sur le classement et le tableau.",
+    "tableau_correction_start": "Corriger un résultat",
+    "tableau_correction_end": "Terminer la correction"
   },
   "presentation": {
     "no_club": "Pas de club",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Points Sabre Laser",
     "legend_qm_full": "Points Quest / matchs",
     "go_tableau_winners": "Tableau ({{n}} vainqueurs) →",
-    "go_tableau": "Passer au tableau →"
+    "go_tableau": "Passer au tableau →",
+    "frozen": "Tableau tiré : classement figé. Pour corriger un résultat, passez par l'onglet Poules.",
+    "see_tableau": "Voir le tableau →"
   },
   "poolMatrix": {
     "not_fenced": "Match non disputé (médical/forfait)",
@@ -4134,5 +4140,47 @@
     "scratch": "Scratch",
     "start": "Début",
     "imported": "Importés : {{fencers}} tireur(s), {{teams}} équipe(s), {{referees}} arbitre(s)"
+  },
+  "poolCorrection": {
+    "title": "Corriger un résultat de poule",
+    "intro": "Le tableau est déjà tiré. Vérifiez l'impact de la correction avant de l'appliquer.",
+    "pool_n": "Poule {{n}}",
+    "ranking_title": "Classement après poules",
+    "ranking_none": "Aucun changement de classement.",
+    "col_fencer": "Tireur",
+    "col_before": "Avant",
+    "col_after": "Après",
+    "more_one": "… et {{count}} autre tireur",
+    "more_other": "… et {{count}} autres tireurs",
+    "tableau_title": "Tableau",
+    "tableau_ok": "Le tableau n'est pas touché : têtes de série et qualifiés inchangés.",
+    "tableau_outdated": "Le tableau tiré ne correspond plus au classement corrigé.",
+    "seed_change": "{{name}} : tête de série {{from}} → {{to}}",
+    "entering": "Entrerait dans le tableau : {{names}}",
+    "leaving": "Sortirait du tableau : {{names}}",
+    "choice": "Garder le tableau : les rencontres et les têtes de série du tirage restent inchangées. Refaire le tableau : nouveau tirage sur le classement corrigé.",
+    "played_one": "{{count}} match de tableau déjà joué.",
+    "played_other": "{{count}} matchs de tableau déjà joués.",
+    "rebuild_warning_one": "Refaire le tableau efface {{count}} match déjà joué. Tapez {{word}} pour confirmer :",
+    "rebuild_warning_other": "Refaire le tableau efface {{count}} matchs déjà joués. Tapez {{word}} pour confirmer :",
+    "rebuild_word": "RECONSTRUIRE",
+    "rebuild_word_aria": "Mot de confirmation",
+    "cancel": "Annuler",
+    "keep": "Corriger, garder le tableau",
+    "keep_ok": "Appliquer la correction",
+    "rebuild": "Corriger et refaire le tableau",
+    "reason_ok": "Correction après tirage du tableau, sans impact sur le tableau",
+    "reason_keep": "Correction après tirage du tableau, tableau conservé",
+    "reason_rebuild": "Correction après tirage du tableau, tableau refait",
+    "special_refused": "Abandon, forfait ou exclusion après le tirage du tableau : à saisir dans le tableau.",
+    "applied_ok": "Correction appliquée",
+    "applied_keep": "Correction appliquée, tableau conservé tel qu'il a été tiré",
+    "applied_rebuild": "Correction appliquée, tableau refait sur le classement corrigé",
+    "rebuild_title": "Refaire le tableau",
+    "rebuild_intro": "Des corrections de poule ont été gardées. Le tableau est retiré sur le classement corrigé.",
+    "rebuild_only": "Refaire le tableau",
+    "rebuilt": "Tableau refait sur le classement corrigé",
+    "drift_title": "Tableau non conforme au classement corrigé",
+    "drift_hint": "Corrections gardées après le tirage. Refaites le tableau une fois les corrections validées par le DT."
   }
 }

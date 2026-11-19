@@ -910,7 +910,11 @@
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "Chi è il vincitore?",
     "tie_none": "Nessuno",
-    "score_cleared": "Punteggio cancellato"
+    "score_cleared": "Punteggio cancellato",
+    "tableau_locked": "Tabellone sorteggiato: girone bloccato. Ogni correzione è verificata prima di essere applicata.",
+    "tableau_correcting": "Correzione in corso: ogni punteggio modificato mostra il suo impatto su classifica e tabellone.",
+    "tableau_correction_start": "Correggi un risultato",
+    "tableau_correction_end": "Termina la correzione"
   },
   "presentation": {
     "no_club": "Nessun club",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Punti Sciabola Laser",
     "legend_qm_full": "Punti Quest / incontri",
     "go_tableau_winners": "Tabellone ({{n}} vincitori) →",
-    "go_tableau": "Passa al tabellone →"
+    "go_tableau": "Passa al tabellone →",
+    "frozen": "Tabellone sorteggiato: classifica bloccata. Per correggere un risultato, usa la scheda Gironi.",
+    "see_tableau": "Vedi il tabellone →"
   },
   "poolMatrix": {
     "not_fenced": "Incontro non disputato (medico/rinuncia)",
@@ -4134,5 +4140,47 @@
     "scratch": "Scratch",
     "start": "Inizio",
     "imported": "Importati: {{fencers}} tiratore/i, {{teams}} squadra/e, {{referees}} arbitro/i"
+  },
+  "poolCorrection": {
+    "title": "Correggi un risultato di girone",
+    "intro": "Il tabellone è già sorteggiato. Verifica l'impatto della correzione prima di applicarla.",
+    "pool_n": "Girone {{n}}",
+    "ranking_title": "Classifica dopo i gironi",
+    "ranking_none": "Nessuna modifica della classifica.",
+    "col_fencer": "Schermidore",
+    "col_before": "Prima",
+    "col_after": "Dopo",
+    "more_one": "… e {{count}} altro schermidore",
+    "more_other": "… e altri {{count}} schermidori",
+    "tableau_title": "Tabellone",
+    "tableau_ok": "Il tabellone non è toccato: teste di serie e qualificati invariati.",
+    "tableau_outdated": "Il tabellone sorteggiato non corrisponde più alla classifica corretta.",
+    "seed_change": "{{name}}: testa di serie {{from}} → {{to}}",
+    "entering": "Entrerebbe nel tabellone: {{names}}",
+    "leaving": "Uscirebbe dal tabellone: {{names}}",
+    "choice": "Mantieni il tabellone: incontri e teste di serie del sorteggio restano invariati. Rifai il tabellone: nuovo sorteggio sulla classifica corretta.",
+    "played_one": "{{count}} assalto del tabellone già disputato.",
+    "played_other": "{{count}} assalti del tabellone già disputati.",
+    "rebuild_warning_one": "Rifare il tabellone cancella {{count}} assalto già disputato. Digita {{word}} per confermare:",
+    "rebuild_warning_other": "Rifare il tabellone cancella {{count}} assalti già disputati. Digita {{word}} per confermare:",
+    "rebuild_word": "RIFARE",
+    "rebuild_word_aria": "Parola di conferma",
+    "cancel": "Annulla",
+    "keep": "Correggi, mantieni il tabellone",
+    "keep_ok": "Applica la correzione",
+    "rebuild": "Correggi e rifai il tabellone",
+    "reason_ok": "Correzione dopo il sorteggio del tabellone, senza impatto sul tabellone",
+    "reason_keep": "Correzione dopo il sorteggio del tabellone, tabellone mantenuto",
+    "reason_rebuild": "Correzione dopo il sorteggio del tabellone, tabellone rifatto",
+    "special_refused": "Abbandono, forfait o esclusione dopo il sorteggio del tabellone: inseriscilo nel tabellone.",
+    "applied_ok": "Correzione applicata",
+    "applied_keep": "Correzione applicata, tabellone mantenuto come sorteggiato",
+    "applied_rebuild": "Correzione applicata, tabellone rifatto sulla classifica corretta",
+    "rebuild_title": "Rifare il tabellone",
+    "rebuild_intro": "Sono state mantenute correzioni dei gironi. Il tabellone viene ricomposto sulla classifica corretta.",
+    "rebuild_only": "Rifare il tabellone",
+    "rebuilt": "Tabellone rifatto sulla classifica corretta",
+    "drift_title": "Il tabellone non corrisponde alla classifica corretta",
+    "drift_hint": "Correzioni mantenute dopo il sorteggio. Rifate il tabellone quando il DT ha convalidato le correzioni."
   }
 }

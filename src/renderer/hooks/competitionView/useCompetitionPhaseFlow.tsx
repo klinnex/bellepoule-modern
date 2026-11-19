@@ -21,6 +21,8 @@ import {
 import type { CompetitionViewProps } from '../../components/competition/competitionViewTypes';
 import { useCompetitionSessionSync } from './useCompetitionSessionSync';
 import { useCompetitionCore } from './useCompetitionCore';
+import { usePoolCorrection } from './usePoolCorrection';
+import { useToast } from '../../components/Toast';
 
 type Ctx = CompetitionViewProps &
   ReturnType<typeof useCompetitionCore> &
@@ -89,7 +91,37 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
     handlePoolAutoFillReferees,
     handlePoolRefereeAssigned,
     currentWaveMatchIds,
+    setTableauMatches,
+    setConsolationBrackets,
+    setFinalResults,
+    splitTableauStates,
+    isLaserSabre,
   } = ctx;
+  const { showToast } = useToast();
+
+  // Tableau tiré : poules figées, correction vérifiée (#1996)
+  const {
+    poolsFrozen,
+    freezeFor,
+    requestScore,
+    poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
+  } = usePoolCorrection({
+    pools,
+    poolHistory,
+    overallRanking,
+    tableauMatches,
+    consolationBrackets,
+    splitTableauStates,
+    isLaserSabre,
+    setTableauMatches,
+    setConsolationBrackets,
+    setFinalResults,
+    setCurrentPhase,
+    showToast,
+    t,
+  });
 
   const isTeamEvent = !!competition.isTeamEvent;
   const { phases, handleGoBack, canAdvanceFromPools, isLastPoolRound } = useCompetitionPhases({
@@ -277,6 +309,8 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
       onRefereeAssigned={handlePoolRefereeAssigned}
       waveMatchIds={currentWaveMatchIds}
       categoryOf={poolCategoryOf}
+      tableauFreeze={freezeFor(pool.id)}
+      requestScore={requestScore}
     />
   );
 
@@ -297,5 +331,9 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
     poolRoundSelector,
     handlePoolStripChange,
     renderPoolCard,
+    poolsFrozen,
+    poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
   };
 }

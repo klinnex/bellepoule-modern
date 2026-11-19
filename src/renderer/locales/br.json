@@ -910,7 +910,11 @@
     "priority_holder": "Priorelezh : {{name}}",
     "tie_choose_winner": "Piv eo ar gounezer?",
     "tie_none": "Hini ebet",
-    "score_cleared": "Skor dilamet"
+    "score_cleared": "Skor dilamet",
+    "tableau_locked": "Taolenn tennet : poull stank. Gwiriet e vez pep reizhadenn a-raok bezañ lakaet.",
+    "tableau_correcting": "Reizhadenn o vont en-dro : diskouez a ra pep skor kemmet e levezon war ar renkadur hag an daolenn.",
+    "tableau_correction_start": "Reizhañ un disoc'h",
+    "tableau_correction_end": "Echuiñ ar reizhadenn"
   },
   "presentation": {
     "no_club": "Klub ebet",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Poentoù Klezeour laser",
     "legend_qm_full": "Poentoù Quest / emgannoù",
     "go_tableau_winners": "Taolenn ({{n}} gounezer) →",
-    "go_tableau": "Mont d’an daolenn →"
+    "go_tableau": "Mont d’an daolenn →",
+    "frozen": "Taolenn tennet : renkadur stank. Evit reizhañ un disoc'h, implijit an ivinell Poulloù.",
+    "see_tableau": "Gwelet an daolenn →"
   },
   "poolMatrix": {
     "not_fenced": "Emgann n'eo ket bet c'hoariet (yec'hed/forfed)",
@@ -4134,5 +4140,47 @@
     "scratch": "Scratch",
     "start": "Kregiñ",
     "imported": "Enporzhiet: {{fencers}} tirer(ien), {{teams}} skipailh, {{referees}} arbitr(ed)"
+  },
+  "poolCorrection": {
+    "title": "Reizhañ un disoc'h poull",
+    "intro": "Tennet eo an daolenn dija. Gwiriit levezon ar reizhadenn a-raok he lakaat.",
+    "pool_n": "Poull {{n}}",
+    "ranking_title": "Renkadur goude ar poulloù",
+    "ranking_none": "Kemm ebet er renkadur.",
+    "col_fencer": "Klezeier",
+    "col_before": "A-raok",
+    "col_after": "Goude",
+    "more_one": "… ha {{count}} klezeier all",
+    "more_other": "… ha {{count}} klezeier all",
+    "tableau_title": "Taolenn",
+    "tableau_ok": "N'eo ket stoket an daolenn : pennoù-rummad ha kalified digemm.",
+    "tableau_outdated": "Ne glot ket mui an daolenn tennet gant ar renkadur reizhet.",
+    "seed_change": "{{name}} : penn-rummad {{from}} → {{to}}",
+    "entering": "A zeufe en daolenn : {{names}}",
+    "leaving": "A yafe er-maez eus an daolenn : {{names}}",
+    "choice": "Mirout an daolenn : emgannoù ha pennoù-rummad an tennadeg a chom digemm. Adober an daolenn : tennadeg nevez diwar ar renkadur reizhet.",
+    "played_one": "{{count}} emgann taolenn c'hoariet dija.",
+    "played_other": "{{count}} emgann taolenn c'hoariet dija.",
+    "rebuild_warning_one": "Adober an daolenn a ziverk {{count}} emgann c'hoariet dija. Skrivit {{word}} evit kadarnaat :",
+    "rebuild_warning_other": "Adober an daolenn a ziverk {{count}} emgann c'hoariet dija. Skrivit {{word}} evit kadarnaat :",
+    "rebuild_word": "ADOBER",
+    "rebuild_word_aria": "Ger kadarnaat",
+    "cancel": "Nullañ",
+    "keep": "Reizhañ, mirout an daolenn",
+    "keep_ok": "Lakaat ar reizhadenn",
+    "rebuild": "Reizhañ hag adober an daolenn",
+    "reason_ok": "Reizhadenn goude tennadeg an daolenn, hep levezon war an daolenn",
+    "reason_keep": "Reizhadenn goude tennadeg an daolenn, taolenn miret",
+    "reason_rebuild": "Reizhadenn goude tennadeg an daolenn, taolenn adgraet",
+    "special_refused": "Dilezel, fallañ pe skarzhañ goude tennadeg an daolenn : da enankañ en daolenn.",
+    "applied_ok": "Reizhadenn lakaet",
+    "applied_keep": "Reizhadenn lakaet, taolenn miret evel m'eo bet tennet",
+    "applied_rebuild": "Reizhadenn lakaet, taolenn adgraet diwar ar renkadur reizhet",
+    "rebuild_title": "Adober an daolenn",
+    "rebuild_intro": "Reizhadurioù poull a zo bet miret. Tennet e vez an daolenn en-dro diwar ar renkadur reizhet.",
+    "rebuild_only": "Adober an daolenn",
+    "rebuilt": "Taolenn adober diwar ar renkadur reizhet",
+    "drift_title": "An daolenn ne glot ket gant ar renkadur reizhet",
+    "drift_hint": "Reizhadurioù miret goude an tennadeg. Adobit an daolenn pa vo bet kadarnaet ar reizhadurioù gant an DT."
   }
 }

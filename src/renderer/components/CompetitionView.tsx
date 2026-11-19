@@ -155,6 +155,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     tieBreakByVictory,
     isLaserSabre,
     renderPoolCard,
+    poolsFrozen,
+    poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
     rapieres,
     updateRapieres,
     confirm,
@@ -504,6 +508,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
               }
             }}
             onRankingChange={setOverallRanking}
+            rankingFrozen={poolsFrozen}
             onSplitOff={handleSplitOff}
             nextRoundAction={
               !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
@@ -562,6 +567,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             autoFillReferees={autoFillReferees}
             tieBreakByVictory={tieBreakByVictory}
             updateFencer={updateFencer}
+            tableauDrift={tableauDrift}
+            onRebuildTableau={requestRebuild}
           />
         )}
 
@@ -763,6 +770,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           </div>
         </div>
       )}
+
+      {poolCorrectionDialog}
 
       <CompetitionSecondaryModals
         modals={modals}

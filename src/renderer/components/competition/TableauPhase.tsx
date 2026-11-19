@@ -15,6 +15,8 @@ import { useConfirm } from '../ConfirmDialog';
 import { TableSkeleton } from '../Skeleton';
 import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
 import { SplitGroupTabs } from './SplitGroupTabs';
+import { TableauDriftBanner } from '../tableau/TableauDriftBanner';
+import type { PoolCorrectionImpact } from '../../../shared/utils/poolCorrectionImpact';
 
 const TableauView = React.lazy(() => import('../TableauView'));
 
@@ -44,6 +46,9 @@ interface TableauPhaseProps {
   autoFillReferees: Referee[] | undefined;
   tieBreakByVictory: boolean;
   updateFencer: ReturnType<typeof useFencerManagement>['updateFencer'];
+  /** Écart cumulé entre le tableau tiré et le classement corrigé (#1996) */
+  tableauDrift?: PoolCorrectionImpact | null;
+  onRebuildTableau?: () => void;
 }
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
@@ -72,6 +77,8 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   autoFillReferees,
   tieBreakByVictory,
   updateFencer,
+  tableauDrift,
+  onRebuildTableau,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -84,6 +91,9 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
           active={activeSplitGroup}
           onSelect={onSwitchSplitGroup}
         />
+      )}
+      {tableauDrift && onRebuildTableau && (
+        <TableauDriftBanner drift={tableauDrift} onRebuild={onRebuildTableau} />
       )}
       {finalResults.length > 0 && (
         <div className="tableau-phase-1">
