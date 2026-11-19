@@ -42,7 +42,7 @@ import { ClubExercisePicker } from './ClubExercisePicker';
 import { CategorySelect } from './ClubExerciseEditor';
 import { useToast } from '../Toast';
 import { MiniCalendar, type DayMark } from './MiniCalendar';
-import type { Weapon } from '../../../shared/types';
+import type { ClubWeaponCode } from '../../../shared/utils/clubWeapon';
 
 interface ClubSessionPlannerProps {
   /** Séance à modifier ; absente = nouvelle séance préparée */
@@ -50,7 +50,7 @@ interface ClubSessionPlannerProps {
   /** Nouvelle séance pré-remplie (plan importé d'un fichier partagé) */
   prefill?: Omit<ClubSessionInput, 'date'> | null;
   defaultDate: string;
-  defaultWeapon?: Weapon;
+  defaultWeapon?: ClubWeaponCode;
   /** Jours déjà occupés par une séance (marqués dans le calendrier) */
   marks?: Readonly<Record<string, DayMark>>;
   /** Séances de la même série (suivi des exercices d'une semaine à l'autre) */
@@ -84,7 +84,7 @@ export const ClubSessionPlanner: React.FC<ClubSessionPlannerProps> = ({
   const [date, setDate] = useState(session?.date ?? defaultDate);
   const src = session ?? prefill ?? null;
   const [label, setLabel] = useState(src?.label ?? '');
-  const [weapon, setWeapon] = useState<Weapon | undefined>(src?.weapon ?? defaultWeapon);
+  const [weapon, setWeapon] = useState<ClubWeaponCode | undefined>(src?.weapon ?? defaultWeapon);
   const [startTime, setStartTime] = useState(src?.startTime ?? '');
   const [objectives, setObjectives] = useState(src?.objectives ?? '');
   const [notes, setNotes] = useState(src?.notes ?? '');

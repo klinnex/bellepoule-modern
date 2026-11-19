@@ -3549,6 +3549,7 @@
     "remote_off": "Scores are entered on this computer. Enable remote scoring to referee on tablets.",
     "remote_busy": "A bout is already in progress on this strip's tablet",
     "remote_error": "Unable to start remote scoring",
+    "remote_artistic": "Artistic fencing has no remote scoring: change the session weapon.",
     "lobby": "Strip lobby",
     "lobby_copy": "Copy the lobby link",
     "lobby_copied": "Lobby link copied",

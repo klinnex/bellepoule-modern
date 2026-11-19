@@ -23,3 +23,37 @@ export function normalizeExerciseWeapons(v: unknown): ExerciseWeapon[] {
   );
   return EXERCISE_WEAPONS.filter(w => set.has(w));
 }
+
+/**
+ * Arme d'un club, d'une séance ou d'un maître d'armes : une arme de compétition, ou
+ * « A » = escrime artistique (pas de saisie distante ni de règles de score).
+ */
+export const ARTISTIC_CODE = 'A' as const;
+export type ClubWeaponCode = Weapon | typeof ARTISTIC_CODE;
+
+/** Arme de séance dont la saisie distante a des règles (pas l'escrime artistique) */
+export const isRemoteScorable = (w: ClubWeaponCode | undefined | null): w is Weapon =>
+  w !== undefined && w !== null && w !== ARTISTIC_CODE;
+
+const CLUB_CODES = new Set<string>([Weapon.FOIL, Weapon.EPEE, Weapon.SABRE, Weapon.LASER, 'A']);
+
+/** Code d'arme valide (F, E, S, L, A), casse ignorée ; autre valeur = undefined */
+export const oneClubWeapon = (v: unknown): ClubWeaponCode | undefined =>
+  typeof v === 'string' && CLUB_CODES.has(v.toUpperCase())
+    ? (v.toUpperCase() as ClubWeaponCode)
+    : undefined;
+
+/** "F,A" → [FOIL, ARTISTIC] ; codes inconnus et doublons ignorés */
+export function parseClubWeapons(raw: string | null | undefined): ClubWeaponCode[] {
+  if (!raw) return [];
+  const out: ClubWeaponCode[] = [];
+  for (const part of raw.split(',')) {
+    const w = oneClubWeapon(part.trim());
+    if (w && !out.includes(w)) out.push(w);
+  }
+  return out;
+}
+
+export function serializeClubWeapons(weapons: readonly ClubWeaponCode[] | undefined): string {
+  return parseClubWeapons((weapons ?? []).join(',')).join(',');
+}

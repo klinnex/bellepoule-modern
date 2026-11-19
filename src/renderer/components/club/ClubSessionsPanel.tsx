@@ -69,6 +69,11 @@ import {
 } from '../../../shared/utils/clubShare';
 import { exportClubPlanToPDF, printClubPlan } from '../../../shared/utils/pdfExport/clubPlanPdf';
 import { Weapon } from '../../../shared/types';
+import {
+  ARTISTIC_CODE,
+  isRemoteScorable,
+  type ClubWeaponCode,
+} from '../../../shared/utils/clubWeapon';
 import { weaponLabel } from '../../../shared/utils/categoryLabel';
 import { formatMinutes, planDuration } from '../../../shared/utils/clubPlan';
 import { ClubSessionPlanner } from './ClubSessionPlanner';
@@ -257,9 +262,9 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
   const [openDate, setOpenDate] = useState(today);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   // Arme de la séance à ouvrir : celle du club par défaut
-  const [weaponChoice, setWeaponChoice] = useState<Weapon | undefined>(undefined);
+  const [weaponChoice, setWeaponChoice] = useState<ClubWeaponCode | undefined>(undefined);
   const openWeapon = weaponChoice ?? settings.weapon;
-  const setOpenWeapon = (w: Weapon) => setWeaponChoice(w);
+  const setOpenWeapon = (w: ClubWeaponCode) => setWeaponChoice(w);
 
   const current = activeSession(sessions, activeSessionId);
   const opened = openSessions(sessions);
@@ -819,13 +824,15 @@ export const ClubSessionsPanel: React.FC<ClubSessionsPanelProps> = ({
     if (!training) return;
     setRemoteBusy(true);
     try {
+      const remoteWeapon = current.weapon ?? settings.weapon;
+      if (remoteWeapon === ARTISTIC_CODE) throw new Error(t('clubSession.remote_artistic'));
       const srv = await training.startServer(remoteCfg.port, remoteCfg.iface, remoteCfg.https);
       if (!srv.success && srv.error !== 'training_already_started') {
         throw new Error(srv.error ?? t('clubSession.remote_error'));
       }
       const ses = await training.startSession(
         current.stripCount,
-        current.weapon ?? settings.weapon ?? Weapon.EPEE
+        isRemoteScorable(remoteWeapon) ? remoteWeapon : Weapon.EPEE
       );
       if (!ses.success && !(await api.remoteStatus()).active) {
         throw new Error(ses.error ?? t('clubSession.remote_error'));

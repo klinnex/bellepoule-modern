@@ -3549,6 +3549,7 @@
     "remote_off": "I punteggi si inseriscono su questo computer. Attiva l'inserimento remoto per arbitrare su tablet.",
     "remote_busy": "Sul tablet di questa pedana c'è già un assalto in corso",
     "remote_error": "Impossibile avviare l'inserimento remoto",
+    "remote_artistic": "La scherma artistica non ha punteggio remoto: cambia l'arma della sessione.",
     "lobby": "Lobby delle pedane",
     "lobby_copy": "Copia il link della lobby",
     "lobby_copied": "Link della lobby copiato",

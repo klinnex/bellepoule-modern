@@ -6,8 +6,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { ClubCoach, ClubCoachInput } from '../../../shared/types/club';
-import type { Weapon } from '../../../shared/types';
-import { weaponLabel } from '../../../shared/utils/categoryLabel';
+import type { ClubWeaponCode } from '../../../shared/utils/clubWeapon';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
@@ -15,7 +14,7 @@ import { Modal } from '../common/Modal';
 import { ToggleChip, ToggleChipGroup } from '../common/ToggleChip';
 import { useConfirm } from '../ConfirmDialog';
 import { useToast } from '../Toast';
-import { CLUB_WEAPONS } from './ClubWeaponSelect';
+import { COACH_WEAPONS, clubWeaponLabel } from './ClubWeaponSelect';
 import { coachName } from './ClubCoachPicker';
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -35,7 +34,7 @@ const CoachEditor: React.FC<{
     email: coach?.email ?? '',
     notes: coach?.notes ?? '',
   });
-  const [weapons, setWeapons] = useState<Weapon[]>(coach?.weapons ?? []);
+  const [weapons, setWeapons] = useState<ClubWeaponCode[]>(coach?.weapons ?? []);
   const field = (key: keyof typeof d, label: string, type = 'text') => (
     <label className="form-label club-grow">
       {label}
@@ -79,13 +78,13 @@ const CoachEditor: React.FC<{
         {field('email', t('clubCoach.email'), 'email')}
       </div>
       <ToggleChipGroup legend={t('clubCoach.weapons')}>
-        {CLUB_WEAPONS.map(w => (
+        {COACH_WEAPONS.map(w => (
           <ToggleChip
             key={w}
             pressed={weapons.includes(w)}
             onToggle={on => setWeapons(cur => (on ? [...cur, w] : cur.filter(x => x !== w)))}
           >
-            {weaponLabel(w, t)}
+            {clubWeaponLabel(w, t)}
           </ToggleChip>
         ))}
       </ToggleChipGroup>
@@ -191,7 +190,7 @@ export const ClubCoachesPanel: React.FC<{ clubId: string }> = ({ clubId }) => {
                   <td className="text-sm">{c.title || '-'}</td>
                   <td className="text-sm text-muted">
                     {c.weapons.length
-                      ? c.weapons.map(w => weaponLabel(w, t)).join(', ')
+                      ? c.weapons.map(w => clubWeaponLabel(w, t)).join(', ')
                       : t('clubCoach.all_weapons')}
                   </td>
                   <td className="text-sm text-muted">

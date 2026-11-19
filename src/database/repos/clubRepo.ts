@@ -50,6 +50,12 @@ import { safeJsonParse } from './dbUtils';
 import { planClubImport, type ClubImportResult } from '../../shared/utils/clubImport';
 import { isIsoDate, winnerFromScore } from '../../shared/utils/clubStats';
 import { parseWeapons, serializeWeapons } from '../../shared/utils/eventDay';
+import {
+  isRemoteScorable,
+  parseClubWeapons,
+  serializeClubWeapons,
+  type ClubWeaponCode,
+} from '../../shared/utils/clubWeapon';
 import { normalizeExerciseWeapons } from '../../shared/utils/clubWeapon';
 import { sanitizeText } from '../validation';
 import type { SqlExecutor } from './sqlExecutor';
@@ -175,8 +181,14 @@ const optInt = (v: unknown, min: number, max: number): number | null =>
 const laterality = (v: unknown): Laterality | null => (v === 'L' || v === 'R' ? v : null);
 const entryMode = (v: unknown): ClubEntryMode =>
   ENTRY_MODES.includes(v as ClubEntryMode) ? (v as ClubEntryMode) : 'master';
-const oneWeapon = (v: unknown): Weapon | null =>
-  parseWeapons(typeof v === 'string' ? v : null)[0] ?? null;
+/** Arme de club / séance : compétition ou « A » (escrime artistique) */
+const oneWeapon = (v: unknown): ClubWeaponCode | null =>
+  parseClubWeapons(typeof v === 'string' ? v : null)[0] ?? null;
+/** Arme d'un bout / filtre de bouts : seules les armes à saisie distante (pas « A ») */
+const oneBoutWeapon = (v: unknown): Weapon | undefined => {
+  const w = oneWeapon(v);
+  return isRemoteScorable(w) ? w : undefined;
+};
 const opt = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
 
 /** Heure de début HH:MM (00:00 à 23:59) ; autre valeur = absente */
@@ -223,7 +235,7 @@ function rowToCoach(r: CoachRow): ClubCoach {
     title: opt(r.title),
     phone: opt(r.phone),
     email: opt(r.email),
-    weapons: parseWeapons(r.weapons),
+    weapons: parseClubWeapons(r.weapons),
     notes: opt(r.notes),
     active: r.active !== 0,
     createdAt: r.created_at,
@@ -245,7 +257,7 @@ function rowToBout(r: BoutRow): ClubBout {
     winnerId: r.winner_id,
     status: r.status as ClubBoutStatus,
     entryMode: entryMode(r.entry_mode),
-    weapon: opt(oneWeapon(r.weapon)),
+    weapon: oneBoutWeapon(r.weapon),
     startedAt: opt(r.started_at),
     finishedAt: opt(r.finished_at),
     duration: opt(r.duration),
@@ -623,7 +635,7 @@ export class ClubRepo {
     if (data.title !== undefined) cols.title = str(data.title);
     if (data.phone !== undefined) cols.phone = str(data.phone, 30);
     if (data.email !== undefined) cols.email = str(data.email, 120);
-    if (data.weapons !== undefined) cols.weapons = serializeWeapons(data.weapons);
+    if (data.weapons !== undefined) cols.weapons = serializeClubWeapons(data.weapons);
     if (data.notes !== undefined) cols.notes = cleanLongText(data.notes) ?? null;
     if (data.active !== undefined) cols.active = data.active ? 1 : 0;
     return cols;
@@ -1254,7 +1266,7 @@ export class ClubRepo {
       where.push('date <= ?');
       params.push(filter.to);
     }
-    const w = oneWeapon(filter.weapon);
+    const w = oneBoutWeapon(filter.weapon);
     if (w) {
       where.push('weapon = ?');
       params.push(w);
