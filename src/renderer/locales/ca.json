@@ -4175,6 +4175,12 @@
     "special_refused": "Abandonament, no presentat o exclusió després del sorteig del quadre: registreu-ho al quadre.",
     "applied_ok": "Correcció aplicada",
     "applied_keep": "Correcció aplicada, quadre mantingut tal com es va sortejar",
-    "applied_rebuild": "Correcció aplicada, quadre refet amb la classificació corregida"
+    "applied_rebuild": "Correcció aplicada, quadre refet amb la classificació corregida",
+    "rebuild_title": "Refer el quadre",
+    "rebuild_intro": "S'han mantingut correccions de poule. El quadre es torna a sortejar amb la classificació corregida.",
+    "rebuild_only": "Refer el quadre",
+    "rebuilt": "Quadre refet amb la classificació corregida",
+    "drift_title": "El quadre no coincideix amb la classificació corregida",
+    "drift_hint": "Correccions mantingudes després del sorteig. Refeu el quadre quan el DT hagi validat les correccions."
   }
 }

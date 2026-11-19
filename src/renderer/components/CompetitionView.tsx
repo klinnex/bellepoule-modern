@@ -157,6 +157,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     renderPoolCard,
     poolsFrozen,
     poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
     rapieres,
     updateRapieres,
     confirm,
@@ -565,6 +567,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             autoFillReferees={autoFillReferees}
             tieBreakByVictory={tieBreakByVictory}
             updateFencer={updateFencer}
+            tableauDrift={tableauDrift}
+            onRebuildTableau={requestRebuild}
           />
         )}
 

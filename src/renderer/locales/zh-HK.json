@@ -4175,6 +4175,12 @@
     "special_refused": "淘汰賽表抽籤後的棄賽、缺席或取消資格：請在淘汰賽表輸入。",
     "applied_ok": "已套用更正",
     "applied_keep": "已套用更正，淘汰賽表按原抽籤保留",
-    "applied_rebuild": "已套用更正，按更正後排名重新抽籤"
+    "applied_rebuild": "已套用更正，按更正後排名重新抽籤",
+    "rebuild_title": "重新編排淘汰表",
+    "rebuild_intro": "已保留分組賽更正。淘汰表將按更正後的排名重新編排。",
+    "rebuild_only": "重新編排淘汰表",
+    "rebuilt": "已按更正後的排名重新編排淘汰表",
+    "drift_title": "淘汰表與更正後的排名不符",
+    "drift_hint": "抽籤後已保留更正。待技術委員會確認更正後，請重新編排淘汰表。"
   }
 }

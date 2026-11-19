@@ -4175,6 +4175,12 @@
     "special_refused": "Abbandono, forfait o esclusione dopo il sorteggio del tabellone: inseriscilo nel tabellone.",
     "applied_ok": "Correzione applicata",
     "applied_keep": "Correzione applicata, tabellone mantenuto come sorteggiato",
-    "applied_rebuild": "Correzione applicata, tabellone rifatto sulla classifica corretta"
+    "applied_rebuild": "Correzione applicata, tabellone rifatto sulla classifica corretta",
+    "rebuild_title": "Rifare il tabellone",
+    "rebuild_intro": "Sono state mantenute correzioni dei gironi. Il tabellone viene ricomposto sulla classifica corretta.",
+    "rebuild_only": "Rifare il tabellone",
+    "rebuilt": "Tabellone rifatto sulla classifica corretta",
+    "drift_title": "Il tabellone non corrisponde alla classifica corretta",
+    "drift_hint": "Correzioni mantenute dopo il sorteggio. Rifate il tabellone quando il DT ha convalidato le correzioni."
   }
 }

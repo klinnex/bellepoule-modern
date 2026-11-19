@@ -100,7 +100,14 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
   const { showToast } = useToast();
 
   // Tableau tiré : poules figées, correction vérifiée (#1996)
-  const { poolsFrozen, freezeFor, requestScore, poolCorrectionDialog } = usePoolCorrection({
+  const {
+    poolsFrozen,
+    freezeFor,
+    requestScore,
+    poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
+  } = usePoolCorrection({
     pools,
     poolHistory,
     overallRanking,
@@ -326,5 +333,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
     renderPoolCard,
     poolsFrozen,
     poolCorrectionDialog,
+    tableauDrift,
+    requestRebuild,
   };
 }

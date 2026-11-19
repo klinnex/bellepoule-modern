@@ -297,6 +297,15 @@ Dès que le tableau est tiré, les poules et le classement après poules sont fi
 5. **Terminer la correction** referme la poule.
 6. Journal des scores (onglet **Historique**) : motif de la correction sous le nouveau score.
 
+Plusieurs corrections avant de refaire le tableau (accord du DT) :
+
+1. Chaque correction : **Corriger, garder le tableau**.
+2. Onglet **Tableau** : bandeau « Tableau non conforme au classement corrigé ». Écarts
+   cumulés depuis le tirage : têtes de série, entrants, sortants. Une correction qui ramène
+   au classement du tirage fait disparaître le bandeau.
+3. **Refaire le tableau** (bandeau) : même mesure d'impact, même mot de confirmation si des
+   matchs sont joués. Nouveau tirage sur le classement qui intègre toutes les corrections.
+
 Classement après poules : ni **Recalculer** ni **Modifier** ; **Voir le tableau →** rouvre
 le tableau tiré sans le refaire. Scores de poule reçus d'une tablette après le tirage :
 ignorés. Les cartes du tableau affichent le rang du tirage, même après correction.

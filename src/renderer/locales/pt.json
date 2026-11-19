@@ -4175,6 +4175,12 @@
     "special_refused": "Abandono, falta de comparência ou exclusão após o sorteio do quadro: registe-o no quadro.",
     "applied_ok": "Correção aplicada",
     "applied_keep": "Correção aplicada, quadro mantido tal como sorteado",
-    "applied_rebuild": "Correção aplicada, quadro refeito com a classificação corrigida"
+    "applied_rebuild": "Correção aplicada, quadro refeito com a classificação corrigida",
+    "rebuild_title": "Refazer o quadro",
+    "rebuild_intro": "Foram mantidas correções de poule. O quadro é sorteado de novo com a classificação corrigida.",
+    "rebuild_only": "Refazer o quadro",
+    "rebuilt": "Quadro refeito com a classificação corrigida",
+    "drift_title": "O quadro não corresponde à classificação corrigida",
+    "drift_hint": "Correções mantidas após o sorteio. Refaça o quadro quando o DT tiver validado as correções."
   }
 }

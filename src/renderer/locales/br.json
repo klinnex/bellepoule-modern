@@ -4175,6 +4175,12 @@
     "special_refused": "Dilezel, fallañ pe skarzhañ goude tennadeg an daolenn : da enankañ en daolenn.",
     "applied_ok": "Reizhadenn lakaet",
     "applied_keep": "Reizhadenn lakaet, taolenn miret evel m'eo bet tennet",
-    "applied_rebuild": "Reizhadenn lakaet, taolenn adgraet diwar ar renkadur reizhet"
+    "applied_rebuild": "Reizhadenn lakaet, taolenn adgraet diwar ar renkadur reizhet",
+    "rebuild_title": "Adober an daolenn",
+    "rebuild_intro": "Reizhadurioù poull a zo bet miret. Tennet e vez an daolenn en-dro diwar ar renkadur reizhet.",
+    "rebuild_only": "Adober an daolenn",
+    "rebuilt": "Taolenn adober diwar ar renkadur reizhet",
+    "drift_title": "An daolenn ne glot ket gant ar renkadur reizhet",
+    "drift_hint": "Reizhadurioù miret goude an tennadeg. Adobit an daolenn pa vo bet kadarnaet ar reizhadurioù gant an DT."
   }
 }

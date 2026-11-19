@@ -25,6 +25,7 @@ import type {
 } from '../../components/tableau/tableauTypes';
 import type { PoolTableauFreeze } from '../../components/pool/poolViewTypes';
 import { PoolCorrectionDialog } from '../../components/pool/PoolCorrectionDialog';
+import { logger, LogCategory } from '@shared/services/logger';
 import type { Phase } from '../useCompetitionSession';
 
 type SpecialStatus = 'abandon' | 'forfait' | 'exclusion';
@@ -39,12 +40,15 @@ export interface PoolScoreInput {
 }
 
 interface Pending {
-  poolIndex: number;
-  matchIndex: number;
-  input: PoolScoreInput;
+  /** Absent : tableau refait sans nouvelle correction (corrections cumulées) */
+  score?: {
+    poolIndex: number;
+    matchIndex: number;
+    input: PoolScoreInput;
+    winner: 'A' | 'B' | null;
+    apply: (reason?: string) => void;
+  };
   impact: PoolCorrectionImpact;
-  winner: 'A' | 'B' | null;
-  apply: (reason?: string) => void;
 }
 
 interface UsePoolCorrectionParams {
@@ -94,6 +98,21 @@ export function usePoolCorrection({
 
   const [correctingPoolId, setCorrectingPoolId] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+
+  /**
+   * Écart cumulé entre le tableau tiré et le classement courant : plusieurs corrections
+   * gardées peuvent rendre le tableau non conforme ; il se refait ensuite en une fois.
+   */
+  const tableauDrift = useMemo(() => {
+    if (tableauMatches.length === 0) return null;
+    const impact = computePoolCorrectionImpact({
+      before: overallRanking,
+      after: overallRanking,
+      tableauMatches,
+      consolationMatches,
+    });
+    return impact.tableauOutdated ? impact : null;
+  }, [overallRanking, tableauMatches, consolationMatches]);
 
   // Tableau effacé (refait, ou retour en arrière) : plus de mode correction
   useEffect(() => {
@@ -153,7 +172,7 @@ export function usePoolCorrection({
       });
       const m = corrected.matches[matchIndex];
       const winner = m.scoreA?.isVictory ? 'A' : m.scoreB?.isVictory ? 'B' : null;
-      setPending({ poolIndex, matchIndex, input, impact, winner, apply });
+      setPending({ score: { poolIndex, matchIndex, input, winner, apply }, impact });
     },
     [
       frozen,
@@ -169,8 +188,8 @@ export function usePoolCorrection({
   );
 
   const keepTableau = () => {
-    if (!pending) return;
-    pending.apply(
+    if (!pending?.score) return;
+    pending.score.apply(
       t(pending.impact.tableauOutdated ? 'poolCorrection.reason_keep' : 'poolCorrection.reason_ok')
     );
     showToast(
@@ -182,31 +201,51 @@ export function usePoolCorrection({
     setPending(null);
   };
 
+  /** Refaire le tableau sur le classement courant, sans nouvelle correction */
+  const requestRebuild = useCallback(() => {
+    if (tableauDrift) setPending({ impact: tableauDrift });
+  }, [tableauDrift]);
+
   const rebuildTableau = () => {
     if (!pending) return;
-    pending.apply(t('poolCorrection.reason_rebuild'));
+    if (pending.score) pending.score.apply(t('poolCorrection.reason_rebuild'));
+    else
+      logger.info(
+        LogCategory.BUSINESS,
+        'Tableau refait après corrections de poule cumulées (#1996)'
+      );
     // Tableau retiré sur le classement corrigé à l'ouverture de l'onglet Tableau
     setTableauMatches([]);
     setConsolationBrackets([]);
     setFinalResults([]);
     setCorrectingPoolId(null);
     setPending(null);
-    showToast(t('poolCorrection.applied_rebuild'), 'warning');
+    showToast(
+      t(pending.score ? 'poolCorrection.applied_rebuild' : 'poolCorrection.rebuilt'),
+      'warning'
+    );
     setCurrentPhase('tableau');
   };
 
-  const pendingPool = pending ? pools[pending.poolIndex] : undefined;
-  const pendingMatch = pendingPool?.matches[pending?.matchIndex ?? -1];
+  const score = pending?.score;
+  const pendingPool = score ? pools[score.poolIndex] : undefined;
+  const pendingMatch = score ? pendingPool?.matches[score.matchIndex] : undefined;
   const dialog =
-    pending && pendingPool && pendingMatch ? (
+    pending && (!score || (pendingPool && pendingMatch)) ? (
       <PoolCorrectionDialog
-        poolNumber={pendingPool.number}
-        match={pendingMatch}
-        next={{
-          scoreA: pending.input.scoreA,
-          scoreB: pending.input.scoreB,
-          winner: pending.winner,
-        }}
+        correction={
+          score && pendingPool && pendingMatch
+            ? {
+                poolNumber: pendingPool.number,
+                match: pendingMatch,
+                next: {
+                  scoreA: score.input.scoreA,
+                  scoreB: score.input.scoreB,
+                  winner: score.winner,
+                },
+              }
+            : undefined
+        }
         impact={pending.impact}
         onCancel={() => setPending(null)}
         onKeepTableau={keepTableau}
@@ -214,5 +253,12 @@ export function usePoolCorrection({
       />
     ) : null;
 
-  return { poolsFrozen: frozen, freezeFor, requestScore, poolCorrectionDialog: dialog };
+  return {
+    poolsFrozen: frozen,
+    freezeFor,
+    requestScore,
+    poolCorrectionDialog: dialog,
+    tableauDrift,
+    requestRebuild,
+  };
 }

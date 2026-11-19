@@ -971,3 +971,11 @@ button.pv-pill {
   justify-content: flex-end;
   gap: 0.5rem;
 }
+/* Tableau non conforme après corrections de poule cumulées (#1996) */
+.tableau-drift {
+  margin-bottom: 0.75rem;
+}
+.tableau-drift .tableau-drift-actions {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}

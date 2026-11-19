@@ -4175,6 +4175,12 @@
     "special_refused": "Aufgabe, Nichtantreten oder Ausschluss nach der Tableau-Auslosung: im Tableau erfassen.",
     "applied_ok": "Korrektur übernommen",
     "applied_keep": "Korrektur übernommen, Tableau wie ausgelost beibehalten",
-    "applied_rebuild": "Korrektur übernommen, Tableau nach korrigierter Rangliste neu ausgelost"
+    "applied_rebuild": "Korrektur übernommen, Tableau nach korrigierter Rangliste neu ausgelost",
+    "rebuild_title": "Tableau neu erstellen",
+    "rebuild_intro": "Poule-Korrekturen wurden beibehalten. Das Tableau wird nach der korrigierten Rangliste neu gesetzt.",
+    "rebuild_only": "Tableau neu erstellen",
+    "rebuilt": "Tableau nach der korrigierten Rangliste neu erstellt",
+    "drift_title": "Tableau entspricht nicht der korrigierten Rangliste",
+    "drift_hint": "Korrekturen nach der Auslosung beibehalten. Erstellen Sie das Tableau neu, sobald das DT die Korrekturen bestätigt hat."
   }
 }

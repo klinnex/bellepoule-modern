@@ -4175,6 +4175,12 @@
     "special_refused": "Abandono, no presentado o exclusión tras el sorteo del cuadro: regístrelo en el cuadro.",
     "applied_ok": "Corrección aplicada",
     "applied_keep": "Corrección aplicada, cuadro mantenido tal como se sorteó",
-    "applied_rebuild": "Corrección aplicada, cuadro rehecho con la clasificación corregida"
+    "applied_rebuild": "Corrección aplicada, cuadro rehecho con la clasificación corregida",
+    "rebuild_title": "Rehacer el cuadro",
+    "rebuild_intro": "Se han mantenido correcciones de poule. El cuadro se vuelve a sortear con la clasificación corregida.",
+    "rebuild_only": "Rehacer el cuadro",
+    "rebuilt": "Cuadro rehecho con la clasificación corregida",
+    "drift_title": "El cuadro no corresponde a la clasificación corregida",
+    "drift_hint": "Correcciones mantenidas tras el sorteo. Rehaga el cuadro cuando el DT haya validado las correcciones."
   }
 }

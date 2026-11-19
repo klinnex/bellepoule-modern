@@ -4175,6 +4175,12 @@
     "special_refused": "Withdrawal, forfeit or exclusion after the bracket draw: enter it in the bracket.",
     "applied_ok": "Correction applied",
     "applied_keep": "Correction applied, bracket kept as drawn",
-    "applied_rebuild": "Correction applied, bracket redrawn on the corrected ranking"
+    "applied_rebuild": "Correction applied, bracket redrawn on the corrected ranking",
+    "rebuild_title": "Redo the tableau",
+    "rebuild_intro": "Pool corrections were kept. The tableau is redrawn from the corrected ranking.",
+    "rebuild_only": "Redo the tableau",
+    "rebuilt": "Tableau redrawn from the corrected ranking",
+    "drift_title": "Tableau does not match the corrected ranking",
+    "drift_hint": "Corrections kept after the draw. Redo the tableau once the technical directorate approves the corrections."
   }
 }

@@ -4175,6 +4175,12 @@
     "special_refused": "Abandon, forfait ou exclusion après le tirage du tableau : à saisir dans le tableau.",
     "applied_ok": "Correction appliquée",
     "applied_keep": "Correction appliquée, tableau conservé tel qu'il a été tiré",
-    "applied_rebuild": "Correction appliquée, tableau refait sur le classement corrigé"
+    "applied_rebuild": "Correction appliquée, tableau refait sur le classement corrigé",
+    "rebuild_title": "Refaire le tableau",
+    "rebuild_intro": "Des corrections de poule ont été gardées. Le tableau est retiré sur le classement corrigé.",
+    "rebuild_only": "Refaire le tableau",
+    "rebuilt": "Tableau refait sur le classement corrigé",
+    "drift_title": "Tableau non conforme au classement corrigé",
+    "drift_hint": "Corrections gardées après le tirage. Refaites le tableau une fois les corrections validées par le DT."
   }
 }
