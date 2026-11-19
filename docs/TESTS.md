@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 84 | 945 |
+| `src/shared/utils/` | 84 | 948 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 20 | 262 |
-| `src/main/` | 110 | 905 |
+| `src/main/` | 113 | 921 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 120 | 636 |
+| `src/renderer/components/` | 121 | 644 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 59 | 400 |
+| `src/remote/` | 60 | 413 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **498** | **3847** |
+| **Total** | **503** | **3887** |
 
-Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 493 fichiers, 3848 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1374,7 +1374,7 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 51 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 54 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -1427,6 +1427,10 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - match terminé normal : non annulé
   - forfait ou abandon saisi sur un score : annulé
   - match non terminé : jamais annulé
+  - **abandon signalé par l appareil, statut du tireur (#2000, FIE o.74)**
+    - statut inchangé : combat normal, non annulé
+    - statut ABANDONED : combat annulé
+    - classement : V+1 et touches comptées tant que le statut est inchangé, rien une fois ABANDONED
 - **distributeFencersGroupedByLevel (rapières, #1441)**
   - regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)
   - séparation club : clubs alternés à niveau égal
@@ -3298,6 +3302,21 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/cyrano/cyranoReplay.test.ts</code> — 7 tests</summary>
+
+- **parseCyranoLog (format de formatCyranoLog)**
+  - relit les six trames avec sens, adresse, piste et rejet
+  - ignore et compte les lignes vides ou illisibles
+- **sélection et calendrier**
+  - liste les pistes des trames IN
+  - ne garde que les trames IN valides de la piste demandée
+  - sans piste : toutes les trames IN sauf les illisibles (OUT écartées)
+  - respecte le rythme d’origine, divisé par --speed
+  - refuse une vitesse nulle, négative ou non numérique
+
+</details>
+
+<details>
 <summary><code>src/main/cyrano/deviceState.test.ts</code> — 4 tests</summary>
 
 - **deviceState (#1720)**
@@ -3469,7 +3488,7 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 15 tests</summary>
+<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 18 tests</summary>
 
 - **Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)**
   - expose toutes les commandes de la télécommande
@@ -3478,6 +3497,9 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - RESET pendant la minute de repos l’écourte (période inchangée)
   - CLOCK ±1 s arrête le chrono ; RESET ±1 min change la durée de la période
   - 0:0 et CARDS RESET ; ∨ jaune / ∨ rouge retirent les cartons
+  - cartons P par côté (champ 12 EFP1.1) : montée 0 à 5, descente, INFO, CARDS RESET (#2001)
+  - carton P absent des trames en EFP1 (champ 12 propre à EFP1.1)
+  - DISP d’un match repris (PREV) : carton P installé, puis corrigé par un DISP en cours de match
   - bloc PC : abandon, expulsion, réserve, médical dans la trame INFO
   - priorité tirée au sort, P RESET, arme
   - VALIDATE → E ; NEXT bloqué tant que le match n’est pas acquitté ; RAZ efface tout
@@ -4192,6 +4214,15 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaControl.prev.test.ts</code> — 2 tests</summary>
+
+- **arena\_control prev (#2001)**
+  - renvoie le succès au demandeur
+  - renvoie le motif du refus
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 3 tests</summary>
 
 - **arena\_control select\_match (#1882)**
@@ -4199,6 +4230,15 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **arena\_control select\_match, appareil maître (#1999)**
   - rouvrir le match en cours garde score et cartons, et recale la tablette
   - mode manuel ou appareil hors ligne : sélection habituelle
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaOps.sabreBreak.test.ts</code> — 2 tests</summary>
+
+- **pause sabre à 8 touches (#2001)**
+  - émet sabre\_break une fois en franchissant 8 au sabre en tableau à 15
+  - pas de pause hors sabre, hors tableau, ou limite différente de 15
 
 </details>
 
@@ -4465,7 +4505,7 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/recallPrev.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/recallPrev.test.ts</code> — 7 tests</summary>
 
 - **recallPrevMatch**
   - rend le match terminé à l’arène, scores conservés, et restaure les événements
@@ -4473,6 +4513,9 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - refuse un combat en cours
   - n’efface rien et ne rend rien si la purge DB échoue
   - remet en tête de file un match DE non commencé
+- **recallPrevMatchResult (motif du refus pour la tablette, #2001)**
+  - renvoie ok au succès
+  - renvoie le motif : aucun match, hors fenêtre, combat en cours, purge en échec
 
 </details>
 
@@ -6060,6 +6103,17 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/__tests__/DTCallNotification.test.tsx</code> — 4 tests</summary>
+
+- **DTCallNotification — abandon (#2000)**
+  - affiche « Abandon — NOM Prénom (à confirmer par le DT) » et le bouton d'enregistrement
+  - pas de bouton d'abandon pour un carton noir
+  - le bouton demande l'abandon du tireur à la compétition puis solde l'appel
+  - sans compétition ouverte pour traiter l'abandon, l'appel reste affiché
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/__tests__/MatchAuditLog.test.tsx</code> — 3 tests</summary>
 
 - **MatchAuditLog — vue compétition**
@@ -6564,7 +6618,7 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 10 tests</summary>
+<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 12 tests</summary>
 
 - **PoolScoreMatrix**
   - affiche les noms des tireurs en en-tête de ligne
@@ -6577,6 +6631,9 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - numérotage : bulles = placement dans la poule au lieu des initiales (#1864)
   - rapières : colonne « Cat. » en dernier, seulement avec categoryOf (#1864)
   - rapières : colonne « Cat. » affiche la catégorie abrégée (#1864)
+  - **abandon signalé par l appareil de piste (#2000)**
+    - statut inchangé : combat compté comme victoire normale (V+1)
+    - statut ABANDONED posé par le DT : combat annulé (V reste 0)
 
 </details>
 
@@ -6712,13 +6769,15 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 5 tests</summary>
 
 - **CyranoPanel — alerte BAD MATCH (#1720)**
   - signale la piste dont l’appareil affiche un autre match
 - **CyranoPanel — secours et journal (#1829)**
   - actions de secours envoyées pour la piste
   - journal affiché à la demande ; interfaces proposées
+  - journal : défile jusqu’aux dernières trames, dans son cadre (#2001)
+  - ajout de pistes : contrôles compacts sur une rangée, sans style en ligne
 
 </details>
 
@@ -7297,13 +7356,15 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/arenaDisplay.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/arenaDisplay.test.ts</code> — 7 tests</summary>
 
 - **arenaDisplay.js ArenaDisplay**
   - déduit la piste de l URL et affiche son numéro
   - rejoint l arène et s enregistre à la connexion
   - applique les opérations du plan de mise à jour
   - signale la déconnexion
+  - bandeau Repos (#2000) : masqué hors repos, visible en état P
+  - bandeau Repos (#2000) : les règles CSS sont dans arena.html (pas styles.css, non chargée)
   - arena.html ne contient plus de script inline
 
 </details>
@@ -7768,6 +7829,27 @@ Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - onMatchFinished hors entraînement : sans effet, ne lève pas
   - refereeApp.js appelle le hook dans les deux chemins de fin de match
   - la remise à zéro de piste (scores et chrono) est envoyée à l’arène
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereePrevBreak.test.ts</code> — 11 tests</summary>
+
+- **prevFeedback**
+  - succès : notification normale
+  - refus : un message par motif, erreur par défaut
+- **sabreBreakPlan**
+  - démarre sur la tablette pendant un match en cours
+  - laisse la pause à l’appareil maître
+  - ignore sans match, hors match en cours ou pendant un repos
+- **install sur la tablette**
+  - requestPrevMatch émet arena\_control prev
+  - onPrevResult affiche le refus en erreur
+  - pause sabre : chrono arrêté, repos de 60 s lancé, chrono restauré à la fin du repos
+  - pause sabre avec appareil maître : annonce seulement
+  - un repos classique (sans pause sabre) garde son comportement
+- **câblage de la page**
+  - bouton, script, écouteurs et cache hors-ligne
 
 </details>
 
