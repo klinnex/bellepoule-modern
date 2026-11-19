@@ -1,6 +1,7 @@
 /**
  * BellePoule Modern - Arbitre : vue téléphone (#1808), chargée après le <style> de referee.html.
  * Menu d'options (inversion, daltonisme, son) replié sur téléphone, VS au-dessus, chrono et sorties compacts.
+ * Bouton « Match précédent » (PREV) de la liste des matchs (#2001).
  * Licensed under GPL-3.0
  */
 
@@ -134,4 +135,22 @@ button,
   background: var(--color-lobby);
   border-color: var(--color-lobby-border);
   color: var(--color-white);
+}
+
+/* Liste des matchs : rappel du match précédent (#2001) */
+.prev-match-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--sky-400);
+  border-radius: 0.75rem;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--sky-400);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
 }

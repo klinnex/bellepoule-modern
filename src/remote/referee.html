@@ -1072,23 +1072,6 @@
         flex-shrink: 0;
       }
 
-      .prev-match-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.4rem;
-        width: 100%;
-        margin-bottom: 1rem;
-        padding: 0.7rem 1rem;
-        border: 2px solid var(--sky-400);
-        border-radius: 0.75rem;
-        background: rgba(56, 189, 248, 0.15);
-        color: var(--sky-400);
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-
       .next-matches-empty {
         text-align: center;
         opacity: 0.65;
@@ -1715,8 +1698,7 @@
           placeholder="Rechercher un tireur..."
           data-input="refereeApp.filterMatches" data-args='["$value"]'
          class="inl-bff8d5"/>
-        <button type="button" id="btn-prev-match" class="prev-match-btn" data-click="refereeApp.requestPrevMatch" data-i18n-title="referee.prev_match_title" title="Rappeler le dernier match terminé pour le corriger"><span data-icon="undo"></span> <span data-i18n="referee.prev_match">Match précédent</span></button>
-        <div id="black-cards-list"></div>
+        <button type="button" id="btn-prev-match" class="prev-match-btn" data-click="refereeApp.requestPrevMatch" data-i18n-title="referee.prev_match_title" title="Rappeler le dernier match terminé pour le corriger"><span data-icon="undo"></span> <span data-i18n="referee.prev_match">Match précédent</span></button><div id="black-cards-list"></div>
         <div id="next-matches-list">
           <div class="next-matches-empty" data-i18n="remote.loading">Chargement...</div>
         </div>
