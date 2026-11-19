@@ -215,4 +215,31 @@ describe('Cyrano bout en bout : UDP réel, appareil simulé (#1829)', { timeout:
     await until(() => naks > before);
     expect(arena().status).not.toBe('finished');
   });
+
+  it('repos de l’appareil : une tablette qui ouvre le match ne remet pas le score à 0 (#1999)', async () => {
+    device.command('go');
+    device.command('r+');
+    await until(() => arena().currentMatch?.scoreA === 3);
+    device.command('pause'); // minute de repos (état P)
+    await until(() => arena().resting === true);
+    expect(arena().cyrano).toMatchObject({ mode: 'master', online: true });
+    // Tablette neuve : sa liste a gardé 0-0
+    const emit = vi.fn();
+    remote.handleArenaControl(
+      { id: 'tablette', emit } as never,
+      {
+        arenaId: 'arena1',
+        action: 'select_match',
+        match: { ...pm(1, ID.ef, ID.ab), scoreA: 0, scoreB: 0 },
+      } as never
+    );
+    expect(arena().currentMatch).toMatchObject({ scoreA: 3, scoreB: 2 });
+    expect(emit).toHaveBeenCalledWith(
+      'arena:arena1:update',
+      expect.objectContaining({ scoreA: 3, scoreB: 2, source: 'device' })
+    );
+    // Aucun DISP à 0-0 vers l'appareil : il garde son score
+    await new Promise(r => setTimeout(r, 200));
+    expect(device.snapshot().right.score).toBe(3);
+  });
 });
