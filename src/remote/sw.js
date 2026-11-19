@@ -33,6 +33,7 @@ const ASSETS = [
   '/js/refereeLists.js',
   '/js/refereeLobby.js',
   '/js/refereeClubCards.js',
+  '/js/refereePrevBreak.js',
   '/js/refereeScoring.js',
   '/js/refereeTimer.js',
   '/js/refereeTts.js',

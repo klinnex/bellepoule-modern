@@ -1421,6 +1421,7 @@ function reloadIfIdle() {
 window.BPTimer.withTenths(RefereeApp.prototype);
 window.BPPriorityDraw.installReferee(RefereeApp.prototype);
 window.BPDemoMirror.install(RefereeApp.prototype); // démo autonome (?demo=1)
+window.BPRefereePrevBreak.install(RefereeApp.prototype); // PREV et pause sabre à 8 touches (#2001)
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     await window.initRemoteI18n();

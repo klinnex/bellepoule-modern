@@ -235,7 +235,11 @@ le score (rouge – vert).
   adversaire du tireur au carton noir, sinon meilleur score, sinon tirage au sort / P-noir,
   sinon priorité → enregistrement en base, mise à jour de la poule/du tableau dans
   l'application, diffusion `match_finished`. Scores hors 0–50 refusés (`invalid_scores`).
-  Un match validé par erreur se rappelle par PREV.
+  Un match validé par erreur se rappelle par PREV : bouton **Match précédent** de la liste des
+  matchs (dans les 3 min suivant la fin, aucun combat en cours), le serveur répond par un succès ou
+  par le motif du refus (notification).
+- **Sabre, tableau à 15** : à 8 touches, le serveur envoie `sabre_break` ; la tablette arrête le
+  chrono et lance la minute de repos (t.39.1), puis rétablit le chrono d'avant (CYRANO.md § 5).
 - Retour automatique à la liste après 2 s.
 - **Tableau** + option `signTableauMatches` : écran **✍️ Signature des combattants**
   (deux zones de signature) avant le match suivant.

@@ -17,7 +17,7 @@
     <script src="/js/arenaDisplayUtils.js"></script><script src="/js/refereeScoring.js"></script>
     <script src="/js/refereeCards.js"></script><script src="/js/refereeFeedback.js" data-bp-init></script>
     <script src="/js/refereeTimer.js"></script>
-    <script src="/js/refereeLists.js"></script>
+    <script src="/js/refereeLists.js"></script><script src="/js/refereePrevBreak.js"></script>
     <script src="/js/refereeDemoMirror.js"></script><script src="/js/refereeLobby.js"></script><script src="/js/refereeClubCards.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -1698,7 +1698,7 @@
           placeholder="Rechercher un tireur..."
           data-input="refereeApp.filterMatches" data-args='["$value"]'
          class="inl-bff8d5"/>
-        <div id="black-cards-list"></div>
+        <button type="button" id="btn-prev-match" class="prev-match-btn" data-click="refereeApp.requestPrevMatch" data-i18n-title="referee.prev_match_title" title="Rappeler le dernier match terminé pour le corriger"><span data-icon="undo"></span> <span data-i18n="referee.prev_match">Match précédent</span></button><div id="black-cards-list"></div>
         <div id="next-matches-list">
           <div class="next-matches-empty" data-i18n="remote.loading">Chargement...</div>
         </div>

@@ -25,8 +25,17 @@ type Device = {
       status: string;
       reserve: string;
       medical: number;
+      p: number;
     };
-    left: { score: number; y: number; r: number; status: string; reserve: string; medical: number };
+    left: {
+      score: number;
+      y: number;
+      r: number;
+      status: string;
+      reserve: string;
+      medical: number;
+      p: number;
+    };
     blocked: Record<string, string>;
   };
   stop(): void;
@@ -147,6 +156,54 @@ describe('Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)', () => {
     expect(d.snapshot().right).toMatchObject({ score: 0, r: 1 });
     d.command('cards0');
     expect(d.snapshot().right.r).toBe(0);
+  });
+
+  it('cartons P par côté (champ 12 EFP1.1) : montée 0 à 5, descente, INFO, CARDS RESET (#2001)', () => {
+    for (const c of ['pcr+', 'pcr-', 'pcl+', 'pcl-']) expect(COMMANDS).toContain(c);
+    d.command('pcr+');
+    expect(lastInfo()?.right).toMatchObject({ pCard: 1 });
+    d.command('pcr+');
+    d.command('pcr+');
+    expect(lastInfo()?.right).toMatchObject({ pCard: 3 });
+    for (let i = 0; i < 6; i++) d.command('pcr+');
+    expect(d.snapshot().right.p).toBe(5);
+    d.command('pcr-');
+    expect(lastInfo()?.right).toMatchObject({ pCard: 4 });
+    // Côté gauche indépendant, jamais en dessous de 0
+    d.command('pcl-');
+    expect(d.snapshot().left.p).toBe(0);
+    d.command('pcl+');
+    d.command('pcl+');
+    expect(lastInfo()?.left).toMatchObject({ pCard: 2 });
+    expect(d.snapshot().right.p).toBe(4);
+    d.command('cards0');
+    expect(d.snapshot().right.p).toBe(0);
+    expect(d.snapshot().left.p).toBe(0);
+  });
+
+  it('carton P absent des trames en EFP1 (champ 12 propre à EFP1.1)', () => {
+    d.receive('|EFP1|HELLO|1|C1|%|');
+    d.command('pcr+');
+    const info = sent.filter(r => r.includes('|INFO|')).pop() ?? '';
+    expect(info.startsWith('|EFP1|')).toBe(true);
+    expect(parseCyrano(info)?.right?.pCard).toBeUndefined();
+  });
+
+  it('DISP d’un match repris (PREV) : carton P installé, puis corrigé par un DISP en cours de match', () => {
+    d.command('raz');
+    d.receive(
+      `|EFP1.1|DISP|1|C1|2|A2|1||||I|F|N|||||%|${RIGHT.slice(0, 8)}|DUVAL J|FRA|5|U|0|0|0|0|0|N|4|%|` +
+        `${LEFT.slice(0, 8)}|FAURE M|FRA|2|U|0|0|0|0|0|N|2|%|`
+    );
+    expect(d.snapshot().right.p).toBe(4);
+    expect(d.snapshot().left.p).toBe(2);
+    d.command('begin');
+    d.receive(
+      `|EFP1.1|DISP|1|C1|2|A2|1||||I|F|N|||||%|${RIGHT.slice(0, 8)}|DUVAL J|FRA|5|U|0|0|0|0|0|N|0|%|` +
+        `${LEFT.slice(0, 8)}|FAURE M|FRA|2|U|0|0|0|0|0|N|2|%|`
+    );
+    expect(d.snapshot().right.p).toBe(0);
+    expect(d.snapshot().left.p).toBe(2);
   });
 
   it('bloc PC : abandon, expulsion, réserve, médical dans la trame INFO', () => {

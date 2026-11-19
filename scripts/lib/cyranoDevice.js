@@ -61,6 +61,9 @@ const COMMANDS = [
   // Score : ∧ (+1, jaune = carton jaune, rouge = carton rouge) et ∨ (l'inverse)
   'r+', 'r-', 'yr', 'yr-', 'rr', 'rr-',
   'l+', 'l-', 'yl', 'yl-', 'rl', 'rl-',
+  // Cartons P (non-combativité, EFP1.1 champ 12) : pcr+ / pcl+ montent d'un cran
+  // (0 aucun, 1 jaune P, 2 un rouge P, 3 deux rouges P, 4 un noir P, 5 deux noirs P), pcr- / pcl- descendent
+  'pcr+', 'pcr-', 'pcl+', 'pcl-',
   // ⟷ (inversion), 0:0, jaune + 0:0 = CARDS RESET
   'swap', 'zero', 'cards0',
   // Bloc PC (vert) : PREVIOUS, BEGIN, NEXT, VALIDATE ; jaune : ABANDON, RESERVE ;
@@ -72,6 +75,8 @@ const COMMANDS = [
 ];
 
 const WEAPONS = ['E', 'F', 'S'];
+/** Valeur maximale du champ 12 (EFP1.1) : deux noirs P */
+const MAX_P_CARD = 5;
 const PAUSE_MS = 60000;
 const DEFAULT_PERIOD_MS = 180000;
 
@@ -85,6 +90,8 @@ for (const side of ['r', 'l']) {
   FENCER_ACTIONS[`r${side}`] = { side, op: 'red' };
   FENCER_ACTIONS[`r${side}-`] = { side, op: 'red-' };
   FENCER_ACTIONS[`p${side}`] = { side, op: 'priority' };
+  FENCER_ACTIONS[`pc${side}+`] = { side, op: 'pcard+' };
+  FENCER_ACTIONS[`pc${side}-`] = { side, op: 'pcard-' };
   FENCER_ACTIONS[`a${side}`] = { side, op: 'abandon' };
   FENCER_ACTIONS[`e${side}`] = { side, op: 'expulsion' };
   FENCER_ACTIONS[`res${side}`] = { side, op: 'reserve' };
@@ -182,6 +189,7 @@ class CyranoDevice extends EventEmitter {
       ...(z[4] === 'A' || z[4] === 'E' ? { status: z[4] } : {}),
       y: Number(z[5]) || 0,
       r: Number(z[6]) || 0,
+      p: Math.min(MAX_P_CARD, Number(z[11]) || 0),
     });
     s.compe = g[3] || '';
     s.general = { phase: g[4] || '', poulTab: g[5] || '', match: g[6] || '', round: g[7] || '', time: g[8] || '', type: g[10] || '', weapon: g[11] || '' };
@@ -217,6 +225,7 @@ class CyranoDevice extends EventEmitter {
       if (z[3] !== undefined && z[3] !== '') f.score = Number(z[3]) || 0;
       if (z[5] !== undefined && z[5] !== '') f.y = Number(z[5]) || 0;
       if (z[6] !== undefined && z[6] !== '') f.r = Number(z[6]) || 0;
+      if (z[11] !== undefined && z[11] !== '') f.p = Math.min(MAX_P_CARD, Number(z[11]) || 0);
     }
     this.note(`scores corrigés : ${s.right.score} – ${s.left.score}`);
     return this.sendInfo();
@@ -437,6 +446,8 @@ class CyranoDevice extends EventEmitter {
     else if (op === 'yellow-') f.y = 0;
     else if (op === 'red') f.r = Math.min(9, f.r + 1);
     else if (op === 'red-') f.r = Math.max(0, f.r - 1);
+    else if (op === 'pcard+') f.p = Math.min(MAX_P_CARD, f.p + 1);
+    else if (op === 'pcard-') f.p = Math.max(0, f.p - 1);
     else if (op === 'priority') s.priority = side.toUpperCase();
     else if (op === 'abandon') toggle('A');
     else if (op === 'expulsion') toggle('E');

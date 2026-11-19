@@ -7,7 +7,11 @@ import { Arena, ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
-import { crossedScoreLimit, resolveScoreLimit } from '../../shared/utils/matchEndValidation';
+import {
+  crossedSabreBreak,
+  crossedScoreLimit,
+  resolveScoreLimit,
+} from '../../shared/utils/matchEndValidation';
 
 type S = RemoteScoreServer;
 
@@ -205,6 +209,26 @@ function checkAndAutoFinishMatch(
       `[RemoteScoreServer] Score limite (${SCORE_LIMIT}) atteint - notification arbitre pour l'arène ${arenaId}`
     );
     ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:score_limit_reached`);
+  }
+
+  // Sabre, tableau à 15 : première période terminée à 8 touches (t.39.1, #2001). La tablette
+  // arrête le chrono et lance la minute de repos ; un appareil maître tient sa propre pause.
+  const sessionMatch = ctx.sessionMatches.find(m => m.id === arena.currentMatch?.id);
+  const isTableau = !!(arena.currentMatch.isTableau || sessionMatch?.isTableau);
+  if (
+    isTableau &&
+    crossedSabreBreak(
+      ctx.sessionWeapon === Weapon.SABRE,
+      SCORE_LIMIT,
+      { scoreA: previousScoreA, scoreB: previousScoreB },
+      { scoreA, scoreB }
+    )
+  ) {
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Sabre : 8 touches atteintes, pause de première période sur l'arène ${arenaId}`
+    );
+    ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:sabre_break`, { seconds: 60 });
   }
 }
 

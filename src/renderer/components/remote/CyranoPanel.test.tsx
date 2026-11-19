@@ -114,4 +114,32 @@ describe('CyranoPanel — secours et journal (#1829)', () => {
     // « Toutes les interfaces » proposé une seule fois (0.0.0.0 non répété)
     expect(screen.getAllByRole('option', { name: /Toutes les interfaces/ })).toHaveLength(1);
   });
+
+  it('journal : défile jusqu’aux dernières trames, dans son cadre (#2001)', async () => {
+    const proto = HTMLElement.prototype;
+    const original = Object.getOwnPropertyDescriptor(proto, 'scrollHeight');
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 480 });
+    try {
+      render(<CyranoPanel competitionId="c1" />);
+      fireEvent.click(await screen.findByText('Journal des trames'));
+      const pre = await screen.findByLabelText('Journal des trames', { selector: 'pre' });
+      await screen.findByText(/\|EFP1\.1\|INFO\|1\|/);
+      expect(pre).toHaveClass('cyrano-log');
+      expect(pre.scrollTop).toBe(480);
+    } finally {
+      if (original) Object.defineProperty(proto, 'scrollHeight', original);
+      else delete (proto as unknown as Record<string, unknown>).scrollHeight;
+    }
+  });
+
+  it('ajout de pistes : contrôles compacts sur une rangée, sans style en ligne', async () => {
+    render(<CyranoPanel competitionId="c1" />);
+    const row = (await screen.findByText('Ajouter en lot')).closest('.cyrano-add') as HTMLElement;
+    expect(row).not.toBeNull();
+    expect(row.querySelectorAll('.cyrano-option')).toHaveLength(3);
+    expect(row.querySelectorAll('[style]')).toHaveLength(0);
+    for (const input of row.querySelectorAll('input[type="number"]')) {
+      expect(input).toHaveClass('cyrano-input');
+    }
+  });
 });

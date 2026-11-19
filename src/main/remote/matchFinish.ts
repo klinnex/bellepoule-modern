@@ -11,7 +11,12 @@ import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { SessionScore } from './types';
-import { checkPrevEligibility, restoreForCorrection, type LastFinishedSnapshot } from './prevMatch';
+import {
+  checkPrevEligibility,
+  restoreForCorrection,
+  type LastFinishedSnapshot,
+  type PrevRefusal,
+} from './prevMatch';
 import type { ArenaMatch } from '../../shared/types/remote';
 import { winnerByScore } from '../../shared/utils/matchEndValidation';
 
@@ -70,8 +75,19 @@ export function rememberLastFinished(arena: object, snapshot: LastFinishedSnapsh
  * relues par la file normale). Renvoie false si le rappel est refusé, sans rien modifier.
  */
 export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boolean {
+  return recallPrevMatchResult(ctx, arenaId).ok;
+}
+
+/**
+ * Comme `recallPrevMatch`, mais renvoie le motif du refus (`none` / `expired` / `in_progress`,
+ * `error` si la base n'a pas pu être purgée) pour que la tablette l'affiche (#2001).
+ */
+export function recallPrevMatchResult(
+  ctx: MatchFinishContext,
+  arenaId: string
+): { ok: true } | { ok: false; reason: PrevRefusal | 'error' } {
   const arena = ctx.arenas.get(arenaId);
-  if (!arena || !ctx.session) return false;
+  if (!arena || !ctx.session) return { ok: false, reason: 'none' };
   const snapshot = lastFinished.get(arena);
   const verdict = checkPrevEligibility(snapshot, arena.currentMatch, Date.now());
   if (!verdict.ok || !snapshot) {
@@ -79,7 +95,7 @@ export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boole
       LogCategory.NETWORK,
       `[RemoteScoreServer] PREV refusé sur arène ${arenaId} : ${verdict.ok ? 'aucun' : verdict.reason}`
     );
-    return false;
+    return { ok: false, reason: verdict.ok ? 'none' : verdict.reason };
   }
 
   const restored = restoreForCorrection(snapshot);
@@ -90,7 +106,7 @@ export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boole
       if (dbId) ctx.db.clearArenaEvents(dbId);
     } catch (e) {
       logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] PREV : purge DB échouée', e);
-      return false;
+      return { ok: false, reason: 'error' };
     }
   }
 
@@ -112,7 +128,7 @@ export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boole
     LogCategory.NETWORK,
     `[RemoteScoreServer] PREV : match ${restored.id} rendu à l'arène ${arenaId} pour correction`
   );
-  return true;
+  return { ok: true };
 }
 
 /**

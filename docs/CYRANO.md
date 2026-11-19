@@ -16,9 +16,12 @@
 > barrière d'entrée des arènes (`ArenaInputGate`). **Équipes** (`Type=T`, § 2 octies) : relais FIE
 > de l'arène `/equipe{N}` sur l'appareil (relais, cumuls, cartons de la rencontre, remplaçant,
 > NEXT / PREV, verrou de la tablette équipe).
-> Restent : bouton PREV de la tablette, pilotes RS422-FPA / Favero / OPP2-MQTT, équipes au format
-> « arène laser », vainqueur imposé en fin de rencontre par équipes, cartons d'appareil en équipes
-> (sans motif : non enregistrés comme cartons individuels).
+> **Bouton « Match précédent » de la tablette** (liste des matchs, verdict du serveur affiché),
+> **pause sabre à 8 touches** (minute de repos sur la tablette), **rejeu d'un journal** et **cartons P**
+> dans le simulateur (#2001) ; recette sur appareil réel : § 3 bis.
+> Restent : pilotes RS422-FPA / Favero / OPP2-MQTT, équipes au format « arène laser », vainqueur
+> imposé en fin de rencontre par équipes, cartons d'appareil en équipes (sans motif : non
+> enregistrés comme cartons individuels).
 
 Spécification : [Cyrano 1.1](https://superfencingsystem.com/CyranoProtocol-1-1.pdf)
 (11 octobre 2019, rétrocompatible EFP1).
@@ -72,7 +75,7 @@ et la vue arbitre ouverte sur le même match les recopie (score, cartons, chrono
 | `INFO` d'autres tireurs que ceux du match (BAD MATCH) | ignoré ; alerte « BAD MATCH » sur la piste dans le panneau Cyrano, levée dès que l'appareil affiche le bon match |
 | `INFO` en `E` | état final appliqué, puis `ACK` et clôture du match ; égalité avec priorité (ou statuts `V` / `D`) → vainqueur prioritaire ; abandon (`A`) / exclusion (`E`) → l'adversaire gagne, abandon ou exclusion marqué ; `NAK` si fin invalide ou BAD MATCH ; END répété après clôture → nouvel `ACK` sans réenregistrement |
 | `NEXT` | match suivant seulement si le match de l'arène est terminé (ou absent) ; sinon `DISP` du match courant (pas d'abandon silencieux) |
-| `PREV` | rappel du dernier match terminé de l'arène pour correction (`recallPrevMatch`, 3 min après sa fin) : `DISP` avec ses scores et cartons, puis nouvelle validation (`END` → `ACK`) qui le réenregistre ; un match de tableau non commencé repasse en tête de file. Refus (combat en cours, rien à rappeler, délai dépassé) : `DISP` du match courant (ou affichage vide). Sans effet en afficheur |
+| `PREV` | rappel du dernier match terminé de l'arène pour correction (`recallPrevMatch`, 3 min après sa fin) : `DISP` avec ses scores et cartons, puis nouvelle validation (`END` → `ACK`) qui le réenregistre ; un match de tableau non commencé repasse en tête de file. Refus (combat en cours, rien à rappeler, délai dépassé) : `DISP` du match courant (ou affichage vide). Sans effet en afficheur. Même rappel depuis la tablette (bouton « Match précédent » de la liste des matchs, `arena_control` `prev`) : le serveur répond sur `arena:{id}:prev_result` (`{ ok: true }` ou `{ ok: false, reason: none \| expired \| in_progress \| error }`) et la tablette affiche le succès ou le motif du refus ; le match rappelé revient dans la liste |
 | Changement de match (file, vue arbitre, DT) | `DISP` ; jamais de `DISP` d'un match terminé |
 | Correction de score sur la tablette | `DISP` avec les scores corrigés (pas d'écho pour les scores venus de l'appareil) |
 
@@ -118,8 +121,15 @@ et fins de match venues de l'appareil (libellé « Appareil de piste »).
 | Secours « Resynchroniser » | oublie l'état connu de la piste et renvoie le match de l'arène (ou un affichage vide) |
 | Journal des trames | 200 dernières trames ; export texte, une trame par ligne : `horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]` |
 
-Réglages mémorisés dans le navigateur de l'application (`localStorage`) : table des pistes
-(mode compris), port, interface, options de noms, démarrage automatique.
+Table des pistes (mode compris) : **en base**, table `cyrano_pistes`, par compétition (ou par
+journée, § 2 quinquies). Une ancienne liste du `localStorage` est reprise une seule fois (migration
+puis suppression de la clé). Port, interface, options de noms et démarrage automatique restent
+mémorisés dans le navigateur de l'application (`localStorage`).
+
+Disposition : la rangée d'ajout (« Ajouter une piste », profil, première piste, nombre de pistes,
+« Ajouter en lot », export, import) tient sur une ligne de contrôles compacts. Le journal des trames
+défile jusqu'aux dernières trames (sauf si on remonte pour lire) dans son propre cadre, sans élargir
+la page ; l'export contient les 200 dernières trames et se rejoue dans le simulateur (§ 3).
 
 ### 2 ter. Modes par piste (#1829)
 
@@ -349,6 +359,7 @@ Ses commandes reprennent la télécommande WSG des Saint-Georges SG31 / SG32 :
 | Arme | `weapon`, `epee` / `foil` / `sabre` | touche arme, jaune + PAUSE / RESET / STOP/GO |
 | Priorité | `prio`, `pn` ; `pr` / `pl` (essais) | ⚄ (tirage au sort), jaune P RESET |
 | Score | `r+` `r-` `l+` `l-`, `yr` `yl` / `yr-` `yl-`, `rr` `rl` / `rr-` `rl-`, `swap`, `zero`, `cards0` | ∧ ∨, jaune ∧∨ (carton jaune), rouge ∧∨ (carton rouge), ⟷, 0:0, jaune CARDS RESET |
+| Cartons P (EFP1.1) | `pcr+` `pcr-` `pcl+` `pcl-` | champ 12 de la zone du tireur, 0 à 5 : 1 jaune P, 2 rouge P, 3 deux rouges P, 4 noir P, 5 deux noirs P ; ∧ monte d'un cran, ∨ descend ; `cards0` les efface ; repris d'un DISP (match rappelé, correction) ; absents des trames en EFP1 |
 | Bloc PC | `next`, `prev`, `begin`, `end` (`validate`), `ar` / `al`, `er` / `el`, `resr` / `resl`, `mr` / `ml` | vert NEXT, PREVIOUS, BEGIN, VALIDATE ; jaune ABANDON, RESERVE ; rouge EXPULSION, assistance médicale |
 | Appareil | `raz`, `show`, `quit` | extinction / rallumage |
 
@@ -367,6 +378,26 @@ Ses commandes reprennent la télécommande WSG des Saint-Georges SG31 / SG32 :
 
 Déclarer la piste côté serveur avec l'IP `127.0.0.1` et le port du simulateur (`--port`).
 
+### Rejeu d'un journal de trames (#2001)
+
+Le journal exporté du panneau (« Exporter le journal », une trame par ligne :
+`horodatage ⇥ IN/OUT ⇥ ip:port ⇥ piste ⇥ trame [⇥ rejet]`) se rejoue vers le logiciel : seules les
+trames `IN` (appareil → logiciel) sont renvoyées, **au rythme d'origine** (`--speed N` = N fois plus
+vite, par exemple 10) ; les trames `malformed` sont écartées. Pour reproduire un incident constaté
+en salle sans l'appareil :
+
+```bash
+npm run cyrano:sim -- --replay cyrano-2026-11-19-10-00-00.log --piste 3 --bind 127.0.0.3 --port 50103 --speed 5
+```
+
+- `--piste` : obligatoire si le journal contient plusieurs pistes (une adresse source par rejeu).
+- `--bind` : le logiciel identifie la piste par l'**IP source** ; il faut donc l'IP déclarée pour
+  cette piste dans la table (en local : `127.0.0.N`, § « Plusieurs simulateurs »). Une autre IP est
+  journalisée `unknown_ip` et ignorée.
+- Les trames reçues en retour (DISP, ACK, NAK) sont affichées (`←`), les trames envoyées aussi (`→`).
+  Le rejeu n'embarque pas l'état de l'appareil : il ne répond pas aux HELLO ni aux DISP.
+- Analyse du format : `scripts/lib/cyranoReplay.js` (fonctions pures, testées).
+
 ### Télécommande web (plusieurs pistes)
 
 ```bash
@@ -377,18 +408,13 @@ npm run cyrano:remote -- --pistes 1@127.0.0.1:50101,2@127.0.0.2:50102 --server-p
 
 Une carte par piste : état de l'appareil, chrono, période et durée, tireurs gauche (rouge) /
 droite (vert), boutons groupés comme sur la télécommande (bloc PC, chrono, arme, score, cartons,
-priorité), libellés colorés selon la touche de mode, et journal des trames (HELLO masqués).
+priorité, cartons P par côté), libellés colorés selon la touche de mode, et journal des trames (HELLO masqués).
 Au-delà de 4 pistes, les cartes s'ouvrent repliées sur une ligne (état, chrono, tireurs et score) ;
 un clic sur l'en-tête déplie la télécommande, boutons « Tout déplier / Tout replier » en haut.
-La table des pistes correspondante peut être déclarée d'un coup depuis la console DevTools de
-l'application :
-
-```js
-const pistes = Array.from({ length: 16 }, (_, k) => ({ piste: String(k + 1), ip: `127.0.0.${k + 1}`,
-  port: 50101 + k, arena: k + 1, protocol: 'auto', mode: 'master' }));
-localStorage.setItem('bellepoule-cyrano-pistes', JSON.stringify(pistes)); // panneau Cyrano
-await window.electronAPI.cyrano.setPistes(pistes);                         // serveur
-``` Mêmes appareils simulés que la console
+La table des pistes correspondante se déclare d'un coup depuis le panneau Cyrano : profil
+« Standard », première piste 1, nombre 16, **Ajouter en lot** (IP `127.0.0.N` à saisir ensuite pour
+chaque ligne), ou **Importer** un fichier exporté (`cyrano-pistes.json`). Elle est enregistrée en
+base (`cyrano_pistes`) ; le panneau la transmet au serveur au démarrage. Mêmes appareils simulés que la console
 (`scripts/lib/cyranoDevice.js`). Ne pas lancer en même temps un simulateur console sur les mêmes ports.
 
 Plusieurs simulateurs sur un même poste : le logiciel identifie une piste par son **IP**, donc
@@ -400,6 +426,72 @@ npm run cyrano:sim -- --piste 1 --bind 127.0.0.1 --port 50101
 npm run cyrano:sim -- --piste 2 --bind 127.0.0.2 --port 50102
 npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
 ```
+
+## 3 bis. Recette sur appareil réel (SG32) (Réf. #2002)
+
+Cases à cocher lors d'une validation en salle avec un ou plusieurs Saint-George SG32 (version
+d'appareil, IP et firmware notés dans le compte rendu). Préparation : poste et appareils sur le
+même sous-réseau (`192.168.1.0/24`), pare-feu ouvert en entrée UDP 50100, piste déclarée en mode
+`maître` avec l'IP `192.168.1.(100 + piste)` (profil `Saint-George`), journal des trames affiché.
+Chaque anomalie : exporter le journal (il se rejoue dans le simulateur, § 3) et le joindre au ticket.
+
+**Liaison**
+
+- [ ] **Appairage de la télécommande** : socle de charge, la télécommande n'agit sur l'appareil
+      qu'après appairage ; vérifier qu'elle pilote bien l'appareil voulu (une seule piste à la fois).
+- [ ] **Ports** : l'appareil écoute sur **50101** et émet depuis 50101 en diffusion vers
+      `192.168.1.255:50100` ; le poste reçoit (piste « en ligne », pastille verte), le DISP arrive
+      bien sur 50101. Piste « jamais vue » : pare-feu, interface d'écoute, IP de la table.
+- [ ] **Version EFP1.1** : la version détectée affichée à côté de la piste est `EFP1.1` (champ 12 des
+      zones tireur présent) ; en `auto`, le HELLO alterne EFP1.1 / EFP1 tant que l'appareil n'a rien
+      répondu.
+- [ ] **Rythme des INFO** : un INFO toutes les 2 à 4 s à l'arrêt, au plus 1 par seconde chrono en
+      marche ; aucune trame collée perdue (datagramme de plusieurs trames : la dernière fait foi).
+
+**Match**
+
+- [ ] **DISP** : au chargement, noms (10 à 20 caractères, translittérés), nations, arme et champ
+      Compe affichés ; l'inversion droite / gauche à l'appareil ne perturbe pas les scores
+      (suivi par Id).
+- [ ] **DISP ignoré en plein combat** : modifier le score depuis la tablette arbitre pendant un
+      assaut (appareil en `F` ou `H`). Un appareil conforme ignore ce DISP (§ 2 nonies) : noter si
+      le score de l'appareil revient ou non à l'INFO suivant, et que la tablette suit l'appareil
+      (correction tablette en mode maître : à confirmer).
+- [ ] **Repos + ouverture du match sur la tablette** (#1999) : lancer la minute de repos sur
+      l'appareil (`P`, PAUSE), ouvrir le match sur la tablette pendant ce temps : le score affiché
+      n'est pas remis à zéro, le repos n'est pas interrompu, le chrono du combat reprend après le
+      repos.
+- [ ] **PAUSE / fin de pause** : PAUSE lance le décompte de 1:00 (état `P`) sans modifier le
+      chrono du combat côté logiciel ; à la fin, période suivante, score et cartons conservés.
+- [ ] **Sabre, 8 touches** (t.39.1) : tableau à 15, sabre, un tireur atteint 8 : la tablette annonce
+      la pause (sans seconde minute de repos lancée par la tablette, l'appareil maître tient son
+      chrono) ; avec une tablette seule (mode manuel), elle arrête le chrono et lance la minute.
+
+**Télécommande vers le logiciel**
+
+- [ ] **NEXT** : appareil libre (`W`) : le match suivant de l'arène est envoyé (DISP) ; sur un match
+      non terminé : le match courant est renvoyé, jamais d'abandon silencieux.
+- [ ] **PREV** : juste après un VALIDATE (moins de 3 min), PREVIOUS rappelle le match terminé :
+      DISP avec scores et cartons, correction, nouveau VALIDATE → ACK. Au-delà de 3 min ou en plein
+      combat : refus, DISP du match courant. Même contrôle avec le bouton « Match précédent » de la
+      tablette (notification du verdict).
+- [ ] **VALIDATE** : fin valide → ACK, l'appareil repasse en `W` ; fin invalide (scores égaux sans
+      priorité) → NAK, retour en halte, correction puis nouvelle validation.
+- [ ] **Abandon** (ABANDON droite / gauche, puis VALIDATE) : fin acceptée, vainqueur = l'autre
+      tireur, statut `A` repris ; le match rappelé (PREV) conserve l'abandon.
+- [ ] **Exclusion** (EXPULSION) : fin acceptée, tireur exclu, DT prévenu (rapport FFE si carton
+      noir) ; statut `E` repris.
+- [ ] **Cartons P** (EFP1.1, champ 12) : jaune P, rouge P (×1 puis ×2), noir P (×1 puis ×2) :
+      valeurs 1 à 5 reprises dans le journal, cartons enregistrés (`p-red` / `p-black`) et visibles
+      sur la feuille ; DISP suivant renvoie la valeur (règle 2026-2027 : 0, 2 ou 4).
+
+**Affichage seul**
+
+- [ ] **Sabre laser** et **arme personnalisée** : DISP noms + score, champ arme vide, aucune
+      commande de la télécommande prise en compte par le logiciel (mode `display` forcé).
+
+Compte rendu : date, appareils (n° de série, firmware), cases cochées, écarts avec §§ 2 nonies et 4,
+journaux joints.
 
 ## 4. Décisions (#1720)
 
@@ -420,9 +512,12 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
    - **Une seule validation de fin** (fait, #1829) : `shared/utils/matchEndValidation.ts`
      (`validateMatchEnd`, `decideMatchWinner`, `resolveScoreLimit`, `passivityWinner`,
      `crossedSabreBreak`) utilisé par `piste/pisteState.ts` (fin d'appareil), `matchRoutes.ts`, `matchFinish.ts` et
-     `arenaOps.ts` ; `scoreValidation.ts` (jamais appelé) supprimé. Pause sabre à 8 touches :
-     règle fournie, non branchée (périodes de la tablette au temps).
-   - **Reprise de l'état des arènes** au redémarrage (`saveArenaState` est écrit mais jamais relu).
+     `arenaOps.ts` ; `scoreValidation.ts` (jamais appelé) supprimé.
+   - **Pause sabre à 8 touches** (t.39.1, fait, #2001) : au sabre, en tableau à 15 touches,
+     `arenaOps.ts` détecte le franchissement de 8 (`crossedSabreBreak`, une fois par franchissement)
+     et émet `arena:{id}:sabre_break` ; la tablette arrête le chrono et lance la minute de repos
+     (mécanisme de repos existant, chrono d'avant restauré à la fin). Avec un appareil maître, la
+     tablette n'annonce que la pause : l'appareil tient son chrono.
    - **Chrono tenu côté serveur** en individuel, alimenté par la source maîtresse (appareil ou
      tablette) : référence pour la tablette en miroir.
 2. Pilote Cyrano en lecture (mode afficheur), supervision dans l'interface.
@@ -434,13 +529,14 @@ npm run cyrano:sim -- --piste 3 --bind 127.0.0.3 --port 50103
      remise à zéro de l'affichage.
    - Ajout de pistes en lot, import / export de la liste, mur de pistes (mini-vues en grille).
    - Écoute limitée à l'interface réseau choisie ; journal des trames exportable et rejouable
-     dans le simulateur.
+     dans le simulateur (`--replay`, § 3).
 5. Vue arbitre : bandeau appareil, choix de match → DISP.
 6. Cartons P, équipes (`Type=T`, relais, remplaçant) — faits (#1829), sauf format « arène laser ».
 
 Suivi de #1829 : modes, bascule hors ligne, notification BAD MATCH et reprise des arènes livrés ;
-PREV (appareil et poste ; pas encore de bouton sur la tablette), bandeau arbitre, table des pistes en
-base, profils constructeur, ajout en lot et import / export livrés ; les extensions restent ouvertes.
+PREV (appareil, poste et bouton « Match précédent » de la tablette, #2001), bandeau arbitre, table
+des pistes en base, profils constructeur, ajout en lot et import / export livrés ; les extensions
+restent ouvertes.
 
 Livré ensuite (#1829) : cartons de la feuille de poule et de la feuille de match de tableau
 imprimées, **cartons P à part** (t.124.3.e, § 2 sexies) ; reprise du chrono au redémarrage

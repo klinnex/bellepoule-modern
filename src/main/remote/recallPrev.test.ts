@@ -2,7 +2,12 @@
  * Rappel PREV (recallPrevMatch, #1829) : état de l'arène, base et file après un rappel
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { recallPrevMatch, rememberLastFinished, type MatchFinishContext } from './matchFinish';
+import {
+  recallPrevMatch,
+  recallPrevMatchResult,
+  rememberLastFinished,
+  type MatchFinishContext,
+} from './matchFinish';
 import { PREV_WINDOW_MS, type LastFinishedSnapshot } from './prevMatch';
 import type { ArenaMatch } from '../../shared/types/remote';
 
@@ -130,5 +135,35 @@ describe('recallPrevMatch', () => {
     const { ctx, arenaMatchQueue } = makeCtx({ current: de, snapshot, queue: [] });
     expect(recallPrevMatch(ctx, 'a1')).toBe(true);
     expect(arenaMatchQueue.get('a1')?.map(m => m.id)).toEqual(['de1']);
+  });
+});
+
+describe('recallPrevMatchResult (motif du refus pour la tablette, #2001)', () => {
+  it('renvoie ok au succès', () => {
+    const { ctx } = makeCtx({ current: next, snapshot });
+    expect(recallPrevMatchResult(ctx, 'a1')).toEqual({ ok: true });
+  });
+
+  it('renvoie le motif : aucun match, hors fenêtre, combat en cours, purge en échec', () => {
+    expect(recallPrevMatchResult(makeCtx({ current: next }).ctx, 'a1')).toEqual({
+      ok: false,
+      reason: 'none',
+    });
+    const old: LastFinishedSnapshot = {
+      ...snapshot,
+      finishedAt: Date.now() - PREV_WINDOW_MS - 1000,
+    };
+    expect(recallPrevMatchResult(makeCtx({ current: next, snapshot: old }).ctx, 'a1')).toEqual({
+      ok: false,
+      reason: 'expired',
+    });
+    const running = { ...next, status: 'in_progress' as const };
+    expect(recallPrevMatchResult(makeCtx({ current: running, snapshot }).ctx, 'a1')).toEqual({
+      ok: false,
+      reason: 'in_progress',
+    });
+    expect(
+      recallPrevMatchResult(makeCtx({ current: next, snapshot, dbThrows: true }).ctx, 'a1')
+    ).toEqual({ ok: false, reason: 'error' });
   });
 });
