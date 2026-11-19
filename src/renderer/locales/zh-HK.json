@@ -3549,6 +3549,7 @@
     "remote_off": "比分在此電腦輸入。啟用遠端輸入即可用平板執法。",
     "remote_busy": "此劍道的平板已有對賽進行中",
     "remote_error": "無法啟動遠端輸入",
+    "remote_artistic": "藝術擊劍不支援遠端記分，請更改本次課程的武器。",
     "lobby": "劍道大堂",
     "lobby_copy": "複製大堂連結",
     "lobby_copied": "已複製大堂連結",

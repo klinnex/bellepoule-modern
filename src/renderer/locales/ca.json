@@ -3549,6 +3549,7 @@
     "remote_off": "Les puntuacions s'introdueixen en aquest ordinador. Activeu l'entrada remota per arbitrar amb tauleta.",
     "remote_busy": "Ja hi ha un combat en curs a la tauleta d'aquesta pista",
     "remote_error": "No es pot iniciar l'entrada remota",
+    "remote_artistic": "L'esgrima artística no té puntuació remota: canvia l'arma de la sessió.",
     "lobby": "Vestíbul de pistes",
     "lobby_copy": "Copia l'enllaç del vestíbul",
     "lobby_copied": "Enllaç del vestíbul copiat",

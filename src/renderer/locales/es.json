@@ -3549,6 +3549,7 @@
     "remote_off": "Los marcadores se introducen en este equipo. Active la entrada remota para arbitrar con tableta.",
     "remote_busy": "Ya hay un asalto en curso en la tableta de esta pista",
     "remote_error": "No se puede iniciar la entrada remota",
+    "remote_artistic": "La esgrima artística no tiene anotación remota: cambia el arma de la sesión.",
     "lobby": "Vestíbulo de pistas",
     "lobby_copy": "Copiar el enlace del vestíbulo",
     "lobby_copied": "Enlace del vestíbulo copiado",

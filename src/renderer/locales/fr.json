@@ -3549,6 +3549,7 @@
     "remote_off": "Les scores se saisissent sur ce poste. Activez la saisie distante pour arbitrer sur tablette.",
     "remote_busy": "Un match est déjà en cours sur la tablette de cette piste",
     "remote_error": "Impossible de démarrer la saisie distante",
+    "remote_artistic": "L'escrime artistique n'a pas de saisie distante : changer l'arme de la séance.",
     "lobby": "Lobby des pistes",
     "lobby_copy": "Copier le lien du lobby",
     "lobby_copied": "Lien du lobby copié",

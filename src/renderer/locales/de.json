@@ -3549,6 +3549,7 @@
     "remote_off": "Ergebnisse werden an diesem Rechner eingegeben. Aktivieren Sie die Ferneingabe, um auf Tablets zu leiten.",
     "remote_busy": "Auf dem Tablet dieser Bahn läuft bereits ein Gefecht",
     "remote_error": "Ferneingabe kann nicht gestartet werden",
+    "remote_artistic": "Künstlerisches Fechten hat keine Fernerfassung: Waffe der Sitzung ändern.",
     "lobby": "Bahn-Lobby",
     "lobby_copy": "Lobby-Link kopieren",
     "lobby_copied": "Lobby-Link kopiert",

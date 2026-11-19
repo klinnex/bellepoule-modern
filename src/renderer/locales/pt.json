@@ -3549,6 +3549,7 @@
     "remote_off": "Os resultados são introduzidos neste computador. Ative a introdução remota para arbitrar em tablet.",
     "remote_busy": "Já há um assalto em curso no tablet desta pista",
     "remote_error": "Não foi possível iniciar a introdução remota",
+    "remote_artistic": "A esgrima artística não tem marcação remota: altere a arma da sessão.",
     "lobby": "Lobby das pistas",
     "lobby_copy": "Copiar a ligação do lobby",
     "lobby_copied": "Ligação do lobby copiada",

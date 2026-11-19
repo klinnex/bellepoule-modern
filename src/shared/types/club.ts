@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { Weapon } from './index';
+import type { ClubWeaponCode } from '../utils/clubWeapon';
 
 export type Laterality = 'R' | 'L';
 
@@ -53,8 +54,8 @@ export interface ClubCoach {
   title?: string;
   phone?: string;
   email?: string;
-  /** Armes enseignées (vide = toutes) */
-  weapons: Weapon[];
+  /** Armes enseignées (vide = toutes) ; « A » = escrime artistique */
+  weapons: ClubWeaponCode[];
   notes?: string;
   /** false = archivé (n'est plus proposé sur les séances, historique conservé) */
   active: boolean;
@@ -76,7 +77,7 @@ export interface Club {
   logo?: string;
   stripCount: number;
   /** Arme par défaut des séances (règles de la saisie distante) : 1re arme de compétition de `weapons` */
-  weapon?: Weapon;
+  weapon?: ClubWeaponCode;
   /** Armes du club (codes E, F, S, L, A = escrime artistique) ; vide = non renseigné */
   weapons?: string[];
   createdAt: string;
@@ -96,14 +97,14 @@ export interface ClubUpdate {
   name?: string;
   logo?: string | null;
   stripCount?: number;
-  weapon?: Weapon | null;
+  weapon?: ClubWeaponCode | null;
   weapons?: string[];
 }
 
 /** Identité du club : en-tête des cartes de membre */
 export interface ClubSettings {
   name: string;
-  weapon?: Weapon;
+  weapon?: ClubWeaponCode;
   weapons?: string[];
   /** Logo en data URL image (png, jpeg, webp, svg) ; absent = pas de logo */
   logo?: string;
@@ -180,7 +181,7 @@ export interface ClubSession {
   label?: string;
   /** Heure de début (HH:MM, optionnelle, ex. 20:30) */
   startTime?: string;
-  weapon?: Weapon;
+  weapon?: ClubWeaponCode;
   stripCount: number;
   status: ClubSessionStatus;
   openedAt: string;
@@ -215,7 +216,7 @@ export interface ClubSessionInput {
   startTime?: string | null;
   /** Maîtres d'armes de la séance (ids du club) */
   coachIds?: string[];
-  weapon?: Weapon;
+  weapon?: ClubWeaponCode;
   stripCount?: number;
   objectives?: string;
   plan?: ClubPlanItem[];
