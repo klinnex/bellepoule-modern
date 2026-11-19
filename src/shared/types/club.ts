@@ -428,6 +428,8 @@ export interface ClubItem {
   invoiceRef?: string;
   /** Facture PDF importée (data URL application/pdf, 5 Mo max) */
   invoicePdf?: string;
+  /** Photo du matériel (data URL JPEG/PNG, redimensionnée à 720 px de haut) */
+  image?: string;
   /** Fin de garantie AAAA-MM-JJ */
   warrantyUntil?: string;
   condition: ClubItemCondition;
@@ -460,6 +462,7 @@ export type ClubItemInput = Pick<ClubItem, 'name' | 'category'> &
       | 'supplier'
       | 'invoiceRef'
       | 'invoicePdf'
+      | 'image'
       | 'warrantyUntil'
       | 'condition'
       | 'location'

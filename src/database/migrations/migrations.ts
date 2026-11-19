@@ -1205,4 +1205,15 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`UPDATE clubs SET weapons = weapon WHERE weapons IS NULL AND weapon IS NOT NULL`);
     },
   },
+  {
+    version: 44,
+    description: 'Mode Club : image du matériel (JPEG/PNG redimensionnée 720p) (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_items ADD COLUMN image TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];
