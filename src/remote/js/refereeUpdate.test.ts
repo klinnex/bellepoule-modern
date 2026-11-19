@@ -107,6 +107,29 @@ describe('refereeUpdate.js', () => {
     expect(U.serverTimerOf(null)).toBeNull();
   });
 
+  it('in_progress : mise à jour du chrono sans score à plat → score du match (#1999)', () => {
+    // Appareil de piste en minute de repos : un INFO par seconde, sans scoreA / scoreB
+    const data = {
+      status: 'in_progress',
+      match: { id: 'm1', poolId: 'p1', fencerA: fa, fencerB: fb, scoreA: 3, scoreB: 1 },
+      time: 34,
+      timerStatus: 'paused',
+      resting: true,
+      source: 'device',
+    };
+    const plan = U.planStatusTransition(idle, data);
+    expect(plan.action).toBe('resume');
+    expect(plan.match.scoreA).toEqual({ value: 3 });
+    expect(plan.match.scoreB).toEqual({ value: 1 });
+    // Décompte du repos : pas un chrono de combat à restaurer
+    expect(plan.match.serverTimer).toBeNull();
+  });
+
+  it('serverTimerOf : décompte de la minute de repos ignoré (#1999)', () => {
+    expect(U.serverTimerOf({ time: 34, timerStatus: 'paused', resting: true })).toBeNull();
+    expect(U.serverTimerOf({ time: 34, timerStatus: 'paused', resting: false })).not.toBeNull();
+  });
+
   it('in_progress : tireurs du match en repli', () => {
     const r = U.planStatusTransition(idle, {
       status: 'in_progress',

@@ -120,6 +120,32 @@ export function handleArenaControl(
         );
         // Restaurer isTableau depuis sessionMatches car la tablette ne le transmet pas
         const sessionMatch = ctx.sessionMatches.find(sm => sm.id === m.id);
+        // Appareil maître en ligne : rouvrir sur la tablette le match en cours de l'appareil ne
+        // touche ni au score ni aux cartons, qui viennent de l'appareil (#1999)
+        const current = arena.currentMatch;
+        const keepDeviceState =
+          cardLock &&
+          !!current &&
+          current.id === m.id &&
+          (arena.status === 'in_progress' || !!current.startTime);
+        if (keepDeviceState && current) {
+          ctx.logDiag(`[select_match] arena=${data.arenaId} état de l'appareil maître conservé`);
+          ctx.arenaRefereeSelected.set(data.arenaId, true);
+          // La tablette se cale sur l'état de l'arène, comme pour une mise à jour de l'appareil
+          const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+          socket.emit(`arena:${data.arenaId}:update`, {
+            arenaId: data.arenaId,
+            match: current,
+            scoreA: current.scoreA,
+            scoreB: current.scoreB,
+            cardsA: held.cardsA,
+            cardsB: held.cardsB,
+            status: arena.status,
+            cyrano: arena.cyrano ?? null,
+            source: 'device',
+          });
+          break;
+        }
         ctx.assignMatchToArena(
           data.arenaId,
           {
