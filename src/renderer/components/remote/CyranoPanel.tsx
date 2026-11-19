@@ -221,6 +221,14 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
   };
 
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  // Journal : toujours sur les dernières trames, sauf si l'utilisateur a remonté pour lire (#2001)
+  const logRef = useRef<HTMLPreElement>(null);
+  const logStickRef = useRef(true);
+  useEffect(() => {
+    const el = logRef.current;
+    if (showLog && el && logStickRef.current) el.scrollTop = el.scrollHeight;
+  }, [log, showLog]);
   const addRow = () => {
     void applyPistes([...pistes, { ...EMPTY_ROW }]);
   };
@@ -513,7 +521,11 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
           </Button>
           <label className="cyrano-option">
             {t('rsm.cyrano_profile')}
-            <select value={profileId} onChange={e => setProfileId(e.target.value)}>
+            <select
+              className="form-input cyrano-input"
+              value={profileId}
+              onChange={e => setProfileId(e.target.value)}
+            >
               {CYRANO_PROFILES.map(pr => (
                 <option key={pr.id} value={pr.id}>
                   {t(`rsm.cyrano_profile_${pr.id}`)} ({pr.port})
@@ -525,6 +537,7 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
             {t('rsm.cyrano_batch_from')}
             <input
               type="number"
+              className="form-input cyrano-input cyrano-w-xs"
               min={1}
               value={batchFrom}
               onChange={e => setBatchFrom(Math.max(1, parseInt(e.target.value, 10) || 1))}
@@ -534,6 +547,7 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
             {t('rsm.cyrano_batch_count')}
             <input
               type="number"
+              className="form-input cyrano-input cyrano-w-xs"
               min={1}
               max={64}
               value={batchCount}
@@ -563,33 +577,31 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
           >
             {t('rsm.cyrano_export')}
           </Button>
-          <label className="cyrano-option">
-            <Button size="sm" onClick={() => importInputRef.current?.click()}>
-              {t('rsm.cyrano_import')}
-            </Button>
-            <input
-              ref={importInputRef}
-              type="file"
-              accept="application/json,.json"
-              hidden
-              onChange={async e => {
-                const file = e.target.files?.[0];
-                e.target.value = '';
-                if (!file) return;
-                const res = parsePistesImport(await file.text());
-                if (!res.ok) {
-                  setImportMsg(
-                    t('rsm.cyrano_import_error', { reason: t(`rsm.cyrano_import_${res.error}`) })
-                  );
-                  return;
-                }
+          <Button size="sm" onClick={() => importInputRef.current?.click()}>
+            {t('rsm.cyrano_import')}
+          </Button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={async e => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (!file) return;
+              const res = parsePistesImport(await file.text());
+              if (!res.ok) {
                 setImportMsg(
-                  t('rsm.cyrano_import_done', { n: res.pistes.length, rejected: res.rejected })
+                  t('rsm.cyrano_import_error', { reason: t(`rsm.cyrano_import_${res.error}`) })
                 );
-                void applyPistes(res.pistes);
-              }}
-            />
-          </label>
+                return;
+              }
+              setImportMsg(
+                t('rsm.cyrano_import_done', { n: res.pistes.length, rejected: res.rejected })
+              );
+              void applyPistes(res.pistes);
+            }}
+          />
           {importMsg && <span className="cyrano-import-msg">{importMsg}</span>}
         </div>
       </div>
@@ -660,7 +672,15 @@ export const CyranoPanel: React.FC<{ competitionId: string | null }> = ({ compet
         </Button>
       </div>
       {showLog && (
-        <pre className="cyrano-log" aria-label={t('rsm.cyrano_log')}>
+        <pre
+          ref={logRef}
+          className="cyrano-log"
+          aria-label={t('rsm.cyrano_log')}
+          onScroll={e => {
+            const el = e.currentTarget;
+            logStickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+          }}
+        >
           {log.length === 0 ? t('rsm.cyrano_log_empty') : formatCyranoLog(log.slice(-LOG_LINES))}
         </pre>
       )}

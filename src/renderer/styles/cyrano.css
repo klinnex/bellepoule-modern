@@ -1,6 +1,8 @@
 /* Panneau Cyrano EFP1/EFP1.1 (#1720) */
 .cyrano-panel {
   margin-top: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 .cyrano-inline {
   display: flex;
@@ -96,8 +98,18 @@
   color: var(--danger);
   font-weight: 700;
 }
+/* Ajout de pistes : bouton, profil, début, nombre, lot, export, import sur une seule rangée */
 .cyrano-add {
   margin-top: 0.4rem;
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--slate-300);
+}
+.cyrano-add .cyrano-option {
+  white-space: nowrap;
 }
 .cyrano-options {
   margin-top: var(--space-3);
@@ -123,8 +135,10 @@
   padding: 0.25rem 0;
 }
 
-/* Journal des trames (#1829) */
+/* Journal des trames (#1829) : défile dans son cadre, n'élargit jamais la page (#2001) */
 .cyrano-log {
+  box-sizing: border-box;
+  max-width: 100%;
   max-height: 240px;
   overflow: auto;
   margin: 0.5rem 0 0;
