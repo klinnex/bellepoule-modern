@@ -1514,7 +1514,7 @@ select:focus {
 }
 
 .comp-stats-bar-icon {
-  font-size: 0.875rem;
+  display: flex;
 }
 
 .comp-stats-bar-sep {

@@ -343,7 +343,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         <div className="comp-stats-bar">
           <div className="comp-stats-bar-item">
             <span className="comp-stats-bar-icon">
-              <FencingMaskIcon size={13} />
+              <FencingMaskIcon size={16} />
             </span>
             <span>
               {t('competitionNav.fencers', { a: getCheckedInFencers().length, b: fencers.length })}

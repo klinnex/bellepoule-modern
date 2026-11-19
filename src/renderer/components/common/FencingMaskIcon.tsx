@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - Masque d'escrime (tireurs, barre de la compétition, #1817)
- * Trait façon lucide : coque grillagée + bavette.
+ * Trait façon lucide : coque grillagée + bavette, occupe toute la largeur du cadre 24×24.
  * Licensed under GPL-3.0
  */
 
@@ -22,11 +22,11 @@ export const FencingMaskIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
     data-testid="fencing-mask-icon"
   >
     {/* Coque */}
-    <path d="M6 9a6 6 0 0 1 12 0v4a6 6 0 0 1-12 0z" />
+    <path d="M5 9a7 7 0 0 1 14 0v4a7 7 0 0 1-14 0z" />
     {/* Grille */}
-    <path d="M9 4.5v13M12 3v16M15 4.5v13M6 9h12M6 13h12" />
+    <path d="M8.5 3.5v15M12 2v18M15.5 3.5v15M5 9h14M5 13h14" />
     {/* Bavette */}
-    <path d="M8 18.5 7 21h10l-1-2.5" />
+    <path d="M7.5 19 6.5 22h11l-1-3" />
   </svg>
 );
 
