@@ -23,6 +23,7 @@ import {
   localIsoDate,
   normalizeItemInput,
   normalizeQuantity,
+  imageDataUrl,
   pdfDataUrl,
   seriesNames,
 } from '../../shared/utils/clubInventory';
@@ -46,6 +47,7 @@ interface ItemRow {
   supplier: string | null;
   invoice_ref: string | null;
   invoice_pdf: string | null;
+  image: string | null;
   warranty_until: string | null;
   condition: string | null;
   location: string | null;
@@ -123,6 +125,7 @@ const rowToItem = (r: ItemRow): ClubItem => {
     supplier: opt(r.supplier),
     invoiceRef: opt(r.invoice_ref),
     invoicePdf: pdfDataUrl(r.invoice_pdf),
+    image: imageDataUrl(r.image),
     warrantyUntil: isIsoDate(r.warranty_until) ? (r.warranty_until as string) : undefined,
     condition: cond(r.condition, 'good'),
     location: opt(r.location),
@@ -209,8 +212,8 @@ export class ClubInventoryRepo {
     this.sql.run(
       `INSERT INTO club_items (id, club_id, name, category, brand, model, serial_number, weapon,
          size, color, quantity, purchase_date, purchase_price, supplier, invoice_ref,
-         warranty_until, condition, location, notes, retired, created_at, updated_at, invoice_pdf)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         warranty_until, condition, location, notes, retired, created_at, updated_at, invoice_pdf, image)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         clubId,
@@ -235,6 +238,7 @@ export class ClubInventoryRepo {
         now,
         now,
         e.invoicePdf ?? null,
+        e.image ?? null,
       ]
     );
     return this.requireItem(id);
@@ -281,7 +285,7 @@ export class ClubInventoryRepo {
       `UPDATE club_items SET name = ?, category = ?, brand = ?, model = ?, serial_number = ?,
          weapon = ?, size = ?, color = ?, quantity = ?, purchase_date = ?, purchase_price = ?,
          supplier = ?, invoice_ref = ?, warranty_until = ?, condition = ?, location = ?,
-         notes = ?, retired = ?, updated_at = ?, invoice_pdf = ?
+         notes = ?, retired = ?, updated_at = ?, invoice_pdf = ?, image = ?
        WHERE id = ?`,
       [
         e.name,
@@ -304,6 +308,7 @@ export class ClubInventoryRepo {
         e.retired ? 1 : 0,
         new Date().toISOString(),
         e.invoicePdf ?? null,
+        e.image ?? null,
         id,
       ]
     );
@@ -327,6 +332,7 @@ export class ClubInventoryRepo {
       supplier: i.supplier,
       invoiceRef: i.invoiceRef,
       invoicePdf: i.invoicePdf,
+      image: i.image,
       warrantyUntil: i.warrantyUntil,
       condition: i.condition,
       location: i.location,

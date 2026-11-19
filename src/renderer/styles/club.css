@@ -957,3 +957,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* #1872 : fiche de matériel — nom + image sur une ligne, grille 3 colonnes (retours 19/11) */
+.club-item-top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+.club-item-name {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.club-item-image {
+  flex: 0 0 200px;
+  min-width: 0;
+}
+.club-item-image__preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-item-image__preview img {
+  max-height: 64px;
+  max-width: 120px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+.club-item-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+  .club-item-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .club-item-top {
+    flex-wrap: wrap;
+  }
+  .club-item-image {
+    flex-basis: 100%;
+  }
+}
+/* Sélecteur d'heure natif : icône claire en mode sombre, comme les dates */
+.theme-dark input[type='time'] {
+  color-scheme: dark;
+}

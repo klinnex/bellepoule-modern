@@ -15,8 +15,11 @@ import { Weapon } from '../../../shared/types';
 import {
   ITEM_CATEGORIES,
   ITEM_CONDITIONS,
+  MAX_IMAGE_DATA_BYTES,
+  MAX_IMAGE_HEIGHT,
   MAX_INVOICE_PDF_BYTES,
   MAX_SERIES,
+  imageDataUrl,
   normalizeItemInput,
   pdfDataUrl,
   seriesNames,
@@ -46,6 +49,36 @@ interface ClubItemEditorProps {
 
 const numberOrUndef = (v: string): number | undefined => (v.trim() === '' ? undefined : Number(v));
 
+/**
+ * Lit une image (JPEG/PNG), la réduit à 720 px de haut si besoin (ratio conservé),
+ * et renvoie une data URL. PNG conservé (transparence), sinon JPEG qualité 0,85.
+ */
+function readImageAsDataUrl(file: File): Promise<string | null> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => resolve(null);
+      img.onload = () => {
+        const scale =
+          img.naturalHeight > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / img.naturalHeight : 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(null);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+        const url = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
+        resolve(imageDataUrl(url) ? url : null);
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
   item,
   customCategories,
@@ -70,9 +103,12 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
     item?.purchasePrice !== undefined ? String(item.purchasePrice) : ''
   );
   const [supplier, setSupplier] = useState(item?.supplier ?? '');
-  const [invoiceRef, setInvoiceRef] = useState(item?.invoiceRef ?? '');
+  // Référence de facture : saisie retirée du formulaire (la facture PDF la remplace)
+  const invoiceRef = item?.invoiceRef ?? '';
   const [invoicePdf, setInvoicePdf] = useState<string | undefined>(item?.invoicePdf);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [image, setImage] = useState<string | undefined>(item?.image);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [warrantyUntil, setWarrantyUntil] = useState(item?.warrantyUntil ?? '');
   const [condition, setCondition] = useState<ClubItemCondition>(item?.condition ?? 'good');
   const [location, setLocation] = useState(item?.location ?? '');
@@ -115,6 +151,7 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         supplier,
         invoiceRef,
         invoicePdf,
+        image,
         warrantyUntil: warrantyUntil || undefined,
         condition,
         location,
@@ -156,8 +193,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
         </>
       }
     >
-      <div className="club-grid-form">
-        <label className="form-label club-grow">
+      <div className="club-item-top">
+        <label className="form-label club-item-name">
           {t('clubInventory.name')} *
           <input
             className="form-input"
@@ -166,33 +203,84 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
             autoFocus
           />
         </label>
-        {canSeries && (
-          <div className="club-grow">
-            <ToggleChip pressed={series} onToggle={setSeries}>
-              {t('clubInventory.series_toggle')}
-            </ToggleChip>
-            {series && (
-              <>
-                <label className="form-label">
-                  {t('clubInventory.series_count')}
-                  <input
-                    className="form-input"
-                    type="number"
-                    min={1}
-                    max={MAX_SERIES}
-                    value={seriesCount}
-                    onChange={e => setSeriesCount(e.target.value)}
-                  />
-                </label>
-                <p className="club-muted">
-                  {preview
-                    ? t('clubInventory.series_preview', { names: preview })
-                    : t('clubInventory.series_help', { max: MAX_SERIES })}
-                </p>
-              </>
-            )}
-          </div>
-        )}
+        <div className="form-label club-item-image">
+          {t('clubInventory.image')}
+          {image ? (
+            <div className="club-item-image__preview">
+              <img src={image} alt="" />
+              <Button size="sm" variant="ghost" onClick={() => setImage(undefined)}>
+                {t('actions.delete')}
+              </Button>
+            </div>
+          ) : (
+            <input
+              type="file"
+              accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+              aria-label={t('clubInventory.image_import')}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                const isImage =
+                  file.type === 'image/jpeg' ||
+                  file.type === 'image/png' ||
+                  /\.(jpe?g|png)$/i.test(file.name);
+                if (!isImage) {
+                  setImageError(t('clubInventory.image_not_supported'));
+                  return;
+                }
+                if (file.size > MAX_IMAGE_DATA_BYTES * 4) {
+                  setImageError(t('clubInventory.image_too_big'));
+                  return;
+                }
+                readImageAsDataUrl(file)
+                  .then(url => {
+                    if (url) {
+                      setImage(url);
+                      setImageError(null);
+                    } else {
+                      setImageError(t('clubInventory.image_not_supported'));
+                    }
+                  })
+                  .catch(() => setImageError(t('clubInventory.image_not_supported')));
+              }}
+            />
+          )}
+          {imageError && (
+            <p role="alert" className="text-sm club-error">
+              {imageError}
+            </p>
+          )}
+        </div>
+      </div>
+      {canSeries && (
+        <div>
+          <ToggleChip pressed={series} onToggle={setSeries}>
+            {t('clubInventory.series_toggle')}
+          </ToggleChip>
+          {series && (
+            <>
+              <label className="form-label">
+                {t('clubInventory.series_count')}
+                <input
+                  className="form-input"
+                  type="number"
+                  min={1}
+                  max={MAX_SERIES}
+                  value={seriesCount}
+                  onChange={e => setSeriesCount(e.target.value)}
+                />
+              </label>
+              <p className="club-muted">
+                {preview
+                  ? t('clubInventory.series_preview', { names: preview })
+                  : t('clubInventory.series_help', { max: MAX_SERIES })}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+      <div className="club-grid-form club-item-form">
         <label className="form-label">
           {t('clubInventory.category')}
           <select
@@ -230,38 +318,18 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
           </select>
         </label>
         <label className="form-label">
-          {t('clubInventory.brand')}
-          <input
+          {t('clubInventory.condition')}
+          <select
             className="form-input"
-            list="club-item-brands"
-            value={brand}
-            onChange={e => setBrand(e.target.value)}
-          />
-          <datalist id="club-item-brands">
-            {brands.map(b => (
-              <option key={b} value={b} />
+            value={condition}
+            onChange={e => setCondition(e.target.value as ClubItemCondition)}
+          >
+            {ITEM_CONDITIONS.map(c => (
+              <option key={c} value={c}>
+                {t(`clubInventory.cond_${c}`)}
+              </option>
             ))}
-          </datalist>
-        </label>
-        <label className="form-label">
-          {t('clubInventory.model')}
-          <input className="form-input" value={model} onChange={e => setModel(e.target.value)} />
-        </label>
-        <label className="form-label">
-          {t('clubInventory.serial')}
-          <input
-            className="form-input"
-            value={serialNumber}
-            onChange={e => setSerialNumber(e.target.value)}
-          />
-        </label>
-        <label className="form-label">
-          {t('clubInventory.size')}
-          <input className="form-input" value={size} onChange={e => setSize(e.target.value)} />
-        </label>
-        <label className="form-label">
-          {t('clubInventory.color')}
-          <input className="form-input" value={color} onChange={e => setColor(e.target.value)} />
+          </select>
         </label>
         <label className="form-label">
           {t('clubInventory.quantity')}
@@ -285,39 +353,12 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
           />
         </label>
         <label className="form-label">
-          {t('clubInventory.purchase_price')}
-          <input
-            className="form-input"
-            type="number"
-            min={0}
-            step="0.01"
-            value={purchasePrice}
-            onChange={e => setPurchasePrice(e.target.value)}
-          />
-        </label>
-        <label className="form-label">
           {t('clubInventory.warranty_until')}
           <input
             className="form-input"
             type="date"
             value={warrantyUntil}
             onChange={e => setWarrantyUntil(e.target.value)}
-          />
-        </label>
-        <label className="form-label">
-          {t('clubInventory.supplier')}
-          <input
-            className="form-input"
-            value={supplier}
-            onChange={e => setSupplier(e.target.value)}
-          />
-        </label>
-        <label className="form-label">
-          {t('clubInventory.invoice')}
-          <input
-            className="form-input"
-            value={invoiceRef}
-            onChange={e => setInvoiceRef(e.target.value)}
           />
         </label>
         <div className="form-label">
@@ -367,18 +408,49 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
           )}
         </div>
         <label className="form-label">
-          {t('clubInventory.condition')}
-          <select
+          {t('clubInventory.purchase_price')}
+          <input
             className="form-input"
-            value={condition}
-            onChange={e => setCondition(e.target.value as ClubItemCondition)}
-          >
-            {ITEM_CONDITIONS.map(c => (
-              <option key={c} value={c}>
-                {t(`clubInventory.cond_${c}`)}
-              </option>
+            type="number"
+            min={0}
+            step="0.01"
+            value={purchasePrice}
+            onChange={e => setPurchasePrice(e.target.value)}
+          />
+        </label>
+        <label className="form-label">
+          {t('clubInventory.supplier')}
+          <input
+            className="form-input"
+            value={supplier}
+            onChange={e => setSupplier(e.target.value)}
+          />
+        </label>
+        <label className="form-label">
+          {t('clubInventory.brand')}
+          <input
+            className="form-input"
+            list="club-item-brands"
+            value={brand}
+            onChange={e => setBrand(e.target.value)}
+          />
+          <datalist id="club-item-brands">
+            {brands.map(b => (
+              <option key={b} value={b} />
             ))}
-          </select>
+          </datalist>
+        </label>
+        <label className="form-label">
+          {t('clubInventory.model')}
+          <input className="form-input" value={model} onChange={e => setModel(e.target.value)} />
+        </label>
+        <label className="form-label">
+          {t('clubInventory.serial')}
+          <input
+            className="form-input"
+            value={serialNumber}
+            onChange={e => setSerialNumber(e.target.value)}
+          />
         </label>
         <label className="form-label">
           {t('clubInventory.location')}
@@ -387,6 +459,14 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
             value={location}
             onChange={e => setLocation(e.target.value)}
           />
+        </label>
+        <label className="form-label">
+          {t('clubInventory.size')}
+          <input className="form-input" value={size} onChange={e => setSize(e.target.value)} />
+        </label>
+        <label className="form-label">
+          {t('clubInventory.color')}
+          <input className="form-input" value={color} onChange={e => setColor(e.target.value)} />
         </label>
         <label className="form-label club-grow">
           {t('clubInventory.notes')}

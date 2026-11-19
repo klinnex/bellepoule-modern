@@ -130,6 +130,7 @@ export function normalizeItemInput(data: Partial<ClubItemInput>): NormalizedItem
     supplier: text(data.supplier),
     invoiceRef: text(data.invoiceRef, 80),
     invoicePdf: pdfDataUrl(data.invoicePdf),
+    image: imageDataUrl(data.image),
     warrantyUntil: warrantyUntil || undefined,
     condition: isItemCondition(data.condition) ? data.condition : 'good',
     location: text(data.location),
@@ -265,6 +266,21 @@ export function toCsv(rows: (string | number | undefined | null)[][]): string {
 /** Facture PDF : data URL base64 application/pdf, 5 Mo max ; sinon undefined */
 export const MAX_INVOICE_PDF_BYTES = 5 * 1024 * 1024;
 const PDF_PREFIX = 'data:application/pdf;base64,';
+/** Photo du matériel : JPEG ou PNG en data URL (2 Mo max une fois encodée) */
+export const MAX_IMAGE_DATA_BYTES = 2 * 1024 * 1024;
+/** Hauteur maximale de la photo stockée (720p) */
+export const MAX_IMAGE_HEIGHT = 720;
+const IMAGE_PREFIXES = ['data:image/jpeg;base64,', 'data:image/png;base64,'];
+
+export function imageDataUrl(v: unknown): string | undefined {
+  if (typeof v !== 'string') return undefined;
+  const prefix = IMAGE_PREFIXES.find(p => v.startsWith(p));
+  if (!prefix) return undefined;
+  return v.length - prefix.length > 0 && v.length <= MAX_IMAGE_DATA_BYTES * 1.4 + prefix.length
+    ? v
+    : undefined;
+}
+
 export function pdfDataUrl(v: unknown): string | undefined {
   if (typeof v !== 'string' || !v.startsWith(PDF_PREFIX)) return undefined;
   const b64Length = v.length - PDF_PREFIX.length;
