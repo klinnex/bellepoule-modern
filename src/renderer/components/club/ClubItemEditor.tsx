@@ -54,6 +54,19 @@ const numberOrUndef = (v: string): number | undefined => (v.trim() === '' ? unde
  * et renvoie une data URL. PNG conservé (transparence), sinon JPEG qualité 0,85.
  */
 function readImageAsDataUrl(file: File): Promise<string | null> {
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if (isPdf) {
+    // PDF : stocké tel quel (pas de rendu ni de redimensionnement)
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => {
+        const url = String(reader.result);
+        resolve(imageDataUrl(url) ? url : null);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error);
@@ -207,7 +220,11 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
           {t('clubInventory.image')}
           {image ? (
             <div className="club-item-image__preview">
-              <img src={image} alt="" />
+              {image.startsWith('data:application/pdf') ? (
+                <span className="club-muted">{t('clubInventory.image_pdf_attached')}</span>
+              ) : (
+                <img src={image} alt="" />
+              )}
               <Button size="sm" variant="ghost" onClick={() => setImage(undefined)}>
                 {t('actions.delete')}
               </Button>
@@ -215,7 +232,7 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
           ) : (
             <input
               type="file"
-              accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+              accept="image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf"
               aria-label={t('clubInventory.image_import')}
               onChange={e => {
                 const file = e.target.files?.[0];
@@ -224,7 +241,8 @@ export const ClubItemEditor: React.FC<ClubItemEditorProps> = ({
                 const isImage =
                   file.type === 'image/jpeg' ||
                   file.type === 'image/png' ||
-                  /\.(jpe?g|png)$/i.test(file.name);
+                  file.type === 'application/pdf' ||
+                  /\.(jpe?g|png|pdf)$/i.test(file.name);
                 if (!isImage) {
                   setImageError(t('clubInventory.image_not_supported'));
                   return;

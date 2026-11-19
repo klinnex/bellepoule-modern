@@ -93,6 +93,9 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   const [lending, setLending] = useState<LendTarget>(null);
   const [returning, setReturning] = useState<ReturnTarget>(null);
   const [showHistory, setShowHistory] = useState(false);
+  // Liste repliable et sélection multiple (fiches en cartes, retours 19/11 #1872)
+  const [listOpen, setListOpen] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
   /** Colonnes affichées du tableau du matériel (le nom l'est toujours) */
   const [cols, setCols] = useState<Set<InventoryColumn>>(loadInventoryColumns);
   const [colMenuOpen, setColMenuOpen] = useState(false);
@@ -224,6 +227,39 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
       confirmLabel: t('actions.delete'),
     });
     if (ok) await run(() => api.deleteItem(item.id), t('clubInventory.deleted'));
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  /** Supprime les fiches sélectionnées ; celles encore prêtées sont ignorées */
+  const removeSelected = async () => {
+    const targets = items.filter(i => selected.has(i.id));
+    const deletable = targets.filter(i => i.lentQuantity === 0);
+    if (deletable.length === 0) return;
+    const ok = await confirm({
+      message: t('clubInventory.delete_selected_confirm', { count: deletable.length }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (!ok) return;
+    let failed = 0;
+    for (const item of deletable) {
+      try {
+        await api.deleteItem(item.id);
+      } catch {
+        failed++;
+      }
+    }
+    setSelected(new Set());
+    if (failed > 0)
+      showToast(t('clubInventory.delete_selected_partial', { count: failed }), 'error');
+    else showToast(t('clubInventory.deleted'), 'success');
+    await load();
   };
 
   const toggleRetired = (item: ClubItem) =>
@@ -545,7 +581,34 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           </div>
         </div>
 
-        {visible.length === 0 ? (
+        <div className="club-row club-row--end">
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-expanded={listOpen}
+            onClick={() => setListOpen(o => !o)}
+          >
+            {t(listOpen ? 'clubInventory.list_fold' : 'clubInventory.list_unfold')}
+          </Button>
+        </div>
+        {selected.size > 0 && (
+          <div className="club-row club-selection-bar" role="region" aria-live="polite">
+            <span>{t('clubInventory.selected_count', { count: selected.size })}</span>
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+              {t('clubInventory.clear_selection')}
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              disabled={locked}
+              icon={<Trash2 size={14} aria-hidden="true" />}
+              onClick={() => void removeSelected()}
+            >
+              {t('clubInventory.delete_selected')}
+            </Button>
+          </div>
+        )}
+        {!listOpen ? null : visible.length === 0 ? (
           <EmptyState
             title={t('clubInventory.no_items')}
             description={t('clubInventory.no_items_desc')}
@@ -568,8 +631,30 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
               </thead>
               <tbody>
                 {visible.map(i => (
-                  <tr key={i.id} className={i.retired ? 'club-row-archived' : undefined}>
-                    <td>
+                  <tr
+                    key={i.id}
+                    className={
+                      [
+                        i.retired ? 'club-row-archived' : '',
+                        selected.has(i.id) ? 'club-row-selected' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ') || undefined
+                    }
+                  >
+                    <td
+                      className="club-select-cell"
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={selected.has(i.id)}
+                      onClick={() => toggleSelect(i.id)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleSelect(i.id);
+                        }
+                      }}
+                    >
                       <strong>{i.name}</strong>
                       {nameDetails(i) && <div className="club-muted">{nameDetails(i)}</div>}
                       {i.retired && (
