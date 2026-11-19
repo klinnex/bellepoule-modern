@@ -120,11 +120,14 @@ const PAGE = `<!doctype html>
 <span style="color:#ff8a80">rouge</span>, <span style="color:#5fd197">vert</span> (bloc PC).
 Déroulé : <b>NEXT</b> → <b>BEGIN</b> → <b>STOP/GO</b>… → <b>VALIDATE</b> (ACK ou NAK).
 Fin de période : <b>PAUSE</b> (minute de repos, puis période suivante) ou <b>RESET</b> (temps de la période).
+Cartons P (EFP1.1, champ 12) : ∧ monte d'un cran (jaune P, rouge P, ×2, noir P, ×2), ∨ descend ; CARDS RESET les efface.
 Gauche = rouge, droite = vert, comme sur l'appareil. Un bouton grisé donne la raison au survol.
 Un clic sur l'en-tête d'une piste la déplie ou la replie (repliées d'office au-delà de 4 pistes).</p>
 <script>
 const STATES = { W: 'attente', H: 'halte', F: 'assaut', P: 'minute de repos', E: 'fin — attente ACK' };
 const WEAPONS = { E: 'épée', F: 'fleuret', S: 'sabre' };
+// Carton P (EFP1.1, champ 12) : 0 aucun, 1 jaune P, 2 rouge P, 3 deux rouges P, 4 noir P, 5 deux noirs P
+const P_CARDS = ['', 'P jaune', 'P rouge', 'P rouge ×2', 'P noir', 'P noir ×2'];
 const cards = new Map();
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 function send(piste, c) { fetch('/cmd?piste=' + encodeURIComponent(piste) + '&c=' + encodeURIComponent(c), { method: 'POST' }); }
@@ -162,7 +165,8 @@ function fencerBox(piste, s) {
     button(piste, '∧ rouge', 'r' + s, 'r'), button(piste, '∨ rouge', 'r' + s + '-', 'r'),
     button(piste, 'ABANDON', 'a' + s, 'y'), button(piste, 'EXPULSION', 'e' + s, 'r'),
     button(piste, 'RESERVE', 'res' + s, 'y'), button(piste, 'Médical +1', 'm' + s, 'r'),
-    button(piste, 'Prio. imposée', 'p' + s));
+    button(piste, 'Prio. imposée', 'p' + s),
+    button(piste, '∧ carton P', 'pc' + s + '+', 'r'), button(piste, '∨ carton P', 'pc' + s + '-', 'r'));
   box.append(btns);
   return box;
 }
@@ -208,6 +212,7 @@ function renderFencer(box, f, isPrio) {
   if (f.y) marks.append(el('span', 'mark y'));
   for (let i = 0; i < f.r; i++) marks.append(el('span', 'mark r'));
   if (isPrio) marks.append(el('span', 'mark t prio', 'P'));
+  if (f.p) marks.append(el('span', 'mark t', P_CARDS[f.p] || 'P ' + f.p));
   if (f.status === 'A') marks.append(el('span', 'mark t', 'abandon'));
   if (f.status === 'E') marks.append(el('span', 'mark t', 'exclu'));
   if (f.reserve === 'R') marks.append(el('span', 'mark t', 'réserve'));
