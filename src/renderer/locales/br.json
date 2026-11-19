@@ -3013,7 +3013,10 @@
     "black_card_note": "(skarzhadur, danevell kevread)",
     "match_n": "Emgann niv. {{n}}",
     "pending": "O vont en-dro…",
-    "resolve": "DT war an hent — Diskoulmet"
+    "resolve": "DT war an hent — Diskoulmet",
+    "abandon": "Dilezel",
+    "abandon_note": "(da gadarnaat gant an DT)",
+    "confirm_abandon": "Enrollañ an dilezel"
   },
   "qrShare": {
     "generating": "O c'henel ar c'hod QR…",

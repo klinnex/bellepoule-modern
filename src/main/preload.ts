@@ -420,17 +420,8 @@ const electronApi = {
     subscribe('remote:referee_changed', callback),
   onKioskNoteUpdate: (callback: Parameters<ElectronAPI['onKioskNoteUpdate']>[0]) =>
     subscribe('kiosk:note', callback),
-  onDTCall: (
-    callback: (data: {
-      arenaId: string;
-      arenaNumber: number | null;
-      matchNumber: number | null;
-      competitionId: string | null;
-      timestamp: number;
-      reason?: 'black_card';
-      fencerName?: string | null;
-    }) => void
-  ) => subscribe('remote:dt_call', callback),
+  onDTCall: (callback: (data: import('../shared/types/remote').DTCallEvent) => void) =>
+    subscribe('remote:dt_call', callback),
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) =>
     subscribe('remote:dt_cancel', callback),
 

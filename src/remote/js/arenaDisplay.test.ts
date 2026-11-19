@@ -107,6 +107,25 @@ describe('arenaDisplay.js ArenaDisplay', () => {
     expect(document.getElementById('connection-text')?.textContent).toBe('remote.disconnected');
   });
 
+  it('bandeau Repos (#2000) : masqué hors repos, visible en état P', () => {
+    const d = new ArenaDisplay();
+    planArenaUpdate.mockReturnValue([]);
+    d.handleArenaUpdate({ resting: false });
+    const el = document.getElementById('arena-resting-label');
+    expect(el?.hidden).toBe(true);
+    d.handleArenaUpdate({ resting: true });
+    expect(el?.hidden).toBe(false);
+    d.handleArenaUpdate({ resting: false });
+    expect(el?.hidden).toBe(true);
+  });
+
+  it('bandeau Repos (#2000) : les règles CSS sont dans arena.html (pas styles.css, non chargée)', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'arena.html'), 'utf8');
+    expect(html).not.toContain('/styles.css');
+    expect(html).toMatch(/\.arena-resting-label\s*\{[^}]*position:\s*fixed/);
+    expect(html).not.toMatch(/\.arena-resting-label[^{]*\{[^}]*display/);
+  });
+
   it('arena.html ne contient plus de script inline', () => {
     const html = fs.readFileSync(path.join(__dirname, '..', 'arena.html'), 'utf8');
     expect(html).toContain('<script src="/js/arenaDisplay.js"></script>');

@@ -1297,10 +1297,7 @@
       }
       #coin-result.hidden { display: none; }
 
-      @keyframes coinOverlayIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
-      }
+      @keyframes coinOverlayIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes resultPop {
         from { transform: scale(0.5); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
@@ -1319,6 +1316,7 @@
       body.colorblind .color-badge.red { background: linear-gradient(135deg, var(--tw-orange-500), var(--tw-orange-600)); }
       body.colorblind .score-big.green { text-shadow: 0 0 6px rgba(59, 130, 246, 0.95), 0 0 18px var(--score-green-glow); }
       body.colorblind .score-big.red { text-shadow: 0 0 6px rgba(249, 115, 22, 0.95), 0 0 18px var(--score-red-glow); }
+      .arena-resting-label { position: fixed; top: 0.5rem; left: 50%; transform: translateX(-50%); padding: 0.3rem 1rem; border-radius: 1rem; background: var(--color-warning); color: var(--color-black); font-weight: 700; z-index: 200; } /* Repos appareil de piste (état P, #2000) : masqué via l'attribut hidden */
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
     </style>
   </head>

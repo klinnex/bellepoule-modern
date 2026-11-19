@@ -3013,7 +3013,10 @@
     "black_card_note": "(exclusión, informe federativo)",
     "match_n": "Combate n.º {{n}}",
     "pending": "En curso…",
-    "resolve": "DT en camino — Resuelto"
+    "resolve": "DT en camino — Resuelto",
+    "abandon": "Abandono",
+    "abandon_note": "(por confirmar por el DT)",
+    "confirm_abandon": "Registrar el abandono"
   },
   "qrShare": {
     "generating": "Generando el código QR…",

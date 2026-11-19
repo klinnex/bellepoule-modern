@@ -3013,7 +3013,10 @@
     "black_card_note": "(Ausschluss, Verbandsbericht)",
     "match_n": "Gefecht Nr. {{n}}",
     "pending": "Läuft…",
-    "resolve": "DT unterwegs — Erledigt"
+    "resolve": "DT unterwegs — Erledigt",
+    "abandon": "Aufgabe",
+    "abandon_note": "(vom DT zu bestätigen)",
+    "confirm_abandon": "Aufgabe erfassen"
   },
   "qrShare": {
     "generating": "QR-Code wird erstellt…",

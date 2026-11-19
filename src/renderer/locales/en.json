@@ -3013,7 +3013,10 @@
     "black_card_note": "(exclusion, federation report)",
     "match_n": "Bout no. {{n}}",
     "pending": "In progress…",
-    "resolve": "DT on the way — Resolved"
+    "resolve": "DT on the way — Resolved",
+    "abandon": "Withdrawal",
+    "abandon_note": "(to be confirmed by the DT)",
+    "confirm_abandon": "Record the withdrawal"
   },
   "qrShare": {
     "generating": "Generating QR code…",
