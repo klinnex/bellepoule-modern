@@ -18,7 +18,7 @@ const INITIAL_CHUNKS = new Set(['runtime.js', 'react.js', 'vendors.js', 'main.js
 const BUDGETS = {
   initial: 2.75 * MiB,
   chunk: 1.25 * MiB, // CompetitionView ≈ 1.0 MiB en build dev (nov. 2026)
-  total: 8 * MiB, // ≈ 7.55 MiB en build dev (nov. 2026, Mode Club #1872 : jsqr ≈ 0.25 MiB à la demande, sauvegarde .bpclub, maîtres d'armes)
+  total: 8.5 * MiB, // ≈ 8.07 MiB en build dev (nov. 2026, #1996 correction de poule après tableau ; 8.01 MiB avant)
 };
 
 function walkJsFiles(dir) {
