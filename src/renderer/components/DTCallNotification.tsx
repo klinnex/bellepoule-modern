@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatTime } from '../../shared/utils/localeFormat';
+import { requestConfirmAbandon } from '../services/dtCallEvents';
 
 interface DTCallEntry {
   id: string;
@@ -16,7 +17,8 @@ interface DTCallEntry {
   competitionId: string | null;
   timestamp: number;
   acknowledging: boolean;
-  reason?: 'black_card';
+  reason?: 'black_card' | 'abandon';
+  fencerId?: string | null;
   fencerName?: string | null;
 }
 
@@ -41,6 +43,7 @@ const DTCallNotification: React.FC = () => {
             timestamp: data.timestamp,
             acknowledging: false,
             reason: data.reason,
+            fencerId: data.fencerId,
             fencerName: data.fencerName,
           },
         ];
@@ -82,6 +85,15 @@ const DTCallNotification: React.FC = () => {
     setCalls(prev => prev.filter(c => c.id !== call.id));
   }, []);
 
+  // Abandon signalé par l'appareil : le DT confirme, puis l'appel est soldé (#2000)
+  const confirmAbandon = useCallback(
+    (call: DTCallEntry) => {
+      if (!call.fencerId) return;
+      if (requestConfirmAbandon(call.fencerId, call.competitionId)) void acknowledge(call);
+    },
+    [acknowledge]
+  );
+
   if (calls.length === 0) return null;
 
   return (
@@ -109,12 +121,27 @@ const DTCallNotification: React.FC = () => {
               {call.fencerName ? ` — ${call.fencerName}` : ''} {t('dtCall.black_card_note')}
             </div>
           )}
+          {call.reason === 'abandon' && (
+            <div className="dt-call-notification-3">
+              {t('dtCall.abandon')}
+              {call.fencerName ? ` — ${call.fencerName}` : ''} {t('dtCall.abandon_note')}
+            </div>
+          )}
           {call.matchNumber != null && (
             <div className="dt-call-notification-4">
               {t('dtCall.match_n', { n: call.matchNumber })}
             </div>
           )}
           <div className="dt-call-notification-5">{formatTime(call.timestamp)}</div>
+          {call.reason === 'abandon' && call.fencerId && (
+            <button
+              onClick={() => confirmAbandon(call)}
+              disabled={call.acknowledging}
+              className="dt-call-notification-confirm"
+            >
+              {t('dtCall.confirm_abandon')}
+            </button>
+          )}
           <button
             onClick={() => acknowledge(call)}
             disabled={call.acknowledging}

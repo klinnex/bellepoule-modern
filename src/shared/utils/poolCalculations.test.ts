@@ -812,6 +812,39 @@ describe('isMatchVoidedByForfeit (#1144)', () => {
       false
     );
   });
+  describe('abandon signalé par l appareil, statut du tireur (#2000, FIE o.74)', () => {
+    const mkF = (loserStatus: FencerStatus): Match =>
+      ({
+        status: MatchStatus.FINISHED,
+        scoreA: sc({ value: 5, isVictory: true }),
+        scoreB: sc({ value: 2, isAbstention: true }),
+        fencerA: { id: 'a', status: FencerStatus.CHECKED_IN },
+        fencerB: { id: 'b', status: loserStatus },
+      }) as unknown as Match;
+
+    it('statut inchangé : combat normal, non annulé', () => {
+      expect(isMatchVoidedByForfeit(mkF(FencerStatus.CHECKED_IN))).toBe(false);
+    });
+    it('statut ABANDONED : combat annulé', () => {
+      expect(isMatchVoidedByForfeit(mkF(FencerStatus.ABANDONED))).toBe(true);
+    });
+    it('classement : V+1 et touches comptées tant que le statut est inchangé, rien une fois ABANDONED', () => {
+      const m = mkF(FencerStatus.CHECKED_IN);
+      const winner = m.fencerA as Fencer;
+      expect(calculateFencerPoolStats(winner, [m])).toMatchObject({
+        victories: 1,
+        touchesScored: 5,
+        touchesReceived: 2,
+        index: 3,
+      });
+      const after = mkF(FencerStatus.ABANDONED);
+      expect(calculateFencerPoolStats(after.fencerA as Fencer, [after])).toMatchObject({
+        victories: 0,
+        matchesPlayed: 0,
+        index: 0,
+      });
+    });
+  });
 });
 
 describe('distributeFencersGroupedByLevel (rapières, #1441)', () => {

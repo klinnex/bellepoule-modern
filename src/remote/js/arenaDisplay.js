@@ -274,12 +274,13 @@ class ArenaDisplay {
     if (!el) {
       el = document.createElement('div');
       el.id = 'arena-resting-label';
-      el.className = 'arena-resting-label hidden';
+      el.className = 'arena-resting-label';
+      el.hidden = true;
       el.setAttribute('role', 'status');
       document.body.appendChild(el);
     }
     el.textContent = window.T ? window.T('arena.resting_label') : 'Repos';
-    el.classList.toggle('hidden', !resting);
+    el.hidden = !resting;
   }
 
   handleArenaUpdate(data) {

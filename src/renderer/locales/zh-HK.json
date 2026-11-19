@@ -3013,7 +3013,10 @@
     "black_card_note": "（取消資格，須向總會報告）",
     "match_n": "第 {{n}} 場",
     "pending": "處理中…",
-    "resolve": "DT 已出發 — 已解決"
+    "resolve": "DT 已出發 — 已解決",
+    "abandon": "棄權",
+    "abandon_note": "（須由 DT 確認）",
+    "confirm_abandon": "記錄棄權"
   },
   "qrShare": {
     "generating": "正在產生二維碼…",

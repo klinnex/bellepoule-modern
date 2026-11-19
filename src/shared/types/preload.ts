@@ -1457,17 +1457,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void
   ) => () => void;
-  onDTCall: (
-    callback: (data: {
-      arenaId: string;
-      arenaNumber: number | null;
-      matchNumber: number | null;
-      competitionId: string | null;
-      timestamp: number;
-      reason?: 'black_card';
-      fencerName?: string | null;
-    }) => void
-  ) => () => void;
+  onDTCall: (callback: (data: import('./remote').DTCallEvent) => void) => () => void;
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => () => void;
   onScoreIpConflict: (callback: (data: ScoreIpConflict) => void) => () => void;
   onPoolSignatureUpdated: (

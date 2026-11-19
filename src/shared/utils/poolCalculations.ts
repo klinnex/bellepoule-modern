@@ -237,12 +237,29 @@ export function isMatchCancelledByForfeit(match: Match): boolean {
 /**
  * Match saisi comme forfait / abandon / exclusion (armes olympiques incluses) :
  * considéré non joué, sans effet sur V/M, TD, TR ni indice (#1144).
+ *
+ * Exception (#2000) : un abandon signalé par l'appareil de piste sur un tireur dont le statut n'a
+ * pas (encore) été passé à ABANDONED par le DT reste un combat normal (V pour le vainqueur, touches
+ * comptées) ; il n'est annulé qu'une fois le statut posé (FIE o.74). Le même critère que le
+ * classement (voidsMatchForOpponent) : la grille et les V/M restent cohérents.
  */
 export function isMatchVoidedByForfeit(match: Match): boolean {
   if (match.status !== MatchStatus.FINISHED) return false;
-  const flagged = (s: Score | null | undefined) =>
-    !!s && (s.isForfait || s.isAbstention || s.isExclusion);
-  return flagged(match.scoreA) || flagged(match.scoreB) || isMatchCancelledByForfeit(match);
+  if (isMatchCancelledByForfeit(match)) return true;
+  const flagged = (s: Score | null | undefined) => !!s && (s.isForfait || s.isExclusion);
+  if (flagged(match.scoreA) || flagged(match.scoreB)) return true;
+  const abandonVoids = (s: Score | null | undefined, fencer: Fencer | null | undefined) =>
+    !!s?.isAbstention && (!fencer?.status || isOutStatus(fencer.status));
+  return abandonVoids(match.scoreA, match.fencerA) || abandonVoids(match.scoreB, match.fencerB);
+}
+
+/** Tireur sorti de la poule (forfait, abandon, exclusion) */
+function isOutStatus(status: FencerStatus): boolean {
+  return (
+    status === FencerStatus.FORFAIT ||
+    status === FencerStatus.ABANDONED ||
+    status === FencerStatus.EXCLUDED
+  );
 }
 
 export interface FencerPoolStatsOptions {
