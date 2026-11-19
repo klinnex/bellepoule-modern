@@ -107,13 +107,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 121 | 644 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 60 | 413 |
+| `src/remote/` | 60 | 414 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **503** | **3887** |
+| **Total** | **503** | **3888** |
 
-Unitaires : 493 fichiers, 3848 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 493 fichiers, 3849 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -7717,7 +7717,7 @@ Unitaires : 493 fichiers, 3848 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeControls.test.ts</code> — 11 tests</summary>
+<summary><code>src/remote/js/refereeControls.test.ts</code> — 12 tests</summary>
 
 - **refereeControls.js controlButtonsState**
   - tirage du prioritaire : tout verrouillé
@@ -7730,6 +7730,7 @@ Unitaires : 493 fichiers, 3848 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - timerClasses
   - scoreButtonsLocked
   - cardButtonsLocked : chrono en marche (#1826)
+  - cardButtonsLocked : actifs avant le départ du chrono (#1936)
   - canStartRest : toutes les conditions requises
   - referee.html charge le module et délègue
 
