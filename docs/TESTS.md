@@ -102,18 +102,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 20 | 262 |
-| `src/main/` | 110 | 902 |
+| `src/main/` | 110 | 905 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 120 | 636 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 59 | 398 |
+| `src/remote/` | 59 | 400 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **498** | **3842** |
+| **Total** | **498** | **3847** |
 
-Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 488 fichiers, 3808 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3330,7 +3330,7 @@ Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/e2e.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/cyrano/e2e.test.ts</code> — 6 tests</summary>
 
 - **Cyrano bout en bout : UDP réel, appareil simulé (#1829)**
   - DISP reçu par UDP : tireurs, n° de poule et de match
@@ -3338,6 +3338,7 @@ Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - VALIDATE → ACK par UDP → match terminé
   - PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés
   - égalité sans priorité : NAK, match non terminé
+  - repos de l’appareil : une tablette qui ouvre le match ne remet pas le score à 0 (#1999)
 
 </details>
 
@@ -4191,10 +4192,13 @@ Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 1 test</summary>
+<summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 3 tests</summary>
 
 - **arena\_control select\_match (#1882)**
   - reprend fencerA / fencerB / referee de la session
+- **arena\_control select\_match, appareil maître (#1999)**
+  - rouvrir le match en cours garde score et cartons, et recale la tablette
+  - mode manuel ou appareil hors ligne : sélection habituelle
 
 </details>
 
@@ -7823,7 +7827,7 @@ Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 13 tests</summary>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 15 tests</summary>
 
 - **refereeUpdate.js**
   - scoreValue : nombre, objet, absent
@@ -7832,6 +7836,8 @@ Unitaires : 488 fichiers, 3803 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - in\_progress : reprise avec scores (nombre ou objet), ignorée si déjà connu
   - in\_progress : chrono sauvegardé par le serveur joint à la reprise (#1829)
   - serverTimerOf : seulement un chrono à l’arrêt et plausible
+  - in\_progress : mise à jour du chrono sans score à plat → score du match (#1999)
+  - serverTimerOf : décompte de la minute de repos ignoré (#1999)
   - in\_progress : tireurs du match en repli
   - ready : nouveau match, déjà courant, ou match en cours
   - replaceOrPush et markReadyOrPush
