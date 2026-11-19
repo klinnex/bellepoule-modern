@@ -1028,3 +1028,9 @@
   align-items: center;
   margin: 0;
 }
+.club-group-lend-list {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  max-height: 180px;
+  overflow: auto;
+}

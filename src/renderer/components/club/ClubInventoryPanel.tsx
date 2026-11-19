@@ -55,6 +55,7 @@ import { useToast } from '../Toast';
 import { ClubListModal } from './ClubListModal';
 import { ClubItemEditor } from './ClubItemEditor';
 import { ClubLoanModal } from './ClubLoanModal';
+import { ClubGroupLoanModal } from './ClubGroupLoanModal';
 import { openInventoryFile, saveSpreadsheetFile, saveTextFile } from './clubFiles';
 import {
   INVENTORY_COLUMNS,
@@ -96,6 +97,7 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
   // Liste repliable et sélection multiple (fiches en cartes, retours 19/11 #1872)
   const [listOpen, setListOpen] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [groupLending, setGroupLending] = useState(false);
   /** Colonnes affichées du tableau du matériel (le nom l'est toujours) */
   const [cols, setCols] = useState<Set<InventoryColumn>>(loadInventoryColumns);
   const [colMenuOpen, setColMenuOpen] = useState(false);
@@ -599,6 +601,18 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
             </Button>
             <Button
               size="sm"
+              variant="secondary"
+              disabled={
+                locked ||
+                !items.some(i => selected.has(i.id) && !i.retired && i.availableQuantity > 0)
+              }
+              icon={<HandCoins size={14} aria-hidden="true" />}
+              onClick={() => setGroupLending(true)}
+            >
+              {t('clubInventory.lend_selection')}
+            </Button>
+            <Button
+              size="sm"
               variant="danger"
               disabled={locked}
               icon={<Trash2 size={14} aria-hidden="true" />}
@@ -832,6 +846,21 @@ export const ClubInventoryPanel: React.FC<{ clubId: string }> = ({ clubId }) => 
           onClose={() => setLending(null)}
           onLend={async data => {
             await api.lendItem({ itemId: lending.item.id, ...data });
+            await load();
+          }}
+        />
+      )}
+      {groupLending && (
+        <ClubGroupLoanModal
+          items={items.filter(i => selected.has(i.id))}
+          members={members.filter(m => m.active)}
+          onClose={() => {
+            setGroupLending(false);
+            setSelected(new Set());
+          }}
+          onLend={async data => {
+            const { itemId, ...rest } = data;
+            await api.lendItem({ itemId, ...rest });
             await load();
           }}
         />
