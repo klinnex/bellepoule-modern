@@ -30,6 +30,8 @@
    */
   function serverTimerOf(data) {
     if (!data || typeof data.time !== 'number' || !Number.isFinite(data.time)) return null;
+    // Minute de repos de l'appareil (état P) : le décompte est celui du repos, pas du combat (#1999)
+    if (data.resting === true) return null;
     if (data.time < 0 || data.time > 3600 || data.timerStatus !== 'paused') return null;
     return {
       time: data.time,
@@ -60,8 +62,10 @@
           poolId: data.match.poolId,
           fencerA: data.fencerA || data.match.fencerA,
           fencerB: data.fencerB || data.match.fencerB,
-          scoreA: { value: scoreValue(data.scoreA) },
-          scoreB: { value: scoreValue(data.scoreB) },
+          // Mises à jour du chrono (appareil de piste : une par seconde) sans score à plat :
+          // score du match transmis, jamais 0 par défaut (#1999)
+          scoreA: { value: scoreValue(data.scoreA ?? data.match.scoreA) },
+          scoreB: { value: scoreValue(data.scoreB ?? data.match.scoreB) },
           status: 'in_progress',
           serverTimer: serverTimerOf(data),
         },
