@@ -100,9 +100,9 @@
     return matchStatus === 'not_started' || matchStatus === 'finished';
   }
 
-  /** Cartons : verrouillés comme les scores, et pendant que le chrono tourne (#1826) */
+  /** Cartons : actifs avant le départ du chrono ; verrouillés après la fin du match et pendant que le chrono tourne (#1826, #1936) */
   function cardButtonsLocked(matchStatus, timerRunning) {
-    return scoreButtonsLocked(matchStatus) || !!timerRunning;
+    return matchStatus === 'finished' || !!timerRunning;
   }
 
   /** Le repos (escrime moderne) n'est possible qu'à 0 s, chrono arrêté, match en cours */

@@ -118,6 +118,10 @@ describe('refereeControls.js chrono et repos', () => {
     expect(R.cardButtonsLocked('finished', false)).toBe(true);
   });
 
+  it('cardButtonsLocked : actifs avant le départ du chrono (#1936)', () => {
+    expect(R.cardButtonsLocked('not_started', false)).toBe(false);
+  });
+
   it('canStartRest : toutes les conditions requises', () => {
     const ok = {
       isModernFencing: true,

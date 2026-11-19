@@ -709,20 +709,26 @@
         white-space: nowrap;
       }
 
+      /* Nom de l'arbitre : chip « bleu roi / blanc » en thème Mousquetaires (#1936) */
       .referee-bar-name {
         flex: 1;
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding: 0.2rem 0.6rem;
+        border-radius: 0.4rem;
+        background: var(--ref-btn-bg, transparent);
+        border: 1px solid var(--ref-btn-border, transparent);
+        color: var(--ref-btn-text, inherit);
       }
 
       .referee-change-btn {
         padding: 0.3rem 0.7rem;
-        border: 1px solid rgba(255,255,255,0.3);
+        border: 1px solid var(--ref-btn-border, rgba(255,255,255,0.3));
         border-radius: 0.4rem;
-        background: transparent;
-        color: inherit;
+        background: var(--ref-btn-bg, transparent);
+        color: var(--ref-btn-text, inherit);
         font-size: 0.8rem;
         cursor: pointer;
         white-space: nowrap;
