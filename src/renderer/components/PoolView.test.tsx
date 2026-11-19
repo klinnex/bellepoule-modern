@@ -364,3 +364,42 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     expect(screen.getAllByText(/Martin/).length).toBeGreaterThan(0);
   });
 });
+
+describe('PoolView - poule figée par le tableau (#1996)', () => {
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: { getPoolSignatures: vi.fn().mockResolvedValue([]) },
+      onPoolSignatureUpdated: vi.fn().mockReturnValue(() => {}),
+    };
+    localStorage.setItem('bellepoule-simplified-input-mode', 'true');
+  });
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  const freeze = (correcting: boolean) => ({
+    correcting,
+    onStartCorrection: vi.fn(),
+    onEndCorrection: vi.fn(),
+  });
+
+  it('tableau tiré : bandeau, cases verrouillées, pas de saisie', () => {
+    const f = freeze(false);
+    render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} tableauFreeze={f} />);
+    expect(screen.getByText('poolView.tableau_locked')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
+    expect(screen.queryByRole('textbox')).toBeNull();
+    fireEvent.click(screen.getByText('poolView.tableau_correction_start'));
+    expect(f.onStartCorrection).toHaveBeenCalled();
+  });
+
+  it('mode correction : saisie possible, transmise pour vérification', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} tableauFreeze={freeze(true)} />);
+    expect(screen.getByText('poolView.tableau_correcting')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '4' } });
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 4);
+  });
+});

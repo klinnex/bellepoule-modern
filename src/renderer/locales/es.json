@@ -910,7 +910,11 @@
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "¿Quién es el ganador?",
     "tie_none": "Ninguno",
-    "score_cleared": "Resultado borrado"
+    "score_cleared": "Resultado borrado",
+    "tableau_locked": "Cuadro sorteado: poule bloqueada. Toda corrección se verifica antes de aplicarse.",
+    "tableau_correcting": "Corrección en curso: cada resultado modificado muestra su impacto en la clasificación y el cuadro.",
+    "tableau_correction_start": "Corregir un resultado",
+    "tableau_correction_end": "Terminar la corrección"
   },
   "presentation": {
     "no_club": "Sin club",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Puntos Sable Láser",
     "legend_qm_full": "Puntos Quest / combates",
     "go_tableau_winners": "Cuadro ({{n}} ganadores) →",
-    "go_tableau": "Pasar al cuadro →"
+    "go_tableau": "Pasar al cuadro →",
+    "frozen": "Cuadro sorteado: clasificación bloqueada. Para corregir un resultado, use la pestaña Poules.",
+    "see_tableau": "Ver el cuadro →"
   },
   "poolMatrix": {
     "not_fenced": "Combate no disputado (médico/forfait)",
@@ -4134,5 +4140,41 @@
     "scratch": "Scratch",
     "start": "Inicio",
     "imported": "Importados: {{fencers}} tirador(es), {{teams}} equipo(s), {{referees}} árbitro(s)"
+  },
+  "poolCorrection": {
+    "title": "Corregir un resultado de poule",
+    "intro": "El cuadro ya está sorteado. Compruebe el impacto de la corrección antes de aplicarla.",
+    "pool_n": "Poule {{n}}",
+    "ranking_title": "Clasificación tras las poules",
+    "ranking_none": "Ningún cambio en la clasificación.",
+    "col_fencer": "Tirador",
+    "col_before": "Antes",
+    "col_after": "Después",
+    "more_one": "… y {{count}} tirador más",
+    "more_other": "… y {{count}} tiradores más",
+    "tableau_title": "Cuadro",
+    "tableau_ok": "El cuadro no se ve afectado: cabezas de serie y clasificados sin cambios.",
+    "tableau_outdated": "El cuadro sorteado ya no corresponde a la clasificación corregida.",
+    "seed_change": "{{name}}: cabeza de serie {{from}} → {{to}}",
+    "entering": "Entraría en el cuadro: {{names}}",
+    "leaving": "Saldría del cuadro: {{names}}",
+    "choice": "Mantener el cuadro: los asaltos y cabezas de serie del sorteo no cambian. Rehacer el cuadro: nuevo sorteo con la clasificación corregida.",
+    "played_one": "{{count}} asalto del cuadro ya disputado.",
+    "played_other": "{{count}} asaltos del cuadro ya disputados.",
+    "rebuild_warning_one": "Rehacer el cuadro borra {{count}} asalto ya disputado. Escriba {{word}} para confirmar:",
+    "rebuild_warning_other": "Rehacer el cuadro borra {{count}} asaltos ya disputados. Escriba {{word}} para confirmar:",
+    "rebuild_word": "REHACER",
+    "rebuild_word_aria": "Palabra de confirmación",
+    "cancel": "Cancelar",
+    "keep": "Corregir, mantener el cuadro",
+    "keep_ok": "Aplicar la corrección",
+    "rebuild": "Corregir y rehacer el cuadro",
+    "reason_ok": "Corrección tras el sorteo del cuadro, sin impacto en el cuadro",
+    "reason_keep": "Corrección tras el sorteo del cuadro, cuadro mantenido",
+    "reason_rebuild": "Corrección tras el sorteo del cuadro, cuadro rehecho",
+    "special_refused": "Abandono, no presentado o exclusión tras el sorteo del cuadro: regístrelo en el cuadro.",
+    "applied_ok": "Corrección aplicada",
+    "applied_keep": "Corrección aplicada, cuadro mantenido tal como se sorteó",
+    "applied_rebuild": "Corrección aplicada, cuadro rehecho con la clasificación corregida"
   }
 }

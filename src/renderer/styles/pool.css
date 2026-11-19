@@ -831,3 +831,143 @@ button.pv-pill {
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
 }
+
+/* Poule figée par le tirage du tableau (#1996) */
+.pv-tableau-freeze {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.8rem;
+}
+.pv-tableau-freeze.is-correcting {
+  background: var(--color-notice-bg);
+  border-bottom-color: var(--color-warning);
+}
+.pv-tableau-freeze-text {
+  flex: 1;
+}
+.pv-tableau-freeze-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pv-tableau-freeze.is-correcting .pv-tableau-freeze-btn {
+  border-color: var(--color-warning);
+}
+
+/* Classement figé par le tirage du tableau (#1996) */
+.pool-ranking-frozen {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+/* Correction d'un résultat de poule après tirage du tableau (#1996) */
+.pool-correction-intro {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-muted);
+}
+.pool-correction-match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-2);
+}
+.pool-correction-pool {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.pool-correction-arrow {
+  color: var(--color-text-muted);
+}
+.pool-correction-new {
+  color: var(--color-warning);
+}
+.pool-correction-h {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.9rem;
+}
+.pool-correction-none,
+.pool-correction-played {
+  margin: 0.25rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+.pool-correction-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.pool-correction-table th,
+.pool-correction-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+.pool-correction-table .is-up {
+  color: var(--color-success);
+  font-weight: 600;
+}
+.pool-correction-table .is-down {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+.pool-correction-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-success);
+}
+.pool-correction-warn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-warning);
+  border-radius: 8px;
+  background: var(--color-notice-bg);
+}
+.pool-correction-warn p {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0;
+}
+.pool-correction-warn ul {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+}
+.pool-correction-word {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-danger);
+}
+.pool-correction-word input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-danger);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.pool-correction-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

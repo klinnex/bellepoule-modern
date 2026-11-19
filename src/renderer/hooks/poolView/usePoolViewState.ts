@@ -48,6 +48,7 @@ export function usePoolViewState(ctx: Ctx) {
     autoFillReferees,
     onAutoFillReferees,
     waveMatchIds,
+    tableauFreeze,
   } = ctx;
 
   const { t } = useTranslation();
@@ -232,9 +233,12 @@ export function usePoolViewState(ctx: Ctx) {
 
   const isLaserSabre = weapon === Weapon.LASER;
   const tieByVictory = tieBreakByVictory ?? isLaserSabre;
-  const isLocked =
+  const isSignedLocked =
     pool.fencers.length > 0 &&
     signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
+  // Tableau tiré : poule figée hors correction explicite (#1996)
+  const isTableauLocked = !!tableauFreeze && !tableauFreeze.correcting;
+  const isLocked = isSignedLocked || isTableauLocked;
   const fencers = pool.fencers;
 
   const isVisible = useCallback(
@@ -388,6 +392,8 @@ export function usePoolViewState(ctx: Ctx) {
     isLaserSabre,
     tieByVictory,
     isLocked,
+    isSignedLocked,
+    isTableauLocked,
     fencers,
     isVisible,
     columnFilterEdited,

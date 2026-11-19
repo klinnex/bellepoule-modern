@@ -910,7 +910,11 @@
     "priority_holder": "Priorität: {{name}}",
     "tie_choose_winner": "Wer ist der Sieger?",
     "tie_none": "Keiner",
-    "score_cleared": "Ergebnis gelöscht"
+    "score_cleared": "Ergebnis gelöscht",
+    "tableau_locked": "Tableau ausgelost: Pool gesperrt. Jede Korrektur wird vor dem Übernehmen geprüft.",
+    "tableau_correcting": "Korrektur läuft: jedes geänderte Ergebnis zeigt seine Auswirkung auf Rangliste und Tableau.",
+    "tableau_correction_start": "Ergebnis korrigieren",
+    "tableau_correction_end": "Korrektur beenden"
   },
   "presentation": {
     "no_club": "Kein Verein",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Laserschwert-Punkte",
     "legend_qm_full": "Quest-Punkte / Gefechte",
     "go_tableau_winners": "Tableau ({{n}} Sieger) →",
-    "go_tableau": "Zum Tableau →"
+    "go_tableau": "Zum Tableau →",
+    "frozen": "Tableau ausgelost: Rangliste gesperrt. Ergebnisse über den Reiter Pools korrigieren.",
+    "see_tableau": "Tableau anzeigen →"
   },
   "poolMatrix": {
     "not_fenced": "Gefecht nicht ausgetragen (medizinisch/Forfait)",
@@ -4134,5 +4140,41 @@
     "scratch": "Scratch",
     "start": "Beginn",
     "imported": "Importiert: {{fencers}} Fechter, {{teams}} Mannschaft(en), {{referees}} Schiedsrichter"
+  },
+  "poolCorrection": {
+    "title": "Pool-Ergebnis korrigieren",
+    "intro": "Das Tableau ist bereits ausgelost. Prüfen Sie die Auswirkung der Korrektur, bevor Sie sie übernehmen.",
+    "pool_n": "Pool {{n}}",
+    "ranking_title": "Rangliste nach den Pools",
+    "ranking_none": "Keine Änderung der Rangliste.",
+    "col_fencer": "Fechter",
+    "col_before": "Vorher",
+    "col_after": "Nachher",
+    "more_one": "… und {{count}} weiterer Fechter",
+    "more_other": "… und {{count}} weitere Fechter",
+    "tableau_title": "Tableau",
+    "tableau_ok": "Das Tableau ist nicht betroffen: Setzungen und Qualifizierte unverändert.",
+    "tableau_outdated": "Das ausgeloste Tableau entspricht nicht mehr der korrigierten Rangliste.",
+    "seed_change": "{{name}}: Setzplatz {{from}} → {{to}}",
+    "entering": "Käme ins Tableau: {{names}}",
+    "leaving": "Fiele aus dem Tableau: {{names}}",
+    "choice": "Tableau behalten: Begegnungen und Setzungen der Auslosung bleiben. Tableau neu auslosen: neue Auslosung nach der korrigierten Rangliste.",
+    "played_one": "{{count}} Tableau-Gefecht bereits gefochten.",
+    "played_other": "{{count}} Tableau-Gefechte bereits gefochten.",
+    "rebuild_warning_one": "Neu auslosen löscht {{count}} bereits gefochtenes Gefecht. Zum Bestätigen {{word}} eingeben:",
+    "rebuild_warning_other": "Neu auslosen löscht {{count}} bereits gefochtene Gefechte. Zum Bestätigen {{word}} eingeben:",
+    "rebuild_word": "NEU",
+    "rebuild_word_aria": "Bestätigungswort",
+    "cancel": "Abbrechen",
+    "keep": "Korrigieren, Tableau behalten",
+    "keep_ok": "Korrektur übernehmen",
+    "rebuild": "Korrigieren und Tableau neu auslosen",
+    "reason_ok": "Korrektur nach der Tableau-Auslosung, ohne Auswirkung auf das Tableau",
+    "reason_keep": "Korrektur nach der Tableau-Auslosung, Tableau beibehalten",
+    "reason_rebuild": "Korrektur nach der Tableau-Auslosung, Tableau neu ausgelost",
+    "special_refused": "Aufgabe, Nichtantreten oder Ausschluss nach der Tableau-Auslosung: im Tableau erfassen.",
+    "applied_ok": "Korrektur übernommen",
+    "applied_keep": "Korrektur übernommen, Tableau wie ausgelost beibehalten",
+    "applied_rebuild": "Korrektur übernommen, Tableau nach korrigierter Rangliste neu ausgelost"
   }
 }

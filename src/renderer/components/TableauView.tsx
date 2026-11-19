@@ -31,6 +31,7 @@ import {
   calculateFinalResults,
   isTableauDone,
   calculateMatchVerticalPosition,
+  tableauSeedRanks,
 } from './tableau/tableauCalculations';
 import { stripNumbers } from '../../shared/utils/stripRange';
 import { ChevronDown, ChevronRight, Trophy } from 'lucide-react';
@@ -285,8 +286,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = (props: TableauViewProp
     closeScoreModal();
   };
 
-  // Rang de sortie de poules affiché sur les cartes (#1119)
-  const seedRanks = useMemo(() => new Map(ranking.map(r => [r.fencer.id, r.rank])), [ranking]);
+  // Rang de sortie de poules affiché sur les cartes (#1119) : celui du tirage du tableau,
+  // figé (#1996), sinon le classement courant (tableau tiré avant cet enregistrement)
+  const seedRanks = useMemo(() => {
+    const current = new Map(ranking.map(r => [r.fencer.id, r.rank]));
+    const drawn = tableauSeedRanks(matches);
+    if (drawn) for (const [id, rank] of drawn) current.set(id, rank);
+    return current;
+  }, [ranking, matches]);
 
   const renderMatch = (match: TableauMatch, verticalPosition?: number) => (
     <MatchCard

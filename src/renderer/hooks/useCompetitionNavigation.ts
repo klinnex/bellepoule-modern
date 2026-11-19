@@ -184,6 +184,17 @@ export function useCompetitionNavigation({
       setActiveSplitGroup(splitGroup);
     }
 
+    // Tableau déjà tiré : on y retourne sans le refaire, sinon ses matchs joués seraient
+    // effacés par le choix de la petite finale (#1996)
+    const targetHasTableau =
+      splitGroup && splitGroup !== activeSplitGroup
+        ? (splitTableauStates[splitGroup]?.matches.length ?? 0) > 0
+        : tableauMatches.length > 0;
+    if (targetHasTableau) {
+      setCurrentPhase('tableau');
+      return;
+    }
+
     // Si le classement a changé, réinitialiser les matches du tableau
     if (rankingChanged) {
       setTableauMatches([]);

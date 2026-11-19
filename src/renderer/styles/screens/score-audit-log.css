@@ -63,3 +63,11 @@
   color: var(--color-text-muted);
   font-size: 0.75rem;
 }
+
+/* Motif de correction après tirage du tableau (#1996) */
+.score-audit-reason {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-warning);
+}

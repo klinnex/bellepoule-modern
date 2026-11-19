@@ -106,7 +106,15 @@ export function registerDbHandlers({
     return db.getMatchesByPool(poolId);
   });
 
-  ipcMain.handle('db:updateMatch', async (_, id, updates) => {
+  ipcMain.handle('db:updateMatch', async (_, id, rawUpdates) => {
+    // Motif de journal (correction après tirage du tableau, #1996) : jamais écrit dans le match
+    const { auditReason, ...updates } = (rawUpdates ?? {}) as Parameters<
+      DatabaseManager['updateMatch']
+    >[1] & { auditReason?: unknown };
+    const reason =
+      typeof auditReason === 'string' && auditReason.trim()
+        ? auditReason.trim().slice(0, 300)
+        : undefined;
     const hasScore = updates.scoreA !== undefined || updates.scoreB !== undefined;
     if (hasScore) {
       try {
@@ -120,7 +128,8 @@ export function registerDbHandlers({
             previousScoreB: prev.scoreB,
             newScoreA: updates.scoreA ?? prev.scoreA,
             newScoreB: updates.scoreB ?? prev.scoreB,
-            changedBy: 'ui',
+            changedBy: reason ? 'correction' : 'ui',
+            ...(reason ? { reason } : {}),
           });
         }
       } catch {

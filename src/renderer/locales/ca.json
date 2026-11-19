@@ -910,7 +910,11 @@
     "priority_holder": "Prioritari: {{name}}",
     "tie_choose_winner": "Qui és el guanyador?",
     "tie_none": "Cap",
-    "score_cleared": "Resultat esborrat"
+    "score_cleared": "Resultat esborrat",
+    "tableau_locked": "Quadre sortejat: poule bloquejada. Tota correcció es verifica abans d'aplicar-se.",
+    "tableau_correcting": "Correcció en curs: cada resultat modificat mostra el seu impacte en la classificació i el quadre.",
+    "tableau_correction_start": "Corregeix un resultat",
+    "tableau_correction_end": "Acaba la correcció"
   },
   "presentation": {
     "no_club": "Sense club",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "Punts Sabre Làser",
     "legend_qm_full": "Punts Quest / combats",
     "go_tableau_winners": "Quadre ({{n}} guanyadors) →",
-    "go_tableau": "Passar al quadre →"
+    "go_tableau": "Passar al quadre →",
+    "frozen": "Quadre sortejat: classificació bloquejada. Per corregir un resultat, feu servir la pestanya Poules.",
+    "see_tableau": "Mostra el quadre →"
   },
   "poolMatrix": {
     "not_fenced": "Combat no disputat (mèdic/forfet)",
@@ -4134,5 +4140,41 @@
     "scratch": "Scratch",
     "start": "Inici",
     "imported": "Importats: {{fencers}} tirador/s, {{teams}} equip/s, {{referees}} àrbitre/s"
+  },
+  "poolCorrection": {
+    "title": "Corregeix un resultat de poule",
+    "intro": "El quadre ja està sortejat. Comproveu l'impacte de la correcció abans d'aplicar-la.",
+    "pool_n": "Poule {{n}}",
+    "ranking_title": "Classificació després de les poules",
+    "ranking_none": "Cap canvi a la classificació.",
+    "col_fencer": "Tirador",
+    "col_before": "Abans",
+    "col_after": "Després",
+    "more_one": "… i {{count}} tirador més",
+    "more_other": "… i {{count}} tiradors més",
+    "tableau_title": "Quadre",
+    "tableau_ok": "El quadre no es veu afectat: caps de sèrie i classificats sense canvis.",
+    "tableau_outdated": "El quadre sortejat ja no correspon a la classificació corregida.",
+    "seed_change": "{{name}}: cap de sèrie {{from}} → {{to}}",
+    "entering": "Entraria al quadre: {{names}}",
+    "leaving": "Sortiria del quadre: {{names}}",
+    "choice": "Mantenir el quadre: els assalts i caps de sèrie del sorteig no canvien. Refer el quadre: nou sorteig amb la classificació corregida.",
+    "played_one": "{{count}} assalt del quadre ja disputat.",
+    "played_other": "{{count}} assalts del quadre ja disputats.",
+    "rebuild_warning_one": "Refer el quadre esborra {{count}} assalt ja disputat. Escriviu {{word}} per confirmar:",
+    "rebuild_warning_other": "Refer el quadre esborra {{count}} assalts ja disputats. Escriviu {{word}} per confirmar:",
+    "rebuild_word": "REFER",
+    "rebuild_word_aria": "Paraula de confirmació",
+    "cancel": "Cancel·la",
+    "keep": "Corregeix, mantén el quadre",
+    "keep_ok": "Aplica la correcció",
+    "rebuild": "Corregeix i refés el quadre",
+    "reason_ok": "Correcció després del sorteig del quadre, sense impacte en el quadre",
+    "reason_keep": "Correcció després del sorteig del quadre, quadre mantingut",
+    "reason_rebuild": "Correcció després del sorteig del quadre, quadre refet",
+    "special_refused": "Abandonament, no presentat o exclusió després del sorteig del quadre: registreu-ho al quadre.",
+    "applied_ok": "Correcció aplicada",
+    "applied_keep": "Correcció aplicada, quadre mantingut tal com es va sortejar",
+    "applied_rebuild": "Correcció aplicada, quadre refet amb la classificació corregida"
   }
 }

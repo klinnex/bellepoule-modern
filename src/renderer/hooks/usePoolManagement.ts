@@ -112,17 +112,29 @@ export const usePoolManagement = ({
       winnerOverride?: 'A' | 'B',
       specialStatus?: 'abandon' | 'forfait' | 'exclusion',
       /** Égalité sans V : le tireur prioritaire (tirage avant la minute supplémentaire) gagne (#1442) */
-      priority?: 'A' | 'B'
+      priority?: 'A' | 'B',
+      /** Correction après tirage du tableau : motif pour le journal des scores (#1996) */
+      correction?: string
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];
         // Scores, statut et classement partagés avec la couche domaine (MCP, #1880)
-        const pool = applyScoreToPool(
+        const scored = applyScoreToPool(
           updatedPools[poolIndex],
           matchIndex,
           buildMatchScores(scoreA, scoreB, winnerOverride, specialStatus, priority),
           isLaserSabre
         );
+        const pool = correction
+          ? {
+              ...scored,
+              matches: scored.matches.map((m, i) =>
+                i === matchIndex
+                  ? { ...m, correction: { reason: correction, at: new Date().toISOString() } }
+                  : m
+              ),
+            }
+          : scored;
 
         updatedPools[poolIndex] = pool;
 

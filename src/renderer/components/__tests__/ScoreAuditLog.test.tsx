@@ -99,3 +99,29 @@ describe('ScoreAuditLog — compacter / déplier (#1123)', () => {
     expect(screen.getAllByRole('row')).toHaveLength(13);
   });
 });
+
+describe('ScoreAuditLog — motif de correction après tirage du tableau (#1996)', () => {
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: {
+        getScoreAuditLogByCompetition: vi.fn().mockResolvedValue([
+          entry('e1', 'm1', {
+            changedBy: 'correction',
+            reason: 'Correction après tirage du tableau, tableau conservé',
+          }),
+          entry('e2', 'm2', { changedBy: 'mcp', reason: 'mcp_entry' }),
+        ]),
+      },
+      onScoreIpConflict: () => () => {},
+    };
+  });
+
+  it('motif affiché pour une correction, motif technique masqué, auteur générique non affiché', async () => {
+    render(<ScoreAuditLog competitionId="c1" />);
+    expect(
+      await screen.findByText('Correction après tirage du tableau, tableau conservé')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('mcp_entry')).not.toBeInTheDocument();
+    expect(screen.queryByText('correction')).not.toBeInTheDocument();
+  });
+});

@@ -24,7 +24,7 @@ interface Props {
 }
 
 /** Auteurs techniques, pas des noms d'arbitre */
-const GENERIC_AUTHORS = new Set(['ui', 'referee', 'system', '']);
+const GENERIC_AUTHORS = new Set(['ui', 'referee', 'system', 'correction', '']);
 
 function formatScore(
   score:
@@ -178,7 +178,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
 
   const exportCsv = useCallback(async () => {
     const header =
-      'timestamp_iso,phase,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source\n';
+      'timestamp_iso,phase,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source,motif\n';
     const rows = filtered.map(e => {
       const cols = [
         new Date(e.changedAt).toISOString(),
@@ -191,6 +191,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         refereeOf(e).replace(/,/g, ';'),
         (e.ipAddress ?? '').replace(/,/g, ';'),
         e.changedBy ?? '',
+        (e.reason ?? '').replace(/[,\n]/g, ';'),
       ];
       return cols.join(',');
     });
@@ -298,6 +299,10 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
                 </td>
                 <td style={{ ...td, fontWeight: 600 }}>
                   {formatScore(e.newScoreA)} / {formatScore(e.newScoreB)}
+                  {/* Correction après tirage du tableau : motif affiché (#1996) */}
+                  {e.changedBy === 'correction' && e.reason && (
+                    <div className="score-audit-reason">{e.reason}</div>
+                  )}
                 </td>
                 <td style={td}>{refereeOf(e) || '—'}</td>
                 <td style={{ ...td, fontFamily: 'monospace', color: 'var(--color-text-light)' }}>

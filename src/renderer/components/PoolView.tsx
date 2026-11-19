@@ -12,7 +12,9 @@ import {
   Dices,
   Funnel,
   Gavel,
+  Lock,
   PenLine,
+  PencilLine,
   Play,
   Plus,
   Printer,
@@ -67,6 +69,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
   const {
     showPoolConfetti,
     isLocked,
+    isSignedLocked,
+    tableauFreeze,
     t,
     pool,
     finishedCount,
@@ -296,7 +300,36 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
     <>
       <div className="card">
         <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
-        {isLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
+        {isSignedLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
+        {/* Tableau tiré : poule figée, correction explicite et vérifiée (#1996) */}
+        {tableauFreeze && !isSignedLocked && (
+          <div
+            className={`pv-tableau-freeze${tableauFreeze.correcting ? ' is-correcting' : ''}`}
+            role="status"
+          >
+            <Icon icon={tableauFreeze.correcting ? PencilLine : Lock} />
+            <span className="pv-tableau-freeze-text">
+              {t(
+                tableauFreeze.correcting ? 'poolView.tableau_correcting' : 'poolView.tableau_locked'
+              )}
+            </span>
+            <button
+              type="button"
+              className="pv-tableau-freeze-btn"
+              onClick={
+                tableauFreeze.correcting
+                  ? tableauFreeze.onEndCorrection
+                  : tableauFreeze.onStartCorrection
+              }
+            >
+              {t(
+                tableauFreeze.correcting
+                  ? 'poolView.tableau_correction_end'
+                  : 'poolView.tableau_correction_start'
+              )}
+            </button>
+          </div>
+        )}
         <div className={`card-header pv-header${(cardScale ?? 1) >= 1.3 ? ' is-nowrap' : ''}`}>
           <div className="pv-header-left">
             <span>{t('poolView.pool_n', { n: pool.number })}</span>
@@ -386,13 +419,15 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
             >
               <Icon icon={Redo2} />
             </TipButton>
-            <TipButton
-              onClick={handleAutoFillScores}
-              className="pv-icon-btn is-amber"
-              tip={t('poolView.autofill')}
-            >
-              <Icon icon={Dices} />
-            </TipButton>
+            {!tableauFreeze && (
+              <TipButton
+                onClick={handleAutoFillScores}
+                className="pv-icon-btn is-amber"
+                tip={t('poolView.autofill')}
+              >
+                <Icon icon={Dices} />
+              </TipButton>
+            )}
             <TipButton
               onClick={handlePrintPool}
               className="pv-icon-btn is-primary"
@@ -401,7 +436,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
             >
               <Icon icon={Printer} />
             </TipButton>
-            {competitionId && (
+            {competitionId && !tableauFreeze && (
               <TipButton
                 onClick={() => setShowAddFencerModal(true)}
                 className="pv-icon-btn"

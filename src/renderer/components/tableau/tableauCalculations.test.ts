@@ -6,6 +6,7 @@ import {
   buildCombinedResults,
   calculateFinalResults,
   generateFIESeeding,
+  tableauSeedRanks,
 } from './tableauCalculations';
 import { generateSeedingChart } from '../../../shared/utils/tableCalculations';
 import { TableauMatch } from './tableauTypes';
@@ -145,5 +146,30 @@ describe('generateFIESeeding (#1080)', () => {
     expect(seeding[1]).toBe(256);
     expect(seeding[255]).toBe(2);
     expect(new Set(seeding).size).toBe(256);
+  });
+});
+
+describe('rangs figés au tirage du tableau (#1996)', () => {
+  it('premier tour : rang de sortie de poules de chaque tireur', () => {
+    const matches = buildTableauMatches(mkRanking(16), 16, false, false);
+    const seeds = tableauSeedRanks(matches)!;
+    expect(seeds.size).toBe(16);
+    for (let i = 1; i <= 16; i++) expect(seeds.get(`f${i}`)).toBe(i);
+    const first = matches.find(m => m.id === '16-0')!;
+    expect([first.seedA, first.seedB]).toEqual([1, 16]);
+  });
+
+  it('barrages : rangs posés sur les matchs de barrage', () => {
+    const matches = buildTableauMatches(mkRanking(10), 8, true, false);
+    const seeds = tableauSeedRanks(matches)!;
+    expect(seeds.size).toBe(10);
+    expect(seeds.get('f10')).toBe(10);
+  });
+
+  it('tableau tiré avant l’enregistrement des rangs : aucun rang figé', () => {
+    const legacy = buildTableauMatches(mkRanking(8), 8, false, false).map(
+      ({ seedA: _a, seedB: _b, ...m }) => m
+    );
+    expect(tableauSeedRanks(legacy)).toBeNull();
   });
 });

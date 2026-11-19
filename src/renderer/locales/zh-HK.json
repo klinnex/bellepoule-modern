@@ -910,7 +910,11 @@
     "priority_holder": "優先：{{name}}",
     "tie_choose_winner": "誰是勝者？",
     "tie_none": "無",
-    "score_cleared": "已清除比分"
+    "score_cleared": "已清除比分",
+    "tableau_locked": "淘汰賽表已抽籤：分組已鎖定。任何更正均會先核對影響再套用。",
+    "tableau_correcting": "正在更正：每個修改的比分會顯示對排名及淘汰賽表的影響。",
+    "tableau_correction_start": "更正結果",
+    "tableau_correction_end": "結束更正"
   },
   "presentation": {
     "no_club": "沒有所屬會",
@@ -2168,7 +2172,9 @@
     "legend_quest_full": "光劍積分",
     "legend_qm_full": "Quest 積分 / 比賽",
     "go_tableau_winners": "淘汰賽（{{n}} 名勝方）→",
-    "go_tableau": "前往淘汰賽 →"
+    "go_tableau": "前往淘汰賽 →",
+    "frozen": "淘汰賽表已抽籤：排名已鎖定。如需更正結果，請在「分組」分頁進行。",
+    "see_tableau": "查看淘汰賽表 →"
   },
   "poolMatrix": {
     "not_fenced": "比賽未進行（傷病／棄權）",
@@ -4134,5 +4140,41 @@
     "scratch": "Scratch",
     "start": "開始",
     "imported": "已匯入：{{fencers}} 名劍手、{{teams}} 隊、{{referees}} 名裁判"
+  },
+  "poolCorrection": {
+    "title": "更正分組結果",
+    "intro": "淘汰賽表已抽籤。套用更正前請先核對影響。",
+    "pool_n": "第 {{n}} 組",
+    "ranking_title": "分組後排名",
+    "ranking_none": "排名沒有變動。",
+    "col_fencer": "劍手",
+    "col_before": "之前",
+    "col_after": "之後",
+    "more_one": "… 及另外 {{count}} 名劍手",
+    "more_other": "… 及另外 {{count}} 名劍手",
+    "tableau_title": "淘汰賽表",
+    "tableau_ok": "淘汰賽表不受影響：種子及晉級名單不變。",
+    "tableau_outdated": "已抽籤的淘汰賽表與更正後的排名不再相符。",
+    "seed_change": "{{name}}：種子 {{from}} → {{to}}",
+    "entering": "將進入淘汰賽表：{{names}}",
+    "leaving": "將退出淘汰賽表：{{names}}",
+    "choice": "保留淘汰賽表：抽籤的對賽及種子不變。重新抽籤：按更正後的排名重新抽籤。",
+    "played_one": "已完成 {{count}} 場淘汰賽。",
+    "played_other": "已完成 {{count}} 場淘汰賽。",
+    "rebuild_warning_one": "重新抽籤會刪除 {{count}} 場已完成的比賽。輸入 {{word}} 以確認：",
+    "rebuild_warning_other": "重新抽籤會刪除 {{count}} 場已完成的比賽。輸入 {{word}} 以確認：",
+    "rebuild_word": "重新抽籤",
+    "rebuild_word_aria": "確認字詞",
+    "cancel": "取消",
+    "keep": "更正並保留淘汰賽表",
+    "keep_ok": "套用更正",
+    "rebuild": "更正並重新抽籤",
+    "reason_ok": "淘汰賽表抽籤後更正，對淘汰賽表無影響",
+    "reason_keep": "淘汰賽表抽籤後更正，保留淘汰賽表",
+    "reason_rebuild": "淘汰賽表抽籤後更正，重新抽籤",
+    "special_refused": "淘汰賽表抽籤後的棄賽、缺席或取消資格：請在淘汰賽表輸入。",
+    "applied_ok": "已套用更正",
+    "applied_keep": "已套用更正，淘汰賽表按原抽籤保留",
+    "applied_rebuild": "已套用更正，按更正後排名重新抽籤"
   }
 }

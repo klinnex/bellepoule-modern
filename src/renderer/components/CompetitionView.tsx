@@ -155,6 +155,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     tieBreakByVictory,
     isLaserSabre,
     renderPoolCard,
+    poolsFrozen,
+    poolCorrectionDialog,
     rapieres,
     updateRapieres,
     confirm,
@@ -504,6 +506,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
               }
             }}
             onRankingChange={setOverallRanking}
+            rankingFrozen={poolsFrozen}
             onSplitOff={handleSplitOff}
             nextRoundAction={
               !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
@@ -763,6 +766,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           </div>
         </div>
       )}
+
+      {poolCorrectionDialog}
 
       <CompetitionSecondaryModals
         modals={modals}

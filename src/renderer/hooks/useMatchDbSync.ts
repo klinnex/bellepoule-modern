@@ -4,6 +4,7 @@
  */
 import { useEffect, useRef } from 'react';
 import type { Pool } from '../../shared/types';
+import type { MatchUpdateData } from '../../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import type { TableauMatch } from '../components/tableau/tableauTypes';
 
@@ -39,13 +40,18 @@ export function useMatchDbSync({
           match.scoreA !== prevMatch.scoreA ||
           match.scoreB !== prevMatch.scoreB
         ) {
+          // Correction après tirage du tableau : motif inscrit au journal des scores (#1996)
+          const updates: MatchUpdateData & { auditReason?: string } = {
+            scoreA: match.scoreA ?? undefined,
+            scoreB: match.scoreB ?? undefined,
+            status: match.status,
+            ...(match.correction && match.correction.at !== prevMatch.correction?.at
+              ? { auditReason: match.correction.reason }
+              : {}),
+          };
           try {
             window
-              .electronAPI!.db!.updateMatch(match.id, {
-                scoreA: match.scoreA ?? undefined,
-                scoreB: match.scoreB ?? undefined,
-                status: match.status,
-              })
+              .electronAPI!.db!.updateMatch(match.id, updates)
               .catch((e: unknown) =>
                 logger.warn(
                   LogCategory.DATABASE,
