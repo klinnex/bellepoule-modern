@@ -548,7 +548,7 @@ Aucun argument.
 | `fencers` | string / integer[] | oui | Identifiants ou numéros (ref) |
 | `present` | boolean | oui | true : présent ; false : absent |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 
 ### `record_score` — Saisir un score
 
@@ -564,7 +564,7 @@ Aucun argument.
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 
 ### `set_refereeing_settings` — Réglages d’affectation des arbitres
 
@@ -578,7 +578,7 @@ Aucun argument.
 | `maxConsecutiveMatches` | integer |  |  |
 | `minRestTimeMinutes` | integer |  |  |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 
 ### `assign_referees` — Arbitres des poules
 
@@ -590,7 +590,7 @@ Aucun argument.
 | `replace` | boolean |  | Réaffecter toutes les poules |
 | `includeUnchecked` | boolean |  | Accepter les arbitres non pointés |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 
 ### `assign_referee` — Arbitre d’une poule (à la main)
 
@@ -602,6 +602,6 @@ Aucun argument.
 | `poolNumber` | integer | oui | Numéro de la poule |
 | `refereeId` | string / null | oui | Identifiant de l’arbitre (list_referees), ou null |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 
 <!-- outils-mcp:fin -->

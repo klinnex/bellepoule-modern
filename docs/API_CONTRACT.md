@@ -83,11 +83,16 @@ lecture : le journal s'écrit **en plus**, dans la même transaction (`src/main/
 | `recordScore` (poule) | `ScoreRecorded`, puis `PoolCompleted` si la poule se termine |
 | `recordScore` (tableau) | `ScoreRecorded`, `TableauMatchDecided`, `TableauCompleted` en fin de tableau |
 
-- Source : `DomainContext.actor` (IPC : `screen` ; MCP : `mcp`, auteur `agent` ; défaut `engine`).
+- Source : `CommandContext.actor` (IPC : `screen` ; MCP : `mcp`, auteur `agent` ; défaut `engine`).
 - Une commande qui écrit rend `revision` et diffuse `{ type: 'journal:appended', competitionId, revision }`
   aux abonnés `onCompetitionEvents`. `dryRun` n'écrit rien.
 - `expectedRevision` (optionnel) : révision périmée → `ApiError` `revision_conflict`,
   `data: { revision, missing }` (200 événements manquants au plus ; au-delà, `getCompetitionEvents`).
+  Contrôle, écritures et ajout au journal forment **une seule transaction** (`runCommand`,
+  [ADR-0006](adr/0006-expected-revision.md)) : aucune écriture ne s'intercale, un refus ou une erreur
+  annule tout. Une commande est donc **synchrone** (un `await` est refusé). Portée : seules les
+  commandes du contrat sont détectées ; les écritures de l'écran et des tablettes qui n'y passent pas
+  encore ne changent pas la révision (#1980, « un fait, un chemin »).
 - Resynchronisation : `getCompetitionEvents { competitionId, since }`. Audit d'un match :
   `getMatchHistory { competitionId, matchId }`.
 - Purge RGPD et archive `.bpm` : suivent `competition_id` comme les autres tables.

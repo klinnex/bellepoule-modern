@@ -69,7 +69,7 @@ const ExpectedRevision = z
   .min(0)
   .optional()
   .describe(
-    'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps'
+    'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées.'
   );
 /** Révision du journal après la commande (absente si rien n'a été écrit) */
 const Revision = z.number().int().optional();
