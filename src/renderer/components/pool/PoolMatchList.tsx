@@ -14,6 +14,7 @@ import { stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../common/Button';
 import { ClipboardList, Flag, MapPin, Pause, Swords, Trash2 } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 
 interface OrderedMatchEntry {
   match: Match;
@@ -156,10 +157,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
     closeArenaModal
   );
 
-  const isOut = (f?: Fencer | null) =>
-    f?.status === FencerStatus.ABANDONED ||
-    f?.status === FencerStatus.FORFAIT ||
-    f?.status === FencerStatus.EXCLUDED;
+  const isOut = (f?: Fencer | null) => isWithdrawn(f);
 
   return (
     <div>

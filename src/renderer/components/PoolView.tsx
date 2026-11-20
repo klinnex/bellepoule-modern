@@ -23,7 +23,7 @@ import {
   Undo2,
 } from 'lucide-react';
 import { Icon } from './common/Icon';
-import { FencerStatus } from '../../shared/types';
+
 import { POOL_COLUMNS } from '../hooks/useColumnVisibility';
 import PoolScoreMatrix from './pool/PoolScoreMatrix';
 import PoolMatchList from './pool/PoolMatchList';
@@ -55,6 +55,7 @@ import {
   NEXT_MATCH_SUBMIT,
   abandonName,
 } from './poolView.styles';
+import { isWithdrawn } from '../../shared/domain/fencers/fencerStatus';
 
 const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
   const poolViewState = usePoolViewState({ ...props });
@@ -236,14 +237,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
     const nextMatch = orderedMatches.pending[0];
 
     // Vérifier si l'un des tireurs a abandonné
-    const fencerAAbandoned =
-      nextMatch.match.fencerA?.status === FencerStatus.ABANDONED ||
-      nextMatch.match.fencerA?.status === FencerStatus.FORFAIT ||
-      nextMatch.match.fencerA?.status === FencerStatus.EXCLUDED;
-    const fencerBAbandoned =
-      nextMatch.match.fencerB?.status === FencerStatus.ABANDONED ||
-      nextMatch.match.fencerB?.status === FencerStatus.FORFAIT ||
-      nextMatch.match.fencerB?.status === FencerStatus.EXCLUDED;
+    const fencerAAbandoned = isWithdrawn(nextMatch.match.fencerA);
+    const fencerBAbandoned = isWithdrawn(nextMatch.match.fencerB);
     const isAbandonMatch = fencerAAbandoned || fencerBAbandoned;
 
     if (isAbandonMatch) {

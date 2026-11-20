@@ -24,6 +24,7 @@ import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
 import { Medal, Printer, Trophy, Upload } from 'lucide-react';
 import { RankMedal } from './common/RankMedal';
 import { Icon } from './common/Icon';
+import { isBlackCardExcluded } from '../../shared/domain/fencers/fencerStatus';
 
 interface FinalResult {
   rank: number;
@@ -373,8 +374,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     const headers = ['Rang', 'Nom', 'Prénom', 'Club', 'Statut', 'Éliminé à'];
 
     const getStatusLabel = (fencer: Fencer) => {
-      if (fencer.status === FencerStatus.EXCLUDED && fencer.exclusionReason === 'black_card')
-        return 'X (carton noir)';
+      if (isBlackCardExcluded(fencer)) return 'X (carton noir)';
       return statusCode(fencer.status);
     };
 

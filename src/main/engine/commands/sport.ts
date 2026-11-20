@@ -56,6 +56,8 @@ import { getCompetitionOrThrow } from './competitions';
 import { EVENT, recordEvents } from './eventLog';
 import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
+import { areAllPoolsComplete, isPoolComplete } from '../../../shared/domain/pools/poolCompletion';
+import { isTableauEligible } from '../../../shared/domain/fencers/fencerStatus';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
 export const PHASE = {
@@ -450,9 +452,9 @@ function recordPoolScore(
       const completed: string[] = [];
       for (const p of nextPools) {
         const old = pools.find(x => x.id === p.id);
-        const complete = p.matches.every(m => m.status === MatchStatus.FINISHED);
+        const complete = isPoolComplete(p);
         if (old && complete !== old.isComplete) ctx.db.updatePool({ ...p, isComplete: complete });
-        const wasComplete = !!old?.matches.every(m => m.status === MatchStatus.FINISHED);
+        const wasComplete = !!old && isPoolComplete(old);
         if (complete && !wasComplete) completed.push(p.id);
       }
       writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
@@ -482,7 +484,7 @@ function recordPoolScore(
     kind: 'pool' as const,
     poolNumber: pool.number,
     pool: summarizePool(updatedPool),
-    allPoolsComplete: nextPools.every(p => p.matches.every(m => m.status === MatchStatus.FINISHED)),
+    allPoolsComplete: areAllPoolsComplete(nextPools),
   };
 }
 
@@ -501,13 +503,6 @@ function tableauRanking(comp: Competition, session: Record<string, unknown>): Po
     splitOffCompetitionIds: undefined,
   });
 }
-
-const ELIMINATED_STATUSES = new Set<string>([
-  FencerStatus.ABANDONED,
-  FencerStatus.FORFAIT,
-  FencerStatus.EXCLUDED,
-  FencerStatus.ELIMINATED,
-]);
 
 function persistTableau(ctx: CommandContext, comp: Competition, matches: TableauMatch[]): void {
   const audit = { changedBy: 'mcp', reason: 'mcp_entry' };
@@ -555,11 +550,7 @@ export function buildBracket(
     throw new CommandError('no_direct_elimination', 'Épreuve sans élimination directe');
   }
   const pools = sessionPools(session);
-  if (
-    !session.skipPoolPhase &&
-    (pools.length === 0 ||
-      !pools.every(p => p.matches.every(m => m.status === MatchStatus.FINISHED)))
-  ) {
+  if (!session.skipPoolPhase && (pools.length === 0 || !areAllPoolsComplete(pools))) {
     throw new CommandError('pools_not_complete', 'Toutes les poules doivent être terminées');
   }
   const existing = sessionTableau(session);
@@ -572,7 +563,7 @@ export function buildBracket(
   // Statuts à jour (abandon, exclusion après les poules)
   // Statuts du classement (comme l'écran) : un décompte différent ferait régénérer le tableau
   const qualified = tableauRanking(comp, session)
-    .filter(r => !ELIMINATED_STATUSES.has(r.fencer.status))
+    .filter(r => isTableauEligible(r.fencer))
     .sort((a, b) => a.rank - b.rank);
   if (qualified.length < 2) {
     throw new CommandError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');

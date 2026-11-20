@@ -14,6 +14,7 @@ import {
   PoolStats,
   Score,
 } from '../types';
+import { isWithdrawnStatus } from '../domain/fencers/fencerStatus';
 
 // ============================================================================
 // Pool Match Order Generator
@@ -255,11 +256,7 @@ export function isMatchVoidedByForfeit(match: Match): boolean {
 
 /** Tireur sorti de la poule (forfait, abandon, exclusion) */
 function isOutStatus(status: FencerStatus): boolean {
-  return (
-    status === FencerStatus.FORFAIT ||
-    status === FencerStatus.ABANDONED ||
-    status === FencerStatus.EXCLUDED
-  );
+  return isWithdrawnStatus(status);
 }
 
 export interface FencerPoolStatsOptions {

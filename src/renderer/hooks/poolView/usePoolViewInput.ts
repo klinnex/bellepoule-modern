@@ -7,10 +7,11 @@ import { useMemo, useEffect, useRef } from 'react';
 import { nextChainedPair } from '../../components/pool/poolChainedInput';
 import { useModalResize } from '../useModalResize';
 import { useFocusTrap } from '../useFocusTrap';
-import { Fencer, MatchStatus, FencerStatus } from '../../../shared/types';
+import { Fencer, MatchStatus } from '../../../shared/types';
 import { inlineCellText } from '../../../shared/utils/inlineScoreInput';
 import type { PoolViewProps } from '../../components/pool/poolViewTypes';
 import { usePoolViewState } from './usePoolViewState';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 
 type Ctx = PoolViewProps & ReturnType<typeof usePoolViewState>;
 
@@ -262,10 +263,7 @@ export function usePoolViewInput(ctx: Ctx) {
   const chainedRef = useRef(false);
 
   /** Tireur hors poule (abandon, forfait, exclusion) : case non saisissable */
-  const isOutOfPool = (f: Fencer) =>
-    f.status === FencerStatus.ABANDONED ||
-    f.status === FencerStatus.FORFAIT ||
-    f.status === FencerStatus.EXCLUDED;
+  const isOutOfPool = (f: Fencer) => isWithdrawn(f);
 
   /** Case suivante après le match `matchIdx` (ligne par ligne, au-dessus de la diagonale), ou null */
   const findChainedNext = (matchIdx: number) => {
@@ -424,13 +422,7 @@ export function usePoolViewInput(ctx: Ctx) {
     for (const rowFencer of fencers) {
       for (const colFencer of fencers) {
         if (rowFencer.id === colFencer.id) continue;
-        const isAbandoned =
-          rowFencer.status === FencerStatus.ABANDONED ||
-          rowFencer.status === FencerStatus.FORFAIT ||
-          rowFencer.status === FencerStatus.EXCLUDED ||
-          colFencer.status === FencerStatus.ABANDONED ||
-          colFencer.status === FencerStatus.FORFAIT ||
-          colFencer.status === FencerStatus.EXCLUDED;
+        const isAbandoned = isWithdrawn(rowFencer) || isWithdrawn(colFencer);
         if (isAbandoned) continue;
         const matchIndex = getMatchIndex(rowFencer, colFencer);
         if (matchIndex === -1) continue;

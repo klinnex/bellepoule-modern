@@ -14,6 +14,7 @@ import { findNeighbourCell, isArrowKey } from './poolMatrixNav';
 import { isInlineScoreComplete, victoryLabel } from '../../../shared/utils/inlineScoreInput';
 import { ArrowLeftRight } from 'lucide-react';
 import { Icon } from '../common/Icon';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 
 interface PoolScoreMatrixProps {
   pool: Pool;
@@ -376,11 +377,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   const abandonedIds = useMemo(() => {
     const set = new Set<string>();
     for (const f of fencers) {
-      if (
-        f.status === FencerStatus.ABANDONED ||
-        f.status === FencerStatus.FORFAIT ||
-        f.status === FencerStatus.EXCLUDED
-      ) {
+      if (isWithdrawn(f)) {
         set.add(f.id);
       }
     }

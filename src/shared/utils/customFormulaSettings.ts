@@ -11,10 +11,10 @@ import {
   CustomFormulaConfig,
   CustomPoolRoundConfig,
   CustomScoringConfig,
-  FencerStatus,
   PoolRanking,
   Weapon,
 } from '../types';
+import { WITHDRAWN_STATUSES } from '../domain/fencers/fencerStatus';
 
 const poolRoundConfigs = (formula: CustomFormulaConfig): CustomPoolRoundConfig[] =>
   formula.phases.filter(p => p.type === 'pool_round').map(p => p.config as CustomPoolRoundConfig);
@@ -178,11 +178,8 @@ export function getAdvancementCount(
   }
 }
 
-const INACTIVE = new Set<FencerStatus>([
-  FencerStatus.ABANDONED,
-  FencerStatus.FORFAIT,
-  FencerStatus.EXCLUDED,
-]);
+/** Abandon, forfait, exclusion (#1979, lot 4 : définition unique) */
+const INACTIVE = WITHDRAWN_STATUSES;
 
 /**
  * Classement réduit aux qualifiés pour le tableau (percentage / fixed_count / fixed_bracket).

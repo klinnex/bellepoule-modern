@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from 'react';
-import { Fencer, FencerStatus, PoolRanking } from '../../../shared/types';
+import { Fencer, PoolRanking } from '../../../shared/types';
 export {
   TableauMatch,
   ConsolationBracket,
@@ -38,6 +38,7 @@ import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents'
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
 import { TableauViewProps } from '../../components/tableau/tableauViewShared';
 import { useTableauViewState } from './useTableauViewState';
+import { isTableauEligible } from '../../../shared/domain/fencers/fencerStatus';
 
 type Ctx = TableauViewProps & ReturnType<typeof useTableauViewState>;
 
@@ -93,13 +94,7 @@ export function useTableauViewScoring(ctx: Ctx) {
       }
       return;
     }
-    const eligibleCount = ranking.filter(
-      r =>
-        r.fencer.status !== FencerStatus.ABANDONED &&
-        r.fencer.status !== FencerStatus.FORFAIT &&
-        r.fencer.status !== FencerStatus.EXCLUDED &&
-        r.fencer.status !== FencerStatus.ELIMINATED
-    ).length;
+    const eligibleCount = ranking.filter(r => isTableauEligible(r.fencer)).length;
     if (eligibleCount > 0) {
       const expectedSize = getMainTableauSize(eligibleCount);
       // deriveFirstRound écarte le round de barrage (mainSize*2) et la petite finale.
@@ -203,14 +198,7 @@ export function useTableauViewScoring(ctx: Ctx) {
     return result;
   };
 
-  const getEligibleFencers = (): PoolRanking[] =>
-    ranking.filter(
-      r =>
-        r.fencer.status !== FencerStatus.ABANDONED &&
-        r.fencer.status !== FencerStatus.FORFAIT &&
-        r.fencer.status !== FencerStatus.EXCLUDED &&
-        r.fencer.status !== FencerStatus.ELIMINATED
-    );
+  const getEligibleFencers = (): PoolRanking[] => ranking.filter(r => isTableauEligible(r.fencer));
 
   const generateTableau = () => {
     const qualifiedFencers = getEligibleFencers().sort((a, b) => a.rank - b.rank);
