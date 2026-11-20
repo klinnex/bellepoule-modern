@@ -161,7 +161,7 @@ Feature Modules (src/features/)
 └── teams/               # useTeamStore + baril index.ts ; règles → shared/domain/teams (#1979)
 
 Shared (src/shared/)
-├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), fencers/ (statuts : retiré, éligible au tableau, carton noir), match/ (fin de match et vainqueur : écran, MCP, tablettes, appareils de piste), pools/ (poule terminée, tirage des poules : drawPools), rapieres/ (vagues, ordre classique, âges, qualification), analytics/ (KPI d’épreuve), teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base, ni window / localStorage ; heure et hasard injectés (ESLint)
+├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final, génération : planTableau), ranking/ (qualifiés du tableau), fencers/ (statuts : retiré, éligible au tableau, carton noir), match/ (fin de match et vainqueur : écran, MCP, tablettes, appareils de piste), pools/ (poule terminée, tirage des poules : drawPools), rapieres/ (vagues, ordre classique, âges, qualification), analytics/ (KPI d’épreuve), teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base, ni window / localStorage ; heure et hasard injectés (ESLint)
 ├── types/
 │   ├── index.ts              # All TypeScript definitions (enums, interfaces)
 │   ├── pdfTemplate.types.ts

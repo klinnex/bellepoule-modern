@@ -14,6 +14,7 @@ import {
   isBracketComplete,
   TableauSpecialStatusType,
 } from './tableauTypes';
+import { isTableauEligible } from '../fencers/fencerStatus';
 
 /** Tirage aléatoire injecté (domaine pur, docs/adr/0002) : Math.random côté écran, graine en test */
 export type RandomSource = () => number;
@@ -902,3 +903,36 @@ export const tableauSeedRanks = (
   }
   return seeds.size > 0 ? seeds : null;
 };
+
+/**
+ * Taille du tableau principal : tableau englobant (byes), ou, en « toutes les places »,
+ * le plus grand tableau plein (les suivants passent par les barrages).
+ */
+export const mainTableauSize = (fencerCount: number, playAllPositions: boolean): number => {
+  if (!playAllPositions) return getTableauSize(fencerCount);
+  let result = 4;
+  for (const size of [4, 8, 16, 32, 64, 128, 256]) if (size <= fencerCount) result = size;
+  return result;
+};
+
+/**
+ * Génération du tableau, règle unique écran / moteur (#1979, lot 4) : qualifiés (ni
+ * retirés ni éliminés, par rang), taille, matchs (barrages, premier tour, tours suivants,
+ * petite finale, byes propagés).
+ */
+export function planTableau(
+  ranking: PoolRanking[],
+  options: { playAllPositions: boolean; thirdPlaceMatch: boolean }
+): { qualified: PoolRanking[]; size: number; matches: TableauMatch[] } {
+  const qualified = ranking
+    .filter(r => isTableauEligible(r.fencer))
+    .sort((a, b) => a.rank - b.rank);
+  const size = mainTableauSize(qualified.length, options.playAllPositions);
+  const matches = buildTableauMatches(
+    qualified,
+    size,
+    options.playAllPositions,
+    options.thirdPlaceMatch
+  );
+  return { qualified, size, matches };
+}

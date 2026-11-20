@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PoolRanking } from '../../types';
+import { FencerStatus, PoolRanking, type Fencer } from '../../types';
 import {
   buildTableauMatches,
   autoFillAllPositions,
@@ -7,6 +7,8 @@ import {
   calculateFinalResults,
   generateFIESeeding,
   tableauSeedRanks,
+  mainTableauSize,
+  planTableau,
 } from './tableauCalculations';
 import { generateSeedingChart } from '../../utils/tableCalculations';
 import { TableauMatch } from './tableauTypes';
@@ -172,5 +174,37 @@ describe('rangs figés au tirage du tableau (#1996)', () => {
       ({ seedA: _a, seedB: _b, ...m }) => m
     );
     expect(tableauSeedRanks(legacy)).toBeNull();
+  });
+});
+
+describe('planTableau : génération unique écran / moteur (#1979, lot 4e)', () => {
+  const rank = (n: number, status = FencerStatus.QUALIFIED) =>
+    Array.from({ length: n }, (_, i) => ({
+      fencer: { id: `f${i}`, status } as Fencer,
+      rank: n - i, // désordre volontaire : le plan trie par rang
+    })) as unknown as PoolRanking[];
+
+  it('qualifiés triés par rang, retirés et éliminés écartés', () => {
+    const ranking = [...rank(10), ...rank(2, FencerStatus.ELIMINATED)];
+    const plan = planTableau(ranking, { playAllPositions: false, thirdPlaceMatch: false });
+    expect(plan.qualified).toHaveLength(10);
+    expect(plan.qualified.map(r => r.rank)).toEqual(
+      [...plan.qualified.map(r => r.rank)].sort((a, b) => a - b)
+    );
+    expect(plan.size).toBe(16);
+  });
+
+  it('« toutes les places » : plus grand tableau plein', () => {
+    expect(mainTableauSize(10, true)).toBe(8);
+    expect(mainTableauSize(10, false)).toBe(16);
+    const plan = planTableau(rank(10), { playAllPositions: true, thirdPlaceMatch: true });
+    expect(plan.size).toBe(8);
+  });
+
+  it('petite finale selon le réglage', () => {
+    const avec = planTableau(rank(8), { playAllPositions: false, thirdPlaceMatch: true });
+    const sans = planTableau(rank(8), { playAllPositions: false, thirdPlaceMatch: false });
+    expect(avec.matches.some(m => m.round === 3)).toBe(true);
+    expect(sans.matches.some(m => m.round === 3)).toBe(false);
   });
 });

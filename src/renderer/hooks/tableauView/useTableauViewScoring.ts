@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from 'react';
-import { Fencer, PoolRanking } from '../../../shared/types';
+import { Fencer } from '../../../shared/types';
 export {
   TableauMatch,
   ConsolationBracket,
@@ -23,8 +23,8 @@ import {
 } from '../../../shared/domain/tableau/tableauTypes';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
 import {
-  getTableauSize,
-  buildTableauMatches,
+  mainTableauSize,
+  planTableau,
   autoFillTableauScores,
   autoFillAllPositions,
   placeBarrageWinners,
@@ -188,32 +188,17 @@ export function useTableauViewScoring(ctx: Ctx) {
   ]);
 
   // Pour playAllPositions : plus grande puissance de 2 ≤ fencerCount
-  const getMainTableauSize = (fencerCount: number): number => {
-    if (!playAllPositions) return getTableauSize(fencerCount);
-    const sizes = [4, 8, 16, 32, 64, 128, 256];
-    let result = 4;
-    for (const size of sizes) {
-      if (size <= fencerCount) result = size;
-    }
-    return result;
-  };
+  const getMainTableauSize = (fencerCount: number): number =>
+    mainTableauSize(fencerCount, playAllPositions);
 
-  const getEligibleFencers = (): PoolRanking[] => ranking.filter(r => isTableauEligible(r.fencer));
-
+  // Génération unique écran / moteur (#1979, lot 4) : shared/domain/tableau planTableau
   const generateTableau = () => {
-    const qualifiedFencers = getEligibleFencers().sort((a, b) => a.rank - b.rank);
-    const mainSize = getMainTableauSize(qualifiedFencers.length);
-
-    setTableauSize(mainSize);
-    setConsolationBrackets([]); // réinitialiser les brackets de consolation
-
-    // Barrages éventuels + premier tour + rounds suivants + petite finale + propagation des byes
-    const newMatches = buildTableauMatches(
-      qualifiedFencers,
-      mainSize,
+    const { size, matches: newMatches } = planTableau(ranking, {
       playAllPositions,
-      thirdPlaceMatch
-    );
+      thirdPlaceMatch,
+    });
+    setTableauSize(size);
+    setConsolationBrackets([]); // réinitialiser les brackets de consolation
     onMatchesChange(newMatches);
   };
 
