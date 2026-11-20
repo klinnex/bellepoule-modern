@@ -36,12 +36,13 @@ beforeEach(async () => {
 
 afterEach(() => db.close());
 
-const write = (type: string) => recordEvents(ctx, id, [{ type, payload: { n: 1 } }]);
+const write = (poolId: string, c: CommandContext = ctx) =>
+  recordEvents(c, id, [{ type: 'PoolCompleted', payload: { poolId } }]);
 
 d('runCommand : révision dans la transaction (ADR-0006)', () => {
   it('révision à jour : écrit, rend la révision avant et après', () => {
     write('A');
-    const run = runCommand(ctx, id, 1, () => write('B'));
+    const run = runCommand(ctx, id, { expected: 1 }, c => write('B', c));
     expect(run).toMatchObject({ before: 1, after: 2 });
   });
 
@@ -51,7 +52,7 @@ d('runCommand : révision dans la transaction (ADR-0006)', () => {
     const fn = vi.fn(() => write('C'));
     let error: unknown;
     try {
-      runCommand(ctx, id, 1, fn);
+      runCommand(ctx, id, { expected: 1 }, fn);
     } catch (e) {
       error = e;
     }
@@ -65,19 +66,21 @@ d('runCommand : révision dans la transaction (ADR-0006)', () => {
   it('erreur après une écriture : tout est annulé (journal compris)', () => {
     write('A');
     expect(() =>
-      runCommand(ctx, id, 1, () => {
-        write('B');
+      runCommand(ctx, id, { expected: 1 }, c => {
+        write('B', c);
         throw new Error('panne au milieu de la commande');
       })
     ).toThrow(/panne/);
     expect(db.eventLog.getRevision(id)).toBe(1);
-    expect(db.eventLog.getSince(id).map(e => e.type)).toEqual(['A']);
+    expect(
+      db.eventLog.getSince(id).map(e => e.type === 'PoolCompleted' && e.payload.poolId)
+    ).toEqual(['A']);
   });
 
   it('commande asynchrone : refusée, aucune écriture validée', () => {
     expect(() =>
-      runCommand(ctx, id, undefined, () => {
-        write('A');
+      runCommand(ctx, id, {}, c => {
+        write('A', c);
         return Promise.resolve('trop tard');
       })
     ).toThrow(/asynchrone/);
@@ -86,9 +89,40 @@ d('runCommand : révision dans la transaction (ADR-0006)', () => {
 
   it('sans révision attendue : pas de contrôle, la commande écrit', () => {
     write('A');
-    expect(runCommand(ctx, id, undefined, () => write('B'))).toMatchObject({
+    expect(runCommand(ctx, id, {}, c => write('B', c))).toMatchObject({
       before: 1,
       after: 2,
     });
+  });
+
+  it('événements d’une commande : même commandId, fourni par l’appelant', () => {
+    runCommand(ctx, id, { commandId: 'cmd-1' }, c => {
+      write('A', c);
+      write('B', c);
+    });
+    expect(db.eventLog.getSince(id).map(e => e.commandId)).toEqual(['cmd-1', 'cmd-1']);
+  });
+
+  it('sans commandId : un identifiant généré par commande', () => {
+    runCommand(ctx, id, {}, c => write('A', c));
+    runCommand(ctx, id, {}, c => write('B', c));
+    const [a, b] = db.eventLog.getSince(id);
+    expect(a.commandId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(b.commandId).not.toBe(a.commandId);
+  });
+
+  it('commande rejouée (même commandId) : refusée, rien de réécrit (idempotence)', () => {
+    runCommand(ctx, id, { commandId: 'cmd-1' }, c => write('A', c));
+    const fn = vi.fn((c: CommandContext) => write('A', c));
+    let error: unknown;
+    try {
+      runCommand(ctx, id, { commandId: 'cmd-1', expected: 0 }, fn);
+    } catch (e) {
+      error = e;
+    }
+    expect((error as ApiError).code).toBe('command_already_applied');
+    expect((error as ApiError).data).toEqual({ revision: 1, commandId: 'cmd-1' });
+    expect(fn).not.toHaveBeenCalled();
+    expect(db.eventLog.getRevision(id)).toBe(1);
   });
 });

@@ -8,6 +8,7 @@
  * Licensed under GPL-3.0
  */
 import { z } from 'zod';
+import { JournalEventSchema } from './events';
 
 /** Droits (utilisés par le sous-ticket 4, rôles et permissions) */
 export type Permission =
@@ -71,17 +72,17 @@ const ExpectedRevision = z
   .describe(
     'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées.'
   );
+const CommandId = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .optional()
+  .describe(
+    'Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau)'
+  );
 /** Révision du journal après la commande (absente si rien n'a été écrit) */
 const Revision = z.number().int().optional();
-
-const CompetitionEvent = z.object({
-  revision: z.number(),
-  type: z.string(),
-  payload: z.record(z.string(), z.unknown()),
-  author: z.string().nullable(),
-  source: z.string(),
-  at: z.string(),
-});
 
 const NeutralityCriterion = z.enum(['club', 'nationality', 'region']);
 const Neutrality = z.object({
@@ -119,6 +120,7 @@ export const contract = {
       present: z.boolean().describe('true : présent ; false : absent'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -150,6 +152,7 @@ export const contract = {
       priority: Side.optional().describe('Égalité en poule : prioritaire'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.looseObject({
       dryRun: z.boolean(),
@@ -171,6 +174,7 @@ export const contract = {
       minRestTimeMinutes: z.number().int().min(0).max(240).optional(),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({ dryRun: z.boolean(), refereeing: ResolvedRefereeing, revision: Revision }),
     permission: 'referees:write',
@@ -190,6 +194,7 @@ export const contract = {
       includeUnchecked: z.boolean().optional().describe('Accepter les arbitres non pointés'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -224,6 +229,7 @@ export const contract = {
       refereeId: Id.nullable().describe('Identifiant de l’arbitre (list_referees), ou null'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -259,7 +265,7 @@ export const contract = {
       since: z.number().int().min(0).optional().describe('Dernière révision connue (0 : tout)'),
       limit: z.number().int().min(1).max(5000).optional().describe('Nombre maximum (1000)'),
     }),
-    output: z.object({ revision: z.number(), events: z.array(CompetitionEvent) }),
+    output: z.object({ revision: z.number(), events: z.array(JournalEventSchema) }),
     permission: 'competition:read',
     mcp: { name: 'get_competition_events', title: 'Journal d’une épreuve' },
   }),
@@ -268,7 +274,7 @@ export const contract = {
     description:
       'Historique d’un match dans le journal de l’épreuve : chaque modification, auteur, source, heure.',
     input: z.object({ competitionId: CompetitionId, matchId: Id }),
-    output: z.array(CompetitionEvent),
+    output: z.array(JournalEventSchema),
     permission: 'competition:read',
   }),
 

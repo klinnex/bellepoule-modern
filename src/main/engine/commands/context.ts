@@ -25,6 +25,8 @@ export interface CommandContext {
   allowedRoots?: () => string[];
   /** Auteur et source des écritures, inscrits au journal de l'épreuve (#1980) ; défaut : moteur */
   actor?: EventAuthor;
+  /** Commande en cours (runCommand) : commune à ses événements du journal (ADR-0007) */
+  commandId?: string;
 }
 
 /** Erreur métier : message destiné à l'opérateur (ou à l'agent), code stable */

@@ -22,12 +22,13 @@ import {
 } from '../commands/refereeing';
 import { checkInFencers } from '../commands/checkIn';
 import { getCompetitionOrThrow } from '../commands/competitions';
-import type { CompetitionEvent } from '../../../database/repos/eventLogRepo';
+import { v4 as uuidv4 } from 'uuid';
+import type { StoredJournalEvent } from '../../../database/repos/eventLogRepo';
 import { onCompetitionEvent, publishCompetitionEvent } from './events';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Événement du journal tel que le contrat l'expose (sans l'épreuve, déjà connue) */
-const publicEvent = ({ competitionId: _c, ...e }: CompetitionEvent) => e;
+const publicEvent = ({ competitionId: _c, ...e }: StoredJournalEvent) => e;
 
 /** Événements manquants joints au refus revision_conflict (borne : le client relit au-delà) */
 const CONFLICT_EVENTS = 200;
@@ -115,7 +116,12 @@ export async function invoke(ctx: CommandContext, name: unknown, raw: unknown): 
   }
   let run: CommandRun<unknown>;
   try {
-    run = runCommand(ctx, log.competitionId, log.expected, () => handler(ctx, input));
+    run = runCommand(
+      ctx,
+      log.competitionId,
+      { expected: log.expected, commandId: log.commandId },
+      commandCtx => handler(commandCtx, input)
+    );
   } catch (e) {
     throw toApiError(e);
   }
@@ -134,14 +140,16 @@ export async function invoke(ctx: CommandContext, name: unknown, raw: unknown): 
 
 /** Commande portant sur une épreuve dont le journal est disponible */
 function journalOf(ctx: CommandContext, input: unknown) {
-  const { competitionId, expectedRevision } = (input ?? {}) as {
+  const { competitionId, expectedRevision, commandId } = (input ?? {}) as {
     competitionId?: unknown;
     expectedRevision?: unknown;
+    commandId?: unknown;
   };
   if (typeof competitionId !== 'string' || !ctx.db.eventLog) return null;
   return {
     competitionId,
     expected: typeof expectedRevision === 'number' ? expectedRevision : undefined,
+    commandId: typeof commandId === 'string' ? commandId : undefined,
   };
 }
 
@@ -155,19 +163,31 @@ export interface CommandRun<T> {
 /**
  * Exécute une commande d'épreuve dans UNE transaction (docs/adr/0006) : lecture de la
  * révision, contrôle de `expectedRevision`, écritures (tables et journal), révision
- * finale. Aucune autre écriture ne peut s'intercaler entre le contrôle et l'ajout au
+ * finale. Une commande rejouée (même `commandId`, déjà au journal) est refusée par
+ * `command_already_applied` sans rien réécrire (docs/adr/0007).
+ * Aucune autre écriture ne peut s'intercaler entre le contrôle et l'ajout au
  * journal ; un refus ou une erreur annule tout. La commande doit être synchrone : un
  * `await` ferait valider la transaction avant ses écritures, elle est refusée.
  */
 export function runCommand<T>(
   ctx: CommandContext,
   competitionId: string,
-  expected: number | undefined,
-  fn: () => T
+  options: { expected?: number; commandId?: string },
+  fn: (commandCtx: CommandContext) => T
 ): CommandRun<T> {
   const body = (): CommandRun<T> => {
-    const before = checkRevision(ctx, competitionId, expected);
-    const result = fn();
+    // Idempotence (ADR-0007) : une commande rejouée (même commandId) n'écrit rien
+    if (options.commandId && ctx.db.eventLog.hasCommand(competitionId, options.commandId)) {
+      const revision = ctx.db.eventLog.getRevision(competitionId);
+      throw new ApiError(
+        'command_already_applied',
+        `Commande ${options.commandId} déjà appliquée : rien de réécrit (révision ${revision})`,
+        { revision, commandId: options.commandId }
+      );
+    }
+    const before = checkRevision(ctx, competitionId, options.expected);
+    // Identifiant de la commande : commun à ses événements (corrélation, ADR-0007)
+    const result = fn({ ...ctx, commandId: options.commandId ?? uuidv4() });
     if (result && typeof (result as { then?: unknown }).then === 'function') {
       // Rejet éventuel de la promesse ignoré : la commande est refusée de toute façon
       (result as unknown as Promise<unknown>).catch(() => undefined);

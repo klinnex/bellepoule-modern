@@ -69,13 +69,26 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 Lots suivants : migration de l'écran par domaine (2), `WsClient` + adaptateur WebSocket (3),
 `PlatformServices` (4), pages distantes (5).
 
-## Journal des événements par épreuve (#1980, étape 1)
+## Journal des événements par épreuve (#1980)
 
-Table `competition_events` (migration 45) : `competition_id`, `revision` (croissante par
-épreuve), `type`, `payload` (JSON, identifiants seulement), `author`, `source`
-(`screen`, `mcp`, `tablet`, `cyrano`, `engine`), `at`. Ajout seul
+Table `competition_events` (migration 46, format [ADR-0007](adr/0007-format-evenement.md)) :
+`event_id` (UUID, clé, stable entre postes), `command_id` (commun aux événements d'une commande),
+`competition_id`, `revision` (ordre local, croissant par épreuve, unique avec l'épreuve), `type`
+(fait au passé), `schema_version`, `payload` (JSON, identifiants seulement), `author`, `source`
+(`screen`, `mcp`, `tablet`, `cyrano`, `opp2`, `engine`), `at`. Ajout seul
 (`src/database/repos/eventLogRepo.ts`). Les tables actuelles et `session_state` restent la
 lecture : le journal s'écrit **en plus**, dans la même transaction (`src/main/engine/commands/eventLog.ts`).
+
+Types et charges : **`src/shared/api/events.ts`** (union zod `JournalEventBodySchema`, constantes
+`JOURNAL_EVENT`). Le moteur n'écrit que ces types ; `getCompetitionEvents` / `getMatchHistory` rendent
+des `JournalEvent` typés (`eventId`, `commandId`, `revision`, `schemaVersion`, `author`, `source`, `at`).
+Faire évoluer une charge : nouvelle `schemaVersion` + nouveau membre de l'union ; un événement stocké
+ne se réécrit jamais.
+
+**Idempotence** : toute commande accepte `commandId` (choisi par l'appelant, UUID). Rejouée avec le
+même identifiant (renvoi après une coupure), elle n'écrit rien et est refusée par
+`command_already_applied`, `data: { revision, commandId }` — à traiter comme un succès. Sans
+`commandId`, le moteur en génère un par commande.
 
 | Commande | Événements |
 |---|---|

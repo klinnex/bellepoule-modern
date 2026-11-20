@@ -1234,4 +1234,46 @@ export const ALL_MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    version: 46,
+    description:
+      'Journal : identifiant d’événement, de commande et version de charge (#1980, docs/adr/0007)',
+    up(db) {
+      // Changement de clé primaire : table recréée, lignes de la 45 recopiées.
+      // event_id : UUID v4 neuf ; command_id : identique pour les lignes d'un même ajout
+      // (même épreuve, même heure, même source) ; schema_version 1.
+      db.run(`
+        CREATE TABLE competition_events_v46 (
+          event_id TEXT PRIMARY KEY,
+          command_id TEXT NOT NULL,
+          competition_id TEXT NOT NULL,
+          revision INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          schema_version INTEGER NOT NULL DEFAULT 1,
+          payload TEXT NOT NULL,
+          author TEXT,
+          source TEXT NOT NULL,
+          at TEXT NOT NULL,
+          UNIQUE (competition_id, revision)
+        )
+      `);
+      db.run(`
+        INSERT INTO competition_events_v46
+          (event_id, command_id, competition_id, revision, type, schema_version, payload, author, source, at)
+        SELECT
+          lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' ||
+            substr(lower(hex(randomblob(2))), 2) || '-' ||
+            substr('89ab', 1 + (abs(random()) % 4), 1) || substr(lower(hex(randomblob(2))), 2) ||
+            '-' || lower(hex(randomblob(6))),
+          'legacy:' || competition_id || ':' || source || ':' || at,
+          competition_id, revision, type, 1, payload, author, source, at
+        FROM competition_events
+      `);
+      db.run(`DROP TABLE competition_events`);
+      db.run(`ALTER TABLE competition_events_v46 RENAME TO competition_events`);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_competition_events_command ON competition_events (competition_id, command_id)`
+      );
+    },
+  },
 ];

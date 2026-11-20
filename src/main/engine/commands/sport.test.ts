@@ -281,7 +281,9 @@ d('déroulé complet piloté hors écran', () => {
     recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 4, scoreB: 2 });
     recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 2 });
     const history = db.eventLog.getMatchHistory(comp.id, m.matchId);
-    expect(history.map(e => [e.type, e.payload.scoreA, e.source, e.author])).toEqual([
+    expect(
+      history.map(e => [e.type, e.type === 'ScoreRecorded' && e.payload.scoreA, e.source, e.author])
+    ).toEqual([
       ['ScoreRecorded', 4, 'mcp', 'agent'],
       ['ScoreRecorded', 5, 'mcp', 'agent'],
     ]);
