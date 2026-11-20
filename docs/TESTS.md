@@ -89,7 +89,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 86 | 963 |
+| `src/shared/utils/` | 85 | 954 |
 | `src/shared/services/` | 8 | 87 |
 | Feature `analytics` (`src/features/analytics/`) | 3 | 16 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -106,17 +106,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 119 | 972 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 119 | 626 |
+| `src/renderer/components/` | 119 | 632 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 19 | 184 |
-| **Total** | **519** | **4004** |
+| `src/shared/domain/` | 20 | 194 |
+| **Total** | **519** | **4011** |
 
-Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 509 fichiers, 3972 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1021,27 +1021,6 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - code arme depuis un libellé
   - fin de phase et simulation : même durée pour la même clé
   - fin de phase avec référence : mesuré dès 3 matchs, aberrants exclus
-
-</details>
-
-<details>
-<summary><code>src/shared/utils/matchEndValidation.test.ts</code> — 9 tests</summary>
-
-- **validateMatchEnd (spécification Cyrano §4)**
-  - %s _(each)_
-- **decideMatchWinner**
-  - %s _(each)_
-  - winnerByScore
-- **isAcceptableScore (tablette)**
-  - %s → %s _(each)_
-- **resolveScoreLimit**
-  - %s _(each)_
-  - limites FIE issues des réglages par défaut (t.38, t.40, t.42)
-  - crossedScoreLimit : franchissement seulement
-- **crossedSabreBreak (t.39.1)**
-  - %s _(each)_
-- **passivityWinner (P-noir)**
-  - score, puis classement initial, puis tirage
 
 </details>
 
@@ -5850,7 +5829,7 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 26 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 32 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -5882,6 +5861,13 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolView - poule figée par le tableau (#1996)**
   - tableau tiré : bandeau, cases verrouillées, pas de saisie
   - mode correction : saisie possible, transmise pour vérification
+- **PoolView - fenêtre de saisie du score (validatePoolScore, #1979 lot 4b)**
+  - score valide : enregistré, sans vainqueur imposé
+  - vue inversée : scores remis dans l’ordre du match
+  - refusé : %s _(each)_
+  - égalité + V à gauche : vainqueur A
+  - vue inversée, égalité + V à gauche : vainqueur B (tireur affiché à gauche)
+  - égalité sans V, départage actif : choix du vainqueur proposé, rien enregistré
 
 </details>
 
@@ -8122,6 +8108,27 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/domain/match/matchEndValidation.test.ts</code> — 9 tests</summary>
+
+- **validateMatchEnd (spécification Cyrano §4)**
+  - %s _(each)_
+- **decideMatchWinner**
+  - %s _(each)_
+  - winnerByScore
+- **isAcceptableScore (tablette)**
+  - %s → %s _(each)_
+- **resolveScoreLimit**
+  - %s _(each)_
+  - limites FIE issues des réglages par défaut (t.38, t.40, t.42)
+  - crossedScoreLimit : franchissement seulement
+- **crossedSabreBreak (t.39.1)**
+  - %s _(each)_
+- **passivityWinner (P-noir)**
+  - score, puis classement initial, puis tirage
+
+</details>
+
+<details>
 <summary><code>src/shared/domain/pools/poolCompletion.test.ts</code> — 5 tests</summary>
 
 - **statuts de tireur (#1979, lot 4)**
@@ -8297,7 +8304,7 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/domain/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
+<summary><code>src/shared/domain/tableau/tableauTypes.test.ts</code> — 12 tests</summary>
 
 - **propagateWinners**
   - apparie les feeders par position même si matchList est désordonné
@@ -8315,6 +8322,8 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - le score décide hors égalité, un V éventuel est ignoré
   - en égalité, le vainqueur désigné (V ou tirage) gagne
   - en égalité sans vainqueur désigné, pas de vainqueur
+- **vainqueur au tableau = règle commune de fin de match (#1979, lot 4c)**
+  - %i-%i, désigné %s → %s _(each)_
 
 </details>
 
