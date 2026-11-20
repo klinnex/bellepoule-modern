@@ -118,7 +118,7 @@ Chantiers ouverts ([issues GitHub](https://github.com/BellePoule-Modern/bellepou
 - 🖧 **Moteur headless multi-postes** : comptes et rôles, plusieurs écrans sur la même épreuve
 - 📐 **Formules FFE / FIE** étendues : tirages, tableaux préparés avant la fin des poules
 - 🗓️ **Planning prévisionnel** de la journée (Gantt des pistes) et durées de match de référence
-- 👨‍⚖️ **Affectation automatique des arbitres** : répartition optimale, neutralité club
+- 👨‍⚖️ **Affectation automatique des arbitres** : répartition optimale (couplage de coût minimal), neutralité club / nationalité / ligue, diagnostic des manques
 - 📤 **Export XML FIE 3.3** complet et publication des résultats sur **GREG** (escrime-info.com)
 - 📡 Pilote d'appareils **OPP2** (JSON sur MQTT), à côté de Cyrano
 
@@ -203,7 +203,7 @@ Chantiers ouverts ([issues GitHub](https://github.com/BellePoule-Modern/bellepou
 
 ### 👨‍⚖️ **Gestion des arbitres**
 
-- ⚖️ **Assignation automatique** - Distribution des arbitres sur les poules et les matchs
+- ⚖️ **Assignation automatique** - Répartition optimale des arbitres sur les poules et les tours de tableau (un arbitre par poule, meilleurs arbitres sur les poules relevées), affectations manuelles verrouillées conservées, poules sans arbitre expliquées (arbitres possibles, conflits)
 - 🔄 **Rotation** - Équilibrage des assignations avec temps de repos
 - ⚠️ **Détection de conflits** - Alerte si un arbitre doit arbitrer son propre club ou est pris sur une autre épreuve de la journée
 - 📊 **Statistiques** - Suivi des matchs arbitrés par arbitre

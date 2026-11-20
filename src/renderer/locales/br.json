@@ -1886,7 +1886,20 @@
     "h_match": "Emgann",
     "h_fencer_a": "Kleizeier A",
     "h_fencer_b": "Kleizeier B",
-    "h_score": "Skor"
+    "h_score": "Skor",
+    "neutral_nationality": "Neptuegezh broadelezh (kenstrivadeg etrebroadel)",
+    "neutral_region": "Neptuegezh liamm",
+    "shortage_title": "{{slots}} : {{n}} arbitr a vank.",
+    "shortage_compatible": "Arbitred neptu posupl : {{names}}.",
+    "shortage_no_compatible": "Arbitr neptu ebet.",
+    "shortage_conflicts": "Dieub met e tabut : {{list}}. Ouzhpennit un arbitr neptu pe roit unan gant an dorn.",
+    "reason_club": "klub",
+    "reason_nationality": "broadelezh",
+    "reason_region": "liamm",
+    "all_covered": "Un arbitr neptu en deus an holl c’hrogadoù o c’hortoz.",
+    "match_n": "Krogad {{n}}",
+    "locked": "gant an dorn",
+    "unlock": "Lakadur gant an dorn miret gant al lakadur emgefre. Klikit evit dibrennañ."
   },
   "season": {
     "title": "Renkadur koulzad Quest",

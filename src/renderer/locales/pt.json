@@ -1886,7 +1886,20 @@
     "h_match": "Combate",
     "h_fencer_a": "Esgrimista A",
     "h_fencer_b": "Esgrimista B",
-    "h_score": "Resultado"
+    "h_score": "Resultado",
+    "neutral_nationality": "Neutralidade de nacionalidade (prova internacional)",
+    "neutral_region": "Neutralidade de liga",
+    "shortage_title": "{{slots}}: faltam {{n}} árbitro(s).",
+    "shortage_compatible": "Árbitros neutros possíveis: {{names}}.",
+    "shortage_no_compatible": "Nenhum árbitro neutro disponível.",
+    "shortage_conflicts": "Livres mas em conflito: {{list}}. Adicione um árbitro neutro ou atribua um manualmente.",
+    "reason_club": "clube",
+    "reason_nationality": "nacionalidade",
+    "reason_region": "liga",
+    "all_covered": "Todos os assaltos pendentes têm um árbitro neutro.",
+    "match_n": "Assalto {{n}}",
+    "locked": "manual",
+    "unlock": "Atribuição manual mantida pela atribuição automática. Clique para desbloquear."
   },
   "season": {
     "title": "Classificação da época Quest",

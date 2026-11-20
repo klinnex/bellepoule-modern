@@ -1886,7 +1886,20 @@
     "h_match": "Match",
     "h_fencer_a": "Tireur A",
     "h_fencer_b": "Tireur B",
-    "h_score": "Score"
+    "h_score": "Score",
+    "neutral_nationality": "Neutralité de nationalité (épreuve internationale)",
+    "neutral_region": "Neutralité de ligue",
+    "shortage_title": "{{slots}} : {{n}} arbitre(s) manquant(s).",
+    "shortage_compatible": "Arbitres neutres possibles : {{names}}.",
+    "shortage_no_compatible": "Aucun arbitre neutre disponible.",
+    "shortage_conflicts": "Libres mais en conflit : {{list}}. Ajoutez un arbitre neutre ou affectez-en un à la main.",
+    "reason_club": "club",
+    "reason_nationality": "nationalité",
+    "reason_region": "ligue",
+    "all_covered": "Tous les matchs en attente ont un arbitre neutre.",
+    "match_n": "Match {{n}}",
+    "locked": "manuel",
+    "unlock": "Affectation manuelle conservée par l’assignation automatique. Cliquer pour déverrouiller."
   },
   "season": {
     "title": "Classement saisonnier Quest",
