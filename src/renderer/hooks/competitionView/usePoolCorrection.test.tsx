@@ -12,8 +12,8 @@ import {
   buildPools,
   computeOverallRankingFor,
 } from '../../../shared/utils/poolOrchestration';
-import { buildTableauMatches } from '../../components/tableau/tableauCalculations';
-import type { TableauMatch } from '../../components/tableau/tableauTypes';
+import { buildTableauMatches } from '../../../shared/domain/tableau/tableauCalculations';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { usePoolCorrection } from './usePoolCorrection';
 
 vi.mock('../useTranslation', () => ({

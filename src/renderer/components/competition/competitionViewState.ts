@@ -4,7 +4,11 @@
  */
 import type { Arena } from '../../../shared/types/remote';
 import type { Fencer, Referee } from '../../../shared/types';
-import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
+import type {
+  ConsolationBracket,
+  FinalResult,
+  TableauMatch,
+} from '../../../shared/domain/tableau/tableauTypes';
 
 export const CV_REMOTE_INIT = {
   isRemoteActive: false,

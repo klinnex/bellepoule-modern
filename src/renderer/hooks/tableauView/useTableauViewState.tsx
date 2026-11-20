@@ -8,8 +8,8 @@ export {
   TableauMatch,
   ConsolationBracket,
   propagateWinners,
-} from '../../components/tableau/tableauTypes';
-import { TableauMatch, ConsolationBracket } from '../../components/tableau/tableauTypes';
+} from '../../../shared/domain/tableau/tableauTypes';
+import { TableauMatch, ConsolationBracket } from '../../../shared/domain/tableau/tableauTypes';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { useModalResize } from '../useModalResize';
@@ -28,7 +28,7 @@ import {
   BASE_MATCH_HEIGHT,
   SLOT_HEIGHT,
   calculateMatchVerticalPosition,
-} from '../../components/tableau/tableauCalculations';
+} from '../../components/tableau/tableauLayout';
 import { useTranslation } from '../useTranslation';
 import { stripAtIndex } from '../../../shared/utils/stripRange';
 import { useStripAvailability } from '../useStripAvailability';

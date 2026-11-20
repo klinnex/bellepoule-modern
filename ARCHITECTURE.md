@@ -246,7 +246,7 @@ contrat ([ADR-0005](docs/adr/0005-journal-un-fait-un-chemin.md), [ADR-0008](docs
 
 | Compteur | Valeur | Fichiers |
 |---|---|---|
-| `rendererImports` (main, shared, database → renderer) | 1 | `main/domain/sport.ts` (tableau, classement) |
+| `rendererImports` (main, shared, database → renderer) | ~~1~~ **0** (lot 3) | `main/domain/sport.ts` importait le tableau et le classement du renderer |
 | `featuresImports` (main, shared, database → features) | 4 | `main/remote/teamArena.ts`, `main/remote/teamRelayDevice.ts`, `shared/utils/pdfExport/teamPdf.ts`, `shared/utils/cardSystem.ts` |
 | `electronApiCalls` (renderer hors `src/renderer/api`, et features → `window.electronAPI`) | 126 | 117 dans `src/renderer`, 9 dans `src/features` |
 
@@ -271,9 +271,9 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 
 | Fichier | Classe | Contenu métier | Cible | Doublon existant | Valeur | Effort | Lot |
 |---|---|---|---|---|---|---|---|
-| `components/tableau/tableauCalculations.ts` | Règle | Taille, têtes de série FIE, construction, consolantes, classement final | `shared/domain/tableau` | `shared/utils/tableCalculations.ts` (taille, têtes de série, nom de tour, classement) | MCP (`sport.ts` l'importe), tablettes, #1966 | M | 3 |
-| `components/tableau/tableauTypes.ts` | Règle | Vainqueur, propagation, premier tour, remise à zéro d'un match | `shared/domain/tableau` | `tableCalculations.updateTableAfterMatch` ; vainqueur recalculé dans `hooks/useRemoteScoreSync.ts` | MCP, tablettes, #1966 | S (42 importeurs) | 3 |
-| `components/competition/competitionDerived.ts` | Règle | Qualifiés du tableau (vainqueurs de poule, formule, rapières, séparation par genre) | `shared/domain/ranking` | — (`sport.ts` l'importe) | MCP, #1948 | XS | 3 |
+| ✅ `components/tableau/tableauCalculations.ts` → `shared/domain/tableau/` (mise en page restée dans `components/tableau/tableauLayout.ts` ; heure et hasard injectés) | Règle | Taille, têtes de série FIE, construction, consolantes, classement final | `shared/domain/tableau` | `shared/utils/tableCalculations.ts` (taille, têtes de série, nom de tour, classement) | MCP (`sport.ts` l'importe), tablettes, #1966 | M | 3 |
+| ✅ `components/tableau/tableauTypes.ts` → `shared/domain/tableau/` | Règle | Vainqueur, propagation, premier tour, remise à zéro d'un match | `shared/domain/tableau` | `tableCalculations.updateTableAfterMatch` ; vainqueur recalculé dans `hooks/useRemoteScoreSync.ts` | MCP, tablettes, #1966 | S (42 importeurs) | 3 |
+| ✅ `components/competition/competitionDerived.ts` → `shared/domain/ranking/tableauRanking.ts` (qualification des rapières → `shared/domain/rapieres/`) ; l'action de vue `rankingTableauNavAction` reste | Règle | Qualifiés du tableau (vainqueurs de poule, formule, rapières, séparation par genre) | `shared/domain/ranking` | — (`sport.ts` l'importe) | MCP, #1948 | XS | 3 |
 | `components/formula/formulaDraft.ts` | Règle | Tours de poules, Tour Quest, cohérence, conversion en réglages | `shared/domain/formula` | `shared/utils/formulaCoherence`, `defaultCompetitionSettings` | #1948, #2013 | S | 3 ([ADR-0012](docs/adr/0012-formule-domaine.md)) |
 | `components/PoolPrepView.tsx` | Vue + règle | Tirage des poules (critères, niveau), ré-génération des matchs, statistiques de répartition | `shared/domain/pools` (étendre `buildPools`) | `shared/utils/poolOrchestration.buildPools` : critères figés, utilisé par le MCP et `usePoolManagement` | MCP, #1964 | M | 4 |
 | `hooks/usePoolManagement.ts` | Orchestration | Annulation de match, tour suivant, poules terminées, forfait, annulation d'abandon, score distant | commandes `recordScore`, `setFencerStatus`, `closePoolRound` | `poolOrchestration` ; `main/remote/poolScore.ts` (scores reconstruits) | MCP, tablettes, #1964 | L | 4 |

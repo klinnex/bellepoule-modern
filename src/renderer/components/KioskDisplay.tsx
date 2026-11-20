@@ -9,7 +9,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useTranslation } from '../hooks/useTranslation';
 import { Competition, Pool, Weapon, MatchStatus, Fencer } from '../../shared/types';
 import { OrgNote } from '../../shared/types/remote';
-import { TableauMatch } from './tableau/tableauTypes';
+import { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import {
   calculateOverallRanking,
   calculateOverallRankingQuest,

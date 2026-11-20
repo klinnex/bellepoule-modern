@@ -3,7 +3,7 @@
  * Séparé de TableauView pour permettre le lazy-loading du composant.
  */
 
-import { Fencer } from '../../../shared/types';
+import { Fencer } from '../../types';
 
 export interface TableauMatch {
   id: string;

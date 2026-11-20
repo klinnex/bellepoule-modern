@@ -6,7 +6,7 @@ import {
   PDF_DIALOG_INIT,
   SCORE_EDIT_INIT,
 } from './tableauDialogState';
-import type { TableauMatch } from './tableauTypes';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 
 const m = (id: string, a: string, b: string) =>
   ({ id, fencerA: { id: a }, fencerB: { id: b } }) as unknown as TableauMatch;

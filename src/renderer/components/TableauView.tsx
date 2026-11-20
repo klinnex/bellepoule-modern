@@ -6,8 +6,12 @@
 
 import React, { useEffect, useCallback, useMemo } from 'react';
 import { Fencer } from '../../shared/types';
-export { TableauMatch, ConsolationBracket, propagateWinners } from './tableau/tableauTypes';
-import { TableauMatch, propagateWinners } from './tableau/tableauTypes';
+export {
+  TableauMatch,
+  ConsolationBracket,
+  propagateWinners,
+} from '../../shared/domain/tableau/tableauTypes';
+import { TableauMatch, propagateWinners } from '../../shared/domain/tableau/tableauTypes';
 import { loadDECards, loadDESignatures } from './tableau/tableauDialogState';
 import Bracket from './Bracket';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
@@ -25,14 +29,16 @@ import TableauRefereeModal from './tableau/TableauRefereeModal';
 import TableauSignaturesModal from './tableau/TableauSignaturesModal';
 import ConsolationBracketsSection from './tableau/ConsolationBracketsSection';
 import {
-  BASE_MATCH_HEIGHT,
-  SLOT_HEIGHT,
   getRoundName,
   calculateFinalResults,
   isTableauDone,
-  calculateMatchVerticalPosition,
   tableauSeedRanks,
-} from './tableau/tableauCalculations';
+} from '../../shared/domain/tableau/tableauCalculations';
+import {
+  BASE_MATCH_HEIGHT,
+  SLOT_HEIGHT,
+  calculateMatchVerticalPosition,
+} from './tableau/tableauLayout';
 import { stripNumbers } from '../../shared/utils/stripRange';
 import { ChevronDown, ChevronRight, Trophy } from 'lucide-react';
 import { Icon } from './common/Icon';

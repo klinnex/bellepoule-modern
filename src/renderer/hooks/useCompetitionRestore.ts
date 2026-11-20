@@ -11,7 +11,7 @@ import type {
   ConsolationBracket,
   FinalResult,
   TableauMatch,
-} from '../components/tableau/tableauTypes';
+} from '../../shared/domain/tableau/tableauTypes';
 import { inferPoolsLaunched } from '../components/poolLaunchState';
 import type { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import { useCompetitionSession, phaseFromNumber } from './useCompetitionSession';

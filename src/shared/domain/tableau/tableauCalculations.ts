@@ -4,8 +4,8 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, PoolRanking } from '../../../shared/types';
-import { generateSeedingChart } from '../../../shared/utils/tableCalculations';
+import { Fencer, PoolRanking } from '../../types';
+import { generateSeedingChart } from '../../utils/tableCalculations';
 import {
   TableauMatch,
   FinalResult,
@@ -15,8 +15,8 @@ import {
   TableauSpecialStatusType,
 } from './tableauTypes';
 
-export const BASE_MATCH_HEIGHT = 120; // +20 px : bandeau des badges piste/arbitre/signatures (#1440)
-export const SLOT_HEIGHT = BASE_MATCH_HEIGHT + 50; // hauteur d'un créneau dans la première colonne
+/** Tirage aléatoire injecté (domaine pur, docs/adr/0002) : Math.random côté écran, graine en test */
+export type RandomSource = () => number;
 
 export const getTableauSize = (fencerCount: number): number => {
   const sizes = [4, 8, 16, 32, 64, 128, 256];
@@ -128,11 +128,13 @@ export const buildConsolationBracket = (
   losers: PoolRanking[],
   firstPlace: number,
   sourceRound: number,
-  parentBracketId: string
+  parentBracketId: string,
+  /** Horodatage (ms) qui rend l'identifiant unique, fourni par l'appelant */
+  now: number
 ): ConsolationBracket => {
   const sorted = [...losers].sort((a, b) => a.rank - b.rank);
   const bracketSize = getTableauSize(sorted.length);
-  const idPrefix = `cons-${firstPlace}-${Date.now()}`;
+  const idPrefix = `cons-${firstPlace}-${now}`;
   const lastPlace = firstPlace + sorted.length - 1;
   const bracketMatches = generateBracketMatches(sorted, bracketSize, true, idPrefix);
   return {
@@ -314,7 +316,8 @@ export const buildTableauMatches = (
 export const autoFillTableauScores = (
   matches: TableauMatch[],
   effectiveMax: number,
-  tableauSize: number
+  tableauSize: number,
+  random: RandomSource
 ): { updatedMatches: TableauMatch[]; filledCount: number } => {
   // Copier les matchs actuels
   const updatedMatches = [...matches];
@@ -332,12 +335,12 @@ export const autoFillTableauScores = (
 
     for (const match of roundMatches) {
       // Générer des scores aléatoires
-      let scoreA = Math.floor(Math.random() * (effectiveMax + 1));
-      let scoreB = Math.floor(Math.random() * (effectiveMax + 1));
+      let scoreA = Math.floor(random() * (effectiveMax + 1));
+      let scoreB = Math.floor(random() * (effectiveMax + 1));
 
       // Éviter les égalités en élimination directe sans dépasser effectiveMax
       if (scoreA === scoreB) {
-        if (Math.random() > 0.5) {
+        if (random() > 0.5) {
           if (scoreA < effectiveMax) scoreA += 1;
           else scoreB -= 1;
         } else {
@@ -374,11 +377,11 @@ export const autoFillTableauScores = (
     thirdPlaceMatch.fencerB &&
     !thirdPlaceMatch.winner
   ) {
-    let scoreA = Math.floor(Math.random() * (effectiveMax + 1));
-    let scoreB = Math.floor(Math.random() * (effectiveMax + 1));
+    let scoreA = Math.floor(random() * (effectiveMax + 1));
+    let scoreB = Math.floor(random() * (effectiveMax + 1));
 
     if (scoreA === scoreB) {
-      if (Math.random() > 0.5) {
+      if (random() > 0.5) {
         if (scoreA < effectiveMax) scoreA += 1;
         else scoreB -= 1;
       } else {
@@ -443,7 +446,9 @@ export const syncConsolationBrackets = (
   matchList: TableauMatch[],
   brackets: ConsolationBracket[],
   tableauSize: number,
-  ranking: PoolRanking[]
+  ranking: PoolRanking[],
+  /** Horodatage (ms) des brackets créés (identifiants) */
+  now: number
 ): { brackets: ConsolationBracket[]; changed: boolean } => {
   const updated = [...brackets];
   let changed = false;
@@ -459,7 +464,7 @@ export const syncConsolationBrackets = (
       const losers = getRoundLosers(matchList, barrageRound, ranking);
       if (losers.length > 0) {
         // bracket pour les dernières places
-        updated.push(buildConsolationBracket(losers, tableauSize + 1, barrageRound, 'main'));
+        updated.push(buildConsolationBracket(losers, tableauSize + 1, barrageRound, 'main', now));
         changed = true;
       }
     }
@@ -481,7 +486,9 @@ export const syncConsolationBrackets = (
     if (alreadyExists) continue;
     const losers = getRoundLosers(matchList, round, ranking);
     if (losers.length === 0) continue;
-    updated.push(buildConsolationBracket(losers, consolationFirstPlace(1, round), round, 'main'));
+    updated.push(
+      buildConsolationBracket(losers, consolationFirstPlace(1, round), round, 'main', now)
+    );
     changed = true;
   }
 
@@ -503,7 +510,7 @@ export const syncConsolationBrackets = (
       const losers = getRoundLosers(bracket.matches, round, ranking);
       if (losers.length === 0) continue;
       const fp = consolationFirstPlace(bracket.firstPlace, round);
-      updated.push(buildConsolationBracket(losers, fp, round, bracket.id));
+      updated.push(buildConsolationBracket(losers, fp, round, bracket.id, now));
       changed = true;
     }
 
@@ -523,7 +530,8 @@ export const autoFillAllPositions = (
   brackets: ConsolationBracket[],
   effectiveMax: number,
   tableauSize: number,
-  ranking: PoolRanking[]
+  ranking: PoolRanking[],
+  env: { random: RandomSource; now: number }
 ): {
   updatedMatches: TableauMatch[];
   updatedBrackets: ConsolationBracket[];
@@ -534,7 +542,7 @@ export const autoFillAllPositions = (
 
   // Tableau principal : barrages → placement des gagnants → tours suivants
   for (;;) {
-    const res = autoFillTableauScores(updatedMatches, effectiveMax, tableauSize);
+    const res = autoFillTableauScores(updatedMatches, effectiveMax, tableauSize, env.random);
     updatedMatches = res.updatedMatches.map(m => ({ ...m }));
     filledCount += res.filledCount;
     const placed = placeBarrageWinners(updatedMatches, tableauSize);
@@ -544,7 +552,13 @@ export const autoFillAllPositions = (
   // Brackets de consolation : création → remplissage, jusqu'à stabilité
   let updatedBrackets = brackets;
   for (;;) {
-    const sync = syncConsolationBrackets(updatedMatches, updatedBrackets, tableauSize, ranking);
+    const sync = syncConsolationBrackets(
+      updatedMatches,
+      updatedBrackets,
+      tableauSize,
+      ranking,
+      env.now
+    );
     updatedBrackets = sync.brackets;
     let filledHere = 0;
     updatedBrackets = updatedBrackets.map(bracket => {
@@ -552,7 +566,8 @@ export const autoFillAllPositions = (
       const res = autoFillTableauScores(
         bracket.matches.map(m => ({ ...m })),
         effectiveMax,
-        bracket.size
+        bracket.size,
+        env.random
       );
       if (res.filledCount === 0) return bracket;
       filledHere += res.filledCount;
@@ -871,18 +886,6 @@ export const buildCombinedResults = (
     results.sort((a, b) => a.rank - b.rank),
     [...mainMatches, ...consolBrackets.flatMap(b => b.matches)]
   );
-};
-
-// Position verticale d'un match dans la vue arborescente complète
-export const calculateMatchVerticalPosition = (
-  matchRound: number,
-  matchPosition: number,
-  baseRound: number
-): number => {
-  // k = nombre de créneaux de la première colonne couverts par ce match
-  const k = baseRound / matchRound;
-  // Centre ce match verticalement dans ses k créneaux
-  return (matchPosition + 0.5) * k * SLOT_HEIGHT - BASE_MATCH_HEIGHT / 2;
 };
 
 /**

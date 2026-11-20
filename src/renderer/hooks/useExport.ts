@@ -7,7 +7,7 @@
 import { useCallback } from 'react';
 import { Competition, Fencer, Pool, PoolRanking, FencerStatus, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import { FinalResult } from '../components/tableau/tableauTypes';
+import { FinalResult } from '../../shared/domain/tableau/tableauTypes';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { useToast } from '../components/Toast';

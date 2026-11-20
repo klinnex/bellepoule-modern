@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { translateStatic } from '../../contexts/TranslationContext';
-import { TableauMatch } from './tableauTypes';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Icon } from '../common/Icon';
 

@@ -4,7 +4,11 @@
  */
 import React from 'react';
 import { Fencer, PoolRanking, Weapon } from '../../../shared/types';
-import { TableauMatch, FinalResult, ConsolationBracket } from './tableauTypes';
+import {
+  TableauMatch,
+  FinalResult,
+  ConsolationBracket,
+} from '../../../shared/domain/tableau/tableauTypes';
 
 export interface BracketMatch {
   id: string;

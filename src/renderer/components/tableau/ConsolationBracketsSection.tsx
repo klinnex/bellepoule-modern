@@ -5,8 +5,8 @@
  */
 
 import React, { useState } from 'react';
-import { TableauMatch, ConsolationBracket } from './tableauTypes';
-import { BASE_MATCH_HEIGHT } from './tableauCalculations';
+import { TableauMatch, ConsolationBracket } from '../../../shared/domain/tableau/tableauTypes';
+import { BASE_MATCH_HEIGHT } from './tableauLayout';
 import MatchCard from './MatchCard';
 import { CollapseToggle } from '../common/CollapseToggle';
 import { translateStatic } from '../../contexts/TranslationContext';

@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { ipcErrorText } from '../../services/ipcError';
-import { TableauMatch } from './tableauTypes';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { Button } from '../common/Button';
 
 interface TableauSignaturesModalProps {

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { ScoreAuditEntry, ScoreIpConflict } from '../../shared/types/preload';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
-import { getRoundName } from './tableau/tableauCalculations';
+import { getRoundName } from '../../shared/domain/tableau/tableauCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
 import {
   CollapseToggle,

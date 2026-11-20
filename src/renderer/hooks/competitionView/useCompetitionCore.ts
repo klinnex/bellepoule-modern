@@ -13,7 +13,7 @@ import {
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
 import { Fencer, FencerStatus, Weapon } from '../../../shared/types';
-import { TableauMatch, ConsolationBracket } from '../../components/tableau/tableauTypes';
+import { TableauMatch, ConsolationBracket } from '../../../shared/domain/tableau/tableauTypes';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { useTranslation } from '../useTranslation';

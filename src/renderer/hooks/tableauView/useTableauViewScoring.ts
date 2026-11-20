@@ -9,7 +9,7 @@ export {
   TableauMatch,
   ConsolationBracket,
   propagateWinners,
-} from '../../components/tableau/tableauTypes';
+} from '../../../shared/domain/tableau/tableauTypes';
 import {
   TableauMatch,
   propagateWinners,
@@ -20,7 +20,7 @@ import {
   resolveMatchWinner,
   tieScoreError,
   tieVictoryOf,
-} from '../../components/tableau/tableauTypes';
+} from '../../../shared/domain/tableau/tableauTypes';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
 import {
   getTableauSize,
@@ -32,7 +32,7 @@ import {
   calculateFinalResults,
   isTableauDone,
   buildCombinedResults,
-} from '../../components/tableau/tableauCalculations';
+} from '../../../shared/domain/tableau/tableauCalculations';
 import { autoAssignReferees } from '../../../shared/utils/refereeStats';
 import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
@@ -172,7 +172,8 @@ export function useTableauViewScoring(ctx: Ctx) {
   useEffect(() => {
     if (!playAllPositions || matches.length === 0) return;
     setConsolationBrackets(
-      prevBrackets => syncConsolationBrackets(matches, prevBrackets, tableauSize, ranking).brackets
+      prevBrackets =>
+        syncConsolationBrackets(matches, prevBrackets, tableauSize, ranking, Date.now()).brackets
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches, tableauSize, playAllPositions]);
@@ -305,7 +306,8 @@ export function useTableauViewScoring(ctx: Ctx) {
         consolationBrackets,
         effectiveMax,
         tableauSize,
-        ranking
+        ranking,
+        { random: Math.random, now: Date.now() }
       );
       setConsolationBrackets(
         updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
@@ -316,7 +318,7 @@ export function useTableauViewScoring(ctx: Ctx) {
       return;
     }
 
-    const filled = autoFillTableauScores(matches, effectiveMax, tableauSize);
+    const filled = autoFillTableauScores(matches, effectiveMax, tableauSize, Math.random);
     const updatedMatches = withAutoReferees(filled.updatedMatches);
     const { filledCount } = filled;
 

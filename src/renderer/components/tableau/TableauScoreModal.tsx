@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { TableauMatch } from './tableauTypes';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
 import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';

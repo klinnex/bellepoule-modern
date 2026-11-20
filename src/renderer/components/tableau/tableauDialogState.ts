@@ -2,7 +2,7 @@
  * BellePoule Modern - États initiaux des modales de TableauView + signatures PDF (#1241)
  * Licensed under GPL-3.0
  */
-import type { TableauMatch } from './tableauTypes';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
 
 export const SCORE_EDIT_INIT = {

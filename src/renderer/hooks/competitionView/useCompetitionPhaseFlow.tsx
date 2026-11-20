@@ -17,7 +17,7 @@ import PoolRoundSelector from '../../components/competition/PoolRoundSelector';
 import {
   computeEffectiveTableauRanking,
   computeMatchProgress,
-} from '../../components/competition/competitionDerived';
+} from '../../../shared/domain/ranking/tableauRanking';
 import type { CompetitionViewProps } from '../../components/competition/competitionViewTypes';
 import { useCompetitionSessionSync } from './useCompetitionSessionSync';
 import { useCompetitionCore } from './useCompetitionCore';
