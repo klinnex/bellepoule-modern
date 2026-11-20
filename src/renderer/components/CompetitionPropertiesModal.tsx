@@ -37,7 +37,7 @@ import {
   draftCoherenceIssues,
   draftFromSettings,
   draftToSettings,
-} from './formula/formulaDraft';
+} from '../../shared/domain/formula/formulaDraft';
 
 interface CompetitionPropertiesModalProps {
   competition: Competition;

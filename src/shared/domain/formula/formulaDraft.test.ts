@@ -2,7 +2,7 @@
  * Brouillon de formule des propriétés (#2013, étape A)
  */
 import { describe, it, expect } from 'vitest';
-import { Category, Weapon, type CompetitionSettings } from '../../../shared/types';
+import { Category, Weapon, type CompetitionSettings } from '../../types';
 import {
   MAX_POOL_ROUNDS,
   addPoolRound,
