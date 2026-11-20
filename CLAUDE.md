@@ -98,7 +98,7 @@ npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run cyrano:sim      # Simulateur d'appareil de piste Cyrano (docs/CYRANO.md)
 npm run cyrano:remote   # Télécommande web des appareils Cyrano simulés, plusieurs pistes (http://127.0.0.1:5099)
-npm run test:e2e        # Playwright E2E tests
+npm run test:e2e        # Playwright E2E (Chromium, serveur de dev 8066 ; E2E_ALL_BROWSERS=1 pour tous ; #2045)
 npm run e2e:debug       # Playwright debug mode
 ```
 
@@ -305,7 +305,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
 - Only native/runtime modules are in `dependencies` (better-sqlite3-multiple-ciphers, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3-multiple-ciphers 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
+- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3-multiple-ciphers 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.65
 
 ## Git Conventions
 
