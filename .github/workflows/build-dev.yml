@@ -1,8 +1,10 @@
 name: Build Dev Branch
 
+# dev → pré-release vX.Y.Z-dev.N ; hotfix/* (maintenance de main) → pré-release
+# vX.Y.Z-rc.N (docs/VERSIONING.md, « Branche de maintenance »)
 on:
   push:
-    branches: [dev]
+    branches: [dev, 'hotfix/**']
   workflow_dispatch:
 
 # Moindre privilège : les jobs qui publient déclarent contents: write (#1150)
@@ -12,7 +14,8 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# Un seul build dev à la fois : le compteur de build doit rester strictement croissant
+# Un seul build à la fois, dev et hotfix confondus : le compteur de build doit
+# rester strictement croissant et unique entre les branches
 concurrency:
   group: build-dev
   cancel-in-progress: false
@@ -40,6 +43,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
       full_version: ${{ steps.version.outputs.full_version }}
+      channel: ${{ steps.version.outputs.channel }}
       tag: ${{ steps.version.outputs.tag }}
       title: ${{ steps.version.outputs.title }}
       sha: ${{ steps.commit.outputs.sha }}
@@ -47,16 +51,24 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: dev
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Next build number
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
         run: |
-          # Compteur de build unique, porté par version.json (cf. docs/VERSIONING.md)
-          node scripts/version.js next-build
-          node scripts/version.js meta dev --github-output
+          # Compteur de build unique, porté par version.json (cf. docs/VERSIONING.md).
+          # --min : plus haut build publié, toutes branches (dev et hotfix/* ont
+          # chacune leur version.json : le compteur ne doit jamais se recouper)
+          MAX=$(gh api "repos/${{ github.repository }}/releases?per_page=100" --paginate \
+            --jq '.[].name' | grep -oE 'Build #[0-9]+' | grep -oE '[0-9]+' | sort -n | tail -1)
+          node scripts/version.js next-build --min "${MAX:-0}"
+          if [ "$BRANCH" = "dev" ]; then CHANNEL=dev; else CHANNEL=rc; fi
+          node scripts/version.js meta "$CHANNEL" --github-output
 
       # docs/TESTS.md est régénéré ici, jamais dans les PR : ses totaux
       # provoquaient un conflit dès que deux PR ajoutaient des tests
@@ -73,17 +85,20 @@ jobs:
 
       - name: Commit and push
         id: commit
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add version.json docs/TESTS.md
-          git commit -m "🔖 Dev Build #${{ steps.version.outputs.build }}"
+          if [ "${{ steps.version.outputs.channel }}" = "dev" ]; then KIND=Dev; else KIND=RC; fi
+          git commit -m "🔖 $KIND Build #${{ steps.version.outputs.build }}"
           for i in 1 2 3; do
-            if git push origin HEAD:dev; then
+            if git push origin "HEAD:$BRANCH"; then
               echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            git pull --rebase origin dev
+            git pull --rebase origin "$BRANCH"
           done
           echo "::error::Impossible de pousser le numéro de build"
           exit 1
@@ -122,8 +137,8 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Apply dev version
-        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
+      - name: Apply version
+        run: node scripts/version.js apply ${{ needs.increment-version.outputs.channel }} --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -195,8 +210,8 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Apply dev version
-        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
+      - name: Apply version
+        run: node scripts/version.js apply ${{ needs.increment-version.outputs.channel }} --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -271,8 +286,8 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Apply dev version
-        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
+      - name: Apply version
+        run: node scripts/version.js apply ${{ needs.increment-version.outputs.channel }} --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -331,8 +346,8 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Apply dev version
-        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
+      - name: Apply version
+        run: node scripts/version.js apply ${{ needs.increment-version.outputs.channel }} --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -394,8 +409,8 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Apply dev version
-        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
+      - name: Apply version
+        run: node scripts/version.js apply ${{ needs.increment-version.outputs.channel }} --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -438,7 +453,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: dev
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -458,13 +473,22 @@ jobs:
           TITLE: ${{ needs.increment-version.outputs.title }}
           FULL_VERSION: ${{ needs.increment-version.outputs.full_version }}
           SHA: ${{ needs.increment-version.outputs.sha }}
+          CHANNEL: ${{ needs.increment-version.outputs.channel }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          if [ "$CHANNEL" = "dev" ]; then
+            HEADING="🧪 Version de développement"
+            PURPOSE="Pré-release construite depuis la branche \`dev\`, destinée aux tests."
+          else
+            HEADING="🩹 Version de maintenance (candidate)"
+            PURPOSE="Pré-release construite depuis la branche de maintenance \`${BRANCH}\` (correctifs de la version stable), destinée à la recette avant publication."
+          fi
           mapfile -t FILES < <(find builds -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \))
-          NOTES="## 🧪 Version de développement
+          NOTES="## ${HEADING}
 
           **Version** : \`${FULL_VERSION}\` • **Build** : \`#${{ needs.increment-version.outputs.build }}\`
 
-          Pré-release construite depuis la branche \`dev\`, destinée aux tests.
+          ${PURPOSE}
           Prochaine version stable visée : \`${{ needs.increment-version.outputs.version }}\`.
 
           ### 📥 Téléchargements
@@ -482,7 +506,7 @@ jobs:
           - Règles de versionnage : [docs/VERSIONING.md](https://github.com/${REPO}/blob/dev/docs/VERSIONING.md)
 
           ---
-          **Build automatique** • Branche : \`dev\` • Commit : \`${SHA}\`"
+          **Build automatique** • Branche : \`${BRANCH}\` • Commit : \`${SHA}\`"
 
           echo "Création de la pré-release $TAG"
           gh release create "$TAG" \

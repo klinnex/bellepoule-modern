@@ -43,6 +43,7 @@ describe('updaterSettings', () => {
   it('resolveChannel : choix utilisateur prioritaire sur le paquet', () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-upds-'));
     expect(resolveChannel({ autoCheck: true }, 'stable')).toBe('stable');
+    expect(resolveChannel({ autoCheck: true }, 'rc')).toBe('stable');
     expect(resolveChannel({ autoCheck: true }, 'dev')).toBe('dev');
     expect(resolveChannel({ autoCheck: true }, undefined)).toBe('dev');
     expect(resolveChannel({ autoCheck: true, channel: 'dev' }, 'stable')).toBe('dev');

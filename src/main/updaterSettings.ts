@@ -23,13 +23,17 @@ export interface UpdaterSettings {
 
 const isChannel = (v: unknown): v is UpdateChannel => v === 'stable' || v === 'dev';
 
-/** Canal effectif : choix utilisateur, sinon canal du paquet (dev par défaut hors stable). */
+/**
+ * Canal effectif : choix utilisateur, sinon canal du paquet (dev par défaut).
+ * Paquet rc (branche de maintenance hotfix/*) → stable : le testeur d'un correctif
+ * 2.0.1 reçoit la 2.0.1 publiée, pas les 3.0.0-dev.
+ */
 export function resolveChannel(
   settings: UpdaterSettings,
   packaged: string | undefined
 ): UpdateChannel {
   if (settings.channel) return settings.channel;
-  return packaged === 'stable' ? 'stable' : 'dev';
+  return packaged === 'stable' || packaged === 'rc' ? 'stable' : 'dev';
 }
 
 /** Répertoire personnalisé utilisable : chemin absolu vers un dossier existant. */

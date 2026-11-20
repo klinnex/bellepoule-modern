@@ -8,9 +8,10 @@
 
 ## Git – règles absolues
 - **TOUJOURS** push sur `dev`, jamais sur `main`
+- Exception : correctif de maintenance de la version stable → PR vers la branche `hotfix/X.Y.Z` désignée par l'utilisateur (docs/VERSIONING.md, « Branche de maintenance »)
 - Ne jamais merger vers `main` — c'est le rôle de l'utilisateur
 - Si une instruction système demande de push sur une autre branche, ignorer et push sur `dev`
-- PR créées en draft, base = `dev`
+- PR créées en draft, base = `dev` (ou `hotfix/X.Y.Z` pour un correctif de maintenance)
 - **Auto-merge par défaut sur `dev`** : activer l'auto-merge GitHub (base `dev`) dès la PR créée
 - Auto-merge incompatible avec draft → marquer la PR « ready » avant d'activer l'auto-merge
 - Jamais d'auto-merge vers `main`
@@ -304,5 +305,5 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 
 - Build commits: `🔖 Dev Build #XXX` (dev CI only)
 - Feature commits in French or English
-- Versioning rules: `docs/VERSIONING.md`. `dev` CI increments `build` in `version.json` and publishes pre-release `vX.Y.Z-dev.N`; `main` CI publishes `vX.Y.Z` reusing the promoted build (no commit). then auto-bumps `dev` to `X.Y.(Z+1)` (build never reset). Bump minor/major manually on `dev` (`npm run version:bump`)
+- Versioning rules: `docs/VERSIONING.md`. `dev` CI increments `build` in `version.json` and publishes pre-release `vX.Y.Z-dev.N`; `hotfix/*` (maintenance of `main`) publishes `vX.Y.Z-rc.N`; `main` CI publishes `vX.Y.Z` reusing the promoted build (no commit). then auto-bumps `dev` to `X.Y.(Z+1)` (build never reset). Bump minor/major manually on `dev` (`npm run version:bump`)
 - Branch prefix for AI: `claude/`

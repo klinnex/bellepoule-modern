@@ -148,8 +148,8 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
 
         <div style={styles.versionLine}>
           <span style={styles.versionBadge}>
-            {versionInfo?.channel === 'dev'
-              ? `v${versionInfo.version}-dev.${versionInfo.build}`
+            {versionInfo?.channel === 'dev' || versionInfo?.channel === 'rc'
+              ? `v${versionInfo.version}-${versionInfo.channel}.${versionInfo.build}`
               : `v${versionInfo?.version ?? '…'}`}
           </span>
           <span

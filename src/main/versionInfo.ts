@@ -12,7 +12,7 @@ export interface VersionInfo {
   version: string;
   build: number;
   date: string;
-  channel?: 'dev' | 'stable';
+  channel?: 'dev' | 'rc' | 'stable';
 }
 
 /** Lit un JSON ; null si absent ou illisible (pas de existsSync préalable : évite le TOCTOU, #1776). */
