@@ -106,7 +106,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 119 | 972 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 119 | 626 |
+| `src/renderer/components/` | 119 | 632 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
@@ -114,9 +114,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
 | `src/shared/domain/` | 19 | 184 |
-| **Total** | **519** | **4004** |
+| **Total** | **519** | **4010** |
 
-Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 509 fichiers, 3971 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5850,7 +5850,7 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 26 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 32 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -5882,6 +5882,13 @@ Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **PoolView - poule figée par le tableau (#1996)**
   - tableau tiré : bandeau, cases verrouillées, pas de saisie
   - mode correction : saisie possible, transmise pour vérification
+- **PoolView - fenêtre de saisie du score (validatePoolScore, #1979 lot 4b)**
+  - score valide : enregistré, sans vainqueur imposé
+  - vue inversée : scores remis dans l’ordre du match
+  - refusé : %s _(each)_
+  - égalité + V à gauche : vainqueur A
+  - vue inversée, égalité + V à gauche : vainqueur B (tireur affiché à gauche)
+  - égalité sans V, départage actif : choix du vainqueur proposé, rien enregistré
 
 </details>
 
