@@ -154,13 +154,13 @@ Feature Modules (src/features/)
 ├── latefencers/         # useLateFencerStore
 ├── matchAuditLog/       # useMatchAuditStore
 ├── pdfTemplates/        # usePdfTemplateStore
-├── penalties/           # PenaltyUtils + usePenaltyStore + penalty.types
+├── penalties/           # penaltyUtils (libellés, couleurs) + usePenaltyStore ; types → shared/domain/penalties
 ├── pools/               # PoolCalculator + PoolService + usePoolStore + pool.types
 ├── rapieres/            # Tournoi des rapières (mode spécial arme CUSTOM) dans CompetitionView : équipe = tireur (club = niveau), composition + vagues dans session_state (clé rapieres)
-└── teams/               # teamCalculations, teamBracketService, laserArena* (Sabre Laser team format), useTeamStore
+└── teams/               # useTeamStore + baril index.ts ; règles → shared/domain/teams (#1979)
 
 Shared (src/shared/)
-├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), rapieres/ — ni React, ni Electron, ni Node, ni base ; heure et hasard injectés (ESLint)
+├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), rapieres/, teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types) — ni React, ni Electron, ni Node, ni base ; heure et hasard injectés (ESLint)
 ├── types/
 │   ├── index.ts              # All TypeScript definitions (enums, interfaces)
 │   ├── pdfTemplate.types.ts

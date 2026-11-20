@@ -4,18 +4,18 @@
  * Licensed under GPL-3.0
  */
 import { Weapon } from '../../shared/types';
-import { getTeamTargetRule } from '../../features/teams/utils/teamCalculations';
+import { getTeamTargetRule } from '../../shared/domain/teams/teamCalculations';
 import {
   getLaserArenaBoutCap,
   isLaserArenaBoutComplete,
-} from '../../features/teams/utils/laserArenaCalculations';
+} from '../../shared/domain/teams/laserArenaCalculations';
 import {
   FIE_RELAY_DURATION_SEC,
   isRelayComplete,
   relayCapFor,
   relayCumul,
   relayWinnerSide,
-} from '../../features/teams/utils/teamRelayLive';
+} from '../../shared/domain/teams/teamRelayLive';
 import { getAvailableReasons } from '../../shared/utils/cardSystem';
 import type { TeamArenaCard, TeamArenaState } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';

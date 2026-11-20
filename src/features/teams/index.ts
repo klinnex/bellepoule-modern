@@ -21,7 +21,7 @@ export type {
   TeamRow,
   TeamBoutRow,
   TeamMatchRow,
-} from './types/team.types';
+} from '../../shared/domain/teams/team.types';
 
 // Utils
 export {
@@ -37,17 +37,17 @@ export {
   calculateTableSize,
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
-} from './utils/teamCalculations';
+} from '../../shared/domain/teams/teamCalculations';
 export type {
   TeamTargetRule,
   TeamPoolRankingRow,
   ResolvedTeamSlot,
-} from './utils/teamCalculations';
+} from '../../shared/domain/teams/teamCalculations';
 
 // Bracket (élimination directe équipes)
 export {
   placeTeamsInTable,
   generateTeamBracket,
   propagateTeamWinner,
-} from './services/teamBracketService';
-export type { TeamTableNode } from './services/teamBracketService';
+} from '../../shared/domain/teams/teamBracketService';
+export type { TeamTableNode } from '../../shared/domain/teams/teamBracketService';

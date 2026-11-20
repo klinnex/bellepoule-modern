@@ -12,8 +12,8 @@ import {
   exportTeamPoolsToPDF,
   exportTeamBookToPDF,
 } from './teamPdf';
-import { placeRankedTeamsInTable } from '../../../features/teams/utils/teamCalculations';
-import type { TeamMatchRow, TeamRow } from '../../../features/teams/types/team.types';
+import { placeRankedTeamsInTable } from '../../domain/teams/teamCalculations';
+import type { TeamMatchRow, TeamRow } from '../../domain/teams/team.types';
 
 const team = (id: string): TeamRow => ({
   id,

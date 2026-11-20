@@ -4,9 +4,9 @@
  * Licensed under GPL-3.0
  */
 
-import { Team, TeamBout, TeamMatch, TeamRow, TeamMatchRow } from '../types/team.types';
-import { Weapon } from '../../../shared/types';
-import { calculateTableSize, generateSeedingChart } from '../../../shared/utils/tableCalculations';
+import { Team, TeamBout, TeamMatch, TeamRow, TeamMatchRow } from './team.types';
+import { Weapon } from '../../types';
+import { calculateTableSize, generateSeedingChart } from '../../utils/tableCalculations';
 
 export interface TeamTargetRule {
   mode: 'touches' | 'points';
@@ -96,8 +96,10 @@ export function relayOrderFor(teamSize: number, weapon?: Weapon): [number, numbe
 export function generateRelayBouts(
   teamA: Team,
   teamB: Team,
-  maxScore: number = 5,
-  weapon?: Weapon
+  maxScore: number,
+  weapon: Weapon | undefined,
+  /** Horodatage (ms) des identifiants de relais, fourni par l'appelant */
+  now: number
 ): TeamBout[] {
   const mainFencersA = teamA.fencers
     .filter(f => !f.isReserve)
@@ -119,7 +121,7 @@ export function generateRelayBouts(
   const relayOrders = relayOrderFor(teamSize, weapon);
 
   return relayOrders.map((order, index) => ({
-    id: `bout-${Date.now()}-${index}`,
+    id: `bout-${now}-${index}`,
     order: index + 1,
     fencerA: mainFencersA[order[0]],
     fencerB: mainFencersB[order[1]],

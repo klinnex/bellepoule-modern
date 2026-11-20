@@ -9,7 +9,7 @@
  * Licensed under GPL-3.0
  */
 
-import { TeamRow, TeamMatchRow } from '../types/team.types';
+import { TeamRow, TeamMatchRow } from './team.types';
 import { calculateTableSize, placeRankedTeamsInTable } from './teamCalculations';
 
 function pairKey(a: string, b: string): string {

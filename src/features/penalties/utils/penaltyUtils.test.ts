@@ -11,7 +11,7 @@ import {
   getCardTypeLabel,
   getImpactDescription,
 } from './penaltyUtils';
-import { CardType, PenaltyReason } from '../types/penalty.types';
+import { CardType, PenaltyReason } from '../../../shared/domain/penalties/penalty.types';
 
 describe('getPenaltyDescription', () => {
   it('traduit chaque motif connu', () => {

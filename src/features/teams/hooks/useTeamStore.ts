@@ -15,7 +15,7 @@ import {
   CreateTeamDTO,
   UpdateTeamBoutScoreDTO,
   TeamStats,
-} from '../types/team.types';
+} from '../../../shared/domain/teams/team.types';
 
 interface TeamState {
   teams: Team[];

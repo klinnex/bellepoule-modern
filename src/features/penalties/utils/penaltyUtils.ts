@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { CardType, PenaltyReason, Penalty } from '../types/penalty.types';
+import { CardType, PenaltyReason, Penalty } from '../../../shared/domain/penalties/penalty.types';
 
 export function getPenaltyDescription(reason: PenaltyReason): string {
   const descriptions: Record<PenaltyReason, string> = {

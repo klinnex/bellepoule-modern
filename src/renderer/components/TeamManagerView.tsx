@@ -11,7 +11,7 @@ import {
   TeamMatchRow,
   TeamBoutRow,
   TeamMatchCardRow,
-} from '../../features/teams/types/team.types';
+} from '../../shared/domain/teams/team.types';
 import {
   relayOrderFor,
   getTeamTargetRule,
@@ -19,20 +19,20 @@ import {
   calculateTableSize,
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
-} from '../../features/teams/utils/teamCalculations';
+} from '../../shared/domain/teams/teamCalculations';
 import {
   getLaserArenaBoutCap,
   isLaserArenaBoutComplete,
   calculateLaserArenaPoolRanking,
-} from '../../features/teams/utils/laserArenaCalculations';
+} from '../../shared/domain/teams/laserArenaCalculations';
 import {
   applyRematchAvoidanceSwap,
   buildPoolPairHistory,
-} from '../../features/teams/utils/laserArenaBracketRules';
+} from '../../shared/domain/teams/laserArenaBracketRules';
 import {
   getLaserArenaPoolSchedule,
   resolveLaserArenaSchedule,
-} from '../../features/teams/utils/laserArenaPoolSchedules';
+} from '../../shared/domain/teams/laserArenaPoolSchedules';
 import { createCard } from '../../shared/utils/cardSystem';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
 import TeamTableauView from './TeamTableauView';

@@ -6,7 +6,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { CardReason, Card, Fencer } from '../../shared/types';
-import { CardType } from '../../features/penalties/types/penalty.types';
+import { CardType } from '../../shared/domain/penalties/penalty.types';
 import { determineCardType, createCard, getReasonsByGroup } from '../../shared/utils/cardSystem';
 import { useTranslation } from '../hooks/useTranslation';
 

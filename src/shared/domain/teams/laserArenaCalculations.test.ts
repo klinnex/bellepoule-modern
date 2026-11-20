@@ -12,7 +12,7 @@ import {
   getLaserArenaMatchWinner,
   calculateLaserArenaPoolRanking,
 } from './laserArenaCalculations';
-import { TeamRow, TeamMatchRow, TeamBoutRow } from '../types/team.types';
+import { TeamRow, TeamMatchRow, TeamBoutRow } from './team.types';
 
 const team = (id: string): TeamRow => ({ id, name: id, club: 'C', fencers: [] });
 

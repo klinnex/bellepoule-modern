@@ -43,7 +43,7 @@ import { CyranoPisteDriver } from '../cyrano/driver';
 import { buildCyrano, parseCyrano, type CyranoFencer, type CyranoMessage } from '../cyrano/codec';
 import { PisteHub } from './pisteHub';
 import { logger } from '../../shared/services/logger';
-import { generateRelayOrder } from '../../features/teams/utils/teamCalculations';
+import { generateRelayOrder } from '../../shared/domain/teams/teamCalculations';
 
 const uuid = (n: number, team: string) =>
   `${team}${n}${team}${n}${team}${n}${team}${n}-0000-4000-8000-00000000000${n}`;

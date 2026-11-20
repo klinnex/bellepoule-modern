@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardGroup, CardReason, Weapon, WeaponCardConfig } from '../types';
-import { CardType } from '../../features/penalties/types/penalty.types';
+import { CardType } from '../domain/penalties/penalty.types';
 
 const REASON_TO_GROUP: Record<CardReason, CardGroup> = {
   [CardReason.EARLY_START]: CardGroup.GROUP_1,

@@ -14,7 +14,7 @@
  * Licensed under GPL-3.0
  */
 
-import { TeamMatchCardRow } from '../types/team.types';
+import { TeamMatchCardRow } from './team.types';
 
 export const TEAM_CARD_DESIGNATION_DELAY_SEC = 120; // 2 minutes
 

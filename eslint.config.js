@@ -9,8 +9,8 @@ const prettierConfig = require('eslint-config-prettier');
 const globals = require('globals');
 
 // ─── Couches et sens des dépendances (#1979, docs/adr/0002, 0004) ───────────
-// Motifs sur le chemin importé (relatif ou alias). Exceptions nommées, appelées à disparaître
-// au lot 3 de #1979 ; le cliquet (rendererImports, featuresImports) les compte.
+// Motifs sur le chemin importé (relatif ou alias). Sans exception depuis le lot 3 de #1979 ;
+// le cliquet (rendererImports, featuresImports) reste à 0.
 const NO_RENDERER = {
   regex: String.raw`(^|/)renderer(/|$)|^@renderer/`,
   message:
@@ -28,13 +28,6 @@ const NO_APP_IN_DOMAIN = {
 };
 const LAYER_FILES = ['src/main/**/*.ts', 'src/shared/**/*.ts', 'src/database/**/*.ts'];
 const LAYER_TESTS = ['**/*.test.ts', '**/__tests__/**'];
-/** Import de features toléré jusqu'au lot 3 de #1979 (équipes, pénalités → shared/domain) */
-const FEATURES_IMPORT_EXCEPTIONS = [
-  'src/main/remote/teamArena.ts',
-  'src/main/remote/teamRelayDevice.ts',
-  'src/shared/utils/pdfExport/teamPdf.ts',
-  'src/shared/utils/cardSystem.ts',
-];
 const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patterns }] });
 
 module.exports = [
@@ -147,15 +140,11 @@ module.exports = [
       ],
     },
   },
-  // Couches (#1979) : dernier bloc correspondant gagne, d'où un bloc par cas d'exception.
+  // Couches (#1979)
   {
     files: LAYER_FILES,
-    ignores: [...LAYER_TESTS, ...FEATURES_IMPORT_EXCEPTIONS],
+    ignores: LAYER_TESTS,
     rules: restrict(NO_RENDERER, NO_FEATURES),
-  },
-  {
-    files: FEATURES_IMPORT_EXCEPTIONS,
-    rules: restrict(NO_RENDERER),
   },
   {
     files: ['src/shared/domain/**/*.ts'],

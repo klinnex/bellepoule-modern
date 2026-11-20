@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Competition, Fencer } from '../../../shared/types';
+import { Competition, Fencer } from '../../types';
 
 export interface Team {
   id: string;

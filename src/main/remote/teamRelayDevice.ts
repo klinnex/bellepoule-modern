@@ -10,7 +10,7 @@ import {
   FIE_RELAY_DURATION_SEC,
   relayCapFor,
   relayCumul,
-} from '../../features/teams/utils/teamRelayLive';
+} from '../../shared/domain/teams/teamRelayLive';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { advanceTeamBout, broadcastTeamArena, type TeamArenaContext } from './teamArena';
 import type { TeamArenaBout, TeamArenaState } from './types';

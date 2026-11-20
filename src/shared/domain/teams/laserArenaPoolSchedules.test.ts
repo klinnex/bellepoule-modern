@@ -11,7 +11,7 @@ import {
   assignTeamsToPoolSlots,
   resolveLaserArenaSchedule,
 } from './laserArenaPoolSchedules';
-import { TeamRow } from '../types/team.types';
+import { TeamRow } from './team.types';
 
 const makeTeams = (count: number): TeamRow[] =>
   Array.from({ length: count }, (_, i) => ({

@@ -42,7 +42,7 @@ import { RemoteScoreServer } from '../remoteScoreServer';
 import { CyranoServer } from './server';
 import { CyranoPisteDriver } from './driver';
 import { PisteHub } from '../piste/pisteHub';
-import { generateRelayOrder } from '../../features/teams/utils/teamCalculations';
+import { generateRelayOrder } from '../../shared/domain/teams/teamCalculations';
 // Appareil simulé (scripts/lib/cyranoDevice.js), testé ici car Vitest ne couvre que src/
 const { CyranoDevice } = require('../../../scripts/lib/cyranoDevice.js');
 
