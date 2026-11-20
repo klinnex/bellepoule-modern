@@ -237,13 +237,18 @@ shared/domain ────────▶ shared/types
 Une règle métier nouvelle naît dans `src/shared/domain`. Une écriture passe par une commande du
 contrat ([ADR-0005](docs/adr/0005-journal-un-fait-un-chemin.md), [ADR-0008](docs/adr/0008-nommage-contrat.md)).
 
-**État de départ** (dev, 2026-11-20, hors tests), mesuré par le cliquet au lot 2 :
+**Garde-fous** (lot 2) :
+- ESLint `no-restricted-imports` (`eslint.config.js`), bloquant en CI (`npm run lint:errors`). Les exceptions sont nommées dans la configuration et disparaissent au lot 3.
+- Cliquet `scripts/check-quality-ratchet.js` : les compteurs ci-dessous ne peuvent que baisser. Détail : `node scripts/check-quality-ratchet.js --list <compteur>`.
+- Case « règles métier dans `src/shared/domain` » du modèle de PR (`.github/pull_request_template.md`).
+
+**État de départ** (dev, 2026-11-20, hors tests, un fichier compte une fois) :
 
 | Compteur | Valeur | Fichiers |
 |---|---|---|
 | `rendererImports` (main, shared, database → renderer) | 1 | `main/domain/sport.ts` (tableau, classement) |
 | `featuresImports` (main, shared, database → features) | 4 | `main/remote/teamArena.ts`, `main/remote/teamRelayDevice.ts`, `shared/utils/pdfExport/teamPdf.ts`, `shared/utils/cardSystem.ts` |
-| `electronApiCalls` (renderer → `window.electronAPI`) | 120 | — |
+| `electronApiCalls` (renderer hors `src/renderer/api`, et features → `window.electronAPI`) | 126 | 117 dans `src/renderer`, 9 dans `src/features` |
 
 ### 9.2 Classement du renderer
 

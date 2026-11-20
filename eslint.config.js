@@ -8,6 +8,37 @@ const prettier = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
 const globals = require('globals');
 
+// ─── Couches et sens des dépendances (#1979, docs/adr/0002, 0004) ───────────
+// Motifs sur le chemin importé (relatif ou alias). Exceptions nommées, appelées à disparaître
+// au lot 3 de #1979 ; le cliquet (rendererImports, featuresImports) les compte.
+const NO_RENDERER = {
+  regex: String.raw`(^|/)renderer(/|$)|^@renderer/`,
+  message:
+    'Couche interface : src/main, src/shared et src/database n’importent pas src/renderer (docs/adr/0002). Déplacer la règle dans src/shared/domain.',
+};
+const NO_FEATURES = {
+  regex: String.raw`(^|/)features(/|$)`,
+  message:
+    'src/features est une couche d’interface : src/main, src/shared et src/database ne l’importent pas (docs/adr/0004). Déplacer la règle dans src/shared/domain.',
+};
+const NO_APP_IN_DOMAIN = {
+  regex: String.raw`^(react|react-dom|electron|zustand)(/|$)|^(node:)?(fs|path|os|crypto|child_process|net|http|https|dgram|worker_threads)(/|$)|(^|/)(database|main|renderer|features)(/|$)|^@(database|main|renderer)/`,
+  message:
+    'Domaine pur (docs/adr/0002) : ni React, ni Electron, ni Node, ni base, ni main, ni interface. Injecter la dépendance en paramètre.',
+};
+const LAYER_FILES = ['src/main/**/*.ts', 'src/shared/**/*.ts', 'src/database/**/*.ts'];
+const LAYER_TESTS = ['**/*.test.ts', '**/__tests__/**'];
+/** Import du renderer toléré jusqu'au lot 3 de #1979 (tableau, classement) */
+const RENDERER_IMPORT_EXCEPTIONS = ['src/main/domain/sport.ts'];
+/** Import de features toléré jusqu'au lot 3 de #1979 (équipes, pénalités → shared/domain) */
+const FEATURES_IMPORT_EXCEPTIONS = [
+  'src/main/remote/teamArena.ts',
+  'src/main/remote/teamRelayDevice.ts',
+  'src/shared/utils/pdfExport/teamPdf.ts',
+  'src/shared/utils/cardSystem.ts',
+];
+const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patterns }] });
+
 module.exports = [
   {
     ignores: [
@@ -117,6 +148,25 @@ module.exports = [
         },
       ],
     },
+  },
+  // Couches (#1979) : dernier bloc correspondant gagne, d'où un bloc par cas d'exception.
+  {
+    files: LAYER_FILES,
+    ignores: [...LAYER_TESTS, ...RENDERER_IMPORT_EXCEPTIONS, ...FEATURES_IMPORT_EXCEPTIONS],
+    rules: restrict(NO_RENDERER, NO_FEATURES),
+  },
+  {
+    files: RENDERER_IMPORT_EXCEPTIONS,
+    rules: restrict(NO_FEATURES),
+  },
+  {
+    files: FEATURES_IMPORT_EXCEPTIONS,
+    rules: restrict(NO_RENDERER),
+  },
+  {
+    files: ['src/shared/domain/**/*.ts'],
+    ignores: LAYER_TESTS,
+    rules: restrict(NO_APP_IN_DOMAIN),
   },
   {
     // JS distant servi aux navigateurs (CSP, sans bundler) : scripts classiques, globales navigateur (#1600)

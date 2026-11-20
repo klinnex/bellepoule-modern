@@ -82,6 +82,7 @@ npm test                # Run Vitest unit tests (watch mode)
 npm run test:run        # Vitest single run (CI)
 npm run test:coverage   # Vitest with coverage report
 npm run lint            # ESLint check
+npm run lint:errors     # ESLint, erreurs seules (CI) : couches #1979 (docs/adr/0002), no-alert, fs sync distant
 npm run lint:fix        # ESLint auto-fix
 npm run format          # Prettier format
 npm run format:check    # Prettier validation

@@ -45,8 +45,11 @@ jobs:
       - name: Socket.IO events documentation up to date
         run: npm run check:socket-doc
 
-      - name: Quality ratchet (hardcoded strings, any, console)
+      - name: Quality ratchet (hardcoded strings, any, console, layers)
         run: npm run check:quality
+
+      - name: Lint errors (layer imports #1979, no-alert, fs sync in remote server)
+        run: npm run lint:errors
 
       - name: Unit tests
         run: npm run test:run
