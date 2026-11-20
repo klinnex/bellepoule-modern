@@ -25,29 +25,46 @@
           # Doit correspondre à devDependencies.electron (45.x).
           electron = pkgs.electron_45;
         in
-        pkgs.buildNpmPackage {
+        pkgs.buildNpmPackage rec {
           pname = "bellepoule-modern";
           version = pkgJson.version;
 
           # Seuls les fichiers nécessaires au build : évite de rebuild pour docs/e2e/etc.
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = lib.fileset.unions [
-              ./src
-              ./resources
-              ./package.json
-              ./package-lock.json
-              ./version.json
-              ./LICENSE
-              ./tsconfig.json
-              ./webpack.main.config.js
-              ./webpack.renderer.config.js
-            ];
-          };
+          # La version racine de package-lock.json est neutralisée (0.0.0) : elle entre dans le
+          # hash des dépendances, qui ne change ainsi qu'avec les dépendances, pas à chaque bump de version.
+          src =
+            pkgs.runCommand "bellepoule-modern-src" { nativeBuildInputs = [ pkgs.jq ]; }
+              ''
+                cp -r ${
+                  lib.fileset.toSource {
+                    root = ./.;
+                    fileset = lib.fileset.unions [
+                      ./src
+                      ./resources
+                      ./package.json
+                      ./package-lock.json
+                      ./version.json
+                      ./LICENSE
+                      ./tsconfig.json
+                      ./webpack.main.config.js
+                      ./webpack.renderer.config.js
+                    ];
+                  }
+                } $out
+                chmod -R u+w $out
+                jq '.version = "0.0.0" | .packages[""].version = "0.0.0"' \
+                  $out/package-lock.json > lock.json
+                mv lock.json $out/package-lock.json
+              '';
 
-          # Hash des dépendances npm (à régénérer à chaque changement de package-lock.json :
-          # `nix run nixpkgs#prefetch-npm-deps -- package-lock.json`).
-          npmDepsHash = "sha256-LeXOk+2+04Mzh2ht/FbQq49fF+rH1wzr7ehC4iRzPrk=";
+          # Dépendances npm : nom sans version et lockfile neutralisé (voir src), donc même
+          # dérivation d'une version à l'autre. Hash à régénérer quand les dépendances
+          # changent : `nix build` affiche la bonne valeur (« got: »).
+          npmDeps = pkgs.fetchNpmDeps {
+            name = "bellepoule-modern-npm-deps";
+            inherit src;
+            hash = "sha256-pEAo/hcFePzxR3KY7Z27PaLxrbEWGeyqgxeNWf8dQdw=";
+          };
 
           # Pas de scripts d'installation : le postinstall d'Electron télécharge un
           # binaire (refusé dans le sandbox Nix) ; better-sqlite3-multiple-ciphers est recompilé plus bas.
