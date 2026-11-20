@@ -3,6 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
+  kpiCompetitionOptions,
   fencerIndexRanking,
   fencerMatchKpis,
   initialRankOf,
@@ -570,5 +571,23 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     expect(k.tableauCount).toMatchObject({ mainTotal: 8, total: 12, allPlaces: true });
     expect(k.total).toBe(12);
     expect(k.tableauRemaining).toBe(12);
+  });
+});
+
+describe('organisationKpis : durées de référence (#1965)', () => {
+  it('tableau d’épée sans mesure : 12 min + changement de piste', () => {
+    const opts = kpiCompetitionOptions({
+      weapon: 'E',
+      settings: { defaultPoolMaxScore: 5, defaultTableMaxScore: 15 },
+    });
+    expect(opts.playAllPositions).toBe(false);
+    const k = organisationKpis({ pools: [], ...opts, now: 0 });
+    expect(k.tableauCadence.perMatchMs).toBe(12 * 60_000 + 3 * 60_000);
+    expect(k.cadence.perMatchMs).toBe(3.5 * 60_000 + 3 * 60_000);
+  });
+
+  it('sans clé : anciennes valeurs par défaut', () => {
+    const k = organisationKpis({ pools: [], now: 0 });
+    expect(k.tableauCadence.perMatchMs).toBe(4.5 * 60_000 + 3 * 60_000);
   });
 });

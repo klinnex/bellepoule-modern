@@ -20,6 +20,7 @@ import {
 
 import { FencerStatus } from '../types';
 import { calculateFencerPoolStats } from './poolCalculations';
+import { referenceDuration } from './matchDurations';
 
 // ============================================================================
 // Comparateur dynamique
@@ -284,17 +285,21 @@ function calcAdvancingCount(
   }
 }
 
-function estimateMatchDuration(maxScore: number, timerSeconds: number): number {
-  // Estimation : 60% du temps max par match
-  const timerMinutes = timerSeconds / 60;
-  if (maxScore <= 5) return Math.min(timerMinutes, 4);
-  if (maxScore <= 10) return Math.min(timerMinutes, 8);
-  return Math.min(timerMinutes, 12);
+/** Minutes par match, depuis la source unique des durées (#1965). */
+function estimateMatchDuration(
+  weapon: string,
+  phase: 'pool' | 'tableau',
+  maxScore: number,
+  timerSeconds: number
+): number {
+  return referenceDuration({ weapon, phase, maxScore }, { timerSeconds }).medianMs / 60_000;
 }
 
 export function simulateFormula(
   fencerCount: number,
-  formula: CustomFormulaConfig
+  formula: CustomFormulaConfig,
+  /** Code arme (E, F, S, L, C) : défaut C, durée depuis le chrono et le score */
+  weapon = 'C'
 ): FormulaSimulation {
   const phases: FormulaPhaseSimulation[] = [];
   const warnings: string[] = [];
@@ -309,7 +314,7 @@ export function simulateFormula(
       const cfg = node.config as CustomPoolRoundConfig;
       const poolSizes = calcPoolSizes(currentFencers, cfg.minPoolSize, cfg.maxPoolSize);
       const matchCount = calcPoolMatchCount(poolSizes);
-      const minutesPerMatch = estimateMatchDuration(cfg.maxScore, cfg.timerSeconds);
+      const minutesPerMatch = estimateMatchDuration(weapon, 'pool', cfg.maxScore, cfg.timerSeconds);
       const phaseMinutes = matchCount * minutesPerMatch;
 
       if (poolSizes.some(s => s < 3)) {
@@ -347,6 +352,8 @@ export function simulateFormula(
       // Matchs réels = bracketSize - 1 (tournoi simple élimination) - byes
       const realMatchCount = bracketSize - 1 - byes;
       const minutesPerMatch = estimateMatchDuration(
+        weapon,
+        'tableau',
         (node.config as CustomDEConfig).maxScore,
         (node.config as CustomDEConfig).timerSeconds
       );

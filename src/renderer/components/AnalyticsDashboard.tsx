@@ -28,6 +28,7 @@ import {
   averageMatchSeconds,
   markLatePools,
   organisationKpis,
+  kpiCompetitionOptions,
   type KpiTableauMatch,
   type LiveArena,
 } from '../../features/analytics/services/competitionKpis';
@@ -406,20 +407,21 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     return () => window.clearInterval(id);
   }, [autoRefresh, activeTab, loadOrganisation]);
 
-  const playAll = !!competition.settings?.playAllPositions;
+  // Mode « toutes les places » et durées de référence (#1965)
+  const kpiOpts = useMemo(() => kpiCompetitionOptions(competition), [competition]);
   const orgKpis = useMemo(
     () =>
       organisationKpis({
         pools,
         tableauMatches,
         consolationMatches: consolationBrackets.map(b => b.matches),
-        playAllPositions: playAll,
+        ...kpiOpts,
         timings,
         events: remoteEvents,
         arenas: liveArenas,
         now,
       }),
-    [pools, tableauMatches, consolationBrackets, playAll, timings, remoteEvents, liveArenas, now]
+    [pools, tableauMatches, consolationBrackets, kpiOpts, timings, remoteEvents, liveArenas, now]
   );
   const poolRanks = useMemo(
     () => new Map(overallRanking.map(r => [r.fencer.id, r.rank])),
