@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { resolveInlineSubmit } from '../../../shared/utils/inlineScoreInput';
-import { isTieAtScoreLimit } from '../../../shared/utils/matchEndValidation';
+import { validatePoolScore } from '../../../shared/utils/poolOrchestration';
 import { MatchStatus, Weapon } from '../../../shared/types';
 import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
@@ -127,19 +127,8 @@ export function usePoolViewActions(ctx: Ctx) {
     const scoreLeft = parseInt(editScoreA, 10) || 0;
     const scoreRight = parseInt(editScoreB, 10) || 0;
 
-    // Valider que les scores ne dépassent pas le maximum
     // Le réglage courant (prop) prime sur le maxScore figé à la génération du match
     const effectiveMax = maxScore || pool.matches[editingMatch]?.maxScore || 0;
-    if (effectiveMax > 0) {
-      if (scoreLeft > effectiveMax) {
-        showToast(t('poolView.max_score_a', { max: effectiveMax }), 'error');
-        return;
-      }
-      if (scoreRight > effectiveMax) {
-        showToast(t('poolView.max_score_b', { max: effectiveMax }), 'error');
-        return;
-      }
-    }
 
     // Remettre dans l'ordre fencerA/fencerB du match si la vue est inversée
     const actualScoreA = isMatchInverted ? scoreRight : scoreLeft;
@@ -157,86 +146,64 @@ export function usePoolViewActions(ctx: Ctx) {
         : ((match?.scoreB as { value?: number } | null | undefined)?.value ?? null);
     const matchIdx = editingMatch;
 
-    // Égalité au score max impossible au règlement (o.17), hors Sabre Laser
-    if (!isLaserSabre && isTieAtScoreLimit(actualScoreA, actualScoreB, effectiveMax)) {
-      showToast(t('poolView.tie_at_max', { max: effectiveMax }), 'error');
+    // Égalité : vainqueur désigné à gauche (case V cochée, ou résultat importé d'une tablette)
+    const tieWinner: 'A' | 'B' | undefined =
+      actualScoreA === actualScoreB && (victoryA || victoryB)
+        ? !!isMatchInverted === !!victoryA
+          ? 'B'
+          : 'A'
+        : undefined;
+
+    // Règle unique écran / moteur / MCP (#1979, lot 4) : shared/utils/poolOrchestration
+    const error = validatePoolScore({
+      scoreA: actualScoreA,
+      scoreB: actualScoreB,
+      maxScore: effectiveMax,
+      winner: tieWinner,
+      isLaserSabre,
+      tieByVictory,
+    });
+    if (error === 'draw_needs_winner' && tieByVictory) {
+      // Minute prioritaire tirée avant la minute supplémentaire : le prioritaire gagne sans touche
+      if (priorityPick) {
+        commitTie(actualScoreA, actualScoreB, undefined, priorityPick);
+      } else {
+        setShowTieChooser(true);
+      }
+      return;
+    }
+    if (error) {
+      if (error === 'score_above_max') {
+        showToast(
+          t(scoreLeft > effectiveMax ? 'poolView.max_score_a' : 'poolView.max_score_b', {
+            max: effectiveMax,
+          }),
+          'error'
+        );
+      } else if (error === 'tie_at_max') {
+        showToast(t('poolView.tie_at_max', { max: effectiveMax }), 'error');
+      } else if (error === 'score_invalid') {
+        showToast(t('poolView.inline_invalid'), 'error');
+      } else if (error === 'draw_not_allowed') {
+        showToast(t('poolView.draw_laser'), 'warning');
+      } else {
+        showToast(t('poolView.draw_live'), 'error');
+      }
       return;
     }
 
-    if (actualScoreA === actualScoreB) {
-      if (tieByVictory && (victoryA || victoryB)) {
-        // victoryA = victoire du tireur affiché à gauche (= fencerA si normal, fencerB si inversé)
-        const winnerLeft = victoryA;
-        const winner: 'A' | 'B' = isMatchInverted
-          ? winnerLeft
-            ? 'B'
-            : 'A'
-          : winnerLeft
-            ? 'A'
-            : 'B';
-        addAction({
-          type: 'UPDATE_SCORE',
-          description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-          undo: () => {
-            if (prevScoreA !== null && prevScoreB !== null)
-              onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-          },
-          redo: () => {
-            onScoreUpdate(matchIdx, actualScoreA, actualScoreB, winner);
-          },
-        });
-        onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
-      } else if (isLaserSabre) {
-        showToast(t('poolView.draw_laser'), 'warning');
-        return;
-      } else if (victoryA || victoryB) {
-        // Tirage au sort déjà décidé (ex: résultat importé depuis une tablette arbitre)
-        const winnerLeft = victoryA;
-        const winner: 'A' | 'B' = isMatchInverted
-          ? winnerLeft
-            ? 'B'
-            : 'A'
-          : winnerLeft
-            ? 'A'
-            : 'B';
-        addAction({
-          type: 'UPDATE_SCORE',
-          description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-          undo: () => {
-            if (prevScoreA !== null && prevScoreB !== null)
-              onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-          },
-          redo: () => {
-            onScoreUpdate(matchIdx, actualScoreA, actualScoreB, winner);
-          },
-        });
-        onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
-      } else if (tieByVictory) {
-        // Minute prioritaire tirée avant la minute supplémentaire : le prioritaire gagne sans touche
-        if (priorityPick) {
-          commitTie(actualScoreA, actualScoreB, undefined, priorityPick);
-        } else {
-          setShowTieChooser(true);
-        }
-        return;
-      } else {
-        showToast(t('poolView.draw_live'), 'error');
-        return;
-      }
-    } else {
-      addAction({
-        type: 'UPDATE_SCORE',
-        description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-        undo: () => {
-          if (prevScoreA !== null && prevScoreB !== null)
-            onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-        },
-        redo: () => {
-          onScoreUpdate(matchIdx, actualScoreA, actualScoreB);
-        },
-      });
-      onScoreUpdate(editingMatch, actualScoreA, actualScoreB);
-    }
+    addAction({
+      type: 'UPDATE_SCORE',
+      description: `Score poule ${pool.number} match ${matchIdx + 1}`,
+      undo: () => {
+        if (prevScoreA !== null && prevScoreB !== null)
+          onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
+      },
+      redo: () => {
+        onScoreUpdate(matchIdx, actualScoreA, actualScoreB, tieWinner);
+      },
+    });
+    onScoreUpdate(editingMatch, actualScoreA, actualScoreB, tieWinner);
 
     // Forcer la mise à jour de l'ordre des matchs
     setMatchesUpdateTrigger(prev => prev + 1);
