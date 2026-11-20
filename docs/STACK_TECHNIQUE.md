@@ -85,7 +85,7 @@ reste est intégré par Webpack.
 | @testing-library/react | 16.3.3 |
 | @testing-library/jest-dom | 7.0.1 (typage Vitest 5 : `src/renderer/jest-dom.d.ts`) |
 | @testing-library/user-event | 14.6.8 |
-| @playwright/test | 1.64.1 |
+| @playwright/test | 1.65.1 |
 | @axe-core/playwright | 4.14.0 |
 | eslint | 10.13.0 (flat config `eslint.config.js` ; `overrides` npm : eslint-plugin-react n'annonce pas ESLint 10, version React explicite au lieu de `detect`) |
 | @eslint/js | 10.0.1 |

@@ -1,8 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
+ * E2E de l'interface servie par le serveur de dev (webpack serve, port 8066, #2045).
+ * Chromium par défaut ; E2E_ALL_BROWSERS=1 ajoute Firefox, WebKit et les mobiles.
+ * Navigateur requis : npx playwright install chromium
  * @see https://playwright.dev/docs/test-configuration
  */
+
+/** Port du serveur de dev du renderer (webpack.renderer.config.js, devServer.port) */
+const DEV_PORT = 8066;
+const BASE_URL = `http://localhost:${DEV_PORT}`;
 export default defineConfig({
   testDir: './e2e',
 
@@ -28,7 +35,7 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -40,36 +47,29 @@ export default defineConfig({
     video: 'on-first-retry',
   },
 
-  /* Configure projects for major browsers */
+  /* Chromium par défaut ; autres navigateurs sur demande (E2E_ALL_BROWSERS=1) */
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    /* Test against mobile viewports */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    ...(process.env.E2E_ALL_BROWSERS
+      ? [
+          { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+          { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+          { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
+          { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
+        ]
+      : []),
   ],
 
   /* Run local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    // Renderer seul : les E2E ouvrent l'interface dans le navigateur (sans process principal)
+    command: 'npm run dev:renderer',
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    // Première compilation webpack : jusqu'à ~2 min sur une machine lente
+    timeout: 240000,
   },
 });
