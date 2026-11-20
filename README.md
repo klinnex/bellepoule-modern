@@ -18,7 +18,7 @@ Merci pour votre soutien ! / Thank you for your support!
 |---|---|
 | Aperçu | **[Captures d'écran des menus](docs/SCREENSHOTS.md)** |
 | Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) · **[Journée multi-épreuves](docs/JOURNEE_MULTI_EPREUVES.md)** |
-| Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** · **[Appareils de piste Cyrano](docs/CYRANO.md)** |
+| Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** · **[Appareils de piste Cyrano](docs/CYRANO.md)** · **[OPP2 / MQTT](docs/OPP2.md)** |
 | Club | **[Mode Club](docs/MODE_CLUB.md)** |
 | Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) · [Sabre Laser](docs/PROCEDURE_SABRE_LASER.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |

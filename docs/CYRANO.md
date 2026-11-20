@@ -235,9 +235,11 @@ appareil ◀─trames─── pilote ◀─────────────
   reprendre sa numérotation. **Avec Cyrano, elle ne rejette rien** : le protocole ne numérote
   pas ses trames, le pilote numérote à la réception (toujours croissant) ; un INFO dupliqué ou
   désordonné sur le réseau n'est pas détecté. C'est le socle des protocoles numérotés à venir.
-- Nouveau pilote (RS422-FPA, Favero série, OPP2/MQTT) : implémenter `PisteDriver`, le passer au
-  `PisteHub` (`main.ts`). Un seul pilote par hub pour l'instant ; le pseudo-socket des entrées
-  d'appareil reste `cyrano:<piste>` (verrou appareil maître, `cyranoLock.ts`).
+- Nouveau pilote (RS422-FPA, Favero série) : implémenter `PisteDriver`, l'ajouter au
+  `MultiPisteDriver` (`main.ts`). Plusieurs protocoles coexistent (#1960) : chaque piste appartient
+  au premier pilote qui la déclare, `fencerId(id, piste)` suit le protocole de la piste. Le
+  pseudo-socket des entrées d'appareil reste `cyrano:<piste>` (verrou appareil maître,
+  `cyranoLock.ts`). Pilote OPP2 (JSON sur MQTT) : [docs/OPP2.md](OPP2.md).
 
 ### 2 octies. Équipes — relais FIE (`Type=T`, #1829)
 

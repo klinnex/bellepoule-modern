@@ -1425,6 +1425,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   settings: SettingsAPI;
   club: ClubAPI;
   cyrano: CyranoAPI;
+  opp2: import('./opp2Preload').Opp2API;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;

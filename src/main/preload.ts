@@ -488,6 +488,15 @@ const electronApi = {
     getRoutes: () => ipcRenderer.invoke('cyrano:getRoutes'),
   },
 
+  // Appareils de piste OPP2 : broker MQTT intégré (#1960)
+  opp2: {
+    start: (options?: { port?: number }) => ipcRenderer.invoke('opp2:start', options),
+    stop: () => ipcRenderer.invoke('opp2:stop'),
+    isRunning: () => ipcRenderer.invoke('opp2:isRunning'),
+    setPistes: (pistes: unknown[]) => ipcRenderer.invoke('opp2:setPistes', pistes),
+    getStatus: () => ipcRenderer.invoke('opp2:getStatus'),
+  },
+
   // Language injected before renderer loads (avoids race with localStorage read)
   initialLanguage: (() => {
     const arg = process.argv.find(a => a.startsWith('--initial-lang='));

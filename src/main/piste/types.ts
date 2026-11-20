@@ -1,7 +1,7 @@
 /**
  * BellePoule Modern - Modèle commun des appareils de piste (#1829)
- * Indépendant du protocole : chaque pilote (Cyrano aujourd'hui ; RS422-FPA, Favero série,
- * OPP2/MQTT ensuite) convertit ses trames en `PisteInput` et traduit les `PisteCommand` en
+ * Indépendant du protocole : chaque pilote (Cyrano, OPP2/MQTT (#1960) ; RS422-FPA, Favero
+ * série ensuite) convertit ses trames en `PisteInput` et traduit les `PisteCommand` en
  * trames. Le PisteHub ne connaît que ce modèle.
  * Licensed under GPL-3.0
  */
@@ -170,8 +170,11 @@ export interface PisteDriver {
   findAllByArena(arena: number): PisteLink[];
   /** Envoie une commande ; false si la piste est inconnue ou le pilote arrêté. */
   send(piste: string, command: PisteCommand): boolean;
-  /** Identifiant d'un tireur tel que l'appareil le renverra (troncature du protocole). */
-  fencerId(id: string): string;
+  /**
+   * Identifiant d'un tireur tel que l'appareil le renverra (troncature du protocole) ;
+   * `piste` désigne le pilote quand plusieurs protocoles coexistent (#1960).
+   */
+  fencerId(id: string, piste?: string): string;
   /** Longueur des noms affichés, pour les pilotes qui transmettent les noms. */
   setNameLength?(length: PisteNameLength): void;
   on<K extends keyof PisteDriverEvents>(
