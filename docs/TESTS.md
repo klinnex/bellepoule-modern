@@ -89,8 +89,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 88 | 987 |
-| `src/shared/services/` | 8 | 95 |
+| `src/shared/utils/` | 86 | 963 |
+| `src/shared/services/` | 8 | 87 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 40 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
@@ -113,10 +113,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 10 | 87 |
-| **Total** | **516** | **3998** |
+| `src/shared/domain/` | 12 | 111 |
+| **Total** | **516** | **3990** |
 
-Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 506 fichiers, 3951 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1587,54 +1587,12 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/refereeAutoAssign.test.ts</code> — 4 tests</summary>
-
-- **autoAssignReferees**
-  - exemple de l’issue : chaque poule a un arbitre neutre, même arbitre pour toute la poule
-  - ignore les arbitres occupés dans une autre épreuve et diagnostique le manque
-  - garde l’arbitre verrouillé à la main
-  - tableau : neutralité sur les deux tireurs, un arbitre par match du tour
-
-</details>
-
-<details>
-<summary><code>src/shared/utils/refereeMatching.test.ts</code> — 16 tests</summary>
-
-- **hungarian**
-  - trouve l’affectation de coût minimal
-  - matrice vide
-- **neutralityConflicts**
-  - club, nationalité et ligue selon les règles
-  - arbitre sans club : neutre
-- **solveRefereeMatching**
-  - exemple de l’issue : P1/P2/R1/R2, deux poules neutres (le glouton échoue)
-  - met les meilleurs arbitres sur les poules les plus relevées
-  - rotation : préfère l’arbitre qui a le moins arbitré
-  - stabilité : garde l’arbitre sur sa piste
-  - écarte les arbitres indisponibles et au plafond
-  - neutralité de nationalité (épreuve internationale)
-  - respecte les affectations verrouillées
-  - verrou en conflit de neutralité : conservé tel quel
-  - diagnostic de Hall : poules 4 et 7, un seul arbitre neutre
-  - trouve une répartition complète si elle existe (cas aléatoires)
-  - plus de poules que d’arbitres
-- **refereeLevelFromCategory**
-  - ordonne international \> national \> régional \> autre
-
-</details>
-
-<details>
-<summary><code>src/shared/utils/refereeStats.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/utils/refereeStats.test.ts</code> — 11 tests</summary>
 
 - **computeRefereeMatchStats**
   - compte matchs de poule terminés et en attente
   - compte matchs de tableau, ignore les exempts, crédite chaque arbitre en mode expert
   - trie par total décroissant puis nom
-- **autoAssignReferees**
-  - répartit les matchs sur l’arbitre le moins chargé
-  - évite les conflits de club et les indisponibles
-  - tient compte de la charge existante et la met à jour
-  - retourne une map vide sans arbitre
 - **getRefereePresence (#1016)**
   - non pointé si indisponible
   - pointé tant qu’aucun match n’est généré
@@ -2030,26 +1988,16 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/services/refereeManager.test.ts</code> — 17 tests</summary>
+<summary><code>src/shared/services/refereeManager.test.ts</code> — 9 tests</summary>
 
 - **RefereeManager**
   - **constructeur**
     - filtre les arbitres unavailable
     - config par défaut appliquée
     - config partielle fusionne avec defaults
-  - **assignRefereesToMatches**
-    - 1 match + 1 arbitre → assignment créée
-    - 0 arbitres → map vide
-    - 0 matchs → map vide
-    - plusieurs matchs avec plusieurs arbitres → tous assignés si possible
-    - arbitre assigné a son status mis à jour
-  - **conflit de club**
-    - arbitre et tireurA même club → conflit détecté (warning dans recordAssignment)
-    - arbitre sans club → pas de conflit
-    - conflit via fenceur dans pool → arbitre pénalisé
-  - **rotation / maxConsecutiveMatches**
-    - un arbitre reçoit plusieurs matchs si assez de matchs
-    - maxMatchesPerDay limite les assignations
+  - **recordExternalAssignment**
+    - cumule les matchs d’un arbitre
+    - arbitre inconnu ou indisponible : ignoré
   - **getRefereeStats**
     - retourne 0 matchs pour un arbitre non assigné
     - compte les matchs après assignation
@@ -3898,7 +3846,7 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - import\_referees : épreuve (gestion des arbitres activée) puis rejoué sans doublon
 - import\_referees : journée avec armes, reportés dans les épreuves de ces armes
 - start / stop\_remote\_server passent par le serveur distant de l’application
-- assign\_referees : arbitre du club d’un tireur signalé faute d’arbitre neutre
+- assign\_referees : pas d’arbitre du club d’un tireur, poule signalée sans arbitre (ADR-0014)
 - arènes du serveur distant sans écran : poules, sinon pistes de la salle, sinon 1
 - delete\_competition : titre exact exigé
 - salle par défaut → pistes ; réglages sans secret ni dossiers de l’agent
@@ -8248,6 +8196,48 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
   - exclut les groupes déjà extraits dans une compétition séparée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/referees/refereeAutoAssign.test.ts</code> — 8 tests</summary>
+
+- **autoAssignReferees**
+  - exemple de l’issue : chaque poule a un arbitre neutre, même arbitre pour toute la poule
+  - ignore les arbitres occupés dans une autre épreuve et diagnostique le manque
+  - garde l’arbitre verrouillé à la main
+  - tableau : neutralité sur les deux tireurs, un arbitre par match du tour
+- **autoAssignReferees — réutilisation et matchs de tableau (#1979, ADR-0014)**
+  - sans reuseReferees : un arbitre pour deux poules simultanées → une poule en manque
+  - avec reuseReferees : le même arbitre enchaîne les deux poules
+  - réutilisation sans lever la neutralité : arbitre du club de la poule jamais choisi
+  - accepte des matchs de tableau réduits (TableauMatch : round, position, arena)
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/referees/refereeMatching.test.ts</code> — 16 tests</summary>
+
+- **hungarian**
+  - trouve l’affectation de coût minimal
+  - matrice vide
+- **neutralityConflicts**
+  - club, nationalité et ligue selon les règles
+  - arbitre sans club : neutre
+- **solveRefereeMatching**
+  - exemple de l’issue : P1/P2/R1/R2, deux poules neutres (le glouton échoue)
+  - met les meilleurs arbitres sur les poules les plus relevées
+  - rotation : préfère l’arbitre qui a le moins arbitré
+  - stabilité : garde l’arbitre sur sa piste
+  - écarte les arbitres indisponibles et au plafond
+  - neutralité de nationalité (épreuve internationale)
+  - respecte les affectations verrouillées
+  - verrou en conflit de neutralité : conservé tel quel
+  - diagnostic de Hall : poules 4 et 7, un seul arbitre neutre
+  - trouve une répartition complète si elle existe (cas aléatoires)
+  - plus de poules que d’arbitres
+- **refereeLevelFromCategory**
+  - ordonne international \> national \> régional \> autre
 
 </details>
 
