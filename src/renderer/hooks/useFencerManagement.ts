@@ -10,6 +10,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fileParser';
 import { useTranslation } from './useTranslation';
+import { useCompetitionEvent } from './useCompetitionEvent';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -44,6 +45,20 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
       showToast('Erreur lors du chargement des tireurs', 'error');
     }
   }, [showToast]);
+
+  // Rechargement push (inscription distante, import…) : remplace tout poll (#1298).
+  // Regroupe les rafales d'événements (import en masse) en un seul rechargement.
+  const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useCompetitionEvent('fencers:changed', competition.id, () => {
+    if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    reloadTimerRef.current = setTimeout(() => void loadFencers(), 200);
+  });
+  useEffect(
+    () => () => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    },
+    []
+  );
 
   // Ajouter un tireur
   const addFencer = useCallback(
@@ -131,24 +146,44 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     [updateFencers]
   );
 
-  // Supprimer un tireur
+  // Annulation d'une suppression : ré-ajoute le tireur (nouvel id). Lu au clic, donc toujours à jour.
+  const restoreFencerRef = useRef<(f: Fencer) => void>(() => {});
+  restoreFencerRef.current = ({ id: _id, createdAt: _c, updatedAt: _u, ...data }) => {
+    void addFencer(data);
+  };
+
+  // Supprimer un tireur (annulable 5 s, sans confirmation modale : #1535)
   const deleteFencer = useCallback(
     async (fencerId: string) => {
       if (!window.electronAPI?.db?.deleteFencer) return;
 
       try {
+        const removed = fencers.find(f => f.id === fencerId);
         await window.electronAPI.db.deleteFencer(fencerId);
         const updatedFencers = fencers.filter(f => f.id !== fencerId);
         setFencers(updatedFencers);
         onUpdate({ ...competition, fencers: updatedFencers });
-        showToast('Tireur supprimé', 'success');
+        showToast(
+          t('fencerList.deleted', {
+            name: removed ? `${removed.lastName} ${removed.firstName}` : '',
+          }),
+          'info',
+          {
+            duration: 5000,
+            action: {
+              label: t('fencerList.undo'),
+              onClick: () => removed && restoreFencerRef.current(removed),
+            },
+            undo: true, // Ctrl+Z (#1535)
+          }
+        );
       } catch (error) {
         logger.error(LogCategory.UI, 'Failed to delete fencer', error as Error);
         showToast('Erreur lors de la suppression', 'error');
         throw error;
       }
     },
-    [fencers, competition, onUpdate, showToast]
+    [fencers, competition, onUpdate, showToast, t]
   );
 
   // Supprimer tous les tireurs

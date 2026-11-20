@@ -4,6 +4,9 @@
  * Licensed under GPL-3.0
  */
 
+import { SMALL_BTN } from './fencerList.styles';
+import { Pencil, Trash2, TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
@@ -30,6 +33,10 @@ import {
   ROW_ALT,
 } from './refereeManager.styles';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
+import NationalityPicker from './common/NationalityPicker';
+import { useBusyElsewhere } from '../hooks/useBusyElsewhere';
+import { formatAssignment } from './eventDayFormat';
 
 const PRESENCE_COLORS: Record<RefereePresence, string> = {
   not_checked_in: '#9ca3af',
@@ -65,6 +72,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   onAssignmentsChange,
 }) => {
   const { t } = useTranslation();
+  // Journée multi-épreuves (#1714) : occupation dans les autres épreuves
+  const busyElsewhere = useBusyElsewhere(competition.id);
   const [config, setConfig] = useState<RefereeRotationConfig>({
     maxConsecutiveMatches: 3,
     minRestTimeMinutes: 15,
@@ -194,7 +203,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     const fencerBClub = match.fencerB?.club;
 
     if (referee.club && (fencerAClub === referee.club || fencerBClub === referee.club)) {
-      return `⚠️ Conflit: Arbitre du club ${referee.club}`;
+      return `Conflit : Arbitre du club ${referee.club}`;
     }
     return null;
   };
@@ -243,8 +252,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             gender: ref.gender,
           });
           created.push(newRef);
-        } catch (err: any) {
-          errors.push(err?.message ?? 'Erreur import');
+        } catch (err) {
+          errors.push((err as { message?: string } | null)?.message ?? 'Erreur import');
         }
       }
       if (created.length > 0) onRefereesChange([...referees, ...created]);
@@ -269,6 +278,83 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       onRefereesChange(referees.map(r => (r.id === referee.id ? { ...r, status } : r)));
     } catch {
       /* silencieux */
+    }
+  };
+
+  // Ajout / modification d'un arbitre (bouton ou touche Entrée, #1826)
+  const submitReferee = async () => {
+    if (!newReferee.name.trim()) {
+      setAddError('Le nom est obligatoire');
+      return;
+    }
+    try {
+      if (editingId) {
+        const updates = {
+          name: newReferee.name.trim(),
+          club: newReferee.club,
+          license: newReferee.license,
+          category: newReferee.category,
+          nationality: newReferee.nationality || 'FRA',
+        };
+        await window.electronAPI.db.updateReferee(editingId, updates);
+        const parts = updates.name.split(/\s+/);
+        const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
+        const lastName = parts[parts.length - 1];
+        onRefereesChange(
+          referees.map(r =>
+            r.id === editingId
+              ? {
+                  ...r,
+                  firstName,
+                  lastName,
+                  club: updates.club || undefined,
+                  license: updates.license || undefined,
+                  category: updates.category || undefined,
+                  nationality: updates.nationality,
+                }
+              : r
+          )
+        );
+        setEditingId(null);
+      } else {
+        const created = await window.electronAPI.db.createReferee(competition.id, {
+          name: newReferee.name.trim(),
+          club: newReferee.club || undefined,
+          license: newReferee.license || undefined,
+          category: newReferee.category || undefined,
+          nationality: newReferee.nationality || 'FRA',
+        });
+        onRefereesChange([...referees, created]);
+      }
+      setNewReferee({
+        name: '',
+        club: '',
+        license: '',
+        category: '',
+        nationality: 'FRA',
+      });
+      setAddError('');
+    } catch (e) {
+      setAddError((e as { message?: string } | null)?.message ?? 'Erreur');
+    }
+  };
+
+  // Tout pointer : même comportement que l'onglet Appel (#1826)
+  const uncheckedReferees = referees.filter(r => r.status === 'unavailable');
+  const checkInAllReferees = async () => {
+    const ids = new Set<string>();
+    for (const r of uncheckedReferees) {
+      try {
+        await window.electronAPI.db.updateReferee(r.id, { status: 'available' });
+        ids.add(r.id);
+      } catch {
+        /* silencieux */
+      }
+    }
+    if (ids.size > 0) {
+      onRefereesChange(
+        referees.map(r => (ids.has(r.id) ? { ...r, status: 'available' as const } : r))
+      );
     }
   };
 
@@ -305,12 +391,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             }}
           >
             {tab === 'referees'
-              ? '👥 Arbitres'
+              ? 'Arbitres'
               : tab === 'assignments'
-                ? '📋 Assignations'
+                ? 'Assignations'
                 : tab === 'history'
-                  ? '📜 Historique'
-                  : '📊 Statistiques'}
+                  ? 'Historique'
+                  : 'Statistiques'}
           </button>
         ))}
       </div>
@@ -322,7 +408,20 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             <h3 className="is-29c898">
               {editingId ? 'Modifier un arbitre' : 'Ajouter un arbitre'}
             </h3>
-            <div className="is-886621">
+            <div
+              className="is-886621"
+              onKeyDown={e => {
+                // Validation par retour chariot (#1826)
+                if (
+                  e.key === 'Enter' &&
+                  e.target instanceof HTMLInputElement &&
+                  !e.nativeEvent.isComposing
+                ) {
+                  e.preventDefault();
+                  void submitReferee();
+                }
+              }}
+            >
               <input
                 placeholder={t('refereeManager.ph_name')}
                 value={newReferee.name}
@@ -347,79 +446,21 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 onChange={e => setNewReferee({ ...newReferee, category: e.target.value })}
                 style={INPUT}
               />
-              <input
-                placeholder={t('refereeManager.ph_nationality')}
-                value={newReferee.nationality}
-                onChange={e => setNewReferee({ ...newReferee, nationality: e.target.value })}
-                style={INPUT}
-              />
+              {/* Même sélecteur de nationalité que l'ajout d'un tireur (#1504) */}
+              <div aria-label={t('refereeManager.ph_nationality')}>
+                <NationalityPicker
+                  value={newReferee.nationality || 'FRA'}
+                  onChange={code => setNewReferee({ ...newReferee, nationality: code })}
+                />
+              </div>
             </div>
             {addError && <p className="is-72cabb">{addError}</p>}
             <div className="is-52d632">
-              <button
-                onClick={async () => {
-                  if (!newReferee.name.trim()) {
-                    setAddError('Le nom est obligatoire');
-                    return;
-                  }
-                  try {
-                    if (editingId) {
-                      const updates = {
-                        name: newReferee.name.trim(),
-                        club: newReferee.club,
-                        license: newReferee.license,
-                        category: newReferee.category,
-                        nationality: newReferee.nationality || 'FRA',
-                      };
-                      await window.electronAPI.db.updateReferee(editingId, updates);
-                      const parts = updates.name.split(/\s+/);
-                      const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
-                      const lastName = parts[parts.length - 1];
-                      onRefereesChange(
-                        referees.map(r =>
-                          r.id === editingId
-                            ? {
-                                ...r,
-                                firstName,
-                                lastName,
-                                club: updates.club || undefined,
-                                license: updates.license || undefined,
-                                category: updates.category || undefined,
-                                nationality: updates.nationality,
-                              }
-                            : r
-                        )
-                      );
-                      setEditingId(null);
-                    } else {
-                      const created = await window.electronAPI.db.createReferee(competition.id, {
-                        name: newReferee.name.trim(),
-                        club: newReferee.club || undefined,
-                        license: newReferee.license || undefined,
-                        category: newReferee.category || undefined,
-                        nationality: newReferee.nationality || 'FRA',
-                      });
-                      onRefereesChange([...referees, created]);
-                    }
-                    setNewReferee({
-                      name: '',
-                      club: '',
-                      license: '',
-                      category: '',
-                      nationality: 'FRA',
-                    });
-                    setAddError('');
-                  } catch (e: any) {
-                    setAddError(e?.message ?? 'Erreur');
-                  }
-                }}
-                className="is-e1038a"
-              >
-                {editingId ? '💾 Enregistrer' : '＋ Ajouter'}
-              </button>
+              <Button variant="primary" onClick={submitReferee}>
+                {editingId ? 'Enregistrer' : `+ ${t('actions.add')}`}
+              </Button>
               {editingId && (
-                <button
-                  className="btn btn-secondary"
+                <Button
                   onClick={() => {
                     setEditingId(null);
                     setAddError('');
@@ -433,7 +474,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   }}
                 >
                   {t('actions.cancel')}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -447,30 +488,22 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               className="is-f2892a"
               onChange={handleImportFile}
             />
-            <button
+            <Button
               onClick={() => fileInputRef.current?.click()}
               title={t('refereeManager.import_title')}
-              className="is-e1de04"
             >
               {t('refereeManager.import_btn')}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleExportFile}
               disabled={referees.length === 0}
               title={t('refereeManager.export_title')}
-              style={{
-                background: '#059669',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1.25rem',
-                borderRadius: '6px',
-                cursor: referees.length === 0 ? 'not-allowed' : 'pointer',
-                fontWeight: '500',
-                opacity: referees.length === 0 ? 0.5 : 1,
-              }}
             >
               {t('refereeManager.export_btn')}
-            </button>
+            </Button>
+            {uncheckedReferees.length > 0 && (
+              <Button onClick={checkInAllReferees}>✓ {t('actions.check_in_all')}</Button>
+            )}
             {importStatus && (
               <span
                 style={{
@@ -527,51 +560,76 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                             <span style={{ color: PRESENCE_COLORS[presence], fontWeight: 600 }}>
                               {REFEREE_PRESENCE_LABELS[presence]}
                             </span>
-                            {presence !== 'busy' && (
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => toggleRefereeCheckin(ref)}
+                            {busyElsewhere[ref.id] && (
+                              <span
+                                className="event-day-busy"
+                                title={t('eventDay.busy_elsewhere_title')}
                               >
-                                {ref.status === 'unavailable' ? 'Pointer' : 'Dépointer'}
-                              </button>
+                                <Icon icon={TriangleAlert} />{' '}
+                                {t('eventDay.busy_elsewhere', {
+                                  where: busyElsewhere[ref.id]
+                                    .map(a => formatAssignment(a, t))
+                                    .join(' ; '),
+                                })}
+                              </span>
                             )}
                           </span>
                         );
                       })()}
                     </td>
                     <td style={TD}>
-                      <button
-                        onClick={() => {
-                          setEditingId(ref.id);
-                          setAddError('');
-                          setNewReferee({
-                            name: `${ref.firstName} ${ref.lastName}`.trim(),
-                            club: ref.club ?? '',
-                            license: ref.license ?? '',
-                            category: ref.category ?? '',
-                            nationality: ref.nationality ?? 'FRA',
-                          });
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="is-54fefa"
-                        title={t('actions.edit')}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await window.electronAPI.db.deleteReferee(ref.id);
-                            onRefereesChange(referees.filter(r => r.id !== ref.id));
-                          } catch {
-                            /* silencieux */
-                          }
-                        }}
-                        className="is-b6f00b"
-                        title={t('actions.delete')}
-                      >
-                        🗑
-                      </button>
+                      {/* Mêmes boutons que l'onglet Appel (#1826) */}
+                      <div className="is-15cd68">
+                        <Button
+                          size="sm"
+                          title={t('actions.edit')}
+                          aria-label={t('actions.edit')}
+                          style={SMALL_BTN}
+                          onClick={() => {
+                            setEditingId(ref.id);
+                            setAddError('');
+                            setNewReferee({
+                              name: `${ref.firstName} ${ref.lastName}`.trim(),
+                              club: ref.club ?? '',
+                              license: ref.license ?? '',
+                              category: ref.category ?? '',
+                              nationality: ref.nationality ?? 'FRA',
+                            });
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                        >
+                          <Icon icon={Pencil} />
+                        </Button>
+                        {getRefereePresence(ref, matches) !== 'busy' && (
+                          <Button
+                            size="sm"
+                            variant={ref.status === 'unavailable' ? 'primary' : 'secondary'}
+                            style={SMALL_BTN}
+                            onClick={() => toggleRefereeCheckin(ref)}
+                          >
+                            {ref.status === 'unavailable'
+                              ? t('fencerList.check')
+                              : t('fencerList.uncheck')}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          title={t('actions.delete')}
+                          aria-label={t('actions.delete')}
+                          style={SMALL_BTN}
+                          onClick={async () => {
+                            try {
+                              await window.electronAPI.db.deleteReferee(ref.id);
+                              onRefereesChange(referees.filter(r => r.id !== ref.id));
+                            } catch {
+                              /* silencieux */
+                            }
+                          }}
+                        >
+                          <Icon icon={Trash2} />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -802,13 +860,15 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       >
                         <td className="is-986a03">
                           {row.needsRest && (
-                            <span title={t('refereeManager.rest_recommended')}>⚠️ </span>
+                            <span title={t('refereeManager.rest_recommended')}>
+                              <Icon icon={TriangleAlert} />{' '}
+                            </span>
                           )}
                           {row.refereeName}
                         </td>
                         <td className="is-748511">{row.matchesAssigned}</td>
                         <td className="is-748511">{row.consecutiveMatches}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <td className="referee-manager-1">
                           <span
                             style={{
                               color: fatigueColor,
@@ -845,15 +905,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           )}
 
           {/* Arbitres List */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div className="referee-manager-2">
             <h3 style={HEADING}>{t('refereeManager.available')}</h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '1rem',
-              }}
-            >
+            <div className="referee-manager-3">
               {referees.map(referee => {
                 const stats = getRefereeStats(referee.id);
                 return (
@@ -867,7 +921,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       borderColor: referee.status !== 'unavailable' ? '#86efac' : '#fecaca',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', color: 'var(--color-text)' }}>
+                    <div className="referee-manager-4">
                       {referee.firstName} {referee.lastName}
                     </div>
                     {/* Carte sur fond clair (vert/rouge) : texte sombre dans les deux thèmes */}
@@ -884,12 +938,21 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     >
                       {REFEREE_PRESENCE_LABELS[getRefereePresence(referee, matches)]}
                     </div>
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                      <span style={{ color: 'var(--color-text)' }}>
+                    {busyElsewhere[referee.id] && (
+                      <div className="event-day-busy event-day-busy--small">
+                        {t('eventDay.busy_elsewhere', {
+                          where: busyElsewhere[referee.id]
+                            .map(a => formatAssignment(a, t))
+                            .join(' ; '),
+                        })}
+                      </div>
+                    )}
+                    <div className="referee-manager-5">
+                      <span className="referee-manager-6">
                         {t('refereeManager.today_matches', { n: stats.todayMatches })}
                       </span>
                       <br />
-                      <span style={{ color: 'var(--color-text)' }}>
+                      <span className="referee-manager-6">
                         {t('refereeManager.total_n', { n: stats.totalMatches })}
                       </span>
                     </div>
@@ -928,7 +991,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     }}
                   >
                     <div className="flex-1">
-                      <div style={{ fontWeight: '500' }}>
+                      <div className="referee-manager-7">
                         {match.fencerA?.firstName} {match.fencerA?.lastName}{' '}
                         {t('refereeManager.vs')} {match.fencerB?.firstName}{' '}
                         {match.fencerB?.lastName}
@@ -951,21 +1014,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       ) : null}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="referee-manager-8">
                       {conflictWarning && (
-                        <span style={{ color: '#dc2626', fontSize: '0.875rem' }}>
-                          {conflictWarning}
-                        </span>
+                        <span className="referee-manager-9">{conflictWarning}</span>
                       )}
                       <select
                         value={assignedReferee?.id || ''}
                         onChange={e => handleManualAssign(match.id, e.target.value)}
-                        style={{
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid var(--color-border-dark)',
-                          background: 'var(--color-surface)',
-                        }}
+                        className="referee-manager-10"
                       >
                         <option value="">{t('refereeManager.choose')}</option>
                         {referees

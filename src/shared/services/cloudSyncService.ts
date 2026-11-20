@@ -751,8 +751,8 @@ export class CloudSyncService {
    * Check if sync is needed
    */
   async checkForUpdates(): Promise<boolean> {
-    const remoteData = await this.getRemoteData();
-    const localData = await this.getLocalData();
+    await this.getRemoteData();
+    await this.getLocalData();
 
     // Compare timestamps and data
     // Placeholder - would need proper comparison logic

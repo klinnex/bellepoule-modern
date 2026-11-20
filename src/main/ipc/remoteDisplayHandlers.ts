@@ -4,7 +4,12 @@
  * Licensed under GPL-3.0
  */
 import { ipcMain, type BrowserWindow } from 'electron';
-import type { MatchSignatureRequest } from '../../shared/types/remote';
+import type {
+  CustomTheme,
+  MatchSignatureRequest,
+  OrgNote,
+  ThemeTargetType,
+} from '../../shared/types/remote';
 import { remoteServers } from '../remoteRegistry';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
@@ -65,13 +70,31 @@ export function registerRemoteDisplayHandlers({
     }
   );
 
+  ipcMain.handle('remote:setStripPlan', async (_, competitionId: string, plan: unknown) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'remote_not_started' };
+      entry.server.setStripPlan(plan);
+      return { success: true };
+    } catch (error) {
+      logger.error(LogCategory.NETWORK, 'Error setting strip plan:', toError(error));
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  });
+
   ipcMain.handle(
     'remote:updateArenaScreenTheme',
-    async (_, competitionId: string, arenaId: string, targetType: string, customTheme?: any) => {
+    async (
+      _,
+      competitionId: string,
+      arenaId: string,
+      targetType: string,
+      customTheme?: CustomTheme
+    ) => {
       try {
         const entry = remoteServers.get(competitionId);
         if (!entry) return { success: false, error: 'server_not_started' };
-        entry.server.updateArenaScreenTheme(arenaId, targetType as any, customTheme);
+        entry.server.updateArenaScreenTheme(arenaId, targetType as ThemeTargetType, customTheme);
         return { success: true };
       } catch (error) {
         return {
@@ -105,7 +128,7 @@ export function registerRemoteDisplayHandlers({
     }
   );
 
-  ipcMain.handle('remote:setOrgNote', async (_, competitionId: string, note: any) => {
+  ipcMain.handle('remote:setOrgNote', async (_, competitionId: string, note: OrgNote) => {
     try {
       const entry = remoteServers.get(competitionId);
       if (!entry) {

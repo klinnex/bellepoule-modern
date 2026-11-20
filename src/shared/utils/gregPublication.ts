@@ -4,17 +4,46 @@
  * Licensed under GPL-3.0
  */
 
-import { Category, Competition, Gender, Weapon } from '../types';
+import { Category, Competition, CompetitionSettings, Gender, Weapon } from '../types';
 
 export const GREG_UPLOAD_URL = 'https://www.escrime-info.com/gregxml/Greg/envoyer.php';
 
-/** Niveau GREG « Autre » : la compétition n'a pas encore de champ niveau (voir #1328) */
-export const GREG_DEFAULT_LEVEL = 'X';
+/** Niveau GREG (codes de l'ancien BellePoule, `level_xml_image`) */
+export type GregLevel = NonNullable<CompetitionSettings['gregLevel']>;
+
+export const GREG_LEVELS: readonly GregLevel[] = ['L', 'Z', 'CN', 'A', 'F', 'IE', 'X'];
+
+/** Niveau GREG « Autre » : valeur par défaut tant que l'organisateur n'en choisit pas un (#1328) */
+export const GREG_DEFAULT_LEVEL: GregLevel = 'X';
+
+export function isGregLevel(value: unknown): value is GregLevel {
+  return typeof value === 'string' && (GREG_LEVELS as readonly string[]).includes(value);
+}
+
+/**
+ * Niveau GREG proposé à partir du `Domaine` de l'extranet fédéral (#1328) :
+ * L → CID, R → Zone, N → Circuit national (ou Championnats de France si le titre le dit),
+ * I / C / autre → Autre. Sans domaine, aucune proposition (undefined).
+ */
+export function levelFromFederalDomain(domain?: string, title?: string): GregLevel | undefined {
+  if (!domain) return undefined;
+  switch (domain.trim().toUpperCase()) {
+    case 'L':
+      return 'L';
+    case 'R':
+      return 'Z';
+    case 'N':
+      return /championnats?\s+de\s+france/i.test(title ?? '') ? 'F' : 'CN';
+    default:
+      return GREG_DEFAULT_LEVEL;
+  }
+}
 
 export type GregCompetition = Pick<
   Competition,
   'title' | 'date' | 'location' | 'weapon' | 'gender' | 'category' | 'isTeamEvent' | 'status'
->;
+> &
+  Partial<Pick<Competition, 'settings'>>;
 
 export interface GregFormFields {
   type_competition: string;
@@ -115,7 +144,7 @@ export function buildGregFields(competition: GregCompetition): GregFormFields {
     indivouequipe: competition.isTeamEvent ? 'equipe' : 'indiv',
     'dp-normal-1': `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()}`,
     lieu: location,
-    niveau: GREG_DEFAULT_LEVEL,
+    niveau: competition.settings?.gregLevel ?? GREG_DEFAULT_LEVEL,
     Division: '',
     arme: weapon,
     genre: GENDER_GREG[competition.gender],

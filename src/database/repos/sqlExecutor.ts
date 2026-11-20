@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from 'better-sqlite3-multiple-ciphers';
 
 /**
  * Accès SQL minimal fourni par DatabaseManager aux dépôts par domaine (#1242).

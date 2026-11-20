@@ -5,6 +5,7 @@
  * Licensed under GPL-3.0
  */
 
+import { TipButton } from './Tooltip';
 import React from 'react';
 import { Card, CardReason, TargetZone, ZONE_POINTS } from '../../shared/types';
 import {
@@ -19,14 +20,11 @@ import { determineTeamCardEscalation } from '../../features/teams/utils/teamCard
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../contexts/TranslationContext';
+import { Flag, Radio, Swords, Undo2 } from 'lucide-react';
+import { Icon } from './common/Icon';
+import EmptyState from './common/EmptyState';
+import { CardIcon } from './common/CardIcon';
 
-const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
-const TEAM_CARD_BADGE: Record<string, string> = {
-  white: '⬜',
-  yellow: '🟨',
-  red: '🟥',
-  black: '⬛',
-};
 const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = [
   'white',
   'yellow',
@@ -102,7 +100,7 @@ const TeamPoolView: React.FC<Props> = ({
   const teamById = new Map(teams.map(team => [team.id, team]));
 
   if (matches.length === 0) {
-    return <div className="text-center text-gray-400 py-10">{emptyLabel}</div>;
+    return emptyLabel ? <EmptyState icon={<Icon icon={Swords} />} title={emptyLabel} /> : null;
   }
 
   return (
@@ -160,7 +158,7 @@ const TeamPoolView: React.FC<Props> = ({
                   title={t('teams.arenaTooltip')}
                   className="ml-4 text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
                 >
-                  📡 {t('teams.arenaButton')}
+                  <Icon icon={Radio} /> {t('teams.arenaButton')}
                 </button>
               )}
               <button
@@ -208,22 +206,23 @@ const TeamPoolView: React.FC<Props> = ({
                               {(
                                 [TargetZone.ZONE_A, TargetZone.ZONE_B, TargetZone.ZONE_C] as const
                               ).map(zone => (
-                                <button
+                                <TipButton
                                   key={zone}
                                   onClick={() => onScoreBout(bout, 'A', ZONE_POINTS[zone])}
                                   disabled={done}
-                                  title={t('teams.zoneTooltip', {
+                                  tip={t('teams.zoneTooltip', {
                                     zone,
                                     points: ZONE_POINTS[zone],
                                   })}
                                   className="w-6 h-8 text-xs font-bold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
                                 >
                                   {zone}
-                                </button>
+                                </TipButton>
                               ))}
                             </div>
                           ) : (
                             <button
+                              aria-label={t('actions.add')}
                               onClick={() => onScoreBout(bout, 'A')}
                               disabled={done}
                               className="w-8 h-8 text-sm font-bold rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
@@ -234,10 +233,10 @@ const TeamPoolView: React.FC<Props> = ({
                           <span className="text-sm font-medium truncate">{fa}</span>
                           {cardsA.map(c => (
                             <span key={c.id} title={CARD_REASON_LABELS[c.reason]}>
-                              {CARD_BADGE[c.type]}
+                              <CardIcon type={c.type} />
                             </span>
                           ))}
-                          <button
+                          <TipButton
                             onClick={() =>
                               onSetCardTarget(
                                 cardTarget?.boutId === bout.id &&
@@ -246,11 +245,11 @@ const TeamPoolView: React.FC<Props> = ({
                                   : { boutId: bout.id, fencerId: bout.fencerAId }
                               )
                             }
-                            title={t('teams.addCard')}
+                            tip={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
-                            🚩
-                          </button>
+                            <Icon icon={Flag} />
+                          </TipButton>
                         </div>
                         {/* Score */}
                         <div className="text-center w-24">
@@ -275,13 +274,13 @@ const TeamPoolView: React.FC<Props> = ({
                               title={t('teams.doubleTooltip')}
                               className="mt-0.5 text-[10px] px-1.5 py-0.5 rounded border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-40"
                             >
-                              ⚔ {t('teams.double')}
+                              <Icon icon={Swords} /> {t('teams.double')}
                             </button>
                           )}
                         </div>
                         {/* Côté B */}
                         <div className="flex items-center gap-2 justify-end">
-                          <button
+                          <TipButton
                             onClick={() =>
                               onSetCardTarget(
                                 cardTarget?.boutId === bout.id &&
@@ -290,14 +289,14 @@ const TeamPoolView: React.FC<Props> = ({
                                   : { boutId: bout.id, fencerId: bout.fencerBId }
                               )
                             }
-                            title={t('teams.addCard')}
+                            tip={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
-                            🚩
-                          </button>
+                            <Icon icon={Flag} />
+                          </TipButton>
                           {cardsB.map(c => (
                             <span key={c.id} title={CARD_REASON_LABELS[c.reason]}>
-                              {CARD_BADGE[c.type]}
+                              <CardIcon type={c.type} />
                             </span>
                           ))}
                           <span className="text-sm font-medium truncate text-right">{fb}</span>
@@ -306,22 +305,23 @@ const TeamPoolView: React.FC<Props> = ({
                               {(
                                 [TargetZone.ZONE_A, TargetZone.ZONE_B, TargetZone.ZONE_C] as const
                               ).map(zone => (
-                                <button
+                                <TipButton
                                   key={zone}
                                   onClick={() => onScoreBout(bout, 'B', ZONE_POINTS[zone])}
                                   disabled={done}
-                                  title={t('teams.zoneTooltip', {
+                                  tip={t('teams.zoneTooltip', {
                                     zone,
                                     points: ZONE_POINTS[zone],
                                   })}
                                   className="w-6 h-8 text-xs font-bold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
                                 >
                                   {zone}
-                                </button>
+                                </TipButton>
                               ))}
                             </div>
                           ) : (
                             <button
+                              aria-label={t('actions.add')}
                               onClick={() => onScoreBout(bout, 'B')}
                               disabled={done}
                               className="w-8 h-8 text-sm font-bold rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
@@ -330,13 +330,13 @@ const TeamPoolView: React.FC<Props> = ({
                             </button>
                           )}
                           {done && (
-                            <button
+                            <TipButton
                               onClick={() => onResetBout(bout)}
                               className="w-6 h-6 text-xs rounded text-red-400 hover:text-red-600 flex-shrink-0"
-                              title={t('teams.resetBout')}
+                              tip={t('teams.resetBout')}
                             >
-                              ↩
-                            </button>
+                              <Icon icon={Undo2} />
+                            </TipButton>
                           )}
                         </div>
                       </div>
@@ -390,10 +390,10 @@ const TeamPoolView: React.FC<Props> = ({
                               className={`flex items-center gap-1 flex-wrap ${side === 'B' ? 'justify-end' : ''}`}
                             >
                               {TEAM_CARD_TYPES.map(type => (
-                                <button
+                                <TipButton
                                   key={type}
                                   onClick={() => onAddTeamCard(m.id, teamId, type)}
-                                  title={t(
+                                  tip={t(
                                     type === suggested
                                       ? 'teams.teamCardTooltipSuggested'
                                       : 'teams.teamCardTooltip',
@@ -401,12 +401,12 @@ const TeamPoolView: React.FC<Props> = ({
                                   )}
                                   className={`px-1.5 py-0.5 rounded border hover:bg-gray-50 ${type === suggested ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'}`}
                                 >
-                                  {TEAM_CARD_BADGE[type]}
-                                </button>
+                                  <CardIcon type={type} />
+                                </TipButton>
                               ))}
                               {cards.map(c => (
                                 <span key={c.id} title={c.reason}>
-                                  {TEAM_CARD_BADGE[c.type]}
+                                  <CardIcon type={c.type} />
                                 </span>
                               ))}
                             </div>

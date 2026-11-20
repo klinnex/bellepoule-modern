@@ -1,0 +1,157 @@
+/**
+ * BellePoule Modern - Recherche dans la liste des compétitions (#1534)
+ * Licensed under GPL-3.0
+ */
+
+.competition-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.competition-search-count {
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.competition-search-empty {
+  margin: var(--space-6) 0;
+  text-align: center;
+  color: var(--color-text-light);
+}
+
+.competition-sort {
+  width: auto;
+}
+
+.competition-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.competition-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.competition-chip {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.competition-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.competition-chip.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.competition-recent {
+  margin-bottom: var(--space-5);
+}
+
+.competition-recent-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.competition-recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.competition-recent-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 12rem;
+  max-width: 18rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--card-accent, var(--color-primary));
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, transparent);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.competition-recent-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.competition-recent-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.competition-recent-date {
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+}
+
+/* Recherche compacte : loupe + boîte de dialogue */
+.search-dialog-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search-dialog-btn.is-active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.search-dialog-term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+  font-size: var(--fs-sm);
+}
+
+.search-dialog-term button {
+  background: none;
+  border: 0;
+  padding: 0.125rem;
+  cursor: pointer;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-dialog-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fencer-search-bar {
+  margin-bottom: 1rem;
+}

@@ -8,9 +8,11 @@ import React from 'react';
 import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/types';
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
+import { buildBlackCardEntries, isBlackCardExclusion } from '../services/blackCardReport';
 import { useTranslation } from '../hooks/useTranslation';
 import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
+import { encodeFFFWin1252, exportResultsToFFF } from '../../shared/utils/fencerExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
 import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
@@ -19,6 +21,9 @@ import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
 import BookSectionsModal from './BookSectionsModal';
 import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
+import { Medal, Printer, Trophy, Upload } from 'lucide-react';
+import { RankMedal } from './common/RankMedal';
+import { Icon } from './common/Icon';
 
 interface FinalResult {
   rank: number;
@@ -295,6 +300,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const { showToast } = useToast();
   const { t } = useTranslation();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
+  const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
+  const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
   const [isBookModalOpen, setIsBookModalOpen] = React.useState(false);
@@ -317,13 +324,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       document.removeEventListener('keydown', onKey);
     };
   }, [isExportMenuOpen]);
-
-  const getMedalEmoji = (rank: number | null): string => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return '';
-  };
 
   const getRowStyle = (rank: number | null): React.CSSProperties => {
     if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
@@ -398,6 +398,30 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export CSV réussi !', 'success');
   };
 
+  // Rapport d'exclusion pré-rempli pour la FFE (carton noir, annexe 14, #1829)
+  const hasBlackCard = (fencers ?? []).some(isBlackCardExclusion);
+  const exportBlackCardReport = async () => {
+    try {
+      const entries = await buildBlackCardEntries(fencers ?? [], pools, tableauMatches);
+      const { exportBlackCardReportToPDF } =
+        await import('../../shared/utils/pdfExport/blackCardReportPdf');
+      await exportBlackCardReportToPDF(
+        {
+          title: competition.title,
+          date: competition.date ? new Date(competition.date) : undefined,
+          location: competition.location,
+          organizer: competition.organizer,
+          weapon: competition.weapon,
+          category: competition.category,
+          gender: competition.gender,
+        },
+        entries
+      );
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   // Export PDF
   const exportPDF = async () => {
     try {
@@ -452,10 +476,26 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export XML réussi !', 'success');
   };
 
+  // Export FFF des résultats finaux (fin de compétition, spécification FFF)
+  const exportFFF = () => {
+    const content = exportResultsToFFF(
+      competition,
+      resultsToDisplay.map(r => ({ rank: r.rank, fencer: r.fencer, eliminatedAt: r.eliminatedAt }))
+    );
+    const blob = new Blob([encodeFFFWin1252(content) as BlobPart], {
+      type: 'text/plain;charset=windows-1252',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.fff`;
+    link.click();
+    showToast('Export FFF réussi !', 'success');
+  };
+
   const exportFullPDF = async (sectionOrder?: BookSectionKind[]) => {
     setIsExportingFull(true);
     try {
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
 
       // Chaque fetch de secours est isolé : un échec ne doit pas vider tout l'export
       const safe = async <T,>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> => {
@@ -597,7 +637,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const exportNoSignaturePDF = async () => {
     setIsExportingFull(true);
     try {
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
 
       const safe = async <T,>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> => {
         try {
@@ -651,7 +691,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           matches: b.matches as TableauMatchForPDF[],
         })),
         competitionTitle: competition.title,
-        template: rankingTemplate,
+        poolTemplate,
+        tableauTemplate,
       });
     } catch (e) {
       showToast((e as Error).message, 'error');
@@ -673,7 +714,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* En-tête avec le champion */}
       {champion && (
         <div style={RV_STYLES.champHeader}>
-          <div style={RV_STYLES.champTrophy}>🏆</div>
+          <div style={RV_STYLES.champTrophy}>
+            <Icon icon={Trophy} />
+          </div>
           <h1 style={RV_STYLES.champTitle}>{t('resultsView.champion')}</h1>
           <div style={RV_STYLES.champName}>
             {champion.fencer.firstName} {champion.fencer.lastName}
@@ -687,7 +730,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 2ème place */}
         {resultsToDisplay[1] && (
           <div style={RV_STYLES.podium2}>
-            <div style={RV_STYLES.podium2Medal}>🥈</div>
+            <div style={RV_STYLES.podium2Medal}>
+              <Icon icon={Medal} className="medal-silver" />
+            </div>
             <div style={RV_STYLES.podium2Name}>{resultsToDisplay[1].fencer.lastName}</div>
             <div style={RV_STYLES.podium2Place}>{t('resultsView.second')}</div>
           </div>
@@ -696,7 +741,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 1ère place */}
         {resultsToDisplay[0] && (
           <div style={RV_STYLES.podium1}>
-            <div style={RV_STYLES.podium1Medal}>🥇</div>
+            <div style={RV_STYLES.podium1Medal}>
+              <Icon icon={Medal} className="medal-gold" />
+            </div>
             <div style={RV_STYLES.podium1Name}>{resultsToDisplay[0].fencer.lastName}</div>
             <div style={RV_STYLES.podium1Place}>{t('resultsView.first')}</div>
           </div>
@@ -705,7 +752,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* 3ème place */}
         {resultsToDisplay[2] && (
           <div style={RV_STYLES.podium3}>
-            <div style={RV_STYLES.podium3Medal}>🥉</div>
+            <div style={RV_STYLES.podium3Medal}>
+              <Icon icon={Medal} className="medal-bronze" />
+            </div>
             <div style={RV_STYLES.podium3Name}>{resultsToDisplay[2].fencer.lastName}</div>
             <div style={RV_STYLES.podium3Place}>{t('resultsView.third')}</div>
           </div>
@@ -737,7 +786,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 }}
               >
                 <td style={RV_STYLES.tdPad}>
-                  <span style={RV_STYLES.tdMedalSpan}>{getMedalEmoji(result.rank)}</span>
+                  <span style={RV_STYLES.tdMedalSpan}>
+                    <RankMedal rank={result.rank} />
+                  </span>
                   {finalRankLabel(result.rank, result.fencer, result.eliminatedAt)}
                 </td>
                 <td style={RV_STYLES.tdPad}>
@@ -767,8 +818,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
-        <button onClick={printResults} style={RV_STYLES.btnPrint}>
-          {t('resultsView.print')}
+        <button
+          onClick={printResults}
+          style={RV_STYLES.btnPrint}
+          title={t('resultsView.print')}
+          aria-label={t('resultsView.print')}
+        >
+          <Icon icon={Printer} />
         </button>
         <button
           onClick={() => {
@@ -802,7 +858,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 <span style={RV_STYLES.spinner} /> {t('results.exporting')}
               </>
             ) : (
-              '📤 Export ▾'
+              <>
+                <Icon icon={Upload} /> {t('menu.export')} ▾
+              </>
             )}
           </button>
           {isExportMenuOpen && !isExportingFull && (
@@ -826,6 +884,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 }}
               >
                 {t('results.export_xml_ffe')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportFFF();
+                }}
+              >
+                {t('results.export_fff')}
               </button>
               <button
                 role="menuitem"
@@ -858,6 +926,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               >
                 {t('results.export_pdf_full_unsigned')}
               </button>
+              {hasBlackCard && (
+                <button
+                  role="menuitem"
+                  style={RV_STYLES.dropdownItem}
+                  title={t('results.export_black_card_report_title')}
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void exportBlackCardReport();
+                  }}
+                >
+                  {t('results.export_black_card_report')}
+                </button>
+              )}
             </div>
           )}
         </div>

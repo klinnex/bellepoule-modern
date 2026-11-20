@@ -32,6 +32,13 @@ module.exports = (env = {}) => ({
           chunks: 'all',
           priority: 10,
         },
+        // Décodeur QR du Mode Club (#1872) : chargé à la demande au premier scan, hors chunk initial
+        jsqr: {
+          test: /[\\/]node_modules[\\/]jsqr[\\/]/,
+          name: 'jsqr',
+          chunks: 'async',
+          priority: 30,
+        },
         react: {
           test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
           name: 'react',
@@ -129,6 +136,11 @@ module.exports = (env = {}) => ({
           noErrorOnMissing: true,
         },
         {
+          // Drapeaux SVG (flag-icons, MIT) : les emoji drapeaux ne s'affichent pas sous Windows
+          from: 'src/renderer/assets/flags',
+          to: 'flags',
+        },
+        {
           from: 'src/remote',
           to: '../remote',
           noErrorOnMissing: true,
@@ -139,6 +151,12 @@ module.exports = (env = {}) => ({
           // On le copie dans dist/remote → servi en statique par le serveur distant.
           from: 'node_modules/socket.io/client-dist/socket.io.min.js',
           to: '../remote/socket.io.min.js',
+        },
+        {
+          // jsQR : lecture des cartes de club par la caméra de la tablette arbitre (#1872),
+          // si le navigateur n'a pas BarcodeDetector
+          from: 'node_modules/jsqr/dist/jsQR.js',
+          to: '../remote/js/jsQR.js',
         },
         {
           // pdf.js (aperçu de la boîte d'impression, #1214) : chargé à la demande, hors bundle

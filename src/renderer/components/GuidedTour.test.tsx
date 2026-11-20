@@ -22,7 +22,7 @@ describe('GuidedTour', () => {
 
   it('se propose une fois sur une compétition vide', () => {
     render(<GuidedTour {...base} />);
-    expect(screen.getByText('tour.hint_fencers')).toBeTruthy();
+    expect(screen.getByText('tour.hint_remote')).toBeTruthy();
     expect(readTourFlag()).toBe('active');
   });
 
@@ -48,9 +48,9 @@ describe('GuidedTour', () => {
     expect(screen.getByRole('status')).toBeTruthy();
   });
 
-  it('propose la saisie distante après la génération des poules', () => {
+  it('propose la saisie distante (optionnelle) en première étape', () => {
     writeTourFlag('active');
-    render(<GuidedTour {...base} fencersCount={8} checkedInCount={8} pools={[{ matches: [] }]} />);
+    render(<GuidedTour {...base} />);
     expect(screen.getByText('tour.hint_remote')).toBeTruthy();
     expect(screen.getByText('tour.remote_explain')).toBeTruthy();
     expect(screen.getByText('tour.remote_mock_validate')).toBeTruthy();
@@ -69,13 +69,15 @@ describe('GuidedTour', () => {
     expect(screen.getByText('tour.hint_checkin')).toBeTruthy();
     fireEvent.click(screen.getByText('tour.back'));
     expect(screen.getByText('tour.hint_fencers')).toBeTruthy();
+    fireEvent.click(screen.getByText('tour.back'));
+    expect(screen.getByText('tour.hint_remote')).toBeTruthy();
     expect((screen.getByText('tour.back') as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('entoure d’un halo les boutons utiles de l’étape', () => {
     writeTourFlag('active');
     document.body.innerHTML = '<button id="b" data-tour="add-fencer">+</button>';
-    const { unmount } = render(<GuidedTour {...base} />);
+    const { unmount } = render(<GuidedTour {...base} remoteActive />);
     expect(document.getElementById('b')!.classList.contains('tour-halo')).toBe(true);
     unmount();
     expect(document.getElementById('b')!.classList.contains('tour-halo')).toBe(false);
@@ -89,6 +91,7 @@ describe('GuidedTour', () => {
         fencersCount={8}
         checkedInCount={8}
         pools={[{ matches: [{ status: MatchStatus.FINISHED }] }]}
+        poolsLaunched
         tableauMatchesCount={7}
       />
     );
@@ -120,5 +123,25 @@ describe('GuidedTour', () => {
     expect(screen.getByText('tour.hint_launch')).toBeTruthy();
     expect(screen.getByText('tour.prep_explain')).toBeTruthy();
     expect(document.getElementById('l')!.classList.contains('tour-halo-green')).toBe(true);
+  });
+
+  it('étape poules : validée seulement une fois les poules lancées', () => {
+    writeTourFlag('active');
+    const pools = [{ matches: [] }];
+    const { rerender } = render(
+      <GuidedTour {...base} fencersCount={8} checkedInCount={8} pools={pools} prepOpen />
+    );
+    expect(screen.getByText('tour.hint_launch')).toBeTruthy();
+    rerender(
+      <GuidedTour
+        {...base}
+        fencersCount={8}
+        checkedInCount={8}
+        pools={pools}
+        prepOpen
+        poolsLaunched
+      />
+    );
+    expect(screen.getByText('tour.hint_scores')).toBeTruthy();
   });
 });

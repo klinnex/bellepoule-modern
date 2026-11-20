@@ -4,9 +4,12 @@
  * Licensed under GPL-3.0
  */
 import { RemoteSession, ArenaMatch } from '../../shared/types/remote';
-import { Weapon } from '../../shared/types';
+import type { Fencer } from '../../shared/types';
+import { remoteCustomScoring } from '../../shared/utils/customFormulaSettings';
+import type { RendererMatch, SessionMatch } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { nextFreeStrip } from './stripPlan';
 
 type S = RemoteScoreServer;
 
@@ -34,13 +37,14 @@ export interface SessionStartContext {
   sessionShowPhotos: S['sessionShowPhotos'];
   sessionWeapon: S['sessionWeapon'];
   readonly setArenaCount: S['setArenaCount'];
+  readonly stripPlan: S['stripPlan'];
 }
 
 export async function startSession(
   ctx: SessionStartContext,
   competitionId: string,
   strips: number,
-  matchesFromRenderer?: any[],
+  matchesFromRenderer?: RendererMatch[],
   showPhotos?: boolean,
   kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
   cardAnnounce?: boolean
@@ -75,14 +79,9 @@ export async function startSession(
 
   // Stocker le type d'arme pour l'arrêt automatique à 15 points en Laser Sabre
   ctx.sessionWeapon = competition.weapon || null;
-  const formulaPhases = competition.settings?.customFormula?.phases ?? [];
-  ctx.sessionCustomScoring =
-    ctx.sessionWeapon === Weapon.CUSTOM
-      ? {
-          pool: formulaPhases.find(p => p.type === 'pool_round')?.config.scoring,
-          de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
-        }
-      : null;
+  // Rapières (mode spécial) : pas de barème personnalisé, vue arbitre olympique (#1808)
+  // Armes modernes en barème standard : vue olympique, sans barème personnalisé (#1936)
+  ctx.sessionCustomScoring = remoteCustomScoring(competition.weapon, competition.settings);
   ctx.applyCompetitionSettings(competition);
   logger.info(
     LogCategory.NETWORK,
@@ -96,7 +95,7 @@ export async function startSession(
   const isDeOnlySession =
     matchesFromRenderer &&
     matchesFromRenderer.length > 0 &&
-    matchesFromRenderer.every((m: any) => m.isTableau || m.__poolFencers);
+    matchesFromRenderer.every(m => m.isTableau || m.__poolFencers);
   if (!isDeOnlySession && strips <= 0) {
     const actualStrips = poolCount > 0 ? poolCount : 1;
     logger.info(
@@ -110,8 +109,8 @@ export async function startSession(
   // Le nombre d'arènes est étendu si une poule vise une piste au-delà du nombre configuré.
   const poolStripMap = new Map<string, number>();
   for (const m of matchesFromRenderer ?? []) {
-    const s = Number((m as any).__poolFencers ? (m as any).strip : NaN);
-    if (Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
+    const s = Number(m.__poolFencers ? m.strip : NaN);
+    if (m.poolId && Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
   }
   const maxPoolStrip = Math.max(0, ...poolStripMap.values());
   if (maxPoolStrip > strips) {
@@ -130,7 +129,7 @@ export async function startSession(
   ctx.poolSignaturesCache.clear();
 
   // Utiliser les matches passés depuis le renderer si disponibles, sinon chercher dans la DB
-  let allMatches: any[];
+  let allMatches: SessionMatch[];
   const poolNumberMap = new Map<string, number>();
   if (matchesFromRenderer && matchesFromRenderer.length > 0) {
     logger.info(
@@ -141,14 +140,14 @@ export async function startSession(
     // Extraire les marqueurs d'ordre des tireurs injectés par le renderer (__poolFencers)
     // Nécessaire car l'ordre FIE (ex: 4 tireurs: [1,4],[2,3],...) ne permet pas de reconstruire
     // l'ordre correct par simple extraction des paires de matchs.
-    const fencerOrderMap = new Map<string, any[]>();
-    const realMatches: any[] = [];
+    const fencerOrderMap = new Map<string, Fencer[]>();
+    const realMatches: SessionMatch[] = [];
     for (const m of matchesFromRenderer) {
-      if ((m as any).__poolFencers) {
+      if (m.__poolFencers && m.poolId) {
         fencerOrderMap.set(m.poolId, m.fencers);
-        if ((m as any).poolNumber != null) poolNumberMap.set(m.poolId, (m as any).poolNumber);
-      } else {
-        realMatches.push(m);
+        if (m.poolNumber != null) poolNumberMap.set(m.poolId, m.poolNumber);
+      } else if (!m.__poolFencers) {
+        realMatches.push(m as SessionMatch);
       }
     }
     // Pré-remplir le cache uniquement si la liste de tireurs est non vide
@@ -214,7 +213,7 @@ export async function startSession(
   );
 
   // Grouper les matches par pool
-  const matchesByPool = new Map<string, any[]>();
+  const matchesByPool = new Map<string, SessionMatch[]>();
   for (const match of allMatches) {
     if (match.isTableau) continue; // Les matchs DE sont traités séparément plus bas
     const poolId = match.poolId || match.pool?.id || `pool-${match.poolNumber || match.number}`;
@@ -244,9 +243,9 @@ export async function startSession(
       // la première apparition de chaque tireur dans l'ordre des matchs FIE correspond
       // à sa position dans la poule (match 1 : pos1 vs pos4, match 2 : pos2 vs pos3…).
       const sortedMatches = [...poolMatches].sort(
-        (a: any, b: any) => (a.number || 0) - (b.number || 0)
+        (a: SessionMatch, b: SessionMatch) => (a.number || 0) - (b.number || 0)
       );
-      const fencerMap = new Map<string, any>();
+      const fencerMap = new Map<string, Fencer>();
       for (const match of sortedMatches) {
         if (match.fencerA?.id) fencerMap.set(match.fencerA.id, match.fencerA);
         if (match.fencerB?.id) fencerMap.set(match.fencerB.id, match.fencerB);
@@ -273,17 +272,17 @@ export async function startSession(
   // Piste cible par poule : pool.strip si défini, sinon première piste libre (ordre des poules)
   const poolArenaMap = new Map<string, number>();
   const usedStrips = new Set(poolStripMap.values());
-  let nextFreeStrip = 1;
   for (const [poolId] of sortedPoolEntries) {
     const assigned = poolStripMap.get(poolId);
     if (assigned) {
       poolArenaMap.set(poolId, assigned);
       continue;
     }
-    while (usedStrips.has(nextFreeStrip)) nextFreeStrip++;
-    if (nextFreeStrip > strips) continue;
-    poolArenaMap.set(poolId, nextFreeStrip);
-    usedStrips.add(nextFreeStrip);
+    // Dans l'intervalle de l'épreuve seulement : sinon la poule attend une piste (#1878)
+    const free = nextFreeStrip(ctx.stripPlan, usedStrips, strips);
+    if (free === null) continue;
+    poolArenaMap.set(poolId, free);
+    usedStrips.add(free);
   }
 
   ctx.sessionPoolArenas = poolArenaMap;
@@ -352,7 +351,7 @@ export async function startSession(
   // Tri décroissant : 8ès en premier, finale en dernier → pistes chargées dans l'ordre logique
   const deMatches = allMatches
     .filter(m => !m.poolId && (m.round !== undefined || m.isTableau) && m.fencerA && m.fencerB)
-    .sort((a: any, b: any) => (b.round || 0) - (a.round || 0));
+    .sort((a: SessionMatch, b: SessionMatch) => (b.round || 0) - (a.round || 0));
 
   if (deMatches.length > 0) {
     logger.info(
@@ -427,5 +426,67 @@ export async function startSession(
     `[RemoteScoreServer] Session créée avec ${assignedMatchCount} matchs assignés`
   );
 
+  restoreArenaStates(ctx, competitionId);
+
   return ctx.session;
 }
+
+/**
+ * Reprise de l'état des arènes (#1829) : `persistArenaState` sauvegarde chaque arène ; au
+ * redémarrage, une arène qui était en cours reprend son match et son score, tant que ce match
+ * n'est pas terminé en base. La file DE sauvegardée est rétablie. Le match repris remplace
+ * l'affectation faite par défaut : le match écarté reste « à jouer » et reste sélectionnable.
+ */
+function restoreArenaStates(ctx: SessionStartContext, competitionId: string): void {
+  for (const arenaId of ctx.arenas.keys()) {
+    const saved = ctx.db.getArenaState(arenaId);
+    if (!saved || saved.competitionId !== competitionId || saved.status !== 'in_progress') continue;
+    const match = saved.currentMatch as ArenaMatch | null;
+    if (!match?.id || !match.fencerA || !match.fencerB) continue;
+    const dbMatch = ctx.db.getMatch(match.id) as { status?: string } | null | undefined;
+    if (dbMatch?.status === 'finished') continue;
+
+    const arena = ctx.arenas.get(arenaId);
+    if (!arena) continue;
+    arena.currentMatch = { ...match, status: 'in_progress' };
+    arena.status = 'in_progress';
+    if (Array.isArray(saved.matchQueue) && saved.matchQueue.length > 0) {
+      ctx.arenaMatchQueue.set(arenaId, saved.matchQueue as ArenaMatch[]);
+    }
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Arène ${arenaId} reprise : match ${match.id} en cours (${match.scoreA}-${match.scoreB})`
+    );
+  }
+}
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SESSION_START_CONTEXT_KEYS = {
+  state: [
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenas',
+    'db',
+    'poolFencersCache',
+    'poolSignaturesCache',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionCustomScoring',
+    'sessionKioskViews',
+    'sessionMatchScores',
+    'sessionMatches',
+    'sessionPoolArenas',
+    'sessionRefereeFeatureEnabled',
+    'sessionShowPhotos',
+    'sessionWeapon',
+    'stripPlan',
+  ],
+  methods: [
+    'applyCompetitionSettings',
+    'assignMatchToArena',
+    'loadSessionReferees',
+    'notifyKioskData',
+    'setArenaCount',
+  ],
+} as const;

@@ -11,6 +11,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { ipcErrorText } from '../../services/ipcError';
 import { TableauMatch } from './tableauTypes';
+import { Button } from '../common/Button';
 
 interface TableauSignaturesModalProps {
   match: TableauMatch;
@@ -140,19 +141,15 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
     const score = slot === 'A' ? match.scoreA : match.scoreB;
     const data = sigs[slot];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+      <div className="tableau-signatures-modal-1">
+        <div className="tableau-signatures-modal-2">
           {fencer ? `${fencer.lastName} ${fencer.firstName}` : '—'}
-          {score !== null && <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>({score})</span>}
+          {score !== null && <span className="tableau-signatures-modal-3">({score})</span>}
         </div>
         {data ? (
           <img src={data} alt={`Signature ${fencer?.lastName ?? ''}`} style={SIG_IMG_STYLE} />
         ) : (
-          <div
-            style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}
-          >
-            {loading ? 'Chargement…' : 'Non signé'}
-          </div>
+          <div className="tableau-signatures-modal-4">{loading ? 'Chargement…' : 'Non signé'}</div>
         )}
       </div>
     );
@@ -164,9 +161,8 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal tableau-signatures-modal-5"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '480px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tableau-signatures-title"
@@ -179,37 +175,16 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
             ×
           </button>
         </div>
-        <div
-          className="modal-body"
-          style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-        >
+        <div className="modal-body tableau-signatures-modal-6">
           {renderFencer('A')}
           {renderFencer('B')}
           {canSend && (
-            <div
-              style={{
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-              }}
-            >
-              <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                {t('tableauSignatures.resend')}
-              </div>
+            <div className="tableau-signatures-modal-7">
+              <div className="tableau-signatures-modal-2">{t('tableauSignatures.resend')}</div>
               {arenas.length === 0 ? (
-                <div
-                  style={{
-                    color: 'var(--color-text-muted)',
-                    fontSize: '0.8rem',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {t('tableauSignatures.no_strip')}
-                </div>
+                <div className="tableau-signatures-modal-4">{t('tableauSignatures.no_strip')}</div>
               ) : (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="tableau-signatures-modal-8">
                   <select
                     className="form-input flex-1"
                     value={arenaId}
@@ -226,13 +201,9 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleSend}
-                    disabled={!arenaId || sending}
-                  >
+                  <Button variant="primary" onClick={handleSend} disabled={!arenaId || sending}>
                     {sending ? 'Envoi…' : 'Envoyer'}
-                  </button>
+                  </Button>
                 </div>
               )}
               {sendState && (

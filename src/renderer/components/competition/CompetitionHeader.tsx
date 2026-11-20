@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from '../Tooltip';
 import React, { useState, useCallback } from 'react';
 import {
   MoreHorizontal,
@@ -16,6 +17,7 @@ import {
   ChevronUp,
   Trophy,
   Download,
+  Radio,
 } from 'lucide-react';
 import { Competition, MatchStatus } from '../../../shared/types';
 import Confetti from '../Confetti';
@@ -53,6 +55,8 @@ interface CompetitionHeaderProps {
   setShowKioskDisplay: React.Dispatch<React.SetStateAction<boolean>>;
   setShowPropertiesModal: React.Dispatch<React.SetStateAction<boolean>>;
   setShowExportCenter: React.Dispatch<React.SetStateAction<boolean>>;
+  /** Ouvre l'onglet Saisie distante / Piste (#1414) */
+  onOpenRemote?: () => void;
 }
 
 const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
@@ -78,6 +82,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
   setShowKioskDisplay,
   setShowPropertiesModal,
   setShowExportCenter,
+  onOpenRemote,
 }) => {
   const storageKey = `bellepoule-header-expanded-${competition.id}`;
   const [expanded, setExpanded] = useState(() => {
@@ -104,7 +109,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
     <>
       <Confetti active={showConfetti} />
       <div
-        className={`comp-header${expanded ? '' : ' comp-header-compact'}`}
+        className={`comp-header${expanded ? '' : ' comp-header-compact'}${showActionsMenu ? ' comp-header-menu-open' : ''}`}
         style={{ '--comp-color': competition.color } as React.CSSProperties}
       >
         <div className="comp-header-bg" />
@@ -117,21 +122,46 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
               <span className="comp-header-pill">{genderLabel(competition.gender, t)}</span>
             </div>
             <h1 className="comp-header-title">{competition.title}</h1>
-            {expanded && (
-              <p className="comp-header-meta">
-                {new Date(competition.date).toLocaleDateString(toBcp47(language), {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-                {competition.location && ` · ${competition.location}`}
-              </p>
-            )}
+            <div className="comp-header-meta-row">
+              {expanded && (
+                <p className="comp-header-meta">
+                  {new Date(competition.date).toLocaleDateString(toBcp47(language), {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                  {competition.location && ` · ${competition.location}`}
+                </p>
+              )}
+              {onOpenRemote && (
+                <button
+                  type="button"
+                  className="comp-header-remote-btn"
+                  data-tour="open-remote"
+                  onClick={onOpenRemote}
+                  aria-current={currentPhase === 'remote' ? 'page' : undefined}
+                >
+                  <Radio size={14} /> {t('competitionHeader.remote_button')}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stats + actions */}
           <div className="comp-header-right">
+            {/* Propriétés de la compétition — accès direct, à gauche des stats */}
+            <Tooltip content={t('competitionHeader.properties')}>
+              <button
+                type="button"
+                className="comp-header-menu-btn"
+                onClick={() => setShowPropertiesModal(true)}
+
+                aria-label={t('competitionHeader.properties')}
+              >
+                <Settings size={18} />
+              </button>
+            </Tooltip>
             {expanded && (
               <div className="comp-header-stats">
                 <div className="comp-stat">
@@ -158,29 +188,38 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             )}
 
             {/* Collapse toggle */}
-            <button
-              className="comp-header-collapse-btn"
-              onClick={toggleExpanded}
-              title={expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')}
-              aria-expanded={expanded}
+            <Tooltip
+              content={expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')}
             >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
+              <button
+                className="comp-header-collapse-btn"
+                onClick={toggleExpanded}
+                aria-label={
+                  expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')
+                }
+                aria-expanded={expanded}
+              >
+                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </Tooltip>
 
             {/* Menu actions */}
             <div className="comp-header-actions" ref={actionsMenuRef}>
               <CoachMark
                 id="actions-menu"
+                dismissLabel={t('competitionNav.coach_dismiss')}
                 message={t('competitionHeader.actions_hint')}
                 position="left"
               >
-                <button
-                  className="comp-header-menu-btn"
-                  onClick={() => setShowActionsMenu(v => !v)}
-                  title={t('competitionHeader.actions')}
-                >
-                  <MoreHorizontal size={18} />
-                </button>
+                <Tooltip content={t('competitionHeader.actions')}>
+                  <button
+                    className="comp-header-menu-btn"
+                    onClick={() => setShowActionsMenu(v => !v)}
+                    aria-label={t('competitionHeader.actions')}
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                </Tooltip>
               </CoachMark>
               {showActionsMenu && (
                 <div className="comp-header-dropdown">
@@ -263,16 +302,6 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                     }}
                   >
                     <Download size={14} /> {t('actions.export')}
-                  </button>
-                  <div className="comp-header-dropdown-sep" />
-                  <button
-                    className="comp-header-dropdown-item"
-                    onClick={() => {
-                      setShowPropertiesModal(true);
-                      setShowActionsMenu(false);
-                    }}
-                  >
-                    <Settings size={14} /> {t('competitionHeader.properties')}
                   </button>
                 </div>
               )}

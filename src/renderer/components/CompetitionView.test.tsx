@@ -175,6 +175,42 @@ describe('CompetitionView', () => {
     );
   });
 
+  describe('accès aux étapes et relance (#1499)', () => {
+    const steps = () => Array.from(document.querySelectorAll('.phase-step'));
+
+    it('Préparation grisée avant « Préparer », Poules grisée avant « Lancer »', async () => {
+      mockElectronAPI(Array.from({ length: 10 }, (_, i) => fencer(i + 1)));
+      renderView();
+      await screen.findByText('Nom1');
+      expect(steps()[1]).toHaveClass('phase-step-disabled');
+      expect(steps()[2]).toHaveClass('phase-step-disabled');
+
+      fireEvent.click(screen.getByRole('button', { name: /Préparer les poules/ }));
+      await waitFor(() => expect(steps()[1]).toHaveClass('phase-step-active'));
+      // Titres Min / Max au-dessus des deux champs
+      expect(screen.getByText('Tireurs Min')).toBeInTheDocument();
+      expect(screen.getByText('Tireurs Max')).toBeInTheDocument();
+      // Préparées mais pas lancées : Poules reste grisée
+      expect(steps()[2]).toHaveClass('phase-step-disabled');
+
+      fireEvent.click(await screen.findByRole('button', { name: /^Lancer les poules/ }));
+      await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
+      // Déplacement libre ensuite
+      fireEvent.click(steps()[0]);
+      await waitFor(() => expect(steps()[0]).toHaveClass('phase-step-active'));
+      expect(steps()[1]).not.toHaveClass('phase-step-disabled');
+      expect(steps()[2]).not.toHaveClass('phase-step-disabled');
+      // Appel inchangé : « Aller à la préparation », sans régénérer ni alerte (#1992)
+      expect(screen.getByRole('button', { name: /Aller à la préparation/ })).toBeEnabled();
+      expect(screen.queryByRole('button', { name: /Repréparer les poules/ })).toBeNull();
+
+      // Poules lancées, rien de modifié en préparation : « Aller aux poules », sans alerte (#1992)
+      fireEvent.click(steps()[1]);
+      fireEvent.click(await screen.findByRole('button', { name: /Aller aux poules/ }));
+      await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
+    });
+  });
+
   it('restaure la phase sauvegardée (session) et permet de revenir en arrière', async () => {
     mockElectronAPI(
       [1, 2, 3, 4].map(n => fencer(n)),
@@ -243,7 +279,7 @@ describe('CompetitionView', () => {
       renderView(teamComp());
       await screen.findByText('Nom1');
       const l = labels();
-      expect(l.some(x => /Équipes$/.test(x))).toBe(true);
+      expect(l.some(x => /Équipes(fait|en cours|à faire|bloqué)$/.test(x))).toBe(true);
       expect(l.some(x => /Poule équipes/.test(x))).toBe(true);
       expect(l.some(x => /Tableau équipes/.test(x))).toBe(true);
       expect(l.some(x => /Classement équipes/.test(x))).toBe(true);
@@ -258,7 +294,7 @@ describe('CompetitionView', () => {
       fireEvent.click(screen.getByRole('button', { name: /Composer les équipes/ }));
       await waitFor(() => expect(calls.getTeamsByCompetition?.length).toBeGreaterThan(0));
       const active = document.querySelector('.phase-step-active');
-      expect(active?.textContent).toMatch(/Équipes$/);
+      expect(active?.textContent).toMatch(/Équipes(fait|en cours|à faire|bloqué)$/);
       expect(document.querySelector('.fixed.inset-0')).toBeNull();
     });
   });

@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 
 const ORG_NOTE_PREFIXES = ['resume', 'start', 'end', 'break', 'lunch', 'ceremony'] as const;
@@ -101,6 +101,12 @@ export const OrgNotePanel: React.FC<OrgNotePanelProps> = React.memo(({ competiti
   const [orgNotePrefix, setOrgNotePrefix] = useState('resume');
   const [orgNoteActive, setOrgNoteActive] = useState(false);
 
+  // Synchronise l'état avec le serveur (note posée/masquée ailleurs, ex. fin de compte à rebours)
+  useEffect(() => {
+    const unsub = window.electronAPI.onKioskNoteUpdate?.(note => setOrgNoteActive(!!note));
+    return () => unsub?.();
+  }, []);
+
   return (
     <div style={STYLES.orgNoteBox}>
       <div style={STYLES.orgNoteTitle}>{t('rsm.org_note_title')}</div>
@@ -180,17 +186,16 @@ export const OrgNotePanel: React.FC<OrgNotePanelProps> = React.memo(({ competiti
         >
           {orgNoteActive ? t('rsm.org_note_update') : t('rsm.org_note_show')}
         </button>
-        {orgNoteActive && (
-          <button
-            onClick={async () => {
-              await window.electronAPI.remote.clearOrgNote(competitionId);
-              setOrgNoteActive(false);
-            }}
-            style={STYLES.orgNoteHideBtn}
-          >
-            {t('rsm.hide')}
-          </button>
-        )}
+        {/* Toujours visible : l'état local est perdu au remontage du panneau */}
+        <button
+          onClick={async () => {
+            await window.electronAPI.remote.clearOrgNote(competitionId);
+            setOrgNoteActive(false);
+          }}
+          style={STYLES.orgNoteHideBtn}
+        >
+          {t('rsm.hide')}
+        </button>
       </div>
       {orgNoteActive && <div style={STYLES.orgNoteActive}>{t('rsm.org_note_visible')}</div>}
     </div>

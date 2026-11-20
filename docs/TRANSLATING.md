@@ -41,6 +41,7 @@ doit exister côté `fr` (contrôle `npm run check:i18n-doc`).
 
 Pseudo-locale de debug : dans la console de l'application,
 `localStorage.setItem('bellepoule-pseudo-locale', '1')` puis recharger. Chaque
-texte traduit s'affiche `[!! Ŝçöŕé !!]` ; un texte affiché normalement est
+texte traduit s'affiche `[!! Ŝçöŕé~~ !!]` (allongé d'environ 40 % pour révéler
+les débordements) ; un texte affiché normalement est
 une chaîne en dur à traduire (`node scripts/check-quality-ratchet.js --list jsxText`).
 Désactiver : `localStorage.removeItem('bellepoule-pseudo-locale')`.

@@ -14,9 +14,11 @@ import {
   RapieresFencer,
   RapieresLevel,
   RapieresTeamGender,
+  RapieresTableauMode,
   RapieresTeamInfo,
 } from './rapieres.types';
 import { rapieresTeamCategory, rapieresTeamGender } from './rapieresAge';
+import { classicMatchOrder, classicWaves } from './rapieresClassicOrder';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
 
@@ -89,14 +91,36 @@ function maxMatching(teamIds: string[], remaining: Set<string>): Pair[] {
 }
 
 /**
+ * Nombre impair d'équipes (#1441) : une équipe au repos par vague, en commençant par la
+ * dernière de la liste puis en remontant. Méthode du cercle : vague w, repos de l'équipe
+ * r = n − w (0-indexée) ; i et j se rencontrent quand i + j ≡ 2r (mod n). n vagues de
+ * (n − 1) / 2 matchs, chaque paire une seule fois, aucune équipe ne tire deux fois.
+ */
+function scheduleOddWaves(teamIds: string[]): { teamAId: string; teamBId: string; wave: number }[] {
+  const n = teamIds.length;
+  const result: { teamAId: string; teamBId: string; wave: number }[] = [];
+  for (let wave = 1; wave <= n; wave++) {
+    const rest = n - wave;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        if ((i + j) % n === (2 * rest) % n)
+          result.push({ teamAId: teamIds[i], teamBId: teamIds[j], wave });
+      }
+    }
+  }
+  return result;
+}
+
+/**
  * Calendrier en vagues d'une poule (round-robin : chaque équipe rencontre toutes les autres).
- * Chaque vague fait tirer toutes les équipes en même temps. Nombre impair : une équipe tire
- * deux fois dans la vague, jamais deux fois la même sur l'ensemble des vagues.
+ * Nombre pair : toutes les équipes tirent à chaque vague. Nombre impair : une équipe au repos
+ * par vague (dernière de la liste d'abord, #1441).
  * Les équipes les plus contraintes (paires restantes nombreuses) sont appariées en premier.
  */
 export function scheduleWaves(
   teamIds: string[]
 ): { teamAId: string; teamBId: string; wave: number }[] {
+  if (teamIds.length % 2 === 1) return scheduleOddWaves(teamIds);
   const remaining = new Set<string>();
   for (let i = 0; i < teamIds.length; i++)
     for (let j = i + 1; j < teamIds.length; j++) remaining.add(pairKey(teamIds[i], teamIds[j]));
@@ -136,8 +160,67 @@ export function waveMatchOrder(poolFencers: Fencer[]): [number, number][] {
   ]);
 }
 
+/**
+ * Vagues de l'ordre classique (#1816) : appliquées quand les matchs de la poule suivent
+ * exactement la table classique de sa taille (numéros de match), null sinon.
+ */
+function classicPoolWaves(pool: Pool): Map<string, number> | null {
+  const waves = classicWaves(pool.fencers.length);
+  if (!waves) return null;
+  const flat = waves.flatMap((pairs, w) => pairs.map(pair => ({ pair, wave: w + 1 })));
+  const matches = pool.matches
+    .filter(m => m.fencerA && m.fencerB)
+    .sort((a, b) => a.number - b.number);
+  if (matches.length !== flat.length) return null;
+  const index = new Map(pool.fencers.map((f, i) => [f.id, i + 1]));
+  const result = new Map<string, number>();
+  for (let i = 0; i < matches.length; i++) {
+    const a = index.get(matches[i].fencerA!.id);
+    const b = index.get(matches[i].fencerB!.id);
+    const [x, y] = flat[i].pair;
+    if (!((a === x && b === y) || (a === y && b === x))) return null;
+    result.set(matches[i].id, flat[i].wave);
+  }
+  return result;
+}
+
+/**
+ * Ordre classique (#1816) : matchs renumérotés et orientés selon la table de la taille de
+ * poule (ids conservés, scores suivant l'orientation). Poule sans table : inchangée.
+ */
+export function applyClassicOrder(pool: Pool): Pool {
+  const order = classicMatchOrder(pool.fencers.length);
+  if (!order) return pool;
+  const byPair = new Map(
+    pool.matches
+      .filter(m => m.fencerA && m.fencerB)
+      .map(m => [pairKey(m.fencerA!.id, m.fencerB!.id), m])
+  );
+  const matches = order.map(([a, b], i) => {
+    const fencerA = pool.fencers[a - 1];
+    const fencerB = pool.fencers[b - 1];
+    const match = byPair.get(pairKey(fencerA.id, fencerB.id));
+    if (!match) return null;
+    const swapped = match.fencerA!.id !== fencerA.id;
+    return swapped
+      ? {
+          ...match,
+          number: i + 1,
+          fencerA,
+          fencerB,
+          scoreA: match.scoreB,
+          scoreB: match.scoreA,
+        }
+      : { ...match, number: i + 1 };
+  });
+  if (matches.some(m => !m)) return pool;
+  return { ...pool, matches: matches as Pool['matches'] };
+}
+
 /** Vague de chaque match d'une poule (id du match → numéro de vague) */
 export function poolMatchWaves(pool: Pool): Map<string, number> {
+  const classic = classicPoolWaves(pool);
+  if (classic) return classic;
   const waveOf = new Map(
     scheduleWaves(pool.fencers.map(f => f.id)).map(b => [pairKey(b.teamAId, b.teamBId), b.wave])
   );
@@ -216,23 +299,29 @@ export const canLaunchNextWave = (pools: Pool[], launchedWave: number): boolean 
 
 // ─── Qualification ───────────────────────────────────────────────────────────
 
-/** Qualifiés par poule : 1ers, et 2es aussi si 3 poules ou moins */
-export const qualifiersPerPool = (poolCount: number): number => (poolCount <= 3 ? 2 : 1);
-
 /**
- * Classement général réduit aux qualifiés pour le tableau (rangs recalculés),
- * équipes retirées exclues.
+ * Qualifiés pour le tableau selon le mode choisi (#1441) : demi-finales → les 4 équipes
+ * désignées ; tableau normal, avec 3e place ou toutes places tirées → toutes les équipes.
+ * Équipes retirées exclues, rangs recalculés.
  */
-export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]): PoolRanking[] {
-  const perPool = qualifiersPerPool(pools.length);
-  const qualified = new Set<string>();
-  for (const pool of pools) {
-    const ranking = pool.ranking?.length ? pool.ranking : calculatePoolRanking(pool);
-    ranking
-      .filter(r => !isWithdrawn(r.fencer) && r.rank <= perPool)
-      .forEach(r => qualified.add(r.fencer.id));
-  }
-  return overall.filter(r => qualified.has(r.fencer.id)).map((r, i) => ({ ...r, rank: i + 1 }));
+export function rapieresTableauQualifiers(
+  pools: Pool[],
+  overall: PoolRanking[],
+  mode: RapieresTableauMode | undefined
+): PoolRanking[] {
+  if (mode === 'semis') return rapieresSemifinalists(pools, overall) ?? [];
+  return overall.filter(r => !isWithdrawn(r.fencer)).map((r, i) => ({ ...r, rank: i + 1 }));
+}
+
+/** Réglages du tableau pour un mode : match pour la 3e place, toutes les places tirées */
+export function rapieresTableauSettings(mode: RapieresTableauMode): {
+  thirdPlaceMatch: boolean;
+  playAllPositions: boolean;
+} {
+  return {
+    thirdPlaceMatch: mode !== 'normal',
+    playAllPositions: mode === 'all',
+  };
 }
 
 /**

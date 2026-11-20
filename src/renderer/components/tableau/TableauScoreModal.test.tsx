@@ -47,16 +47,45 @@ describe('TableauScoreModal', () => {
     expect(screen.getByText(/Martin/)).toBeInTheDocument();
   });
 
-  it('saisir un score appelle setEditScoreA', () => {
+  it('saisir un score à droite appelle setEditScoreA (premier appelé à droite, #1826)', () => {
     const { props, utils } = setup();
     const inputs = utils.baseElement.querySelectorAll('input[type="number"]');
-    fireEvent.change(inputs[0], { target: { value: '15' } });
+    fireEvent.change(inputs[1], { target: { value: '15' } });
     expect(props.setEditScoreA).toHaveBeenCalledWith('15');
+  });
+
+  it('gaucher contre droitier : le gaucher reste à gauche (#1826)', () => {
+    const { props, utils } = setup({
+      match: { ...match, fencerA: { ...match.fencerA, handedness: 'L' } },
+    } as never);
+    const inputs = utils.baseElement.querySelectorAll('input[type="number"]');
+    fireEvent.change(inputs[0], { target: { value: '7' } });
+    expect(props.setEditScoreA).toHaveBeenCalledWith('7');
   });
 
   it('Valider déclenche onSubmit', () => {
     const { props } = setup();
     fireEvent.click(screen.getByText('Valider'));
+    expect(props.onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('saisie complète au clavier : score A, Tab, score B, Entrée valide (#1542)', () => {
+    const { props, utils } = setup();
+    const [a, b] = Array.from(
+      utils.baseElement.querySelectorAll<HTMLInputElement>('input[type="number"]')
+    );
+    expect(a).toHaveFocus();
+    fireEvent.change(a, { target: { value: '15' } });
+    fireEvent.keyDown(a, { key: 'Tab' });
+    expect(b).toHaveFocus();
+    fireEvent.change(b, { target: { value: '12' } });
+    fireEvent.keyDown(b, { key: 'Tab', shiftKey: true });
+    expect(a).toHaveFocus();
+    fireEvent.keyDown(a, { key: 'Tab' });
+    fireEvent.keyDown(b, { key: 'Enter' });
+    // Gauche = second appelé (B), droite = premier appelé (A) (#1826)
+    expect(props.setEditScoreB).toHaveBeenCalledWith('15');
+    expect(props.setEditScoreA).toHaveBeenCalledWith('12');
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
 
@@ -98,19 +127,26 @@ describe('TableauScoreModal', () => {
       expect(screen.queryByText(/V · /)).toBeNull();
     });
 
+    it('bouton V affiché à côté de chaque score, même sans égalité', () => {
+      laserSetup({ editScoreA: '', editScoreB: '' });
+      expect(screen.getByRole('button', { name: 'V · Dupont' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'V · Martin' })).toBeTruthy();
+      expect(screen.queryByPlaceholderText(/V4-4/)).toBeNull();
+    });
+
     it('égalité : V manuel pour chaque tireur', () => {
       const onVictoryChange = vi.fn();
       laserSetup({ onVictoryChange });
-      fireEvent.click(screen.getByText('V · Dupont'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Dupont' }));
       expect(onVictoryChange).toHaveBeenCalledWith('A');
-      fireEvent.click(screen.getByText('V · Martin'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Martin' }));
       expect(onVictoryChange).toHaveBeenCalledWith('B');
     });
 
     it('V déjà actif : un second clic le retire', () => {
       const onVictoryChange = vi.fn();
       laserSetup({ victoryA: true, onVictoryChange });
-      fireEvent.click(screen.getByText('V · Dupont'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Dupont' }));
       expect(onVictoryChange).toHaveBeenCalledWith(null);
     });
 

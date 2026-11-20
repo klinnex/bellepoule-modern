@@ -134,8 +134,8 @@ export function generateBracketTreeHTML(
   // ── SVG: match box renderer ─────────────────────────────────────────────────
   const renderMatchBox = (match: TableauMatchForPDF, x: number, yTop: number): string => {
     const { fencerA, fencerB, scoreA, scoreB, winner, isBye } = match;
-    const fa_id = (fencerA as any)?.id as string | undefined;
-    const fb_id = (fencerB as any)?.id as string | undefined;
+    const fa_id = fencerA?.id;
+    const fb_id = fencerB?.id;
     const wid = winner?.id;
     const winA = !!(wid && fa_id && wid === fa_id);
     const winB = !!(wid && fb_id && wid === fb_id);
@@ -402,8 +402,8 @@ export function generateBracketTreeMultiPageHTML(
   // ── SVG: match box renderer ───────────────────────────────────────────────────
   const renderMatchBox = (match: TableauMatchForPDF, x: number, yTop: number): string => {
     const { fencerA, fencerB, scoreA, scoreB, winner, isBye } = match;
-    const fa_id = (fencerA as any)?.id as string | undefined;
-    const fb_id = (fencerB as any)?.id as string | undefined;
+    const fa_id = fencerA?.id;
+    const fb_id = fencerB?.id;
     const wid = winner?.id;
     const winA = !!(wid && fa_id && wid === fa_id);
     const winB = !!(wid && fb_id && wid === fb_id);
@@ -614,7 +614,7 @@ export async function printBracketTreeHTML(
     tableauSize >= 32
       ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
       : generateBracketTreeHTML(matches, title, logoBase64, template);
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.file?.printHtml)
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   const res = await api.file.printHtml(html);

@@ -1,0 +1,117 @@
+/* Styles extraits de WikiArticleRenderer.tsx (#1895) */
+.wiki-article-renderer-1.wiki-article-renderer-1.wiki-article-renderer-1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.25rem;
+}
+
+.wiki-article-renderer-2.wiki-article-renderer-2.wiki-article-renderer-2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+.wiki-article-renderer-3.wiki-article-renderer-3.wiki-article-renderer-3 {
+  margin: 0.5rem 0;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.wiki-article-renderer-4.wiki-article-renderer-4.wiki-article-renderer-4 {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.wiki-article-renderer-5.wiki-article-renderer-5.wiki-article-renderer-5 {
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.wiki-article-renderer-6.wiki-article-renderer-6.wiki-article-renderer-6 {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.wiki-article-renderer-7.wiki-article-renderer-7.wiki-article-renderer-7 {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.wiki-article-renderer-8.wiki-article-renderer-8.wiki-article-renderer-8 {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.wiki-article-renderer-9.wiki-article-renderer-9.wiki-article-renderer-9 {
+  margin: 0;
+  color: #065f46;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.wiki-article-renderer-10.wiki-article-renderer-10.wiki-article-renderer-10 {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.wiki-article-renderer-11.wiki-article-renderer-11.wiki-article-renderer-11 {
+  margin: 0;
+  color: #92400e;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.wiki-article-renderer-12.wiki-article-renderer-12.wiki-article-renderer-12 {
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.wiki-article-renderer-13.wiki-article-renderer-13.wiki-article-renderer-13 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wiki-article-renderer-14.wiki-article-renderer-14.wiki-article-renderer-14 {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.wiki-article-renderer-15.wiki-article-renderer-15.wiki-article-renderer-15 {
+  color: var(--color-text);
+  font-size: 0.9rem;
+}

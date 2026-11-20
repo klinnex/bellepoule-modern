@@ -26,6 +26,66 @@ const COL = {
   team: 24,
 };
 
+/**
+ * En-tête de l'export d'inscriptions (25 colonnes, index base 0 = colonnes A à Y).
+ * Le parseur lit par position : toutes les colonnes doivent être présentes, même vides.
+ */
+export const RAPIERES_IMPORT_HEADER: readonly string[] = [
+  'Référence commande',
+  'Date de la commande',
+  'Statut de la commande',
+  'Nom participant',
+  'Prénom participant',
+  'Nom payeur',
+  'Prénom payeur',
+  'Email payeur',
+  'Raison sociale',
+  'Moyen de paiement',
+  'Billet',
+  'Numéro de billet',
+  'Tarif',
+  'Montant tarif',
+  'Code Promo',
+  'Montant code promo',
+  'date de naissance',
+  'homme/femme',
+  'nom du club',
+  'nom du 2nd tireur',
+  'prénom du 2nd tireur',
+  'date de naissance du 2nd tireur',
+  'homme/femme 2nd tireur',
+  'nom du club (2nd tireur)',
+  "nom de l'équipe",
+];
+
+/** Ligne d'exemple (fictive) : à supprimer ou décocher avant l'import */
+const RAPIERES_EXAMPLE: Record<number, string> = {
+  [COL.last1]: 'DUPONT',
+  [COL.first1]: 'Jean',
+  [COL.birth1]: '15/03/1995',
+  [COL.gender1]: 'homme',
+  [COL.club1]: 'Club A',
+  [COL.last2]: 'MARTIN',
+  [COL.first2]: 'Marie',
+  [COL.birth2]: '22/07/1998',
+  [COL.gender2]: 'femme',
+  [COL.club2]: 'Club B',
+  [COL.team]: 'EXEMPLE Les Lames Rouges',
+};
+
+/**
+ * Modèle CSV « ; » (UTF-8 avec BOM, CRLF) reconnu par l'import des équipes :
+ * même disposition que l'export d'inscriptions, une ligne d'exemple.
+ */
+export function buildRapieresImportTemplate(): string {
+  const cell = (value: string): string =>
+    /[;"\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  const example = RAPIERES_IMPORT_HEADER.map((_, i) => RAPIERES_EXAMPLE[i] ?? '');
+  return `\uFEFF${[RAPIERES_IMPORT_HEADER, example]
+    .map(row => row.map(cell).join(';'))
+    .join('\r\n')}\r\n`;
+}
+
 /** Sexe : « homme/femme », « H/F », « M/F », « masculin/féminin »… ; inconnu → non renseigné */
 export function parseRapieresGender(value: string): RapieresGender | undefined {
   const v = value

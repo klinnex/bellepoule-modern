@@ -11,6 +11,8 @@ import {
   NO_RESULTS_LABEL,
 } from './wiki/wikiData';
 import { renderSection } from './wiki/WikiArticleRenderer';
+import { BookOpen } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface Props {
   onClose: () => void;
@@ -71,7 +73,9 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
         className="is-72bdc9"
       >
         <div className="is-cb0277">
-          <span className="is-444c6c">📖</span>
+          <span className="is-444c6c">
+            <Icon icon={BookOpen} />
+          </span>
           <h1 className="is-34f232">{t('wiki.title')}</h1>
           <input
             type="search"
@@ -132,17 +136,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
           </nav>
 
           <article className="is-88019c">
-            <h1
-              style={{
-                fontSize: '1.4rem',
-                fontWeight: 800,
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--color-text)',
-              }}
-            >
+            <h1 className="wiki-modal-1">
               <span>{selectedArticle.icon}</span>
               {getTitle(selectedArticle, lang)}
             </h1>

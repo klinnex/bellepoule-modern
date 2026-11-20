@@ -4,7 +4,15 @@
  * Licensed under GPL-3.0
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import {
   pseudoLocalize,
@@ -14,15 +22,8 @@ import {
 import { getActiveLanguage, pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
 import { setPdfTranslator } from '@shared/utils/pdfExport/core';
 import frTranslations from '../locales/fr.json';
-import enTranslations from '../locales/en.json';
-import deTranslations from '../locales/de.json';
-import esTranslations from '../locales/es.json';
-import itTranslations from '../locales/it.json';
-import brTranslations from '../locales/br.json';
-import caTranslations from '../locales/ca.json';
-import zhHKTranslations from '../locales/zh-HK.json';
 
-export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'it' | 'zh-HK';
+export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'pt' | 'it' | 'ru' | 'zh-HK';
 export type TranslationKey = string;
 export type Theme = 'light' | 'dark' | 'default';
 
@@ -105,6 +106,15 @@ const getFallbackTranslations = (language: Language): Translations => {
         loading: 'Cargando...',
       },
     },
+    pt: {
+      app: { title: 'BellePoule Modern' },
+      menu: { new_competition: 'Nova competição' },
+      settings: { title: 'Definições' },
+      messages: {
+        no_competitions: 'Nenhuma competição',
+        loading: 'A carregar...',
+      },
+    },
     it: {
       app: { title: 'BellePoule Modern' },
       menu: { new_competition: 'Nuova competizione' },
@@ -112,6 +122,15 @@ const getFallbackTranslations = (language: Language): Translations => {
       messages: {
         no_competitions: 'Nessuna competizione',
         loading: 'Caricamento...',
+      },
+    },
+    ru: {
+      app: { title: 'BellePoule Modern' },
+      menu: { new_competition: 'Новое соревнование' },
+      settings: { title: 'Настройки' },
+      messages: {
+        no_competitions: 'Нет соревнований',
+        loading: 'Загрузка...',
       },
     },
     'zh-HK': {
@@ -127,20 +146,50 @@ const getFallbackTranslations = (language: Language): Translations => {
   return fallbackTranslations[language] || fallbackTranslations.fr;
 };
 
-const bundledTranslations: Record<Language, Translations> = {
-  fr: frTranslations as Translations,
-  en: enTranslations as Translations,
-  de: deTranslations as Translations,
-  es: esTranslations as Translations,
-  it: itTranslations as Translations,
-  br: brTranslations as Translations,
-  ca: caTranslations as Translations,
-  'zh-HK': zhHKTranslations as Translations,
+// Seul fr (langue par défaut et repli) est dans le bundle initial ; les autres langues
+// sont des chunks chargés à la demande (budget chargement initial, check:bundle-size)
+const localeLoaders: Record<Exclude<Language, 'fr'>, () => Promise<{ default: unknown }>> = {
+  en: () => import(/* webpackChunkName: "locale-en" */ '../locales/en.json'),
+  de: () => import(/* webpackChunkName: "locale-de" */ '../locales/de.json'),
+  es: () => import(/* webpackChunkName: "locale-es" */ '../locales/es.json'),
+  pt: () => import(/* webpackChunkName: "locale-pt" */ '../locales/pt.json'),
+  it: () => import(/* webpackChunkName: "locale-it" */ '../locales/it.json'),
+  ru: () => import(/* webpackChunkName: "locale-ru" */ '../locales/ru.json'),
+  br: () => import(/* webpackChunkName: "locale-br" */ '../locales/br.json'),
+  ca: () => import(/* webpackChunkName: "locale-ca" */ '../locales/ca.json'),
+  'zh-HK': () => import(/* webpackChunkName: "locale-zh-HK" */ '../locales/zh-HK.json'),
 };
 
-const loadTranslations = (language: Language): Translations => {
-  return bundledTranslations[language] || getFallbackTranslations(language);
+const loadedTranslations: Partial<Record<Language, Translations>> = {
+  fr: frTranslations as Translations,
 };
+
+/** Traductions déjà chargées (synchrone) : repli fr si la langue n'est pas encore chargée. */
+const getLoadedTranslations = (language: Language): Translations =>
+  loadedTranslations[language] ?? (frTranslations as Translations);
+
+const loadTranslations = async (language: Language): Promise<Translations> => {
+  const cached = loadedTranslations[language];
+  if (cached) return cached;
+  const loader = localeLoaders[language as Exclude<Language, 'fr'>];
+  if (!loader) return getFallbackTranslations(language);
+  try {
+    const mod = await loader();
+    const translations = mod.default as Translations;
+    loadedTranslations[language] = translations;
+    return translations;
+  } catch (error) {
+    logger.error(
+      LogCategory.UI,
+      `Chargement de la langue ${language} impossible`,
+      error instanceof Error ? error : undefined
+    );
+    return getFallbackTranslations(language);
+  }
+};
+
+const KNOWN_LANGUAGES: readonly string[] = Object.keys(localeLoaders).concat('fr');
+const KNOWN_THEMES: readonly string[] = ['default', 'light', 'dark'];
 
 const applyTheme = (theme: Theme): void => {
   document.body.classList.remove('theme-dark', 'theme-light', 'theme-default');
@@ -161,9 +210,9 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
 
   const changeLanguage = useCallback(async (newLanguage: Language) => {
     setIsLoading(true);
-    const loadedTranslations = loadTranslations(newLanguage);
+    const nextTranslations = await loadTranslations(newLanguage);
     setLanguage(newLanguage);
-    setTranslations(loadedTranslations);
+    setTranslations(nextTranslations);
     localStorage.setItem('bellepoule-language', newLanguage);
     window.electronAPI?.notifyLanguageChanged?.(newLanguage);
     setIsLoading(false);
@@ -175,6 +224,30 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     localStorage.setItem('bellepoule-theme', newTheme);
   }, []);
 
+  // Langue et thème changés hors de l'écran (agent MCP, #1880) : repris depuis la base, sans
+  // boucle (les valeurs identiques sont ignorées, les valeurs inconnues aussi)
+  const currentRef = useRef({ language, theme });
+  currentRef.current = { language, theme };
+  useEffect(() => {
+    const subscribe = window.electronAPI?.onCompetitionEvent;
+    if (!subscribe) return;
+    return subscribe(event => {
+      if (event.type !== 'settings:changed') return;
+      void window.electronAPI?.settings
+        ?.get()
+        .then(settings => {
+          const { language: lang, theme: th } = currentRef.current;
+          if (KNOWN_LANGUAGES.includes(settings.language) && settings.language !== lang) {
+            void changeLanguage(settings.language as Language);
+          }
+          if (KNOWN_THEMES.includes(settings.theme) && settings.theme !== th) {
+            changeTheme(settings.theme as Theme);
+          }
+        })
+        .catch(() => undefined);
+    });
+  }, [changeLanguage, changeTheme]);
+
   useEffect(() => {
     const initialize = async () => {
       const injectedLang = window.electronAPI?.initialLanguage as Language | null;
@@ -184,11 +257,13 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
       const savedTheme = (localStorage.getItem('bellepoule-theme') as Theme) || 'default';
 
       applyTheme(savedTheme);
-      const loadedTranslations = loadTranslations(savedLanguage);
+      // Langue déjà en mémoire (fr) : appliquée sans attendre de microtâche
+      const initialTranslations =
+        loadedTranslations[savedLanguage] ?? (await loadTranslations(savedLanguage));
 
       setLanguage(savedLanguage);
       setTheme(savedTheme);
-      setTranslations(loadedTranslations);
+      setTranslations(initialTranslations);
       setIsLoading(false);
     };
 
@@ -199,8 +274,10 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   // des enfants, sinon ils formatent avec la langue précédente (#1213)
   setActiveLanguage(language);
 
-  // Attribut lang du document (lecteurs d'écran, césure, correcteur orthographique) (#1160)
-  useEffect(() => {
+  // Attribut lang du document (lecteurs d'écran, césure, correcteur orthographique) (#1160).
+  // useLayoutEffect : appliqué avec le commit, jamais un rendu « de » avec lang="fr"
+  // (langues chargées à la demande depuis b0b0889 : course en CI avec useEffect)
+  useLayoutEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = 'ltr';
   }, [language]);
@@ -272,7 +349,9 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
       { code: 'en', name: 'English', flag: '🇺🇸' },
       { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
       { code: 'es', name: 'Español', flag: '🇪🇸' },
+      { code: 'pt', name: 'Português', flag: '🇵🇹' },
       { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+      { code: 'ru', name: 'Русский', flag: '🇷🇺' },
       { code: 'zh-HK', name: '繁體中文', flag: '🇭🇰' },
       { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
       { code: 'ca', name: 'Català', flag: '🇪🇸' },
@@ -300,7 +379,7 @@ export const useTranslation = (): TranslationContextValue => {
  * TranslationProvider) : langue active de localeFormat, repli sur la clé (#1158).
  */
 export const translateStatic = (key: TranslationKey, params?: Record<string, string | number>) => {
-  let value: unknown = loadTranslations(getActiveLanguage() as Language);
+  let value: unknown = getLoadedTranslations(getActiveLanguage() as Language);
   for (const k of key.split('.')) {
     value = value && typeof value === 'object' ? (value as Record<string, unknown>)[k] : undefined;
   }

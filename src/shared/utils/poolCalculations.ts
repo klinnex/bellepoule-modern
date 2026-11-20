@@ -20,8 +20,8 @@ import {
 // ============================================================================
 
 /**
- * Génère l'ordre des matchs dans une poule selon la méthode FIE officielle
- * Utilise les tableaux d'ordre standard selon le nombre de tireurs
+ * Ordre standard des matchs d'une poule (#1964) : tables FIE o.69 pour 6 et 7, tables d'usage
+ * de 3 à 12, Berger au-delà. Placement des coéquipiers : planPoolBouts (poolBoutOrder.ts).
  */
 export function generatePoolMatchOrder(fencerCount: number): [number, number][] {
   if (!Number.isInteger(fencerCount) || fencerCount < 2) {
@@ -127,16 +127,61 @@ export function generatePoolMatchOrder(fencerCount: number): [number, number][] 
     ],
   };
 
-  return orders[fencerCount] || generateGenericMatchOrder(fencerCount);
+  const table = orders[fencerCount] ?? STANDARD_ORDERS_9_TO_12[fencerCount];
+  return table
+    ? table.map(([a, b]) => [a, b] as [number, number])
+    : generateRoundRobinOrder(fencerCount);
+}
+
+/** Lit une table « 1-9 2-8 … » (numéros dans la poule, base 1) */
+export function parseBoutTable(table: string): [number, number][] {
+  return table
+    .trim()
+    .split(/\s+/)
+    .map(pair => {
+      const [a, b] = pair.split('-').map(Number);
+      return [a, b] as [number, number];
+    });
 }
 
 /**
- * Génère un ordre de matchs selon l'algorithme de Berger (méthode du cercle FIE)
+ * Tables d'usage des poules de 9 à 12 (BellePoule, #1964). Le règlement FIE (o.69) ne donne
+ * que les poules de 6 et 7 : ces tables ne sont pas réglementaires mais reprises par les
+ * logiciels de référence. Aucun tireur ne tire deux matchs de suite.
+ */
+const STANDARD_ORDERS_9_TO_12: Record<number, [number, number][]> = {
+  9: parseBoutTable(
+    '1-9 2-8 3-7 4-6 1-5 2-9 8-3 7-4 6-5 1-2 9-3 8-4 7-5 6-1 3-2 9-4 5-8 7-6 ' +
+      '3-1 2-4 5-9 8-6 7-1 4-3 5-2 6-9 8-7 4-1 5-3 6-2 9-7 1-8 4-5 3-6 2-7 9-8'
+  ),
+  10: parseBoutTable(
+    '1-4 6-9 2-5 7-10 3-1 8-6 4-5 9-10 2-3 7-8 5-1 10-6 4-2 9-7 5-3 10-8 1-2 ' +
+      '6-7 3-4 8-9 5-10 1-6 2-7 3-8 4-9 6-5 10-2 8-1 7-4 9-3 2-6 5-8 4-10 1-9 ' +
+      '3-7 8-2 6-4 9-5 10-3 7-1 4-8 2-9 3-6 5-7 1-10'
+  ),
+  11: parseBoutTable(
+    '1-2 7-8 4-5 10-11 2-3 8-9 5-6 3-1 9-7 6-4 2-5 8-11 1-4 7-10 5-3 11-9 1-6 ' +
+      '4-2 10-8 3-6 5-1 11-7 3-4 9-10 6-2 1-7 3-9 10-4 8-2 5-11 1-8 9-2 3-10 ' +
+      '4-11 6-7 9-1 2-10 11-3 7-5 6-8 10-1 11-2 4-7 8-5 6-9 11-1 7-3 4-8 9-5 ' +
+      '6-10 2-7 8-3 4-9 10-5 6-11'
+  ),
+  12: parseBoutTable(
+    '1-2 7-8 4-5 10-11 2-3 8-9 5-6 11-12 3-1 9-7 6-4 12-10 2-5 8-11 1-4 7-10 ' +
+      '5-3 11-9 1-6 7-12 4-2 10-8 3-6 9-12 5-1 11-7 3-4 9-10 6-2 12-8 1-7 3-9 ' +
+      '10-4 8-2 5-11 12-6 1-8 9-2 3-10 4-11 12-5 6-7 9-1 2-10 11-3 4-12 7-5 ' +
+      '6-8 10-1 11-2 12-3 4-7 8-5 6-9 11-1 2-12 7-3 4-8 9-5 6-10 12-1 2-7 8-3 ' +
+      '4-9 10-5 6-11'
+  ),
+};
+
+/**
+ * Génère un ordre de matchs selon l'algorithme de Berger (méthode du cercle).
+ * Sert au-delà de 12 tireurs et pour l'« ordre libre » (#1964).
  * Garantit qu'aucun tireur ne dispute deux matchs consécutifs.
  * Pour n pair : n-1 rondes de n/2 matchs.
  * Pour n impair : ajoute un fantôme n+1, applique Berger(n+1), supprime les matchs impliquant le fantôme.
  */
-function generateGenericMatchOrder(fencerCount: number): [number, number][] {
+export function generateRoundRobinOrder(fencerCount: number): [number, number][] {
   const n = fencerCount;
   const matches: [number, number][] = [];
   const size = n % 2 === 0 ? n : n + 1;
@@ -192,12 +237,29 @@ export function isMatchCancelledByForfeit(match: Match): boolean {
 /**
  * Match saisi comme forfait / abandon / exclusion (armes olympiques incluses) :
  * considéré non joué, sans effet sur V/M, TD, TR ni indice (#1144).
+ *
+ * Exception (#2000) : un abandon signalé par l'appareil de piste sur un tireur dont le statut n'a
+ * pas (encore) été passé à ABANDONED par le DT reste un combat normal (V pour le vainqueur, touches
+ * comptées) ; il n'est annulé qu'une fois le statut posé (FIE o.74). Le même critère que le
+ * classement (voidsMatchForOpponent) : la grille et les V/M restent cohérents.
  */
 export function isMatchVoidedByForfeit(match: Match): boolean {
   if (match.status !== MatchStatus.FINISHED) return false;
-  const flagged = (s: Score | null | undefined) =>
-    !!s && (s.isForfait || s.isAbstention || s.isExclusion);
-  return flagged(match.scoreA) || flagged(match.scoreB) || isMatchCancelledByForfeit(match);
+  if (isMatchCancelledByForfeit(match)) return true;
+  const flagged = (s: Score | null | undefined) => !!s && (s.isForfait || s.isExclusion);
+  if (flagged(match.scoreA) || flagged(match.scoreB)) return true;
+  const abandonVoids = (s: Score | null | undefined, fencer: Fencer | null | undefined) =>
+    !!s?.isAbstention && (!fencer?.status || isOutStatus(fencer.status));
+  return abandonVoids(match.scoreA, match.fencerA) || abandonVoids(match.scoreB, match.fencerB);
+}
+
+/** Tireur sorti de la poule (forfait, abandon, exclusion) */
+function isOutStatus(status: FencerStatus): boolean {
+  return (
+    status === FencerStatus.FORFAIT ||
+    status === FencerStatus.ABANDONED ||
+    status === FencerStatus.EXCLUDED
+  );
 }
 
 export interface FencerPoolStatsOptions {
@@ -485,10 +547,68 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
  */
 export type SeparationCriterionKey = 'byClub' | 'byRegion' | 'byNation';
 
+/**
+ * Regroupement par niveau (tournoi des rapières, #1441) : les équipes de même niveau
+ * sont placées ensemble, poule après poule (tailles équilibrées). Avec `separateClubs`,
+ * les clubs alternent à l'intérieur d'un niveau pour limiter les rencontres d'un même club.
+ */
+export function distributeFencersGroupedByLevel(
+  fencers: Fencer[],
+  poolCount: number,
+  levelRankOf: (fencer: Fencer) => number,
+  separateClubs: boolean
+): Fencer[][] {
+  if (!Number.isInteger(poolCount) || poolCount < 1) return [];
+  const byLevel = new Map<number, Fencer[]>();
+  fencers.forEach(f => {
+    const lvl = levelRankOf(f);
+    byLevel.set(lvl, [...(byLevel.get(lvl) ?? []), f]);
+  });
+  const ordered: Fencer[] = [];
+  [...byLevel.keys()]
+    .sort((a, b) => a - b)
+    .forEach(lvl => {
+      const group = byLevel.get(lvl)!;
+      if (!separateClubs) {
+        ordered.push(...group);
+        return;
+      }
+      // Tourniquet par club : A1 B1 C1 A2 B2…
+      const byClub = new Map<string, Fencer[]>();
+      group.forEach(f => {
+        const key = (f.club ?? '').trim().toLowerCase();
+        byClub.set(key, [...(byClub.get(key) ?? []), f]);
+      });
+      const queues = [...byClub.values()].sort((a, b) => b.length - a.length);
+      while (queues.some(q => q.length > 0)) {
+        queues.forEach(q => {
+          const f = q.shift();
+          if (f) ordered.push(f);
+        });
+      }
+    });
+  const base = Math.floor(ordered.length / poolCount);
+  const extra = ordered.length % poolCount;
+  const pools: Fencer[][] = [];
+  let cursor = 0;
+  for (let i = 0; i < poolCount; i++) {
+    const size = base + (i < extra ? 1 : 0);
+    pools.push(ordered.slice(cursor, cursor + size));
+    cursor += size;
+  }
+  return pools;
+}
+
+/**
+ * @param separation critères prioritaires sur le classement : descente libre dans le classement
+ * @param belowRanking critères moins prioritaires que le classement : échange limité au chapeau
+ *   courant (tireurs restants de la rangée serpentine), l'équilibre du classement est préservé
+ */
 export function distributeFencersToPoolsSerpentine(
   fencers: Fencer[],
   poolCount: number,
-  separation: SeparationCriterionKey[]
+  separation: SeparationCriterionKey[],
+  belowRanking: SeparationCriterionKey[] = []
 ): Fencer[][] {
   if (!Array.isArray(fencers))
     throw new TypeError('distributeFencersToPoolsSerpentine: fencers doit être un tableau');
@@ -504,21 +624,45 @@ export function distributeFencersToPoolsSerpentine(
   }
   const pools: Fencer[][] = Array.from({ length: poolCount }, () => []);
   const indexes = createPoolIndexes(pools);
+  // Quota par valeur (BellePoule) : un club de N tireurs tolère ⌈N/poules⌉ tireurs par poule
+  const quotas = createQuotas(fencers, poolCount);
 
   // Trier les tireurs par classement (meilleur classement = premier, non-classés = derniers)
   const pending = [...fencers].sort((a, b) => (a.ranking ?? 99999) - (b.ranking ?? 99999));
+  const seedOrder = [...pending];
 
   // Distribution serpentine avec descente dans le classement (FIE §2) :
   // pour chaque slot, prendre le premier tireur sans conflit dans la poule cible.
   // Si impossible (tous en conflit), prendre le suivant naturel (FIE : "rester dans la poule initiale").
   let direction = 1;
   let poolIndex = 0;
+  let placed = 0;
+
+  const firstFree = (limit: number, criteria: SeparationCriterionKey[]): number => {
+    for (let i = 0; i < limit; i++) {
+      if (!hasConflictWith(pending[i], indexes[poolIndex], criteria, quotas)) return i;
+    }
+    return -1;
+  };
 
   while (pending.length > 0) {
     const pool = pools[poolIndex];
 
     let chosen = 0;
-    if (separation.length > 0) {
+    // Têtes de poule (premier chapeau) jamais déplacées (BellePoule)
+    const isHead = placed < poolCount;
+    // Critères sous le classement : recherche dans le chapeau courant seulement
+    let inPot = -1;
+    if (!isHead && belowRanking.length > 0) {
+      const potSize = Math.min(pending.length, poolCount - (placed % poolCount));
+      for (let take = belowRanking.length; take >= 1 && inPot < 0; take--) {
+        inPot = firstFree(potSize, [...separation, ...belowRanking.slice(0, take)]);
+      }
+      if (inPot < 0 && separation.length > 0) inPot = firstFree(potSize, separation);
+    }
+    if (inPot >= 0) {
+      chosen = inPot;
+    } else if (!isHead && separation.length > 0) {
       // Relâchement progressif : d'abord tous les critères, puis en retirant le moins
       // prioritaire (dernier) jusqu'à ne garder que le plus prioritaire (premier).
       // Garantit que le critère 1 n'est jamais sacrifié si une solution existe.
@@ -526,7 +670,7 @@ export function distributeFencersToPoolsSerpentine(
       for (let take = separation.length; take >= 1 && !found; take--) {
         const activeSub = separation.slice(0, take);
         for (let i = 0; i < pending.length; i++) {
-          if (!hasConflictWith(pending[i], indexes[poolIndex], activeSub)) {
+          if (!hasConflictWith(pending[i], indexes[poolIndex], activeSub, quotas)) {
             chosen = i;
             found = true;
             break;
@@ -538,6 +682,7 @@ export function distributeFencersToPoolsSerpentine(
     const picked = pending.splice(chosen, 1)[0];
     pool.push(picked);
     indexAddFencer(indexes[poolIndex], picked);
+    placed++;
 
     poolIndex += direction;
     if (poolIndex >= poolCount) {
@@ -550,7 +695,10 @@ export function distributeFencersToPoolsSerpentine(
   }
 
   // Rééquilibrer les poules pour assurer un nombre égal (ou presque égal) de tireurs
-  rebalancePools(pools, separation, indexes);
+  rebalancePools(pools, [...separation, ...belowRanking], indexes, quotas);
+
+  // Conflits restants : échanges au plus proche classement (NeoSwapper de BellePoule)
+  swapRemainingConflicts(pools, indexes, quotas, [...separation, ...belowRanking], seedOrder);
 
   // Tirage au sort des positions dans la poule (FIE §3)
   for (const pool of pools) {
@@ -563,15 +711,108 @@ export function distributeFencersToPoolsSerpentine(
   return pools;
 }
 
+function criterionMap(index: PoolConflictIndex, key: SeparationCriterionKey) {
+  return key === 'byClub' ? index.clubs : key === 'byRegion' ? index.regions : index.nations;
+}
+
+function criterionValue(fencer: Fencer, key: SeparationCriterionKey): string | undefined {
+  const v =
+    key === 'byClub' ? fencer.club : key === 'byRegion' ? fencer.region : fencer.nationality;
+  return v || undefined;
+}
+
+/**
+ * Échanges à la BellePoule (NeoSwapper) : pour chaque critère par ordre de priorité,
+ * un tireur au-delà du quota de sa poule est échangé avec le tireur le plus proche au
+ * classement (alternance dessous/dessus) d'une autre poule, si l'échange respecte les quotas
+ * des critères de priorité supérieure ou égale. Les têtes de poule ne bougent jamais.
+ */
+function swapRemainingConflicts(
+  pools: Fencer[][],
+  indexes: PoolConflictIndex[],
+  quotas: PoolConflictIndex,
+  criteria: SeparationCriterionKey[],
+  seedOrder: Fencer[]
+): void {
+  const poolCount = pools.length;
+  if (criteria.length === 0 || poolCount < 2) return;
+  const seed = new Map(seedOrder.map((f, i) => [f.id, i]));
+  const heads = new Set(seedOrder.slice(0, poolCount).map(f => f.id));
+  const poolOf = new Map<string, number>();
+  pools.forEach((p, i) => p.forEach(f => poolOf.set(f.id, i)));
+
+  const quotaOf = (key: SeparationCriterionKey, v: string) => criterionMap(quotas, key).get(v) ?? 1;
+  /** f peut rejoindre la poule p (sans `leaving`) pour les critères 0..depth-1 */
+  const fits = (f: Fencer, p: number, leaving: Fencer, depth: number) =>
+    criteria.slice(0, depth).every(key => {
+      const v = criterionValue(f, key);
+      if (!v) return true;
+      const n =
+        (criterionMap(indexes[p], key).get(v) ?? 0) - (criterionValue(leaving, key) === v ? 1 : 0);
+      return n < quotaOf(key, v);
+    });
+
+  const findErrors = (depth: number): Fencer[] => {
+    const errors: Fencer[] = [];
+    pools.forEach((pool, p) => {
+      for (const key of criteria.slice(0, depth)) {
+        criterionMap(indexes[p], key).forEach((n, v) => {
+          const excess = n - quotaOf(key, v);
+          if (excess <= 0) return;
+          // Les moins bien classés de la valeur sont « en trop »
+          pool
+            .filter(f => criterionValue(f, key) === v && !heads.has(f.id))
+            .sort((a, b) => (seed.get(b.id) ?? 0) - (seed.get(a.id) ?? 0))
+            .slice(0, excess)
+            .forEach(f => errors.includes(f) || errors.push(f));
+        });
+      }
+    });
+    return errors.sort((a, b) => (seed.get(a.id) ?? 0) - (seed.get(b.id) ?? 0));
+  };
+
+  const trySwap = (e: Fencer, depth: number): boolean => {
+    const pe = poolOf.get(e.id)!;
+    const key = criteria[depth - 1];
+    const start = seed.get(e.id) ?? 0;
+    for (let d = 1; d < seedOrder.length; d++) {
+      for (const idx of [start + d, start - d]) {
+        const x = seedOrder[idx];
+        if (!x || heads.has(x.id)) continue;
+        const px = poolOf.get(x.id)!;
+        if (px === pe || criterionValue(x, key) === criterionValue(e, key)) continue;
+        if (!fits(e, px, x, depth) || !fits(x, pe, e, depth)) continue;
+        pools[pe][pools[pe].indexOf(e)] = x;
+        pools[px][pools[px].indexOf(x)] = e;
+        indexRemoveFencer(indexes[pe], e);
+        indexAddFencer(indexes[pe], x);
+        indexRemoveFencer(indexes[px], x);
+        indexAddFencer(indexes[px], e);
+        poolOf.set(e.id, px);
+        poolOf.set(x.id, pe);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (let depth = 1; depth <= criteria.length; depth++) {
+    // Chaque échange respecte les quotas des critères 0..depth-1 : borne de sécurité
+    for (let guard = 0; guard < seedOrder.length * 2; guard++) {
+      if (!findErrors(depth).some(e => trySwap(e, depth))) break;
+    }
+  }
+}
+
 /**
  * Index multiensemble (valeur → occurrences) des clubs/régions/nations d'une poule,
  * pour vérifier les conflits en O(1) au lieu de scanner la poule à chaque test.
- * Les nations conservent les valeurs vides/undefined (égalité brute, cf. rééquilibrage).
+ * Valeurs vides ignorées : pas de conflit entre tireurs sans club/région/nation.
  */
 interface PoolConflictIndex {
   clubs: Map<string, number>;
   regions: Map<string, number>;
-  nations: Map<string | undefined, number>;
+  nations: Map<string, number>;
 }
 
 function indexAdd<K>(map: Map<K, number>, key: K): void {
@@ -588,13 +829,30 @@ function indexRemove<K>(map: Map<K, number>, key: K): void {
 function indexAddFencer(index: PoolConflictIndex, fencer: Fencer): void {
   if (fencer.club) indexAdd(index.clubs, fencer.club);
   if (fencer.region) indexAdd(index.regions, fencer.region);
-  indexAdd(index.nations, fencer.nationality);
+  if (fencer.nationality) indexAdd(index.nations, fencer.nationality);
 }
 
 function indexRemoveFencer(index: PoolConflictIndex, fencer: Fencer): void {
   if (fencer.club) indexRemove(index.clubs, fencer.club);
   if (fencer.region) indexRemove(index.regions, fencer.region);
-  indexRemove(index.nations, fencer.nationality);
+  if (fencer.nationality) indexRemove(index.nations, fencer.nationality);
+}
+
+/** Occupation maximale tolérée par poule pour chaque valeur : ⌈effectif / nb poules⌉ */
+function createQuotas(fencers: Fencer[], poolCount: number): PoolConflictIndex {
+  const totals = createPoolIndexes([fencers])[0];
+  const toQuota = <K>(m: Map<K, number>) => {
+    m.forEach((n, k) => m.set(k, Math.ceil(n / poolCount)));
+  };
+  toQuota(totals.clubs);
+  toQuota(totals.regions);
+  toQuota(totals.nations);
+  return totals;
+}
+
+/** Quota maximal d'une valeur par poule (club/région/nation), cf. NeoSwapper de BellePoule */
+export function separationQuota(total: number, poolCount: number): number {
+  return poolCount > 0 ? Math.max(1, Math.ceil(total / poolCount)) : total;
 }
 
 function createPoolIndexes(pools: Fencer[][]): PoolConflictIndex[] {
@@ -611,17 +869,20 @@ function createPoolIndexes(pools: Fencer[][]): PoolConflictIndex[] {
 function hasConflictWith(
   fencer: Fencer,
   index: PoolConflictIndex,
-  separation: SeparationCriterionKey[]
+  separation: SeparationCriterionKey[],
+  quotas?: PoolConflictIndex
 ): boolean {
   if (separation.length === 0) return false;
+  const full = <K>(m: Map<K, number>, q: Map<K, number> | undefined, k: K) =>
+    (m.get(k) ?? 0) >= (q?.get(k) ?? 1);
   return separation.some(key => {
     switch (key) {
       case 'byClub':
-        return !!fencer.club && index.clubs.has(fencer.club);
+        return !!fencer.club && full(index.clubs, quotas?.clubs, fencer.club);
       case 'byRegion':
-        return !!fencer.region && index.regions.has(fencer.region);
+        return !!fencer.region && full(index.regions, quotas?.regions, fencer.region);
       case 'byNation':
-        return index.nations.has(fencer.nationality);
+        return !!fencer.nationality && full(index.nations, quotas?.nations, fencer.nationality);
     }
   });
 }
@@ -633,7 +894,8 @@ function hasConflictWith(
 function rebalancePools(
   pools: Fencer[][],
   separation: SeparationCriterionKey[],
-  indexes: PoolConflictIndex[] = createPoolIndexes(pools)
+  indexes: PoolConflictIndex[] = createPoolIndexes(pools),
+  quotas?: PoolConflictIndex
 ): void {
   const poolCount = pools.length;
   if (poolCount === 0) return;
@@ -676,8 +938,7 @@ function rebalancePools(
           const fencer = source.pool[i];
 
           // Vérifier que le déplacement ne crée pas de conflit sur les critères actifs
-          // (nation : égalité brute, y compris valeurs vides — comportement historique)
-          const wouldCreateConflict = hasConflictWith(fencer, targetIndex, separation);
+          const wouldCreateConflict = hasConflictWith(fencer, targetIndex, separation, quotas);
 
           if (!wouldCreateConflict) {
             // Déplacer le tireur

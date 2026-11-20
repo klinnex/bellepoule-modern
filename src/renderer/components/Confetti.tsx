@@ -163,17 +163,7 @@ const Confetti: React.FC<ConfettiProps> = ({
 
   if (!enabled) return null;
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 9999,
-      }}
-    />
-  );
+  return <canvas ref={canvasRef} className="confetti-1" />;
 };
 
 export default React.memo(Confetti);

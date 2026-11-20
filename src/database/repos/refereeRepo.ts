@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Referee, RefereeComment } from '../../shared/types';
 import { safeJsonParse } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
-import { rowToReferee } from './rowMappers';
+import { rowToReferee, type SqlRow } from './rowMappers';
 
 /** Arbitres, statistiques d'arbitrage et commentaires des formateurs (#1242) */
 export class RefereeRepo {
@@ -64,14 +64,14 @@ export class RefereeRepo {
 
   public getReferee(id: string): Referee | null {
     if (!this.sql.db) return null;
-    const row = this.sql.queryOne<any>('SELECT * FROM referees WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM referees WHERE id = ?', [id]);
     return row ? rowToReferee(row) : null;
   }
 
   public getRefereesByCompetition(competitionId: string): Referee[] {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>('SELECT * FROM referees WHERE competition_id = ? ORDER BY ref ASC', [
+      .queryAll<SqlRow>('SELECT * FROM referees WHERE competition_id = ? ORDER BY ref ASC', [
         competitionId,
       ])
       .map(row => rowToReferee(row));
@@ -105,7 +105,7 @@ export class RefereeRepo {
     for (const [key, col] of Object.entries(fieldMap)) {
       if (key in updates) {
         setClauses.push(`${col} = ?`);
-        values.push((updates as any)[key]);
+        values.push((updates as Record<string, unknown>)[key]);
       }
     }
     if (setClauses.length > 0) {
@@ -134,26 +134,33 @@ export class RefereeRepo {
   }> {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT m.id AS match_id, m.number AS match_number,
-              p.name AS pool_name,
+              CASE WHEN p.id IS NULL THEN NULL ELSE 'Poule ' || p.number END AS pool_name,
               fa.last_name || ' ' || fa.first_name AS fencer_a_name,
               fb.last_name || ' ' || fb.first_name AS fencer_b_name,
               m.score_a, m.score_b, m.status,
               r.id AS referee_id, r.name AS referee_name
        FROM matches m
        LEFT JOIN pools p ON m.pool_id = p.id
-       LEFT JOIN phases ph ON p.phase_id = ph.id
        LEFT JOIN fencers fa ON m.fencer_a_id = fa.id
        LEFT JOIN fencers fb ON m.fencer_b_id = fb.id
        LEFT JOIN referees r ON m.referee_id = r.id
-       WHERE ph.competition_id = ? AND m.referee_id IS NOT NULL
-       ORDER BY p.name, m.number`,
+       WHERE fa.competition_id = ? AND m.referee_id IS NOT NULL
+       ORDER BY p.number, m.number`,
         [competitionId]
       )
       .map(row => {
-        const scoreARaw = safeJsonParse<any>(row.score_a, null, `match ${row.match_id} score_a`);
-        const scoreBRaw = safeJsonParse<any>(row.score_b, null, `match ${row.match_id} score_b`);
+        const scoreARaw = safeJsonParse<{ value?: number | null } | null>(
+          row.score_a,
+          null,
+          `match ${row.match_id} score_a`
+        );
+        const scoreBRaw = safeJsonParse<{ value?: number | null } | null>(
+          row.score_b,
+          null,
+          `match ${row.match_id} score_b`
+        );
         return {
           matchId: row.match_id as string,
           matchNumber: row.match_number as number,
@@ -177,9 +184,44 @@ export class RefereeRepo {
     cardsYellow: number;
     cardsRed: number;
     cardsBlack: number;
+    dtCalls: number;
+    averageRestSeconds: number;
   }> {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const dtRows = this.sql.queryAll<SqlRow>(
+      `SELECT referee_id, COUNT(*) AS cnt FROM remote_events
+       WHERE competition_id = ? AND type = 'dt_call' AND referee_id IS NOT NULL GROUP BY referee_id`,
+      [competitionId]
+    );
+    const dtCalls = new Map(dtRows.map(r => [r.referee_id as string, r.cnt as number]));
+    // Repos entre deux affectations : fin d'un match → début du suivant, même arbitre (#1817)
+    const timed = this.sql.queryAll<SqlRow>(
+      `SELECT m.referee_id, m.start_time, m.end_time FROM matches m
+       JOIN referees r ON r.id = m.referee_id
+       WHERE r.competition_id = ? AND m.start_time IS NOT NULL AND m.end_time IS NOT NULL
+       ORDER BY m.referee_id, m.start_time`,
+      [competitionId]
+    );
+    const rest = new Map<string, number>();
+    {
+      const gaps = new Map<string, number[]>();
+      let prev: SqlRow | null = null;
+      for (const row of timed) {
+        if (prev && prev.referee_id === row.referee_id) {
+          const gap =
+            (Date.parse(row.start_time as string) - Date.parse(prev.end_time as string)) / 1000;
+          if (Number.isFinite(gap) && gap >= 0) {
+            const list = gaps.get(row.referee_id as string) ?? [];
+            list.push(gap);
+            gaps.set(row.referee_id as string, list);
+          }
+        }
+        prev = row;
+      }
+      for (const [id, list] of gaps)
+        rest.set(id, Math.round(list.reduce((a, b) => a + b, 0) / list.length));
+    }
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT r.id AS referee_id, r.name AS referee_name,
               COUNT(*) AS matches_count,
               AVG(CASE WHEN m.status = 'finished' AND m.duration IS NOT NULL THEN m.duration END) AS avg_duration,
@@ -206,6 +248,8 @@ export class RefereeRepo {
       cardsYellow: (row.cards_yellow as number) ?? 0,
       cardsRed: (row.cards_red as number) ?? 0,
       cardsBlack: (row.cards_black as number) ?? 0,
+      dtCalls: dtCalls.get(row.referee_id as string) ?? 0,
+      averageRestSeconds: rest.get(row.referee_id as string) ?? 0,
     }));
   }
 
@@ -240,19 +284,19 @@ export class RefereeRepo {
   /** Commentaires d'une compétition (ou d'un seul arbitre), du plus ancien au plus récent. */
   public getRefereeComments(competitionId: string, refereeId?: string): RefereeComment[] {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT * FROM referee_comments WHERE competition_id = ?${refereeId ? ' AND referee_id = ?' : ''}
        ORDER BY created_at ASC`,
       refereeId ? [competitionId, refereeId] : [competitionId]
     );
     return rows.map(r => ({
-      id: r.id,
-      competitionId: r.competition_id,
-      refereeId: r.referee_id,
-      author: r.author ?? null,
-      comment: r.comment,
-      matchLabel: r.match_label ?? null,
-      createdAt: r.created_at,
+      id: r.id as string,
+      competitionId: r.competition_id as string,
+      refereeId: r.referee_id as string,
+      author: (r.author as string | null) ?? null,
+      comment: r.comment as string,
+      matchLabel: (r.match_label as string | null) ?? null,
+      createdAt: r.created_at as string,
     }));
   }
 }

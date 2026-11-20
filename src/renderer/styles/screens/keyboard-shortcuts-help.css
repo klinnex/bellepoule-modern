@@ -1,0 +1,109 @@
+/* Styles extraits de KeyboardShortcutsHelp.tsx (#1895) */
+.keyboard-shortcuts-help-1.keyboard-shortcuts-help-1.keyboard-shortcuts-help-1 {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.keyboard-shortcuts-help-2.keyboard-shortcuts-help-2.keyboard-shortcuts-help-2 {
+  background-color: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.keyboard-shortcuts-help-3.keyboard-shortcuts-help-3.keyboard-shortcuts-help-3 {
+  padding: 24px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.keyboard-shortcuts-help-4.keyboard-shortcuts-help-4.keyboard-shortcuts-help-4 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+.keyboard-shortcuts-help-5.keyboard-shortcuts-help-5.keyboard-shortcuts-help-5 {
+  margin: 4px 0 0 0;
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+
+.keyboard-shortcuts-help-6.keyboard-shortcuts-help-6.keyboard-shortcuts-help-6 {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.keyboard-shortcuts-help-7.keyboard-shortcuts-help-7.keyboard-shortcuts-help-7 {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.keyboard-shortcuts-help-8.keyboard-shortcuts-help-8.keyboard-shortcuts-help-8 {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.keyboard-shortcuts-help-9.keyboard-shortcuts-help-9.keyboard-shortcuts-help-9 {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.keyboard-shortcuts-help-10.keyboard-shortcuts-help-10.keyboard-shortcuts-help-10 {
+  padding: 8px 12px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-dark);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: var(--color-text);
+  box-shadow: 0 2px 0 var(--color-border-dark);
+  white-space: nowrap;
+}
+
+.keyboard-shortcuts-help-11.keyboard-shortcuts-help-11.keyboard-shortcuts-help-11 {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  padding-left: 8px;
+}
+
+.keyboard-shortcuts-help-12.keyboard-shortcuts-help-12.keyboard-shortcuts-help-12 {
+  padding: 16px 24px;
+  background-color: var(--color-surface-2);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.keyboard-shortcuts-help-13.keyboard-shortcuts-help-13.keyboard-shortcuts-help-13 {
+  padding: 2px 6px;
+  background-color: white;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  font-family: monospace;
+}

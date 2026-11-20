@@ -1,0 +1,8 @@
+/* Styles extraits de SplitGroupTabs.tsx (#1895) */
+.split-group-tabs-1.split-group-tabs-1.split-group-tabs-1 {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}

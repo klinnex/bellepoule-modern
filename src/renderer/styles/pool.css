@@ -640,6 +640,29 @@ button.pv-pill {
   }
 }
 
+/* Cartes Large/XL (#1823) : boutons sur une seule ligne, barre de progression réduite */
+.pv-header.is-nowrap {
+  flex-wrap: nowrap;
+}
+
+.pv-header.is-nowrap .pv-header-left {
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
+  gap: var(--space-2);
+}
+
+.pv-header.is-nowrap .pv-toolbar {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  width: auto;
+  justify-content: flex-end;
+}
+
+.pv-header.is-nowrap .pv-progress-track {
+  width: 48px;
+}
+
 /* Tablette / petite fenêtre : boutons icône à la taille tactile minimale */
 @media (max-width: 768px) {
   .pv-icon-btn {
@@ -673,4 +696,286 @@ button.pv-pill {
 }
 .ranking-col-icon {
   vertical-align: middle;
+}
+
+/* Vue « poule unique » (#1502) : largeur au contenu mais plafonnée (max-width inline,
+   divisé par le zoom) ; la bande de puces de la vue match défile au lieu d'élargir la carte */
+.pools-single-card {
+  width: max-content;
+  min-width: min(100%, 480px);
+  margin: 0 auto;
+}
+
+/* Préparation des poules : champs Min / Max (#1499) */
+.pool-prep-minmax {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.pool-prep-minmax-sep {
+  align-self: stretch;
+  width: 1px;
+  background: var(--color-border-dark);
+}
+.pool-prep-unplaced {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-warning, #d97706);
+  font-size: 0.85rem;
+}
+
+/* Matrice de poule : en-têtes collants + cellule active au clavier (#1542) */
+.pool-grid {
+  overflow: clip; /* clip (et non hidden) : garde les en-têtes collants fonctionnels */
+}
+
+.pool-row-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.pool-cell-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.pool-row-sticky .pool-cell-name {
+  z-index: 4;
+}
+
+.pool-cell[role='button']:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
+}
+
+/* Matrice de poule : défilement contrôlé, en-têtes et colonne des noms collants (#1541) */
+.pool-matrix-scroll {
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+/* Fenêtre étroite (≤ 1280 px) : cellules de la matrice resserrées */
+@media (max-width: 1280px) {
+  .pool-matrix-scroll .pool-cell {
+    padding-inline: 0.25rem;
+  }
+}
+
+/* Titre + avertissements : se réduit sans déborder ; compteur jamais rogné (#1440) */
+.pool-prep-card-header {
+  gap: 0.5rem;
+}
+.pool-prep-card-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.pool-prep-card-meta {
+  flex-shrink: 0;
+}
+.pool-prep-card-title .pool-prep-conflict-warning {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* Classement après poules : icône carton noir à côté du nom (#1440) */
+.ranking-black-card {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 1.5rem;
+  vertical-align: middle;
+}
+.ranking-black-card + .ranking-status-badge {
+  margin-left: 1rem;
+}
+
+/* Colonne Club élargie, tous modes (#1864) */
+.pool-cell.pool-cell-club {
+  width: 110px;
+  padding-inline: 0.25rem;
+  overflow: hidden;
+}
+
+.pool-cell-club > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Consultation des signatures d'une poule (#1826) */
+.pool-signatures-table td {
+  vertical-align: middle;
+}
+.pool-signature-img {
+  display: block;
+  max-height: 60px;
+  max-width: 220px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+/* Inversion nom / prénom (présentation seule) — icône personnage */
+.pool-prep-swap-names[aria-pressed='true'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Préparation : « Annuler les modifications » (#1992) */
+.pool-prep-discard-btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Poule figée par le tirage du tableau (#1996) */
+.pv-tableau-freeze {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.8rem;
+}
+.pv-tableau-freeze.is-correcting {
+  background: var(--color-notice-bg);
+  border-bottom-color: var(--color-warning);
+}
+.pv-tableau-freeze-text {
+  flex: 1;
+}
+.pv-tableau-freeze-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pv-tableau-freeze.is-correcting .pv-tableau-freeze-btn {
+  border-color: var(--color-warning);
+}
+
+/* Classement figé par le tirage du tableau (#1996) */
+.pool-ranking-frozen {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+/* Correction d'un résultat de poule après tirage du tableau (#1996) */
+.pool-correction-intro {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-muted);
+}
+.pool-correction-match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-2);
+}
+.pool-correction-pool {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.pool-correction-arrow {
+  color: var(--color-text-muted);
+}
+.pool-correction-new {
+  color: var(--color-warning);
+}
+.pool-correction-h {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.9rem;
+}
+.pool-correction-none,
+.pool-correction-played {
+  margin: 0.25rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+.pool-correction-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.pool-correction-table th,
+.pool-correction-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+.pool-correction-table .is-up {
+  color: var(--color-success);
+  font-weight: 600;
+}
+.pool-correction-table .is-down {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+.pool-correction-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-success);
+}
+.pool-correction-warn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-warning);
+  border-radius: 8px;
+  background: var(--color-notice-bg);
+}
+.pool-correction-warn p {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0;
+}
+.pool-correction-warn ul {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+}
+.pool-correction-word {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-danger);
+}
+.pool-correction-word input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-danger);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.pool-correction-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+/* Tableau non conforme après corrections de poule cumulées (#1996) */
+.tableau-drift {
+  margin-bottom: 0.75rem;
+}
+.tableau-drift .tableau-drift-actions {
+  justify-content: space-between;
+  flex-wrap: wrap;
 }

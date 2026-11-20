@@ -44,7 +44,8 @@ export class CompetitionService {
       throw new Error('Database not available');
     }
     await window.electronAPI.db.updateCompetition(id, data);
-    return data;
+    // Les libellés d'arme du DTO (chaînes) sont ceux de l'enregistrement en base
+    return data as Partial<Competition>;
   }
 
   async delete(id: string): Promise<void> {

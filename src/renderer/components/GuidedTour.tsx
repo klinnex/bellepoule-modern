@@ -3,12 +3,12 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Check, X, Sparkles } from 'lucide-react';
 import { MatchStatus } from '../../shared/types';
 import {
   TOUR_RESTART_EVENT,
-  TourHaloKey,
   tourHaloKey,
   TOUR_STEP_HALOS,
   TOUR_STEP_PHASE,
@@ -21,10 +21,12 @@ import {
   tourStepDone,
   writeTourFlag,
 } from './guidedTourFlags';
+import { Button } from './common/Button';
+import { useTourHalos } from './useTourHalos';
 
 interface GuidedTourProps extends Omit<
   TourState,
-  'poolsCount' | 'finishedPoolMatches' | 'tableauFinishedMatches'
+  'poolsCount' | 'poolsLaunched' | 'finishedPoolMatches' | 'tableauFinishedMatches'
 > {
   tableauFinishedMatches?: number;
   pools: Array<{ matches: Array<{ status: MatchStatus }> }>;
@@ -33,6 +35,8 @@ interface GuidedTourProps extends Omit<
   onHighlightPhase: (phase: string | null) => void;
   /** Onglet Préparation des poules ouvert (étape « Préparer et lancer les poules ») */
   prepOpen?: boolean;
+  /** Poules lancées (étape « Préparer et lancer les poules ») */
+  poolsLaunched?: boolean;
 }
 
 /** Maquette animée : un tireur glissé-déposé d'une poule à l'autre (décorative) */
@@ -69,48 +73,6 @@ const RemoteMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
   </div>
 );
 
-const HALO_CLASS = 'tour-halo';
-const HALO_GREEN_CLASS = 'tour-halo-green';
-
-/** Entoure d'un halo pulsé les boutons utiles à l'étape (suit les changements du DOM) */
-function useTourHalos(step: TourHaloKey | null): void {
-  useEffect(() => {
-    if (!step) return;
-    const halos = TOUR_STEP_HALOS[step];
-    if (halos.length === 0) return;
-    const marked = new Set<Element>();
-    const apply = () => {
-      const wanted = new Set<Element>();
-      for (const h of halos) {
-        const found = h.first
-          ? [document.querySelector(h.selector)].filter((e): e is Element => e !== null)
-          : Array.from(document.querySelectorAll(h.selector));
-        for (const el of found) {
-          wanted.add(el);
-          if (!marked.has(el)) {
-            el.classList.add(HALO_CLASS);
-            if (h.green) el.classList.add(HALO_GREEN_CLASS);
-            marked.add(el);
-          }
-        }
-      }
-      marked.forEach(el => {
-        if (!wanted.has(el)) {
-          el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS);
-          marked.delete(el);
-        }
-      });
-    };
-    apply();
-    const observer = new MutationObserver(apply);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      observer.disconnect();
-      marked.forEach(el => el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS));
-    };
-  }, [step]);
-}
-
 const GuidedTour: React.FC<GuidedTourProps> = ({
   t,
   onHighlightPhase,
@@ -121,6 +83,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   tableauFinishedMatches = 0,
   remoteActive,
   prepOpen = false,
+  poolsLaunched = false,
 }) => {
   const [flag, setFlag] = useState<TourFlag | null>(() => {
     const stored = readTourFlag();
@@ -134,6 +97,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     fencersCount,
     checkedInCount,
     poolsCount: pools.length,
+    poolsLaunched,
     finishedPoolMatches: pools.reduce(
       (n, p) => n + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
       0
@@ -168,7 +132,8 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     return () => onHighlightPhase(null);
   }, [active, current, onHighlightPhase]);
 
-  useTourHalos(active ? tourHaloKey(current, prepOpen) : null);
+  const haloKey = active ? tourHaloKey(current, prepOpen) : null;
+  useTourHalos(haloKey ? TOUR_STEP_HALOS[haloKey] : null);
 
   const close = useCallback(() => {
     writeTourFlag('done');
@@ -190,15 +155,16 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
       <div className="guided-tour-header">
         <Sparkles size={16} aria-hidden="true" />
         <strong>{finished ? t('tour.finished_title') : t('tour.title')}</strong>
-        <button
-          type="button"
-          className="guided-tour-skip"
-          onClick={close}
-          aria-label={finished ? t('tour.close') : t('tour.skip')}
-          title={finished ? t('tour.close') : t('tour.skip')}
-        >
-          <X size={14} />
-        </button>
+        <Tooltip content={finished ? t('tour.close') : t('tour.skip')}>
+          <button
+            type="button"
+            className="guided-tour-skip"
+            onClick={close}
+            aria-label={finished ? t('tour.close') : t('tour.skip')}
+          >
+            <X size={14} />
+          </button>
+        </Tooltip>
       </div>
       <ol className="guided-tour-steps">
         {TOUR_STEPS.map((step: TourStepId) => {
@@ -242,17 +208,17 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
         aria-hidden="true"
       />
       <div className="guided-tour-actions">
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary guided-tour-action guided-tour-back"
+          className="guided-tour-action guided-tour-back"
           onClick={goBack}
           disabled={currentIndex === 0}
         >
           {t('tour.back')}
-        </button>
-        <button type="button" className="btn btn-secondary guided-tour-action" onClick={goNext}>
+        </Button>
+        <Button type="button" className="guided-tour-action" onClick={goNext}>
           {lastStep ? t('tour.close') : t('tour.next')}
-        </button>
+        </Button>
       </div>
     </aside>
   );

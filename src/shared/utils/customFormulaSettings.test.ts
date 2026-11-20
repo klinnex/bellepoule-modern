@@ -5,6 +5,7 @@ import {
   getAdvancementCount,
   getPoolRoundAdvancement,
   getTableauAdvancement,
+  remoteCustomScoring,
   resolveCompetitionSettings,
   usesModernRules,
 } from './customFormulaSettings';
@@ -126,5 +127,50 @@ describe('customFormulaSettings (#1125)', () => {
     expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(false);
     f.ruleSet = 'modern';
     expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
+  });
+
+  it('resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)', () => {
+    const base = { specialMode: 'rapieres', thirdPlaceMatch: false } as CompetitionSettings;
+    expect(resolveCompetitionSettings(Weapon.CUSTOM, base).thirdPlaceMatch).toBe(false);
+    expect(
+      resolveCompetitionSettings(Weapon.CUSTOM, { ...base, thirdPlaceMatch: true }).thirdPlaceMatch
+    ).toBe(true);
+  });
+});
+
+describe('remoteCustomScoring (#1936)', () => {
+  const settings = (ruleSet: 'modern' | 'laser', zonedDe = false) => {
+    const f = formula();
+    f.ruleSet = ruleSet;
+    if (zonedDe)
+      (f.phases[1].config as CustomDEConfig).scoring = {
+        type: 'zones',
+        maxScore: 15,
+        zones: [{ label: 'Tête', points: 2 }] as never,
+      };
+    return { customFormula: f } as Partial<CompetitionSettings>;
+  };
+
+  it('armes modernes, barème standard : vue olympique (aucun barème envoyé)', () => {
+    expect(remoteCustomScoring(Weapon.CUSTOM, settings('modern'))).toBeNull();
+  });
+
+  it('armes modernes, barème à zones : seules les phases à zones sont envoyées', () => {
+    const cs = remoteCustomScoring(Weapon.CUSTOM, settings('modern', true));
+    expect(cs?.pool).toBeUndefined();
+    expect(cs?.de?.type).toBe('zones');
+  });
+
+  it('Sabre Laser : barème de la formule conservé', () => {
+    const cs = remoteCustomScoring(Weapon.CUSTOM, settings('laser'));
+    expect(cs?.pool?.type).toBe('standard');
+    expect(cs?.de?.type).toBe('standard');
+  });
+
+  it('autre arme ou rapières : aucun barème', () => {
+    expect(remoteCustomScoring(Weapon.EPEE, settings('modern'))).toBeNull();
+    expect(
+      remoteCustomScoring(Weapon.CUSTOM, { ...settings('laser'), specialMode: 'rapieres' })
+    ).toBeNull();
   });
 });

@@ -3,16 +3,42 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useEffect, useState } from 'react';
-import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
-import { TouchZoneHeatmap } from './TouchZoneHeatmap';
+import React, { useMemo, useState } from 'react';
+import {
+  Competition,
+  Fencer,
+  FencerCompetitionStats,
+  FencerStatus,
+  Match,
+  MatchTiming,
+  Weapon,
+} from '../../../shared/types';
+import { TouchZoneHeatmap, type HeatmapVariant } from './TouchZoneHeatmap';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ChartColumn, Download } from 'lucide-react';
+import { Icon } from '../common/Icon';
+import {
+  fencerIndexRanking,
+  normalizeFinishedMatches,
+  type KpiMatch,
+  type KpiTableauMatch,
+} from '../../../features/analytics/services/competitionKpis';
+import { FencerKpiPanel } from './FencerKpiPanel';
 
 type TFn = ReturnType<typeof useTranslation>['t'];
 
 interface Props {
   competition: Competition;
   stats: FencerCompetitionStats[];
+  /** Données pour l'indice moyen et les KPI par tireur (#1817) */
+  fencers?: Fencer[];
+  poolMatches?: Match[];
+  tableauMatches?: KpiTableauMatch[];
+  timings?: MatchTiming[];
+  /** Rang après poules (classement général) */
+  poolRanks?: Map<string, number>;
+  /** Rang final après tableaux */
+  finalRanks?: Map<string, number>;
 }
 
 // ── Mini bar chart horizontal ──────────────────────────────────────────────────
@@ -22,6 +48,8 @@ interface BarItem {
   value: number;
   color: string;
   sublabel?: string;
+  /** Infobulle : libellé complet si tronqué */
+  title?: string;
 }
 
 const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = ({
@@ -38,7 +66,10 @@ const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = (
       <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0">
+            <div
+              className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0"
+              title={item.title ?? item.label}
+            >
               {item.label}
             </div>
             <div className="flex-1 h-5 bg-gray-100 rounded overflow-hidden">
@@ -66,7 +97,7 @@ interface DonutSlice {
   label: string;
 }
 
-const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({
+export const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({
   slices,
   title,
   centerLabel,
@@ -149,83 +180,118 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
   );
 };
 
-// ── Aggregated heatmap (moyenne sur tous les tireurs) ──────────────────────────
+// ── Zones de touches : données / reçues, tous les tireurs ou un tireur ─────────
 
-const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
+const ZONE_BARS = [
+  { zone: 'A', pts: 1, color: '#f59e0b', border: '#b45309', key: 'analyticsCharts.zone_a' },
+  { zone: 'B', pts: 3, color: '#10b981', border: '#047857', key: 'analyticsCharts.zone_b' },
+  { zone: 'C', pts: 5, color: '#8b5cf6', border: '#6d28d9', key: 'analyticsCharts.zone_c' },
+] as const;
+
+const ZoneBreakdown: React.FC<{
+  counts: [number, number, number];
+  variant: HeatmapVariant;
+  label: string;
+  totalLabel: string;
+}> = ({ counts, variant, label, totalLabel }) => {
   const { t } = useTranslation();
-  const totA = stats.reduce((s, x) => s + x.touchesZoneA, 0);
-  const totB = stats.reduce((s, x) => s + x.touchesZoneB, 0);
-  const totC = stats.reduce((s, x) => s + x.touchesZoneC, 0);
-  const totalPts = totA * 1 + totB * 3 + totC * 5;
-
+  const [a, b, c] = counts;
+  const total = a + b + c;
+  const totalPts = a + b * 3 + c * 5;
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-4">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        {t('analyticsCharts.zones_title', { n: stats.length })}
-      </div>
-      <div className="flex items-center gap-6">
-        <TouchZoneHeatmap zoneA={totA} zoneB={totB} zoneC={totC} />
-        <div className="space-y-3 flex-1">
-          {[
-            {
-              zone: 'A',
-              count: totA,
-              pts: 1,
-              color: '#bfdbfe',
-              border: '#93c5fd',
-              text: t('analyticsCharts.zone_a'),
-            },
-            {
-              zone: 'B',
-              count: totB,
-              pts: 3,
-              color: '#60a5fa',
-              border: '#3b82f6',
-              text: t('analyticsCharts.zone_b'),
-            },
-            {
-              zone: 'C',
-              count: totC,
-              pts: 5,
-              color: '#1d4ed8',
-              border: '#1e40af',
-              text: t('analyticsCharts.zone_c'),
-            },
-          ].map(z => {
-            const total = totA + totB + totC;
-            const pct = total > 0 ? ((z.count / total) * 100).toFixed(1) : '0.0';
-            return (
-              <div key={z.zone}>
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>
-                    {t('analyticsCharts.zone_line', { zone: z.zone, text: z.text, count: z.pts })}
-                  </span>
-                  <span className="font-mono">
-                    {z.count} ({pct}%)
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-100 rounded overflow-hidden">
-                  <div
-                    className="h-full rounded transition-all duration-700"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: z.color,
-                      border: `1px solid ${z.border}`,
-                    }}
-                  />
-                </div>
+    <div className="flex items-center gap-6">
+      <TouchZoneHeatmap zoneA={a} zoneB={b} zoneC={c} label={label} variant={variant} />
+      <div className="space-y-3 flex-1">
+        {ZONE_BARS.map((z, i) => {
+          const pct = total > 0 ? ((counts[i] / total) * 100).toFixed(1) : '0.0';
+          return (
+            <div key={z.zone}>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>
+                  {t('analyticsCharts.zone_line', { zone: z.zone, text: t(z.key), count: z.pts })}
+                </span>
+                <span className="font-mono">
+                  {counts[i]} ({pct}%)
+                </span>
               </div>
-            );
-          })}
-          <div className="text-xs text-gray-400 mt-2">
-            {t('analyticsCharts.total_points')}{' '}
-            <span className="font-bold text-gray-700">{totalPts}</span>
-          </div>
+              <div className="w-full h-3 bg-gray-100 rounded overflow-hidden">
+                <div
+                  className="h-full rounded transition-all duration-700"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: z.color,
+                    border: `1px solid ${z.border}`,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        <div className="text-xs text-gray-400 mt-2">
+          {totalLabel} <span className="font-bold text-gray-700">{totalPts}</span>
         </div>
       </div>
     </div>
   );
 };
+
+const AggregateHeatmap: React.FC<{
+  stats: FencerCompetitionStats[];
+  title: string;
+  showHint: boolean;
+}> = ({ stats, title, showHint }) => {
+  const { t } = useTranslation();
+  const sum = (k: keyof FencerCompetitionStats) =>
+    stats.reduce((acc, x) => acc + (Number(x[k]) || 0), 0);
+  const given: [number, number, number] = [
+    sum('touchesZoneA'),
+    sum('touchesZoneB'),
+    sum('touchesZoneC'),
+  ];
+  const received: [number, number, number] = [
+    sum('receivedZoneA'),
+    sum('receivedZoneB'),
+    sum('receivedZoneC'),
+  ];
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-100 p-4">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        {title}
+      </div>
+      {showHint && (
+        <p className="text-xs text-gray-400 mb-3">{t('analyticsCharts.pick_fencer_hint')}</p>
+      )}
+      <div className="space-y-4">
+        <ZoneBreakdown
+          counts={given}
+          variant="given"
+          label={t('fencerDetail.touches_given')}
+          totalLabel={t('analyticsCharts.total_points')}
+        />
+        <ZoneBreakdown
+          counts={received}
+          variant="received"
+          label={t('fencerDetail.touches_received')}
+          totalLabel={t('analyticsCharts.total_points_received')}
+        />
+      </div>
+    </div>
+  );
+};
+
+/** Filtre de l'onglet Graphiques : '' = tous, 'club:<nom>' ou 'fencer:<id>' */
+export function filterStats(
+  stats: FencerCompetitionStats[],
+  filter: string
+): FencerCompetitionStats[] {
+  if (filter.startsWith('club:')) {
+    const club = filter.slice(5);
+    return stats.filter(s => (s.fencerClub ?? '') === club);
+  }
+  if (filter.startsWith('fencer:')) return stats.filter(s => s.fencerId === filter.slice(7));
+  return stats;
+}
 
 // ── Top tireurs bar chart ──────────────────────────────────────────────────────
 
@@ -259,6 +325,63 @@ const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: bool
       maxValue={max}
       title={isLaser ? t('analyticsCharts.top_points') : t('analyticsCharts.top_matches')}
     />
+  );
+};
+
+// ── Indice moyen (TD − TR par match), armes olympiques (#1817) ─────────────────
+
+const IndexChart: React.FC<{
+  matches: KpiMatch[];
+  names: Map<string, string>;
+  restrictTo: Set<string> | null;
+}> = ({ matches, names, restrictTo }) => {
+  const { t } = useTranslation();
+  const rows = fencerIndexRanking(matches)
+    .filter(r => !restrictTo || restrictTo.has(r.fencerId))
+    .slice(0, 8);
+  if (rows.length === 0) return null;
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.averageIndex)), 1);
+  return (
+    <div className="bg-white rounded-lg border border-gray-100 p-4">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        {t('analyticsCharts.index_title')}
+      </div>
+      <p className="text-xs text-gray-400 mb-3">{t('analyticsCharts.index_hint')}</p>
+      <div className="space-y-2">
+        {rows.map((r, i) => {
+          const pos = r.averageIndex >= 0;
+          return (
+            <div key={r.fencerId} className="flex items-center gap-2">
+              <div className="w-24 text-right text-xs text-gray-600 truncate flex-shrink-0">
+                {i + 1}. {names.get(r.fencerId) ?? '?'}
+              </div>
+              <div className="idx-bar">
+                <progress
+                  className="idx-bar__neg"
+                  max={maxAbs}
+                  value={pos ? 0 : Math.abs(r.averageIndex)}
+                  aria-hidden="true"
+                />
+                <progress
+                  className="idx-bar__pos"
+                  max={maxAbs}
+                  value={pos ? r.averageIndex : 0}
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="w-20 text-xs font-mono text-gray-700 flex-shrink-0">
+                {pos ? '+' : ''}
+                {r.averageIndex.toFixed(2)}
+                <span className="text-gray-400 ml-1">
+                  ({r.matches}
+                  {t('analyticsCharts.m')})
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -306,13 +429,12 @@ const CardsByReason: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
 
   if (entries.length === 0) return null;
 
+  // Motifs stockés en minuscules (early_start), clés de traduction en majuscules (#1817)
   const items: BarItem[] = entries.map(([reason, count]) => {
-    const label = t(`cardReasons.${reason}`);
-    return {
-      label: label.startsWith('cardReasons.') ? reason : label,
-      value: count,
-      color: '#f59e0b',
-    };
+    const key = `cardReasons.${reason.toUpperCase()}`;
+    const translated = t(key);
+    const label = translated.startsWith('cardReasons.') ? reason : translated;
+    return { label, title: label, value: count, color: '#f59e0b' };
   });
 
   return <HBar items={items} title={t('analyticsCharts.cards_by_reason')} />;
@@ -326,11 +448,22 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     t('ranking.name'),
     t('analyticsCharts.csv_first_name'),
     t('ranking.club'),
-    ...(isLaser ? ['A', 'B', 'C', t('analyticsCharts.csv_total_points')] : []),
+    ...(isLaser
+      ? [
+          'A',
+          'B',
+          'C',
+          t('analyticsCharts.csv_total_points'),
+          `${t('stats.received_points')} A`,
+          `${t('stats.received_points')} B`,
+          `${t('stats.received_points')} C`,
+          t('stats.received_points'),
+        ]
+      : []),
     t('analyticsCharts.csv_white'),
     t('analyticsCharts.csv_yellow'),
     t('analyticsCharts.csv_red'),
-    t('analyticsCharts.csv_exits'),
+    ...(isLaser ? [t('analyticsCharts.csv_exits')] : []),
     t('analyticsCharts.csv_matches'),
     t('analyticsCharts.csv_avg'),
     t('analyticsCharts.csv_early'),
@@ -340,11 +473,22 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
     s.fencerLastName,
     s.fencerFirstName,
     s.fencerClub ?? '',
-    ...(isLaser ? [s.touchesZoneA, s.touchesZoneB, s.touchesZoneC, s.totalTouchPoints] : []),
+    ...(isLaser
+      ? [
+          s.touchesZoneA,
+          s.touchesZoneB,
+          s.touchesZoneC,
+          s.totalTouchPoints,
+          s.receivedZoneA ?? 0,
+          s.receivedZoneB ?? 0,
+          s.receivedZoneC ?? 0,
+          s.receivedTouchPoints ?? 0,
+        ]
+      : []),
     s.whiteCards,
     s.yellowCards,
     s.redCards,
-    s.arenaExits,
+    ...(isLaser ? [s.arenaExits] : []),
     s.matchesPlayed,
     s.averageDurationSeconds,
     s.matchesFinishedEarly,
@@ -366,19 +510,61 @@ async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetit
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
+export const AnalyticsCharts: React.FC<Props> = ({
+  competition,
+  stats: allStats,
+  fencers = [],
+  poolMatches = [],
+  tableauMatches = [],
+  timings = [],
+  poolRanks,
+  finalRanks,
+}) => {
   const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
   const isLaser = competition.weapon === Weapon.LASER;
+  const isOlympic = !isLaser && competition.weapon !== Weapon.CUSTOM;
 
+  const [filter, setFilter] = useState('');
+  const stats = filterStats(allStats, filter);
+  const selectedFencerId = filter.startsWith('fencer:') ? filter.slice(7) : null;
+  const clubs = [...new Set(allStats.map(s => s.fencerClub).filter((c): c is string => !!c))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const kpiMatches = useMemo(
+    () => normalizeFinishedMatches(poolMatches, tableauMatches, timings),
+    [poolMatches, tableauMatches, timings]
+  );
+  const names = useMemo(
+    () => new Map(allStats.map(s => [s.fencerId, s.fencerLastName])),
+    [allStats]
+  );
+  // Tireurs présents uniquement (pointés) dans la liste de sélection
+  const absent = new Set(
+    fencers.filter(f => f.status === FencerStatus.NOT_CHECKED_IN).map(f => f.id)
+  );
+  const fencersSorted = [...allStats]
+    .filter(s => !absent.has(s.fencerId))
+    .sort(
+      (a, b) =>
+        a.fencerLastName.localeCompare(b.fencerLastName) ||
+        a.fencerFirstName.localeCompare(b.fencerFirstName)
+    );
+  const filterLabel = filter.startsWith('club:')
+    ? filter.slice(5)
+    : filter.startsWith('fencer:')
+      ? `${stats[0]?.fencerLastName ?? ''} ${stats[0]?.fencerFirstName ?? ''}`.trim()
+      : '';
   const totalWhite = stats.reduce((s, x) => s + x.whiteCards, 0);
   const totalYellow = stats.reduce((s, x) => s + x.yellowCards, 0);
   const totalRed = stats.reduce((s, x) => s + x.redCards, 0);
 
-  if (stats.length === 0) {
+  if (allStats.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
-        <div className="text-4xl mb-3">📊</div>
+        <div className="text-4xl mb-3">
+          <Icon icon={ChartColumn} />
+        </div>
         <div>{t('analyticsCharts.empty')}</div>
       </div>
     );
@@ -396,18 +582,59 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
   return (
     <div className="space-y-4">
       {/* Toolbar export */}
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center gap-3">
+        <select
+          className="form-select"
+          aria-label={t('analyticsCharts.filter_label')}
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+        >
+          <option value="">{t('analyticsCharts.global')}</option>
+          {clubs.length > 0 && (
+            <optgroup label={t('analyticsCharts.clubs')}>
+              {clubs.map(c => (
+                <option key={c} value={`club:${c}`}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <optgroup label={t('analyticsCharts.fencers')}>
+            {fencersSorted.map(s => (
+              <option key={s.fencerId} value={`fencer:${s.fencerId}`}>
+                {s.fencerLastName} {s.fencerFirstName}
+                {s.fencerClub ? ` (${s.fencerClub})` : ''}
+              </option>
+            ))}
+          </optgroup>
+        </select>
         <button
           onClick={handleExportCSV}
           disabled={exporting}
           className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
         >
-          {exporting ? t('analyticsCharts.exporting') : '⬇ CSV'}
+          {exporting ? (
+            t('analyticsCharts.exporting')
+          ) : (
+            <>
+              <Icon icon={Download} /> CSV
+            </>
+          )}
         </button>
       </div>
 
       {/* Zone heatmap — Laser Sabre only */}
-      {isLaser && <AggregateHeatmap stats={stats} />}
+      {isLaser && (
+        <AggregateHeatmap
+          stats={stats}
+          title={
+            filterLabel
+              ? `${t('analyticsCharts.zones_title_short')} — ${filterLabel}`
+              : t('analyticsCharts.zones_title', { n: stats.length })
+          }
+          showHint={!filter}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Donut cartons */}
@@ -425,8 +652,24 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
         <DurationChart stats={stats} />
       </div>
 
-      {/* Top fencers */}
-      <TopFencersChart stats={stats} isLaser={isLaser} />
+      {/* KPI du tireur sélectionné (#1817) : remplace le classement « Top tireurs » */}
+      {selectedFencerId ? (
+        <FencerKpiPanel
+          fencerId={selectedFencerId}
+          matches={kpiMatches}
+          fencers={fencers}
+          poolRank={poolRanks?.get(selectedFencerId) ?? null}
+          finalRank={finalRanks?.get(selectedFencerId) ?? null}
+        />
+      ) : isOlympic ? (
+        <IndexChart
+          matches={kpiMatches}
+          names={names}
+          restrictTo={filter ? new Set(stats.map(s => s.fencerId)) : null}
+        />
+      ) : (
+        <TopFencersChart stats={stats} isLaser={isLaser} />
+      )}
 
       {/* Cards by reason */}
       <CardsByReason stats={stats} />

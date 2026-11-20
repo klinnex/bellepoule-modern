@@ -7,6 +7,7 @@ import {
   isAllowedExternalUrl,
   isAppUrl,
   isPermissionAllowed,
+  permissionCheckUrl,
 } from './windowSecurity';
 
 const prod = { dev: false, rendererDir: '/opt/app/dist/renderer' };
@@ -41,6 +42,26 @@ describe('isAllowedExternalUrl', () => {
   });
 });
 
+describe('permissionCheckUrl (caméra en production, Mode Club)', () => {
+  const page = 'file:///app/index.html';
+  it('origine file:// sans chemin → URL de la page (bundle de production)', () => {
+    expect(permissionCheckUrl('file://', page)).toBe(page);
+    expect(permissionCheckUrl('file:///', page)).toBe(page);
+    expect(permissionCheckUrl(undefined, page)).toBe(page);
+  });
+  it('origine http (dev) inchangée', () => {
+    expect(permissionCheckUrl('http://localhost:8066', page)).toBe('http://localhost:8066');
+  });
+  it('la vérification de caméra réussit depuis la page de production', () => {
+    const app = (u: string) => u.startsWith('file:///app/');
+    const url = permissionCheckUrl('file://', page);
+    expect(isPermissionAllowed('media', url, app)).toBe(true);
+    expect(
+      isPermissionAllowed('media', permissionCheckUrl('https://evil.example', page), app)
+    ).toBe(false);
+  });
+});
+
 describe('isPermissionAllowed', () => {
   const app = (u: string) => u.startsWith('file:///app/');
   it('caméra depuis l’app uniquement, sans micro', () => {
@@ -51,6 +72,15 @@ describe('isPermissionAllowed', () => {
     expect(isPermissionAllowed('media', 'https://evil.example/', app, ['video'])).toBe(false);
     expect(isPermissionAllowed('geolocation', 'file:///app/index.html', app)).toBe(false);
     expect(isPermissionAllowed('microphone', 'file:///app/index.html', app)).toBe(false);
+  });
+  it('écriture presse-papier depuis l’app uniquement, jamais la lecture (#1858)', () => {
+    expect(isPermissionAllowed('clipboard-sanitized-write', 'file:///app/index.html', app)).toBe(
+      true
+    );
+    expect(isPermissionAllowed('clipboard-sanitized-write', 'https://evil.example/', app)).toBe(
+      false
+    );
+    expect(isPermissionAllowed('clipboard-read', 'file:///app/index.html', app)).toBe(false);
   });
 });
 

@@ -6,6 +6,7 @@
 import { Fencer, FencerStatus, Gender } from '../../types';
 import { logger, LogCategory } from '../../services/logger';
 import { ImportResult } from './common';
+import { normalizeDepartment } from '../departments';
 
 /**
  * Parse un fichier FFE (.fff ou CSV) ou TXT simple
@@ -96,7 +97,11 @@ export function parseFFEFile(content: string): ImportResult {
  * Ligne de métadonnées FFF (ex: "FFF;WIN;competition;;individuel", "UTF8;...")
  */
 function isMetadataLine(line: string): boolean {
-  return /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line);
+  // Ligne 2 d'un fichier FFF de compétition : date;arme;sexe;catégorie;nom;nom réduit
+  return (
+    /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line) ||
+    /^\s*\d{1,2}\/\d{1,2}\/\d{4}\s*;\s*(fleuret|epee|épée|sabre|)\s*;/i.test(line)
+  );
 }
 
 /**
@@ -416,8 +421,9 @@ function parseLine(line: string, separator: string): string[] {
     const char = line[i];
     const nextChar = line[i + 1];
 
-    // Gérer les guillemets ouvrants
-    if (!inQuotes && (char === '"' || char === "'")) {
+    // Gérer les guillemets ouvrants : seulement en début de champ, sinon l'apostrophe d'un nom
+    // (N'GUYEN, D'ORMANO) ouvrirait une citation et fusionnerait toute la ligne (#1938)
+    if (!inQuotes && (char === '"' || char === "'") && current.trim() === '') {
       inQuotes = true;
       quoteChar = char;
       i++;
@@ -550,6 +556,7 @@ function parseFFELine(
   // Nettoyer les autres champs en fonction du format
   let nationality: string;
   let region: string | undefined;
+  let department: string | undefined;
   let club: string | undefined;
   let license: string | undefined;
   let ranking: number | undefined;
@@ -565,6 +572,7 @@ function parseFFELine(
       license = (parts[8] || '').trim() || undefined;
       region = (parts[9] || '').trim() || undefined;
       club = (parts[10] || '').trim() || undefined;
+      department = findDepartment(parts.slice(12, 14));
 
       // Le classement FFE est à l'index 11 (4e champ de section2: Licence,Ligue,Club,Classement,...)
       // NE PAS utiliser parts[14] (position séquentielle "1,t","2,t"...) comme classement
@@ -593,6 +601,7 @@ function parseFFELine(
       license = (parts[8] || '').trim() || undefined;
       region = (parts[9] || '').trim() || undefined;
       club = (parts[10] || '').trim() || undefined;
+      department = findDepartment(parts.slice(12, 14));
 
       // Classement à l'index 11 (4e champ section2: Licence,Ligue,Club,Classement,...)
       const rankingField11 = (parts[11] || '').trim();
@@ -656,9 +665,22 @@ function parseFFELine(
     birthDate,
     nationality,
     region,
+    department,
     club,
     license,
     ranking,
     status: FencerStatus.NOT_CHECKED_IN,
   };
+}
+
+/**
+ * Département (#1504) : premier champ après le classement qui est un code département
+ * valide (01…95, 2A, 2B, 971…). Une nationalité (lettres) n'est jamais prise pour un département.
+ */
+function findDepartment(fields: string[]): string | undefined {
+  for (const f of fields) {
+    const d = normalizeDepartment(f);
+    if (d) return d;
+  }
+  return undefined;
 }

@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from './Tooltip';
 import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { MatchEventEntry, MatchEventType } from '../../shared/types';
@@ -512,67 +513,16 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               : 'Aucun événement enregistré pour ce match.'}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+          <table className="match-audit-log-1">
             <thead>
-              <tr
-                style={{
-                  background: 'var(--color-surface-2)',
-                  borderBottom: '2px solid var(--color-border)',
-                }}
-              >
-                <th
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: 'var(--color-text-light)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {t('matchAudit.col_time')}
-                </th>
+              <tr className="match-audit-log-2">
+                <th className="match-audit-log-3">{t('matchAudit.col_time')}</th>
                 {showMatchColumn && (
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'left',
-                      fontWeight: '600',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {t('matchAudit.col_match')}
-                  </th>
+                  <th className="match-audit-log-4">{t('matchAudit.col_match')}</th>
                 )}
-                <th
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: 'var(--color-text-light)',
-                  }}
-                >
-                  {t('matchAudit.col_type')}
-                </th>
-                <th
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: 'var(--color-text-light)',
-                  }}
-                >
-                  {t('matchAudit.col_fencer')}
-                </th>
-                <th
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: 'var(--color-text-light)',
-                  }}
-                >
-                  {t('matchAudit.col_desc')}
-                </th>
+                <th className="match-audit-log-4">{t('matchAudit.col_type')}</th>
+                <th className="match-audit-log-4">{t('matchAudit.col_fencer')}</th>
+                <th className="match-audit-log-4">{t('matchAudit.col_desc')}</th>
               </tr>
             </thead>
             <tbody>
@@ -586,37 +536,24 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-2)',
                     }}
                   >
-                    <td
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        color: 'var(--color-text-light)',
-                        fontFamily: 'monospace',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <td className="match-audit-log-5">
                       {formatTimestamp(entry.timestamp, baseTs)}
                     </td>
                     {showMatchColumn && (
-                      <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMatchId(entry.matchId)}
-                          title={t('matchAudit.only_match')}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            color: 'var(--color-primary)',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            fontSize: 'inherit',
-                          }}
-                        >
-                          {matchLabelOf(entry.matchId)}
-                        </button>
+                      <td className="match-audit-log-6">
+                        <Tooltip content={t('matchAudit.only_match')}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMatchId(entry.matchId)}
+                            aria-label={t('matchAudit.only_match')}
+                            className="match-audit-log-7"
+                          >
+                            {matchLabelOf(entry.matchId)}
+                          </button>
+                        </Tooltip>
                       </td>
                     )}
-                    <td style={{ padding: '0.5rem 0.75rem' }}>
+                    <td className="match-audit-log-8">
                       <span
                         style={{
                           padding: '0.1rem 0.45rem',
@@ -632,9 +569,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       </span>
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color }}>{label}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
-                      {describeMatchEvent(entry)}
-                    </td>
+                    <td className="match-audit-log-6">{describeMatchEvent(entry)}</td>
                   </tr>
                 );
               })}
@@ -648,15 +583,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   // Rendu inline (sans onClose = panel dans une page)
   if (!onClose) {
     return (
-      <div style={{ padding: '1rem' }}>
-        <h3
-          style={{
-            margin: '0 0 1rem',
-            fontSize: '1rem',
-            fontWeight: '600',
-            color: 'var(--color-text)',
-          }}
-        >
+      <div className="match-audit-log-9">
+        <h3 className="match-audit-log-10">
           {competitionMode ? t('matchAudit.matches_log') : t('matchAudit.match_log')}
         </h3>
         {content}
@@ -666,29 +594,21 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
   // Rendu modal — portail sur body pour échapper aux ancêtres transformés
   return createPortal(
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
+    <div className="modal-overlay match-audit-log-11" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal modal--xl"
+        className="modal modal--xl match-audit-log-12"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="match-audit-title"
-        style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2 id="match-audit-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
+        <div className="match-audit-log-13">
+          <h2 id="match-audit-title" className="match-audit-log-14">
             {t('matchAudit.match_log')}
             {matchTitle ? ` — ${matchTitle}` : ''}
           </h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

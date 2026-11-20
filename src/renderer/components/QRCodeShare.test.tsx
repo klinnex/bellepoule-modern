@@ -27,8 +27,8 @@ describe('QRCodeShare', () => {
   it('affiche le titre du mode résultats et les onglets', () => {
     render(<QRCodeShare competition={competition} onClose={vi.fn()} />);
     expect(screen.getByText(/Partager les résultats/)).toBeInTheDocument();
-    expect(screen.getByText('🏆 Résultats')).toBeInTheDocument();
-    expect(screen.getByText('✅ Pointage')).toBeInTheDocument();
+    expect(screen.getByText('Résultats')).toBeInTheDocument();
+    expect(screen.getByText('Pointage')).toBeInTheDocument();
   });
 
   it('affiche un message si le serveur distant n’est pas démarré', async () => {
@@ -38,14 +38,21 @@ describe('QRCodeShare', () => {
 
   it('bascule vers l’onglet pointage', () => {
     render(<QRCodeShare competition={competition} onClose={vi.fn()} />);
-    fireEvent.click(screen.getByText('✅ Pointage'));
+    fireEvent.click(screen.getByText('Pointage'));
     expect(screen.getByText(/QR Code de pointage/)).toBeInTheDocument();
   });
 
-  it('le bouton Fermer déclenche onClose', () => {
+  it('la croix en haut à droite déclenche onClose, plus de bouton Fermer en pied (#1858)', () => {
     const onClose = vi.fn();
-    render(<QRCodeShare competition={competition} onClose={onClose} />);
-    fireEvent.click(screen.getByText('Fermer'));
+    const { container } = render(<QRCodeShare competition={competition} onClose={onClose} />);
+    expect(container.querySelector('.modal-header .modal__close')).not.toBeNull();
+    expect(screen.queryByText('Fermer')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Fermer'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('propose l’impression du QR Code (#1858)', () => {
+    render(<QRCodeShare competition={competition} onClose={vi.fn()} />);
+    expect(screen.getByText('Imprimer le QR Code')).toBeInTheDocument();
   });
 });

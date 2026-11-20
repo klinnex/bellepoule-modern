@@ -83,7 +83,12 @@ function analyzePages() {
   };
   const pages = fs.readdirSync(REMOTE_DIR).filter(f => f.endsWith('.html')).sort();
   for (const page of pages) {
-    const html = fs.readFileSync(path.join(REMOTE_DIR, page), 'utf8');
+    let html = fs.readFileSync(path.join(REMOTE_DIR, page), 'utf8');
+    // Modules /js/* chargés par la page (script extrait du HTML, #1600) : même analyse, attribués à la page
+    for (const [, mod] of html.matchAll(/src="\/js\/([A-Za-z0-9]+\.js)"/g)) {
+      const file = path.join(REMOTE_DIR, 'js', mod);
+      if (fs.existsSync(file)) html += '\n' + fs.readFileSync(file, 'utf8');
+    }
     const re = /\.(emit|on)\(\s*(['"`])([^'"`]+)\2/g;
     let m;
     while ((m = re.exec(html))) {

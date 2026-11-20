@@ -7,6 +7,9 @@ import React, { useState, useCallback, memo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { logger, LogCategory } from '@shared/services/logger';
+import { Button } from './common/Button';
+import { Wifi } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 type SecurityType = 'WPA' | 'WEP' | 'nopass';
 
@@ -34,7 +37,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
   const [error, setError] = useState<string>('');
 
   const buildWifiString = (cfg: WifiConfig): string => {
-    const escape = (s: string) => s.replace(/([\\;,":])/, '\\$1');
+    const escape = (s: string) => s.replace(/([\\;,":])/g, '\\$1');
     const parts: string[] = ['WIFI:'];
     parts.push(`T:${cfg.security};`);
     parts.push(`S:${escape(cfg.ssid)};`);
@@ -97,31 +100,24 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
       bodyClassName="wifi-qr-body"
       footer={
         <>
-          {qrDataUrl && (
-            <button className="btn btn-secondary" onClick={download}>
-              {t('wifiQr.download')}
-            </button>
-          )}
-          <button
-            className="btn btn-primary"
+          {qrDataUrl && <Button onClick={download}>{t('wifiQr.download')}</Button>}
+          <Button
+            variant="primary"
             onClick={generate}
             disabled={isGenerating || !config.ssid.trim()}
           >
-            {isGenerating ? 'Génération...' : '📶 Générer le QR Code'}
-          </button>
+            {isGenerating ? (
+              t('wifiQr.generating')
+            ) : (
+              <>
+                <Icon icon={Wifi} /> {t('wifiQr.generate')}
+              </>
+            )}
+          </Button>
         </>
       }
     >
-      <p
-        style={{
-          fontSize: '0.875rem',
-          color: 'var(--text-muted, #6b7280)',
-          marginBottom: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        {t('wifiQr.hint')}
-      </p>
+      <p className="wifi-qr-modal-1">{t('wifiQr.hint')}</p>
 
       <div className="form-group">
         <label className="form-label" htmlFor="wifi-ssid">
@@ -170,52 +166,30 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
         </div>
       )}
 
-      <div
-        className="form-group"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
-        }}
-      >
+      <div className="form-group wifi-qr-modal-2">
         <input
           id="wifi-hidden"
           type="checkbox"
           checked={config.hidden}
           onChange={e => handleChange('hidden', e.target.checked)}
         />
-        <label
-          htmlFor="wifi-hidden"
-          className="form-label"
-          style={{ marginBottom: 0, cursor: 'pointer' }}
-        >
+        <label htmlFor="wifi-hidden" className="form-label wifi-qr-modal-3">
           {t('wifiQr.hidden')}
         </label>
       </div>
 
-      {error && (
-        <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="alert alert--error wifi-qr-modal-4">{error}</div>}
 
       {qrDataUrl && (
-        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+        <div className="wifi-qr-modal-5">
           <img
             src={qrDataUrl}
             alt={t('wifiQr.qr_alt')}
             width={280}
             height={280}
-            style={{ borderRadius: '8px' }}
+            className="wifi-qr-modal-6"
           />
-          <p
-            style={{
-              fontSize: '0.8rem',
-              color: 'var(--text-muted, #6b7280)',
-              marginTop: '0.5rem',
-            }}
-          >
+          <p className="wifi-qr-modal-7">
             {t('wifiQr.network')} <strong>{config.ssid}</strong> ·{' '}
             {config.security !== 'nopass' ? config.security : t('wifiQr.open_short')}
           </p>

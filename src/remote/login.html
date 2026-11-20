@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title data-i18n="login.page_title">Accès protégé - BellePoule</title>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script>
+    <script src="/js/ui.js" data-bp-init></script>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * {
         margin: 0;
@@ -16,9 +18,9 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: var(--gradient-brand);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-white);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -66,7 +68,7 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        color: var(--color-white);
         font-size: 1rem;
         outline: none;
         transition: border-color 0.2s;
@@ -86,8 +88,8 @@
         padding: 0.85rem;
         border: none;
         border-radius: 8px;
-        background: #4caf50;
-        color: #fff;
+        background: var(--green-soft);
+        color: var(--color-white);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
@@ -95,7 +97,7 @@
       }
 
       button:hover {
-        background: #43a047;
+        background: var(--green-600);
       }
 
       button:active {
@@ -103,7 +105,7 @@
       }
 
       button:disabled {
-        background: #555;
+        background: var(--gray-700);
         cursor: not-allowed;
       }
 
@@ -115,7 +117,7 @@
         border: 1px solid rgba(244, 67, 54, 0.5);
         border-radius: 8px;
         font-size: 0.9rem;
-        color: #ff8a80;
+        color: var(--red-soft);
       }
 
       .error-msg.visible {
@@ -124,8 +126,8 @@
     </style>
   </head>
   <body>
-    <div class="login-card">
-      <div class="lock-icon">🔒</div>
+    <div class="login-card" role="main">
+      <div class="lock-icon"><span data-icon="lock"></span></div>
       <h1 id="title" data-i18n="login.title">Accès protégé</h1>
       <p class="subtitle" id="subtitle">Piste —</p>
       <label for="password" data-i18n="login.password_label">Mot de passe</label>
@@ -140,7 +142,11 @@
 
         const params = new URLSearchParams(window.location.search);
         const arenaParam = params.get('arena') || '';
-        const returnPath = params.get('return') || '/';
+        // Retour limité au même serveur : chemin relatif « /… » uniquement (pas de « // » ni « /\ »),
+        // préfixé par l'origine courante (CodeQL js/client-side-unvalidated-url-redirection)
+        const rawReturn = params.get('return') || '/';
+        const safePath = /^\/(?![\/\\])/.test(rawReturn) ? rawReturn : '/';
+        const returnPath = window.location.origin + safePath;
 
         const arenaNum = arenaParam.replace(/^arena/, '');
         if (arenaNum) {

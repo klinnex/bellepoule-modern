@@ -7,6 +7,7 @@ import React, { useState, useEffect, createContext, useContext, useCallback, use
 import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { logger, LogCategory } from '@shared/services/logger';
 import { translateStatic } from '../contexts/TranslationContext';
+import { actionableMessage } from '../../shared/utils/actionableError';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
 
@@ -16,6 +17,8 @@ export interface ToastOptions {
   duration?: number;
   persistent?: boolean;
   action?: { label: string; onClick: () => void };
+  /** Interne : action d'annulation (Ctrl+Z) */
+  undo?: boolean;
 }
 
 interface ToastItem {
@@ -26,12 +29,20 @@ interface ToastItem {
   duration: number;
   persistent: boolean;
   action?: { label: string; onClick: () => void };
+  /** Action « Annuler » : déclenchable aussi par Ctrl+Z / Cmd+Z (#1535) */
+  undo?: boolean;
   createdAt: number;
 }
 
 interface ToastContextType {
   showToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
+  /** Toast avec bouton « Annuler » (5 s) : action réversible sans confirmation modale (#1535) */
+  showUndoToast: (message: string, onUndo: () => void, options?: ToastOptions) => void;
+  /** Toast d'erreur actionnable : « <échec> — <cause et étape suivante> » (#1535) */
+  showActionableError: (baseKey: string, error: unknown) => void;
 }
+
+export const UNDO_TOAST_DURATION = 5000;
 
 const ToastContext = createContext<ToastContextType | null>(null);
 
@@ -55,6 +66,25 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
 };
 
 const MAX_TOASTS = 3;
+
+/** Ctrl+Z (Windows/Linux) ou Cmd+Z (macOS), sans Maj ni Alt */
+export function isUndoShortcut(
+  e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>
+): boolean {
+  return (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z';
+}
+
+/** Champ de saisie : Ctrl+Z y garde son sens natif (annuler la frappe) */
+function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el || typeof el.tagName !== 'string') return false;
+  return (
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT' ||
+    el.isContentEditable
+  );
+}
 
 const ToastItemComponent: React.FC<{
   toast: ToastItem;
@@ -103,16 +133,17 @@ const ToastItemComponent: React.FC<{
         maxWidth: '420px',
         transform: visible ? 'translateX(0)' : 'translateX(110%)',
         opacity: visible ? 1 : 0,
-        transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1), opacity 0.28s ease',
+        transition:
+          'transform var(--motion-base) var(--motion-ease), opacity var(--motion-base) ease',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+      <div className="toast-1">
         <span style={{ color: colors.accent, flexShrink: 0, marginTop: '1px' }}>
           {TOAST_ICONS[toast.type]}
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="toast-2">
           {toast.title && (
             <div
               style={{
@@ -125,19 +156,13 @@ const ToastItemComponent: React.FC<{
               {toast.title}
             </div>
           )}
-          <div
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-text)',
-              lineHeight: 1.45,
-              wordBreak: 'break-word',
-            }}
-          >
-            {toast.message}
-          </div>
+          <div className="toast-3">{toast.message}</div>
           {toast.action && (
             <button
-              onClick={toast.action.onClick}
+              onClick={() => {
+                toast.action?.onClick();
+                onRemove(toast.id);
+              }}
               style={{
                 marginTop: '6px',
                 padding: '4px 10px',
@@ -156,16 +181,7 @@ const ToastItemComponent: React.FC<{
         </div>
         <button
           onClick={() => onRemove(toast.id)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--color-text-muted)',
-            padding: '1px',
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-          }}
+          className="toast-4"
           aria-label={translateStatic('actions.close')}
         >
           <span aria-hidden="true">✕</span>
@@ -204,6 +220,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         duration,
         persistent: options?.persistent ?? false,
         action: options?.action,
+        undo: options?.undo,
         createdAt: Date.now(),
       };
       setToasts(prev => {
@@ -214,31 +231,54 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     []
   );
 
+  const showUndoToast = useCallback(
+    (message: string, onUndo: () => void, options?: ToastOptions) =>
+      showToast(message, 'info', {
+        duration: UNDO_TOAST_DURATION,
+        ...options,
+        action: { label: translateStatic('actions.undo'), onClick: onUndo },
+        undo: true,
+      }),
+    [showToast]
+  );
+
+  const showActionableError = useCallback(
+    (baseKey: string, error: unknown) => {
+      logger.error(LogCategory.UI, baseKey, error instanceof Error ? error : undefined);
+      showToast(actionableMessage(translateStatic, translateStatic(baseKey), error), 'error');
+    },
+    [showToast]
+  );
+
   const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  // Ctrl+Z / Cmd+Z : annule la dernière action encore proposée par un toast « Annuler » (#1535).
+  // Phase de capture : prioritaire sur les historiques locaux (ex. grille de poule), pour ne
+  // pas annuler deux fois la même action. Hors champ de saisie (Ctrl+Z natif du texte).
+  const toastsRef = useRef(toasts);
+  toastsRef.current = toasts;
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!isUndoShortcut(e) || isEditableTarget(e.target)) return;
+      const last = [...toastsRef.current].reverse().find(t => t.undo && t.action);
+      if (!last?.action) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      last.action.onClick();
+      removeToast(last.id);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [removeToast]);
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showUndoToast, showActionableError }}>
       {children}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="false"
-        style={{
-          position: 'fixed',
-          bottom: '1.25rem',
-          right: '1.25rem',
-          zIndex: 10000,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          pointerEvents: 'none',
-          alignItems: 'flex-end',
-        }}
-      >
+      <div role="status" aria-live="polite" aria-atomic="false" className="toast-5">
         {toasts.map(toast => (
-          <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+          <div key={toast.id} className="toast-6">
             <ToastItemComponent toast={toast} onRemove={removeToast} />
           </div>
         ))}
@@ -253,6 +293,12 @@ export const useToast = (): ToastContextType => {
     return {
       showToast: (message: string) => {
         logger.warn(LogCategory.UI, 'Toast used outside provider', { message });
+      },
+      showUndoToast: (message: string) => {
+        logger.warn(LogCategory.UI, 'Toast used outside provider', { message });
+      },
+      showActionableError: (baseKey: string) => {
+        logger.warn(LogCategory.UI, 'Toast used outside provider', { baseKey });
       },
     };
   }

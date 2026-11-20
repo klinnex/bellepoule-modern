@@ -1,6 +1,12 @@
+import { TipButton } from '../Tooltip';
 import React from 'react';
 import { TableauMatch } from './tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
+import { useStripAvailability } from '../../hooks/useStripAvailability';
+import { focusNeighbourCard, isNavKey } from './matchCardNav';
+import { PenLine, Pencil, Plus } from 'lucide-react';
+import { Icon } from '../common/Icon';
+import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -16,8 +22,6 @@ interface MatchCardProps {
   seedRanks?: Map<string, number>;
 }
 
-const BASE_MATCH_HEIGHT = 100;
-
 const MatchCard: React.FC<MatchCardProps> = ({
   match,
   verticalPosition,
@@ -30,6 +34,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
   readOnly = false,
   seedRanks,
 }) => {
+  const arenaUnavailable = useStripAvailability(
+    s => !!match.arena && s.unavailable.includes(match.arena)
+  );
   const canEdit = !readOnly && !!(match.fencerA && match.fencerB && !match.isBye) && !!onMatchClick;
   const hasScore = match.scoreA !== null && match.scoreB !== null;
 
@@ -89,11 +96,32 @@ const MatchCard: React.FC<MatchCardProps> = ({
         }
       : { position: 'relative' as const, marginBottom: '0.375rem' };
 
+  // Badges (piste/arbitre ou signatures) affichés : bandeau réservé en haut de carte (#1440)
+  const showAssignBadges = canEdit && !isMatchComplete && !!(onArenaClick || onRefereeClick);
+  const showSignatures = hasBothFencers && isMatchComplete && !!onSignaturesClick;
+
   return (
     <div
-      className={`match-card ${canEdit ? 'match-card-clickable' : ''} ${isMatchComplete ? 'match-card-done' : ''}`}
+      className={`match-card ${canEdit ? 'match-card-clickable' : ''} ${isMatchComplete ? 'match-card-done' : ''}${showAssignBadges || showSignatures ? ' match-card--badges' : ''}`}
       style={posStyle}
       onClick={() => canEdit && onMatchClick && onMatchClick(match)}
+      role={canEdit ? 'button' : undefined}
+      tabIndex={canEdit ? 0 : undefined}
+      aria-label={
+        canEdit
+          ? `${fencerName(match.fencerA)} ${translateStatic('poolView.cell_vs')} ${fencerName(match.fencerB)}${hasScore ? ` : ${match.scoreA}-${match.scoreB}` : ''}`
+          : undefined
+      }
+      onKeyDown={e => {
+        // Les boutons internes (piste, arbitre, signatures) gardent leur propre clavier
+        if (e.target !== e.currentTarget) return;
+        if (canEdit && onMatchClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onMatchClick(match);
+        } else if (isNavKey(e.key) && focusNeighbourCard(e.currentTarget, e.key)) {
+          e.preventDefault();
+        }
+      }}
     >
       {/* Status dot */}
       <span
@@ -109,11 +137,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
       />
 
       {/* Arena + Referee badges */}
-      {canEdit && !isMatchComplete && (onArenaClick || onRefereeClick) && (
-        <div className="match-badges">
+      {showAssignBadges && (
+        <div className="match-badges match-badges--assign">
           {onArenaClick && (
             <button
-              className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}`}
+              className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}${arenaUnavailable ? ' is-unavailable' : ''}`}
               data-tour="match-arena"
               onClick={handleArenaClick}
               title={
@@ -122,7 +150,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   : translateStatic('matchCard.assign_strip')
               }
             >
-              {match.arena ? `P${match.arena}` : '+P'}
+              {match.arena
+                ? translateStatic('matchCard.strip_n', { n: match.arena })
+                : translateStatic('matchCard.strip_label')}
             </button>
           )}
           {onRefereeClick && (
@@ -139,27 +169,26 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   : translateStatic('poolView.assign_referee')
               }
             >
+              {/* Nom des arbitres sélectionnés (#1826) */}
               {matchReferees.length > 0
-                ? matchReferees
-                    .map(r => `${r.lastName.charAt(0)}${r.firstName.charAt(0)}`)
-                    .join('/')
-                : '+A'}
+                ? matchReferees.map(r => r.lastName).join(' / ')
+                : translateStatic('matchCard.referee_label')}
             </button>
           )}
         </div>
       )}
 
       {/* Consultation des signatures (match terminé) */}
-      {hasBothFencers && isMatchComplete && onSignaturesClick && (
+      {showSignatures && (
         <div className="match-badges">
-          <button
+          <TipButton
             className="match-badge-btn"
             onClick={handleSignaturesClick}
-            title={translateStatic('matchCard.signatures')}
+            tip={translateStatic('matchCard.signatures')}
             aria-label={translateStatic('matchCard.signatures')}
           >
-            ✍
-          </button>
+            <Icon icon={PenLine} />
+          </TipButton>
         </div>
       )}
 
@@ -210,9 +239,15 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (
         <div className={`match-cta ${hasScore ? 'match-cta-edit' : 'match-cta-enter'}`}>
-          {hasScore
-            ? `✏️ ${translateStatic('poolRanking.edit')}`
-            : `➕ ${translateStatic('matchCard.enter_score')}`}
+          {hasScore ? (
+            <>
+              <Icon icon={Pencil} /> {translateStatic('poolRanking.edit')}
+            </>
+          ) : (
+            <>
+              <Icon icon={Plus} /> {translateStatic('matchCard.enter_score')}
+            </>
+          )}
         </div>
       )}
     </div>

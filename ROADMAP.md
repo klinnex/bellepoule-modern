@@ -16,6 +16,18 @@ Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le fonctionneme
 
 ---
 
+## P2 — Journée multi-épreuves (#1714)
+
+**Objectif :** coordonner plusieurs épreuves d'une même salle.
+Voir [docs/JOURNEE_MULTI_EPREUVES.md](docs/JOURNEE_MULTI_EPREUVES.md). Lot 1 fait : journée, arbitres partagés, conflits.
+
+### Reste à faire
+
+1. **Registre de pistes partagé** : piste libérée par une épreuve → disponible pour les autres.
+2. **Kiosk de la journée** : écran public commun.
+
+---
+
 ## Hors scope
 
 - Application mobile native (scope trop large)

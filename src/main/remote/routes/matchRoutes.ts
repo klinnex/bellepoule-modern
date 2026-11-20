@@ -15,6 +15,10 @@ import type { PoolRouteContext } from './poolRoutes';
 import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+import { emitCompetitionEvent } from '../../ipc/dbHandlers';
+import { recordRemoteEvent } from '../remoteEvents';
+import { decideMatchWinner, isAcceptableScore } from '../../../shared/utils/matchEndValidation';
+import { isCyranoMasterOnline } from '../cyranoLock';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -41,11 +45,31 @@ export interface MatchRouteContext extends PoolRouteContext {
   isPendingMatch(match: ArenaMatch): boolean;
   resolvePoolReferee(poolId?: string | null): { id: string; name: string } | null;
   restorableStatus(status: FencerStatus | undefined): FencerStatus;
-  sendDiag(message: string): void;
+  logDiag(message: string): void;
   updateMatchScore(matchId: string, update: RemoteScoreUpdate): Promise<void>;
 }
 
 /** Matchs des arènes : liste, cartons noirs, fin de match, scores, synchronisation hors-ligne. */
+/**
+ * Les matchs de session (renderer) portent les champs du domaine `Match` sans les métadonnées
+ * (`maxScore`, dates) ; frontière unique de conversion pour les helpers d'ordre/jouabilité.
+ */
+const asDomainMatch = (m: MatchRouteContext['sessionMatches'][number]): Match =>
+  m as unknown as Match;
+
+/** Vue lâche d'un match (base ou mémoire) : champs lus pour carton noir et signature. */
+type FencerView = { id?: string; firstName?: string; lastName?: string };
+type FinishedMatchView = {
+  poolId?: string;
+  pool?: { id?: string };
+  number?: number;
+  fencerA?: FencerView | null;
+  fencerB?: FencerView | null;
+  fencerAId?: string | null;
+  fencerBId?: string | null;
+  referee?: { id?: string };
+};
+
 export function registerMatchRoutes(ctx: MatchRouteContext): void {
   // API pour récupérer les matchs d'une arène/poule
   ctx.app.get('/api/arenas/:arenaId/matches', (req, res) => {
@@ -66,11 +90,20 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // Si l'arène a un pool associé, retourner les matchs NON TERMINÉS du pool.
       // On exclut les matchs finis pour que, en fin de poule, le fallthrough
       // atteigne la file d'attente DE (Tier 3) au lieu de bloquer dessus.
-      const currentPoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
-      if (arena && currentPoolId && ctx.sessionMatches.length > 0) {
+      // Poule de la piste, puis poules en file sur la même piste : quand la première poule
+      // est terminée, la suivante s'affiche en entier, pas seulement son premier match (#1826)
+      const homePoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
+      const candidatePools = [
+        ...(homePoolId ? [homePoolId] : []),
+        ...(ctx.arenaMatchQueue.get(arenaId) || [])
+          .filter(m => !!m.poolId && !m.isTableau && !ctx.poolMatchArenaOverrides.has(m.id))
+          .map(m => m.poolId as string),
+      ].filter((id, i, all) => all.indexOf(id) === i);
+      for (const currentPoolId of candidatePools) {
+        if (!arena || ctx.sessionMatches.length === 0) break;
         const taken = matchesTakenBySiblings(ctx.arenas, arenaId, id => ctx.isArenaMatchOpened(id));
         const rawPoolMatches = ctx.sessionMatches
-          .filter((m: any) => {
+          .filter(m => {
             const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
             if (matchPoolId !== currentPoolId) return false;
             // Tournoi des rapières : uniquement la vague active (#1118)
@@ -84,18 +117,20 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             const effectiveStatus = scoreUpdate?.status ?? m.status;
             if (effectiveStatus === MatchStatus.FINISHED) return false;
             // Exclure les matchs où un tireur est inactif (exclu/forfait/abandon)
-            return ctx.isMatchPlayable(m as Match);
+            return ctx.isMatchPlayable(asDomainMatch(m));
           })
-          .map((m: any) => {
+          .map(m => {
             const scoreUpdate = ctx.sessionMatchScores.get(m.id);
             return scoreUpdate ? { ...m, ...scoreUpdate } : m;
           });
         // Arbitre affiché sur la tablette : celui du match, sinon celui/ceux de la poule (#908)
         const poolReferee = ctx.resolvePoolReferee(currentPoolId);
-        const poolMatches = ctx.applySmartMatchOrder(rawPoolMatches as Match[]).map((m: any) => {
-          const referee = ctx.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
-          return referee ? { ...m, referee } : m;
-        });
+        const poolMatches = ctx
+          .applySmartMatchOrder(rawPoolMatches.map(asDomainMatch))
+          .map((m: Match & { refereeId?: string }) => {
+            const referee = ctx.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
+            return referee ? { ...m, referee } : m;
+          });
         // Matchs d'autres poules réassignés sur cette piste : en tête de liste (#1037)
         const cur = arena.currentMatch;
         const guests = [
@@ -127,7 +162,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // réellement terminé dans sessionMatches.
       if (arena?.currentMatch) {
         const scoreUpdate = ctx.sessionMatchScores.get(arena.currentMatch.id);
-        const inSession = ctx.sessionMatches.find((m: any) => m.id === arena.currentMatch!.id);
+        const inSession = ctx.sessionMatches.find(m => m.id === arena.currentMatch!.id);
         const effectiveStatus =
           scoreUpdate?.status ?? inSession?.status ?? arena.currentMatch.status;
         // Tournoi des rapières : un match de poule hors vague active n'est pas proposé (#1118)
@@ -248,32 +283,27 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         cardsB,
         winner: winnerOverride,
         blackCardFencer,
+        fightSeconds: rawFight,
       } = req.body;
+      const fightSeconds = Number(rawFight);
 
-      const scoreA = Number(rawA);
-      const scoreB = Number(rawB);
-      if (
-        !Number.isInteger(scoreA) ||
-        !Number.isInteger(scoreB) ||
-        scoreA < 0 ||
-        scoreB < 0 ||
-        scoreA > 50 ||
-        scoreB > 50
-      ) {
+      if (!isAcceptableScore(rawA) || !isAcceptableScore(rawB)) {
         return res.status(400).json({ error: 'invalid_scores' });
       }
+      const scoreA = Number(rawA);
+      const scoreB = Number(rawB);
 
       logger.info(LogCategory.NETWORK, `[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
       logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Score final: ${scoreA}-${scoreB}`);
 
       // Vérifier que le match existe (en DB ou en mémoire)
       const dbMatch = ctx.db.getMatch(matchId);
-      const inMemoryMatch = !dbMatch && ctx.sessionMatches.find((m: any) => m.id === matchId);
-      ctx.sendDiag(
-        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${(dbMatch as any)?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map((m: any) => m.id).join(',')}]`
+      const inMemoryMatch = !dbMatch && ctx.sessionMatches.find(m => m.id === matchId);
+      ctx.logDiag(
+        `[REST /finish] matchId=${matchId} dbMatch=${!!dbMatch} poolId=${dbMatch?.poolId ?? '-'} inMemory=${!!inMemoryMatch} sessionMatchesIds=[${ctx.sessionMatches.map(m => m.id).join(',')}]`
       );
       if (!dbMatch && !inMemoryMatch) {
-        ctx.sendDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
+        ctx.logDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
         return res.status(404).json({ error: 'match_not_found' });
       }
 
@@ -284,19 +314,37 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           ? blackCardFencer
           : null;
 
-      // Déterminer le vainqueur : carton noir → adversaire du fautif,
-      // scores égaux + tirage au sort → utiliser winnerOverride
-      const winner = blackCarded
-        ? blackCarded === 'A'
+      // Carton noir donné par la tablette alors que l'appareil maître fait foi : refusé (#1829).
+      // Seulement si le carton noir est pris en compte (sinon le champ est ignoré, comme avant)
+      if (
+        blackCarded &&
+        [...ctx.arenas.values()].some(
+          a => a.currentMatch?.id === matchId && isCyranoMasterOnline(a)
+        )
+      ) {
+        ctx.logDiag(`[REST /finish] carton noir refusé : appareil maître en ligne (${matchId})`);
+        return res.status(409).json({ error: 'cyrano_master_lock' });
+      }
+
+      // Minute prioritaire (#1442) : égalité finale sans override → tireur prioritaire tiré
+      const prevScores = ctx.sessionMatchScores.get(matchId) as
+        { scoreA?: { isPriority?: boolean }; scoreB?: { isPriority?: boolean } } | undefined;
+      const priorityWinner: 'A' | 'B' | null = prevScores?.scoreA?.isPriority
+        ? 'A'
+        : prevScores?.scoreB?.isPriority
           ? 'B'
-          : 'A'
-        : scoreA > scoreB
-          ? 'A'
-          : scoreB > scoreA
-            ? 'B'
-            : winnerOverride === 'A' || winnerOverride === 'B'
-              ? winnerOverride
-              : null;
+          : null;
+
+      // Vainqueur (règles uniques, #1829) : carton noir → adversaire du fautif, puis score,
+      // puis à égalité tirage au sort / P-noir (winnerOverride), puis priorité
+      const { winner } = decideMatchWinner({
+        scoreA,
+        scoreB,
+        statusA: blackCarded === 'A' ? 'exclusion' : 'normal',
+        statusB: blackCarded === 'B' ? 'exclusion' : 'normal',
+        override: winnerOverride === 'A' || winnerOverride === 'B' ? winnerOverride : null,
+        priority: priorityWinner,
+      });
 
       // Arène du match (capturée avant que finishArenaMatch ne charge le match suivant)
       const blackCardArenaId = blackCarded
@@ -328,6 +376,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           scoreB: scoreBObj,
           status: MatchStatus.FINISHED,
         });
+        emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
         // Synchroniser sessionMatchScores pour que peekNextMatch/loadNextMatch
         // puisse filtrer ce match comme terminé (sinon il réapparaît comme "prochain")
         ctx.sessionMatchScores.set(matchId, {
@@ -343,6 +392,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           if (arena.currentMatch && arena.currentMatch.id === matchId) {
             arena.currentMatch.scoreA = scoreA;
             arena.currentMatch.scoreB = scoreB;
+            if (Number.isFinite(fightSeconds) && fightSeconds > 0 && fightSeconds < 6 * 3600)
+              arena.currentMatch.fightSeconds = Math.round(fightSeconds);
             arenaToFinish = arenaId;
             break;
           }
@@ -392,7 +443,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           // Match en mémoire non trouvé dans une arène : notifier quand même le renderer
           const mainWin = getSharedMainWindow();
           if (mainWin) {
-            const sm = ctx.sessionMatches.find((m: any) => m.id === matchId);
+            const sm = ctx.sessionMatches.find(m => m.id === matchId);
             mainWin.webContents.send('match:finished', {
               matchId,
               scoreA,
@@ -411,7 +462,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       // Carton noir : exclure le combattant fautif de la compétition
       if (blackCarded) {
-        const matchObj: any = dbMatch || inMemoryMatch;
+        const matchObj: FinishedMatchView | undefined = dbMatch || inMemoryMatch || undefined;
         const culpritId =
           blackCarded === 'A'
             ? (matchObj?.fencerA?.id ?? matchObj?.fencerAId)
@@ -451,8 +502,15 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               // Carton noir → appel DT automatique (rapport fédéral)
               const culprit = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;
               const arena = Array.from(ctx.arenas.values()).find(
-                (a: any) => a.currentMatch?.id === matchId
+                a => a.currentMatch?.id === matchId
               );
+              recordRemoteEvent(ctx, {
+                type: 'dt_call',
+                arenaId: arena?.id ?? null,
+                matchId,
+                refereeId: arena?.currentMatch?.referee?.id ?? matchObj?.referee?.id ?? null,
+                detail: 'black_card',
+              });
               mainWin.webContents.send('remote:dt_call', {
                 arenaId: arena?.id ?? `match-${matchId}`,
                 arenaNumber: arena?.number ?? null,
@@ -491,7 +549,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       });
 
       // Signature requise après le match si c'est un match de tableau et l'option est activée
-      const matchObjForSig: any = dbMatch || inMemoryMatch;
+      const matchObjForSig: FinishedMatchView | undefined = dbMatch || inMemoryMatch || undefined;
       const isTableauMatch = !matchObjForSig?.poolId;
       let requireSignature = false;
       if (isTableauMatch && ctx.session) {
@@ -530,16 +588,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       const scoreUpdate: RemoteScoreUpdate = req.body;
       // Validation des scores si présents dans le body
       if (scoreUpdate.scoreA !== undefined && scoreUpdate.scoreB !== undefined) {
-        const sA = Number(scoreUpdate.scoreA);
-        const sB = Number(scoreUpdate.scoreB);
-        if (
-          !Number.isInteger(sA) ||
-          !Number.isInteger(sB) ||
-          sA < 0 ||
-          sB < 0 ||
-          sA > 50 ||
-          sB > 50
-        ) {
+        if (!isAcceptableScore(scoreUpdate.scoreA) || !isAcceptableScore(scoreUpdate.scoreB)) {
           return res.status(400).json({ error: 'invalid_scores' });
         }
       }
@@ -590,17 +639,34 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               timestamp: new Date(),
               refereeId: 'offline-sync',
             });
+            recordRemoteEvent(ctx, {
+              type: 'offline_sync',
+              arenaId: null,
+              matchId: p.matchId,
+              refereeId: null,
+              detail: null,
+            });
           }
         }
         // Les autres types d'actions (score_update, card, arena_exit) sont déjà broadcast
         // via Socket.IO en temps réel ; on les accepte sans traitement supplémentaire.
         results.push({ id: action.id, success: true });
       } catch (err) {
+        // Match disparu (entraînement terminé, session relancée) : action inapplicable,
+        // retirée de la file pour ne pas bloquer la tablette sur « Échec » (#1500)
+        const gone = err instanceof Error && err.message === 'Match non trouvé';
+        recordRemoteEvent(ctx, {
+          type: 'sync_error',
+          arenaId: null,
+          matchId: (action.payload as { matchId?: string } | undefined)?.matchId ?? null,
+          refereeId: null,
+          detail: err instanceof Error ? err.message.slice(0, 200) : null,
+        });
         logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur sync action', undefined, [
           action.id,
           err,
         ]);
-        results.push({ id: action.id, success: false });
+        results.push({ id: action.id, success: gone });
       }
     }
     res.json({ results });

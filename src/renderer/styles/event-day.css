@@ -1,0 +1,170 @@
+/* Journée multi-épreuves (#1714) */
+.event-day {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.event-day-aside {
+  flex: 0 0 220px;
+  min-width: 0;
+}
+.event-day-main {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+.event-day-list {
+  list-style: none;
+  padding: 0;
+}
+.event-day-list--days {
+  margin: 0 0 1rem;
+}
+.event-day-day-btn {
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 0.25rem;
+}
+.event-day-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.event-day-row--end {
+  align-items: flex-end;
+}
+.event-day-h3-inline {
+  margin: 0;
+}
+.event-day-weapons {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.event-day-nowrap {
+  white-space: nowrap;
+}
+.event-day-input--sm {
+  width: 6rem;
+}
+.event-day-input--md {
+  width: 9rem;
+}
+.event-day-table {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+.event-day-ok,
+.event-day-free {
+  color: var(--color-success, #166534);
+}
+.event-day-free,
+.event-day-busy {
+  font-weight: 600;
+}
+.event-day-busy {
+  color: #b45309;
+}
+.event-day-busy--small {
+  font-size: 0.8rem;
+}
+.event-day-conflict {
+  color: var(--color-danger, #b91c1c);
+}
+
+/* Grille des pistes de la journée */
+.event-day-strips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+.event-day-strip {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  gap: 0.15rem;
+}
+.event-day-strip--busy {
+  border-color: #d97706;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+/* Pistes en temps réel : propositions et réservation (#1878) */
+.event-day-strip-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.event-day-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+.event-day-strip-actions select {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+.event-day-strip-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+.event-day-check {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* Tuiles de hauteur propre (l'édition d'une réservation n'étire pas les voisines), assez
+   larges pour « Tableau de N et moins » */
+.event-day-strip-board .event-day-strips {
+  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+.event-day-strip-rule select {
+  width: 100%;
+}
+
+/* #1872 : pistes lisibles en thème sombre, cartes activables, actions sous « Créer » */
+.theme-dark .event-day-strip--busy {
+  border-color: #b45309;
+  background: #3a2a12;
+  color: #fcd34d;
+}
+.theme-dark .event-day-busy {
+  color: #fbbf24;
+}
+.event-day-aside form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.event-day-aside-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+.event-day-list .event-day-competition {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: 0.3rem;
+  font-size: inherit;
+}
+.event-day-competition-other {
+  opacity: 0.75;
+}

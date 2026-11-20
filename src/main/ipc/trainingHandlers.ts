@@ -12,12 +12,54 @@ import { RemoteScoreServer } from '../remoteScoreServer';
 import { findAvailablePort, remoteServers, usedPorts } from '../remoteRegistry';
 import { setSharedMainWindow } from '../mainWindowRef';
 import { closeDemoScreens, openDemoScreens } from '../demoScreens';
+import { isTrainingTheme } from '../../shared/utils/trainingThemes';
+import { applyTrainingTheme } from '../remote/trainingTheme';
+import type { TrainingCustomRules } from '../../shared/types/preload';
 
-const TRAINING_ID = '__training__';
+export const TRAINING_ID = '__training__';
 
 export interface TrainingHandlersContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
+}
+
+/**
+ * Arrête le serveur d'entraînement (démo comprise) : arbitre virtuel, écrans de démo, port.
+ * Renvoie false s'il ne tournait pas.
+ */
+export function stopTrainingServer(): boolean {
+  const entry = remoteServers.get(TRAINING_ID);
+  if (!entry) return false;
+  closeDemoScreens();
+  entry.server.stop();
+  usedPorts.delete(entry.port);
+  remoteServers.delete(TRAINING_ID);
+  return true;
+}
+
+/** Détache les écouteurs posés sur la fenêtre principale par bindToMainWindow. */
+let unbindMainWindow: (() => void) | null = null;
+
+/**
+ * Le serveur d'entraînement n'est piloté que par la fenêtre principale : fermée (macOS, l'app
+ * reste dans le Dock) ou rechargée (état React perdu, plus de bouton « Arrêter »), il ne doit
+ * pas continuer en arrière-plan (démo qui joue encore, saisie distante encore acceptée).
+ */
+function bindToMainWindow(main: BrowserWindow | null): void {
+  if (!main || main.isDestroyed()) return;
+  const stop = () => {
+    stopTrainingServer();
+    detach();
+  };
+  const detach = () => {
+    unbindMainWindow = null;
+    main.removeListener('closed', stop);
+    if (!main.isDestroyed()) main.webContents.removeListener('did-navigate', stop);
+  };
+  unbindMainWindow?.();
+  main.once('closed', stop);
+  main.webContents.once('did-navigate', stop);
+  unbindMainWindow = detach;
 }
 
 export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlersContext): void {
@@ -44,8 +86,11 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
         const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
         try {
           await server.start();
-        } catch (startError: any) {
-          return { success: false, error: startError?.message ?? 'Port indisponible' };
+        } catch (startError) {
+          return {
+            success: false,
+            error: (startError as { message?: string } | null)?.message ?? 'Port indisponible',
+          };
         }
         remoteServers.set(TRAINING_ID, {
           server,
@@ -62,6 +107,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
           /* optionnel */
         }
         setSharedMainWindow(getMainWindow());
+        bindToMainWindow(getMainWindow());
         return {
           success: true,
           serverInfo: {
@@ -83,12 +129,8 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
 
   ipcMain.handle('training:stopServer', async () => {
     try {
-      const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'training_not_started' };
-      closeDemoScreens();
-      entry.server.stop();
-      usedPorts.delete(entry.port);
-      remoteServers.delete(TRAINING_ID);
+      if (!stopTrainingServer()) return { success: false, error: 'training_not_started' };
+      unbindMainWindow?.();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
@@ -97,7 +139,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
 
   ipcMain.handle(
     'training:startSession',
-    async (_event, strips: number, weapon: string, customRules?: any) => {
+    async (_event, strips: number, weapon: string, customRules?: TrainingCustomRules) => {
       try {
         const entry = remoteServers.get(TRAINING_ID);
         if (!entry) return { success: false, error: 'training_not_started' };
@@ -117,6 +159,21 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
       const entry = remoteServers.get(TRAINING_ID);
       if (!entry) return { success: false, error: 'training_not_started' };
       entry.server.stopTrainingSession();
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  });
+
+  // Thème visuel des écrans d'entraînement (thèmes intégrés uniquement)
+  ipcMain.handle('training:setTheme', async (_event, theme: string) => {
+    try {
+      if (!isTrainingTheme(theme)) {
+        return { success: false, error: 'invalid_theme' };
+      }
+      const entry = remoteServers.get(TRAINING_ID);
+      if (!entry) return { success: false, error: 'training_not_started' };
+      applyTrainingTheme(entry.server, theme);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, Match, Score } from '../types';
+import { Fencer, Match } from '../types';
 
 export interface RemoteMatch extends Match {
   stripNumber: number;
@@ -92,6 +92,13 @@ export interface ServerMessage {
 }
 
 // Arena management
+/** Appareil de piste Cyrano relié à l'arène (#1829) : bandeau côté arbitre */
+export interface ArenaCyranoLink {
+  piste: string;
+  mode: 'master' | 'display' | 'manual';
+  online: boolean;
+}
+
 export interface Arena {
   id: string;
   name: string;
@@ -102,7 +109,14 @@ export interface Arena {
   startTime: Date | null;
   settings: ArenaSettings;
   password?: string;
+  /** Inversion de vue (miroir de la piste) ; ne change pas les couleurs des tireurs */
   swapped?: boolean;
+  /** Match en cours : gaucher (A) contre droitier → A rouge (#1439) */
+  leftHanded?: boolean;
+  /** Appareil de piste relié à l'arène (#1829) */
+  cyrano?: ArenaCyranoLink | null;
+  /** Minute de repos sur l'appareil (état P, #1829) */
+  resting?: boolean;
 }
 
 export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
@@ -145,12 +159,33 @@ export interface ArenaMatch {
   startTime: Date | null;
   endTime: Date | null;
   duration?: number; // in seconds
+  /** Temps de combat réel (chrono en marche, hors repos) remonté par la tablette (#1817) */
+  fightSeconds?: number;
+  /**
+   * Chrono affiché (secondes) au dernier `update_timer` / `pause_timer` de la tablette (#1829) :
+   * persisté avec l'arène, renvoyé aux écrans qui (re)joignent après un redémarrage.
+   */
+  clockSeconds?: number;
   referee?: { id: string; name: string }; // Arbitre assigné au match
+  /**
+   * Fin validée sur l'appareil de piste (Cyrano, #1720) : présent si le match a été clos par
+   * l'appareil ; `winner` force le vainqueur (égalité avec priorité, abandon, exclusion).
+   */
+  deviceEnd?: { winner?: 'A' | 'B'; reason?: 'priority' | 'abandon' | 'exclusion' };
+  /**
+   * Match rappelé (PREV) qui s'était terminé par un abandon ou une exclusion signalé par
+   * l'appareil : tireur concerné, pour renvoyer son statut à l'appareil (#1829).
+   */
+  recalledOut?: { fencer: 'A' | 'B'; reason: 'abandon' | 'exclusion' };
 }
 
 export interface ArenaUpdate {
   arenaId: string;
   match: ArenaMatch | null;
+  /** Appareil de piste Cyrano relié à l'arène (#1829) */
+  cyrano?: ArenaCyranoLink | null;
+  /** Minute de repos sur l'appareil (état P, #1829) */
+  resting?: boolean;
   scoreA?: number;
   scoreB?: number;
   time?: number;
@@ -158,6 +193,8 @@ export interface ArenaUpdate {
   fencerA?: Fencer;
   fencerB?: Fencer;
   timerStatus?: 'running' | 'paused' | 'reset';
+  /** Mise à jour venue de l'appareil de piste (mode appareil maître, #1720) : tablettes en miroir */
+  source?: 'device';
   cardsA?: string[];
   cardsB?: string[];
   suddenDeath?: boolean;
@@ -171,6 +208,8 @@ export interface ArenaUpdate {
   screenThemes?: Partial<Record<ThemeTargetType, CustomTheme>>;
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
+  /** Gaucher (A) contre droitier : A rouge, B vert (#1439) */
+  leftHanded?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée
   blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
@@ -210,4 +249,38 @@ export interface MatchSignatureRequest {
   };
   scoreA: number;
   scoreB: number;
+}
+
+/** Constat du diagnostic pare-feu Windows (saisie distante) : code traduit côté renderer. */
+export interface FirewallFinding {
+  level: 'ok' | 'warning' | 'error';
+  code: string;
+  params?: Record<string, string | number>;
+}
+
+/** Résultat du diagnostic pare-feu. supported: false hors Windows (rien n'a été lu). */
+export interface FirewallDiagnosis {
+  supported: boolean;
+  port: number;
+  networkCategories: string[];
+  findings: FirewallFinding[];
+  /** Détail technique en cas d'échec de lecture (affiché tel quel, non traduit). */
+  detail?: string;
+}
+
+/** API de diagnostic pare-feu (fusionnée dans window.electronAPI.remote). */
+export interface RemoteFirewallAPI {
+  firewallCheck: (port: number) => Promise<FirewallDiagnosis>;
+}
+
+/** Appel DT remonté au renderer (`remote:dt_call`) : carton noir ou abandon signalé par l'appareil (#2000). */
+export interface DTCallEvent {
+  arenaId: string;
+  arenaNumber: number | null;
+  matchNumber: number | null;
+  competitionId: string | null;
+  timestamp: number;
+  reason?: 'black_card' | 'abandon';
+  fencerId?: string | null;
+  fencerName?: string | null;
 }

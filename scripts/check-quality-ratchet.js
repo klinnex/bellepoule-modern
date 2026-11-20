@@ -6,6 +6,8 @@
  *   node scripts/check-quality-ratchet.js            → vérifie (CI)
  *   node scripts/check-quality-ratchet.js --update   → abaisse la référence
  *                                                      aux valeurs actuelles
+ *   En CI (CI=true) ou avec --strict : une baisse non verrouillée échoue aussi, la
+ *   référence suit donc chaque gain (#1895).
  *   node scripts/check-quality-ratchet.js --list jsxText → détaille un compteur
  *
  * Compteurs :
@@ -21,6 +23,11 @@
  *                  `lang="fr"` figé / `'fr-FR'` dans les gabarits HTML de src/main/remote/*.ts
  *                  (angle mort de l'AST : JS/HTML dans des template strings, #1344) → langue
  *                  active (`document.documentElement.lang`)
+ *   - remoteHardColor : couleur hexadécimale (#rgb, #rrggbb, #rrggbbaa) en dur dans les pages
+ *                  distantes (src/remote, hors tokens.css) → `var(--…)` de /tokens.css (#1538)
+ *   - emojiLocale : emoji en tête d'une valeur de locale (src/renderer/locales/*.json) → icône lucide (#1532)
+ *   - remoteEmoji : emoji n'importe où dans les pages distantes (src/remote : html, js, css, i18n/)
+ *                  → icône SVG partagée /js/icons.js (bpIcon, data-icon), texte sans emoji (#1532)
  *   - inlineStyle : objets `style={{…}}` dans le JSX (renderer) → classes / tokens CSS (#1157)
  *   - fontSizePx : `fontSize` en px (nombre ou « 12px ») dans le TS/TSX du renderer → échelle
  *                  `var(--fs-*)` en rem (#1156)
@@ -28,6 +35,10 @@
  *                  formatTime / formatNumber (langue active, #1160)
  *   - serverMessage : `error: '…'` en clair (texte avec espace) dans les réponses du process
  *                  principal (src/main) → code d'erreur stable traduit côté client (#1159)
+ *   - diagProbe  : sonde de débogage temporaire (`DIAGNOSTIC`, canal `remote:diag`) restée
+ *                  dans src/ (ts, tsx, js, html, hors tests) → logger.debug (#1773)
+ *   - rawBtn     : `className` JSX contenant la classe `btn` écrite à la main dans le renderer
+ *                  → primitive `<Button variant=… size=…>` (common/Button.tsx, #1529)
  *
  * Plafond de longueur (#1155) : aucun fichier source de src/ (hors tests) ne dépasse
  * MAX_LINES lignes. Les fichiers déjà au-dessus sont listés dans `lineExceptions`
@@ -58,8 +69,42 @@ const COUNTERS = [
   'fontSizePx',
   'hardLocale',
   'serverMessage',
+  'rawBtn',
+  'emojiUi',
+  'unnamedButton',
 ];
+/**
+ * Un bouton a un nom accessible s'il a du texte visible (directement ou dans un élément
+ * enfant), une expression {…} (libellé calculé), ou un aria-label / aria-labelledby / title.
+ * Les icônes seules sans nom sont comptées (#1537).
+ */
+const NAMING_ATTRS = new Set(['aria-label', 'aria-labelledby', 'title']);
+const hasNamingAttr = attributes =>
+  attributes.properties.some(p => ts.isJsxAttribute(p) && NAMING_ATTRS.has(p.name.getText()));
+const hasAccessibleName = node => {
+  if (ts.isJsxExpression(node)) return !!node.expression;
+  if (ts.isJsxText(node)) return /[\p{L}\p{N}]/u.test(node.text);
+  if (ts.isJsxSelfClosingElement(node)) return hasNamingAttr(node.attributes);
+  if (ts.isJsxElement(node)) {
+    return hasNamingAttr(node.openingElement.attributes) || node.children.some(hasAccessibleName);
+  }
+  return false;
+};
+/** Emoji en tête d'un texte d'interface (icône de fortune) : à remplacer par une icône lucide (#1532) */
+const EMOJI_LEAD_RE = /^\s*\p{Extended_Pictographic}/u;
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
+/** Texte statique d'un className JSX (littéral ou gabarit), sinon null */
+const jsxClassText = init => {
+  if (!init) return null;
+  if (ts.isStringLiteral(init)) return init.text;
+  if (!ts.isJsxExpression(init) || !init.expression) return null;
+  const e = init.expression;
+  if (ts.isStringLiteralLike(e)) return e.text;
+  if (ts.isTemplateExpression(e)) {
+    return [e.head.text, ...e.templateSpans.map(s => s.literal.text)].join(' ');
+  }
+  return null;
+};
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
 const WORDISH_RE = /\p{L}{2,}/u;
 // Sigles et formats identiques dans toutes les langues : pas de clé de traduction (#1158).
@@ -137,6 +182,42 @@ function analyze(file) {
     }
     if (renderer && ts.isJsxText(node) && isTranslatable(node.text)) {
       hits.jsxText.push(at(node));
+    }
+    // Emoji comme icône d'interface (texte JSX, littéral, gabarit) (#1532).
+    // Hors contenu éditorial (wiki) et texte de commandes slash : ce sont des contenus, pas des icônes.
+    const editorial = /[\\/]wiki[\\/]/.test(file) || file.endsWith('slashCommands.ts');
+    if (renderer && !editorial) {
+      const leadText =
+        ts.isJsxText(node) || ts.isStringLiteralLike(node)
+          ? node.text
+          : ts.isTemplateExpression(node)
+            ? node.head.text
+            : null;
+      if (leadText !== null && EMOJI_LEAD_RE.test(leadText)) {
+        hits.emojiUi.push(at(node));
+      }
+    }
+    // Bouton sans nom accessible (icône seule sans aria-label / title) (#1537)
+    if (
+      renderer &&
+      ((ts.isJsxElement(node) &&
+        node.openingElement.tagName.getText(sf) === 'button' &&
+        !hasNamingAttr(node.openingElement.attributes) &&
+        !node.children.some(hasAccessibleName)) ||
+        (ts.isJsxSelfClosingElement(node) &&
+          node.tagName.getText(sf) === 'button' &&
+          !hasNamingAttr(node.attributes)))
+    ) {
+      hits.unnamedButton.push(at(node));
+    }
+    // Bouton stylé à la main (.btn) au lieu de la primitive <Button> (#1529)
+    if (
+      renderer &&
+      ts.isJsxAttribute(node) &&
+      node.name.getText(sf) === 'className' &&
+      (jsxClassText(node.initializer) || '').split(/\s+/).includes('btn')
+    ) {
+      hits.rawBtn.push(at(node));
     }
     if (
       renderer &&
@@ -239,6 +320,102 @@ function remoteLocaleFindings() {
   return out;
 }
 
+/** Couleurs hexadécimales en dur dans les pages distantes (hors tokens.css, #1538) */
+const HEX_RE = /(?<![\w&#/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/;
+function remoteColorFindings() {
+  const out = [];
+  const names = [
+    ...fs.readdirSync(REMOTE_DIR).sort(),
+    ...fs
+      .readdirSync(path.join(REMOTE_DIR, 'js'))
+      .sort()
+      .map(n => `js/${n}`),
+  ];
+  for (const name of names) {
+    if (!/\.(html|js|css)$/.test(name) || name === 'tokens.css') continue;
+    const lines = [];
+    fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        if (/^\s*(\/\/|\*|\/\*)/.test(l)) return;
+        const cut = l.search(/\s\/\/\s/);
+        if (HEX_RE.test(cut === -1 ? l : l.slice(0, cut))) lines.push(i + 1);
+      });
+    if (lines.length) out.push({ file: `src/remote/${name}`, lines });
+  }
+  return out;
+}
+
+/** Emoji en tête d'un libellé de locale (icône de fortune, #1532) ; hors easter egg `about.easter` */
+function localeEmojiFindings() {
+  const dir = path.join(SRC, 'renderer', 'locales');
+  const out = [];
+  for (const name of fs.readdirSync(dir).sort()) {
+    if (!name.endsWith('.json')) continue;
+    const lines = [];
+    fs.readFileSync(path.join(dir, name), 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        const m = l.match(/^\s*"([^"]+)":\s*"(.*)/);
+        if (m && m[1] !== 'easter' && EMOJI_LEAD_RE.test(m[2])) lines.push(i + 1);
+      });
+    if (lines.length) out.push({ file: `src/renderer/locales/${name}`, lines });
+  }
+  return out;
+}
+
+const REMOTE_EMOJI_RE =
+  /\p{Extended_Pictographic}|\\u\{1[Ff][0-9A-Fa-f]{3}\}|\\u[Dd]83[CcDd]|&#x1[Ff][0-9A-Fa-f]{3};|&#1[23]\d{4};/u;
+
+/** Emoji dans les pages distantes : html/js/css de src/remote, js/ et i18n/ (hors tests, #1532) */
+function remoteEmojiFindings() {
+  const out = [];
+  const names = [];
+  for (const sub of ['', 'js', 'i18n']) {
+    const dir = path.join(REMOTE_DIR, sub);
+    for (const n of fs.readdirSync(dir).sort()) {
+      if (/\.(html|js|css)$/.test(n) && !/\.test\./.test(n)) names.push(sub ? `${sub}/${n}` : n);
+    }
+  }
+  for (const name of names) {
+    const lines = [];
+    fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        // emoji littéral, échappement JS (\u{1F…}, paire de substitution) ou entité HTML (&#x1F…;)
+        if (REMOTE_EMOJI_RE.test(l)) lines.push(i + 1);
+      });
+    if (lines.length) out.push({ file: `src/remote/${name}`, lines });
+  }
+  return out;
+}
+
+const DIAG_PROBE_RE = /DIAGNOSTIC|remote:diag/;
+
+/** Sondes de débogage temporaires restées dans src/ (hors tests, #1773) */
+function diagProbeFindings() {
+  const out = [];
+  const stack = [SRC];
+  while (stack.length) {
+    const dir = stack.pop();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (/\.(tsx?|js|html)$/.test(entry.name) && !EXCLUDE_RE.test(full)) {
+        const lines = [];
+        fs.readFileSync(full, 'utf8')
+          .split('\n')
+          .forEach((l, i) => {
+            if (DIAG_PROBE_RE.test(l)) lines.push(i + 1);
+          });
+        if (lines.length)
+          out.push({ file: path.relative(ROOT, full).split(path.sep).join('/'), lines });
+      }
+    }
+  }
+  return out.sort((a, b) => a.file.localeCompare(b.file));
+}
+
 /** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
 function fileLengths() {
   const out = {};
@@ -268,7 +445,15 @@ function oversized() {
 function collect() {
   const totals = {};
   const details = {};
-  for (const key of [...COUNTERS, 'remoteUnescaped', 'remoteHardLocale']) {
+  for (const key of [
+    ...COUNTERS,
+    'remoteUnescaped',
+    'remoteHardLocale',
+    'remoteHardColor',
+    'emojiLocale',
+    'remoteEmoji',
+    'diagProbe',
+  ]) {
     totals[key] = 0;
     details[key] = [];
   }
@@ -284,6 +469,14 @@ function collect() {
   totals.remoteUnescaped = details.remoteUnescaped.reduce((n, f) => n + f.lines.length, 0);
   details.remoteHardLocale = remoteLocaleFindings();
   totals.remoteHardLocale = details.remoteHardLocale.reduce((n, f) => n + f.lines.length, 0);
+  details.remoteHardColor = remoteColorFindings();
+  totals.remoteHardColor = details.remoteHardColor.reduce((n, f) => n + f.lines.length, 0);
+  details.emojiLocale = localeEmojiFindings();
+  totals.emojiLocale = details.emojiLocale.reduce((n, f) => n + f.lines.length, 0);
+  details.remoteEmoji = remoteEmojiFindings();
+  totals.remoteEmoji = details.remoteEmoji.reduce((n, f) => n + f.lines.length, 0);
+  details.diagProbe = diagProbeFindings();
+  totals.diagProbe = details.diagProbe.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 
@@ -304,7 +497,13 @@ function main() {
     return;
   }
 
-  const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : null;
+  // Lecture directe (pas d'existsSync puis read : CodeQL js/file-system-race)
+  let baseline = null;
+  try {
+    baseline = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
 
   if (args.includes('--update')) {
     const next = {};
@@ -343,12 +542,16 @@ function main() {
   }
 
   let failed = false;
+  // CI : un gain non verrouillé échoue, sinon la référence ne baisse jamais (#1895)
+  const strict = args.includes('--strict') || process.env.CI === 'true';
+  let unlocked = false;
   for (const [key, value] of Object.entries(totals)) {
     const ref = baseline[key];
     if (value > ref) {
       failed = true;
       console.log(`✗ ${key}: ${value} (référence ${ref}, +${value - ref})`);
     } else if (value < ref) {
+      unlocked = true;
       console.log(
         `↓ ${key}: ${value} (référence ${ref}) — lancer --update pour verrouiller le gain`
       );
@@ -368,6 +571,7 @@ function main() {
       failed = true;
       console.log(`✗ ${f}: ${n} lignes (référence ${ref}, +${n - ref})`);
     } else if (n < ref) {
+      unlocked = true;
       console.log(
         `↓ ${f}: ${n} lignes (référence ${ref}) — lancer --update pour verrouiller le gain`
       );
@@ -375,8 +579,15 @@ function main() {
   }
   for (const f of Object.keys(exceptions)) {
     if (lengths[f] === undefined || lengths[f] <= MAX_LINES) {
+      unlocked = true;
       console.log(`↓ ${f}: sous le plafond — lancer --update pour retirer l'exception`);
     }
+  }
+  if (strict && unlocked && !failed) {
+    console.error(
+      '\nGain non verrouillé : lancer "node scripts/check-quality-ratchet.js --update" et committer scripts/quality-baseline.json.'
+    );
+    process.exit(1);
   }
   if (failed) {
     console.error(

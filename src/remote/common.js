@@ -262,7 +262,105 @@
   }
   root.bpClaimArenaSlot = claimArenaSlot;
 
+  /**
+   * Connexion Socket.IO avec la politique de reconnexion commune des pages distantes (#1600) :
+   * reprise rapide (200 ms, plafond 5 s) avec gigue. `extra` surcharge ou complète les options.
+   */
+  var SOCKET_OPTIONS = {
+    reconnection: true,
+    reconnectionDelay: 200,
+    reconnectionDelayMax: 5000,
+    randomizationFactor: 0.5,
+  };
+  function bpSocket(extra, ioFn) {
+    var factory = ioFn || root.io;
+    return factory(Object.assign({}, SOCKET_OPTIONS, extra || {}));
+  }
+  bpSocket.OPTIONS = SOCKET_OPTIONS;
+  root.bpSocket = bpSocket;
+
+  /**
+   * Valeur résolue d'une variable de /tokens.css (#1538) : pour les API qui n'acceptent pas
+   * `var(--…)` (canvas `strokeStyle`, comparaisons JS). `fallback` si la variable est absente.
+   */
+  function cssVar(name, fallback) {
+    if (typeof document === 'undefined') return fallback || '';
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback || '';
+  }
+  root.bpCssVar = cssVar;
+
+  // Accessibilité : repli prefers-reduced-motion commun à toutes les pages distantes
+  // (écrans publics inclus) — neutralise animations et transitions.
+  if (typeof document !== 'undefined' && document.head) {
+    var rm = document.createElement('style');
+    rm.setAttribute('data-bp', 'reduced-motion');
+    rm.textContent =
+      '@media (prefers-reduced-motion: reduce){*,*::before,*::after{' +
+      'animation-duration:0.01ms !important;animation-iteration-count:1 !important;' +
+      'transition-duration:0.01ms !important;scroll-behavior:auto !important}}';
+    document.head.appendChild(rm);
+  }
+
+  /**
+   * Mode contraste projecteur (#1540) : `?contrast=1` l'active (mémorisé), `?contrast=0` le retire.
+   * Classe `theme-contrast` (tokens.css). Retourne l'état actif.
+   */
+  function applyContrast(doc, search, storage) {
+    var on = false;
+    var m = /[?&]contrast=([01])/.exec(search || '');
+    try {
+      if (m) {
+        if (storage) storage.setItem('bp_contrast', m[1]);
+        on = m[1] === '1';
+      } else if (storage) {
+        on = storage.getItem('bp_contrast') === '1';
+      }
+    } catch (e) {
+      on = !!(m && m[1] === '1');
+    }
+    doc.documentElement.classList.toggle('theme-contrast', on);
+    return on;
+  }
+  root.bpApplyContrast = applyContrast;
+  if (typeof document !== 'undefined' && typeof location !== 'undefined') {
+    var st = null;
+    try {
+      st = root.localStorage;
+    } catch (e) {
+      st = null;
+    }
+    applyContrast(document, location.search, st);
+  }
+
+  /**
+   * Mode écran public `?display=1` (#1303) : masque tout contrôle marqué `data-display-hide`
+   * (menus, réglages, bascules). Lecture seule : aucune action n'est exposée. Retourne l'état.
+   */
+  function applyDisplayMode(doc, search) {
+    var on = /[?&]display=1(?:&|$)/.test(search || '');
+    doc.documentElement.classList.toggle('display-mode', on);
+    if (on && !doc.querySelector('style[data-bp="display-mode"]')) {
+      var st = doc.createElement('style');
+      st.setAttribute('data-bp', 'display-mode');
+      st.textContent = 'html.display-mode [data-display-hide]{display:none !important}';
+      (doc.head || doc.documentElement).appendChild(st);
+    }
+    return on;
+  }
+  root.bpApplyDisplayMode = applyDisplayMode;
+  if (typeof document !== 'undefined' && typeof location !== 'undefined') {
+    applyDisplayMode(document, location.search);
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { escHtml: escHtml, html: html, claimArenaSlot: claimArenaSlot };
+    module.exports = {
+      escHtml: escHtml,
+      html: html,
+      claimArenaSlot: claimArenaSlot,
+      applyContrast: applyContrast,
+      applyDisplayMode: applyDisplayMode,
+      bpSocket: bpSocket,
+    };
   }
 })(typeof window !== 'undefined' ? window : globalThis);

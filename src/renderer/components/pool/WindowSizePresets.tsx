@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 const STORAGE_KEY = 'bellepoule-pool-window-size';
 
@@ -88,17 +89,17 @@ const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, on
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
+    <div ref={ref} className="window-size-presets-1">
+      <Button
         ref={btnRef}
-        className="btn btn-secondary"
+
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
         title={t('poolCards.title')}
       >
         {t('poolCards.button', { size: t(`poolCards.${active}`) })}
-      </button>
+      </Button>
       {open &&
         createPortal(
           <div
@@ -150,9 +151,7 @@ const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, on
                   }}
                 >
                   <span>{preset.label}</span>
-                  <span style={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-                    {Math.round(preset.scale * 100)} %
-                  </span>
+                  <span className="window-size-presets-2">{Math.round(preset.scale * 100)} %</span>
                 </button>
               );
             })}

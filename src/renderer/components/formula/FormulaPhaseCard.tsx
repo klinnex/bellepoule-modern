@@ -13,6 +13,7 @@ import { AdvancementRuleEditor } from './AdvancementRuleEditor';
 import { RankingCriteriaEditor } from './RankingCriteriaEditor';
 import { ScoringZoneEditor } from './ScoringZoneEditor';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 /** Score max : valeurs usuelles + saisie libre */
 const MaxScoreField: React.FC<{
@@ -135,42 +136,43 @@ const FormulaPhaseCard_: React.FC<Props> = ({
         <div className="phase-card-actions">
           {!readOnly && (
             <>
-              <button
+              <Button
                 type="button"
-                className="btn btn-icon btn-secondary"
+                className="btn-icon"
                 onClick={onMoveUp}
                 disabled={!canMoveUp}
                 title={t('formulaPhase.move_up')}
               >
                 ↑
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="btn btn-icon btn-secondary"
+                className="btn-icon"
                 onClick={onMoveDown}
                 disabled={!canMoveDown}
                 title={t('formulaPhase.move_down')}
               >
                 ↓
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="btn btn-icon btn-danger"
+                variant="danger"
+                className="btn-icon"
                 onClick={onRemove}
                 title={t('formulaPhase.remove_phase')}
               >
                 ✕
-              </button>
+              </Button>
             </>
           )}
-          <button
+          <Button
             type="button"
-            className="btn btn-icon btn-secondary"
+            className="btn-icon"
             onClick={() => setExpanded(e => !e)}
             title={expanded ? t('formulaPhase.collapse') : t('formulaPhase.expand')}
           >
             {expanded ? '▲' : '▼'}
-          </button>
+          </Button>
         </div>
       </div>
 

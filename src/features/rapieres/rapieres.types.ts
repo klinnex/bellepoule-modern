@@ -61,8 +61,11 @@ export interface RapieresSession {
   tableauMode?: RapieresTableauMode;
 }
 
-/** Tableau normal, avec match pour la 3e place, ou demi-finales (4 équipes, 3e place tirée) */
-export type RapieresTableauMode = 'normal' | 'third' | 'semis';
+/**
+ * Mode de tableau (#1441) : toutes les équipes qualifiées en « normal » (sans petite finale),
+ * « third » (petite finale), « all » (toutes les places tirées) ; « semis » : 4 équipes, 3e place tirée.
+ */
+export type RapieresTableauMode = 'normal' | 'third' | 'all' | 'semis';
 
 /** État de la première version (vue dédiée), migré à l'ouverture */
 export interface RapieresLegacyState {

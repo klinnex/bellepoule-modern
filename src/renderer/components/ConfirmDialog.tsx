@@ -6,8 +6,9 @@
 
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
 import { translateStatic } from '../contexts/TranslationContext';
+import { Button } from './common/Button';
 
-interface ConfirmOptions {
+export interface ConfirmOptions {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
@@ -110,15 +111,13 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       {pending && (
         <div
-          className="modal-overlay"
+          className="modal-overlay confirm-dialog-1"
           onClick={handleCancel}
           onKeyDown={handleKeyDown}
-          style={{ zIndex: 11000 }}
         >
           <div
-            className="modal"
+            className="modal confirm-dialog-2"
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '420px' }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
@@ -154,17 +153,12 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
               )}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+              <Button type="button" onClick={handleCancel}>
                 {pending.cancelLabel}
-              </button>
-              <button
-                ref={confirmBtnRef}
-                type="button"
-                className="btn btn-primary"
-                onClick={handleConfirm}
-              >
+              </Button>
+              <Button ref={confirmBtnRef} type="button" variant="primary" onClick={handleConfirm}>
                 {pending.confirmLabel}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -178,12 +172,8 @@ export const useConfirm = (): ConfirmContextType => {
   if (!context) {
     // Fallback si utilisé en dehors du provider
     return {
-      confirm: async (messageOrOptions: string | ConfirmOptions) => {
-        const msg =
-          typeof messageOrOptions === 'string' ? messageOrOptions : messageOrOptions.message;
-        // eslint-disable-next-line no-alert
-        return window.confirm(msg);
-      },
+      // Hors provider : aucune confirmation native (window.confirm) — l'action est refusée (#1535)
+      confirm: async () => false,
       // window.prompt() non supporté par Electron : annulation
       prompt: async () => null,
     };

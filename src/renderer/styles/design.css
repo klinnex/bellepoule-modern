@@ -458,7 +458,7 @@ select:focus {
 
 .competition-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, 400px); /* largeur fixe des cartes (#1826) */
   gap: 1rem;
 }
 
@@ -558,7 +558,7 @@ select:focus {
    ============================================================ */
 
 .phase-nav {
-  padding: 0.625rem 1rem;
+  padding: var(--density-bar-y, 0.625rem) 1rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -588,7 +588,7 @@ select:focus {
 }
 
 .phase-step {
-  padding: 0.375rem 0.875rem;
+  padding: var(--density-step-y, 0.375rem) 0.875rem;
   border-radius: var(--radius-full);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -614,9 +614,9 @@ select:focus {
 }
 
 .phase-step-completed {
-  background: rgba(13, 148, 136, 0.1);
-  color: var(--color-success);
-  border-color: rgba(13, 148, 136, 0.2);
+  background: var(--success-soft);
+  color: var(--success-on-soft);
+  border-color: var(--success);
 }
 
 .phase-step-disabled {
@@ -651,11 +651,11 @@ select:focus {
   text-transform: uppercase;
   color: var(--color-text-muted);
   background: var(--color-surface-2);
-  padding: 0.625rem 0.875rem;
+  padding: var(--density-cell-y, 0.625rem) var(--density-cell-x, 0.875rem);
 }
 
 .table td {
-  padding: 0.625rem 0.875rem;
+  padding: var(--density-cell-y, 0.625rem) var(--density-cell-x, 0.875rem);
 }
 
 .table tbody tr {
@@ -679,20 +679,20 @@ select:focus {
 }
 
 .badge-success {
-  background: rgba(13, 148, 136, 0.12);
-  color: #0d6e67;
+  background: var(--success-soft);
+  color: var(--success-on-soft);
 }
 .badge-warning {
-  background: rgba(217, 119, 6, 0.12);
-  color: #b45309;
+  background: var(--warning-soft);
+  color: var(--warning-on-soft);
 }
 .badge-danger {
-  background: rgba(220, 38, 38, 0.12);
-  color: #b91c1c;
+  background: var(--danger-soft);
+  color: var(--danger-on-soft);
 }
 .badge-info {
-  background: rgba(59, 91, 219, 0.12);
-  color: #2f4ac4;
+  background: var(--info-soft);
+  color: var(--info-on-soft);
 }
 
 /* ============================================================
@@ -835,40 +835,7 @@ select:focus {
    DARK MODE OVERRIDES
    ============================================================ */
 
-.theme-dark {
-  --color-bg: #111110;
-  --color-surface: #1c1b19;
-  --color-surface-2: #242320;
-  --color-border: #2e2c27;
-  --color-border-dark: #3d3b34;
-  --color-text: #f5f3ef;
-  --color-text-light: #a39e93;
-  --color-text-muted: #6e6860;
-  --color-primary-glow: rgba(59, 91, 219, 0.25);
-
-  /* Bleu-gris (#1114) */
-  --color-raised: #334155;
-  --color-raised-hover: #3e4c63;
-  --color-notice-bg: #334155;
-  --color-notice-border: #475569;
-  --color-notice-text: #e2e8f0;
-  --color-win-text: #6ee7b7;
-  --color-seed-bg: linear-gradient(90deg, #1e293b, #334155);
-  --color-seed-top-bg: linear-gradient(90deg, #1e3a5f, #3b5070);
-  /* Or, argent, bronze sombres (#1114) */
-  --color-gold-bg: #6b5410;
-  --color-gold-border: #a8841c;
-  --color-gold-text: #fde68a;
-  --color-silver-bg: #4b5563;
-  --color-bronze-bg: #6e3f1c;
-  --color-champion-bg: linear-gradient(135deg, #8a6d14 0%, #5c470c 100%);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
-}
+/* Palette sombre : bloc unique dans tokens.css (#1531) */
 
 .theme-dark .header {
   background: rgba(28, 27, 25, 0.88);
@@ -901,27 +868,6 @@ select:focus {
 .theme-dark .tableau-fencer-winner {
   background: rgba(13, 148, 136, 0.2);
   color: #2dd4bf;
-}
-.theme-dark .badge-success {
-  background: rgba(13, 148, 136, 0.2);
-  color: #2dd4bf;
-}
-.theme-dark .badge-warning {
-  background: rgba(217, 119, 6, 0.2);
-  color: #fcd34d;
-}
-.theme-dark .badge-danger {
-  background: rgba(220, 38, 38, 0.2);
-  color: #f87171;
-}
-.theme-dark .badge-info {
-  background: rgba(59, 91, 219, 0.2);
-  color: #93c5fd;
-}
-.theme-dark .phase-step-completed {
-  background: rgba(13, 148, 136, 0.15);
-  color: #2dd4bf;
-  border-color: rgba(13, 148, 136, 0.25);
 }
 
 /* ============================================================
@@ -1129,7 +1075,7 @@ select:focus {
   font-size: 0.8125rem;
   font-family: var(--font-sans);
   transition: all var(--duration-fast) ease;
-  margin: 0 auto 0 1rem;
+  margin: 0 -0.5rem 0 1rem; /* aide raccourcis collée à droite de la recherche (#1651) */
   min-width: 180px;
 }
 
@@ -1544,7 +1490,7 @@ select:focus {
   align-items: center;
   gap: 0;
   padding: 0 1.25rem;
-  height: 36px;
+  height: var(--density-bar-h, 36px);
   background: var(--color-surface-2);
   border-bottom: 1px solid var(--color-border);
   font-size: 0.75rem;
@@ -1568,7 +1514,7 @@ select:focus {
 }
 
 .comp-stats-bar-icon {
-  font-size: 0.875rem;
+  display: flex;
 }
 
 .comp-stats-bar-sep {
@@ -2066,15 +2012,6 @@ select:focus {
 
 .wifi-qr-body .form-input {
   text-align: center;
-}
-
-/* Tableau : fond gris-noir, titres de tours en blanc (#1032) */
-.theme-dark {
-  --tableau-bg: #1f2023;
-  --tableau-panel: #26272b;
-  --tableau-panel-header: #2f3035;
-  --tableau-border: #3a3b40;
-  --tableau-title: #ffffff;
 }
 
 /* Cadre « Compétition par équipes » (nouvelle compétition) */

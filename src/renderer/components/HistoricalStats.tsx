@@ -75,36 +75,23 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal historical-stats-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '750px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
         role="dialog"
         aria-modal="true"
       >
         <div className="modal-header flex-shrink-0">
-          <h2 style={{ margin: 0 }}>{t('historicalStats.title', { name: fencerName })}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <h2 className="historical-stats-2">{t('historicalStats.title', { name: fencerName })}</h2>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            {t('historicalStats.loading')}
-          </div>
+          <div className="historical-stats-3">{t('historicalStats.loading')}</div>
         ) : (
           <>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '1rem',
-                padding: '1rem 1.5rem',
-                background: 'var(--color-surface-2)',
-                borderBottom: '1px solid var(--color-border)',
-                flexShrink: 0,
-              }}
-            >
+            <div className="historical-stats-4">
               <StatCard
                 label={t('historicalStats.competitions')}
                 value={totalCompetitions.toString()}
@@ -121,30 +108,15 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
               <StatCard label={t('historicalStats.win_pct')} value={`${ratio}%`} />
             </div>
 
-            <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div className="historical-stats-5">
               {results.length === 0 ? (
-                <div
-                  style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}
-                >
-                  {t('historicalStats.none')}
-                </div>
+                <div className="historical-stats-3">{t('historicalStats.none')}</div>
               ) : (
                 <>
-                  <div
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-light)',
-                      fontFamily: 'monospace',
-                    }}
-                  >
-                    {sparkline(results.map(r => r.rank))}
-                  </div>
-                  <table
-                    style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}
-                  >
+                  <div className="historical-stats-6">{sparkline(results.map(r => r.rank))}</div>
+                  <table className="historical-stats-7">
                     <thead>
-                      <tr style={{ background: 'var(--color-bg)' }}>
+                      <tr className="historical-stats-8">
                         <th style={thS}>{t('historicalStats.date')}</th>
                         <th style={{ ...thS, textAlign: 'left' }}>
                           {t('historicalStats.competition')}
@@ -158,10 +130,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     </thead>
                     <tbody>
                       {results.map((r, i) => (
-                        <tr
-                          key={r.competitionId + i}
-                          style={{ borderBottom: '1px solid var(--color-bg)' }}
-                        >
+                        <tr key={r.competitionId + i} className="historical-stats-9">
                           <td style={tdS}>{r.date}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 500 }}>
                             {r.competitionTitle}
@@ -195,9 +164,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
       <div style={{ fontSize: '1.5rem', fontWeight: 700, color: color ?? 'var(--color-text)' }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
-        {label}
-      </div>
+      <div className="historical-stats-10">{label}</div>
     </div>
   );
 }

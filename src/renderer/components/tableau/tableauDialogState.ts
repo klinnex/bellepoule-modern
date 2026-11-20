@@ -36,7 +36,7 @@ export type DESignatures = Record<string, { A?: string; B?: string }>;
 /** Signatures des tireurs saisies sur tablette (optionnelles : échec silencieux). */
 export async function loadDESignatures(matches: TableauMatch[]): Promise<DESignatures | undefined> {
   try {
-    const api = (window as any).electronAPI;
+    const api = window.electronAPI;
     const ids = matches.map(m => m.id).filter(Boolean);
     const rows = (await api?.db?.getDEMatchSignaturesByMatchIds?.(ids)) ?? [];
     if (rows.length === 0) return undefined;
@@ -50,6 +50,52 @@ export async function loadDESignatures(matches: TableauMatch[]): Promise<DESigna
       (signatures[row.matchId] ??= {})[slot] = row.signatureData;
     }
     return signatures;
+  } catch {
+    return undefined;
+  }
+}
+
+export type DECards = Record<string, { A?: string[]; B?: string[] }>;
+
+/**
+ * Cartons des matchs de tableau pour les feuilles imprimées (#1829), rangés par côté A/B.
+ * Un match de tableau saisi à distance est enregistré sous l'id composite
+ * `<compétition>-<match>`, sinon sous son id : les deux sont lus. Optionnels : échec silencieux.
+ */
+export async function loadDECards(
+  matches: TableauMatch[],
+  competitionId?: string
+): Promise<DECards | undefined> {
+  try {
+    const dbIdToMatch = new Map<string, TableauMatch>();
+    for (const m of matches) {
+      if (!m.id) continue;
+      dbIdToMatch.set(m.id, m);
+      if (competitionId) dbIdToMatch.set(`${competitionId}-${m.id}`, m);
+    }
+    if (dbIdToMatch.size === 0) return undefined;
+    const rows =
+      (await window.electronAPI?.db?.getCardsByMatchIds?.([...dbIdToMatch.keys()])) ?? [];
+    // Match saisi à distance : seules ses lignes sous l'id composite comptent (pas de doublon
+    // avec d'éventuelles lignes sous l'id simple)
+    const remoteIds = new Set(
+      rows
+        .filter(
+          r => competitionId && r.matchId === `${competitionId}-${dbIdToMatch.get(r.matchId)?.id}`
+        )
+        .map(r => dbIdToMatch.get(r.matchId)!.id)
+    );
+    const cards: DECards = {};
+    for (const row of rows) {
+      const match = dbIdToMatch.get(row.matchId);
+      if (!match) continue;
+      if (row.matchId === match.id && remoteIds.has(match.id)) continue;
+      const slot =
+        match.fencerA?.id === row.fencerId ? 'A' : match.fencerB?.id === row.fencerId ? 'B' : null;
+      if (!slot) continue;
+      ((cards[match.id] ??= {})[slot] ??= []).push(row.cardType);
+    }
+    return Object.keys(cards).length > 0 ? cards : undefined;
   } catch {
     return undefined;
   }

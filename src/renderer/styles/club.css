@@ -1,0 +1,1036 @@
+/* Mode Club (#1872) : espace permanent du club */
+.club-view {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.club-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.club-header-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.club-header-logo--empty {
+  color: var(--color-primary);
+}
+.club-header-title {
+  margin: 0;
+  font-size: var(--fs-xl);
+}
+.club-header-sub {
+  margin: 0;
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+}
+.club-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.75rem;
+}
+.club-members {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.club-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.club-card-title {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+.club-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.club-row--between {
+  justify-content: space-between;
+  align-items: center;
+}
+.club-grow {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.club-nowrap {
+  white-space: nowrap;
+}
+.club-mono {
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.05em;
+}
+.club-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.club-row-archived td {
+  color: var(--color-text-light);
+  font-style: italic;
+}
+/* Onglet permanent du club dans la barre d'onglets */
+.club-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  min-width: 120px;
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+.club-tab:hover {
+  background: var(--color-surface-2);
+}
+.club-tab--active {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-bottom: 1px solid var(--color-surface);
+  margin-bottom: -1px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.club-tab-label {
+  flex: 1;
+}
+.club-row--between .club-card-title {
+  flex: 1;
+}
+.club-strips-input {
+  width: 6rem;
+}
+.club-muted {
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+.club-strips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.club-strip-label {
+  font-weight: 600;
+  min-width: 5rem;
+}
+.club-bout-live,
+.club-bout-free {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.club-bout-side {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-score-input {
+  width: 4.5rem;
+}
+.club-vs {
+  color: var(--color-text-light);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+}
+.club-attendance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+.club-scanner {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+.club-scanner-video {
+  width: 100%;
+  max-height: 50vh;
+  border-radius: 8px;
+  background: var(--color-surface-2);
+}
+.club-scanner-error,
+.club-scan-error {
+  color: var(--color-danger, #b91c1c);
+}
+.club-scan-ok {
+  color: var(--color-success, #15803d);
+  font-weight: 600;
+}
+.club-scan-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.club-scan-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-light);
+}
+.club-scan-steps li.is-done {
+  color: var(--color-text);
+}
+.club-scan-steps strong {
+  margin-left: auto;
+}
+.club-clickable {
+  cursor: pointer;
+}
+.club-clickable:hover,
+.club-clickable:focus-visible {
+  background: var(--color-surface-2);
+}
+.club-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0;
+}
+.club-kpis dt {
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+}
+.club-kpis dd {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+/* Plusieurs clubs : tuiles (onglet Club, accueil) */
+.club-tiles {
+  display: grid;
+  /* Largeur fixe comme les cartes de compétition : pas d'étirement au redimensionnement (#1826) */
+  grid-template-columns: repeat(auto-fill, 300px);
+  gap: 0.75rem;
+}
+.club-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.club-tile:hover,
+.club-tile:focus-visible {
+  background: var(--color-surface-2);
+}
+.club-tile-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.club-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.club-tile-name {
+  font-weight: 600;
+  /* Nom complet sur plusieurs lignes (« Cercle d'escrime de Saint Gratien », #1826) */
+  overflow-wrap: anywhere;
+}
+.club-tile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+}
+.club-home {
+  padding-top: 0;
+}
+/* Accueil : liste des compétitions puis section Clubs, une seule zone défilante */
+.home-stack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.home-stack > .content {
+  flex: none;
+  overflow: visible;
+}
+.club-home > .club-row:first-child {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+/* Préparation des séances : plan de cours */
+.club-textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+}
+.club-plan-edit {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.club-time-input {
+  width: 7.5rem;
+}
+.club-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  padding: 0.35rem 0.1rem;
+  color: var(--color-text-light);
+  cursor: grab;
+  user-select: none;
+}
+.club-drag-handle:active {
+  cursor: grabbing;
+}
+.club-plan-edit-item--drop {
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 -2px 0 0 var(--color-primary, #2563eb);
+}
+.club-plan-edit-item {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.club-notes-label {
+  display: block;
+  margin-top: 1rem;
+}
+.club-plan {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.club-plan li.is-done .font-medium {
+  text-decoration: line-through;
+  color: var(--color-text-light);
+}
+.club-plan-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-plan-details {
+  margin: 0.15rem 0 0 1.6rem;
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+}
+.club-objectives {
+  margin: 0;
+  white-space: pre-wrap;
+}
+/* Bilan de séance */
+.club-rating {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+.club-star {
+  color: var(--color-text-light);
+}
+.club-star.is-on {
+  color: var(--color-warning, #d97706);
+}
+.club-star.is-on svg {
+  fill: currentColor;
+}
+.club-feedback-list,
+.club-remarks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+/* Logo du club à la place du bouclier (bouton d'en-tête, onglet) */
+.club-icon-logo {
+  object-fit: contain;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+/* Mini-calendrier (choix de la date d'une séance) */
+.club-row--top {
+  align-items: flex-start;
+}
+.mini-cal {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-weight: 400;
+}
+.mini-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mini-cal-title {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.mini-cal-grid {
+  border-collapse: collapse;
+}
+.mini-cal-grid th {
+  font-size: var(--fs-xs, 0.75rem);
+  color: var(--color-text-light);
+  font-weight: 500;
+  padding: 0.15rem 0;
+  text-align: center;
+}
+.mini-cal-grid td {
+  padding: 1px;
+}
+.mini-cal-day {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  position: relative;
+}
+.mini-cal-day:hover,
+.mini-cal-day:focus-visible {
+  background: var(--color-surface-2);
+}
+.mini-cal-day.is-out {
+  color: var(--color-text-light);
+  opacity: 0.55;
+}
+.mini-cal-day.is-today {
+  border-color: var(--color-primary);
+}
+.mini-cal-day.is-selected {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+/* Jour déjà occupé par une séance : point sous le chiffre */
+.mini-cal-day[class*='has-']::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--color-text-light);
+}
+.mini-cal-day.has-planned::after {
+  background: var(--color-primary);
+}
+.mini-cal-day.has-open::after {
+  background: var(--color-success, #15803d);
+}
+.mini-cal-day.is-selected::after {
+  background: #fff;
+}
+/* Images des exercices, bibliothèque */
+.club-images {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.club-image-thumb {
+  position: relative;
+  display: inline-block;
+}
+.club-image-thumb img,
+.club-exercise-thumb {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.club-image-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--color-surface);
+  border-radius: 50%;
+}
+.club-plan-images {
+  margin: 0.25rem 0 0 1.6rem;
+}
+.club-exercise-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-exercise-item,
+.club-exercise-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.club-exercise-pick {
+  cursor: pointer;
+}
+.club-exercise-pick .club-plan-details {
+  display: block;
+  margin-left: 0;
+}
+/* Ouverture de séance : calendrier à gauche, champs puis bouton aligné à droite (#1872) */
+.club-open-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.club-open-fields {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.club-open-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+/* Catégories d'âge : plage début / fin, cases du public visé */
+.club-age-range {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.club-date-input {
+  width: auto;
+  min-width: 9.5rem;
+  padding: 0.15rem 0.35rem;
+}
+/* Pointage des présents */
+.club-attendance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.25rem 1rem;
+}
+.club-attendance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+/* Séances récurrentes */
+.club-repeat {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-series-history summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.club-series-history ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+/* Lobby des pistes (saisie distante en séance) */
+.club-lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.club-lobby-url {
+  font-size: var(--fs-sm, 0.875rem);
+  word-break: break-all;
+}
+.club-lobby-qr {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.club-lobby-qr img {
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+/* Inventaire du club (#1872) : fiche de matériel, prêts */
+.club-grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+.club-grid-form .club-grow {
+  grid-column: 1 / -1;
+}
+.club-row--end {
+  justify-content: flex-end;
+}
+.club-error {
+  color: var(--color-danger, #c0392b);
+  font-weight: 600;
+}
+.club-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--surface-glass, rgba(127, 127, 127, 0.15));
+}
+.club-badge--warn {
+  background: #fde68a;
+  color: #78350f;
+}
+
+/* Maîtres d'armes d'une séance */
+
+/* Inventaire : choix des colonnes du tableau du matériel */
+.club-columns {
+  position: relative;
+  align-self: flex-end;
+}
+.club-columns-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary, #2a2a3e);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+/* Menu global des séances */
+.club-session-menu-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.club-session-menu-row {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.club-session-menu-row--today {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 4px;
+}
+
+/* Menu déroulant « Exporter / Importer » (ClubExchangeMenu) */
+.club-exchange-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.club-exchange-menu-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  z-index: 50;
+  min-width: 200px;
+  padding: 0.25rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.club-exchange-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* #1872 : icône du sélecteur de date natif lisible en mode sombre */
+.theme-dark input[type='date'] {
+  color-scheme: dark;
+}
+
+/* #1872 : alignements des barres d'outils (retours issue) */
+.club-row--align-end {
+  align-items: flex-end;
+}
+.club-row--align-end > .form-label {
+  margin-bottom: 0;
+}
+.club-course-filter .form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+/* #1872 : cartes activables, titres avec bouton, libellé au-dessus du champ */
+.club-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+}
+.club-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.club-chip-hint {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+  color: var(--color-text-light);
+}
+.toggle-chip-sub {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+.club-title-group .club-card-title {
+  flex: 0 1 auto;
+}
+.toggle-chip.club-exercise-pick,
+.toggle-chip.club-attendance-row,
+.toggle-chip.club-plan-check {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  font-size: inherit;
+}
+.toggle-chip.is-on .club-muted,
+.toggle-chip.is-on .club-plan-details {
+  color: inherit;
+  opacity: 0.85;
+}
+.toggle-chip--icon {
+  padding: 0.2rem;
+}
+.toggle-chip--icon:not(.is-on) svg {
+  visibility: hidden;
+}
+/* QR d'un membre (#1872) : à scanner depuis l'écran */
+.club-member-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-member-qr img {
+  background: #fff;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+/* Paramètres de la saisie distante du club (#1872) */
+.club-remote-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.club-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+.club-fieldset legend {
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+
+/* Liens d'une piste en saisie distante (#1872) : affichage et arbitre côte à côte */
+.club-strip-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.club-strip-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-strip-link-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.club-strip-link img {
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+}
+/* Séances : une couleur d'accent par section */
+.club-card[class*='club-card--'] {
+  border-left: 4px solid var(--club-tone);
+  background: color-mix(in srgb, var(--club-tone) 5%, var(--color-surface));
+}
+.club-card[class*='club-card--'] > .club-card-title,
+.club-card[class*='club-card--'] > .club-row > .club-card-title,
+.club-card[class*='club-card--'] > .club-row > .club-title-group > .club-card-title {
+  color: var(--club-tone);
+}
+.club-card--green {
+  --club-tone: #16a34a;
+}
+.club-card--blue {
+  --club-tone: #2563eb;
+}
+.club-card--violet {
+  --club-tone: #7c3aed;
+}
+.club-card--slate {
+  --club-tone: #64748b;
+}
+.club-card--cyan {
+  --club-tone: #0891b2;
+}
+.club-card--orange {
+  --club-tone: #ea580c;
+}
+.club-card--rose {
+  --club-tone: #e11d48;
+}
+
+/* Synchronisation : cartes Dossier / Fichier, État / Backup (#1872) */
+.club-sync-help,
+.club-sync-warning {
+  margin: 0 0 12px;
+  font-size: 0.9em;
+}
+.club-sync-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--warning, #d97706);
+}
+.club-sync-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.club-sync-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.club-sync-card .club-card-title {
+  margin: 0;
+}
+.club-sync-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9em;
+}
+.club-sync-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 600;
+}
+.club-sync-state--ok {
+  color: var(--success, #16a34a);
+}
+.club-sync-state--warn {
+  color: var(--danger, #ef4444);
+}
+.club-sync-conflict p {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+}
+.club-sync-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.club-backup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.club-backup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.9em;
+}
+@media (max-width: 640px) {
+  .club-sync-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* #1872 : fiche de matériel — nom + image sur une ligne, grille 3 colonnes (retours 19/11) */
+.club-item-top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+.club-item-name {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.club-item-image {
+  flex: 0 0 200px;
+  min-width: 0;
+}
+.club-item-image__preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.club-item-image__preview img {
+  max-height: 64px;
+  max-width: 120px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+.club-item-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+  .club-item-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .club-item-top {
+    flex-wrap: wrap;
+  }
+  .club-item-image {
+    flex-basis: 100%;
+  }
+}
+/* Sélecteur d'heure natif : icône claire en mode sombre, comme les dates */
+.theme-dark input[type='time'] {
+  color-scheme: dark;
+}
+
+/* #1872 (retours 19/11) : inventaire — sélection par cartes, liste repliable, actions alignées */
+.club-select-cell {
+  cursor: pointer;
+  user-select: none;
+}
+.club-row-selected > td {
+  background: var(--color-primary-soft, rgba(37, 99, 235, 0.14));
+  box-shadow: inset 0 0 0 2px var(--color-primary, #2563eb);
+}
+.club-selection-bar {
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface-glass, rgba(127, 127, 127, 0.12));
+}
+/* Boutons d'action de ligne alignés sur la ligne séparatrice (ils n'étaient pas centrés verticalement) */
+.table td.club-row--end,
+.table td > .club-row--end {
+  vertical-align: middle;
+}
+.table td .club-row--end {
+  align-items: center;
+  margin: 0;
+}
+.club-group-lend-list {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  max-height: 180px;
+  overflow: auto;
+}

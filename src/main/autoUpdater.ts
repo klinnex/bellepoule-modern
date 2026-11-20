@@ -5,10 +5,11 @@
  */
 
 import { app, dialog, shell, BrowserWindow } from 'electron';
-import https from 'https';
+import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {
+  PENDING_UPDATE_DIR,
   ensurePrivateDir,
   randomInstallerName,
   readPendingUpdate,
@@ -16,7 +17,8 @@ import {
   writePendingUpdate,
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
-import { parseReleaseBuild, pickLatestRelease } from './updateReleases';
+import { parseReleaseBuild, pickLatestRelease, type ReleaseLike } from './updateReleases';
+import { downloadToFile, getJson } from './updateHttp';
 import {
   cleanupReplacedExecutable,
   detectInstallKind,
@@ -26,16 +28,41 @@ import {
   selectUpdateAsset,
   type InstallKind,
 } from './updateAssets';
+import { linuxPackageInstallCommand, replaceMacAppBundle } from './updateNativeInstall';
 import { fmt, getL } from './menuLabels';
-import { readUpdaterSettings, writeUpdaterSettings, type UpdateChannel } from './updaterSettings';
+import {
+  isUsableDownloadDir,
+  readUpdaterSettings,
+  writeUpdaterSettings,
+  type UpdateChannel,
+} from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
+import { getVersionInfo } from './versionInfo';
 
 /** Libellé unique par build (les builds dev partagent la même version X.Y.Z). */
 function pendingVersionLabel(info: { latestVersion: string; latestBuild: number }): string {
   return `${info.latestVersion} (Build #${info.latestBuild})`;
 }
 
-const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
+const GITHUB_API = 'https://api.github.com/repos/BellePoule-Modern/bellepoule-modern';
+
+/**
+ * Page de release reconstruite sur la base constante (jamais l'URL renvoyée par
+ * l'API : CodeQL js/client-side-unvalidated-url-redirection). Repli : liste des versions.
+ */
+function releasePageUrl(build: number): string {
+  return Number.isInteger(build) && build > 0
+    ? `https://github.com/BellePoule-Modern/bellepoule-modern/releases?q=${build}`
+    : RELEASES_URL;
+}
+
+const RELEASES_URL = 'https://github.com/BellePoule-Modern/bellepoule-modern/releases/latest';
+
+/** Release GitHub telle que lue par l'API (champs utilisés par la mise à jour). */
+interface GitHubRelease extends ReleaseLike {
+  html_url?: string;
+  assets?: UpdateInfo['assets'];
+}
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -73,13 +100,25 @@ export class AutoUpdater {
   private intervalTimer: NodeJS.Timeout | null = null;
   private readonly install: { kind: InstallKind; target: string | null } = detectInstallKind(
     process.platform,
-    process.env
+    process.env,
+    {
+      execPath: process.execPath,
+      exists: p => fs.existsSync(p),
+      canWrite: dir => {
+        try {
+          fs.accessSync(dir, fs.constants.W_OK);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    }
   );
 
   constructor(mainWindow: BrowserWindow, config: Partial<AutoUpdaterConfig> = {}) {
     this.mainWindow = mainWindow;
     this.config = {
-      autoDownload: true,
+      autoDownload: false,
       autoInstall: false,
       checkInterval: 24, // Vérifier chaque jour
       betaChannel: false,
@@ -155,6 +194,36 @@ export class AutoUpdater {
     else this.clearAutoCheck();
   }
 
+  private customDownloadDir(): string | undefined {
+    const custom = readUpdaterSettings(app.getPath('userData')).downloadDir;
+    return isUsableDownloadDir(custom) ? custom : undefined;
+  }
+
+  /** Répertoire par défaut des téléchargements (privé, sous userData). */
+  getDefaultDownloadDir(): string {
+    return path.join(app.getPath('userData'), PENDING_UPDATE_DIR);
+  }
+
+  /** Répertoire effectif : choix utilisateur s'il est valide, sinon le défaut. */
+  getDownloadDir(): string {
+    const custom = this.customDownloadDir();
+    if (custom) return custom;
+    return ensurePrivateDir(app.getPath('userData'));
+  }
+
+  /** Choix du répertoire (null = retour au défaut). Retourne false si invalide. */
+  setDownloadDir(dir: string | null): boolean {
+    const userData = app.getPath('userData');
+    const { downloadDir: _old, ...rest } = readUpdaterSettings(userData);
+    if (dir === null) {
+      writeUpdaterSettings(userData, rest);
+      return true;
+    }
+    if (!isUsableDownloadDir(dir)) return false;
+    writeUpdaterSettings(userData, { ...rest, downloadDir: dir });
+    return true;
+  }
+
   isAutoCheckEnabled(): boolean {
     return this.autoCheck;
   }
@@ -216,7 +285,7 @@ export class AutoUpdater {
         latestVersion,
         downloadUrl:
           release.html_url ||
-          `https://github.com/klinnex/bellepoule-modern/releases/tag/v${latestVersion}`,
+          `https://github.com/BellePoule-Modern/bellepoule-modern/releases/tag/v${latestVersion}`,
         releaseNotes: release.body || '',
         assets: release.assets || [],
       };
@@ -229,7 +298,7 @@ export class AutoUpdater {
     }
   }
 
-  private async fetchLatestRelease(): Promise<any> {
+  private async fetchLatestRelease(): Promise<GitHubRelease | null> {
     try {
       // Toujours récupérer toutes les releases pour trouver la plus récente (y compris dev/beta)
       const releases = await this.fetchReleases();
@@ -254,7 +323,7 @@ export class AutoUpdater {
         return {
           name: latestTag.name,
           tag_name: latestTag.name,
-          html_url: `https://github.com/klinnex/bellepoule-modern/releases/tag/${latestTag.name}`,
+          html_url: `https://github.com/BellePoule-Modern/bellepoule-modern/releases/tag/${latestTag.name}`,
           body: `Release: ${latestTag.name}`,
           prerelease: false,
           assets: [],
@@ -264,195 +333,26 @@ export class AutoUpdater {
     }
   }
 
-  private async fetchLatestReleaseDirect(): Promise<any> {
-    return new Promise(resolve => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/releases/latest',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const release = JSON.parse(data);
-              resolve(release);
-            } else {
-              resolve(null);
-            }
-          } catch (e) {
-            resolve(null);
-          }
-        });
-      });
-
-      req.on('error', () => resolve(null));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve(null);
-      });
-
-      req.end();
-    });
+  private async fetchLatestReleaseDirect(): Promise<GitHubRelease | null> {
+    const data = await getJson<GitHubRelease>(`${GITHUB_API}/releases/latest`);
+    return data ?? null;
   }
 
-  private async fetchReleases(): Promise<any[]> {
-    return new Promise(resolve => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/releases',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const releases = JSON.parse(data);
-              resolve(releases);
-            } else {
-              resolve([]);
-            }
-          } catch (e) {
-            resolve([]);
-          }
-        });
-      });
-
-      req.on('error', () => resolve([]));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve([]);
-      });
-
-      req.end();
-    });
+  private async fetchReleases(): Promise<GitHubRelease[]> {
+    const data = await getJson<GitHubRelease[]>(`${GITHUB_API}/releases`);
+    return Array.isArray(data) ? data : [];
   }
 
-  private async fetchTags(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/tags',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const tags = JSON.parse(data);
-              resolve(tags);
-            } else {
-              resolve([]);
-            }
-          } catch (e) {
-            resolve([]);
-          }
-        });
-      });
-
-      req.on('error', () => resolve([]));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve([]);
-      });
-
-      req.end();
-    });
+  private async fetchTags(): Promise<Array<{ name: string }>> {
+    const data = await getJson<Array<{ name: string }>>(`${GITHUB_API}/tags`);
+    return Array.isArray(data) ? data : [];
   }
 
+  // version.json lu une seule fois (versionInfo.ts, mis en cache) : plus de lecture
+  // disque synchrone à chaque vérification de mise à jour (#1776).
   private getCurrentVersion(): { version: string; build: number } {
-    try {
-      const versionPaths = [
-        path.join(app.getAppPath(), 'version.json'),
-        path.join(process.cwd(), 'version.json'),
-      ];
-
-      for (const versionPath of versionPaths) {
-        if (fs.existsSync(versionPath)) {
-          const content = fs.readFileSync(versionPath, 'utf-8');
-          return JSON.parse(content);
-        }
-      }
-    } catch (e) {
-      logger.error(
-        LogCategory.SYSTEM,
-        'Failed to read version:',
-        toError(e instanceof Error ? e.message : e)
-      );
-    }
-
-    // Fallback depuis package.json
-    try {
-      const pkgPath = path.join(app.getAppPath(), 'package.json');
-      if (fs.existsSync(pkgPath)) {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
-        if (match) {
-          return {
-            version: match[1],
-            build: parseInt(match[2]) || 0,
-          };
-        }
-      }
-    } catch (e) {
-      logger.error(
-        LogCategory.SYSTEM,
-        'Failed to read package.json:',
-        toError(e instanceof Error ? e.message : e)
-      );
-    }
-
-    // Fallback depuis package.json
-    try {
-      const pkgPath = path.join(app.getAppPath(), 'package.json');
-      if (fs.existsSync(pkgPath)) {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
-        if (match) {
-          return {
-            version: match[1],
-            build: parseInt(match[2]) || 0,
-          };
-        }
-      }
-    } catch (e) {
-      logger.error(LogCategory.SYSTEM, 'Failed to read package.json:', toError(e));
-    }
-
-    return { version: '1.0.0', build: 0 };
+    const { version, build } = getVersionInfo();
+    return { version, build };
   }
 
   private showUpdateNotification(updateInfo: UpdateInfo): void {
@@ -503,7 +403,7 @@ export class AutoUpdater {
 
       // Déjà téléchargée et vérifiée : pas de nouveau téléchargement.
       // En fond, pas de nouvelle question (déjà posée au téléchargement / au démarrage).
-      const pending = readPendingUpdate(app.getPath('userData'));
+      const pending = readPendingUpdate(app.getPath('userData'), this.customDownloadDir());
       if (pending && pending.version === pendingVersionLabel(updateInfo)) {
         if (interactive) {
           this.promptForImmediateInstall(
@@ -539,51 +439,66 @@ export class AutoUpdater {
         });
       }
 
-      // Télécharger le fichier avec suivi de progression
+      // Télécharger le fichier avec suivi de progression : barre des tâches
+      // (Windows/macOS/Linux Unity) + bannière de l'app, à chaque point de %.
+      // Envoi au dixième de %, au plus ~8 fois par seconde (+ toujours le 100 %)
+      let lastSent = -1;
+      let lastAt = 0;
+      this.setTaskbarProgress(2); // indéterminé jusqu'aux premiers octets
       const downloadPath = await this.downloadFile(
         asset.browser_download_url!,
         asset.name,
         (downloaded, total) => {
-          const progress = total > 0 ? Math.round((downloaded / total) * 100) : 0;
-          if (this.mainWindow && progress % 10 === 0) {
-            // Envoyer tous les 10%
-            this.mainWindow.webContents.send('update:progress', { progress, downloaded, total });
-          }
-        }
-      );
-
-      if (downloadPath) {
-        if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
-          fs.unlinkSync(downloadPath);
-          throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
-        }
-        logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
-
-        // Sauvegarder les informations pour l'installation au redémarrage
-        this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256, asset.name);
-
-        // Notifier l'utilisateur
-        if (this.mainWindow) {
-          this.mainWindow.webContents.send('update:downloaded', {
-            version: updateInfo.latestVersion,
-            path: downloadPath,
-            installOnQuit: true,
+          const progress = total > 0 ? Math.floor((downloaded / total) * 1000) / 10 : 0;
+          const now = Date.now();
+          const complete = total > 0 && downloaded >= total;
+          if (progress === lastSent || (!complete && now - lastAt < 120)) return;
+          lastSent = progress;
+          lastAt = now;
+          this.setTaskbarProgress(total > 0 ? downloaded / total : 2);
+          this.mainWindow?.webContents.send('update:progress', {
+            progress,
+            downloaded,
+            total,
+            latestVersion: updateInfo.latestVersion,
+            latestBuild: updateInfo.latestBuild,
+            currentBuild: updateInfo.currentBuild,
           });
         }
+      );
+      this.setTaskbarProgress(-1);
 
-        // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
-        if (interactive || !this.config.silent) {
-          this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256, asset.name);
-        } else {
-          logger.info(
-            LogCategory.SYSTEM,
-            '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
-          );
-        }
+      if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
+        fs.unlinkSync(downloadPath);
+        throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
+      }
+      logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
+
+      // Sauvegarder les informations pour l'installation au redémarrage
+      this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256, asset.name);
+
+      // Notifier l'utilisateur
+      if (this.mainWindow) {
+        this.mainWindow.webContents.send('update:downloaded', {
+          version: updateInfo.latestVersion,
+          path: downloadPath,
+          installOnQuit: true,
+        });
+      }
+
+      // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
+      if (interactive || !this.config.silent) {
+        this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256, asset.name);
+      } else {
+        logger.info(
+          LogCategory.SYSTEM,
+          '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
+        );
       }
       return true;
     } catch (error) {
       logger.error(LogCategory.SYSTEM, '❌ Auto download failed:', toError(error));
+      this.setTaskbarProgress(-1);
       if (this.mainWindow) {
         this.mainWindow.webContents.send('update:error', {
           message: getL().updAutoDownloadFailed,
@@ -596,6 +511,15 @@ export class AutoUpdater {
       return true;
     } finally {
       this.downloading = false;
+    }
+  }
+
+  /** Progression dans la barre des tâches : 0..1, 2 = indéterminé, -1 = masquée. */
+  private setTaskbarProgress(value: number): void {
+    try {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) this.mainWindow.setProgressBar(value);
+    } catch {
+      // fenêtre fermée pendant le téléchargement
     }
   }
 
@@ -627,93 +551,15 @@ export class AutoUpdater {
     url: string,
     filename: string,
     onProgress?: (downloaded: number, total: number) => void
-  ): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-      if (!isTrustedDownloadUrl(url)) {
-        reject(new Error(`URL de téléchargement non autorisée: ${url}`));
-        return;
-      }
-
-      const downloadPath = path.join(
-        ensurePrivateDir(app.getPath('userData')),
-        randomInstallerName(filename)
-      );
-
-      // Supprimer l'ancien fichier s'il existe
-      if (fs.existsSync(downloadPath)) {
-        try {
-          fs.unlinkSync(downloadPath);
-        } catch (e) {
-          logger.warn(LogCategory.SYSTEM, 'Could not remove old update file:', e);
-        }
-      }
-
-      const file = fs.createWriteStream(downloadPath, { mode: 0o600 });
-      let downloadedBytes = 0;
-      let totalBytes = 0;
-
-      const request = https.get(url, { timeout: 30000 }, (response: any) => {
-        if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
-          // Redirection - suivre le lien
-          file.close();
-          resolve(this.downloadFile(response.headers.location, filename, onProgress));
-          return;
-        }
-
-        if (response.statusCode !== 200) {
-          file.close();
-          fs.unlinkSync(downloadPath);
-          reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
-          return;
-        }
-
-        totalBytes = parseInt(response.headers['content-length'] || '0', 10);
-
-        response.on('data', (chunk: Buffer) => {
-          downloadedBytes += chunk.length;
-          if (onProgress && totalBytes > 0) {
-            onProgress(downloadedBytes, totalBytes);
-          }
-        });
-
-        response.pipe(file);
-
-        file.on('finish', () => {
-          file.close();
-          // Vérifier la taille du fichier téléchargé
-          const stats = fs.statSync(downloadPath);
-          if (totalBytes > 0 && stats.size !== totalBytes) {
-            fs.unlinkSync(downloadPath);
-            reject(new Error('Download incomplete - size mismatch'));
-            return;
-          }
-          logger.info(
-            LogCategory.SYSTEM,
-            `✅ Download completed: ${(stats.size / 1024 / 1024).toFixed(2)} MB`
-          );
-          resolve(downloadPath);
-        });
-      });
-
-      request.on('error', (err: Error) => {
-        file.close();
-        if (fs.existsSync(downloadPath)) {
-          fs.unlinkSync(downloadPath);
-        }
-        reject(err);
-      });
-
-      request.on('timeout', () => {
-        request.destroy();
-        file.close();
-        if (fs.existsSync(downloadPath)) {
-          fs.unlinkSync(downloadPath);
-        }
-        reject(new Error('Download timeout'));
-      });
-
-      request.setTimeout(30000);
-    });
+  ): Promise<string> {
+    const downloadPath = path.join(this.getDownloadDir(), randomInstallerName(filename));
+    fs.rmSync(downloadPath, { force: true });
+    await downloadToFile(url, downloadPath, onProgress);
+    logger.info(
+      LogCategory.SYSTEM,
+      `✅ Download completed: ${(fs.statSync(downloadPath).size / 1024 / 1024).toFixed(2)} MB`
+    );
+    return downloadPath;
   }
 
   private saveDownloadedUpdate(
@@ -737,7 +583,7 @@ export class AutoUpdater {
   async checkAndInstallPendingUpdate(): Promise<void> {
     try {
       const userData = app.getPath('userData');
-      const updateData = readPendingUpdate(userData);
+      const updateData = readPendingUpdate(userData, this.customDownloadDir());
       // Usage unique
       clearPendingUpdate(userData);
       if (updateData) {
@@ -820,6 +666,25 @@ export class AutoUpdater {
         return;
       }
 
+      // macOS : bundle .app remplacé par celui du .zip, relance
+      if (kind === 'macapp' && target && installerPath.endsWith('.zip')) {
+        replaceMacAppBundle(installerPath, target);
+        fs.rmSync(installerPath, { force: true });
+        logger.info(LogCategory.SYSTEM, `✅ Application remplacée en place : ${target}`);
+        app.relaunch();
+        app.quit();
+        return;
+      }
+
+      // Linux deb/rpm : installation via pkexec (mot de passe admin), relance
+      if ((kind === 'deb' || kind === 'rpm') && installerPath.endsWith(`.${kind}`)) {
+        const command = linuxPackageInstallCommand(kind, installerPath, p => fs.existsSync(p));
+        if (command) {
+          this.launchLinuxPackageInstall(installerPath, command);
+          return;
+        }
+      }
+
       if (platform === 'win32') {
         // Vérifier que c'est bien un fichier .exe valide
         if (!installerPath.endsWith('.exe')) {
@@ -868,6 +733,29 @@ export class AutoUpdater {
       logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
       // Laisser l'installeur démarrer puis libérer les fichiers de l'application
       setTimeout(() => app.quit(), 3000);
+    });
+  }
+
+  /**
+   * Paquet deb/rpm installé via pkexec. Succès → relance sur la version installée.
+   * Échec / annulation → repli sur le gestionnaire de logiciels du système.
+   */
+  private launchLinuxPackageInstall(
+    installerPath: string,
+    command: { cmd: string; args: string[] }
+  ): void {
+    execFile(command.cmd, command.args, error => {
+      if (error) {
+        logger.warn(LogCategory.SYSTEM, `[AutoUpdater] Installation du paquet : ${error.message}`);
+        void shell.openPath(installerPath).then(err => {
+          if (err) this.reportInstallFailure(installerPath, getL().installLaunchErr, err);
+        });
+        return;
+      }
+      fs.rmSync(installerPath, { force: true });
+      logger.info(LogCategory.SYSTEM, '✅ Paquet installé');
+      app.relaunch();
+      app.quit();
     });
   }
 
@@ -959,9 +847,11 @@ export class AutoUpdater {
   async downloadAndInstallFromUi(): Promise<{ success: boolean; error?: string }> {
     if (!this.updateInfo?.hasUpdate) await this.checkForUpdates();
     if (!this.updateInfo?.hasUpdate) return { success: false, error: 'no_update' };
+    // Téléchargement déjà lancé (clic précédent, menu Aide) : le signaler au lieu d'un retour muet
+    if (this.downloading) return { success: false, error: 'busy' };
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
       return { success: false, error: 'no_asset' };
     }
     return { success: true };
@@ -981,7 +871,7 @@ export class AutoUpdater {
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
       // Aucun binaire exploitable pour cette plateforme : repli sur la page des versions
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
     }
   }
 
@@ -1020,14 +910,14 @@ export class AutoUpdater {
    * Vérifier s'il y a une mise à jour téléchargée en attente d'installation
    */
   hasPendingUpdate(): boolean {
-    return readPendingUpdate(app.getPath('userData')) !== null;
+    return readPendingUpdate(app.getPath('userData'), this.customDownloadDir()) !== null;
   }
 
   /**
    * Récupérer les informations de la mise à jour en attente
    */
   getPendingUpdateInfo(): { version: string; path: string } | null {
-    const data = readPendingUpdate(app.getPath('userData'));
+    const data = readPendingUpdate(app.getPath('userData'), this.customDownloadDir());
     return data ? { version: data.version, path: data.path } : null;
   }
 }

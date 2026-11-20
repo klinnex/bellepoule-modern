@@ -93,21 +93,43 @@ class Logger {
     }
 
     if (this.config.enableConsole) {
-      const formatted = this.formatMessage(entry);
+      // Format fixe '%s' (pas de spécificateurs venus des données) et retours ligne
+      // neutralisés (pas de fausses lignes de log) : CodeQL js/tainted-format-string,
+      // js/log-injection.
+      // replace() inline (pas via helper) : reconnu comme assainissement par CodeQL
+      const formatted = this.formatMessage(entry).replace(/[\r\n]/g, '');
+      // Objets aussi ramenés à une ligne (sinon CodeQL suit la donnée brute jusqu'à console.*)
+      let dataText = '';
+      if (data !== undefined && data !== null && data !== '') {
+        try {
+          dataText =
+            typeof data === 'string'
+              ? data
+              : data instanceof Error
+                ? (data.stack ?? `${data.name}: ${data.message}`)
+                : (JSON.stringify(data) ?? String(data));
+        } catch {
+          dataText = String(data); // référence circulaire
+        }
+      }
+      const shownData = dataText.replace(/[\r\n]/g, '');
+      const shownError = error
+        ? (error.stack ?? `${error.name}: ${error.message}`).replace(/[\r\n]/g, '')
+        : '';
 
       switch (level) {
         case LogLevel.DEBUG:
-          console.debug(formatted, data || '');
+          console.debug('%s', formatted, shownData);
           break;
         case LogLevel.INFO:
-          console.info(formatted, data || '');
+          console.info('%s', formatted, shownData);
           break;
         case LogLevel.WARN:
-          console.warn(formatted, data || '', error || '');
+          console.warn('%s', formatted, shownData, shownError);
           break;
         case LogLevel.ERROR:
         case LogLevel.FATAL:
-          console.error(formatted, data || '', error || '');
+          console.error('%s', formatted, shownData, shownError);
           break;
       }
     }

@@ -1,3 +1,4 @@
+import type { SqlRow } from './rowMappers';
 import { Card } from '../../shared/types';
 import type { SqlExecutor } from './sqlExecutor';
 
@@ -32,12 +33,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const teams = this.sql.queryAll<any>(
+    const teams = this.sql.queryAll<SqlRow>(
       'SELECT * FROM teams WHERE competition_id = ? ORDER BY name',
       [competitionId]
     );
     return teams.map(t => {
-      const fencers = this.sql.queryAll<any>(
+      const fencers = this.sql.queryAll<SqlRow>(
         `SELECT tf.fencer_id, tf.team_order, tf.is_reserve, f.last_name, f.first_name
          FROM team_fencers tf JOIN fencers f ON tf.fencer_id = f.id
          WHERE tf.team_id = ? ORDER BY tf.team_order`,
@@ -155,12 +156,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const matches = this.sql.queryAll<any>(
+    const matches = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_matches WHERE competition_id = ? AND table_id = ? ORDER BY round DESC, position',
       [competitionId, tableId]
     );
     return matches.map(m => {
-      const bouts = this.sql.queryAll<any>(
+      const bouts = this.sql.queryAll<SqlRow>(
         'SELECT * FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
         [m.id]
       );
@@ -214,12 +215,12 @@ export class TeamRepo {
     }>;
   }> {
     if (!this.sql.db) return [];
-    const matches = this.sql.queryAll<any>(
+    const matches = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_matches WHERE competition_id = ? AND table_id IS NULL ORDER BY pool_number, created_at',
       [competitionId]
     );
     return matches.map(m => {
-      const bouts = this.sql.queryAll<any>(
+      const bouts = this.sql.queryAll<SqlRow>(
         'SELECT * FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
         [m.id]
       );
@@ -283,19 +284,49 @@ export class TeamRepo {
     );
     // Recompute match bouts score if bout finished
     if (status === 'finished') {
-      const bout = this.sql.queryOne<any>('SELECT match_id FROM team_bouts WHERE id = ?', [boutId]);
+      const bout = this.sql.queryOne<SqlRow>('SELECT match_id FROM team_bouts WHERE id = ?', [
+        boutId,
+      ]);
       if (bout) this.recomputeTeamMatchScore(bout.match_id as string);
     }
   }
 
+  /**
+   * Rappel d'un relais terminé pour correction (#1829) : relais « en cours », vainqueur effacé,
+   * puis rencontre recalculée (statut, vainqueur, scores, relais courant) — y compris quand la
+   * rencontre était terminée.
+   */
+  public reopenTeamBout(boutId: string): void {
+    if (!this.sql.db) return;
+    this.sql.run(
+      `UPDATE team_bouts SET status = 'in_progress', winner_id = NULL, updated_at = ? WHERE id = ?`,
+      [new Date().toISOString(), boutId]
+    );
+    const bout = this.sql.queryOne<SqlRow>('SELECT match_id FROM team_bouts WHERE id = ?', [
+      boutId,
+    ]);
+    if (bout) this.recomputeTeamMatchScore(bout.match_id as string);
+  }
+
+  /** Remplaçant (#1829) : tireur d'un côté d'un relais pas encore tiré. */
+  public setTeamBoutFencer(boutId: string, side: 'A' | 'B', fencerId: string): void {
+    if (!this.sql.db) return;
+    const column = side === 'A' ? 'fencer_a_id' : 'fencer_b_id';
+    this.sql.run(`UPDATE team_bouts SET ${column} = ?, updated_at = ? WHERE id = ?`, [
+      fencerId,
+      new Date().toISOString(),
+      boutId,
+    ]);
+  }
+
   private recomputeTeamMatchScore(matchId: string): void {
-    const match = this.sql.queryOne<any>(
+    const match = this.sql.queryOne<SqlRow>(
       'SELECT team_a_id, team_b_id FROM team_matches WHERE id = ?',
       [matchId]
     );
     if (!match) return;
 
-    const allBouts = this.sql.queryAll<any>(
+    const allBouts = this.sql.queryAll<SqlRow>(
       'SELECT status, score_a, score_b FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
       [matchId]
     );
@@ -386,7 +417,7 @@ export class TeamRepo {
     createdAt: string;
   }> {
     if (!this.sql.db) return [];
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       'SELECT * FROM team_match_cards WHERE match_id = ? ORDER BY created_at',
       [matchId]
     );
@@ -414,6 +445,11 @@ export class TeamRepo {
     teamBName: string;
     status: string;
     currentBoutIndex: number;
+    /** Poule de la rencontre, ou tour et position du tableau ; rang dans la poule (dès 1) */
+    poolNumber: number;
+    round: number | null;
+    position: number | null;
+    number: number;
     bouts: Array<{
       id: string;
       boutOrder: number;
@@ -429,11 +465,11 @@ export class TeamRepo {
     }>;
   } | null {
     if (!this.sql.db) return null;
-    const m = this.sql.queryOne<any>('SELECT * FROM team_matches WHERE id = ?', [matchId]);
+    const m = this.sql.queryOne<SqlRow>('SELECT * FROM team_matches WHERE id = ?', [matchId]);
     if (!m) return null;
-    const teamA = this.sql.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_a_id]);
-    const teamB = this.sql.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_b_id]);
-    const bouts = this.sql.queryAll<any>(
+    const teamA = this.sql.queryOne<SqlRow>('SELECT name FROM teams WHERE id = ?', [m.team_a_id]);
+    const teamB = this.sql.queryOne<SqlRow>('SELECT name FROM teams WHERE id = ?', [m.team_b_id]);
+    const bouts = this.sql.queryAll<SqlRow>(
       `SELECT b.*, fa.last_name AS fa_last, fa.first_name AS fa_first, fb.last_name AS fb_last, fb.first_name AS fb_first
        FROM team_bouts b
        JOIN fencers fa ON b.fencer_a_id = fa.id
@@ -441,9 +477,19 @@ export class TeamRepo {
        WHERE b.match_id = ? ORDER BY b.bout_order`,
       [matchId]
     );
+    // Rang de la rencontre dans sa poule (ordre de création) : n° de match de l'affichage
+    const before = this.sql.queryOne<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM team_matches
+       WHERE competition_id = ? AND pool_number = ? AND round IS NULL AND created_at < ?`,
+      [m.competition_id, m.pool_number, m.created_at]
+    );
     return {
       id: m.id as string,
       competitionId: m.competition_id as string,
+      poolNumber: Number(m.pool_number) || 1,
+      round: m.round == null ? null : Number(m.round),
+      position: m.position == null ? null : Number(m.position),
+      number: (before?.n ?? 0) + 1,
       teamAId: m.team_a_id as string,
       teamAName: (teamA?.name as string) ?? '—',
       teamBId: m.team_b_id as string,

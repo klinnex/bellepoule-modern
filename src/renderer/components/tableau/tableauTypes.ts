@@ -21,6 +21,12 @@ export interface TableauMatch {
   referees?: Array<{ id: string; firstName: string; lastName: string }>;
   /** Match perdu sur abandon / forfait / exclusion (#1012) : tireur concerné */
   specialStatus?: TableauSpecialStatus | null;
+  /**
+   * Rang de sortie de poules au tirage du tableau (#1996) : figé, il ne suit pas une
+   * correction de poule ultérieure. Posé sur le premier tour et les barrages.
+   */
+  seedA?: number | null;
+  seedB?: number | null;
 }
 
 export type TableauSpecialStatusType = 'abandon' | 'forfait' | 'exclusion';

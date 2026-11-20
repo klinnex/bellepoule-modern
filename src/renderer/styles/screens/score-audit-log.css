@@ -1,0 +1,73 @@
+/* Styles extraits de ScoreAuditLog.tsx (#1895) */
+.score-audit-log-1.score-audit-log-1.score-audit-log-1 {
+  padding: 1.5rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.score-audit-log-2.score-audit-log-2.score-audit-log-2 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.score-audit-log-3.score-audit-log-3.score-audit-log-3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.score-audit-log-4.score-audit-log-4.score-audit-log-4 {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.score-audit-log-5.score-audit-log-5.score-audit-log-5 {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 140px;
+}
+
+.score-audit-log-6.score-audit-log-6.score-audit-log-6 {
+  text-align: center;
+  color: var(--color-text-light);
+  padding: 3rem;
+}
+
+.score-audit-log-7.score-audit-log-7.score-audit-log-7 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.score-audit-log-8.score-audit-log-8.score-audit-log-8 {
+  background: var(--color-surface-2);
+  text-align: left;
+}
+
+.score-audit-log-9.score-audit-log-9.score-audit-log-9 {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.score-audit-log-10.score-audit-log-10.score-audit-log-10 {
+  margin-top: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+/* Motif de correction après tirage du tableau (#1996) */
+.score-audit-reason {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-warning);
+}

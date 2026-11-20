@@ -11,7 +11,7 @@
     Sources > + > Navigateur
     URL     : http://192.168.1.10:8066/arene1/overlay
     Largeur : 1280  Hauteur : 160
-    ✔ Actualiser le navigateur quand la scène devient active
+    Actualiser le navigateur quand la scène devient active
 
   PARAMÈTRES DE REQUÊTE (query params)
   ──────────────────────────────────────
@@ -42,6 +42,7 @@
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       /* ── Police 7 segments (embarquée, identique à arena.html) ── */
       @font-face {
@@ -56,48 +57,48 @@
       :root {
         --bg: transparent;
         --overlay-border: rgba(255,255,255,0.15);
-        --name-color: #ffffff;
+        --name-color: var(--color-white);
         --club-color: rgba(255,255,255,0.75);
-        --score-a-color: #00e640;
-        --score-b-color: #ff2200;
+        --score-a-color: var(--c-00e640);
+        --score-b-color: var(--c-ff2200);
         --score-bg: rgba(0,0,0,0.65);
         --score-glow-a: rgba(0,230,64,0.7);
         --score-glow-b: rgba(255,34,0,0.7);
-        --timer-color: #ffaa00;
+        --timer-color: var(--c-ffaa00);
         --timer-bg: rgba(0,0,0,0.6);
         --timer-glow: rgba(255,170,0,0.8);
-        --card-white-bg: #f5f5f5; --card-white-fg: #333;
-        --card-yellow-bg: #ffc107; --card-yellow-fg: #333;
-        --card-red-bg:  #e53e3e; --card-red-fg: #fff;
-        --sd-color: #ff6b35;
+        --card-white-bg: var(--c-f5f5f5); --card-white-fg: var(--c-333333);
+        --card-yellow-bg: var(--c-ffc107); --card-yellow-fg: var(--c-333333);
+        --card-red-bg:  var(--c-e53e3e); --card-red-fg: var(--color-white);
+        --sd-color: var(--c-ff6b35);
         --phase-color: rgba(255,255,255,0.55);
         --name-shadow: 0 2px 6px rgba(0,0,0,0.8);
         --panel-bg: rgba(0,0,0,0.60);
         --panel-border-radius: 12px;
       }
       [data-theme="dark"] {
-        --bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --bg: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
       }
       [data-theme="neon"] {
-        --bg: #0a0a0a;
-        --score-a-color: #00ff88;
-        --score-b-color: #ff4444;
+        --bg: var(--c-0a0a0a);
+        --score-a-color: var(--c-00ff88);
+        --score-b-color: var(--c-ff4444);
         --score-glow-a: rgba(0,255,136,0.8);
         --score-glow-b: rgba(255,68,68,0.8);
-        --timer-color: #00ccff;
+        --timer-color: var(--c-00ccff);
         --timer-glow: rgba(0,204,255,0.9);
         --panel-bg: rgba(0,0,0,0.85);
         --overlay-border: rgba(0,204,255,0.3);
       }
       [data-theme="light"] {
-        --bg: linear-gradient(135deg, #e8edf5 0%, #c8d8f0 100%);
-        --name-color: #111827;
-        --club-color: #374151;
-        --score-a-color: #059669;
-        --score-b-color: #dc2626;
+        --bg: linear-gradient(135deg, var(--c-e8edf5) 0%, var(--c-c8d8f0) 100%);
+        --name-color: var(--tw-gray-900);
+        --club-color: var(--tw-gray-700);
+        --score-a-color: var(--tw-emerald-600);
+        --score-b-color: var(--color-danger);
         --score-glow-a: rgba(5,150,105,0.5);
         --score-glow-b: rgba(220,38,38,0.5);
-        --timer-color: #d97706;
+        --timer-color: var(--color-warning);
         --timer-glow: rgba(217,119,6,0.7);
         --score-bg: rgba(255,255,255,0.85);
         --timer-bg: rgba(255,255,255,0.85);
@@ -154,13 +155,13 @@
         align-items: center;
         gap: 8px;
       }
-      /* Score côté CENTRE (défaut) : A → [nom][score▶] · B → [◀score][nom] */
+      /* Score côté CENTRE (défaut) : A → [nom][score>] · B → [<score][nom] */
       .fencer-panel.side-a .fencer-row { flex-direction: row; }
       .fencer-panel.side-b .fencer-row { flex-direction: row-reverse; }
       .fencer-panel.side-b .fencer-info { text-align: right; }
       .fencer-panel.side-b .cards-row  { flex-direction: row-reverse; justify-content: flex-start; }
 
-      /* Score côté EXTÉRIEUR (?scores=outer) : A → [◀score][nom] · B → [nom][score▶] */
+      /* Score côté EXTÉRIEUR (?scores=outer) : A → [<score][nom] · B → [nom][score>] */
       .scores-outer .fencer-panel.side-a .fencer-row { flex-direction: row-reverse; }
       .scores-outer .fencer-panel.side-a .fencer-info { text-align: right; }
       .scores-outer .fencer-panel.side-a .cards-row   { flex-direction: row-reverse; justify-content: flex-start; }
@@ -280,8 +281,9 @@
         line-height: 1;
         transition: color 0.3s;
       }
-      .timer-display.warning { color: #ff9500; text-shadow: 0 0 10px rgba(255,149,0,0.9); }
-      .timer-display.danger  { color: #ff3b30; text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: blink 0.8s step-end infinite; }
+      .timer-display.warning { color: var(--c-ff9500); text-shadow: 0 0 10px rgba(255,149,0,0.9); }
+      .timer-display.danger  { color: var(--c-ff3b30); text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: blink 0.8s step-end infinite; }
+      .timer-display.expired { color: var(--c-ff3b30); text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: none; }
       .timer-display.running { /* default color is already set */ }
 
       @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
@@ -299,7 +301,7 @@
       .sd-badge {
         display: none;
         background: var(--sd-color);
-        color: #fff;
+        color: var(--color-white);
         font-weight: 700;
         font-size: clamp(0.5rem, 0.8vw, 0.65rem);
         border-radius: 4px;
@@ -354,7 +356,7 @@
         <img class="center-logo" id="center-logo" alt="logo" />
         <div class="timer-display" id="timer">03:00</div>
         <div class="phase-label" id="phase-label">Piste 1</div>
-        <div class="sd-badge" id="sd-badge" data-i18n="overlay.sudden_death">⚡ Mort subite</div>
+        <div class="sd-badge" id="sd-badge" data-i18n="overlay.sudden_death">Mort subite</div>
       </div>
 
       <!-- Tireur B (droite / rouge) -->
@@ -403,7 +405,15 @@
         if (params.get('swap') === '1') root.classList.add('swapped');
 
         /* Logo personnalisé dans le panneau central (?logo=https://...) */
-        const logoUrl = params.get('logo');
+        /* Seuls http(s) acceptés (pas de javascript:, data:…) : CodeQL js/xss */
+        const logoParam = params.get('logo');
+        let logoUrl = null;
+        try {
+          const u = logoParam ? new URL(logoParam, window.location.href) : null;
+          if (u && (u.protocol === 'http:' || u.protocol === 'https:')) logoUrl = u.href;
+        } catch {
+          /* URL invalide : pas de logo */
+        }
         if (logoUrl) {
           const logoEl = document.getElementById('center-logo');
           logoEl.src = logoUrl;
@@ -412,10 +422,12 @@
 
         /* ── Extraction de l'arenaId depuis l'URL ou le query param ── */
         function getArenaId() {
-          const p = params.get('arena');
-          if (p) return p.startsWith('arena') ? p : 'arena' + p;
+          // ?arena=N ou arenaN uniquement (chiffres) : pas de chemin arbitraire dans fetch()
+          // (CodeQL js/client-side-request-forgery)
+          const p = /^(?:arena)?(\d+)$/.exec(params.get('arena') || '');
+          if (p) return 'arena' + Number(p[1]); // nombre : aucun caractère de chemin possible
           const m = window.location.pathname.match(/arene(\d+)/i) || window.location.pathname.match(/arena(\d+)/i);
-          return m ? 'arena' + m[1] : 'arena1';
+          return m ? 'arena' + Number(m[1]) : 'arena1';
         }
 
         const arenaId     = getArenaId();
@@ -470,7 +482,8 @@
           elTimer.textContent = fmtTime(timerSec);
           elTimer.className = 'timer-display';
           if (timerStat === 'running') elTimer.classList.add('running');
-          if (timerSec <= 10)      elTimer.classList.add('danger');
+          if (timerSec <= 0)       elTimer.classList.add('expired'); // 00:00 : rouge fixe (#1416)
+          else if (timerSec <= 10) elTimer.classList.add('danger');
           else if (timerSec <= 30) elTimer.classList.add('warning');
         }
 
@@ -547,7 +560,7 @@
           .catch(() => {});
 
         /* ── Socket.IO ── */
-        const socket = io({ transports: ['websocket', 'polling'], reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
+        const socket = bpSocket({ transports: ['websocket', 'polling'] });
 
         socket.on('connect', () => {
           socket.emit('join_arena', { arenaId, role: 'overlay' });

@@ -1,0 +1,152 @@
+/* Panneau Cyrano EFP1/EFP1.1 (#1720) */
+.cyrano-panel {
+  margin-top: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
+}
+.cyrano-inline {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.cyrano-port-row {
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.cyrano-muted {
+  font-size: var(--fs-xs);
+  color: var(--slate-400);
+}
+.cyrano-dim {
+  color: var(--slate-600);
+}
+.cyrano-small {
+  font-size: var(--fs-xs);
+}
+.cyrano-nowrap {
+  white-space: nowrap;
+}
+.cyrano-st--online {
+  color: var(--success);
+}
+.cyrano-st--stale {
+  color: var(--warning);
+}
+.cyrano-st--offline {
+  color: var(--danger);
+}
+.cyrano-st--never {
+  color: var(--slate-400);
+}
+.cyrano-input {
+  padding: 0.15rem 0.3rem;
+  font-size: var(--fs-xs);
+}
+.cyrano-w-port {
+  width: 90px;
+}
+.cyrano-w-sm {
+  width: 70px;
+}
+.cyrano-w-port-cell {
+  width: 80px;
+}
+.cyrano-w-xs {
+  width: 55px;
+}
+.cyrano-w-ip {
+  width: 130px;
+}
+.cyrano-table-wrap {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+}
+.cyrano-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-xs);
+}
+.cyrano-table thead tr {
+  color: var(--slate-400);
+  border-bottom: 1px solid var(--slate-700);
+}
+.cyrano-table th {
+  text-align: left;
+  padding: 0.2rem 0.4rem;
+  font-weight: 600;
+}
+.cyrano-table tbody tr {
+  border-bottom: 1px solid var(--slate-800);
+}
+.cyrano-table td {
+  padding: var(--space-1) 0.4rem;
+}
+.cyrano-table td.cyrano-empty {
+  color: var(--slate-500);
+  padding: var(--space-2) 0.4rem;
+  font-style: italic;
+}
+.cyrano-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.cyrano-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--danger);
+  font-weight: 700;
+}
+/* Ajout de pistes : bouton, profil, début, nombre, lot, export, import sur une seule rangée */
+.cyrano-add {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--slate-300);
+}
+.cyrano-add .cyrano-option {
+  white-space: nowrap;
+}
+.cyrano-options {
+  margin-top: var(--space-3);
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--slate-300);
+}
+.cyrano-option {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.cyrano-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--red-600, #dc2626);
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+}
+
+/* Journal des trames (#1829) : défile dans son cadre, n'élargit jamais la page (#2001) */
+.cyrano-log {
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 240px;
+  overflow: auto;
+  margin: 0.5rem 0 0;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  white-space: pre;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}

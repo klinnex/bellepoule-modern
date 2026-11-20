@@ -10,6 +10,7 @@ import { useTranslation } from '../contexts/TranslationContext';
 import { useToast } from './Toast';
 import { savePDF } from '../../shared/utils/pdfExport/core';
 import { ipcErrorText } from '../services/ipcError';
+import { Button } from './common/Button';
 
 export interface ArenaQrTarget {
   number: number;
@@ -169,8 +170,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
-        style={{ maxWidth: '440px' }}
+        className="modal arena-qr-codes-modal-1"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -231,26 +231,18 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
               ))}
             </select>
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+          <div className="arena-qr-codes-modal-2">
             {t('arenaQr.strips', { count: arenas.length })} · {t('arenaQr.codes', { count })} ·{' '}
             {t('arenaQr.sheets', { count: pageCount })}
           </div>
         </div>
         <div className="modal-footer">
-          <button
-            className="btn btn-secondary"
-            onClick={() => run('print')}
-            disabled={busy || count === 0}
-          >
+          <Button onClick={() => run('print')} disabled={busy || count === 0}>
             {t('arenaQr.print')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => run('pdf')}
-            disabled={busy || count === 0}
-          >
+          </Button>
+          <Button variant="primary" onClick={() => run('pdf')} disabled={busy || count === 0}>
             {t('arenaQr.export_pdf')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

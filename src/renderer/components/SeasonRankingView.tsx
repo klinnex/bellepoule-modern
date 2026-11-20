@@ -9,6 +9,9 @@ import { calculateOverallRankingQuest } from '../../shared/utils/poolCalculation
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate } from '../../shared/utils/localeFormat';
+import { Download, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { CardIcon } from './common/CardIcon';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -204,7 +207,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
     c => (c.weapon === 'L' || (c as any).questEnabled) && !alreadyAdded.has(c.id)
   );
 
-  const Th: React.FC<{ k: keyof SeasonEntry; label: string; title?: string }> = ({
+  const Th: React.FC<{ k: keyof SeasonEntry; label: React.ReactNode; title?: string }> = ({
     k,
     label,
     title,
@@ -242,7 +245,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               disabled={ranking.length === 0}
               className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-40"
             >
-              ⬇ CSV
+              <Icon icon={Download} /> CSV
             </button>
             <button
               onClick={() => setConfirmReset(true)}
@@ -252,6 +255,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               {t('season.reset_season')}
             </button>
             <button
+              aria-label={t('actions.close')}
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-2xl px-1 leading-none"
             >
@@ -279,7 +283,9 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
           ) : activeTab === 'ranking' ? (
             ranking.length === 0 ? (
               <div className="text-center text-gray-400 py-16">
-                <div className="text-4xl mb-3">🏆</div>
+                <div className="text-4xl mb-3">
+                  <Icon icon={Trophy} />
+                </div>
                 <p className="font-medium">{t('season.empty')}</p>
                 <p className="text-sm mt-1">{t('season.empty_hint')}</p>
               </div>
@@ -303,7 +309,11 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                       <Th k="totalQuestV3" label="V3" title={t('season.t_v3')} />
                       <Th k="totalQuestV2" label="V2" title={t('season.t_v2')} />
                       <Th k="totalQuestV1" label="V1" title={t('season.t_v1')} />
-                      <Th k="totalRedCards" label="🔴" title={t('season.t_red')} />
+                      <Th
+                        k="totalRedCards"
+                        label={<CardIcon type="red" label={t('season.t_red')} />}
+                        title={t('season.t_red')}
+                      />
                       <Th
                         k="totalTouchesScored"
                         label={t('ranking.touches_scored')}
@@ -323,7 +333,6 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {sortedRanking.map((e, i) => {
-                      const ind = e.totalTouchesScored - e.totalTouchesReceived;
                       return (
                         <tr key={e.fencerId} className="hover:bg-blue-50">
                           <td className="px-2 py-2 text-center font-bold text-gray-400">{i + 1}</td>

@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import {
   Fencer,
@@ -34,6 +34,9 @@ import {
   CARD_TITLE,
   MUTED,
 } from './questPhaseView.styles';
+import { Button } from './common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface QuestPhaseViewProps {
   fencers: Fencer[];
@@ -218,9 +221,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         <div className="is-4d99ac">
           <h2 className="is-28d934">{t('questPhase.running_title')}</h2>
           {allComplete && (
-            <button className="btn btn-primary" onClick={() => onQuestComplete(ranking ?? [])}>
+            <Button variant="primary" onClick={() => onQuestComplete(ranking ?? [])}>
               {t('questPhase.validate')}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -262,6 +265,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     {f.lastName} {f.firstName?.charAt(0)}.
                   </span>
                   <button
+                    aria-label={t('actions.remove')}
                     onClick={() => removeCard(f.id)}
                     disabled={count === 0}
                     style={{
@@ -286,7 +290,11 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   >
                     {count}
                   </span>
-                  <button onClick={() => addCard(f.id)} className="is-c67cf9">
+                  <button
+                    aria-label={t('actions.add')}
+                    onClick={() => addCard(f.id)}
+                    className="is-c67cf9"
+                  >
                     +
                   </button>
                 </div>
@@ -462,13 +470,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
       {/* Actions de génération */}
       <div className="is-f0b24e">
-        <button
-          className="btn btn-secondary"
-          onClick={handleGenerate}
-          disabled={fencers.length < 2 || effectiveFights <= 0}
-        >
+        <Button onClick={handleGenerate} disabled={fencers.length < 2 || effectiveFights <= 0}>
           {schedule.length === 0 ? t('questPhase.generate') : t('questPhase.regenerate')}
-        </button>
+        </Button>
         {fencers.length < 2 && (
           <p style={{ ...smallText, color: '#dc2626', marginTop: '0.5rem' }}>
             {t('questPhase.need_two')}
@@ -481,7 +485,11 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         <div style={CARD}>
           <div className="is-b69013">
             <p style={sectionTitle}>{t('questPhase.schedule_title', { n: schedule.length })}</p>
-            {!isValid && <span className="is-47a0db">⚠ {errors[0]}</span>}
+            {!isValid && (
+              <span className="is-47a0db">
+                <Icon icon={TriangleAlert} /> {errors[0]}
+              </span>
+            )}
           </div>
 
           <div className="is-ef56f1">
@@ -497,6 +505,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 </span>
                 <div className="is-499f0c">
                   <button
+                    aria-label={t('actions.move_up')}
                     onClick={() => moveUp(index)}
                     disabled={index === 0}
                     style={{
@@ -512,6 +521,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     ↑
                   </button>
                   <button
+                    aria-label={t('actions.move_down')}
                     onClick={() => moveDown(index)}
                     disabled={index === schedule.length - 1}
                     style={{
@@ -560,9 +570,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       {/* Bouton lancer */}
       {schedule.length > 0 && (
         <div className="is-2f47ea">
-          <button className="btn btn-primary is-1f9e99" onClick={handleLaunch}>
+          <Button variant="primary" className="is-1f9e99" onClick={handleLaunch}>
             {t('questPhase.launch')}
-          </button>
+          </Button>
         </div>
       )}
     </div>

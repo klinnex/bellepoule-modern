@@ -5,18 +5,7 @@
  */
 
 import { offlineStorage } from '../services/offlineStorage';
-import { offlineSync } from '../services/offlineSync';
-import {
-  Competition,
-  Fencer,
-  Match,
-  Gender,
-  MatchStatus,
-  FencerStatus,
-  Weapon,
-  Category,
-  Score,
-} from '../../shared/types';
+import { Fencer, Gender, FencerStatus } from '../../shared/types';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export class OfflineTestSuite {
@@ -256,8 +245,6 @@ export class OfflineTestSuite {
 
     try {
       // Simulate going offline
-      const originalOnline = offlineSync.isCurrentlyOnline();
-
       // Add some pending actions
       await offlineStorage.addPendingAction({
         type: 'UPDATE_MATCH',
@@ -303,8 +290,6 @@ export class OfflineTestSuite {
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
-
-    const testMatches: Match[] = []; // Skip matches for now due to complex type structure
 
     // Test caching performance
     const cacheStart = performance.now();

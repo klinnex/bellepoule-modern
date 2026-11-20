@@ -7,6 +7,7 @@ import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { BOOK_SECTION_KINDS, type BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
+import { Button } from './common/Button';
 
 interface BookSectionsModalProps {
   /** Types proposés (défaut : sections du dossier individuel) */
@@ -50,17 +51,17 @@ const BookSectionsModal: React.FC<BookSectionsModalProps> = ({
       elevated
       footer={
         <>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <Button type="button" onClick={onClose}>
             {t('actions.cancel')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
+            variant="primary"
             disabled={included.size === 0}
             onClick={() => onConfirm(order.filter(k => included.has(k)))}
           >
             {t('results.book_generate')}
-          </button>
+          </Button>
         </>
       }
     >
@@ -72,24 +73,24 @@ const BookSectionsModal: React.FC<BookSectionsModalProps> = ({
               <input type="checkbox" checked={included.has(kind)} onChange={() => toggle(kind)} />
               {t(`results.book_kind_${kind}`)}
             </label>
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary"
+
               aria-label={t('results.book_move_up')}
               disabled={i === 0}
               onClick={() => setOrder(o => moveItem(o, i, -1))}
             >
               ↑
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn btn-secondary"
+
               aria-label={t('results.book_move_down')}
               disabled={i === order.length - 1}
               onClick={() => setOrder(o => moveItem(o, i, 1))}
             >
               ↓
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

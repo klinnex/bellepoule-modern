@@ -4,13 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  resolveConflict,
-  mergeActionsById,
-  detectConflicts,
-  ConflictResolutionResult,
-  ConflictDetection,
-} from './conflictResolution';
+import { resolveConflict, mergeActionsById, detectConflicts } from './conflictResolution';
 
 // ============================================================================
 // Types de test

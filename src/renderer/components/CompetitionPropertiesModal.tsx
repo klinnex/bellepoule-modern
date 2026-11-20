@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   HINT,
@@ -13,7 +13,6 @@ import {
   FIELD_LABEL,
   MR,
   MB1,
-  MB15,
   SM,
   GRID2,
   FLEX1,
@@ -29,12 +28,15 @@ import {
   PostPoolSplitCriteria,
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
+import { GREG_DEFAULT_LEVEL, GREG_LEVELS, GregLevel } from '../../shared/utils/gregPublication';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
 import {
   deriveSettingsFromFormula,
   isRapieresMode,
 } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
+import { Button } from './common/Button';
+import { getDefaultMaxScores } from '../../shared/utils/defaultMaxScores';
 
 interface CompetitionPropertiesModalProps {
   competition: Competition;
@@ -66,15 +68,21 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [hasDirectElimination, setHasDirectElimination] = useState(
     competition.settings?.hasDirectElimination ?? true
   );
-  const [poolMaxScore, setPoolMaxScore] = useState(competition.settings?.defaultPoolMaxScore ?? 21);
+  const defaultScores = getDefaultMaxScores(competition.weapon, competition.category);
+  const [poolMaxScore, setPoolMaxScore] = useState(
+    competition.settings?.defaultPoolMaxScore ?? defaultScores.pool
+  );
   const [tableMaxScore, setTableMaxScore] = useState(
-    competition.settings?.defaultTableMaxScore ?? 21
+    competition.settings?.defaultTableMaxScore ?? (defaultScores.table || 21)
   );
   const [thirdPlaceMatch, setThirdPlaceMatch] = useState(
     competition.settings?.thirdPlaceMatch ?? false
   );
   const [signTableauMatches, setSignTableauMatches] = useState(
     competition.settings?.signTableauMatches ?? false
+  );
+  const [poolBoutOrder, setPoolBoutOrder] = useState<'fie' | 'free'>(
+    competition.settings?.poolBoutOrder ?? 'fie'
   );
   const [playAllPositions, setPlayAllPositions] = useState(
     competition.settings?.playAllPositions ?? false
@@ -99,7 +107,18 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [trainerCommentsEnabled, setTrainerCommentsEnabled] = useState(
     competition.settings?.trainerCommentsEnabled ?? false
   );
-  const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? false);
+  const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? true);
+  // Dossier dédié aux sauvegardes de cette compétition (facultatif, vide = dossier global)
+  const [backupDir, setBackupDir] = useState(competition.settings?.backupDir ?? '');
+  // Niveau GREG de la publication des résultats (#1328) ; absent = Autre
+  const [gregLevel, setGregLevel] = useState<GregLevel>(
+    competition.settings?.gregLevel ?? GREG_DEFAULT_LEVEL
+  );
+  const chooseBackupDir = () => {
+    void window.electronAPI?.backup?.pickCompetitionDir?.().then(dir => {
+      if (dir) setBackupDir(dir);
+    });
+  };
   const [poolWinnersOnly, setPoolWinnersOnly] = useState(
     competition.settings?.poolWinnersOnly ?? false
   );
@@ -142,6 +161,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) {
+      setActiveTab('general');
+      return;
+    }
 
     const questConfig: QuestPhaseConfig | undefined =
       weapon === Weapon.LASER && questEnabled
@@ -168,6 +191,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       hasDirectElimination,
       thirdPlaceMatch,
       signTableauMatches,
+      poolBoutOrder,
       playAllPositions,
       defaultPoolMaxScore: poolMaxScore,
       defaultTableMaxScore: tableMaxScore,
@@ -183,6 +207,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       blackCardEnabled,
       trainerCommentsEnabled,
       expertMode,
+      // Vide = pas de dossier dédié : clé retirée (JSON), le dossier global s'applique
+      backupDir: backupDir || undefined,
+      gregLevel,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
       poolWinnersOnly,
@@ -208,231 +235,606 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const isOlympicWeapon =
     weapon === Weapon.EPEE || weapon === Weapon.FOIL || weapon === Weapon.SABRE;
 
-  function renderStandardFormula() {
-    if (isCustomWeapon) return null;
+  type TabId = 'general' | 'config' | 'formula' | 'refereeing';
+  const TABS: { id: TabId; label: string }[] = [
+    { id: 'general', label: t('properties.general_info') },
+    { id: 'config', label: t('properties.configuration') },
+    { id: 'formula', label: t('properties.formula') },
+    { id: 'refereeing', label: t('properties.refereeing') },
+  ];
+  const [activeTab, setActiveTab] = useState<TabId>('general');
+
+  function renderGeneral() {
     return (
-      <React.Fragment>
+      <div>
+        <div className="form-group">
+          <label>{t('properties.backup_dir_label')}</label>
+          <p style={HINT}>{t('properties.backup_dir_hint')}</p>
+          <p style={HINT} data-testid="competition-backup-dir">
+            <code>{backupDir || t('properties.backup_dir_none')}</code>
+          </p>
+          <div className="u-row">
+            <Button type="button" style={SM} onClick={chooseBackupDir}>
+              {t('properties.backup_dir_choose')}
+            </Button>
+            {backupDir && (
+              <Button type="button" style={SM} onClick={() => setBackupDir('')}>
+                {t('properties.backup_dir_clear')}
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="title">{t('competition.title')}</label>
+          <input
+            type="text"
+            id="title"
+            className="form-input"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            required
+          />
+        </div>
+
         <div style={GRID2}>
-          {(!questEnabled || questHasPools) && (
-            <div className="form-group">
-              <label htmlFor="poolRounds">{t('settings.pool_rounds')}</label>
-              <select
-                id="poolRounds"
-                className="form-input form-select"
-                value={questEnabled && questHasPools ? 1 : poolRounds}
-                onChange={e => setPoolRounds(parseInt(e.target.value))}
-                disabled={questEnabled && questHasPools}
-              >
-                <option value="1">{t('properties.one_round')}</option>
-                <option value="2">{t('properties.two_rounds')}</option>
-                <option value="3">{t('properties.three_rounds')}</option>
-              </select>
-              <small style={HINT}>
-                {questEnabled && questHasPools
-                  ? '1 tour imposé avant le Tour Quest'
-                  : 'Nombre de phases de poules avant le tableau'}
-              </small>
-              {!questEnabled &&
-                Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
-                  <div key={i} className="is-0dc8cc">
-                    <label htmlFor={`poolRoundQualifiers-${i}`}>
-                      {t('properties.qualified_round')} {i + 2}
+          <div className="form-group">
+            <label htmlFor="date">{t('competition.date')}</label>
+            <input
+              type="date"
+              id="date"
+              className="form-input"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="location">{t('competition.location')}</label>
+            <input
+              type="text"
+              id="location"
+              className="form-input"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="organizer">{t('competition.organizer')}</label>
+          <input
+            type="text"
+            id="organizer"
+            className="form-input"
+            value={organizer}
+            onChange={e => setOrganizer(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="greg-level">{t('properties.greg_level_label')}</label>
+          <select
+            id="greg-level"
+            className="form-input form-select"
+            value={gregLevel}
+            onChange={e => setGregLevel(e.target.value as GregLevel)}
+          >
+            {GREG_LEVELS.map(code => (
+              <option key={code} value={code}>
+                {t(`properties.greg_level_${code}`)}
+              </option>
+            ))}
+          </select>
+          <div style={HINT}>{t('properties.greg_level_hint')}</div>
+        </div>
+        <div className="is-80ae82">
+          <div className="form-group">
+            <label htmlFor="weapon">{t('competition.weapon')}</label>
+            <select
+              id="weapon"
+              className="form-input form-select"
+              value={weapon}
+              onChange={e => {
+                const w = e.target.value as Weapon;
+                setWeapon(w);
+                if (w === Weapon.LASER) setGender(Gender.MIXED);
+              }}
+            >
+              <option value="E">{t('weapons.epee')}</option>
+              <option value="F">{t('weapons.foil')}</option>
+              <option value="S">{t('weapons.sabre')}</option>
+              <option value="L">{t('weapons.laser')}</option>
+              <option value="C">{t('properties.weapon_custom')}</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="gender">{t('competition.gender')}</label>
+            <select
+              id="gender"
+              className="form-input form-select"
+              value={gender}
+              onChange={e => setGender(e.target.value as Gender)}
+            >
+              <option value="M">{t('genders.male')}</option>
+              <option value="F">{t('genders.female')}</option>
+              <option value="X">{t('genders.mixed')}</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="category">{t('competition.category')}</label>
+            <select
+              id="category"
+              className="form-input form-select"
+              value={category}
+              onChange={e => setCategory(e.target.value as Category)}
+            >
+              <option value={Category.U9}>{t('categories.U9')}</option>
+              <option value={Category.U11}>{t('categories.U11')}</option>
+              <option value={Category.U13}>{t('categories.U13')}</option>
+              <option value={Category.U15}>{t('categories.U15')}</option>
+              <option value={Category.U17}>{t('categories.U17')}</option>
+              <option value={Category.U20}>{t('categories.U20')}</option>
+              <option value={Category.SENIOR}>{t('categories.senior')}</option>
+              <option value={Category.V1}>{t('categories.V1')}</option>
+              <option value={Category.V2}>{t('categories.V2')}</option>
+              <option value={Category.V3}>{t('categories.V3')}</option>
+              <option value={Category.V4}>{t('categories.V4')}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderConfig() {
+    return (
+      <div>
+        {!isCustomWeapon && (
+          <>
+            <div style={GRID2}>
+              {(!questEnabled || questHasPools) && (
+                <div className="form-group">
+                  <label htmlFor="poolRounds">{t('settings.pool_rounds')}</label>
+                  <select
+                    id="poolRounds"
+                    className="form-input form-select"
+                    value={questEnabled && questHasPools ? 1 : poolRounds}
+                    onChange={e => setPoolRounds(parseInt(e.target.value))}
+                    disabled={questEnabled && questHasPools}
+                  >
+                    <option value="1">{t('properties.one_round')}</option>
+                    <option value="2">{t('properties.two_rounds')}</option>
+                    <option value="3">{t('properties.three_rounds')}</option>
+                  </select>
+                  <small style={HINT}>
+                    {questEnabled && questHasPools
+                      ? '1 tour imposé avant le Tour Quest'
+                      : 'Nombre de phases de poules avant le tableau'}
+                  </small>
+                  {!questEnabled &&
+                    Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
+                      <div key={i} className="is-0dc8cc">
+                        <label htmlFor={`poolRoundQualifiers-${i}`}>
+                          {t('properties.qualified_round')} {i + 2}
+                        </label>
+                        <input
+                          id={`poolRoundQualifiers-${i}`}
+                          type="number"
+                          min={0}
+                          className="form-input"
+                          value={poolRoundQualifiers[i] ?? 0}
+                          onChange={e => {
+                            const n = Math.max(0, parseInt(e.target.value) || 0);
+                            setPoolRoundQualifiers(prev => {
+                              const next = [...prev];
+                              next[i] = n;
+                              return next;
+                            });
+                          }}
+                        />
+                        <small style={HINT}>{t('properties.qualified_round_hint')}</small>
+                      </div>
+                    ))}
+                </div>
+              )}
+              <div className="form-group">
+                <label htmlFor="hasDirectElimination">{t('properties.direct_elimination')}</label>
+                <select
+                  id="hasDirectElimination"
+                  className="form-input form-select"
+                  value={hasDirectElimination ? 'true' : 'false'}
+                  onChange={e => setHasDirectElimination(e.target.value === 'true')}
+                >
+                  <option value="true">{t('properties.enabled')}</option>
+                  <option value="false">{t('properties.disabled')}</option>
+                </select>
+                <small style={HINT}>
+                  {hasDirectElimination
+                    ? 'Tableau après les poules'
+                    : 'Classement final sur les poules'}
+                </small>
+              </div>
+            </div>
+            {!questEnabled && (
+              <div className="mt-4">
+                <div className="form-group">
+                  <label htmlFor="postPoolSplitCriteria">{t('properties.coupled')}</label>
+                  <select
+                    id="postPoolSplitCriteria"
+                    className="form-input form-select"
+                    value={postPoolSplitCriteria}
+                    onChange={e =>
+                      setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')
+                    }
+                  >
+                    <option value="">{t('properties.coupled_none')}</option>
+                    <option value="gender">{t('properties.coupled_gender')}</option>
+                  </select>
+                  <small style={HINT}>{t('properties.coupled_hint')}</small>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="poolBoutOrder">{t('properties.bout_order')}</label>
+                  <select
+                    id="poolBoutOrder"
+                    className="form-input form-select"
+                    value={poolBoutOrder}
+                    onChange={e => setPoolBoutOrder(e.target.value as 'fie' | 'free')}
+                  >
+                    <option value="fie">{t('properties.bout_order_fie')}</option>
+                    <option value="free">{t('properties.bout_order_free')}</option>
+                  </select>
+                  <small style={HINT}>{t('properties.bout_order_hint')}</small>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+        {weapon === Weapon.LASER && (
+          <div style={MB1}>
+            <h3 className="is-18e387">{t('properties.quest_round')}</h3>
+
+            {/* Oui / Non */}
+            <div className="form-group is-b57afc">
+              <label style={FIELD_LABEL}>{t('properties.quest_enabled')}</label>
+              <div style={FLEX1}>
+                <label style={CHECK_LABEL}>
+                  <input
+                    type="radio"
+                    name="questEnabled"
+                    checked={!questEnabled}
+                    onChange={() => handleQuestEnabledChange(false)}
+                  />
+                  {t('actions.no')}
+                </label>
+                <label style={CHECK_LABEL}>
+                  <input
+                    type="radio"
+                    name="questEnabled"
+                    checked={questEnabled}
+                    onChange={() => handleQuestEnabledChange(true)}
+                  />
+                  {t('actions.yes')}
+                </label>
+              </div>
+            </div>
+
+            {questEnabled && (
+              <div className="is-3aae76">
+                {/* Sans / Avec poules préliminaires */}
+                <div className="form-group">
+                  <label style={FIELD_LABEL}>{t('properties.preliminary_pools')}</label>
+                  <div style={FLEX1}>
+                    <label style={CHECK_LABEL}>
+                      <input
+                        type="radio"
+                        name="questHasPools"
+                        checked={!questHasPools}
+                        onChange={() => handleQuestHasPoolsChange(false)}
+                      />
+                      {t('properties.quest_without_pools')}
+                    </label>
+                    <label style={CHECK_LABEL}>
+                      <input
+                        type="radio"
+                        name="questHasPools"
+                        checked={questHasPools}
+                        onChange={() => handleQuestHasPoolsChange(true)}
+                      />
+                      {t('properties.quest_with_pools')}
+                    </label>
+                  </div>
+                </div>
+
+                {/* Nombre de qualifiés */}
+                {questHasPools && (
+                  <div className="form-group">
+                    <label htmlFor="questQualifiers" style={SM}>
+                      {t('properties.quest_qualified')}
                     </label>
                     <input
-                      id={`poolRoundQualifiers-${i}`}
                       type="number"
-                      min={0}
-                      className="form-input"
-                      value={poolRoundQualifiers[i] ?? 0}
-                      onChange={e => {
-                        const n = Math.max(0, parseInt(e.target.value) || 0);
-                        setPoolRoundQualifiers(prev => {
-                          const next = [...prev];
-                          next[i] = n;
-                          return next;
-                        });
-                      }}
+                      id="questQualifiers"
+                      className="form-input is-9829e6"
+                      value={questQualifiers}
+                      min={2}
+                      onChange={e => setQuestQualifiers(Math.max(2, parseInt(e.target.value) || 2))}
                     />
-                    <small style={HINT}>{t('properties.qualified_round_hint')}</small>
                   </div>
-                ))}
-            </div>
-          )}
-          <div className="form-group">
-            <label htmlFor="hasDirectElimination">{t('properties.direct_elimination')}</label>
-            <select
-              id="hasDirectElimination"
-              className="form-input form-select"
-              value={hasDirectElimination ? 'true' : 'false'}
-              onChange={e => setHasDirectElimination(e.target.value === 'true')}
-            >
-              <option value="true">{t('properties.enabled')}</option>
-              <option value="false">{t('properties.disabled')}</option>
-            </select>
-            <small style={HINT}>
-              {hasDirectElimination
-                ? 'Tableau après les poules'
-                : 'Classement final sur les poules'}
-            </small>
-          </div>
-        </div>
-        <div className="is-cf6b91">
-          <div className="form-group">
-            <label htmlFor="poolMaxScore">{t('properties.pool_max_score')}</label>
-            <input
-              type="number"
-              id="poolMaxScore"
-              className="form-input"
-              value={poolMaxScore}
-              onChange={e => setPoolMaxScore(Math.max(1, parseInt(e.target.value) || 1))}
-              min="1"
-              placeholder="21"
-            />
-            <small style={HINT}>{t('properties.pool_max_score_hint')}</small>
-          </div>
-          <div className="form-group">
-            <label htmlFor="poolTimerSeconds">{t('properties.pool_timer')}</label>
-            <input
-              type="number"
-              id="poolTimerSeconds"
-              className="form-input"
-              value={poolTimerSeconds}
-              onChange={e => setPoolTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))}
-              min="1"
-              placeholder="180"
-            />
-            <small style={HINT}>
-              {`${Math.floor(poolTimerSeconds / 60)}min ${poolTimerSeconds % 60}s par match de poule`}
-            </small>
-          </div>
-          {hasDirectElimination && (
-            <div className="form-group">
-              <label htmlFor="tableMaxScore">{t('properties.table_max_score')}</label>
-              <input
-                type="number"
-                id="tableMaxScore"
-                className="form-input"
-                value={tableMaxScore}
-                onChange={e => setTableMaxScore(parseInt(e.target.value) || 0)}
-                min="0"
-                placeholder="21"
-              />
-              <small style={HINT}>
-                {tableMaxScore === 0
-                  ? '0 = illimité (pas de limite)'
-                  : `${tableMaxScore} touches pour gagner`}
-              </small>
-            </div>
-          )}
-          {isOlympicWeapon && (
-            <div className="form-group">
-              <label htmlFor="restTimeSeconds">{t('properties.rest_time')}</label>
-              <input
-                type="number"
-                id="restTimeSeconds"
-                className="form-input"
-                value={restTimeSeconds}
-                onChange={e => setRestTimeSeconds(Math.max(0, parseInt(e.target.value) || 0))}
-                min="0"
-                placeholder="60"
-              />
-              <small style={HINT}>
-                {restTimeSeconds === 0
-                  ? '0 = bouton « Repos » désactivé'
-                  : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
-              </small>
-            </div>
-          )}
-          {hasDirectElimination && (
-            <>
-              <div className="form-group">
-                <label htmlFor="tableTimerSeconds">{t('properties.table_timer')}</label>
-                <input
-                  type="number"
-                  id="tableTimerSeconds"
-                  className="form-input"
-                  value={tableTimerSeconds}
-                  onChange={e => setTableTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))}
-                  min="1"
-                  placeholder="180"
-                />
-                <small style={HINT}>
-                  {`${Math.floor(tableTimerSeconds / 60)}min ${tableTimerSeconds % 60}s par match tableau`}
+                )}
+
+                <small className="is-f233f0">
+                  {questHasPools
+                    ? `Formule : 1 tour de poules → Top ${questQualifiers} qualifiés → Tour Quest → Tableau`
+                    : 'Formule : Tour Quest direct → Tableau'}
                 </small>
               </div>
-              <div className="form-group">
-                <label>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderFormula() {
+    return (
+      <div>
+        {isCustomWeapon && (
+          <FormulaBuilder
+            formula={customFormula}
+            fencerCount={32}
+            onChange={setCustomFormula}
+            advancementDisabled={isRapieresMode(competition.weapon, competition.settings)}
+            defaultRuleSet={
+              isRapieresMode(competition.weapon, competition.settings) ? 'modern' : 'laser'
+            }
+          />
+        )}
+        {!isCustomWeapon && (
+          <>
+            <fieldset className="properties-group">
+              <legend>{t('properties.group_scores')}</legend>
+              <div style={GRID2}>
+                <div className="form-group">
+                  <label htmlFor="poolMaxScore">{t('properties.pool_max_score')}</label>
                   <input
-                    type="checkbox"
-                    checked={thirdPlaceMatch}
-                    onChange={e => setThirdPlaceMatch(e.target.checked)}
-                    style={MR}
+                    type="number"
+                    id="poolMaxScore"
+                    className="form-input"
+                    value={poolMaxScore}
+                    onChange={e => setPoolMaxScore(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                    placeholder="21"
                   />
-                  {t('competition.third_place_match_label')}
-                </label>
-                <small style={HINT_INDENT}>{t('competition.third_place_match_description')}</small>
+                  <small style={HINT}>{t('properties.pool_max_score_hint')}</small>
+                </div>
+                {hasDirectElimination && (
+                  <div className="form-group">
+                    <label htmlFor="tableMaxScore">{t('properties.table_max_score')}</label>
+                    <input
+                      type="number"
+                      id="tableMaxScore"
+                      className="form-input"
+                      value={tableMaxScore}
+                      onChange={e => setTableMaxScore(parseInt(e.target.value) || 0)}
+                      min="0"
+                      placeholder="21"
+                    />
+                    <small style={HINT}>
+                      {tableMaxScore === 0
+                        ? '0 = illimité (pas de limite)'
+                        : `${tableMaxScore} touches pour gagner`}
+                    </small>
+                  </div>
+                )}
               </div>
-              <div className="form-group">
-                <label>
+            </fieldset>
+            <fieldset className="properties-group">
+              <legend>{t('properties.group_timing')}</legend>
+              <div style={GRID2}>
+                <div className="form-group">
+                  <label htmlFor="poolTimerSeconds">{t('properties.pool_timer')}</label>
                   <input
-                    type="checkbox"
-                    checked={signTableauMatches}
-                    onChange={e => setSignTableauMatches(e.target.checked)}
-                    style={MR}
+                    type="number"
+                    id="poolTimerSeconds"
+                    className="form-input"
+                    value={poolTimerSeconds}
+                    onChange={e =>
+                      setPoolTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))
+                    }
+                    min="1"
+                    placeholder="180"
                   />
-                  {t('competition.sign_tableau_matches_label')}
-                </label>
-                <small style={HINT_INDENT}>
-                  {t('competition.sign_tableau_matches_description')}
-                </small>
+                  <small style={HINT}>
+                    {`${Math.floor(poolTimerSeconds / 60)}min ${poolTimerSeconds % 60}s par match de poule`}
+                  </small>
+                </div>
+                {isOlympicWeapon && (
+                  <div className="form-group">
+                    <label htmlFor="restTimeSeconds">{t('properties.rest_time')}</label>
+                    <input
+                      type="number"
+                      id="restTimeSeconds"
+                      className="form-input"
+                      value={restTimeSeconds}
+                      onChange={e => setRestTimeSeconds(Math.max(0, parseInt(e.target.value) || 0))}
+                      min="0"
+                      placeholder="60"
+                    />
+                    <small style={HINT}>
+                      {restTimeSeconds === 0
+                        ? '0 = bouton « Repos » désactivé'
+                        : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
+                    </small>
+                  </div>
+                )}
+                {hasDirectElimination && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="tableTimerSeconds">{t('properties.table_timer')}</label>
+                      <input
+                        type="number"
+                        id="tableTimerSeconds"
+                        className="form-input"
+                        value={tableTimerSeconds}
+                        onChange={e =>
+                          setTableTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))
+                        }
+                        min="1"
+                        placeholder="180"
+                      />
+                      <small style={HINT}>
+                        {`${Math.floor(tableTimerSeconds / 60)}min ${tableTimerSeconds % 60}s par match tableau`}
+                      </small>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={playAllPositions}
-                    onChange={e => setPlayAllPositions(e.target.checked)}
-                    style={MR}
-                  />
-                  {t('properties.all_places')}
-                </label>
-                <small style={HINT_INDENT}>{t('properties.all_places_hint')}</small>
-              </div>
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={poolWinnersOnly}
-                    onChange={e => setPoolWinnersOnly(e.target.checked)}
-                    style={MR}
-                  />
-                  {t('properties.pool_winners_only')}
-                </label>
-                <small style={HINT_INDENT}>{t('properties.pool_winners_only_hint')}</small>
-              </div>
-            </>
-          )}
+            </fieldset>
+            {hasDirectElimination && (
+              <fieldset className="properties-group">
+                <legend>{t('properties.group_options')}</legend>
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={thirdPlaceMatch}
+                      onChange={e => setThirdPlaceMatch(e.target.checked)}
+                      style={MR}
+                    />
+                    {t('competition.third_place_match_label')}
+                  </label>
+                  <small style={HINT_INDENT}>
+                    {t('competition.third_place_match_description')}
+                  </small>
+                </div>
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={signTableauMatches}
+                      onChange={e => setSignTableauMatches(e.target.checked)}
+                      style={MR}
+                    />
+                    {t('competition.sign_tableau_matches_label')}
+                  </label>
+                  <small style={HINT_INDENT}>
+                    {t('competition.sign_tableau_matches_description')}
+                  </small>
+                </div>
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={playAllPositions}
+                      onChange={e => setPlayAllPositions(e.target.checked)}
+                      style={MR}
+                    />
+                    {t('properties.all_places')}
+                  </label>
+                  <small style={HINT_INDENT}>{t('properties.all_places_hint')}</small>
+                </div>
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={poolWinnersOnly}
+                      onChange={e => setPoolWinnersOnly(e.target.checked)}
+                      style={MR}
+                    />
+                    {t('properties.pool_winners_only')}
+                  </label>
+                  <small style={HINT_INDENT}>{t('properties.pool_winners_only_hint')}</small>
+                </div>
+              </fieldset>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  function renderRefereeing() {
+    return (
+      <div>
+        <div className="form-group">
+          <label style={CHECK_LABEL_SM}>
+            <input
+              type="checkbox"
+              checked={refereeFeatureEnabled}
+              onChange={e => setRefereeFeatureEnabled(e.target.checked)}
+            />
+            {t('properties.referees_enable')}
+          </label>
+          <small style={HINT_INDENT}>{t('properties.referees_enable_hint')}</small>
         </div>
-        {!questEnabled && (
-          <div className="mt-4">
+        <div className="form-group is-342d98">
+          <label style={CHECK_LABEL_SM}>
+            <input
+              type="checkbox"
+              checked={blackCardEnabled}
+              onChange={e => setBlackCardEnabled(e.target.checked)}
+            />
+            {t('properties.black_card_enable')}
+          </label>
+          <small style={HINT_INDENT}>{t('properties.black_card_hint')}</small>
+        </div>
+        <div className="form-group is-342d98">
+          <label style={CHECK_LABEL_SM}>
+            <input
+              type="checkbox"
+              checked={trainerCommentsEnabled}
+              onChange={e => setTrainerCommentsEnabled(e.target.checked)}
+            />
+            {t('properties.trainers_enable')}
+          </label>
+          <small style={HINT_INDENT}>{t('properties.trainers_hint')}</small>
+        </div>
+        <div className="form-group is-342d98">
+          <label style={CHECK_LABEL_SM}>
+            <input
+              type="checkbox"
+              checked={expertMode}
+              onChange={e => setExpertMode(e.target.checked)}
+            />
+            {t('properties.expert_mode')}
+          </label>
+          <small style={HINT_INDENT}>{t('properties.expert_mode_hint')}</small>
+        </div>
+        {expertMode && (
+          <div className="is-70cddd">
             <div className="form-group">
-              <label htmlFor="postPoolSplitCriteria">{t('properties.coupled')}</label>
-              <select
-                id="postPoolSplitCriteria"
-                className="form-input form-select"
-                value={postPoolSplitCriteria}
-                onChange={e =>
-                  setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')
-                }
-              >
-                <option value="">{t('properties.coupled_none')}</option>
-                <option value="gender">{t('properties.coupled_gender')}</option>
-              </select>
-              <small style={HINT}>{t('properties.coupled_hint')}</small>
+              <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: 'var(--color-text)' }}>
+                {t('properties.max_referees_pool')}
+              </label>
+              <input
+                type="number"
+                id="maxRefereesPerPool"
+                className="form-input"
+                value={maxRefereesPerPool}
+                min={1}
+                max={10}
+                onChange={e => setMaxRefereesPerPool(Math.max(1, parseInt(e.target.value) || 1))}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="maxRefereesPerMatch" style={{ ...SM, color: 'var(--color-text)' }}>
+                {t('properties.max_referees_match')}
+              </label>
+              <input
+                type="number"
+                id="maxRefereesPerMatch"
+                className="form-input"
+                value={maxRefereesPerMatch}
+                min={1}
+                max={10}
+                onChange={e => setMaxRefereesPerMatch(Math.max(1, parseInt(e.target.value) || 1))}
+              />
             </div>
           </div>
         )}
-      </React.Fragment>
+      </div>
     );
   }
 
@@ -441,340 +843,61 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
     <div className="modal-overlay">
       <div
         ref={modalRef}
-        className="modal"
+        className="modal properties-modal"
         onClick={e => e.stopPropagation()}
         style={{
-          maxWidth: weapon === Weapon.CUSTOM ? '92vw' : '550px',
-          width: weapon === Weapon.CUSTOM ? '1100px' : undefined,
+          maxWidth: weapon === Weapon.CUSTOM ? '96vw' : '800px',
+          // Format à la carte : plus large pour que la simulation ne soit pas coupée (#1826)
+          width: weapon === Weapon.CUSTOM ? '1280px' : undefined,
         }}
         role="dialog"
         aria-modal="true"
       >
         <div className="modal-header">
           <h2>{t('menu.competition_properties')}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-body">
-          {/* Informations générales */}
-          <div style={MB15}>
-            <h3 className="is-18e387">{t('properties.general_info')}</h3>
-
-            <div className="form-group">
-              <label htmlFor="title">{t('competition.title')}</label>
-              <input
-                type="text"
-                id="title"
-                className="form-input"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                required
-              />
-            </div>
-
-            <div style={GRID2}>
-              <div className="form-group">
-                <label htmlFor="date">{t('competition.date')}</label>
-                <input
-                  type="date"
-                  id="date"
-                  className="form-input"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="location">{t('competition.location')}</label>
-                <input
-                  type="text"
-                  id="location"
-                  className="form-input"
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="organizer">{t('competition.organizer')}</label>
-              <input
-                type="text"
-                id="organizer"
-                className="form-input"
-                value={organizer}
-                onChange={e => setOrganizer(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Configuration */}
-          <div style={MB15}>
-            <h3 className="is-18e387">{t('properties.configuration')}</h3>
-
-            <div className="is-80ae82">
-              <div className="form-group">
-                <label htmlFor="weapon">{t('competition.weapon')}</label>
-                <select
-                  id="weapon"
-                  className="form-input form-select"
-                  value={weapon}
-                  onChange={e => {
-                    const w = e.target.value as Weapon;
-                    setWeapon(w);
-                    if (w === Weapon.LASER) setGender(Gender.MIXED);
-                  }}
+          <div className="settings-layout">
+            <nav className="settings-nav" role="tablist" aria-orientation="vertical">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`properties-tab-${tab.id}`}
+                  aria-selected={tab.id === activeTab}
+                  aria-controls="properties-panel"
+                  className={`settings-nav-item${tab.id === activeTab ? ' is-active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
                 >
-                  <option value="E">{t('weapons.epee')}</option>
-                  <option value="F">{t('weapons.foil')}</option>
-                  <option value="S">{t('weapons.sabre')}</option>
-                  <option value="L">{t('weapons.laser')}</option>
-                  <option value="C">{t('properties.weapon_custom')}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="gender">{t('competition.gender')}</label>
-                <select
-                  id="gender"
-                  className="form-input form-select"
-                  value={gender}
-                  onChange={e => setGender(e.target.value as Gender)}
-                >
-                  <option value="M">{t('genders.male')}</option>
-                  <option value="F">{t('genders.female')}</option>
-                  <option value="X">{t('genders.mixed')}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category">{t('competition.category')}</label>
-                <select
-                  id="category"
-                  className="form-input form-select"
-                  value={category}
-                  onChange={e => setCategory(e.target.value as Category)}
-                >
-                  <option value={Category.U9}>{t('categories.U9')}</option>
-                  <option value={Category.U11}>{t('categories.U11')}</option>
-                  <option value={Category.U13}>{t('categories.U13')}</option>
-                  <option value={Category.U15}>{t('categories.U15')}</option>
-                  <option value={Category.U17}>{t('categories.U17')}</option>
-                  <option value={Category.U20}>{t('categories.U20')}</option>
-                  <option value={Category.SENIOR}>{t('categories.senior')}</option>
-                  <option value={Category.V1}>{t('categories.V1')}</option>
-                  <option value={Category.V2}>{t('categories.V2')}</option>
-                  <option value={Category.V3}>{t('categories.V3')}</option>
-                  <option value={Category.V4}>{t('categories.V4')}</option>
-                </select>
-              </div>
+                  <span className="settings-nav-label">{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div
+              className="settings-panel"
+              id="properties-panel"
+              role="tabpanel"
+              aria-labelledby={`properties-tab-${activeTab}`}
+            >
+              {activeTab === 'general' && renderGeneral()}
+              {activeTab === 'config' && renderConfig()}
+              {activeTab === 'formula' && renderFormula()}
+              {activeTab === 'refereeing' && renderRefereeing()}
             </div>
-          </div>
-
-          {/* Paramètres de formule */}
-          <div style={MB1}>
-            <h3 className="is-18e387">{t('properties.formula')}</h3>
-
-            {/* Formule à la carte — remplace tout le reste pour arme CUSTOM */}
-            {isCustomWeapon && (
-              <FormulaBuilder
-                formula={customFormula}
-                fencerCount={32}
-                onChange={setCustomFormula}
-                advancementDisabled={isRapieresMode(competition.weapon, competition.settings)}
-                defaultRuleSet={
-                  isRapieresMode(competition.weapon, competition.settings) ? 'modern' : 'laser'
-                }
-              />
-            )}
-
-            {renderStandardFormula()}
-          </div>
-
-          {/* Tour Quest — visible uniquement pour Sabre Laser */}
-          {weapon === Weapon.LASER && (
-            <div style={MB1}>
-              <h3 className="is-18e387">{t('properties.quest_round')}</h3>
-
-              {/* Oui / Non */}
-              <div className="form-group is-b57afc">
-                <label style={FIELD_LABEL}>{t('properties.quest_enabled')}</label>
-                <div style={FLEX1}>
-                  <label style={CHECK_LABEL}>
-                    <input
-                      type="radio"
-                      name="questEnabled"
-                      checked={!questEnabled}
-                      onChange={() => handleQuestEnabledChange(false)}
-                    />
-                    {t('actions.no')}
-                  </label>
-                  <label style={CHECK_LABEL}>
-                    <input
-                      type="radio"
-                      name="questEnabled"
-                      checked={questEnabled}
-                      onChange={() => handleQuestEnabledChange(true)}
-                    />
-                    {t('actions.yes')}
-                  </label>
-                </div>
-              </div>
-
-              {questEnabled && (
-                <div className="is-3aae76">
-                  {/* Sans / Avec poules préliminaires */}
-                  <div className="form-group">
-                    <label style={FIELD_LABEL}>{t('properties.preliminary_pools')}</label>
-                    <div style={FLEX1}>
-                      <label style={CHECK_LABEL}>
-                        <input
-                          type="radio"
-                          name="questHasPools"
-                          checked={!questHasPools}
-                          onChange={() => handleQuestHasPoolsChange(false)}
-                        />
-                        {t('properties.quest_without_pools')}
-                      </label>
-                      <label style={CHECK_LABEL}>
-                        <input
-                          type="radio"
-                          name="questHasPools"
-                          checked={questHasPools}
-                          onChange={() => handleQuestHasPoolsChange(true)}
-                        />
-                        {t('properties.quest_with_pools')}
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Nombre de qualifiés */}
-                  {questHasPools && (
-                    <div className="form-group">
-                      <label htmlFor="questQualifiers" style={SM}>
-                        {t('properties.quest_qualified')}
-                      </label>
-                      <input
-                        type="number"
-                        id="questQualifiers"
-                        className="form-input is-9829e6"
-                        value={questQualifiers}
-                        min={2}
-                        onChange={e =>
-                          setQuestQualifiers(Math.max(2, parseInt(e.target.value) || 2))
-                        }
-                      />
-                    </div>
-                  )}
-
-                  <small className="is-f233f0">
-                    {questHasPools
-                      ? `Formule : 1 tour de poules → Top ${questQualifiers} qualifiés → Tour Quest → Tableau`
-                      : 'Formule : Tour Quest direct → Tableau'}
-                  </small>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Gestion des arbitres */}
-          <div style={MB1}>
-            <h3 className="is-18e387">{t('properties.refereeing')}</h3>
-            <div className="form-group">
-              <label style={CHECK_LABEL_SM}>
-                <input
-                  type="checkbox"
-                  checked={refereeFeatureEnabled}
-                  onChange={e => setRefereeFeatureEnabled(e.target.checked)}
-                />
-                {t('properties.referees_enable')}
-              </label>
-              <small style={HINT_INDENT}>{t('properties.referees_enable_hint')}</small>
-            </div>
-            <div className="form-group is-342d98">
-              <label style={CHECK_LABEL_SM}>
-                <input
-                  type="checkbox"
-                  checked={blackCardEnabled}
-                  onChange={e => setBlackCardEnabled(e.target.checked)}
-                />
-                {t('properties.black_card_enable')}
-              </label>
-              <small style={HINT_INDENT}>{t('properties.black_card_hint')}</small>
-            </div>
-            <div className="form-group is-342d98">
-              <label style={CHECK_LABEL_SM}>
-                <input
-                  type="checkbox"
-                  checked={trainerCommentsEnabled}
-                  onChange={e => setTrainerCommentsEnabled(e.target.checked)}
-                />
-                {t('properties.trainers_enable')}
-              </label>
-              <small style={HINT_INDENT}>{t('properties.trainers_hint')}</small>
-            </div>
-            <div className="form-group is-342d98">
-              <label style={CHECK_LABEL_SM}>
-                <input
-                  type="checkbox"
-                  checked={expertMode}
-                  onChange={e => setExpertMode(e.target.checked)}
-                />
-                {t('properties.expert_mode')}
-              </label>
-              <small style={HINT_INDENT}>{t('properties.expert_mode_hint')}</small>
-            </div>
-            {expertMode && (
-              <div className="is-70cddd">
-                <div className="form-group">
-                  <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: 'var(--color-text)' }}>
-                    {t('properties.max_referees_pool')}
-                  </label>
-                  <input
-                    type="number"
-                    id="maxRefereesPerPool"
-                    className="form-input"
-                    value={maxRefereesPerPool}
-                    min={1}
-                    max={10}
-                    onChange={e =>
-                      setMaxRefereesPerPool(Math.max(1, parseInt(e.target.value) || 1))
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label
-                    htmlFor="maxRefereesPerMatch"
-                    style={{ ...SM, color: 'var(--color-text)' }}
-                  >
-                    {t('properties.max_referees_match')}
-                  </label>
-                  <input
-                    type="number"
-                    id="maxRefereesPerMatch"
-                    className="form-input"
-                    value={maxRefereesPerMatch}
-                    min={1}
-                    max={10}
-                    onChange={e =>
-                      setMaxRefereesPerMatch(Math.max(1, parseInt(e.target.value) || 1))
-                    }
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('properties.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

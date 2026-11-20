@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { RemoteSession, ArenaMatch } from '../../shared/types/remote';
+import type { Fencer } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
 import { DemoPlayer } from './demoMode';
@@ -132,8 +133,8 @@ export function createTrainingMatch(): ArenaMatch {
   return {
     id: `training-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     poolId: '__training__',
-    fencerA: { id: 'training-A', firstName: '', lastName: 'Tireur A', club: '', ref: 0 } as any,
-    fencerB: { id: 'training-B', firstName: '', lastName: 'Tireur B', club: '', ref: 0 } as any,
+    fencerA: { id: 'training-A', firstName: '', lastName: 'Tireur A', club: '', ref: 0 } as Fencer,
+    fencerB: { id: 'training-B', firstName: '', lastName: 'Tireur B', club: '', ref: 0 } as Fencer,
     scoreA: 0,
     scoreB: 0,
     status: 'not_started',
@@ -141,3 +142,44 @@ export function createTrainingMatch(): ArenaMatch {
     endTime: null,
   };
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const TRAINING_SESSION_CONTEXT_KEYS = {
+  state: [
+    'poolFencersCache',
+    'poolSignaturesCache',
+    'sessionBlackCards',
+    'sessionMatchScores',
+    'isTrainingMode',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionCustomScoring',
+    'sessionKioskViews',
+    'sessionMatches',
+    'sessionModernRules',
+    'sessionPoolMaxScore',
+    'sessionPoolTimerSeconds',
+    'sessionRefereeFeatureEnabled',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableMaxScore',
+    'sessionTableTimerSeconds',
+    'sessionWeapon',
+    'trainingCustomRules',
+    'trainingHistory',
+    'arenas',
+    'demoPlayer',
+  ],
+  methods: [
+    'assignMatchToArena',
+    'createTrainingMatch',
+    'notifyKioskData',
+    'setArenaCount',
+    'startArenaMatch',
+    'updateArenaScore',
+    'finishArenaMatch',
+    'getScoreLimit',
+    'broadcastArenaUpdate',
+  ],
+} as const;

@@ -42,6 +42,7 @@ describe('ScoreAuditLog — colonne Arbitre (#1031)', () => {
             entry('e2', 'm2'),
             entry('e3', 'c1-t3', { poolNumber: null, tableauRound: 2, tableauPosition: 0 }),
             entry('e4', 'm4'),
+            entry('e5', 'm2', { changedBy: 'device' }),
           ]),
       },
       onScoreIpConflict: () => () => {},
@@ -63,6 +64,8 @@ describe('ScoreAuditLog — colonne Arbitre (#1031)', () => {
     expect(screen.getByText('Petit / Leroy')).toBeInTheDocument();
     // Auteur technique « ui » jamais affiché comme arbitre
     expect(screen.queryByText('ui')).not.toBeInTheDocument();
+    // Saisie de l'appareil de piste (Cyrano, #1720) : libellé dédié, même si un arbitre est assigné
+    expect(screen.getByText('Appareil de piste')).toBeInTheDocument();
   });
 });
 
@@ -94,5 +97,31 @@ describe('ScoreAuditLog — compacter / déplier (#1123)', () => {
 
     fireEvent.click(screen.getByText(/4 autres — déplier/));
     expect(screen.getAllByRole('row')).toHaveLength(13);
+  });
+});
+
+describe('ScoreAuditLog — motif de correction après tirage du tableau (#1996)', () => {
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: {
+        getScoreAuditLogByCompetition: vi.fn().mockResolvedValue([
+          entry('e1', 'm1', {
+            changedBy: 'correction',
+            reason: 'Correction après tirage du tableau, tableau conservé',
+          }),
+          entry('e2', 'm2', { changedBy: 'mcp', reason: 'mcp_entry' }),
+        ]),
+      },
+      onScoreIpConflict: () => () => {},
+    };
+  });
+
+  it('motif affiché pour une correction, motif technique masqué, auteur générique non affiché', async () => {
+    render(<ScoreAuditLog competitionId="c1" />);
+    expect(
+      await screen.findByText('Correction après tirage du tableau, tableau conservé')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('mcp_entry')).not.toBeInTheDocument();
+    expect(screen.queryByText('correction')).not.toBeInTheDocument();
   });
 });

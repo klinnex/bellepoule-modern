@@ -22,11 +22,11 @@ describe('i18n des pages distantes découpé par langue (#1213)', () => {
       document: { querySelectorAll: () => [], documentElement: {} },
       fetch: async () => ({ json: async () => ({ lang: 'en' }) }),
     });
-    expect(win.T('referee.time_up')).toBe('⏰ Temps écoulé !');
+    expect(win.T('referee.time_up')).toBe('Temps écoulé !');
     await win.initRemoteI18n();
-    expect(win.T('referee.time_up')).toBe("⏰ Time's up!");
+    expect(win.T('referee.time_up')).toBe("Time's up!");
     expect(win.T('referee.wins', { name: 'A', reason: 'coin toss' })).toBe(
-      '🏆 A wins the match (coin toss)'
+      'A wins the match (coin toss)'
     );
   });
 
@@ -56,6 +56,13 @@ describe('i18n des pages distantes découpé par langue (#1213)', () => {
   it('src/remote/js/kioskEta.js est bien servi', () => {
     const names = readRemoteSharedFiles(path.join(ROOT, 'src/remote')).map(([n]) => n);
     expect(names).toContain('js/kioskEta.js');
+  });
+
+  it('tokens.css servi et styles.css sans couleur hexadécimale en dur (#1538)', () => {
+    const remote = path.join(ROOT, 'src/remote');
+    const files = Object.fromEntries(readRemoteSharedFiles(remote));
+    expect(files['tokens.css']).toContain('--color-primary');
+    expect(files['styles.css']).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
   it('fichiers communs : absents ignorés, i18n.js concaténé', () => {

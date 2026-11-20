@@ -22,6 +22,9 @@ const SAFE_CALLS = new Set([
   'fmt',
   'formatTime',
   'pad',
+  'bpIcon',
+  'bpRank',
+  'bpCard',
 ]);
 const SAFE_METHODS = new Set(['toFixed', 'toString', 'padStart', 'toLocaleString']);
 /** Identifiants désignant du HTML déjà construit (audités à leur création) ou des nombres */

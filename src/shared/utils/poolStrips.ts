@@ -13,19 +13,22 @@ export interface PoolStripInput {
 
 export function computePoolStrips(
   pools: PoolStripInput[],
-  arenaCount: number
+  arenaCount: number,
+  stripStart = 1,
+  unavailable: readonly number[] = []
 ): Map<string, number> {
   const result = new Map<string, number>();
   const used = new Set<number>();
   const sorted = [...pools].sort((a, b) => a.number - b.number);
   for (const p of sorted) {
     const s = Number(p.strip);
-    if (Number.isInteger(s) && s > 0 && s <= arenaCount) {
+    if (Number.isInteger(s) && s >= stripStart && s <= arenaCount) {
       result.set(p.id, s);
       used.add(s);
     }
   }
-  let next = 1;
+  let next = stripStart;
+  unavailable.forEach(n => used.add(n));
   for (const p of sorted) {
     if (result.has(p.id)) continue;
     while (used.has(next)) next++;

@@ -3,10 +3,11 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import type { ArenaUpdate } from '../../shared/types/remote';
+import type { Arena, ArenaUpdate } from '../../shared/types/remote';
 import { getSharedMainWindow } from '../mainWindowRef';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { needsLeftHandedSwap } from '../../shared/utils/handedness';
 
 type S = RemoteScoreServer;
 
@@ -36,13 +37,16 @@ export interface ArenaBroadcastContext {
   readonly sessionShowPhotos: S['sessionShowPhotos'];
   readonly sessionTableTimerSeconds: S['sessionTableTimerSeconds'];
   readonly sessionTheme: S['sessionTheme'];
+  readonly sessionWeapon: S['sessionWeapon'];
+  /** Rappel Cyrano : envoi DISP quand le match change (#1720). */
+  readonly cyranoHook: S['cyranoHook'];
 }
 
 /** Clone l'update sans les photos base64 (sans muter l'état partagé de l'arène). */
 export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
   const stripFencer = <T extends { photo?: string } | null | undefined>(f: T): T => {
-    if (!f || !(f as any).photo) return f;
-    const { photo: _photo, ...rest } = f as any;
+    if (!f || !f.photo) return f;
+    const { photo: _photo, ...rest } = f;
     return rest as T;
   };
   const stripMatch = (m: ArenaUpdate['match']): ArenaUpdate['match'] =>
@@ -56,18 +60,34 @@ export function stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
   };
 }
 
+/**
+ * Gaucher contre droitier, armes olympiques (#1439) : le gaucher (A, premier appelé)
+ * devient rouge et le droitier vert. Couleur réelle, indépendante de l'inversion de vue.
+ */
+export function arenaLeftHanded(
+  match: ArenaUpdate['match'] | null | undefined,
+  weapon: string | null | undefined
+): boolean {
+  return !!match && needsLeftHandedSwap(weapon, match.fencerA, match.fencerB);
+}
+
 export function broadcastArenaUpdate(
   ctx: ArenaBroadcastContext,
   arenaId: string,
   update: ArenaUpdate
 ): void {
   const arena = ctx.getArena(arenaId);
+  if (arena && update.match !== undefined)
+    arena.leftHanded = arenaLeftHanded(update.match, ctx.sessionWeapon);
   const override = ctx.arenaThemeOverrides.get(arenaId);
   const isPoolMatch = !!arena?.currentMatch?.poolId;
   const updateWithPhotos: ArenaUpdate = {
     ...update,
     swapped: arena?.swapped ?? false,
+    leftHanded: arena?.leftHanded ?? false,
     showPhotos: ctx.sessionShowPhotos,
+    cyrano: arena?.cyrano ?? null,
+    resting: arena?.resting ?? false,
     cardAnnounce: ctx.sessionCardAnnounce,
     theme: override?.theme ?? ctx.sessionTheme,
     customTheme: override?.customTheme,
@@ -107,6 +127,7 @@ export function broadcastArenaUpdate(
   ctx.notifyKioskData();
 
   getSharedMainWindow()?.webContents.send('arena:update', { arenaId, update: payload });
+  ctx.cyranoHook?.(arenaId, payload);
 }
 
 export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): void {
@@ -129,3 +150,33 @@ export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): 
     );
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_BROADCAST_CONTEXT_KEYS = {
+  state: [
+    'arenaEventBuffer',
+    'arenaMatchQueue',
+    'arenaPhotoSentForMatch',
+    'arenaRefereeSelected',
+    'arenaScreenThemes',
+    'arenaThemeOverrides',
+    'arenas',
+    'db',
+    'EVENT_BUFFER_MAX',
+    'EVENT_BUFFER_TTL_MS',
+    'io',
+    'session',
+    'sessionBlackCardEnabled',
+    'sessionCardAnnounce',
+    'sessionModernRules',
+    'sessionPoolTimerSeconds',
+    'sessionRefereeFeatureEnabled',
+    'sessionRestSeconds',
+    'sessionShowPhotos',
+    'sessionTableTimerSeconds',
+    'sessionTheme',
+    'sessionWeapon',
+    'cyranoHook',
+  ],
+  methods: ['getArena', 'getSessionReferees', 'notifyKioskData'],
+} as const;

@@ -1,0 +1,103 @@
+/* Styles extraits de PdfTemplateEditor.tsx (#1895) */
+.pdf-template-editor-1.pdf-template-editor-1.pdf-template-editor-1 {
+  margin-bottom: 0;
+}
+
+.pdf-template-editor-2.pdf-template-editor-2.pdf-template-editor-2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pdf-template-editor-3.pdf-template-editor-3.pdf-template-editor-3 {
+  margin-top: 0.35rem;
+}
+
+.pdf-template-editor-4.pdf-template-editor-4.pdf-template-editor-4 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pdf-template-editor-5.pdf-template-editor-5.pdf-template-editor-5 {
+  height: 48px;
+  max-width: 120px;
+  object-fit: contain;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 4px;
+  padding: 2px;
+  background: #fff;
+}
+
+.pdf-template-editor-6.pdf-template-editor-6.pdf-template-editor-6 {
+  height: 48px;
+  width: 80px;
+  border: 1px dashed var(--color-border, #d1d5db);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--color-muted, #9ca3af);
+}
+
+.pdf-template-editor-7.pdf-template-editor-7.pdf-template-editor-7 {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.pdf-template-editor-8.pdf-template-editor-8.pdf-template-editor-8 {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pdf-template-editor-9.pdf-template-editor-9.pdf-template-editor-9 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pdf-template-editor-10.pdf-template-editor-10.pdf-template-editor-10 {
+  width: 32px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pdf-template-editor-11.pdf-template-editor-11.pdf-template-editor-11 {
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pdf-template-editor-12.pdf-template-editor-12.pdf-template-editor-12 {
+  color: var(--color-muted, #9ca3af);
+  font-size: 1rem;
+  user-select: none;
+}
+
+.pdf-template-editor-13.pdf-template-editor-13.pdf-template-editor-13 {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.pdf-template-editor-14.pdf-template-editor-14.pdf-template-editor-14 {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+}
+
+.pdf-template-editor-15.pdf-template-editor-15.pdf-template-editor-15 {
+  font-size: 0.8rem;
+  color: var(--danger, #ef4444);
+  margin-top: -0.5rem;
+}

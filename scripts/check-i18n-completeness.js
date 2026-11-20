@@ -3,6 +3,8 @@
  * Compare les clés de chaque locale à la référence fr.json.
  * Pages distantes (#1213) : idem pour src/remote/i18n/<langue>.js vs fr.js,
  * plus les paramètres {{x}} identiques à ceux du français.
+ * Avertit (sans échouer, #1543) des libellés nettement plus longs que le français
+ * (risque de débordement) : > ratio x fr ET > marge caractères d'écart.
  * Échoue (exit 1) si une langue a des clés manquantes ou en trop.
  */
 const fs = require('fs');
@@ -55,6 +57,39 @@ for (const locale of localeFiles) {
   console.log(`✗ ${locale}: ${missing.length} manquante(s), ${extra.length} en trop`);
   for (const key of missing) console.log(`    - manquante: ${key}`);
   for (const key of extra) console.log(`    - en trop:    ${key}`);
+}
+
+// Longueur des libellés vs français (#1543) : avertissement non bloquant
+const LENGTH_RATIO = 1.6;
+const LENGTH_MIN_EXTRA = 12;
+const LENGTH_MAX_LISTED = 5;
+function flattenStrings(obj, prefix = '', out = {}) {
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      flattenStrings(value, fullKey, out);
+    } else if (typeof value === 'string') {
+      out[fullKey] = value;
+    }
+  }
+  return out;
+}
+const frStrings = flattenStrings(loadLocale(REFERENCE_LOCALE));
+for (const locale of localeFiles) {
+  if (locale === REFERENCE_LOCALE) continue;
+  const strings = flattenStrings(loadLocale(locale));
+  const longs = Object.keys(frStrings)
+    .filter(k => typeof strings[k] === 'string')
+    .map(k => ({ k, fr: frStrings[k].length, len: strings[k].length }))
+    .filter(x => x.fr > 0 && x.len > x.fr * LENGTH_RATIO && x.len - x.fr > LENGTH_MIN_EXTRA)
+    .sort((a, b) => b.len - b.fr - (a.len - a.fr));
+  if (longs.length === 0) continue;
+  console.log(
+    `⚠ ${locale}: ${longs.length} libellé(s) > ${LENGTH_RATIO}x le français (risque de débordement)`
+  );
+  for (const x of longs.slice(0, LENGTH_MAX_LISTED)) {
+    console.log(`    - ${x.k}: ${x.len} car. (fr ${x.fr})`);
+  }
 }
 
 // Pages distantes : src/remote/i18n/<langue>.js

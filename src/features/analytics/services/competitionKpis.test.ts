@@ -1,0 +1,574 @@
+/**
+ * Tests unitaires - indicateurs du tableau analytique (#1817)
+ */
+import { describe, it, expect } from 'vitest';
+import {
+  fencerIndexRanking,
+  fencerMatchKpis,
+  initialRankOf,
+  normalizeFinishedMatches,
+  organisationKpis,
+  rankingProgression,
+  averageMatchSeconds,
+  weaponKpis,
+  tableauWaves,
+  type KpiMatch,
+} from './competitionKpis';
+import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../../shared/types';
+
+const f = (id: string, ranking?: number, status = FencerStatus.CHECKED_IN) =>
+  ({ id, ranking, status, lastName: id, firstName: id }) as unknown as Fencer;
+
+const km = (a: string, b: string, sa: number, sb: number): KpiMatch => ({
+  id: `${a}-${b}-${sa}-${sb}`,
+  fencerAId: a,
+  fencerBId: b,
+  scoreA: sa,
+  scoreB: sb,
+  winnerId: sa > sb ? a : b,
+});
+
+const poolMatch = (
+  id: string,
+  a: string,
+  b: string,
+  sa: number,
+  sb: number,
+  status = MatchStatus.FINISHED,
+  updatedAt = '2026-11-13T09:00:00Z'
+) =>
+  ({
+    id,
+    number: 1,
+    fencerA: f(a),
+    fencerB: f(b),
+    scoreA: { value: sa, isVictory: sa > sb },
+    scoreB: { value: sb, isVictory: sb > sa },
+    status,
+    updatedAt: new Date(updatedAt),
+  }) as unknown as Match;
+
+const timing = (over: Partial<MatchTiming>): MatchTiming => ({
+  matchId: 'm',
+  poolId: null,
+  tableId: null,
+  fencerAId: null,
+  fencerBId: null,
+  status: 'finished',
+  strip: null,
+  refereeId: null,
+  startTime: null,
+  endTime: null,
+  duration: null,
+  ...over,
+});
+
+describe('normalizeFinishedMatches', () => {
+  it('ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit', () => {
+    const pools = [
+      poolMatch('p2', 'a', 'c', 5, 1, MatchStatus.FINISHED, '2026-11-13T10:00:00Z'),
+      poolMatch('p1', 'a', 'b', 2, 5, MatchStatus.FINISHED, '2026-11-13T09:00:00Z'),
+      poolMatch('p3', 'b', 'c', 0, 0, MatchStatus.NOT_STARTED),
+    ];
+    const tableau = [
+      {
+        id: 't8',
+        round: 8,
+        fencerA: { id: 'a' },
+        fencerB: { id: 'd' },
+        scoreA: 15,
+        scoreB: 3,
+        winner: { id: 'a' },
+        isBye: false,
+      },
+      {
+        id: 't16',
+        round: 16,
+        fencerA: { id: 'a' },
+        fencerB: { id: 'e' },
+        scoreA: 15,
+        scoreB: 14,
+        winner: { id: 'a' },
+        isBye: false,
+      },
+      {
+        id: 'bye',
+        round: 32,
+        fencerA: { id: 'a' },
+        fencerB: null,
+        scoreA: null,
+        scoreB: null,
+        winner: { id: 'a' },
+        isBye: true,
+      },
+    ];
+    expect(normalizeFinishedMatches(pools, tableau).map(m => m.id)).toEqual([
+      'p1',
+      'p2',
+      't16',
+      't8',
+    ]);
+  });
+});
+
+describe('fencerIndexRanking', () => {
+  it('classe par TD − TR moyen', () => {
+    const r = fencerIndexRanking([km('a', 'b', 5, 1), km('a', 'c', 3, 5), km('b', 'c', 5, 4)]);
+    expect(r[0]).toMatchObject({ fencerId: 'a', matches: 2, averageIndex: 1 });
+    expect(r.map(x => x.fencerId)).toEqual(['a', 'c', 'b']);
+    expect(r[2].averageIndex).toBeCloseTo(-1.5);
+  });
+});
+
+describe('fencerMatchKpis', () => {
+  it('écarts moyens, victoires serrées/dominantes et séries', () => {
+    const k = fencerMatchKpis('a', [
+      km('a', 'b', 5, 4), // V serrée (1)
+      km('a', 'c', 5, 0), // V dominante (5)
+      km('d', 'a', 5, 2), // D (3)
+      km('a', 'e', 5, 3), // V (2, serrée)
+      km('a', 'f', 4, 5), // D (1)
+      km('a', 'g', 2, 5), // D (3)
+    ]);
+    expect(k).toMatchObject({
+      played: 6,
+      wins: 3,
+      losses: 3,
+      closeWins: 2,
+      dominantWins: 1,
+      normalWins: 0,
+    });
+    expect(k.averageGap).toBeCloseTo(15 / 6);
+    expect(k.averageWinGap).toBeCloseTo(8 / 3);
+    // Écart signé : (somme victoires 8 − somme défaites 7) / 6 matchs
+    expect(k.averageSignedGap).toBeCloseTo(1 / 6);
+    expect(k.bestWinStreak).toBe(2);
+    expect(k.bestLossStreak).toBe(2);
+    expect(k.current).toEqual({ kind: 'L', length: 2 });
+    expect(k.sequence.join('')).toBe('WWLWLL');
+  });
+
+  it('aucun match → zéros', () => {
+    expect(fencerMatchKpis('z', [])).toMatchObject({
+      played: 0,
+      averageGap: 0,
+      averageSignedGap: 0,
+      current: null,
+    });
+  });
+});
+
+describe('classement', () => {
+  it('rang d’entrée parmi les présents, non classés en fin', () => {
+    const list = [f('a'), f('b', 10), f('c', 3), f('x', 1, FencerStatus.NOT_CHECKED_IN)];
+    expect(initialRankOf(list, 'c')).toBe(1);
+    expect(initialRankOf(list, 'b')).toBe(2);
+    expect(initialRankOf(list, 'a')).toBe(3);
+    expect(initialRankOf(list, 'x')).toBeNull();
+  });
+
+  it('progression : delta positif = places gagnées', () => {
+    expect(rankingProgression(12, 5, 8)).toEqual([
+      { key: 'initial', rank: 12, delta: null },
+      { key: 'pools', rank: 5, delta: 7 },
+      { key: 'final', rank: 8, delta: -3 },
+    ]);
+    expect(rankingProgression(4, null, 2)[2].delta).toBe(2);
+  });
+});
+
+describe('organisationKpis', () => {
+  const NOW = Date.parse('2026-11-13T10:00:00Z');
+  const pool = (id: string, number: number, matches: Match[]) =>
+    ({ id, number, matches }) as unknown as Pool;
+
+  it('avancement, poules en retard, anneau, débit, attente, pistes actives', () => {
+    const pools = [
+      pool('A', 1, [
+        poolMatch('a1', 'f1', 'f2', 5, 1),
+        poolMatch('a2', 'f1', 'f3', 5, 2),
+        poolMatch('a3', 'f2', 'f3', 0, 0, MatchStatus.NOT_STARTED),
+      ]),
+      pool('B', 2, [
+        poolMatch('b1', 'g1', 'g2', 5, 1),
+        poolMatch('b2', 'g1', 'g3', 5, 3),
+        poolMatch('b3', 'g2', 'g3', 0, 0, MatchStatus.NOT_STARTED),
+      ]),
+      pool('C', 3, [
+        poolMatch('c1', 'h1', 'h2', 0, 0, MatchStatus.NOT_STARTED),
+        poolMatch('c2', 'h1', 'h3', 0, 0, MatchStatus.NOT_STARTED),
+        poolMatch('c3', 'h2', 'h3', 0, 0, MatchStatus.NOT_STARTED),
+      ]),
+    ];
+    const timings = [
+      timing({
+        matchId: 'a1',
+        fencerAId: 'f1',
+        fencerBId: 'f2',
+        strip: 1,
+        startTime: '2026-11-13T09:10:00Z',
+        endTime: '2026-11-13T09:15:00Z',
+        duration: 180,
+      }),
+      timing({
+        matchId: 'a2',
+        fencerAId: 'f1',
+        fencerBId: 'f3',
+        strip: 1,
+        startTime: '2026-11-13T09:25:00Z',
+        endTime: '2026-11-13T09:30:00Z',
+        duration: 120,
+      }),
+      timing({
+        matchId: 'b1',
+        strip: 2,
+        startTime: '2026-11-13T08:00:00Z',
+        endTime: '2026-11-13T08:04:00Z',
+        duration: 200,
+      }),
+    ];
+    const k = organisationKpis({
+      pools,
+      timings,
+      arenas: [
+        { number: 1, status: 'in_progress', matchId: 'a3' },
+        { number: 2, status: 'idle', matchId: null },
+        { number: 3, status: 'ready', matchId: 'c1' },
+      ],
+      events: [
+        {
+          id: '1',
+          competitionId: 'c',
+          type: 'disconnect',
+          arenaId: 'arena1',
+          matchId: null,
+          refereeId: null,
+          detail: null,
+          createdAt: '2026-11-13T09:00:00Z',
+        },
+        {
+          id: '2',
+          competitionId: 'c',
+          type: 'offline_sync',
+          arenaId: null,
+          matchId: null,
+          refereeId: null,
+          detail: null,
+          createdAt: '2026-11-13T09:01:00Z',
+        },
+      ],
+      now: NOW,
+    });
+    expect(k).toMatchObject({
+      done: 4,
+      total: 9,
+      inProgress: 1,
+      pending: 4,
+      poolsDone: 0,
+      poolsTotal: 3,
+    });
+    expect(k.pools.map(p => p.late)).toEqual([false, false, true]);
+    expect(k.pools[0].inProgress).toBe(1);
+    expect(k.activeStrips).toEqual([1]);
+    expect(k.stripCount).toBe(3);
+    expect(k.lastHourThroughput).toBe(2);
+    expect(k.averageWaitSeconds).toBe(600);
+    expect(k.averageFightSeconds).toBeCloseTo(500 / 3);
+    expect(k.remote).toMatchObject({ disconnects: 1, offlineSyncs: 1, syncErrors: 0 });
+    expect(k.recentIssues).toHaveLength(1);
+    expect(k.etaAt).toBeGreaterThan(NOW);
+  });
+
+  it('tout terminé → pas d’estimation', () => {
+    const k = organisationKpis({
+      pools: [pool('A', 1, [poolMatch('a1', 'x', 'y', 5, 0)])],
+      now: NOW,
+    });
+    expect(k).toMatchObject({ done: 1, total: 1, etaAt: null });
+  });
+});
+
+describe('averageMatchSeconds', () => {
+  it('temps de combat si connu, sinon début → fin', () => {
+    expect(
+      averageMatchSeconds([
+        timing({
+          endTime: '2026-11-13T09:05:00Z',
+          startTime: '2026-11-13T09:00:00Z',
+          duration: 200,
+        }),
+        timing({ endTime: '2026-11-13T09:05:00Z', startTime: '2026-11-13T09:00:00Z' }),
+        timing({ startTime: '2026-11-13T09:00:00Z' }),
+      ])
+    ).toBe(250);
+  });
+});
+
+describe('weaponKpis (#1817)', () => {
+  const tab = (id: string, sa: number, sb: number, special?: string) => ({
+    id,
+    round: 8,
+    fencerA: { id: 'a' },
+    fencerB: { id: 'b' },
+    scoreA: sa,
+    scoreB: sb,
+    winner: { id: sa >= sb ? 'a' : 'b' },
+    isBye: false,
+    specialStatus: special ? { status: special } : null,
+  });
+
+  it('écart moyen, cartons par match, temps limite, statuts', () => {
+    const forfeit = poolMatch('p3', 'a', 'c', 5, 0);
+    (forfeit.scoreB as { isForfait: boolean }).isForfait = true;
+    const k = weaponKpis({
+      poolMatches: [
+        poolMatch('p1', 'a', 'b', 5, 3), // 5 pts atteints
+        poolMatch('p2', 'b', 'c', 3, 2), // temps limite
+        forfeit, // non disputé
+        poolMatch('p4', 'a', 'c', 0, 0, MatchStatus.NOT_STARTED),
+      ],
+      tableauMatches: [tab('t1', 15, 10), tab('t2', 9, 8), tab('t3', 0, 0, 'abandon')],
+      fencers: [
+        f('a'),
+        f('b', undefined, FencerStatus.ABANDONED),
+        f('c', undefined, FencerStatus.EXCLUDED),
+        f('d', undefined, FencerStatus.FORFAIT),
+      ],
+      totalCards: 12,
+      tableMaxScore: 15,
+    });
+    expect(k.finished).toBe(6);
+    expect(k.cardsPerMatch).toBe(2);
+    // marges disputées : 2, 1, 5, 1
+    expect(k.averageMargin).toBeCloseTo(9 / 4);
+    expect(k.timeLimit).toBe(2);
+    expect(k.timeLimitPercent).toBe(50);
+    expect([k.abandons, k.exclusions, k.forfaits]).toEqual([1, 1, 1]);
+  });
+
+  it('aucun match : zéros', () => {
+    const k = weaponKpis({ poolMatches: [], fencers: [], totalCards: 0 });
+    expect(k).toMatchObject({
+      finished: 0,
+      cardsPerMatch: 0,
+      averageMargin: 0,
+      timeLimitPercent: 0,
+    });
+  });
+});
+
+describe('organisationKpis.lastEndAt (#1817)', () => {
+  it('fin du dernier match horodaté', () => {
+    const k = organisationKpis({
+      pools: [],
+      timings: [
+        timing({
+          matchId: 'x',
+          startTime: '2026-11-13T09:00:00Z',
+          endTime: '2026-11-13T09:05:00Z',
+        }),
+        timing({
+          matchId: 'y',
+          startTime: '2026-11-13T10:00:00Z',
+          endTime: '2026-11-13T10:04:00Z',
+        }),
+      ],
+      now: Date.parse('2026-11-13T11:00:00Z'),
+    });
+    expect(k.lastEndAt).toBe(Date.parse('2026-11-13T10:04:00Z'));
+    expect(organisationKpis({ pools: [], now: 0 }).lastEndAt).toBeNull();
+  });
+});
+
+describe('bandeau Organisation poules / compétition (#1817)', () => {
+  const NOW = Date.parse('2026-11-13T10:00:00Z');
+  const pool = (id: string, number: number, matches: Match[]) =>
+    ({ id, number, matches }) as unknown as Pool;
+
+  it('tableauWaves : exempts déduits, tours successifs', () => {
+    expect(tableauWaves(1, 4)).toBe(0);
+    expect(tableauWaves(4, 1)).toBe(3);
+    expect(tableauWaves(5, 1)).toBe(4);
+    expect(tableauWaves(8, 4)).toBe(3);
+    expect(tableauWaves(6, 2)).toBe(1 + 1 + 1);
+  });
+
+  it('cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)', () => {
+    const notStarted = Array.from({ length: 21 }, (_, i) =>
+      poolMatch(`p${i}`, `f${i}`, `g${i}`, 0, 0, MatchStatus.NOT_STARTED)
+    );
+    const k = organisationKpis({ pools: [pool('A', 1, notStarted)], now: NOW });
+    expect(k.cadence).toEqual({ perMatchMs: 6 * 60_000, changeoverMs: 3 * 60_000, strips: 1 });
+    expect(k.poolsEtaAt! - NOW).toBe(21 * 6 * 60_000);
+  });
+
+  it('pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)', () => {
+    const mk = (pfx: string, n: number) =>
+      Array.from({ length: n }, (_, i) =>
+        poolMatch(`${pfx}${i}`, `${pfx}a${i}`, `${pfx}b${i}`, 0, 0, MatchStatus.NOT_STARTED)
+      );
+    const k = organisationKpis({
+      pools: [pool('A', 1, mk('a', 15)), pool('B', 2, mk('b', 15)), pool('C', 3, mk('c', 15))],
+      arenas: [{ number: 1 }, { number: 2 }] as never,
+      now: NOW,
+    });
+    expect(k.cadence.strips).toBe(2);
+    expect(k.poolsEtaAt! - NOW).toBe(30 * 6 * 60_000);
+  });
+
+  it('délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)', () => {
+    const t = (id: string, s: string, e: string) =>
+      timing({
+        matchId: id,
+        strip: 1,
+        startTime: `2026-11-13T${s}:00Z`,
+        endTime: `2026-11-13T${e}:00Z`,
+      });
+    const k = organisationKpis({
+      pools: [pool('A', 1, [poolMatch('x', 'f1', 'f2', 0, 0, MatchStatus.NOT_STARTED)])],
+      timings: [
+        t('m1', '09:00', '09:03'),
+        t('m2', '09:07', '09:10'),
+        t('m3', '09:14', '09:17'),
+        t('m4', '09:21', '09:24'),
+      ],
+      now: NOW,
+    });
+    expect(k.cadence.changeoverMs).toBe(4 * 60_000);
+    expect(k.cadence.perMatchMs).toBe(7 * 60_000);
+  });
+
+  it('poules en cours : fin des poules + tableau projeté', () => {
+    const k = organisationKpis({
+      pools: [
+        pool('A', 1, [
+          poolMatch('a1', 'f1', 'f2', 5, 1),
+          poolMatch('a2', 'f3', 'f4', 0, 0, MatchStatus.NOT_STARTED),
+        ]),
+      ],
+      now: NOW,
+    });
+    expect(k.hasTableau).toBe(false);
+    expect(k.poolsEtaAt).not.toBeNull();
+    expect(k.poolsEndAt).toBeNull();
+    expect(k.tableauProjectionMs).toBeGreaterThan(0);
+    expect(k.competitionEtaAt).toBe(k.poolsEtaAt! + k.tableauProjectionMs!);
+  });
+
+  it('poules finies : fin réelle des poules, tableau généré = ETA globale', () => {
+    const pools = [pool('A', 1, [poolMatch('a1', 'f1', 'f2', 5, 1)])];
+    const timings = [
+      timing({
+        matchId: 'a1',
+        startTime: '2026-11-13T09:00:00Z',
+        endTime: '2026-11-13T09:05:00Z',
+      }),
+    ];
+    const k = organisationKpis({ pools, timings, now: NOW });
+    expect(k.poolsEtaAt).toBeNull();
+    expect(k.poolsEndAt).toBe(Date.parse('2026-11-13T09:05:00Z'));
+    const withTableau = organisationKpis({
+      pools,
+      timings,
+      tableauMatches: [
+        {
+          id: 't1',
+          round: 2,
+          fencerA: { id: 'f1' },
+          fencerB: { id: 'f2' },
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        },
+      ],
+      now: NOW,
+    });
+    expect(withTableau.hasTableau).toBe(true);
+    expect(withTableau.tableauProjectionMs).toBeNull();
+    // 1 match de tableau restant, cadence du tableau (4 min 30 + 3 min par défaut)
+    expect(withTableau.competitionEtaAt).toBe(NOW + withTableau.tableauCadence.perMatchMs);
+  });
+
+  it('tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)', () => {
+    const tm = (id: string, round: number, known: boolean) => ({
+      id,
+      round,
+      fencerA: known ? { id: `${id}a` } : null,
+      fencerB: known ? { id: `${id}b` } : null,
+      scoreA: null,
+      scoreB: null,
+      winner: null,
+      isBye: false,
+    });
+    const k = organisationKpis({
+      pools: [],
+      tableauMatches: [
+        tm('q1', 8, true),
+        tm('q2', 8, true),
+        tm('q3', 8, true),
+        tm('q4', 8, true),
+        tm('s1', 4, false),
+        tm('s2', 4, false),
+        tm('f', 2, false),
+      ],
+      now: NOW,
+    });
+    expect(k.total).toBe(7);
+    expect(k.pending).toBe(7);
+    // 1 piste (repli) : 7 vagues, une par match, cadence du tableau
+    expect(k.competitionEtaAt).toBe(NOW + 7 * k.tableauCadence.perMatchMs);
+  });
+
+  it('tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)', () => {
+    const k = organisationKpis({ pools: [], now: NOW });
+    expect(k.tableauCadence.perMatchMs).toBe(7.5 * 60_000);
+    expect(k.tableauCadence.basis).toBe('default');
+  });
+
+  it('tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)', () => {
+    const tableauMatches = [];
+    for (let r = 64; r >= 2; r /= 2)
+      for (let i = 0; i < r / 2; i++)
+        tableauMatches.push({
+          id: `${r}-${i}`,
+          round: r,
+          fencerA: r === 64 ? { id: `a${i}` } : null,
+          fencerB: r === 64 ? { id: `b${i}` } : null,
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        });
+    const arenas = Array.from({ length: 10 }, (_, i) => ({
+      number: i + 1,
+      status: 'idle',
+      matchId: null,
+    }));
+    const k = organisationKpis({ pools: [], tableauMatches, arenas, now: NOW });
+    expect(k.total).toBe(63);
+    // 32/10 → 4, 16 → 2, 8 → 1, 4 → 1, 2 → 1, 1 → 1 : 10 vagues
+    expect(k.competitionEtaAt).toBe(NOW + 10 * 7.5 * 60_000);
+  });
+
+  it('toutes les places : total de la compétition et deux décomptes (#1817)', () => {
+    const tableauMatches = [];
+    for (let r = 8; r >= 2; r /= 2)
+      for (let i = 0; i < r / 2; i++)
+        tableauMatches.push({
+          id: `${r}-${i}`,
+          round: r,
+          fencerA: r === 8 ? { id: `a${i}` } : null,
+          fencerB: r === 8 ? { id: `b${i}` } : null,
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+        });
+    tableauMatches.push({ ...tableauMatches[6], id: '3-0', round: 3 });
+    const k = organisationKpis({ pools: [], tableauMatches, playAllPositions: true, now: NOW });
+    expect(k.tableauCount).toMatchObject({ mainTotal: 8, total: 12, allPlaces: true });
+    expect(k.total).toBe(12);
+    expect(k.tableauRemaining).toBe(12);
+  });
+});

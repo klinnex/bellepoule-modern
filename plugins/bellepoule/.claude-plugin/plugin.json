@@ -1,0 +1,30 @@
+{
+  "name": "bellepoule",
+  "description": "Interroger et, sur autorisation, piloter une compétition d'escrime BellePoule Modern en langage naturel : préparer une journée, pointer, tirer les poules, saisir les scores, construire le tableau, suivre la salle (serveur MCP local).",
+  "version": "0.3.0",
+  "author": {
+    "name": "BellePoule Modern"
+  },
+  "homepage": "https://github.com/BellePoule-Modern/bellepoule-modern/blob/dev/docs/MCP.md",
+  "repository": "https://github.com/BellePoule-Modern/bellepoule-modern",
+  "license": "GPL-3.0",
+  "keywords": ["escrime", "fencing", "bellepoule", "mcp", "tournoi"],
+  "userConfig": {
+    "mcp_token": {
+      "type": "string",
+      "sensitive": true,
+      "required": false,
+      "default": "${BELLEPOULE_MCP_TOKEN:-}",
+      "title": "Jeton MCP BellePoule",
+      "description": "Jeton du serveur MCP de BellePoule Modern : Paramètres → Système → Agent IA (MCP) → « Copier la configuration », ou `bellepoule-modern --mcp-print-config`. Rangé dans le stockage sécurisé du système. Non renseigné, la variable d'environnement BELLEPOULE_MCP_TOKEN est utilisée."
+    },
+    "mcp_port": {
+      "type": "string",
+      "sensitive": false,
+      "required": false,
+      "default": "${BELLEPOULE_MCP_PORT:-8067}",
+      "title": "Port MCP BellePoule",
+      "description": "Port du serveur MCP (8067 par défaut). Non renseigné, la variable d'environnement BELLEPOULE_MCP_PORT est utilisée, sinon 8067."
+    }
+  }
+}

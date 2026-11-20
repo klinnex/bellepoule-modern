@@ -105,42 +105,21 @@ export const useMenuEvents = ({
   );
 
   useEffect(() => {
-    if (!window.electronAPI) return;
+    const api = window.electronAPI;
+    if (!api) return;
 
-    // Enregistrer les listeners
-    const removeListeners: (() => void)[] = [];
+    // Chaque on* retourne son désabonnement (#1894) : removeAllListeners retirait aussi
+    // les écouteurs des autres composants (cf. file:opened d'App, #1117)
+    const unsubscribers: Array<(() => void) | void> = [
+      api.onMenuCompetitionProperties?.(onShowProperties),
+      api.onMenuImport?.(onImport),
+      api.onMenuExport?.(handleExport),
+      api.onMenuAddFencer?.(onShowAddFencer),
+      api.onMenuNextPhase?.(onNextPhase),
+    ];
 
-    if (window.electronAPI.onMenuCompetitionProperties) {
-      window.electronAPI.onMenuCompetitionProperties(onShowProperties);
-    }
-
-    if (window.electronAPI.onMenuImport) {
-      window.electronAPI.onMenuImport(onImport);
-    }
-
-    if (window.electronAPI.onMenuExport) {
-      window.electronAPI.onMenuExport(handleExport);
-    }
-
-    // file:opened : géré par App (son removeAllListeners ici supprimait aussi celui d'App, #1117)
-
-    if (window.electronAPI.onMenuAddFencer) {
-      window.electronAPI.onMenuAddFencer(onShowAddFencer);
-    }
-
-    if (window.electronAPI.onMenuNextPhase) {
-      window.electronAPI.onMenuNextPhase(onNextPhase);
-    }
-
-    // Cleanup function
     return () => {
-      if (window.electronAPI?.removeAllListeners) {
-        window.electronAPI.removeAllListeners('menu:competition-properties');
-        window.electronAPI.removeAllListeners('menu:import');
-        window.electronAPI.removeAllListeners('menu:export');
-        window.electronAPI.removeAllListeners('menu:add-fencer');
-        window.electronAPI.removeAllListeners('menu:next-phase');
-      }
+      for (const off of unsubscribers) if (typeof off === 'function') off();
     };
   }, [onShowProperties, onImport, handleExport, loadFencers, onShowAddFencer, onNextPhase]);
 

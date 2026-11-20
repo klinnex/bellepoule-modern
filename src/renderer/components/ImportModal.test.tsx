@@ -7,7 +7,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('../hooks/useTranslation', () => ({
   useTranslation: () => ({
@@ -53,5 +53,38 @@ describe('ImportModal', () => {
     const { onClose } = setup();
     fireEvent.click(screen.getByText('×'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  describe('XML avec <Arbitres> (#1504)', () => {
+    const xml =
+      '<Tireurs><Tireur Nom="DUPONT" Prenom="Jean" Sexe="M"/></Tireurs>' +
+      '<Arbitres><Arbitre Nom="DURAND" Prenom="Paul" Sexe="M" Categorie="National"/></Arbitres>';
+
+    it("affiche le nombre d'arbitres et bascule la liste", () => {
+      setup({ format: 'xml', content: xml, onImportReferees: vi.fn() });
+      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('importModal.found');
+      expect(screen.queryByText('DURAND')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('tab', { name: /importModal.referees_found/ }));
+      expect(screen.getByText('DURAND')).toBeInTheDocument();
+      expect(screen.getByText('National')).toBeInTheDocument();
+      expect(screen.queryByText('DUPONT')).not.toBeInTheDocument();
+    });
+
+    it('importe tireurs puis arbitres sélectionnés', async () => {
+      const onImportReferees = vi.fn();
+      const { onImport } = setup({ format: 'xml', content: xml, onImportReferees });
+      fireEvent.click(
+        screen.getByText('importModal.import_fencers_referees {"fencers":1,"referees":1}')
+      );
+      expect(onImport.mock.calls[0][0]).toHaveLength(1);
+      await waitFor(() => expect(onImportReferees).toHaveBeenCalled());
+      expect(onImportReferees.mock.calls[0][0][0]).toMatchObject({ lastName: 'DURAND' });
+    });
+
+    it('sans onImportReferees : arbitres affichés, non importés', () => {
+      const { onImport } = setup({ format: 'xml', content: xml });
+      fireEvent.click(screen.getByText('importModal.import_n {"count":1}'));
+      expect(onImport).toHaveBeenCalledTimes(1);
+    });
   });
 });

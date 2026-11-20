@@ -12,7 +12,7 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 
 | Événement | Écouté par le serveur | Émis par |
 |---|:---:|---|
-| `arena_control` | ✓ | `arena.html`, `referee.html` |
+| `arena_control` | ✓ | `arena.html`, `public.html`, `referee.html` |
 | `client:battery` | ✓ | `referee.html` |
 | `client:pong` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
 | `client:register` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `public.html`, `referee.html` |
@@ -31,7 +31,7 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 ### Actions `arena_control`
 
 Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
-`add_card`, `arena_exit`, `card_announcement`, `change_referee`, `coin_flip`, `dt_call`, `dt_cancel`, `exit_announcement`, `finish`, `next`, `pause`, `pause_timer`, `release_match`, `reset_scores`, `reset_timer`, `select_match`, `start`, `toggle_swap`, `update_score`, `update_timer`, `waiting_overtime`.
+`add_card`, `arena_exit`, `card_announcement`, `change_referee`, `coin_flip`, `dt_call`, `dt_cancel`, `exit_announcement`, `finish`, `next`, `pause`, `pause_timer`, `prev`, `release_match`, `reset_scores`, `reset_timer`, `select_match`, `start`, `toggle_swap`, `update_score`, `update_timer`, `waiting_overtime`.
 
 ## Serveur → client
 
@@ -41,7 +41,9 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `arena:{…}:coin_flip` | ✓ | `arena.html`, `public.html` |
 | `arena:{…}:dt_call_ack` | ✓ | `referee.html` |
 | `arena:{…}:exit_announcement` | ✓ | `arena.html` |
+| `arena:{…}:prev_result` | ✓ | `referee.html` |
 | `arena:{…}:replay` | ✓ | `overlay.html` |
+| `arena:{…}:sabre_break` | ✓ | `referee.html` |
 | `arena:{…}:score_limit_reached` | ✓ | `referee.html` |
 | `arena:{…}:sign_request` | ✓ | `referee.html` |
 | `arena:{…}:update` | ✓ | `arena.html`, `overlay.html`, `public.html`, `referee.html` |
@@ -50,7 +52,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `bracket:update` | ✓ | `kiosk.html` |
 | `eta:update` | ✓ | `dashboard.html` |
 | `kiosk:data` | ✓ | `demo.html`, `kiosk.html` |
-| `kiosk:note` | ✓ | — |
+| `kiosk:note` | ✓ | `kiosk.html` |
 | `logo:update` | ✓ | `kiosk.html` |
 | `match:finished` | ✓ | — |
 | `match:reset` | ✓ | — |
@@ -59,6 +61,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `pools:update` | ✓ | `dashboard.html` |
 | `rankings:update` | ✓ | `dashboard.html` |
 | `server:command` | ✓ | `arena.html`, `kiosk.html`, `lobby.html`, `pool.html`, `public.html`, `referee.html` |
+| `strips:plan` | ✓ | — |
 | `team_arena_state` | ✓ | `teamArena.html`, `teamReferee.html` |
 | `tts:update` | ✓ | `referee.html` |
 | `wallpaper:update` | ✓ | `arena.html` |

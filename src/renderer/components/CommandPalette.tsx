@@ -6,13 +6,28 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../contexts/TranslationContext';
+import { ArrowRight, Plus, Settings, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { getPhaseTargets, selectPhase } from './competition/phaseRegistry';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
+import {
+  SETTINGS_SECTIONS,
+  normalizeSearch,
+  type SettingsSectionId,
+} from './settingsModal.helpers';
+import {
+  matchSlashCommands,
+  resolveSelection,
+  usageBase,
+  usageHasArg,
+  type SlashCommandDef,
+} from '../services/slashCommands';
 
 interface Command {
   id: string;
   label: string;
   description?: string;
-  icon: string;
+  icon: React.ReactNode;
   action: () => void;
   keywords?: string[];
 }
@@ -22,7 +37,10 @@ interface CommandPaletteProps {
   onClose: () => void;
   onSelectCompetition: (id: string) => void;
   onNewCompetition: () => void;
-  onOpenSettings: () => void;
+  /** Ouvre les paramètres, sur l'onglet donné s'il est précisé (#1651) */
+  onOpenSettings: (section?: SettingsSectionId) => void;
+  /** Exécute une commande « / » (ex. « /remote start ») */
+  onRunCommand?: (text: string) => void;
 }
 
 const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -31,6 +49,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   onSelectCompetition,
   onNewCompetition,
   onOpenSettings,
+  onRunCommand,
 }) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -44,7 +63,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'new-competition',
         label: t('menu.new_competition'),
-        icon: '➕',
+        icon: <Icon icon={Plus} />,
         action: () => {
           onClose();
           onNewCompetition();
@@ -54,7 +73,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'settings',
         label: t('settings.title'),
-        icon: '⚙️',
+        icon: <Icon icon={Settings} />,
         action: () => {
           onClose();
           onOpenSettings();
@@ -66,27 +85,85 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: `comp-${c.id}`,
       label: c.title,
       description: `${c.weapon} · ${categoryLabel(c.category, t)} · ${c.fencers.length} tireurs`,
-      icon: '🏆',
+      icon: <Icon icon={Trophy} />,
       action: () => {
         onClose();
         onSelectCompetition(c.id);
       },
       keywords: [c.title.toLowerCase(), c.weapon, c.category],
     }));
-    return [...staticCommands, ...competitionCommands];
+    // Navigation entre phases de la compétition ouverte (#1536)
+    const phaseCommands: Command[] = getPhaseTargets().map(p => ({
+      id: `phase-${p.id}`,
+      label: p.label,
+      description: `Ctrl + ${p.position}`,
+      icon: <Icon icon={ArrowRight} />,
+      action: () => {
+        onClose();
+        selectPhase(p.id);
+      },
+      keywords: ['phase', 'aller', 'go', p.label.toLowerCase()],
+    }));
+    return [...staticCommands, ...phaseCommands, ...competitionCommands];
   }, [competitions, t, onClose, onNewCompetition, onOpenSettings, onSelectCompetition]);
+
+  const isSlash = query.trimStart().startsWith('/') && !!onRunCommand;
+
+  // Valider une commande « / » : exécuter, ou compléter si un argument manque
+  const runSlash = useCallback(
+    (def: SlashCommandDef | undefined) => {
+      if (!onRunCommand) return;
+      if (!def) {
+        onRunCommand(query);
+        return;
+      }
+      const text = resolveSelection(query, def);
+      if (text === null) setQuery(`${usageBase(def.usage)} `);
+      else onRunCommand(text);
+    },
+    [query, onRunCommand]
+  );
 
   // Mémoïsé pour éviter le recalcul à chaque changement de selectedIndex
   const filtered = useMemo(() => {
+    if (isSlash) {
+      return matchSlashCommands(query).map<Command>(def => ({
+        id: `slash-${def.usage}`,
+        label: def.usage,
+        description: t(def.descriptionKey),
+        icon: def.icon,
+        action: () => runSlash(def),
+      }));
+    }
     if (!query.trim()) return allCommands;
     const q = query.toLowerCase();
-    return allCommands.filter(
+    const commands = allCommands.filter(
       cmd =>
         cmd.label.toLowerCase().includes(q) ||
         cmd.description?.toLowerCase().includes(q) ||
         cmd.keywords?.some(k => k.includes(q))
     );
-  }, [query, allCommands]);
+    // Paramètres de l'application : ouvre directement l'onglet concerné (#1651)
+    const nq = normalizeSearch(query.trim());
+    const settingCommands: Command[] = SETTINGS_SECTIONS.flatMap(section => {
+      const sectionLabel = t(section.labelKey);
+      return section.items
+        .filter(item =>
+          normalizeSearch([sectionLabel, ...item.keys.map(k => t(k))].join(' ')).includes(nq)
+        )
+        .map(item => ({
+          id: `setting-${item.id}`,
+          label: t(item.keys[0]),
+          description: `${t('settings.title')} · ${sectionLabel}`,
+          icon: <Icon icon={Settings} />,
+          action: () => {
+            onClose();
+            onOpenSettings(section.id);
+          },
+        }));
+    });
+    return [...commands, ...settingCommands];
+  }, [query, allCommands, isSlash, runSlash, t, onClose, onOpenSettings]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -106,12 +183,18 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         setSelectedIndex(i => Math.max(i - 1, 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        filtered[selectedIndex]?.action();
+        if (isSlash && filtered.length === 0) runSlash(undefined);
+        else filtered[selectedIndex]?.action();
+      } else if (e.key === 'Tab' && isSlash && filtered[selectedIndex]) {
+        // Tab : compléter la commande sélectionnée
+        e.preventDefault();
+        const usage = filtered[selectedIndex].label;
+        setQuery(usageHasArg(usage) ? `${usageBase(usage)} ` : usage);
       } else if (e.key === 'Escape') {
         onClose();
       }
     },
-    [filtered, selectedIndex, onClose]
+    [filtered, selectedIndex, onClose, isSlash, runSlash]
   );
 
   useEffect(() => {
@@ -140,7 +223,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             aria-label={t('commandPalette.search_aria')}
           />
           {query && (
-            <button className="command-palette-clear" onClick={() => setQuery('')}>
+            <button
+              aria-label={t('actions.clear')}
+              className="command-palette-clear"
+              onClick={() => setQuery('')}
+            >
               ✕
             </button>
           )}
@@ -181,6 +268,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
           <span>
             <kbd>Esc</kbd> {t('commandPalette.close')}
           </span>
+          {onRunCommand && (
+            <span>
+              <kbd>/</kbd> {t('commandPalette.commands')}
+            </span>
+          )}
         </div>
       </div>
     </div>

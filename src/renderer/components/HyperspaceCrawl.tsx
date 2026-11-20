@@ -9,6 +9,8 @@
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { playBladeMarch } from './crawlMusic';
+import { Bird } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface Props {
   build?: number;
@@ -255,7 +257,9 @@ const HyperspaceCrawl: React.FC<Props> = ({ build, onDone }) => {
 
       {/* Poule-faucon poursuivie par un carton noir */}
       <div className="bp-crawl-flyby" aria-hidden="true">
-        <span className="bp-crawl-hen">🐔</span>
+        <span className="bp-crawl-hen">
+          <Icon icon={Bird} />
+        </span>
         <span className="bp-crawl-bolt" />
         <span className="bp-crawl-card" />
       </div>

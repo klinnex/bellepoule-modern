@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import type { SettingsAPI } from './settingsApi';
 import {
   Card,
   Competition,
@@ -15,16 +16,31 @@ import {
   Score,
   RefereeComment,
   CompetitionSettings,
-  ImportResult,
-  ExportFormat,
   Phase,
-  DirectEliminationTable,
   FencerCompetitionStats,
+  RemoteEvent,
+  MatchTiming,
 } from '../types';
 import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
+import type {
+  DayReferee,
+  DayRefereeAssignment,
+  DayRefereeConflict,
+  DayRefereeInput,
+  DayRefereeStatus,
+  DaySyncResult,
+  DayStripAPI,
+  EventDay,
+} from './eventDay';
+import type { ClubAPI } from './club';
+import type { PrivacyAPI } from './privacy';
+import type { McpAPI, McpScreenEvent } from './mcp';
+export type { ClubAPI, ClubMemberReport } from './club';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
+export type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
+import type { TrainingCustomRules, TrainingMatchRecord, TrainingServerInfo } from './training';
 
 // Config TTS (minuteur vocal) des tablettes d'arbitrage, réglée dans les paramètres globaux
 export interface TtsConfig {
@@ -62,6 +78,7 @@ export interface FencerCreateData {
   gender: string;
   nationality: string;
   region?: string;
+  department?: string;
   club?: string;
   license?: string;
   ranking?: number;
@@ -76,6 +93,7 @@ export interface FencerUpdateData {
   gender?: string;
   nationality?: string;
   region?: string;
+  department?: string;
   club?: string;
   license?: string;
   ranking?: number;
@@ -124,44 +142,20 @@ export interface MatchUpdateData {
 // Fighter Statistics Types
 // ============================================================================
 
-export interface MatchTouchData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  zone: string; // TargetZone: A | B | C
-  points: number;
-  timestamp: string; // ISO 8601
-  isValidInSuddenDeath?: boolean;
-  isReversed?: boolean;
-}
-
-export interface MatchCardData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  cardType: string; // 'yellow' | 'red' | 'black'
-  reason: string; // CardReason
-  cardGroup: number; // 1–4
-  timestamp: string; // ISO 8601
-  pointsAwarded: number;
-  resultingExclusion?: boolean;
-}
-
-export interface MatchTimingData {
-  matchId: string;
-  startTime: string | null; // ISO 8601
-  endTime: string | null; // ISO 8601
-  duration: number | null; // secondes
-}
-
-export interface ArenaExitData {
-  id: string;
-  matchId: string;
-  fencerId: string;
-  exitType: 'arena_exit' | 'arena_exit_voluntary';
-  timestamp: string; // ISO 8601
-  pointsAwarded: number;
-}
+export type {
+  MatchTouchData,
+  MatchCardData,
+  MatchTimingData,
+  SimulatedMatchEvents,
+  ArenaExitData,
+} from './matchEvents';
+import type {
+  MatchTouchData,
+  MatchCardData,
+  MatchTimingData,
+  SimulatedMatchEvents,
+  ArenaExitData,
+} from './matchEvents';
 
 export type { FencerCompetitionStats };
 
@@ -247,6 +241,8 @@ export interface RemoteMatchFinishedEvent {
   winner?: 'A' | 'B';
   poolId?: string;
   isTableau?: boolean;
+  /** Motif de fin signalé par l'appareil de piste : le perdant porte l'abandon / l'exclusion (#1829) */
+  deviceReason?: 'priority' | 'abandon' | 'exclusion';
 }
 
 export interface SessionState {
@@ -348,6 +344,19 @@ export interface UpdateInfo {
   releaseNotes: string;
 }
 
+/** Progression du téléchargement d'une mise à jour (`update:progress`) */
+export interface UpdateProgressEvent {
+  progress: number;
+  downloaded?: number;
+  total?: number;
+  latestVersion?: string;
+  latestBuild?: number;
+  currentBuild?: number;
+}
+
+export type { ProxySettingsDTO, ProxyAPI, BackupDirDTO, BackupAPI } from './systemSettings';
+import type { ProxyAPI, BackupAPI } from './systemSettings';
+
 export interface UpdaterAPI {
   check: () => Promise<UpdateInfo | null>;
   setSilentMode: (enabled: boolean) => Promise<{ success: boolean; silent: boolean }>;
@@ -362,6 +371,15 @@ export interface UpdaterAPI {
   setAutoCheck: (
     enabled: boolean
   ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
+  /** Répertoire de téléchargement des mises à jour (défaut = dossier privé userData) */
+  getDownloadDir: () => Promise<{ dir: string; defaultDir: string; isDefault: boolean }>;
+  chooseDownloadDir: () => Promise<{
+    success: boolean;
+    dir?: string;
+    canceled?: boolean;
+    error?: string;
+  }>;
+  resetDownloadDir: () => Promise<{ success: boolean; dir?: string; error?: string }>;
   /** Canal : stable (releases main) ou dev (pré-releases incluses) */
   getChannel: () => Promise<{ channel: 'stable' | 'dev' }>;
   setChannel: (
@@ -430,6 +448,10 @@ export interface RemoteServerAPI {
   getServerInfo: (
     competitionId: string
   ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
+  reloadServer: (
+    competitionId: string,
+    options?: { port?: number; host?: string; useHttps?: boolean }
+  ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string; port?: number }>;
   getCertFingerprint: () => Promise<{ success: boolean; fingerprint?: string; error?: string }>;
   startSession: (
     competitionId: string,
@@ -527,6 +549,10 @@ export interface RemoteServerAPI {
     competitionId: string,
     arenaId: string
   ) => Promise<{ success: boolean; error?: string }>;
+  setStripPlan: (
+    competitionId: string,
+    plan: { start: number; unavailable: number[] }
+  ) => Promise<{ success: boolean; error?: string }>;
   updateKioskTheme: (
     competitionId: string,
     variables: Record<string, string>
@@ -545,10 +571,6 @@ export interface RemoteServerAPI {
     competitionId: string,
     wallpaper: string | null
   ) => Promise<{ success: boolean; error?: string }>;
-  changePort: (
-    competitionId: string,
-    newPort: number
-  ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
   acknowledgeDTCall: (
     competitionId: string,
     arenaId: string
@@ -635,6 +657,7 @@ export interface RemoteServerAPI {
 // Complete API Interface Types
 // ============================================================================
 
+type CardRef = { matchId: string; fencerId: string; cardType: string };
 export interface DatabaseAPI {
   // Competitions
   createCompetition: (data: CompetitionCreateData) => Promise<Competition>;
@@ -760,8 +783,12 @@ export interface DatabaseAPI {
       cardsYellow: number;
       cardsRed: number;
       cardsBlack: number;
+      dtCalls: number;
+      averageRestSeconds: number;
     }>
   >;
+  getRemoteEvents: (competitionId: string) => Promise<RemoteEvent[]>;
+  getMatchTimings: (competitionId: string) => Promise<MatchTiming[]>;
 
   // Touch / Card read
   getTouches: (matchId: string) => Promise<
@@ -788,8 +815,10 @@ export interface DatabaseAPI {
     }>
   >;
 
+  getCardsByMatchIds: (ids: string[]) => Promise<CardRef[]>; // feuilles imprimées (#1829)
   // Session State
-  saveSessionState: (competitionId: string, state: SessionState) => Promise<void>;
+  /** conflict : état réécrit par le MCP depuis le chargement (#1880), rien n'est écrit */
+  saveSessionState: (id: string, state: SessionState) => Promise<void | { conflict: true }>;
   saveSessionStateSync: (competitionId: string, state: unknown) => boolean;
   getSessionState: (competitionId: string) => Promise<SessionState | null>;
   clearSessionState: (competitionId: string) => Promise<void>;
@@ -798,6 +827,11 @@ export interface DatabaseAPI {
   saveTouch: (touch: MatchTouchData) => Promise<void>;
   saveCard: (card: MatchCardData) => Promise<void>;
   updateMatchTiming: (timing: MatchTimingData) => Promise<void>;
+  /** Remplissage automatique : remplace touches/cartons/timing simulés (null = effacer). false si match absent */
+  replaceSimulatedMatchEvents: (
+    matchId: string,
+    events: SimulatedMatchEvents | null
+  ) => Promise<boolean>;
   getFencerHistory: (fencerId: string) => Promise<FencerHistory>;
   saveArenaExit: (exit: ArenaExitData) => Promise<void>;
   getFencerCompetitionStats: (fencerId: string) => Promise<FencerCompetitionStats>;
@@ -1006,11 +1040,21 @@ export interface FileAPI {
   import: (filepath: string) => Promise<FileOpenResult>;
   /** Ouvre le dialogue « Ouvrir » (.bpm/.db/.cotcot) — même flux que Fichier › Ouvrir */
   openDialog: () => Promise<void>;
+  /** Décode des fichiers glissés-déposés (.zip de l'extranet, .xml, .fff, .txt) (#1938) */
+  unpackFederalFiles: (
+    inputs: Array<{ name: string; bytes: Uint8Array }>
+  ) => Promise<FederalTextFile[]>;
   /** Exporte une compétition seule (état d'avancement compris) dans un .bpm nommé d'après elle */
   exportCompetition: (
     competitionId: string
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
+  /** Classeur .xlsx écrit par le main (une feuille) */
+  writeSpreadsheet: (
+    filepath: string,
+    rows: (string | number)[][],
+    sheetName?: string
+  ) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
     html: string,
@@ -1034,30 +1078,40 @@ export interface FileAPI {
   ) => Promise<{ added: number; updated: number }>;
 }
 
+/** Fichiers de l'extranet fédéral décodés (#1938) */
+export interface FederalTextFile {
+  name: string;
+  content: string;
+}
+
 export interface DialogAPI {
   openFile: (options: DialogOpenOptions) => Promise<FileOpenResult | null>;
+  /** Choisit le .zip de l'extranet (ou .xml / .fff / .txt) ; fichiers décodés un par un */
+  openFederalFiles: () => Promise<{ names: string[]; files: FederalTextFile[] } | null>;
   saveFile: (options: DialogSaveOptions) => Promise<FileSaveResult | null>;
 }
 
 export interface MenuAPI {
-  onMenuNewCompetition: (callback: () => void) => void;
-  onMenuSave: (callback: () => void) => void;
-  onMenuCompetitionProperties: (callback: () => void) => void;
-  onMenuAddFencer: (callback: () => void) => void;
-  onMenuAddReferee: (callback: () => void) => void;
-  onMenuNextPhase: (callback: () => void) => void;
-  onMenuExport: (callback: (format: string) => void) => void;
-  onMenuImport: (callback: (format: string, filepath: string, content: string) => void) => void;
-  onMenuOpenSettings: (callback: () => void) => void;
-  onMenuReportIssue: (callback: () => void) => void;
-  onShowAbout: (callback: () => void) => void;
+  onMenuNewCompetition: (callback: () => void) => () => void;
+  onMenuSave: (callback: () => void) => () => void;
+  onMenuCompetitionProperties: (callback: () => void) => () => void;
+  onMenuAddFencer: (callback: () => void) => () => void;
+  onMenuAddReferee: (callback: () => void) => () => void;
+  onMenuNextPhase: (callback: () => void) => () => void;
+  onMenuExport: (callback: (format: string) => void) => () => void;
+  onMenuImport: (
+    callback: (format: string, filepath: string, content: string) => void
+  ) => () => void;
+  onMenuOpenSettings: (callback: () => void) => () => void;
+  onMenuReportIssue: (callback: () => void) => () => void;
+  onShowAbout: (callback: () => void) => () => void;
   /** competitionIds : compétitions fusionnées depuis le .bpm ouvert (#1117) */
-  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => void;
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => () => void;
   /** Compétition affichée : « Enregistrer sous » l'exporte seule */
   setCurrentCompetition?: (competitionId: string | null) => void;
-  onFileSaved: (callback: (filepath: string) => void) => void;
-  onAutosaveCompleted: (callback: () => void) => void;
-  onAutosaveFailed: (callback: () => void) => void;
+  onFileSaved: (callback: (filepath: string) => void) => () => void;
+  onAutosaveCompleted: (callback: () => void) => () => void;
+  onAutosaveFailed: (callback: () => void) => () => void;
   onDbReady: (callback: () => void) => void;
 }
 
@@ -1164,23 +1218,32 @@ export interface CryptoAPI {
   unprotect: (ciphertext: string) => Promise<string | null>;
 }
 
-export interface TrainingCustomRules {
-  matchDurationSeconds: number;
-  allowedZones: string[];
-  disableSuddenDeath: boolean;
-  /** Mode démo : matchs aléatoires joués automatiquement */
-  demo?: boolean;
+/** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
+/** Pistes en temps réel d'une journée (#1878) : voir eventDay.ts */
+export interface EventDayAPI extends DayStripAPI {
+  list: () => Promise<EventDay[]>;
+  create: (data: { name: string; date: string; stripCount?: number }) => Promise<EventDay>;
+  update: (
+    id: string,
+    updates: { name?: string; date?: string; stripCount?: number }
+  ) => Promise<EventDay | null>;
+  delete: (id: string) => Promise<void>;
+  setCompetitionDay: (competitionId: string, dayId: string | null) => Promise<DaySyncResult>;
+  listReferees: (dayId: string) => Promise<DayReferee[]>;
+  createReferee: (dayId: string, data: DayRefereeInput) => Promise<DayReferee>;
+  updateReferee: (id: string, data: DayRefereeInput) => Promise<void>;
+  deleteReferee: (id: string) => Promise<void>;
+  /** Reporte les arbitres de la journée dans chaque épreuve selon son arme */
+  syncReferees: (dayId: string) => Promise<DaySyncResult>;
+  /** Statut commun des arbitres + conflits sur toute la journée */
+  getOverview: (dayId: string) => Promise<EventDayOverview>;
+  getBusyElsewhere: (competitionId: string) => Promise<Record<string, DayRefereeAssignment[]>>;
+  getStripOccupation: (dayId: string) => Promise<import('./eventDay').DayStripStatus[]>;
 }
 
-export interface TrainingMatchRecord {
-  id: string;
-  arenaId: string;
-  arenaNumber: number;
-  weapon: string;
-  scoreA: number;
-  scoreB: number;
-  durationSec: number;
-  finishedAt: string;
+export interface EventDayOverview {
+  statuses: DayRefereeStatus[];
+  conflicts: DayRefereeConflict[];
 }
 
 export interface TrainingAPI {
@@ -1188,17 +1251,7 @@ export interface TrainingAPI {
     port?: number,
     host?: string,
     useHttps?: boolean
-  ) => Promise<{
-    success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
-    error?: string;
-  }>;
+  ) => Promise<{ success: boolean; serverInfo?: TrainingServerInfo; error?: string }>;
   stopServer: () => Promise<{ success: boolean; error?: string }>;
   startSession: (
     strips: number,
@@ -1206,18 +1259,13 @@ export interface TrainingAPI {
     customRules?: TrainingCustomRules
   ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
+  setTheme: (theme: string) => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
   getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
   getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;
   getServerInfo: () => Promise<{
     success: boolean;
-    serverInfo?: {
-      url: string;
-      ip: string;
-      port: number;
-      useHttps: boolean;
-      certFingerprint?: string;
-    };
+    serverInfo?: TrainingServerInfo;
     error?: string;
   }>;
   /** Démo autonome : ouvre les écrans arène / tablette arbitre / kiosque du serveur d'entraînement */
@@ -1289,20 +1337,94 @@ export interface PrintDialogAPI {
   ) => void;
 }
 
+/** Types d'événements du bus de données main → renderer (#1298) */
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed' | McpScreenEvent;
+
+// ============================================================================
+// Cyrano API (#1720)
+// ============================================================================
+
+export interface CyranoPisteConfigDTO {
+  piste: string;
+  ip: string;
+  port?: number;
+  arena?: number;
+  protocol?: 'EFP1' | 'EFP1.1' | 'auto';
+  /** Mode de la piste (#1829) : appareil maître, afficheur, ou manuel. Défaut : maître */
+  mode?: 'master' | 'display' | 'manual';
+}
+
+export interface CyranoPisteStatusDTO extends CyranoPisteConfigDTO {
+  status: 'online' | 'stale' | 'offline' | 'never';
+  lastSeen: number | null;
+  detectedProtocol: 'EFP1' | 'EFP1.1' | null;
+  /** BAD MATCH : l'appareil affiche d'autres tireurs que le match de l'arène (#1720) */
+  alert?: { kind: 'bad_match'; since: number; arena: string; device: string } | null;
+}
+
+export interface CyranoStatusDTO {
+  running: boolean;
+  port: number;
+  pistes: CyranoPisteStatusDTO[];
+}
+
+export interface CyranoAPI {
+  start: (options?: {
+    port?: number;
+    host?: string;
+    compe?: string;
+  }) => Promise<{ success: boolean; port?: number; error?: string }>;
+  stop: () => Promise<void>;
+  isRunning: () => Promise<boolean>;
+  setPistes: (pistes: CyranoPisteConfigDTO[]) => Promise<void>;
+  getStatus: () => Promise<CyranoStatusDTO>;
+  getLog: () => Promise<CyranoFrameLogDTO[]>;
+  setOptions: (options: {
+    nameLength?: 10 | 12 | 15 | 20;
+    natSource?: 'country' | 'club' | 'region' | 'auto';
+    international?: boolean;
+  }) => Promise<void>;
+  /** Actions de secours par piste (#1829) */
+  pisteAction: (piste: string, action: 'ack' | 'next' | 'prev' | 'resync') => Promise<boolean>;
+  /** Table des pistes enregistrée en base, par compétition (#1829) */
+  loadPistes: (competitionId: string) => Promise<CyranoPisteConfigDTO[]>;
+  savePistes: (competitionId: string, pistes: CyranoPisteConfigDTO[]) => Promise<boolean>;
+  /** Épreuve d'une journée : table des pistes partagée par la salle (#1878), sinon null */
+  getPistesScope: (competitionId: string) => Promise<{ dayId: string; dayName: string } | null>;
+  /** Épreuve suivie par chaque piste (identifiant de compétition), #1878 */
+  getRoutes: () => Promise<Record<string, string | null>>;
+}
+
+/** Trame du journal Cyrano (#1829) */
+export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; port: number } & {
+  piste: string | null;
+  raw: string;
+  rejected?: 'unknown_ip' | 'malformed';
+};
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  proxy: ProxyAPI;
+  backup: BackupAPI;
+  privacy: PrivacyAPI;
+  /** Serveur MCP intégré, agent IA en lecture (#1880) */
+  mcp: McpAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
   ftp: FtpAPI;
   crypto: CryptoAPI;
-  remote: RemoteServerAPI;
+  remote: RemoteServerAPI & import('./remote').RemoteFirewallAPI;
   training: TrainingAPI;
+  eventDay: EventDayAPI;
+  settings: SettingsAPI;
+  club: ClubAPI;
+  cyrano: CyranoAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
-  onUpdateProgress: (callback: (data: { progress: number }) => void) => () => void;
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (
@@ -1317,7 +1439,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   ) => () => void;
   /** Bus d'événements de données main → renderer (#1298) */
   onCompetitionEvent: (
-    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+    callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
@@ -1335,17 +1457,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void
   ) => () => void;
-  onDTCall: (
-    callback: (data: {
-      arenaId: string;
-      arenaNumber: number | null;
-      matchNumber: number | null;
-      competitionId: string | null;
-      timestamp: number;
-      reason?: 'black_card';
-      fencerName?: string | null;
-    }) => void
-  ) => () => void;
+  onDTCall: (callback: (data: import('./remote').DTCallEvent) => void) => () => void;
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => () => void;
   onScoreIpConflict: (callback: (data: ScoreIpConflict) => void) => () => void;
   onPoolSignatureUpdated: (
@@ -1355,6 +1467,11 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
     callback: (data: { matchId: string; fencerId: string }) => void
   ) => () => void;
   notifyLanguageChanged: (lang: string) => void;
+  /** Écran de démarrage affiché ou non (préférence persistée côté main) */
+  splash?: {
+    getEnabled: () => Promise<{ enabled: boolean }>;
+    setEnabled: (enabled: boolean) => Promise<{ success: boolean; enabled?: boolean }>;
+  };
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;
   getLogos: () => Promise<{ id: string; name: string; data: string }[]>;

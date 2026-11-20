@@ -1,0 +1,137 @@
+import { describe, expect, it } from 'vitest';
+import { MatchStatus } from '../../../shared/types';
+import type { Pool, PoolRanking } from '../../../shared/types';
+import type { TableauMatch } from '../tableau/tableauTypes';
+import {
+  computeEffectiveTableauRanking,
+  computeMatchProgress,
+  rankingTableauNavAction,
+} from './competitionDerived';
+
+const pool = (statuses: MatchStatus[]): Pool =>
+  ({
+    id: 'p',
+    number: 1,
+    fencers: [],
+    matches: statuses.map((status, i) => ({ id: `m${i}`, status })),
+  }) as unknown as Pool;
+
+const rank = (id: string, gender: string, r: number): PoolRanking =>
+  ({ fencer: { id, gender }, rank: r }) as unknown as PoolRanking;
+
+const baseOptions = {
+  isRapieres: false,
+  rapieresTableauMode: undefined,
+  poolWinnersOnly: false,
+  customFormula: undefined,
+  postPoolSplitCriteria: undefined,
+  activeSplitGroup: null,
+  splitOffCompetitionIds: undefined,
+};
+
+describe('computeMatchProgress', () => {
+  it('renvoie null sans poule ni tableau', () => {
+    expect(computeMatchProgress([], [])).toBeNull();
+  });
+
+  it('compte les matchs de poule terminés', () => {
+    const pools = [pool([MatchStatus.FINISHED, MatchStatus.NOT_STARTED])];
+    expect(computeMatchProgress(pools, [])).toEqual({ done: 1, total: 2, label: 'poules' });
+  });
+
+  it('retombe sur le tableau quand il n’y a pas de poule', () => {
+    const matches = [
+      { id: 'a', fencerA: {}, fencerB: {}, winner: {} },
+      { id: 'b', fencerA: {}, fencerB: {}, winner: null },
+      { id: 'c', fencerA: {}, fencerB: null, winner: null },
+    ] as unknown as TableauMatch[];
+    expect(computeMatchProgress([], matches)).toEqual({ done: 1, total: 2, label: 'tableau' });
+  });
+
+  it('tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)', () => {
+    const matches = [
+      { id: 'bye', fencerA: {}, fencerB: null, winner: {} },
+      { id: 'a', fencerA: {}, fencerB: {}, winner: {} },
+      { id: 'b', fencerA: {}, fencerB: {}, winner: {} },
+    ] as unknown as TableauMatch[];
+    expect(computeMatchProgress([], matches)).toEqual({ done: 2, total: 2, label: 'tableau' });
+  });
+
+  it('compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)', () => {
+    const matches = [
+      { id: 'q1', round: 4, fencerA: {}, fencerB: {}, winner: {} },
+      { id: 'q2', round: 4, fencerA: {}, fencerB: {}, winner: null },
+      { id: 'f', round: 2, fencerA: {}, fencerB: null, winner: null },
+    ] as unknown as TableauMatch[];
+    expect(computeMatchProgress([], matches)).toEqual({ done: 1, total: 3, label: 'tableau' });
+  });
+});
+
+describe('computeEffectiveTableauRanking', () => {
+  const ranking = [rank('a', 'M', 1), rank('b', 'F', 2), rank('c', 'M', 3)];
+
+  it('garde le classement tel quel sans option', () => {
+    expect(computeEffectiveTableauRanking(ranking, [], baseOptions)).toBe(ranking);
+  });
+
+  it('ne garde que le groupe actif et renumérote', () => {
+    const result = computeEffectiveTableauRanking(ranking, [], {
+      ...baseOptions,
+      postPoolSplitCriteria: 'gender',
+      activeSplitGroup: 'M',
+    });
+    expect(result.map(r => [r.fencer.id, r.rank])).toEqual([
+      ['a', 1],
+      ['c', 2],
+    ]);
+  });
+
+  it('exclut les groupes déjà extraits dans une compétition séparée', () => {
+    const result = computeEffectiveTableauRanking(ranking, [], {
+      ...baseOptions,
+      postPoolSplitCriteria: 'gender',
+      splitOffCompetitionIds: { F: 'comp-f' },
+    });
+    expect(result.map(r => r.fencer.id)).toEqual(['a', 'c']);
+  });
+});
+
+describe('rankingTableauNavAction (#2008)', () => {
+  const t = (key: string) => key;
+  const base = {
+    t,
+    hasDirectElimination: true,
+    hasNextRound: false,
+    viewingPastRound: false,
+    splitByGender: false,
+    frozen: false,
+    poolWinnersOnly: false,
+    pools: [] as Pool[],
+    onGoToTableau: () => {},
+  };
+
+  it('libellé « Voir le tableau » quand le classement est figé', () => {
+    expect(rankingTableauNavAction({ ...base, frozen: true })?.label).toBe(
+      'poolRanking.see_tableau'
+    );
+  });
+
+  it('libellé « Passer au tableau » sinon', () => {
+    expect(rankingTableauNavAction(base)?.label).toBe('poolRanking.go_tableau');
+  });
+
+  it('déclenche le passage au tableau', () => {
+    let called = false;
+    rankingTableauNavAction({ ...base, onGoToTableau: () => (called = true) })?.action();
+    expect(called).toBe(true);
+  });
+
+  it.each([
+    ['sans élimination directe', { hasDirectElimination: false }],
+    ['tour suivant à lancer', { hasNextRound: true }],
+    ['tour passé consulté', { viewingPastRound: true }],
+    ['séparation par genre', { splitByGender: true }],
+  ])('aucun bouton : %s', (_label, over) => {
+    expect(rankingTableauNavAction({ ...base, ...over })).toBeNull();
+  });
+});

@@ -32,6 +32,123 @@
 
   /* Zone tactile minimale (WCAG 2.5.5) : tablettes arbitre, pavés numériques */
   --touch-target: 44px;
+
+  /* Mouvement (#1531) : deux durées, une seule courbe. Alias de --duration-* (design.css) */
+  --motion-fast: var(--duration-fast, 120ms);
+  --motion-base: var(--duration-base, 200ms);
+  --motion-ease: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+
+  /* Surface translucide (menus) : opaque tant que backdrop-filter n'est pas supporté */
+  --surface-glass: var(--color-surface);
+}
+
+/* Palette sombre : bloc unique (#1531) ; seules variantes contextuelles ci-dessous */
+.theme-dark {
+  --color-bg: #111110;
+  --color-surface: #1c1b19;
+  --color-surface-2: #242320;
+  --color-border: #2e2c27;
+  --color-border-dark: #3d3b34;
+  --color-text: #f5f3ef;
+  --color-text-light: #a39e93;
+  --color-text-muted: #6e6860;
+  --color-primary-glow: rgba(59, 91, 219, 0.25);
+
+  /* Bleu-gris (#1114) */
+  --color-raised: #334155;
+  --color-raised-hover: #3e4c63;
+  --color-notice-bg: #334155;
+  --color-notice-border: #475569;
+  --color-notice-text: #e2e8f0;
+  --color-win-text: #6ee7b7;
+  --color-seed-bg: linear-gradient(90deg, #1e293b, #334155);
+  --color-seed-top-bg: linear-gradient(90deg, #1e3a5f, #3b5070);
+  /* Or, argent, bronze sombres (#1114) */
+  --color-gold-bg: #6b5410;
+  --color-gold-border: #a8841c;
+  --color-gold-text: #fde68a;
+  --color-silver-bg: #4b5563;
+  --color-bronze-bg: #6e3f1c;
+  --color-champion-bg: linear-gradient(135deg, #8a6d14 0%, #5c470c 100%);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  /* Tableau : fond gris-noir, titres de tours en blanc (#1032) */
+  --tableau-bg: #1f2023;
+  --tableau-panel: #26272b;
+  --tableau-panel-header: #2f3035;
+  --tableau-border: #3a3b40;
+  --tableau-title: #ffffff;
+
+  /* Alias sémantiques sombres (#1531) : lus par theme.css */
+  --surface-glass: var(--color-surface);
+  --success-soft: rgba(13, 148, 136, 0.2);
+  --success-on-soft: #2dd4bf;
+  --warning-soft: rgba(217, 119, 6, 0.2);
+  --warning-on-soft: #fcd34d;
+  --danger-soft: rgba(220, 38, 38, 0.2);
+  --danger-on-soft: #f87171;
+  --info-soft: rgba(59, 91, 219, 0.2);
+  --info-on-soft: #93c5fd;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --surface-glass: rgba(255, 255, 255, 0.86);
+  }
+
+  .theme-dark {
+    --surface-glass: rgba(28, 27, 25, 0.86);
+  }
+
+  .comp-header-dropdown,
+  .theme-dark .comp-header-dropdown {
+    background: var(--surface-glass);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+  }
+}
+
+/* Menu déroulant : apparition courte (neutralisée par prefers-reduced-motion, design.css) */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comp-header-dropdown {
+  animation: menu-in var(--motion-base) var(--motion-ease);
+}
+
+.comp-header-dropdown-item {
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+
+/* Densité d'affichage (#1541) : réglage « Densité » (Paramètres), attribut data-density sur <html>.
+   Standard = valeurs par défaut. Points de rupture de référence : 1024, 1280, 1440, 1920 px. */
+:root[data-density='comfortable'] {
+  --density-cell-y: 0.875rem;
+  --density-cell-x: 1.125rem;
+  --density-bar-y: 0.875rem;
+  --density-step-y: 0.5rem;
+  --density-bar-h: 44px;
+}
+
+:root[data-density='compact'] {
+  --density-cell-y: 0.3125rem;
+  --density-cell-x: 0.625rem;
+  --density-bar-y: 0.375rem;
+  --density-step-y: 0.25rem;
+  --density-bar-h: 28px;
 }
 
 /* Les tailles en rem suivent le réglage ; les tailles en px restent fixes (à migrer) */

@@ -161,7 +161,8 @@ describe('TableauView', () => {
     render(<Host ranking={rankingOf(4)} onMatchesSpy={spy} />);
     const card = (await screen.findAllByText(/Nom1 P\./))[0].closest('.match-card') as HTMLElement;
     fireEvent.click(card);
-    const [inputA, inputB] = await screen.findAllByRole('spinbutton');
+    // Saisie à l'image de la piste : second appelé (B) à gauche (#1826)
+    const [inputB, inputA] = await screen.findAllByRole('spinbutton');
     // Nom1 est le fencerA ou fencerB selon le placement : on gagne avec 15 côté A puis on vérifie le vainqueur
     fireEvent.change(inputA, { target: { value: '15' } });
     fireEvent.change(inputB, { target: { value: '9' } });

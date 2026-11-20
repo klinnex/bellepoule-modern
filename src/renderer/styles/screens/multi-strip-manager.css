@@ -1,0 +1,77 @@
+/* Styles extraits de MultiStripManager.tsx (#1895) */
+.multi-strip-manager-1.multi-strip-manager-1.multi-strip-manager-1 {
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.multi-strip-manager-2.multi-strip-manager-2.multi-strip-manager-2 {
+  margin: 0;
+}
+
+.multi-strip-manager-3.multi-strip-manager-3.multi-strip-manager-3 {
+  padding: 1rem 1.5rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.multi-strip-manager-4.multi-strip-manager-4.multi-strip-manager-4 {
+  display: flex;
+  gap: 2rem;
+}
+
+.multi-strip-manager-5.multi-strip-manager-5.multi-strip-manager-5 {
+  font-size: 0.875rem;
+}
+
+.multi-strip-manager-6.multi-strip-manager-6.multi-strip-manager-6 {
+  font-size: 0.875rem;
+  color: #16a34a;
+}
+
+.multi-strip-manager-7.multi-strip-manager-7.multi-strip-manager-7 {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1rem 1.5rem;
+}
+
+.multi-strip-manager-8.multi-strip-manager-8.multi-strip-manager-8 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.multi-strip-manager-9.multi-strip-manager-9.multi-strip-manager-9 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.multi-strip-manager-10.multi-strip-manager-10.multi-strip-manager-10 {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.multi-strip-manager-11.multi-strip-manager-11.multi-strip-manager-11 {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-light);
+}
+
+.multi-strip-manager-12.multi-strip-manager-12.multi-strip-manager-12 {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.multi-strip-manager-13.multi-strip-manager-13.multi-strip-manager-13 {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.multi-strip-manager-14.multi-strip-manager-14.multi-strip-manager-14 {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}

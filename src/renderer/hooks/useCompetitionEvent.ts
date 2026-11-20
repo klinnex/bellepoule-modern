@@ -4,8 +4,9 @@
  * Licensed under GPL-3.0
  */
 import { useEffect, useRef } from 'react';
+import type { CompetitionEventType } from '../../shared/types/preload';
 
-export type CompetitionEventType = 'fencers:changed';
+export type { CompetitionEventType };
 
 export function useCompetitionEvent(
   type: CompetitionEventType,

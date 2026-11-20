@@ -191,19 +191,19 @@ const FencerComparison_: React.FC<FencerComparisonProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal modal--lg"
+        className="modal modal--xl"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal__header">
-          <h2 className="modal__title">{t('comparison.title')}</h2>
-          <button className="modal__close" onClick={onClose}>
+        <div className="modal-header">
+          <h2 className="modal-title">{t('comparison.title')}</h2>
+          <button className="modal__close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div className="modal__body">
+        <div className="modal-body">
           {/* Sélection des tireurs */}
           <div className="comparison__selectors">
             <div className="form-group">

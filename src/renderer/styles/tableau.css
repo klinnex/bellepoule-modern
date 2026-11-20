@@ -1,4 +1,5 @@
-/* ============================================================
+/* =====================================================}
+
    TABLEAU ÉLIMINATOIRE (#1157) — remplace les style={{…}} de TableauToolbar / TableauView
    ============================================================ */
 
@@ -150,4 +151,82 @@
   gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Bouton V (vainqueur désigné) à côté du score, comme en poules (#1442) */
+.score-victory-btn {
+  padding: 0.75rem 1rem;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.score-victory-btn.is-active {
+  background: #22c55e;
+  color: white;
+}
+
+.score-victory-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Carte de match : badges piste/arbitre/signatures dans un bandeau en haut, hors des scores (#1542, #1440) */
+.match-card--badges {
+  padding-top: 20px;
+}
+.match-badges {
+  top: 2px;
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) ease;
+}
+
+/* Boutons Piste / Arbitre répartis sur toute la largeur de la carte (#1826) */
+.match-badges.match-badges--assign {
+  left: 16px;
+  right: 4px;
+}
+.match-badges--assign .match-badge-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-card:hover .match-badges,
+.match-card:focus-within .match-badges {
+  opacity: 1;
+}
+
+.match-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* Minimap du tableau (#1542) */
+.bracket-minimap {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 3.25rem;
+  z-index: 10;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  opacity: 0.9;
+}
+
+.bracket-minimap-view {
+  fill: rgba(59, 130, 246, 0.2);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  pointer-events: none;
 }

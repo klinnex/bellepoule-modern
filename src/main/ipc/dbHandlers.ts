@@ -6,6 +6,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
+import type { CompetitionEventType } from '../../shared/types/preload';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface DbHandlersContext {
@@ -15,7 +16,7 @@ export interface DbHandlersContext {
 }
 
 /** Diffuse un événement de données aux fenêtres du renderer (bus main → renderer, #1298). */
-export function emitCompetitionEvent(type: 'fencers:changed', competitionId?: string): void {
+export function emitCompetitionEvent(type: CompetitionEventType, competitionId?: string): void {
   for (const win of BrowserWindow.getAllWindows()) {
     if (!win.isDestroyed()) win.webContents.send('competition:event', { type, competitionId });
   }
@@ -92,7 +93,9 @@ export function registerDbHandlers({
 
   // Match handlers
   ipcMain.handle('db:createMatch', async (_, match, poolId) => {
-    return db.createMatch(match, poolId);
+    const created = db.createMatch(match, poolId);
+    emitCompetitionEvent('matches:changed');
+    return created;
   });
 
   ipcMain.handle('db:getMatch', async (_, id) => {
@@ -103,7 +106,15 @@ export function registerDbHandlers({
     return db.getMatchesByPool(poolId);
   });
 
-  ipcMain.handle('db:updateMatch', async (_, id, updates) => {
+  ipcMain.handle('db:updateMatch', async (_, id, rawUpdates) => {
+    // Motif de journal (correction après tirage du tableau, #1996) : jamais écrit dans le match
+    const { auditReason, ...updates } = (rawUpdates ?? {}) as Parameters<
+      DatabaseManager['updateMatch']
+    >[1] & { auditReason?: unknown };
+    const reason =
+      typeof auditReason === 'string' && auditReason.trim()
+        ? auditReason.trim().slice(0, 300)
+        : undefined;
     const hasScore = updates.scoreA !== undefined || updates.scoreB !== undefined;
     if (hasScore) {
       try {
@@ -117,7 +128,8 @@ export function registerDbHandlers({
             previousScoreB: prev.scoreB,
             newScoreA: updates.scoreA ?? prev.scoreA,
             newScoreB: updates.scoreB ?? prev.scoreB,
-            changedBy: 'ui',
+            changedBy: reason ? 'correction' : 'ui',
+            ...(reason ? { reason } : {}),
           });
         }
       } catch {
@@ -126,6 +138,7 @@ export function registerDbHandlers({
     } else {
       db.updateMatch(id, updates);
     }
+    emitCompetitionEvent('matches:changed');
 
     // Propager l'assignation d'arbitre au serveur distant
     if (updates.refereeId) {
@@ -140,13 +153,17 @@ export function registerDbHandlers({
   });
 
   ipcMain.handle('db:upsertTableauMatch', async (_, params) => {
-    return db.upsertTableauMatch(params);
+    const result = db.upsertTableauMatch(params);
+    emitCompetitionEvent('matches:changed');
+    return result;
   });
 
   ipcMain.handle(
     'db:upsertMultipleTableauMatches',
     async (_, competitionId: string, matches: any[]) => {
-      return db.upsertMultipleTableauMatches(competitionId, matches);
+      const result = db.upsertMultipleTableauMatches(competitionId, matches);
+      emitCompetitionEvent('matches:changed', competitionId);
+      return result;
     }
   );
 
@@ -155,8 +172,9 @@ export function registerDbHandlers({
   });
 
   // Session State handlers
+  // Révision périmée (état réécrit par le MCP, #1880) : { conflict: true }, rien n'est écrit
   ipcMain.handle('db:saveSessionState', async (_, competitionId, state) => {
-    return db.saveSessionState(competitionId, state);
+    return db.saveSessionStateChecked(competitionId, state) ? undefined : { conflict: true };
   });
 
   ipcMain.handle('db:getSessionState', async (_, competitionId) => {
@@ -166,9 +184,9 @@ export function registerDbHandlers({
   // Sync save for beforeunload (renderer cannot await async IPC on close)
   ipcMain.on('db:saveSessionStateSync', (event, competitionId: string, state: unknown) => {
     try {
-      db.saveSessionState(competitionId, state);
+      const saved = db.saveSessionStateChecked(competitionId, state);
       db.forceSave();
-      event.returnValue = true;
+      event.returnValue = saved;
     } catch (e) {
       logger.error(LogCategory.SYSTEM, '[DB] Sync session state save failed', toError(e));
       event.returnValue = false;
@@ -257,6 +275,12 @@ export function registerDbHandlers({
   ipcMain.handle('db:getRefereeStats', async (_, competitionId) => {
     return db.getRefereeStats(competitionId);
   });
+  ipcMain.handle('db:getRemoteEvents', async (_, competitionId) => {
+    return db.getRemoteEvents(competitionId);
+  });
+  ipcMain.handle('db:getMatchTimings', async (_, competitionId) => {
+    return db.getMatchTimings(competitionId);
+  });
 
   // Touch / Card read handlers
   ipcMain.handle('db:getTouches', async (_, matchId) => {
@@ -264,6 +288,13 @@ export function registerDbHandlers({
   });
   ipcMain.handle('db:getCards', async (_, matchId) => {
     return db.getCards(matchId);
+  });
+  // Cartons de plusieurs matchs pour les feuilles imprimées (#1829)
+  ipcMain.handle('db:getCardsByMatchIds', async (_, matchIds: unknown) => {
+    if (!Array.isArray(matchIds)) return [];
+    return db.getCardsByMatchIds(
+      matchIds.filter((id): id is string => typeof id === 'string').slice(0, 5000)
+    );
   });
 
   // Statistiques combattants
@@ -277,6 +308,11 @@ export function registerDbHandlers({
 
   ipcMain.handle('db:updateMatchTiming', async (_, timing) => {
     return db.updateMatchTiming(timing.matchId, timing.startTime, timing.endTime, timing.duration);
+  });
+
+  ipcMain.handle('db:replaceSimulatedMatchEvents', async (_, matchId, events) => {
+    if (typeof matchId !== 'string' || !matchId) return false;
+    return db.replaceSimulatedMatchEvents(matchId, events ?? null);
   });
 
   ipcMain.handle('db:getFencerHistory', async (_, fencerId) => {

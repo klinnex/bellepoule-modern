@@ -19,7 +19,18 @@ vi.mock('../printWindows', () => ({
   printHtmlWithSystemDialog: vi.fn(),
 }));
 
-import { registerWindowPrintHandlers } from './windowPrintHandlers';
+import { isAllowedPdfResource, registerWindowPrintHandlers } from './windowPrintHandlers';
+
+describe('rendu PDF isolé (#1880)', () => {
+  it('seuls le HTML temporaire et les data: URL sont chargés', () => {
+    const tmp = '/tmp';
+    expect(isAllowedPdfResource('file:///tmp/bp-pdf-abc/print.html', tmp)).toBe(true);
+    expect(isAllowedPdfResource('data:image/png;base64,AA', tmp)).toBe(true);
+    expect(isAllowedPdfResource('file:///home/u/.ssh/id_rsa', tmp)).toBe(false);
+    expect(isAllowedPdfResource('file:///tmp/bp-pdf-abc/../../home/u/a.txt', tmp)).toBe(false);
+    expect(isAllowedPdfResource('http://evil.example/x.png', tmp)).toBe(false);
+  });
+});
 
 describe('registerWindowPrintHandlers (#1341)', () => {
   beforeEach(() => {

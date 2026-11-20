@@ -5,6 +5,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface SplitCompetitionModalProps {
   groupLabel: string;
@@ -24,6 +26,7 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
   const { t } = useTranslation();
   const [title, setTitle] = useState(defaultTitle);
   const inputRef = useRef<HTMLInputElement>(null);
+  const trapRef = useFocusTrap<HTMLFormElement>(true, onCancel);
 
   useEffect(() => {
     inputRef.current?.select();
@@ -35,16 +38,12 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={onCancel}
-      onKeyDown={e => e.key === 'Escape' && onCancel()}
-    >
+    <div className="modal-overlay" onClick={onCancel}>
       <form
-        className="modal"
+        ref={trapRef}
+        className="modal split-competition-modal-1"
         onClick={e => e.stopPropagation()}
         onSubmit={submit}
-        style={{ maxWidth: '460px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="split-competition-title"
@@ -55,7 +54,9 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
           </h2>
         </div>
         <div className="modal-body">
-          <p style={{ marginTop: 0 }}>{t('splitCompetition.text', { count: fencerCount })}</p>
+          <p className="split-competition-modal-2">
+            {t('splitCompetition.text', { count: fencerCount })}
+          </p>
           <div className="form-group">
             <label className="form-label" htmlFor="split-competition-name">
               {t('splitCompetition.name')}
@@ -72,12 +73,12 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
           </div>
         </div>
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>
+          <Button type="button" onClick={onCancel}>
             {t('actions.cancel')}
-          </button>
-          <button type="submit" className="btn btn-primary" disabled={!title.trim()}>
+          </Button>
+          <Button type="submit" variant="primary" disabled={!title.trim()}>
             {t('splitCompetition.create')}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

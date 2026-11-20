@@ -10,6 +10,7 @@ import {
   CustomDEConfig,
   CustomFormulaConfig,
   CustomPoolRoundConfig,
+  CustomScoringConfig,
   FencerStatus,
   PoolRanking,
   Weapon,
@@ -88,6 +89,32 @@ export function usesModernRules(
   return getActiveFormula(weapon ?? undefined, settings)?.ruleSet === 'modern';
 }
 
+/**
+ * Barème personnalisé envoyé à la tablette arbitre (null = vue standard de l'arme).
+ * Règles armes modernes : seul un barème à zones change la vue ; en barème standard, vue
+ * olympique (pas de +1, point au clic sur la case score) comme en épée / fleuret / sabre (#1936).
+ */
+export function remoteCustomScoring(
+  weapon: Weapon | string | undefined | null,
+  settings: Partial<CompetitionSettings> | undefined
+): { pool?: CustomScoringConfig; de?: CustomScoringConfig } | null {
+  if (weapon !== Weapon.CUSTOM) return null;
+  const phases = getActiveFormula(weapon, settings)?.phases ?? [];
+  let pool: CustomScoringConfig | undefined = (
+    phases.find(p => p.type === 'pool_round')?.config as CustomPoolRoundConfig
+  )?.scoring;
+  let de: CustomScoringConfig | undefined = (
+    phases.find(p => p.type === 'direct_elimination')?.config as CustomDEConfig
+  )?.scoring;
+  if (usesModernRules(weapon, settings)) {
+    const zoned = (s?: CustomScoringConfig) =>
+      s?.type === 'zones' && !!s.zones?.length ? s : undefined;
+    pool = zoned(pool);
+    de = zoned(de);
+  }
+  return pool || de ? { pool, de } : null;
+}
+
 /** Réglages effectifs : formule personnalisée appliquée par-dessus les réglages enregistrés */
 export function resolveCompetitionSettings<T extends Partial<CompetitionSettings>>(
   weapon: Weapon | string | undefined,
@@ -95,13 +122,13 @@ export function resolveCompetitionSettings<T extends Partial<CompetitionSettings
 ): T {
   const formula = getActiveFormula(weapon, settings);
   const base = (settings ?? {}) as T;
-  // Rapières : un tour de poules en vagues, tableau des qualifiés avec match pour la 3e place
+  // Rapières : un tour de poules en vagues, tableau des qualifiés ; match pour la 3e place choisi
+  // par la popup de mode de tableau (thirdPlaceMatch conservé, #1441)
   if (isRapieresMode(weapon, settings))
     return {
       ...base,
       poolRounds: 1,
       hasDirectElimination: true,
-      thirdPlaceMatch: true,
       poolWinnersOnly: false,
     };
   return formula ? { ...base, ...deriveSettingsFromFormula(formula) } : base;

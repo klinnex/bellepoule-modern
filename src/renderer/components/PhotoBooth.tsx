@@ -7,6 +7,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
+import { Camera } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface PhotoBoothProps {
   onConfirm: (photoData: string) => void;
@@ -150,127 +153,71 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
   return (
     <div>
       {error && (
-        <div
-          style={{
-            background: '#fef2f2',
-            border: '1px solid #fca5a5',
-            borderRadius: '6px',
-            color: '#b91c1c',
-            padding: '10px 14px',
-            marginBottom: '12px',
-            fontSize: '0.8125rem',
-            wordBreak: 'break-word',
-          }}
-        >
+        <div className="photo-booth-1">
           <strong>{t('photoBooth.webcam_error')}</strong> {error}
         </div>
       )}
 
       {!isCapturing && !photo && (
         <div className="text-center">
-          <div
-            style={{
-              width: '160px',
-              height: '160px',
-              borderRadius: '50%',
-              backgroundColor: '#f3f4f6',
-              margin: '0 auto 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '4rem',
-            }}
-          >
-            📷
+          <div className="photo-booth-2">
+            <Icon icon={Camera} />
           </div>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div className="photo-booth-3">
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="button" className="btn btn-primary" onClick={startCamera}>
+            </Button>
+            <Button type="button" variant="primary" onClick={startCamera}>
               {t('photoBooth.start')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {isCapturing && (
         <div className="relative">
-          <video
-            ref={videoCallbackRef}
-            autoPlay
-            playsInline
-            muted
-            style={{
-              width: '100%',
-              borderRadius: '8px',
-              transform: 'scaleX(-1)',
-            }}
-          />
+          <video ref={videoCallbackRef} autoPlay playsInline muted className="photo-booth-4" />
 
-          {countdown > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                fontSize: '6.25rem',
-                fontWeight: 'bold',
-                color: 'white',
-                textShadow: '0 4px 20px rgba(0,0,0,0.5)',
-              }}
-            >
-              {countdown}
-            </div>
-          )}
+          {countdown > 0 && <div className="photo-booth-5">{countdown}</div>}
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-            <button
+          <div className="photo-booth-6">
+            <Button
               type="button"
               onClick={capturePhoto}
               disabled={countdown > 0}
-              className="btn btn-primary flex-1"
+              variant="primary"
+              className="flex-1"
             >
               {countdown > 0 ? `${countdown}…` : t('photoBooth.capture')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => {
                 stopCamera();
                 onClose();
               }}
-              className="btn btn-secondary"
             >
               {t('actions.cancel')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {photo && (
         <div className="text-center">
-          <img
-            src={photo}
-            alt={t('photoBooth.preview')}
-            style={{
-              width: '100%',
-              borderRadius: '8px',
-              marginBottom: '12px',
-            }}
-          />
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button type="button" onClick={retake} className="btn btn-secondary">
+          <img src={photo} alt={t('photoBooth.preview')} className="photo-booth-7" />
+          <div className="photo-booth-3">
+            <Button type="button" onClick={retake}>
               {t('photoBooth.retake')}
-            </button>
-            <button type="button" onClick={() => onConfirm(photo)} className="btn btn-primary">
+            </Button>
+            <Button type="button" onClick={() => onConfirm(photo)} variant="primary">
               {t('photoBooth.use')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      <canvas ref={canvasRef} className="photo-booth-8" />
     </div>
   );
 };

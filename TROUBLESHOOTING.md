@@ -1034,9 +1034,9 @@ uptime
 
 ### Community Support
 
-- **GitHub Issues**: [Report bugs](https://github.com/klinnex/bellepoule-modern/issues)
-- **GitHub Discussions**: [Ask questions](https://github.com/klinnex/bellepoule-modern/discussions)
-- **Documentation**: [Online Wiki](https://github.com/klinnex/bellepoule-modern/wiki)
+- **GitHub Issues**: [Report bugs](https://github.com/BellePoule-Modern/bellepoule-modern/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/BellePoule-Modern/bellepoule-modern/discussions)
+- **Documentation**: [Online Wiki](https://github.com/BellePoule-Modern/bellepoule-modern/wiki)
 
 ### Emergency Recovery
 

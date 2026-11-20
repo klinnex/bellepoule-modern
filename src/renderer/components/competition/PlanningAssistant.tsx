@@ -17,6 +17,14 @@ import {
   TableauFlowMatch,
 } from '../../../shared/services/tournamentFlow';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
+import { Button } from '../common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from '../common/Icon';
+import {
+  getPlannedEnd,
+  hasPlannedEnd,
+  setPlannedEnd,
+} from '../../../features/analytics/services/scheduleBaseline';
 
 interface PlanningAssistantProps {
   competition: Competition;
@@ -89,6 +97,21 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
     };
   }, [manager, competition, pools, arenas, isTableau]);
 
+  // Heure de fin planifiée de l'onglet Organisation (#1817) : 1er calcul retenu d'office
+  const phase = isTableau ? 'tableau' : 'pools';
+  const finishAt = isTableau
+    ? (tableauResult?.estimatedFinishTime.getTime() ?? null)
+    : (insights?.estimatedFinishTime.getTime() ?? null);
+  const [, setRev] = useState(0);
+  const stored = hasPlannedEnd(competition.id, phase) ? getPlannedEnd(competition.id, phase) : null;
+  const valid = finishAt != null && Number.isFinite(finishAt);
+  const planned = stored ?? (valid ? finishAt : null);
+  useEffect(() => {
+    if (stored == null && valid && finishAt != null) setPlannedEnd(competition.id, phase, finishAt);
+  }, [stored, valid, finishAt, competition.id, phase]);
+  const fmt = (ms: number) =>
+    new Date(ms).toLocaleTimeString(getActiveLocale(), { hour: '2-digit', minute: '2-digit' });
+
   const remainingMatches = pools.reduce(
     (sum, p) => sum + p.matches.filter(m => m.status !== MatchStatus.FINISHED).length,
     0
@@ -103,14 +126,32 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       elevated
       footer={
         <>
-          <button type="button" className="btn btn-primary" onClick={onClose}>
+          {finishAt != null && Number.isFinite(finishAt) && (
+            <span className="u-hint">
+              {planned != null && t('planning.planned_end', { time: fmt(planned) })}{' '}
+              {planned !== finishAt && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setPlannedEnd(competition.id, phase, finishAt);
+                    setRev(r => r + 1);
+                  }}
+                >
+                  {t('planning.set_planned_end')}
+                </Button>
+              )}
+            </span>
+          )}
+          <Button type="button" variant="primary" onClick={onClose}>
             {t('actions.close')}
-          </button>
+          </Button>
         </>
       }
     >
       <div className="u-row">
-        <label htmlFor="planning-arena-count" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+        <label htmlFor="planning-arena-count" className="planning-assistant-1">
           {t('planning.strips')}
         </label>
         <input
@@ -120,21 +161,13 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           max={20}
           value={arenaCount}
           onChange={e => setArenaCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-          style={{ width: '4rem' }}
+          className="planning-assistant-2"
         />
       </div>
 
       {tableauResult && (
         <>
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              background: 'var(--color-surface-2)',
-              color: 'var(--color-text)',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="planning-assistant-3">
             <strong>{t('planning.finish')}</strong>{' '}
             {tableauResult.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
               hour: '2-digit',
@@ -150,39 +183,29 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           {tableauResult.recommendations.length === 0 ? (
             <p className="u-hint">{t('planning.no_issue')}</p>
           ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
+            <ul className="planning-assistant-4">
               {tableauResult.recommendations.map((r, i) => (
                 <li key={`tab-rec-${i}`}>{r}</li>
               ))}
             </ul>
           )}
-          <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
+          <div className="planning-assistant-5">
             {t('planning.rest', { n: DEFAULT_TOURNAMENT_CONFIG.minRestTime })}
           </div>
         </>
       )}
 
-      {!isTableau && loading && (
-        <p style={{ color: 'var(--color-text-light)' }}>{t('planning.computing')}</p>
-      )}
+      {!isTableau && loading && <p className="planning-assistant-6">{t('planning.computing')}</p>}
 
       {!isTableau && !loading && error && (
-        <p role="alert" style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}>
+        <p role="alert" className="planning-assistant-7">
           {t('planning.error', { error })}
         </p>
       )}
 
       {!isTableau && !loading && insights && (
         <>
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              background: 'var(--color-surface-2)',
-              color: 'var(--color-text)',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="planning-assistant-3">
             <strong>{t('planning.finish')}</strong>{' '}
             {insights.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
               hour: '2-digit',
@@ -195,27 +218,20 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           {recommendations.length === 0 && insights.bottlenecks.length === 0 ? (
             <p className="u-hint">{t('planning.no_issue')}</p>
           ) : (
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: '1.25rem',
-                fontSize: '0.875rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-              }}
-            >
+            <ul className="planning-assistant-8">
               {recommendations.map((r, i) => (
                 <li key={`rec-${i}`}>{r}</li>
               ))}
               {insights.bottlenecks.map((b, i) => (
-                <li key={`bn-${i}`}>⚠️ {b}</li>
+                <li key={`bn-${i}`}>
+                  <Icon icon={TriangleAlert} /> {b}
+                </li>
               ))}
             </ul>
           )}
 
           {result && result.schedule.length > 0 && (
-            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
+            <div className="planning-assistant-5">
               {t('planning.wait', {
                 avg: Math.max(0, Math.round(result.metrics.averageWaitTime)),
                 max: Math.max(0, Math.round(result.metrics.maxFencerWait)),

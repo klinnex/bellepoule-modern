@@ -18,6 +18,7 @@ describe('registerFileHandlers (#1341)', () => {
 
   it('enregistre les canaux file:* et dialog:*', () => {
     expect([...handlers.keys()].sort()).toEqual([
+      'dialog:openFederalFiles',
       'dialog:openFile',
       'dialog:saveFile',
       'file:export',
@@ -26,7 +27,9 @@ describe('registerFileHandlers (#1341)', () => {
       'file:import',
       'file:importFencersArchive',
       'file:importPhotos',
+      'file:unpackFederalFiles',
       'file:writeContent',
+      'file:writeSpreadsheet',
     ]);
   });
 

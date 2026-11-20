@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useExport } from './useExport';
-import { Fencer, Gender, FencerStatus, Competition, Weapon, Category } from '../../shared/types';
+import { Fencer, Gender, FencerStatus, Competition } from '../../shared/types';
 
 const fencer = (id: string): Fencer => ({
   id,
@@ -48,7 +48,7 @@ describe('exportFencersList', () => {
     await setup().exportFencersList([fencer('1')], 'fff');
     expect(writeContent).toHaveBeenCalledTimes(1);
     const [, content] = writeContent.mock.calls[0];
-    expect(content.split('\n')[0]).toBe('FFF;UTF8;competition;;individuel');
+    expect(content.split('\n')[0]).toBe('FFF;WIN;COMPETITION;Open Test');
     expect(showToast).toHaveBeenCalledWith(expect.stringContaining('FFF'), 'success');
   });
 

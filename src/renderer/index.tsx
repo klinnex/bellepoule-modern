@@ -8,18 +8,39 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { applyUiScale, loadUiScale } from './services/uiScale';
+import { applyUiDensity, loadUiDensity } from './services/uiDensity';
+import { installResizeGuard } from './services/resizeGuard';
 import './styles/main.css';
 import './styles/formula.css';
 import './styles/design.css';
+import './styles/phase-stepper.css';
+import './styles/operation-progress.css';
+import './styles/firewallCheck.css';
+import './styles/buttons.css';
+import './styles/rank-medal.css';
+import './styles/competition-list.css';
 import './styles/tokens.css';
+import './styles/theme.css';
 import './styles/pool.css';
 import './styles/tableau.css';
+import './styles/strips.css';
 import './styles/training.css';
+import './styles/remote-mode.css';
 import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
+import './styles/app-shell.css';
+import './styles/agentSettings.css';
+import './styles/dashboard.css';
+import './styles/event-day.css';
+import './styles/club.css';
+import './styles/cyrano.css';
+import './styles/privacy.css';
+import './styles/analytics.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
+import './styles/resize-guard.css';
+import './styles/screens.css';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 /// <reference path="./types.d.ts" />
 
@@ -35,6 +56,9 @@ window.addEventListener('error', event => {
 
 // Taille du texte choisie dans les paramètres (#1156), avant le premier rendu
 applyUiScale(loadUiScale());
+applyUiDensity(loadUiDensity());
+// Redimensionnement manuel : flou et animations coupés pendant le geste (#1652)
+installResizeGuard();
 
 const container = document.getElementById('root');
 if (container) {

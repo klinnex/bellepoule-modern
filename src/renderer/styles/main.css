@@ -78,7 +78,7 @@ body {
 .main {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow: clip; /* et non hidden : le focus programmatique faisait défiler l'en-tête */
 }
 
 .sidebar {
@@ -893,10 +893,15 @@ body {
   text-overflow: ellipsis;
   flex-shrink: 0;
 }
+.theme-dark .pool-prep-club-pill {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-light);
+}
 .pool-prep-club-pill.conflict {
   border-color: var(--color-warning);
   color: var(--color-warning);
-  background: rgba(217, 119, 6, 0.08);
+  background: rgba(217, 119, 6, 0.22); /* après .theme-dark : orange aussi en sombre (#1440) */
 }
 .pool-prep-ranking,
 .pool-prep-strength {
@@ -904,11 +909,6 @@ body {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
-}
-.theme-dark .pool-prep-club-pill {
-  background: var(--color-bg);
-  border-color: var(--color-border);
-  color: var(--color-text-light);
 }
 
 /* Action buttons */
@@ -1076,25 +1076,25 @@ body {
   align-items: center;
   padding: 0.05rem 0.4rem;
   border-radius: var(--radius-full);
-  font-size: 0.62rem;
+  font-size: 0.75rem; /* +20 % (#1440) */
   font-weight: 700;
-  margin-left: 0.3rem;
+  margin-left: 2.5rem; /* écart net avec le nom (#1440, #1654) */
   vertical-align: middle;
 }
 .ranking-status-badge--abandon {
-  background: rgba(217, 119, 6, 0.12);
-  color: var(--color-warning);
-  border: 1px solid rgba(217, 119, 6, 0.25);
+  background: var(--warning-soft);
+  color: var(--warning-on-soft);
+  border: 1px solid var(--warning);
 }
 .ranking-status-badge--forfait {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  background: #ffffff; /* blanc, aligné sur MED / Exclu (#1654) */
+  color: #1f2937;
+  border: 1px solid #9ca3af;
 }
 .ranking-status-badge--exclu {
-  background: rgba(220, 38, 38, 0.1);
-  color: var(--color-danger);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: var(--danger-soft);
+  color: var(--danger-on-soft);
+  border: 1px solid var(--danger);
 }
 
 .ranking-row--tie > td:first-child {
@@ -1246,6 +1246,12 @@ body {
 .comparison__selectors .form-group {
   flex: 1;
   margin-bottom: 0;
+}
+
+/* Libellés Tireur 1 / Tireur 2 centrés au-dessus de leur liste (#1858) */
+.comparison__selectors .form-label {
+  display: block;
+  text-align: center;
 }
 
 .comparison__vs {
@@ -1599,15 +1605,9 @@ body {
 }
 
 .qrcode__info {
-  text-align: left;
-}
-
-.qrcode__info ul {
-  margin: 0.5rem 0 0 1.25rem;
-}
-
-.qrcode__info li {
-  margin-bottom: 0.25rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
 /* ============================================================================

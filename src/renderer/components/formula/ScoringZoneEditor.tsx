@@ -5,6 +5,7 @@
 import React, { memo } from 'react';
 import { CustomScoringConfig, CustomTouchZone } from '../../../shared/types';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 interface Props {
   scoring: CustomScoringConfig;
@@ -127,21 +128,21 @@ const ScoringZoneEditor_: React.FC<Props> = ({ scoring, onChange, readOnly }) =>
               />
               <span className="zone-pts-label">{t('scoringZones.pts')}</span>
               {!readOnly && (
-                <button
+                <Button
                   type="button"
-                  className="btn btn-icon btn-secondary zone-remove-btn"
+                  className="btn-icon zone-remove-btn"
                   onClick={() => removeZone(i)}
                   title={t('scoringZones.remove')}
                 >
                   ✕
-                </button>
+                </Button>
               )}
             </div>
           ))}
           {!readOnly && (scoring.zones ?? []).length < 8 && (
-            <button type="button" className="btn btn-secondary zone-add-btn" onClick={addZone}>
+            <Button type="button" className="zone-add-btn" onClick={addZone}>
               {t('scoringZones.add')}
-            </button>
+            </Button>
           )}
           {(scoring.zones ?? []).length > 0 && (
             <p className="zone-preview-text">

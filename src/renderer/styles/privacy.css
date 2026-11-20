@@ -1,0 +1,50 @@
+/* BellePoule Modern - Paramètres → Confidentialité (RGPD, #1882) */
+.privacy-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.privacy-months {
+  width: 6rem;
+}
+
+.privacy-person-list {
+  list-style: none;
+  padding: 0;
+}
+
+.privacy-person-list > li {
+  margin-bottom: var(--space-2);
+}
+
+.privacy-actions {
+  flex-wrap: wrap;
+}
+
+.privacy-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-light);
+  margin-top: 0;
+}
+
+.privacy-note--center {
+  text-align: center;
+}
+
+.privacy-dialog {
+  max-width: 420px;
+}
+
+.privacy-dialog-overlay {
+  z-index: 11000;
+}
+
+.privacy-dialog-message {
+  margin: 0 0 var(--space-3);
+}
+
+.privacy-error {
+  color: var(--color-danger, #dc2626);
+  margin-top: var(--space-2);
+}

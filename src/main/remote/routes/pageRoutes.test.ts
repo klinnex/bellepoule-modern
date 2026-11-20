@@ -7,7 +7,10 @@ type Handler = (req: unknown, res: unknown) => unknown;
 /** Faux app Express : mémorise les handlers GET par chemin. */
 function makeCtx(overrides: Partial<RouteContext> = {}) {
   const routes = new Map<string, Handler>();
-  const app = { get: (path: string, h: Handler) => routes.set(path, h) };
+  const app = {
+    get: (path: string, h: Handler) => routes.set(path, h),
+    post: (path: string, h: Handler) => routes.set(`POST ${path}`, h),
+  };
   const ctx = {
     app,
     db: {},

@@ -1,12 +1,13 @@
 /**
- * BellePoule Modern - Database Layer (better-sqlite3)
+ * BellePoule Modern - Database Layer (better-sqlite3-multiple-ciphers, SQLCipher #1882)
  * Native SQLite binding — synchronous, 10-50× faster than sql.js at startup.
  * Licensed under GPL-3.0
  */
 
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import * as path from 'path';
 import * as fs from 'fs';
+import { applyDatabaseKey, openDatabaseFile } from './encryption';
 import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive';
 import { MigrationManager } from './migrations';
 import { SignatureRepo } from './repos/signatureRepo';
@@ -16,7 +17,16 @@ import { FencerRepo } from './repos/fencerRepo';
 import { MatchRepo } from './repos/matchRepo';
 import { PoolRepo } from './repos/poolRepo';
 import { RefereeRepo } from './repos/refereeRepo';
+import { EventDayRepo } from './repos/eventDayRepo';
+import { StripRuleRepo } from './repos/stripRuleRepo';
 import { TeamRepo } from './repos/teamRepo';
+import { OrganisationRepo } from './repos/organisationRepo';
+import { CyranoRepo, type CyranoPisteRow } from './repos/cyranoRepo';
+import { ClubRepo } from './repos/clubRepo';
+import { ClubInventoryRepo } from './repos/clubInventoryRepo';
+import { ClubBackupRepo } from './repos/clubBackupRepo';
+import { PrivacyRepo } from './repos/privacyRepo';
+import { SettingsRepo } from './repos/settingsRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -29,6 +39,8 @@ const STMT_CACHE_MAX = 500;
 export class DatabaseManager {
   private db: Database.Database | null = null;
   private dbPath: string;
+  /** Clé SQLCipher de la base ouverte (null = en clair) — RGPD #1882 */
+  private encryptionKey: Buffer | null = null;
   // Cache des prepared statements : évite de re-parser le SQL à chaque appel.
   // SQLite re-prépare automatiquement un statement si le schéma change.
   private stmtCache = new Map<string, Database.Statement>();
@@ -50,6 +62,21 @@ export class DatabaseManager {
   private readonly pools = new PoolRepo(this.sql, this);
   private readonly referees = new RefereeRepo(this.sql);
   private readonly teams = new TeamRepo(this.sql);
+  private readonly organisation = new OrganisationRepo(this.sql);
+  private readonly cyrano = new CyranoRepo(this.sql);
+  /** Journée multi-épreuves : pistes et arbitres partagés (#1714) */
+  public readonly eventDays = new EventDayRepo(this.sql);
+  /** Journée multi-épreuves : réservation des pistes, affectation automatique (#1878) */
+  public readonly stripRules = new StripRuleRepo(this.sql);
+  /** Mode Club : membres, séances, combats libres (#1872) */
+  public readonly club = new ClubRepo(this.sql);
+  /** Mode Club : inventaire du matériel et prêts aux tireurs */
+  public readonly clubInventory = new ClubInventoryRepo(this.sql);
+  public readonly clubBackup = new ClubBackupRepo(this.sql);
+  /** RGPD : droits des personnes, conservation (#1882) */
+  public readonly privacy = new PrivacyRepo(this.sql);
+  /** Paramétrage global du poste et salles (#1880) */
+  public readonly settings = new SettingsRepo(this.sql);
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');
@@ -59,20 +86,31 @@ export class DatabaseManager {
     this.dbPath = dbPath;
   }
 
-  public async open(dbPath?: string): Promise<void> {
+  /**
+   * Ouvre la base. `encryptionKey` (RGPD #1882) : clé SQLCipher ; absente = base en clair.
+   * Sans clé, une base chiffrée est refusée. Un fichier ouvert via `importFromFile` est
+   * toujours ouvert sans clé (il garde son format).
+   */
+  public async open(
+    dbPath?: string,
+    options: { encryptionKey?: Buffer | null } = {}
+  ): Promise<void> {
     if (dbPath) this.dbPath = dbPath;
 
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
     this.stmtCache.clear();
-    this.db = new Database(this.dbPath);
+    this.encryptionKey = options.encryptionKey ?? null;
+    this.db = openDatabaseFile(this.dbPath, this.encryptionKey);
     this.db.pragma('journal_mode = WAL');
     // WAL + NORMAL : durable au crash applicatif, nettement moins de fsync que FULL
     this.db.pragma('synchronous = NORMAL');
     // Attente plutôt qu'un SQLITE_BUSY immédiat en cas de contention (checkpoint, backup)
     this.db.pragma('busy_timeout = 5000');
     this.db.pragma('foreign_keys = ON');
+    // RGPD (#1882) : pages libérées écrasées par des zéros, pas de donnée effacée lisible
+    this.db.pragma('secure_delete = ON');
     this.runMigrations();
   }
 
@@ -139,6 +177,12 @@ export class DatabaseManager {
     return this.db!.transaction(fn)();
   }
 
+  /** Transaction publique (couche domaine, #1880) : tout ou rien, imbrication gérée par SQLite (savepoints) */
+  public transaction<T>(fn: () => T): T {
+    if (!this.db) throw new Error('Database not open');
+    return this.inTransaction(fn);
+  }
+
   // Writes go directly to WAL on every statement — no manual export needed.
   public saveSync(): void {
     if (!this.db) return;
@@ -166,6 +210,11 @@ export class DatabaseManager {
     return this.dbPath;
   }
 
+  /** Vrai si la base ouverte est chiffrée au repos (SQLCipher, #1882) */
+  public isEncrypted(): boolean {
+    return this.db !== null && this.encryptionKey !== null;
+  }
+
   public isOpen(): boolean {
     return this.db !== null;
   }
@@ -186,6 +235,22 @@ export class DatabaseManager {
     ...args: Parameters<SessionRepo['getSessionState']>
   ): ReturnType<SessionRepo['getSessionState']> {
     return this.sessions.getSessionState(...args);
+  }
+
+  /**
+   * Sauvegarde de l'écran avec contrôle de révision (#1880) : refusée (false) si l'état en
+   * base a été réécrit par la couche domaine (MCP) depuis le chargement de l'écran.
+   * Un état sans révision (ancien code, nouvelle épreuve) est écrit sans contrôle.
+   */
+  public saveSessionStateChecked(competitionId: string, state: unknown): boolean {
+    const incoming = (state as { revision?: unknown } | null)?.revision;
+    if (typeof incoming === 'number') {
+      const stored = (this.sessions.getSessionState(competitionId) as { revision?: unknown } | null)
+        ?.revision;
+      if (typeof stored === 'number' && stored !== incoming) return false;
+    }
+    this.sessions.saveSessionState(competitionId, state);
+    return true;
   }
 
   public clearSessionState(
@@ -469,6 +534,12 @@ export class DatabaseManager {
     return this.matches.getCards(...args);
   }
 
+  public getCardsByMatchIds(
+    ...args: Parameters<MatchRepo['getCardsByMatchIds']>
+  ): ReturnType<MatchRepo['getCardsByMatchIds']> {
+    return this.matches.getCardsByMatchIds(...args);
+  }
+
   public saveTouch(
     ...args: Parameters<MatchRepo['saveTouch']>
   ): ReturnType<MatchRepo['saveTouch']> {
@@ -483,6 +554,18 @@ export class DatabaseManager {
     ...args: Parameters<MatchRepo['updateMatchTiming']>
   ): ReturnType<MatchRepo['updateMatchTiming']> {
     return this.matches.updateMatchTiming(...args);
+  }
+
+  public replaceSimulatedMatchEvents(
+    ...args: Parameters<MatchRepo['replaceSimulatedMatchEvents']>
+  ): ReturnType<MatchRepo['replaceSimulatedMatchEvents']> {
+    return this.matches.replaceSimulatedMatchEvents(...args);
+  }
+
+  public clearArenaEvents(
+    ...args: Parameters<MatchRepo['clearArenaEvents']>
+  ): ReturnType<MatchRepo['clearArenaEvents']> {
+    return this.matches.clearArenaEvents(...args);
   }
 
   public saveArenaExit(
@@ -649,6 +732,32 @@ export class DatabaseManager {
     return this.referees.getRefereeStats(...args);
   }
 
+  public getCyranoPistes(competitionId: string): CyranoPisteRow[] {
+    return this.cyrano.getCyranoPistes(competitionId);
+  }
+
+  public replaceCyranoPistes(competitionId: string, pistes: CyranoPisteRow[]): void {
+    return this.cyrano.replaceCyranoPistes(competitionId, pistes);
+  }
+
+  public logRemoteEvent(
+    ...args: Parameters<OrganisationRepo['logRemoteEvent']>
+  ): ReturnType<OrganisationRepo['logRemoteEvent']> {
+    return this.organisation.logRemoteEvent(...args);
+  }
+
+  public getRemoteEvents(
+    ...args: Parameters<OrganisationRepo['getRemoteEvents']>
+  ): ReturnType<OrganisationRepo['getRemoteEvents']> {
+    return this.organisation.getRemoteEvents(...args);
+  }
+
+  public getMatchTimings(
+    ...args: Parameters<OrganisationRepo['getMatchTimings']>
+  ): ReturnType<OrganisationRepo['getMatchTimings']> {
+    return this.organisation.getMatchTimings(...args);
+  }
+
   public addRefereeComment(
     ...args: Parameters<RefereeRepo['addRefereeComment']>
   ): ReturnType<RefereeRepo['addRefereeComment']> {
@@ -663,8 +772,47 @@ export class DatabaseManager {
 
   // Export/Import
   public async exportToFile(filepath: string): Promise<void> {
+    const copy = this.openPlainCopy(filepath);
+    try {
+      copy.pragma('journal_mode = DELETE');
+      copy.exec('VACUUM');
+    } finally {
+      copy.close();
+    }
+  }
+
+  /**
+   * Copie en clair de la base ouverte, rendue ouverte.
+   * `backup()` refuse une source SQLCipher vers une cible en clair (octets réservés
+   * différents) : VACUUM INTO (copie chiffrée, même clé), puis `rekey=''` sur la copie.
+   */
+  private openPlainCopy(filepath: string): Database.Database {
     if (!this.db) throw new Error('Database not open');
-    await this.db.backup(filepath);
+    // VACUUM INTO refuse une cible existante non vide
+    fs.rmSync(filepath, { force: true });
+    this.db.prepare('VACUUM INTO ?').run(filepath);
+    const copy = new Database(filepath);
+    try {
+      if (this.encryptionKey) {
+        applyDatabaseKey(copy, this.encryptionKey);
+        copy.pragma("rekey=''");
+      }
+      return copy;
+    } catch (e) {
+      copy.close();
+      throw e;
+    }
+  }
+
+  /**
+   * Après anonymisation / effacement (#1882) : vide le WAL (anciennes versions des pages)
+   * et reconstruit la base pour qu'aucune donnée effacée ne reste dans le fichier.
+   */
+  public compactAfterErasure(): void {
+    if (!this.db) return;
+    this.db.pragma('wal_checkpoint(TRUNCATE)');
+    this.db.exec('VACUUM');
+    this.db.pragma('wal_checkpoint(TRUNCATE)');
   }
 
   public async importFromFile(filepath: string): Promise<void> {
@@ -675,9 +823,7 @@ export class DatabaseManager {
 
   /** Exporte une seule compétition (état d'avancement compris) dans un .bpm (#1117) */
   public async exportCompetitionToFile(competitionId: string, filepath: string): Promise<void> {
-    if (!this.db) throw new Error('Database not open');
-    await this.db.backup(filepath);
-    const copy = new Database(filepath);
+    const copy = this.openPlainCopy(filepath);
     try {
       // Fichier autonome (pas de -wal à côté)
       copy.pragma('journal_mode = DELETE');
@@ -811,6 +957,14 @@ export class DatabaseManager {
     ...args: Parameters<TeamRepo['updateTeamBout']>
   ): ReturnType<TeamRepo['updateTeamBout']> {
     return this.teams.updateTeamBout(...args);
+  }
+
+  public reopenTeamBout(boutId: string): void {
+    this.teams.reopenTeamBout(boutId);
+  }
+
+  public setTeamBoutFencer(...args: Parameters<TeamRepo['setTeamBoutFencer']>): void {
+    this.teams.setTeamBoutFencer(...args);
   }
 
   public createTeamMatchCard(

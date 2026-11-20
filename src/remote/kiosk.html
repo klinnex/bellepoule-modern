@@ -5,38 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="kiosk.page_title">Kiosk - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/i18n.js"></script>
     <script src="/js/kioskBracketUtils.js"></script>
     <script src="/js/kioskConfig.js"></script>
     <script src="/js/kioskRender.js"></script>
     <script src="/js/kioskLists.js"></script>
+    <script src="/js/kioskTiming.js"></script>
+    <script src="/js/kioskData.js"></script>
+    <script src="/js/kioskArenas.js"></script>
+    <script src="/js/kioskBracketRender.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
       :root {
-        --k-bg: #0f172a;
-        --k-accent: #fbbf24;
-        --k-accent2: #3b82f6;
+        --k-bg: var(--slate-900);
+        --k-accent: var(--tw-amber-400);
+        --k-accent2: var(--blue-500);
         --k-card-bg: rgba(255, 255, 255, 0.04);
         --k-border: rgba(255, 255, 255, 0.08);
-        --k-muted: #64748b;
-        --k-progress: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        --k-muted: var(--slate-500);
+        --k-progress: linear-gradient(90deg, var(--blue-500), var(--tw-violet-500));
       }
-
       /* ── Thème Néon (inspiré de l'affichage des pistes, #1036) ── */
       html[data-k-theme='neon'] {
-        --k-bg: #0a0a0a;
-        --k-accent: #00ff88;
-        --k-accent2: #ff2244;
+        --k-bg: var(--c-0a0a0a);
+        --k-accent: var(--c-00ff88);
+        --k-accent2: var(--c-ff2244);
         --k-card-bg: rgba(0, 255, 136, 0.04);
         --k-border: rgba(0, 255, 136, 0.25);
-        --k-muted: #a0a0a0;
-        --k-progress: linear-gradient(90deg, #00ff88, #ff2244);
+        --k-muted: var(--c-a0a0a0);
+        --k-progress: linear-gradient(90deg, var(--c-00ff88), var(--c-ff2244));
       }
       html[data-k-theme='neon'] .view-title,
       html[data-k-theme='neon'] .focus-round-label {
-        color: #00ff88;
+        color: var(--c-00ff88);
         text-shadow:
           0 0 8px rgba(0, 255, 136, 0.8),
           0 0 18px rgba(0, 255, 136, 0.4);
@@ -49,7 +52,7 @@
       /* ── Thème Clair : inversion des couleurs du thème sombre, photos préservées ── */
       html[data-k-theme='light'] {
         filter: invert(1) hue-rotate(180deg);
-        background: #0f172a;
+        background: var(--slate-900);
       }
       html[data-k-theme='light'] img,
       html[data-k-theme='light'] video,
@@ -123,7 +126,7 @@
 
       .menu-competition {
         font-size: 0.875rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-left: 1rem;
       }
 
@@ -155,18 +158,18 @@
         align-items: center;
         gap: 0.5rem;
         font-size: 0.75rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #ef4444;
+        background: var(--red-500);
       }
 
       .status-dot.ok {
-        background: #10b981;
+        background: var(--tw-emerald-500);
         animation: pulse-dot 2s infinite;
       }
 
@@ -215,7 +218,7 @@
 
       .view-subtitle {
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-top: 0.25rem;
       }
 
@@ -224,7 +227,7 @@
         padding: 0.25rem 0.75rem;
         border-radius: 1rem;
         background: rgba(59, 130, 246, 0.2);
-        color: #93c5fd;
+        color: var(--tw-blue-300);
         border: 1px solid rgba(59, 130, 246, 0.3);
       }
 
@@ -263,12 +266,12 @@
         font-size: 0.7rem;
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
-        background: #10b981;
+        background: var(--tw-emerald-500);
         font-weight: 600;
       }
 
       .pool-pill.ongoing {
-        background: #f59e0b;
+        background: var(--tw-amber-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -293,7 +296,7 @@
         text-align: left;
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         background: rgba(0, 0, 0, 0.2);
       }
@@ -315,10 +318,10 @@
         color: var(--k-accent);
       }
       .rank-2 {
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       .rank-3 {
-        color: #b45309;
+        color: var(--tw-amber-700);
       }
 
       .fencer-name {
@@ -326,7 +329,7 @@
       }
       .fencer-club {
         font-size: 0.62rem;
-        color: #64748b;
+        color: var(--slate-500);
         display: inline;
         margin-left: 0.35em;
       }
@@ -336,16 +339,16 @@
 
       td.victories {
         text-align: center;
-        color: #10b981;
+        color: var(--tw-emerald-500);
         font-weight: 600;
       }
       td.ind {
         text-align: center;
-        color: #60a5fa;
+        color: var(--tw-blue-400);
       }
       td.td {
         text-align: center;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       /* Vue Classement */
@@ -376,7 +379,7 @@
         padding: 0.5rem 1rem;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -388,7 +391,7 @@
 
       .final-ranking-not-done {
         padding: 0.75rem 1.25rem;
-        color: #475569;
+        color: var(--slate-600);
         font-size: 0.9rem;
         font-style: italic;
       }
@@ -426,7 +429,7 @@
       }
       .podium-club {
         font-size: 0.72rem;
-        color: #64748b;
+        color: var(--slate-500);
       }
 
       .ranking-scroll-inner {
@@ -449,7 +452,7 @@
         text-align: left;
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         background: rgba(15, 23, 42, 0.98);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -509,7 +512,7 @@
 
       .arena-name {
         font-weight: 600;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       .arena-status-pill {
@@ -517,12 +520,12 @@
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
         background: rgba(100, 116, 139, 0.3);
-        color: #94a3b8;
+        color: var(--slate-400);
       }
-
+      .arena-status-pill.free { background: rgba(59, 130, 246, 0.2); color: var(--tw-blue-300); }
       .arena-status-pill.in-progress {
         background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        color: var(--tw-emerald-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -546,7 +549,7 @@
 
       .arena-fencer .fclub {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-top: 0.25rem;
       }
 
@@ -566,16 +569,16 @@
       }
 
       .score-red {
-        color: #ef4444;
+        color: var(--red-500);
       }
       .score-green {
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
       .fencer-red {
-        --fencer-color: #ef4444;
+        --fencer-color: var(--red-500);
       }
       .fencer-green {
-        --fencer-color: #10b981;
+        --fencer-color: var(--tw-emerald-500);
       }
       .side-left {
         border-left: 3px solid var(--fencer-color);
@@ -589,13 +592,13 @@
       .arena-vs {
         font-size: 1rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
       }
 
       .arena-idle {
         text-align: center;
         padding: 1.5rem;
-        color: #475569;
+        color: var(--slate-600);
         font-size: 0.875rem;
       }
 
@@ -616,7 +619,7 @@
         background: rgba(59, 130, 246, 0.12);
         font-size: 0.7rem;
         font-weight: 700;
-        color: #93c5fd;
+        color: var(--tw-blue-300);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         border-bottom: 1px solid rgba(59, 130, 246, 0.15);
@@ -642,19 +645,19 @@
 
       .suivants-row.ongoing {
         background: rgba(16, 185, 129, 0.06);
-        border-left: 3px solid #10b981;
+        border-left: 3px solid var(--tw-emerald-500);
       }
 
       .suivants-num {
         font-size: 0.7rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
       }
 
       .suivants-fencer {
         font-weight: 500;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -662,14 +665,14 @@
 
       .suivants-fencer .fclub {
         font-size: 0.68rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-left: 0.3em;
       }
 
       .suivants-vs {
         font-size: 0.75rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         flex-shrink: 0;
       }
 
@@ -678,14 +681,14 @@
         padding: 0.15rem 0.5rem;
         border-radius: 1rem;
         background: rgba(100, 116, 139, 0.2);
-        color: #94a3b8;
+        color: var(--slate-400);
         white-space: nowrap;
         justify-self: end;
       }
 
       .suivants-status.en-cours {
         background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        color: var(--tw-emerald-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -696,7 +699,7 @@
         align-items: center;
         justify-content: center;
         flex: 1;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
         gap: 0.75rem;
       }
@@ -706,7 +709,7 @@
       }
       .no-data h3 {
         font-size: 1.25rem;
-        color: #64748b;
+        color: var(--slate-500);
       }
 
       /* Scrollbar */
@@ -738,12 +741,12 @@
         }
         25% {
           transform: scale(1.35);
-          color: #fbbf24;
+          color: var(--tw-amber-400);
           filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9));
         }
         65% {
           transform: scale(1.1);
-          color: #f59e0b;
+          color: var(--tw-amber-500);
           filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
         }
         100% {
@@ -757,8 +760,7 @@
         animation: score-pop-flash 0.65s ease-out forwards;
       }
 
-      /* Option C — Épéiste slash (fun 🤺) */
-      /* Déclenché quand le score augmente d'un coup important (≥3 pts) */
+      /* Option C — Épéiste slash (fun), déclenché quand le score augmente d'un coup important (≥3 pts) */
       @keyframes epee-slash {
         0% {
           left: -1.8em;
@@ -780,12 +782,13 @@
       }
 
       .score-slash::after {
-        content: '🤺';
+        content: '';
         position: absolute;
         top: 50%;
         transform: translateY(-55%) rotate(-15deg);
-        font-size: 0.85rem;
-        pointer-events: none;
+        width: 1.1rem;
+        height: 1.1rem;
+        background: var(--bp-img-swords) center / contain no-repeat;
         animation: epee-slash 0.55s ease-in forwards;
       }
 
@@ -802,14 +805,14 @@
       }
 
       .settings-btn:hover {
-        background: #374151;
+        background: var(--tw-gray-700);
       }
 
       .settings-panel {
         position: absolute;
         top: calc(100% + 0.5rem);
         right: 0;
-        background: #1e293b;
+        background: var(--slate-800);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
@@ -825,7 +828,7 @@
       .settings-title {
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         margin-bottom: 0.5rem;
       }
@@ -837,12 +840,12 @@
         padding: 0.35rem 0;
         font-size: 0.875rem;
         cursor: pointer;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         user-select: none;
       }
 
       .settings-item input[type='checkbox'] {
-        accent-color: #3b82f6;
+        accent-color: var(--blue-500);
         width: 14px;
         height: 14px;
         cursor: pointer;
@@ -866,7 +869,7 @@
       }
       #org-note-label {
         font-size: clamp(2rem, 5vw, 4rem);
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 600;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -874,17 +877,17 @@
       #org-note-time {
         font-size: clamp(4rem, 14vw, 12rem);
         font-weight: 700;
-        color: #f1f5f9;
+        color: var(--slate-100);
       }
       #org-note-countdown {
         font-size: clamp(3rem, 10vw, 8rem);
         font-weight: 800;
-        color: #3b82f6;
+        color: var(--blue-500);
         font-variant-numeric: tabular-nums;
       }
       #org-note-message {
         font-size: clamp(2rem, 7vw, 6rem);
-        color: #94a3b8;
+        color: var(--slate-400);
         font-style: italic;
       }
       /* ── Vue Tableau d'élimination directe ─────────────────────────────── */
@@ -934,7 +937,7 @@
       }
       #cinema-minimap .mm-viewport {
         position: absolute;
-        border: 2px solid #fbbf24;
+        border: 2px solid var(--tw-amber-400);
         border-radius: 3px;
         box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
         transition: all var(--cinema-dur, 1.2s) cubic-bezier(0.4, 0, 0.2, 1);
@@ -963,7 +966,7 @@
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 0.75rem;
         padding: 0.4rem 0.9rem;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         font-size: 1rem;
         pointer-events: none;
       }
@@ -971,7 +974,7 @@
         display: none;
       }
       #kiosk-eta strong {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         font-variant-numeric: tabular-nums;
       }
       #bracket-focus-header {
@@ -986,7 +989,7 @@
       .focus-round-label {
         font-size: 1rem;
         font-weight: 800;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         letter-spacing: 0.04em;
       }
 
@@ -1007,7 +1010,7 @@
       }
 
       .focus-dot.active {
-        background: #fbbf24;
+        background: var(--tw-amber-400);
         transform: scale(1.4);
       }
 
@@ -1024,7 +1027,7 @@
         left: 0;
         top: 0;
         bottom: 0;
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        background: linear-gradient(90deg, var(--tw-amber-400), var(--tw-amber-500));
         width: 0%;
         transition: width 0.1s linear;
       }
@@ -1075,7 +1078,7 @@
         justify-content: center;
         font-size: 0.65rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         background: rgba(0, 0, 0, 0.2);
         flex-shrink: 0;
       }
@@ -1112,14 +1115,14 @@
 
       .focus-fencer-club {
         font-size: 0.7rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-left: 0.4em;
       }
 
       .focus-fencer-score {
         font-size: 1.4rem;
         font-weight: 900;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         min-width: 1.8rem;
         text-align: right;
         flex-shrink: 0;
@@ -1138,7 +1141,7 @@
         align-items: center;
         justify-content: center;
         font-size: 0.62rem;
-        color: #475569;
+        color: var(--slate-600);
         background: rgba(0, 0, 0, 0.15);
         flex-shrink: 0;
         text-align: center;
@@ -1157,7 +1160,7 @@
         text-align: center;
         font-size: 0.62rem;
         font-weight: 700;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         letter-spacing: 0.06em;
         padding: 0.2rem 0;
@@ -1168,7 +1171,7 @@
       }
 
       .bracket-round-label.active-round {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         background: rgba(251, 191, 36, 0.08);
       }
 
@@ -1242,7 +1245,7 @@
       .bm-score {
         font-size: 0.88rem;
         font-weight: 900;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         min-width: 1.1rem;
         text-align: right;
         flex-shrink: 0;
@@ -1256,7 +1259,7 @@
 
       .bm-arena {
         font-size: 0.55rem;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
         padding: 0.05rem 0;
         flex-shrink: 0;
@@ -1280,19 +1283,74 @@
         border-radius: 0.4rem;
         font-size: 0.7rem;
         font-weight: 700;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         margin-top: 4px;
         flex-shrink: 0;
+      }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
+
+      /* Styles ex-inline (#1600) : doublement de classe pour garder la priorité de l'attribut style */
+      .inl-4325d6.inl-4325d6 {
+        display: flex;
+        align-items: center;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .inl-e7f79c.inl-e7f79c {
+        position: relative;
+        margin-left: 0.5rem;
+      }
+      .inl-23f265.inl-23f265 {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 0.5rem 0;
+      }
+      .inl-774c02.inl-774c02 {
+        accent-color: var(--blue-500);
+        cursor: pointer;
+      }
+      .inl-61cd3c.inl-61cd3c {
+        width: 56px;
+        background: var(--slate-900);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.4rem;
+        color: var(--tw-slate-200);
+        padding: 0.2rem 0.4rem;
+        font-size: 0.875rem;
+      }
+      .inl-911b6d.inl-911b6d {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .inl-d7a512.inl-d7a512 {
+        width: 60px;
+      }
+      .inl-7023da.inl-7023da {
+        text-align: center;
+      }
+      .inl-caf873.inl-caf873 {
+        text-align: center;
+        color: var(--slate-500);
+        padding: 3rem;
+      }
+      .inl-2b40b2.inl-2b40b2 {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
       }
     </style>
   </head>
   <body>
     <!-- Barre de progression rotation -->
-    <div id="progress-bar-container">
+    <div id="progress-bar-container" aria-hidden="true">
       <div id="progress-bar"></div>
     </div>
 
-    <!-- Fin estimée de la phase (#1077, désactivable : ⚙ ou config kiosk) -->
+    <!-- Fin estimée de la phase (#1077, désactivable : bouton Configuration ou config kiosk) -->
     <div id="kiosk-eta" hidden>
       <span id="kiosk-eta-label" data-i18n="dashboard.eta">Fin estimée</span>
       <strong id="kiosk-eta-time">--:--</strong>
@@ -1300,16 +1358,16 @@
     </div>
 
     <!-- Overlay note d'organisation -->
-    <div id="org-note-overlay">
-      <div id="org-note-label" data-i18n="kiosk.pause">⏸ Pause</div>
+    <div id="org-note-overlay" role="status" aria-live="polite">
+      <div id="org-note-label"><span data-icon="pause"></span> <span data-i18n="kiosk.pause">Pause</span></div>
       <div id="org-note-time"></div>
       <div id="org-note-countdown"></div>
       <div id="org-note-message"></div>
     </div>
 
     <!-- Menu escamotable -->
-    <div id="kiosk-menu">
-      <div style="display: flex; align-items: center; flex: 1 1 0; min-width: 0">
+    <div id="kiosk-menu" data-display-hide role="navigation" aria-label="Menu du kiosque" data-i18n-aria-label="kiosk.menu_label">
+      <div class="inl-4325d6">
         <img
           id="org-logo"
           src=""
@@ -1323,7 +1381,7 @@
             border-radius: 3px;
           "
         />
-        <span class="menu-title">🏆 BellePoule</span>
+        <span class="menu-title"><span data-icon="trophy"></span> BellePoule</span>
         <span class="menu-competition" id="menu-competition-name">—</span>
       </div>
       <div class="menu-nav">
@@ -1354,14 +1412,14 @@
         <button id="btn-tableau" data-click="switchView" data-args='["tableau"]' data-i18n="kiosk.de_bracket">
           Tableau DE
         </button>
-        <div style="position: relative; margin-left: 0.5rem">
+        <div class="inl-e7f79c">
           <button
             id="btn-settings"
             class="settings-btn"
             title="Configurer les vues"
             data-i18n-title="kiosk.configure_views"
           >
-            ⚙
+            <span data-icon="settings"></span>
           </button>
           <div id="settings-panel" class="settings-panel hidden">
             <div class="settings-title" data-i18n="kiosk.settings_title">Vues affichées</div>
@@ -1394,8 +1452,7 @@
               <span data-i18n="kiosk.show_eta">Fin estimée</span>
             </label>
             <hr
-              style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 0.5rem 0"
-            />
+             class="inl-23f265"/>
             <div class="settings-title" data-i18n="kiosk.bracket_mode">Mode tableau DE</div>
             <label class="settings-item">
               <input
@@ -1404,8 +1461,7 @@
                 id="tableau-mode-auto"
                 value="auto"
                 checked
-                style="accent-color: #3b82f6; cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_auto">Auto</span>
             </label>
             <label class="settings-item">
@@ -1414,8 +1470,7 @@
                 name="tableau-mode"
                 id="tableau-mode-compact"
                 value="compact"
-                style="accent-color: #3b82f6; cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_compact">Tableau complet</span>
             </label>
             <label class="settings-item">
@@ -1424,8 +1479,7 @@
                 name="tableau-mode"
                 id="tableau-mode-focus"
                 value="focus"
-                style="accent-color: #3b82f6; cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.order">Ordre de passage</span>
             </label>
             <label class="settings-item">
@@ -1434,13 +1488,11 @@
                 name="tableau-mode"
                 id="tableau-mode-cinema"
                 value="cinema"
-                style="accent-color: #3b82f6; cursor: pointer"
-              />
+               class="inl-774c02"/>
               <span data-i18n="kiosk.mode_cinema">Ciné (zoom auto)</span>
             </label>
             <hr
-              style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 0.5rem 0"
-            />
+             class="inl-23f265"/>
             <div class="settings-title" data-i18n="kiosk.rotation_label">Rafraîchissement</div>
             <div class="settings-item">
               <input
@@ -1449,30 +1501,14 @@
                 min="3"
                 max="300"
                 value="15"
-                style="
-                  width: 56px;
-                  background: #0f172a;
-                  border: 1px solid rgba(255, 255, 255, 0.2);
-                  border-radius: 0.4rem;
-                  color: #e2e8f0;
-                  padding: 0.2rem 0.4rem;
-                  font-size: 0.875rem;
-                "
-              />
+               class="inl-61cd3c"/>
               <span data-i18n="kiosk.rotation_unit">s</span>
             </div>
           </div>
         </div>
       </div>
       <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          flex: 1 1 0;
-          min-width: 0;
-        "
-      >
+       class="inl-911b6d">
         <div class="menu-status">
           <div id="status-dot" class="status-dot"></div>
           <span id="status-text">—</span>
@@ -1480,7 +1516,7 @@
       </div>
     </div>
 
-    <!-- Vue Poules -->
+    <main id="kiosk-main"><!-- Vue Poules -->
     <div id="view-poules" class="kiosk-view active">
       <div class="view-header">
         <div>
@@ -1493,7 +1529,7 @@
       </div>
       <div class="pools-grid" id="pools-container">
         <div class="no-data">
-          <div class="no-data-icon">🤺</div>
+          <div class="no-data-icon"><span data-icon="users"></span></div>
           <h3 data-i18n="kiosk.no_pools">Aucune poule disponible</h3>
           <p data-i18n="kiosk.no_pools_hint">Démarrez la compétition pour voir les poules</p>
         </div>
@@ -1514,21 +1550,21 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th style="width: 60px" data-i18n="kiosk.col_rank">Rg</th>
+                <th data-i18n="kiosk.col_rank" class="inl-d7a512">Rg</th>
                 <th data-i18n="kiosk.col_fencer">Tireur</th>
                 <th data-i18n="kiosk.col_club">Club</th>
-                <th style="text-align: center">V</th>
-                <th style="text-align: center" data-i18n="kiosk.col_index">Ind</th>
-                <th style="text-align: center" data-i18n="kiosk.col_ts">TD</th>
+                <th class="inl-7023da">V</th>
+                <th data-i18n="kiosk.col_index" class="inl-7023da">Ind</th>
+                <th data-i18n="kiosk.col_ts" class="inl-7023da">TD</th>
               </tr>
             </thead>
             <tbody id="ranking-body">
               <tr>
                 <td
                   colspan="6"
-                  style="text-align: center; color: #64748b; padding: 3rem"
+                 
                   data-i18n="kiosk.waiting_results"
-                >
+                 class="inl-caf873">
                   En attente des résultats...
                 </td>
               </tr>
@@ -1542,7 +1578,7 @@
     <div id="view-final" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title" data-i18n="kiosk.final_ranking_title">🏆 Classement Final</div>
+          <div class="view-title"><span data-icon="trophy"></span> <span data-i18n="kiosk.final_ranking_title">Classement Final</span></div>
           <div class="view-subtitle" data-i18n="kiosk.final_subtitle">
             Résultats définitifs de la compétition
           </div>
@@ -1551,10 +1587,9 @@
       </div>
       <div
         id="final-ranking-body"
-        style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1"
-      >
-        <div class="final-ranking-not-done" data-i18n="kiosk.not_finished">
-          ⏳ Compétition non terminée
+       class="inl-2b40b2">
+        <div class="final-ranking-not-done">
+          <span data-icon="hourglass"></span> <span data-i18n="kiosk.not_finished">Compétition non terminée</span>
         </div>
       </div>
     </div>
@@ -1570,7 +1605,7 @@
       </div>
       <div class="suivants-list" id="suivants-container">
         <div class="no-data">
-          <div class="no-data-icon">📋</div>
+          <div class="no-data-icon"><span data-icon="list"></span></div>
           <h3 data-i18n="kiosk.no_next">Aucun match à venir</h3>
           <p data-i18n="kiosk.no_next_hint">Les matchs suivants apparaîtront ici</p>
         </div>
@@ -1589,7 +1624,7 @@
       <div class="bracket-outer" id="bracket-outer">
         <div class="bracket-inner" id="bracket-inner">
           <div class="no-data">
-            <div class="no-data-icon">🏆</div>
+            <div class="no-data-icon"><span data-icon="trophy"></span></div>
             <h3 data-i18n="kiosk.no_bracket">Tableau non disponible</h3>
             <p data-i18n="kiosk.no_bracket_hint">
               Le tableau apparaîtra lors de la phase d'élimination directe
@@ -1625,1425 +1660,14 @@
       </div>
       <div class="arenas-grid" id="arenas-container">
         <div class="no-data">
-          <div class="no-data-icon">⏱️</div>
+          <div class="no-data-icon"><span data-icon="timer"></span></div>
           <h3 data-i18n="kiosk.no_live">Aucun match en cours</h3>
           <p data-i18n="kiosk.no_live_hint">Les matchs apparaîtront ici en temps réel</p>
         </div>
       </div>
-    </div>
+    </div></main>
 
-    <script>
-      // ─── État ────────────────────────────────────────────────────────────────
-      const ALL_VIEWS = ['poules', 'classement', 'final', 'direct', 'suivants', 'tableau'];
-
-      const state = {
-        currentView: 'poules',
-        views: ['poules', 'classement', 'final', 'direct', 'suivants', 'tableau'],
-        rotationMs: 15000,
-        rotationTimer: null,
-        progressTimer: null,
-        progressStart: null,
-        menuTimer: null,
-        session: null,
-        poolsData: [],
-        arenasData: [],
-        upcomingData: [],
-        overallRanking: [],
-        trainingHistory: [],
-        lastUpdate: null,
-        prevArenaScores: {},
-        bracketData: null,
-        bracketPanTimer: null,
-        bracketPanIndex: 0,
-        bracketScaledCardW: 0,
-        bracketScaledColGap: 0,
-        bracketDisplayMode: 'auto', // 'auto' | 'compact' | 'focus'
-      };
-
-      // ─── Note d'organisation ─────────────────────────────────────────────────
-      let _orgNoteInterval = null;
-      let _currentOrgNote = null;
-
-      function renderOrgNote(note) {
-        clearInterval(_orgNoteInterval);
-        _orgNoteInterval = null;
-        _currentOrgNote = note;
-        const overlay = document.getElementById('org-note-overlay');
-        if (!note) {
-          overlay.classList.remove('visible');
-          return;
-        }
-
-        document.getElementById('org-note-message').innerHTML = note.message
-          ? '\u00ab\u00a0' + escHtml(note.message) + '\u00a0\u00bb'
-          : '';
-
-        if (note.type === 'target_time' && note.targetTime) {
-          const { hh, mm, label: fmtTime } = KioskConfig.parseTargetTime(note.targetTime);
-          document.getElementById('org-note-time').textContent =
-            window.T('kiosk.resume_time', { prefix: note.countdownPrefix || window.T('kiosk.resume_at'), time: fmtTime });
-
-          const computeCountdown = () => {
-            const diffSec = KioskConfig.secondsUntil(hh, mm, new Date());
-            document.getElementById('org-note-countdown').textContent =
-              KioskConfig.formatCountdown(window.T('kiosk.countdown_prefix'), diffSec);
-            if (diffSec === 0) {
-              clearInterval(_orgNoteInterval);
-              overlay.classList.remove('visible');
-            }
-          };
-          computeCountdown();
-          _orgNoteInterval = setInterval(computeCountdown, 1000);
-        } else {
-          document.getElementById('org-note-time').textContent = '';
-          document.getElementById('org-note-countdown').textContent = '';
-        }
-
-        overlay.classList.add('visible');
-      }
-
-      // ─── Rotation automatique ────────────────────────────────────────────────
-      function startRotation() {
-        clearTimeout(state.rotationTimer);
-        clearInterval(state.progressTimer);
-        state.progressStart = Date.now();
-
-        state.progressTimer = setInterval(() => {
-          if (document.hidden) return;
-          const elapsed = Date.now() - state.progressStart;
-          const pct = Math.min(100, (elapsed / state.rotationMs) * 100);
-          document.getElementById('progress-bar').style.width = pct + '%';
-        }, 100);
-
-        state.rotationTimer = setTimeout(() => {
-          const idx = state.views.indexOf(state.currentView);
-          const next = state.views[(idx + 1) % state.views.length];
-          switchView(next);
-        }, state.rotationMs);
-      }
-
-      function switchView(name) {
-        state.currentView = name;
-
-        // Stopper le pan/focus du bracket si on quitte la vue tableau
-        clearInterval(state.bracketPanTimer);
-        state.bracketPanTimer = null;
-        clearInterval(focusState.panTimer);
-        clearInterval(focusState.progressTimer);
-        cancelAnimationFrame(focusState.scrollAnim);
-        clearTimeout(focusState.scrollDelay);
-        clearTimeout(focusState.fadeTimer);
-        focusState.panTimer = null;
-        if (name !== 'tableau') stopCinemaMode();
-
-        ALL_VIEWS.forEach(v => {
-          document.getElementById('view-' + v).classList.toggle('active', v === name);
-          const btn = document.getElementById('btn-' + v);
-          if (btn) btn.classList.toggle('active', v === name);
-        });
-
-        stopAutoScroll();
-        if (name === 'classement' || name === 'suivants') {
-          const wrapper = document.getElementById(
-            name === 'classement' ? 'ranking-scroll-wrapper' : 'suivants-container'
-          );
-          wrapper.scrollTop = 0;
-          startAutoScroll(wrapper);
-        }
-
-        if (name === 'final') {
-          renderFinalRanking();
-        }
-
-        if (name === 'tableau') {
-          state.bracketPanIndex = 0;
-          if (state.bracketData) {
-            renderBracket();
-            // En mode compact : scroll vers le round actif (ciné gère son propre pan-zoom)
-            if (state.bracketDisplayMode !== 'cinema' && !isFocusMode(state.bracketData)) {
-              setTimeout(() => {
-                if (state.bracketData?.currentRound)
-                  scrollToBracketRound(state.bracketData.currentRound);
-              }, 120);
-              startBracketPan();
-            }
-          } else if (state.bracketDisplayMode !== 'cinema') {
-            startBracketPan();
-          }
-        }
-
-        document.getElementById('progress-bar').style.width = '0%';
-        startRotation();
-      }
-
-      // ─── Auto-scroll classement ──────────────────────────────────────────────
-      let scrollAnimFrame = null;
-      let scrollDelayTimer = null;
-
-      function stopAutoScroll() {
-        cancelAnimationFrame(scrollAnimFrame);
-        clearTimeout(scrollDelayTimer);
-      }
-
-      // Défilement vers le bas puis, s'il y a eu défilement, reprise du début après 3 s (#1036)
-      function startAutoScroll(wrapper) {
-        stopAutoScroll();
-        const duration = 20000; // ms pour parcourir tout le contenu
-        let start = null;
-
-        function step(now) {
-          if (start === null) start = now;
-          const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-          if (maxScroll <= 0) return;
-
-          const progress = Math.min(1, (now - start) / duration);
-          wrapper.scrollTop = progress * maxScroll;
-
-          if (progress < 1) {
-            scrollAnimFrame = requestAnimationFrame(step);
-            return;
-          }
-          scrollDelayTimer = setTimeout(() => {
-            wrapper.scrollTop = 0;
-            startAutoScroll(wrapper);
-          }, 3000);
-        }
-
-        scrollDelayTimer = setTimeout(() => {
-          scrollAnimFrame = requestAnimationFrame(step);
-        }, 2000);
-      }
-
-      // ─── Menu escamotable ────────────────────────────────────────────────────
-      function showMenu() {
-        document.getElementById('kiosk-menu').classList.add('visible');
-        clearTimeout(state.menuTimer);
-        state.menuTimer = setTimeout(() => {
-          document.getElementById('kiosk-menu').classList.remove('visible');
-        }, 4000);
-      }
-
-      document.addEventListener('mousemove', showMenu);
-      document.addEventListener('keydown', e => {
-        showMenu();
-        if (e.key === 'ArrowRight') {
-          const idx = state.views.indexOf(state.currentView);
-          switchView(state.views[(idx + 1) % state.views.length]);
-        }
-        if (e.key === 'ArrowLeft') {
-          const idx = state.views.indexOf(state.currentView);
-          switchView(state.views[(idx - 1 + state.views.length) % state.views.length]);
-        }
-      });
-
-      // ─── Configuration locale des vues ───────────────────────────────────────
-      const localConfig = KioskConfig.createLocalConfig({
-        getItem: k => localStorage.getItem(k),
-        setItem: (k, v) => localStorage.setItem(k, v),
-      });
-      function saveLocalViews() {
-        const v = {};
-        ALL_VIEWS.forEach(n => {
-          v[n] = document.getElementById('cb-' + n).checked;
-        });
-        localConfig.saveViews(v);
-      }
-      const loadLocalViews = () => localConfig.loadViews();
-
-      // ─── Configuration locale du délai de rotation ───────────────────────────
-      const saveLocalRotation = sec => localConfig.saveRotation(sec);
-      const loadLocalRotation = () => localConfig.loadRotation();
-
-      function applyLocalViews() {
-        const enabled = ALL_VIEWS.filter(v => document.getElementById('cb-' + v).checked);
-        state.views = enabled.length > 0 ? enabled : ALL_VIEWS.slice();
-        ALL_VIEWS.forEach(v => {
-          const btn = document.getElementById('btn-' + v);
-          if (btn) btn.style.display = state.views.includes(v) ? '' : 'none';
-        });
-        if (!state.views.includes(state.currentView)) switchView(state.views[0]);
-      }
-
-      // Bouton ⚙ – toggle panneau
-      document.getElementById('btn-settings').addEventListener('click', e => {
-        e.stopPropagation();
-        const panel = document.getElementById('settings-panel');
-        panel.classList.toggle('hidden');
-        // Prolonger le timer menu tant que le panneau est ouvert
-        if (!panel.classList.contains('hidden')) {
-          clearTimeout(state.menuTimer);
-        } else {
-          showMenu(); // relance le timer d'auto-masquage
-        }
-      });
-
-      // Fermer le panneau au clic à l'extérieur
-      document.addEventListener('click', e => {
-        const panel = document.getElementById('settings-panel');
-        const btn = document.getElementById('btn-settings');
-        if (!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn) {
-          panel.classList.add('hidden');
-          showMenu();
-        }
-      });
-
-      // Changement d'une checkbox
-      ALL_VIEWS.forEach(v => {
-        document.getElementById('cb-' + v).addEventListener('change', () => {
-          saveLocalViews();
-          applyLocalViews();
-          clearTimeout(state.menuTimer); // garder le menu visible pendant la config
-        });
-      });
-
-      // Mode tableau DE
-      const saveLocalTableauMode = mode => localConfig.saveTableauMode(mode);
-      const loadLocalTableauMode = () => localConfig.loadTableauMode();
-      function applyTableauMode(mode) {
-        state.bracketDisplayMode = mode;
-        document.querySelectorAll('input[name="tableau-mode"]').forEach(r => {
-          r.checked = r.value === mode;
-        });
-        // Re-render si la vue tableau est active
-        if (state.currentView === 'tableau' && state.bracketData) renderBracket();
-      }
-      document.querySelectorAll('input[name="tableau-mode"]').forEach(r => {
-        r.addEventListener('change', () => {
-          const mode =
-            document.querySelector('input[name="tableau-mode"]:checked')?.value || 'auto';
-          saveLocalTableauMode(mode);
-          applyTableauMode(mode);
-          clearTimeout(state.menuTimer);
-        });
-      });
-
-      // Changement du délai de rotation
-      document.getElementById('rotation-input').addEventListener('change', () => {
-        const raw = parseInt(document.getElementById('rotation-input').value, 10);
-        const sec = !isNaN(raw) && raw >= 3 ? Math.min(raw, 300) : 15;
-        document.getElementById('rotation-input').value = sec;
-        state.rotationMs = sec * 1000;
-        saveLocalRotation(sec);
-        startRotation();
-        clearTimeout(state.menuTimer);
-      });
-
-      // ─── Statut connexion ────────────────────────────────────────────────────
-      function setStatus(ok, text) {
-        const dot = document.getElementById('status-dot');
-        dot.classList.toggle('ok', ok);
-        document.getElementById('status-text').textContent = text;
-      }
-
-      // ─── Chargement des données ──────────────────────────────────────────────
-      async function fetchData() {
-        try {
-          // 1. Session
-          const sessRes = await fetch('/api/session');
-          if (!sessRes.ok) {
-            setStatus(false, tk('kiosk.no_session'));
-            return;
-          }
-          state.session = await sessRes.json();
-          const competitionId = state.session.competitionId;
-
-          document.getElementById('menu-competition-name').textContent =
-            state.session.competitionName || '';
-
-          // Note d'organisation
-          renderOrgNote(state.session.orgNote || null);
-
-          // Appliquer les vues kiosk : localStorage en priorité, sinon config serveur
-          // 'final' (classement final) désactivé par défaut s'il n'est pas explicitement présent
-          const viewDefault = (src, v) => (v === 'final' ? src[v] === true : src[v] !== false);
-          const localViews = loadLocalViews();
-          if (localViews) {
-            // Restaurer l'état des checkboxes depuis localStorage
-            ALL_VIEWS.forEach(v => {
-              const cb = document.getElementById('cb-' + v);
-              if (cb) cb.checked = viewDefault(localViews, v);
-            });
-          } else if (state.session.kioskViews) {
-            // Initialiser les checkboxes depuis la config serveur (premier chargement)
-            const kv = state.session.kioskViews;
-            ALL_VIEWS.forEach(v => {
-              const cb = document.getElementById('cb-' + v);
-              if (cb) cb.checked = viewDefault(kv, v);
-            });
-          }
-          applyLocalViews();
-
-          // 2. Données poules + classements (ou historique entraînement)
-          if (competitionId === '__training__') {
-            const histRes = await fetch('/api/training/history');
-            if (histRes.ok) {
-              const histData = await histRes.json();
-              state.trainingHistory = histData.history || [];
-              renderRanking();
-            }
-          } else {
-            const poolsRes = await fetch('/api/competitions/' + competitionId + '/results-data');
-            if (poolsRes.ok) {
-              const data = await poolsRes.json();
-              state.poolsData = data.pools || [];
-              if (data.overallRanking && data.overallRanking.length > 0) {
-                state.overallRanking = data.overallRanking;
-              } else {
-                buildOverallRanking();
-              }
-              renderPools();
-              renderRanking();
-            }
-          }
-
-          // 3. Arènes
-          const arenasRes = await fetch('/api/arenas');
-          if (arenasRes.ok) {
-            state.arenasData = await arenasRes.json();
-            renderArenas();
-          }
-
-          // 4. Matchs suivants
-          const suivantsRes = await fetch('/api/session/upcoming-matches');
-          if (suivantsRes.ok) {
-            const suivantsData = await suivantsRes.json();
-            state.upcomingData = suivantsData.upcoming || [];
-            renderSuivants();
-          }
-
-          state.lastUpdate = new Date();
-          setStatus(true, tk('kiosk.updated') + ' ' + state.lastUpdate.toLocaleTimeString('fr-FR'));
-          retryAttempt = 0;
-        } catch (err) {
-          setStatus(false, tk('remote.error_connection'));
-          scheduleRetry();
-        }
-      }
-
-      // Reprise après échec : backoff exponentiel + jitter (1 s → 30 s), jamais de polling régulier
-      let retryAttempt = 0;
-      let retryTimer = null;
-      function scheduleRetry() {
-        clearTimeout(retryTimer);
-        const delay = Math.min(30000, 1000 * 2 ** retryAttempt) * (0.75 + Math.random() * 0.5);
-        retryAttempt = Math.min(retryAttempt + 1, 5);
-        retryTimer = setTimeout(resyncAll, delay);
-      }
-
-      // Rechargement complet (connexion / reconnexion, retour de visibilité, réseau revenu)
-      function resyncAll() {
-        fetchData();
-        fetchLogo();
-        fetchBracket();
-        if (window.kioskRefreshEta) window.kioskRefreshEta();
-      }
-
-      // Événement « données modifiées » du serveur : regroupé pour éviter les rafales
-      let refreshTimer = null;
-      function scheduleRefresh() {
-        clearTimeout(refreshTimer);
-        refreshTimer = setTimeout(resyncAll, 200 + Math.random() * 300);
-      }
-
-      // ─── Classement général (agrégation des poules) ──────────────────────────
-      function buildOverallRanking() {
-        state.overallRanking = KioskBracket.buildOverallRanking(state.poolsData);
-      }
-
-      // ─── Rendu Poules ────────────────────────────────────────────────────────
-      function renderPools() {
-        const pools = state.poolsData;
-        document.getElementById('poules-badge').textContent = tk('kiosk.count_pools', {
-          count: pools.length,
-        });
-        document.getElementById('pools-container').innerHTML = KioskRender.poolsHtml(pools, tk, escHtml);
-      }
-
-      // ─── Rendu Classement ────────────────────────────────────────────────────
-      function renderRanking() {
-        const tbody = document.getElementById('ranking-body');
-
-        // Mode entraînement : afficher l'historique des combats
-        if (state.session?.competitionId === '__training__') {
-          const hist = (state.trainingHistory || []).slice().reverse();
-          document.getElementById('classement-badge').textContent = tk('kiosk.count_bouts', {
-            count: hist.length,
-          });
-          tbody.innerHTML = KioskRender.trainingRowsHtml(hist, tk, escHtml, iso =>
-            new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-          );
-          return;
-        }
-
-        const ranking = state.overallRanking;
-        document.getElementById('classement-badge').textContent = tk('kiosk.count_fencers', {
-          count: ranking.length,
-        });
-        tbody.innerHTML = KioskRender.rankingRowsHtml(ranking, tk, escHtml);
-      }
-
-      // ─── Rendu Classement Final ──────────────────────────────────────────────
-      // Ordre du classement général des poules (meilleur classé d'abord)
-      const sortBySeed = fencers => KioskBracket.sortBySeed(fencers, state.overallRanking);
-
-      function renderFinalRanking() {
-        const el = document.getElementById('final-ranking-body');
-        if (!el) return;
-        const { ranked } = KioskLists.computeFinalRanking(state.bracketData, sortBySeed);
-        if (!ranked) {
-          el.innerHTML = KioskLists.notDoneHtml(tk, escHtml);
-          document.getElementById('final-badge').textContent = '—';
-          return;
-        }
-        document.getElementById('final-badge').textContent = tk('kiosk.count_fencers', {
-          count: ranked.length,
-        });
-        el.innerHTML = KioskLists.finalTableHtml(ranked, tk, escHtml);
-      }
-
-      // ─── Rendu Matchs suivants ───────────────────────────────────────────────
-      function renderSuivants() {
-        const matches = state.upcomingData;
-        const pending = matches.filter(m => m.status !== 'finished');
-        document.getElementById('suivants-badge').textContent =
-          tk('kiosk.count_matches', { count: pending.length });
-        document.getElementById('suivants-container').innerHTML = KioskLists.suivantsHtml(
-          matches,
-          tk,
-          escHtml
-        );
-      }
-
-      // ─── Rendu Arènes ────────────────────────────────────────────────────────
-      function renderArenas() {
-        const container = document.getElementById('arenas-container');
-        const arenas = state.arenasData;
-
-        const activeCount = arenas.filter(a => a.status === 'in_progress').length;
-        document.getElementById('direct-badge').textContent = tk('kiosk.count_active_strips', {
-          count: activeCount,
-        });
-
-        if (!arenas || arenas.length === 0) {
-          container.innerHTML =
-            '<div class="no-data"><div class="no-data-icon">⏱️</div><h3>' +
-            escHtml(tk('kiosk.no_strips')) +
-            '</h3></div>';
-          return;
-        }
-
-        // ── Détecter les changements de score avant de reconstruire le DOM ───
-        const changedScores = []; // ids des éléments à animer
-        const slashScores = []; // ids pour l'animation épéiste (≥3 pts d'un coup)
-        for (const arena of arenas) {
-          const aid = arena.id || arena.arenaId;
-          const m = arena.currentMatch;
-          if (!m || !aid) continue;
-          const prev = state.prevArenaScores[aid];
-          if (prev) {
-            const newA = m.scoreA ?? null;
-            const newB = m.scoreB ?? null;
-            if (prev.scoreA !== newA) {
-              changedScores.push('sa-' + aid);
-              if (
-                typeof newA === 'number' &&
-                typeof prev.scoreA === 'number' &&
-                newA - prev.scoreA >= 3
-              ) {
-                slashScores.push('sa-' + aid);
-              }
-            }
-            if (prev.scoreB !== newB) {
-              changedScores.push('sb-' + aid);
-              if (
-                typeof newB === 'number' &&
-                typeof prev.scoreB === 'number' &&
-                newB - prev.scoreB >= 3
-              ) {
-                slashScores.push('sb-' + aid);
-              }
-            }
-          }
-        }
-
-        container.innerHTML = arenas
-          .map(arena => {
-            const aid = arena.id || arena.arenaId || '?';
-            const m = arena.currentMatch;
-            const isActive = arena.status === 'in_progress' && m;
-
-            if (!m) {
-              return `<div class="arena-card">
-              <div class="arena-card-header">
-                <span class="arena-name">${escHtml(window.getArenaLabel())} ${escHtml(aid)}</span>
-                <span class="arena-status-pill">${escHtml(tk('kiosk.status_waiting'))}</span>
-              </div>
-              <div class="arena-idle">${escHtml(tk('kiosk.no_assigned'))}</div>
-            </div>`;
-            }
-
-            const scoreA = m.scoreA ?? '—';
-            const scoreB = m.scoreB ?? '—';
-            const nameA =
-              [m.fencerA?.lastName, m.fencerA?.firstName].filter(Boolean).join(' ') ||
-              m.fencerA ||
-              '?';
-            const nameB =
-              [m.fencerB?.lastName, m.fencerB?.firstName].filter(Boolean).join(' ') ||
-              m.fencerB ||
-              '?';
-            const clubA = m.fencerA?.club || '';
-            const clubB = m.fencerB?.club || '';
-            // Même disposition que l'écran d'arène : B rouge à gauche, A vert à droite ; inversion = permutation (#990)
-            const sideA = { name: nameA, club: clubA, score: scoreA, scoreId: `sa-${aid}` };
-            const sideB = { name: nameB, club: clubB, score: scoreB, scoreId: `sb-${aid}` };
-            const left = arena.swapped ? sideA : sideB;
-            const right = arena.swapped ? sideB : sideA;
-            const leftColor = arena.swapped ? 'green' : 'red';
-            const rightColor = arena.swapped ? 'red' : 'green';
-
-            return `<div class="arena-card ${isActive ? 'match-active' : ''}">
-            <div class="arena-card-header">
-              <span class="arena-name">${escHtml(window.getArenaLabel())} ${escHtml(aid)}</span>
-              <span class="arena-status-pill ${isActive ? 'in-progress' : ''}">${isActive ? escHtml(tk('kiosk.status_ongoing')) : escHtml(tk('kiosk.status_assigned'))}</span>
-            </div>
-            <div class="arena-matchup">
-              <div class="arena-fencer side-left fencer-${escHtml(leftColor)}">
-                <div class="fname">${escHtml(left.name)}</div>
-                <div class="fclub">${escHtml(left.club)}</div>
-              </div>
-              <div class="arena-scores">
-                <span class="arena-score score-${escHtml(leftColor)}" id="${escHtml(left.scoreId)}">${escHtml(left.score)}</span>
-                <span class="arena-vs">-</span>
-                <span class="arena-score score-${escHtml(rightColor)}" id="${escHtml(right.scoreId)}">${escHtml(right.score)}</span>
-              </div>
-              <div class="arena-fencer side-right fencer-${escHtml(rightColor)}">
-                <div class="fname">${escHtml(right.name)}</div>
-                <div class="fclub">${escHtml(right.club)}</div>
-              </div>
-            </div>
-          </div>`;
-          })
-          .join('');
-
-        // ── Appliquer les animations après reconstruction du DOM ─────────────
-        for (const elemId of changedScores) {
-          const el = document.getElementById(elemId);
-          if (!el) continue;
-          el.classList.remove('score-updated', 'score-slash');
-          void el.offsetWidth; // force reflow pour relancer l'animation
-          el.classList.add('score-updated');
-          if (slashScores.includes(elemId)) el.classList.add('score-slash');
-          el.addEventListener(
-            'animationend',
-            () => {
-              el.classList.remove('score-updated', 'score-slash');
-            },
-            { once: true }
-          );
-        }
-
-        // ── Persister les scores courants pour la prochaine comparaison ───────
-        for (const arena of arenas) {
-          const aid = arena.id || arena.arenaId;
-          if (!aid) continue;
-          const m = arena.currentMatch;
-          state.prevArenaScores[aid] = {
-            scoreA: m ? (m.scoreA ?? null) : null,
-            scoreB: m ? (m.scoreB ?? null) : null,
-          };
-        }
-      }
-
-      // ─── Focus-round mode (grands tableaux T32+) ────────────────────────
-
-      const focusState = {
-        rounds: [],
-        currentIdx: 0,
-        panTimer: null,
-        progressTimer: null,
-        progressStart: null,
-        durationMs: 7000,
-        scrollAnim: null,
-      };
-
-      // État du mode ciné (pan-zoom auto)
-      const cinemaState = {
-        layout: null,
-        step: 0, // 0 = vue d'ensemble, 1..N = rounds
-        timer: null,
-        overviewMs: 4500,
-        roundMs: 6500,
-        scanFrac: 0.55, // part du temps consacrée au défilement vertical d'un round
-      };
-
-      const isFocusMode = data => KioskBracket.isFocusMode(data, state.bracketDisplayMode);
-
-      function startFocusMode(data) {
-        document.getElementById('bracket-outer').style.display = 'none';
-        const focusOuter = document.getElementById('bracket-focus-outer');
-        focusOuter.classList.add('active');
-
-        // Uniquement les phases en cours : au moins un match à deux opposants non joué (#1036)
-        const allRounds = getBracketRoundOrder(data.rounds);
-        const ongoing = allRounds.filter(r =>
-          r.matches.some(m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished')
-        );
-        focusState.rounds = ongoing.length > 0 ? ongoing : allRounds;
-        // Démarrer sur le round courant si possible
-        const curIdx = focusState.rounds.findIndex(r => r.round === data.currentRound);
-        focusState.currentIdx = curIdx >= 0 ? curIdx : 0;
-
-        renderFocusDots();
-        renderFocusRound();
-        startFocusPan();
-      }
-
-      // Rafraîchit les données du mode focus sans toucher au timer (trait jaune).
-      // Retourne false si la liste des phases a changé (redémarrage complet nécessaire).
-      function refreshFocusMode(data) {
-        const allRounds = getBracketRoundOrder(data.rounds);
-        const ongoing = allRounds.filter(r =>
-          r.matches.some(m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished')
-        );
-        const rounds = ongoing.length > 0 ? ongoing : allRounds;
-        const same =
-          rounds.length === focusState.rounds.length &&
-          rounds.every((r, i) => r.round === focusState.rounds[i].round);
-        if (!same) return false;
-        const prev = JSON.stringify(focusState.rounds[focusState.currentIdx]);
-        focusState.rounds = rounds;
-        if (JSON.stringify(rounds[focusState.currentIdx]) !== prev) {
-          renderFocusRound();
-        }
-        return true;
-      }
-
-      function stopFocusMode() {
-        clearInterval(focusState.panTimer);
-        clearInterval(focusState.progressTimer);
-        cancelAnimationFrame(focusState.scrollAnim);
-        clearTimeout(focusState.scrollDelay);
-        clearTimeout(focusState.fadeTimer);
-        document.getElementById('bracket-focus-scroll')?.classList.remove('focus-fade');
-        focusState.panTimer = null;
-        focusState.progressTimer = null;
-        document.getElementById('bracket-outer').style.display = '';
-        const focusOuter = document.getElementById('bracket-focus-outer');
-        focusOuter.classList.remove('active');
-      }
-
-      // ─── Mode ciné : pan-zoom automatique sur le tableau complet ───────────
-
-      const buildCinemaFrames = (L, vw, vh) => KioskBracket.buildCinemaFrames(L, vw, vh, cinemaState);
-
-      function applyCinemaFrame(f) {
-        const inner = document.getElementById('bracket-inner');
-        if (!inner) return;
-        inner.style.setProperty('--cinema-dur', f.transMs + 'ms');
-        inner.style.transform = `translate(${f.tx}px, ${f.ty}px) scale(${f.scale})`;
-        updateCinemaMinimap(f);
-      }
-
-      function startCinemaMode() {
-        const L = cinemaState.layout;
-        const outer = document.getElementById('bracket-outer');
-        if (!L || !outer) return;
-        const vw = outer.clientWidth || window.innerWidth;
-        const vh = outer.clientHeight || window.innerHeight - 200;
-
-        drawCinemaMinimap(L, vw, vh);
-        const frames = buildCinemaFrames(L, vw, vh);
-        cinemaState.frames = frames;
-        cinemaState.step = 0;
-
-        clearTimeout(cinemaState.timer);
-        const run = () => {
-          const f = cinemaState.frames[cinemaState.step];
-          applyCinemaFrame(f);
-          cinemaState.timer = setTimeout(() => {
-            cinemaState.step = (cinemaState.step + 1) % cinemaState.frames.length;
-            run();
-          }, f.transMs + f.holdMs);
-        };
-        run();
-      }
-
-      function stopCinemaMode() {
-        clearTimeout(cinemaState.timer);
-        cinemaState.timer = null;
-        const inner = document.getElementById('bracket-inner');
-        if (inner) inner.style.transform = '';
-        const outer = document.getElementById('bracket-outer');
-        if (outer) outer.classList.remove('cinema');
-      }
-
-      // Minimap : dessine un schéma du tableau (lanes par round)
-      function drawCinemaMinimap(L, vw, vh) {
-        const canvas = document.getElementById('cinema-minimap-canvas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const W = canvas.width,
-          H = canvas.height;
-        const mm = Math.min(W / L.totalW, H / L.innerH);
-        cinemaState.mm = {
-          mm,
-          ox: (W - L.totalW * mm) / 2,
-          oy: (H - L.innerH * mm) / 2,
-          vw,
-          vh,
-          W,
-          H,
-        };
-        ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = 'rgba(148,163,184,0.5)';
-        const { ox, oy } = cinemaState.mm;
-        for (let i = 0; i < L.colX.length; i++) {
-          const rd = L.orderedRounds[i];
-          const x = ox + L.colX[i] * mm;
-          const w = Math.max(2, L.cardW * mm);
-          for (const m of rd.matches) {
-            if (m.isBye) continue;
-            const yc = oy + (L.matchTop + L.yCenter(m.position || 1, rd.round)) * mm;
-            const h = Math.max(1.5, L.cardH * mm);
-            ctx.fillStyle =
-              m.status === 'live'
-                ? '#22c55e'
-                : m.status === 'finished'
-                  ? 'rgba(148,163,184,0.7)'
-                  : 'rgba(148,163,184,0.35)';
-            ctx.fillRect(x, yc - h / 2, w, h);
-          }
-        }
-      }
-
-      function updateCinemaMinimap(f) {
-        const vp = document.getElementById('cinema-minimap-viewport');
-        const mmd = cinemaState.mm;
-        if (!vp || !mmd) return;
-        // Région de contenu visible (coords contenu) -> coords minimap
-        const visX = -f.tx / f.scale;
-        const visY = -f.ty / f.scale;
-        const visW = mmd.vw / f.scale;
-        const visH = mmd.vh / f.scale;
-        vp.style.setProperty('--cinema-dur', f.transMs + 'ms');
-        vp.style.left = mmd.ox + visX * mmd.mm + 'px';
-        vp.style.top = mmd.oy + visY * mmd.mm + 'px';
-        vp.style.width = visW * mmd.mm + 'px';
-        vp.style.height = visH * mmd.mm + 'px';
-      }
-
-      function renderFocusDots() {
-        const dotsEl = document.getElementById('focus-round-dots');
-        dotsEl.innerHTML = focusState.rounds
-          .map(
-            (r, i) => `<div class="focus-dot${i === focusState.currentIdx ? ' active' : ''}"></div>`
-          )
-          .join('');
-      }
-
-      function renderFocusRound() {
-        const rd = focusState.rounds[focusState.currentIdx];
-        if (!rd) return;
-
-        document.getElementById('focus-round-label').textContent = rd.label || 'Round ' + rd.round;
-
-        // Update dots
-        const dots = document.querySelectorAll('#focus-round-dots .focus-dot');
-        dots.forEach((d, i) => d.classList.toggle('active', i === focusState.currentIdx));
-
-        const scroll = document.getElementById('bracket-focus-scroll');
-        const matches = rd.matches.filter(m => !m.isBye);
-
-        scroll.innerHTML = matches
-          .map((match, idx) => {
-            const fA = match.fencerA;
-            const fB = match.fencerB;
-            const nameA = fA
-              ? escHtml(fA.lastName + (fA.firstName ? ' ' + fA.firstName[0] + '.' : ''))
-              : '?';
-            const nameB = fB
-              ? escHtml(fB.lastName + (fB.firstName ? ' ' + fB.firstName[0] + '.' : ''))
-              : 'TBD';
-            const clubA = fA?.club
-              ? `<span class="focus-fencer-club">${escHtml(fA.club)}</span>`
-              : '';
-            const clubB = fB?.club
-              ? `<span class="focus-fencer-club">${escHtml(fB.club)}</span>`
-              : '';
-            const winA = match.winnerId && fA && match.winnerId === fA.id;
-            const winB = match.winnerId && fB && match.winnerId === fB.id;
-            const sA = match.scoreA !== null && match.scoreA !== undefined ? match.scoreA : '';
-            const sB = match.scoreB !== null && match.scoreB !== undefined ? match.scoreB : '';
-            const cls =
-              match.status === 'live'
-                ? 'match--live'
-                : match.status === 'finished'
-                  ? 'match--finished'
-                  : '';
-            const arenaHtml = match.arenaName
-              ? `<div class="focus-match-arena">${escHtml(match.arenaName)}</div>`
-              : '';
-
-            return `<div class="focus-match-card ${cls}">
-            <div class="focus-match-num">${escHtml(match.position || idx + 1)}</div>
-            <div class="focus-match-fencers">
-              <div class="focus-fencer-row ${winA ? 'fm-winner' : winB ? 'fm-loser' : ''}">
-                <span class="focus-fencer-name">${/* html */ nameA}${/* html */ clubA}</span>
-                <span class="focus-fencer-score">${escHtml(sA)}</span>
-              </div>
-              <div class="focus-fencer-row ${winB ? 'fm-winner' : winA ? 'fm-loser' : ''}">
-                <span class="focus-fencer-name">${/* html */ nameB}${/* html */ clubB}</span>
-                <span class="focus-fencer-score">${escHtml(sB)}</span>
-              </div>
-            </div>
-            ${arenaHtml}
-          </div>`;
-          })
-          .join('');
-
-        // Auto-scroll vertical si le contenu dépasse
-        scroll.scrollTop = 0;
-        startFocusScroll(scroll);
-      }
-
-      // Défilement progressif vers le bas sur toute la durée d'affichage du round (#1036) :
-      // courte pause en haut, descente linéaire, courte pause en bas avant la transition.
-      const FOCUS_HOLD_MS = 1000;
-      function startFocusScroll(wrapper) {
-        cancelAnimationFrame(focusState.scrollAnim);
-        clearTimeout(focusState.scrollDelay);
-        const duration = Math.max(1000, focusState.durationMs - 2 * FOCUS_HOLD_MS - 600);
-        let startTime = null;
-
-        function step(now) {
-          if (startTime === null) startTime = now;
-          const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-          if (maxScroll <= 0) return;
-          const progress = Math.min(1, (now - startTime) / duration);
-          wrapper.scrollTop = progress * maxScroll;
-          if (progress < 1) {
-            focusState.scrollAnim = requestAnimationFrame(step);
-          }
-        }
-
-        focusState.scrollDelay = setTimeout(() => {
-          focusState.scrollAnim = requestAnimationFrame(step);
-        }, FOCUS_HOLD_MS);
-      }
-
-      // Fondu sortant → round suivant → fondu entrant
-      function transitionFocusRound(nextIdx) {
-        const scroll = document.getElementById('bracket-focus-scroll');
-        cancelAnimationFrame(focusState.scrollAnim);
-        clearTimeout(focusState.scrollDelay);
-        scroll.classList.add('focus-fade');
-        clearTimeout(focusState.fadeTimer);
-        focusState.fadeTimer = setTimeout(() => {
-          focusState.currentIdx = nextIdx;
-          renderFocusRound();
-          scroll.classList.remove('focus-fade');
-        }, 600);
-      }
-
-      function startFocusPan() {
-        clearInterval(focusState.panTimer);
-        clearInterval(focusState.progressTimer);
-
-        focusState.progressStart = Date.now();
-        document.getElementById('focus-round-progress-bar').style.width = '0%';
-
-        focusState.progressTimer = setInterval(() => {
-          if (document.hidden) return;
-          const elapsed = Date.now() - focusState.progressStart;
-          const pct = Math.min(100, (elapsed / focusState.durationMs) * 100);
-          document.getElementById('focus-round-progress-bar').style.width = pct + '%';
-        }, 100);
-
-        focusState.panTimer = setInterval(() => {
-          document.getElementById('focus-round-progress-bar').style.width = '0%';
-          focusState.progressStart = Date.now();
-          transitionFocusRound((focusState.currentIdx + 1) % focusState.rounds.length);
-        }, focusState.durationMs);
-      }
-
-      // ─── Bracket d'élimination directe ──────────────────────────────────────
-
-      const getBracketDims = KioskBracket.getBracketDims;
-
-      async function fetchBracket() {
-        try {
-          const res = await fetch('/api/bracket');
-          if (!res.ok) return;
-          const data = await res.json();
-          state.bracketData = data;
-          if (state.currentView === 'tableau') renderBracket();
-          else if (state.currentView === 'final') renderFinalRanking();
-        } catch {
-          /* optionnel */
-        }
-      }
-
-      function startBracketPan() {
-        clearInterval(state.bracketPanTimer);
-        if (!state.bracketData?.rounds?.length) return;
-        state.bracketPanTimer = setInterval(() => {
-          if (document.hidden || !state.bracketData?.rounds?.length) return;
-          state.bracketPanIndex = (state.bracketPanIndex + 1) % state.bracketData.rounds.length;
-          const r = state.bracketData.rounds[state.bracketPanIndex];
-          if (r) scrollToBracketRound(r.round);
-        }, 8000);
-      }
-
-      function scrollToBracketRound(roundValue) {
-        const outer = document.getElementById('bracket-outer');
-        if (!outer || !state.bracketData?.rounds) return;
-        const sCardW = state.bracketScaledCardW || getBracketDims(state.bracketData).cardW;
-        const sColGap = state.bracketScaledColGap || getBracketDims(state.bracketData).colGap;
-        const orderedRounds = getBracketRoundOrder(state.bracketData.rounds);
-        const idx = orderedRounds.findIndex(r => r.round === roundValue);
-        if (idx < 0) return;
-        const colX = idx * (sCardW + sColGap) + sColGap / 2;
-        const viewW = outer.clientWidth;
-        const targetLeft = Math.max(0, colX - viewW / 2 + sCardW / 2);
-        outer.scrollTo({ left: targetLeft, behavior: 'smooth' });
-      }
-
-      const getBracketRoundOrder = KioskBracket.getBracketRoundOrder;
-
-      function renderBracket() {
-        const container = document.getElementById('bracket-inner');
-        if (!container) return;
-
-        const data = state.bracketData;
-        if (!data || !data.rounds || data.rounds.length === 0) {
-          document.getElementById('tableau-badge').textContent = '—';
-          stopFocusMode();
-          container.innerHTML =
-            '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' +
-            escHtml(tk('kiosk.no_bracket')) +
-            '</h3><p>' +
-            escHtml(tk('kiosk.no_bracket_hint')) +
-            '</p></div>';
-          return;
-        }
-
-        // Badge & subtitle communs
-        const pending = data.rounds.reduce(
-          (n, r) => n + r.matches.filter(m => m.status !== 'finished' && !m.isBye).length,
-          0
-        );
-        const total = data.rounds.reduce((n, r) => n + r.matches.filter(m => !m.isBye).length, 0);
-        document.getElementById('tableau-badge').textContent =
-          'T' + data.tableSize + ' · ' + (total - pending) + '/' + total;
-        const orderedForLabel = getBracketRoundOrder(data.rounds);
-        document.getElementById('tableau-subtitle').textContent = data.currentRound
-          ? orderedForLabel.find(r => r.round === data.currentRound)?.label ||
-            tk('arena.status_in_progress')
-          : tk('kiosk.phase_finished');
-
-        // Basculer en mode focus pour les grands tableaux
-        if (isFocusMode(data)) {
-          // Cycle déjà en cours : ne pas le réinitialiser à chaque rafraîchissement des données (#1036)
-          if (focusState.panTimer !== null && refreshFocusMode(data)) {
-            renderFinalRanking();
-            return;
-          }
-          stopFocusMode();
-          startFocusMode(data);
-          renderFinalRanking();
-          return;
-        }
-
-        // Sinon mode compact classique (ou ciné)
-        stopFocusMode();
-        const cinema = state.bracketDisplayMode === 'cinema';
-
-        const orderedRounds = getBracketRoundOrder(data.rounds);
-        if (orderedRounds.length === 0) {
-          container.innerHTML =
-            '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' +
-            escHtml(tk('kiosk.no_match')) +
-            '</h3></div>';
-          return;
-        }
-
-        const { cardW, cardH, colGap, rowGap } = getBracketDims(data);
-        const firstRound = orderedRounds[0].round; // ex: 16 pour T16
-        const cardSlot = cardH + rowGap;
-
-        // Hauteur totale = nombre de matchs dans le 1er round * cardSlot
-        const firstRoundMatchCount = firstRound / 2;
-        let totalH = firstRoundMatchCount * cardSlot;
-
-        // Adapter si trop grand pour la fenêtre.
-        // En mode ciné : pas de réduction, on garde la taille naturelle (le zoom gère).
-        const availH = cinema ? Infinity : Math.max(200, (window.innerHeight || 800) - 220);
-        let scale = 1;
-        if (totalH > availH) {
-          scale = availH / totalH;
-          totalH = availH;
-        }
-        const sCardW = Math.round(cardW * scale);
-        const sCardH = Math.round(cardH * scale);
-        const sColGap = Math.round(colGap * scale);
-        state.bracketScaledCardW = sCardW;
-        state.bracketScaledColGap = sColGap;
-
-        const totalW = orderedRounds.length * (sCardW + sColGap) + sColGap;
-        const labelH = 28;
-
-        // Fonction Y-center d'un match (pos 1-indexed, round = round value)
-        const yCenter = (pos, round) => ((2 * pos - 1) / round) * totalH;
-
-        let cardsHtml = '';
-        const connectors = []; // { x1, y1, x2, y2 }
-
-        for (let ci = 0; ci < orderedRounds.length; ci++) {
-          const rd = orderedRounds[ci];
-          const r = rd.round;
-          const colX = ci * (sCardW + sColGap) + sColGap / 2;
-          const isActive = r === data.currentRound;
-
-          for (const match of rd.matches) {
-            if (match.isBye) continue;
-            const p = match.position || 1;
-            const yc = yCenter(p, r);
-            const yTop = Math.round(yc - sCardH / 2);
-            const cls = [
-              'bracket-match',
-              match.status === 'live'
-                ? 'match--live'
-                : match.status === 'finished'
-                  ? 'match--finished'
-                  : 'match--pending',
-            ].join(' ');
-
-            const fA = match.fencerA;
-            const fB = match.fencerB;
-            const nameA = fA
-              ? escHtml(fA.lastName + (fA.firstName ? ' ' + fA.firstName[0] + '.' : ''))
-              : '?';
-            const nameB = fB
-              ? escHtml(fB.lastName + (fB.firstName ? ' ' + fB.firstName[0] + '.' : ''))
-              : r === 2
-                ? 'TBD'
-                : '?';
-            const winA = match.winnerId && fA && match.winnerId === fA.id;
-            const winB = match.winnerId && fB && match.winnerId === fB.id;
-            const sA = match.scoreA !== null && match.scoreA !== undefined ? match.scoreA : '';
-            const sB = match.scoreB !== null && match.scoreB !== undefined ? match.scoreB : '';
-
-            // Trophée finale
-            const isFinal = r === 2 && match.position === 1;
-            const winnerName = isFinal && winA ? nameA : isFinal && winB ? nameB : null;
-
-            const arenaHtml = match.arenaName
-              ? `<div class="bm-arena">${escHtml(match.arenaName)}</div>`
-              : '';
-            const fontSize = scale < 0.7 ? 'style="font-size:0.62rem"' : '';
-
-            cardsHtml += `<div class="${cls}" style="position:absolute;left:${escHtml(colX)}px;top:${escHtml(yTop)}px;width:${escHtml(sCardW)}px;height:${escHtml(sCardH)}px">
-              <div class="bm-row ${winA ? 'bm-winner' : winB ? 'bm-loser' : ''}" ${fontSize}>
-                <span class="bm-name">${/* html */ nameA}</span>
-                <span class="bm-score">${escHtml(sA)}</span>
-              </div>
-              <div class="bm-divider"></div>
-              ${arenaHtml}
-              <div class="bm-row ${winB ? 'bm-winner' : winA ? 'bm-loser' : ''}" ${fontSize}>
-                <span class="bm-name">${/* html */ nameB}</span>
-                <span class="bm-score">${escHtml(sB)}</span>
-              </div>
-            </div>`;
-
-            // Connecteurs SVG vers le round suivant (sauf petite finale)
-            if (ci < orderedRounds.length - 1) {
-              const nextRd = orderedRounds[ci + 1];
-              // Ne pas connecter si l'un des deux est la petite finale (round=3)
-              if (r !== 3 && nextRd.round !== 3) {
-                const nextP = Math.ceil(p / 2);
-                const nextYc = yCenter(nextP, nextRd.round);
-                connectors.push({
-                  x1: colX + sCardW,
-                  y1: Math.round(yc),
-                  x2: (ci + 1) * (sCardW + sColGap) + sColGap / 2,
-                  y2: Math.round(nextYc),
-                });
-              }
-            }
-          }
-        }
-
-        // Labels de round
-        let labelsHtml = '';
-        for (let ci = 0; ci < orderedRounds.length; ci++) {
-          const rd = orderedRounds[ci];
-          const colX = ci * (sCardW + sColGap) + sColGap / 2;
-          const isActive = rd.round === data.currentRound;
-          labelsHtml += `<div class="bracket-round-label${isActive ? ' active-round' : ''}" style="left:${escHtml(colX)}px;width:${escHtml(sCardW)}px">${escHtml(rd.label)}</div>`;
-        }
-
-        // Chemins SVG
-        const svgPaths = connectors
-          .map(c => {
-            const xMid = Math.round((c.x1 + c.x2) / 2);
-            return `<path d="M${escHtml(c.x1)},${escHtml(c.y1)} L${escHtml(xMid)},${escHtml(c.y1)} L${escHtml(xMid)},${escHtml(c.y2)} L${escHtml(c.x2)},${escHtml(c.y2)}" />`;
-          })
-          .join('');
-
-        // Chercher le vainqueur final
-        const finaleRound = orderedRounds.find(r => r.round === 2);
-        const finaleMatch = finaleRound?.matches?.[0];
-        let winnerBanner = '';
-        if (finaleMatch?.winnerId && (finaleMatch.fencerA || finaleMatch.fencerB)) {
-          const winner =
-            finaleMatch.winnerId === finaleMatch.fencerA?.id
-              ? finaleMatch.fencerA
-              : finaleMatch.fencerB;
-          if (winner) {
-            winnerBanner = `<div class="bracket-trophy-banner">🏆 ${escHtml(winner.lastName + ' ' + (winner.firstName || ''))}</div>`;
-          }
-        }
-
-        renderFinalRanking();
-        container.style.width = totalW + 'px';
-        container.style.minWidth = '';
-        container.innerHTML = `
-          <div class="bracket-round-labels" style="width:${escHtml(totalW)}px;position:relative;height:${escHtml(labelH)}px;flex-shrink:0;margin-bottom:6px">
-            ${labelsHtml}
-          </div>
-          <div class="bracket-matches-layer" style="position:relative;width:${escHtml(totalW)}px;height:${escHtml(totalH)}px">
-            ${cardsHtml}
-            <svg class="bracket-svg" width="${escHtml(totalW)}" height="${escHtml(totalH)}"
-                 style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none">
-              <g stroke="rgba(100,116,139,0.45)" stroke-width="1.5" fill="none">${/* html */ svgPaths}</g>
-            </svg>
-          </div>
-          ${/* html */ winnerBanner}`;
-
-        // Mode ciné : mémoriser la géométrie et lancer le pan-zoom auto.
-        const outer = document.getElementById('bracket-outer');
-        if (cinema) {
-          cinemaState.layout = {
-            orderedRounds,
-            colX: orderedRounds.map((rd, ci) => ci * (sCardW + sColGap) + sColGap / 2),
-            cardW: sCardW,
-            cardH: sCardH,
-            totalW,
-            totalH,
-            matchTop: labelH + 6, // décalage de la couche matchs sous les labels
-            innerH: labelH + 6 + totalH,
-            yCenter,
-            currentRound: data.currentRound,
-          };
-          outer.classList.add('cinema');
-          startCinemaMode();
-        } else {
-          outer.classList.remove('cinema');
-          stopCinemaMode();
-        }
-      }
-
-      // ─── Logo organisateur ───────────────────────────────────────────────────
-      function applyLogo(logo) {
-        const el = document.getElementById('org-logo');
-        if (!el) return;
-        if (logo) {
-          el.src = logo;
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-          el.src = '';
-        }
-      }
-
-      async function fetchLogo() {
-        try {
-          const res = await fetch('/api/logo');
-          if (res.ok) {
-            const { logo } = await res.json();
-            applyLogo(logo || null);
-          }
-        } catch {
-          /* logo optionnel */
-        }
-      }
-
-      // ─── Helpers ─────────────────────────────────────────────────────────────
-      // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
-      function tk(key, params) {
-        return window.T ? window.T(key, params) : key;
-      }
-
-      // ─── Init ─────────────────────────────────────────────────────────────────
-      window.addEventListener('DOMContentLoaded', async () => {
-        await window.initRemoteI18n();
-
-        const savedSec = loadLocalRotation();
-        state.rotationMs = savedSec * 1000;
-        document.getElementById('rotation-input').value = savedSec;
-
-        applyTableauMode(loadLocalTableauMode());
-
-        // Plus de polling (#1152) : chargement initial, puis événements Socket.IO
-        // (kiosk:data, bracket:update, logo:update) et resynchronisation à la (re)connexion.
-        resyncAll();
-        startRotation();
-
-        // Identifiant persistant de cet écran (survit aux rechargements)
-        let _screenId = localStorage.getItem('bp_screen_id');
-        if (!_screenId) {
-          _screenId = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-          localStorage.setItem('bp_screen_id', _screenId);
-        }
-
-        function _showIdentifyOverlay(label, durationMs) {
-          let ov = document.getElementById('bp-identify-overlay');
-          if (!ov) {
-            ov = document.createElement('div');
-            ov.id = 'bp-identify-overlay';
-            ov.style.cssText = [
-              'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;',
-              'align-items:center;justify-content:center;pointer-events:none;',
-              'animation:bp-identify-blink 0.5s ease-in-out infinite alternate;',
-            ].join('');
-            const style = document.createElement('style');
-            style.textContent =
-              '@keyframes bp-identify-blink{from{background:rgba(59,130,246,0.55)}to{background:rgba(139,92,246,0.65)}}';
-            document.head.appendChild(style);
-            document.body.appendChild(ov);
-          }
-          ov.innerHTML =
-            '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-            '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' +
-            escHtml(label) +
-            '</div>' +
-            '<div style="font-size:1rem;color:#94a3b8;">' +
-            escHtml(tk('kiosk.identify')) +
-            '</div>' +
-            '</div>';
-          ov.style.display = 'flex';
-          clearTimeout(ov._t);
-          ov._t = setTimeout(() => {
-            ov.style.display = 'none';
-          }, durationMs ?? 5000);
-        }
-
-        // Socket.IO : mise à jour temps réel du bracket
-        try {
-          const socket = io({
-            reconnection: true,
-            reconnectionDelay: 200,
-            reconnectionDelayMax: 5000,
-            randomizationFactor: 0.5,
-          });
-          socket.on('bracket:update', fetchBracket);
-          socket.on('kiosk:data', scheduleRefresh);
-          socket.on('logo:update', d => applyLogo((d && d.logo) || null));
-          let _connectedOnce = false;
-          socket.on('connect', () => {
-            socket.emit('client:register', {
-              clientType: 'kiosk',
-              userAgent: navigator.userAgent,
-              screenId: _screenId,
-            });
-            // Reconnexion (coupure Wi-Fi, redémarrage serveur) : on a pu rater des événements
-            if (_connectedOnce) resyncAll();
-            _connectedOnce = true;
-          });
-          document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) resyncAll();
-          });
-          window.addEventListener('online', resyncAll);
-          socket.on('server:command', cmd => {
-            if (cmd.type === 'refresh') {
-              location.reload();
-              return;
-            }
-            if (cmd.type === 'navigate' && cmd.url) {
-              location.href = cmd.url;
-              return;
-            }
-            if (cmd.type === 'ping') {
-              socket.emit('client:pong');
-              return;
-            }
-            if (cmd.type === 'identify') {
-              const lbl = cmd.screenLabel || localStorage.getItem('bp_screen_label') || _screenId;
-              if (cmd.screenLabel) localStorage.setItem('bp_screen_label', cmd.screenLabel);
-              _showIdentifyOverlay(lbl, cmd.duration ?? 5000);
-              return;
-            }
-            if (cmd.type === 'kiosk:theme' && cmd.variables) {
-              const root = document.documentElement;
-              const preset = cmd.variables['--k-preset'];
-              if (preset !== undefined) {
-                // Thème prédéfini (néon / clair / défaut) : remplace les variables personnalisées
-                Array.from(root.style)
-                  .filter(p => p.startsWith('--k-'))
-                  .forEach(p => root.style.removeProperty(p));
-                if (preset === 'neon' || preset === 'light')
-                  root.setAttribute('data-k-theme', preset);
-                else root.removeAttribute('data-k-theme');
-              }
-              Object.entries(cmd.variables).forEach(([k, v]) => {
-                if (k !== '--k-preset') root.style.setProperty(k, String(v));
-              });
-              return;
-            }
-            if (cmd.type === 'kiosk:config' && cmd.kioskConfig) {
-              const cfg = cmd.kioskConfig;
-              if (cfg.rotationSec != null)
-                localStorage.setItem('kioskRotationSec', String(Math.max(3, cfg.rotationSec)));
-              const viewKeys = ['poules', 'classement', 'final', 'direct', 'suivants', 'tableau'];
-              const cur = JSON.parse(localStorage.getItem('kioskViewsLocal') || '{}');
-              viewKeys.forEach(k => {
-                if (k in cfg) cur[k] = cfg[k];
-              });
-              if ('eta' in cfg) localStorage.setItem('kioskShowEta', cfg.eta === false ? '0' : '1');
-              localStorage.setItem('kioskViewsLocal', JSON.stringify(cur));
-              // Recharger pour appliquer la nouvelle config
-              location.reload();
-              return;
-            }
-            if (cmd.type === 'message' && cmd.text) {
-              let b = document.getElementById('remote-msg-banner');
-              if (!b) {
-                b = document.createElement('div');
-                b.id = 'remote-msg-banner';
-                b.style.cssText =
-                  'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:#fff;font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
-                document.body.appendChild(b);
-              }
-              b.textContent = cmd.text;
-              b.style.opacity = '1';
-              clearTimeout(b._t);
-              b._t = setTimeout(() => {
-                b.style.opacity = '0';
-              }, cmd.duration ?? 5000);
-            }
-          });
-          setInterval(() => {
-            if (socket.connected) socket.emit('client:pong');
-          }, 30000);
-        } catch {
-          /* Socket.IO optionnel */
-        }
-
-        // Plein écran automatique au premier clic seulement
-        let _fsRequested = false;
-        document.addEventListener(
-          'click',
-          () => {
-            if (!_fsRequested && !document.fullscreenElement) {
-              _fsRequested = true;
-              document.documentElement.requestFullscreen().catch(() => {});
-            }
-          },
-          { capture: true }
-        );
-      });
-    </script>
+    <script src="/js/kioskApp.js"></script>
     <script src="/js/kioskEta.js"></script>
   </body>
 </html>

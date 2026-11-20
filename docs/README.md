@@ -15,9 +15,13 @@
 | [../FILE_FORMATS.md](../FILE_FORMATS.md) | Formats d'import/export (FFF, XML, CSV, ...) |
 | **[PROCEDURE_SABRE_LASER.md](PROCEDURE_SABRE_LASER.md)** | **Procédure de bout en bout d'une compétition Sabre Laser individuelle** |
 | [TEAM_COMPETITIONS.md](TEAM_COMPETITIONS.md) | Compétitions par équipes (relais FIE, format arène Sabre Laser) |
+| [JOURNEE_MULTI_EPREUVES.md](JOURNEE_MULTI_EPREUVES.md) | Journée multi-épreuves : arbitres partagés entre épreuves d'une même salle |
+| [MODE_CLUB.md](MODE_CLUB.md) | Mode Club : membres, catégories d'âge, séances (récurrentes), pointage, cartes, saisie distante, statistiques |
 | [GUIDE_PHOTOS.md](GUIDE_PHOTOS.md) | Photos des tireurs |
+| **[RGPD.md](RGPD.md)** | **Données personnelles : droits des personnes, conservation, noms sur le réseau, .bpm chiffrés, modèle de mention** |
 | [USER_GUIDE_PDF_EXPORT.md](USER_GUIDE_PDF_EXPORT.md) | Exports PDF |
 | [../UPDATE_SYSTEM.md](../UPDATE_SYSTEM.md) | Mises à jour automatiques |
+| [COMMANDES.md](COMMANDES.md) | Palette Ctrl+K : commandes `/update`, `/remote start`, `/phase`… |
 | [../TROUBLESHOOTING.md](../TROUBLESHOOTING.md) | Dépannage |
 
 ## Saisie distante et arbitrage

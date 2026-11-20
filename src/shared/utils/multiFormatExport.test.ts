@@ -6,7 +6,14 @@ import {
   describeMatchEvent,
   exportMatchTimelineJSON,
   exportResultsHTML,
+  exportTeamResultsXMLFFE,
+  sportSeason,
 } from './multiFormatExport';
+import {
+  buildFederalImport,
+  resolveFederalFencers,
+  resolveFederalTeams,
+} from './fileParser/federalImport';
 import {
   Competition,
   Fencer,
@@ -208,11 +215,11 @@ describe('exportResultsXMLFFE', () => {
     expect(xml).toContain('</CompetitionIndividuelle>');
   });
 
-  it('uses CompetitionParEquipe root tag for team events', () => {
+  it('uses CompetitionParEquipes root tag for team events (#1949)', () => {
     const comp = makeCompetition({ isTeamEvent: true });
     const xml = exportResultsXMLFFE(comp, [], []);
-    expect(xml).toContain('<CompetitionParEquipe');
-    expect(xml).toContain('</CompetitionParEquipe>');
+    expect(xml).toContain('<CompetitionParEquipes ');
+    expect(xml).toContain('</CompetitionParEquipes>');
   });
 
   it('includes pool phase when pools provided', () => {
@@ -286,6 +293,51 @@ describe('exportResultsXMLFFE', () => {
     expect(xml).toContain('<Tableau ID="A2"');
     expect(xml).toContain('REF="1" Score="15" Statut="V"');
     expect(xml).toContain('REF="2" Score="10" Statut="D"');
+  });
+
+  it('publie les arbitres des poules et du tableau (#1328)', () => {
+    const referee = (id: string, ref: number) =>
+      ({ id, ref, lastName: `A${ref}`, firstName: 'X', gender: 'M', nationality: 'FRA' }) as never;
+    const f1 = makeFencer('f1', 1, { ref: 1 });
+    const f2 = makeFencer('f2', 2, { ref: 2 });
+    const pool = {
+      id: 'p1',
+      number: 1,
+      strip: 3,
+      fencers: [f1, f2],
+      matches: [],
+      referees: [{ id: 'r1' }],
+      ranking: [],
+    } as unknown as Pool;
+    const tableauMatches = [
+      {
+        round: 2,
+        fencerA: { ref: 1 },
+        fencerB: { ref: 2 },
+        scoreA: 15,
+        scoreB: 10,
+        isBye: false,
+        arena: 2,
+        referee: { id: 'r2' },
+        referees: [{ id: 'r2' }, { id: 'r1' }],
+      },
+    ];
+    const xml = exportResultsXMLFFE(
+      makeCompetition(),
+      [],
+      [],
+      [pool],
+      tableauMatches,
+      [],
+      [referee('r1', 7), referee('r2', 8)]
+    );
+    expect(xml).toContain('<Arbitre ID="7"');
+    expect(xml).toContain('<Poule ID="1" Piste="3">');
+    expect(xml).toContain('    <Arbitre REF="7" Role="P"/>');
+    expect(xml).toContain('<Match ID="1" Piste="2">');
+    expect(xml.split('<Arbitre REF="8"')).toHaveLength(2); // r2 dédoublonné (Role="P")
+    expect(xml).toContain('      <Arbitre REF="8" Role="P"/>');
+    expect(xml).toContain('      <Arbitre REF="7" Role="A"/>\n     </Match>');
   });
 
   it('maps ABANDONED to A', () => {
@@ -561,5 +613,172 @@ describe('exportResultsHTML', () => {
     const f = makeFencer('f1', 1, { lastName: 'Bernard' });
     const html = exportResultsHTML(makeCompetition(), [makeRanking(f)], []);
     expect(html).toContain('Bernard');
+  });
+});
+
+// ============================================================================
+// Résultats pour la fédération (#1949) — données fictives
+// ============================================================================
+
+const FEDERAL_XML =
+  '<?xml version="1.0" encoding="ISO-8859-1"?>\n<!DOCTYPE BaseCompetitionIndividuelle>\n' +
+  '<BaseCompetitionIndividuelle Type="I" DateFichierXML="01.06.2027 10:00" DateFin="20.06.2027"' +
+  ' DateDebut="20.06.2027" Date="20.06.2027" Annee="2026 - 2027" TitreLong="Nationale exemple"' +
+  ' Categorie="SENIOR" Federation="FFE" Domaine="*" Sexe="M" Arme="F" ID="654321" Championnat="FFE"' +
+  ' Appel="8:30">' +
+  '<Tireurs>' +
+  '<Tireur Sexe="M" Classement="1055" Club="CLUB EXEMPLE" ID="012345" Licence="012345" Nation="FRA"' +
+  ' DateNaissance="01.01.2000" Prenom="Hugo" Nom="DURAND" Ligue="EXEMPLE" Equipe="CLUB EXEMPLE 1"/>' +
+  '<Tireur Sexe="M" Classement="1084" Club="CLUB EXEMPLE" ID="900102" Licence="900102" Nation="FRA"' +
+  ' DateNaissance="02.02.2001" Prenom="Noé" Nom="LEROY" Ligue="EXEMPLE" Equipe="CLUB EXEMPLE 1"/>' +
+  '</Tireurs></BaseCompetitionIndividuelle>';
+
+const federalCompetition = (overrides: Partial<Competition> = {}) => {
+  const imp = buildFederalImport([{ name: 'EngardeFHSENIOR.xml', content: FEDERAL_XML }]);
+  const header = imp.header!;
+  const fencers = resolveFederalFencers(imp, 'xml').map((f, i) =>
+    makeFencer(`f${i + 1}`, i + 1, f as Partial<Fencer>)
+  );
+  const competition = makeCompetition({
+    title: 'CDF Fleuret Homme N2',
+    date: new Date('2027-06-20'),
+    weapon: Weapon.FOIL,
+    category: Category.SENIOR,
+    settings: {
+      federal: header.federal,
+      schedule: { checkIn: header.fields.checkInTime },
+    } as Competition['settings'],
+    ...overrides,
+  });
+  return { imp, competition, fencers };
+};
+
+describe('export pour la fédération (#1949)', () => {
+  it('calcule la saison sportive septembre → août', () => {
+    expect(sportSeason(new Date('2026-09-01'))).toBe('2026 - 2027');
+    expect(sportSeason(new Date('2027-06-20'))).toBe('2026 - 2027');
+    expect(sportSeason(undefined)).toBe('');
+  });
+
+  it('sans données fédérales : ID vide (jamais l’identifiant interne), saison calculée', () => {
+    const xml = exportResultsXMLFFE(makeCompetition({ id: 'interne-uuid' }), [], []);
+    expect(xml).toContain(' ID=""');
+    expect(xml).not.toContain('interne-uuid');
+    expect(xml).toContain('Annee="2025 - 2026"');
+    expect(xml).not.toContain('Domaine=');
+  });
+
+  it('aller-retour import → export : ID, saison, domaine et valeurs brutes restitués', () => {
+    const { competition, fencers } = federalCompetition();
+    const ranking = fencers.map((f, i) => makeRanking(f, { rank: i + 1 }));
+    const xml = exportResultsXMLFFE(
+      competition,
+      ranking,
+      fencers.map((fencer, i) => ({ rank: i + 1, fencer }))
+    );
+    expect(xml).toContain('ID="654321"');
+    expect(xml).toContain('Annee="2026 - 2027"');
+    expect(xml).toContain('Championnat="FFE"');
+    expect(xml).toContain('Federation="FFE"');
+    expect(xml).toContain('Domaine="*"');
+    expect(xml).toContain('Categorie="SENIOR"');
+    expect(xml).toContain('Date="20.06.2027"');
+    expect(xml).toContain('Arme="F"');
+    expect(xml).toContain('Sexe="M"');
+    expect(xml).toContain('Appel="08:30"');
+    expect(xml).toContain('TitreLong="CDF Fleuret Homme N2"');
+    // Licence à zéros initiaux, Classement = rang final (et non le classement national)
+    expect(xml).toMatch(
+      /<Tireur ID="1" Classement="1" Nom="DURAND"[^>]*LicenceNat="012345" IdOrigine="012345"/
+    );
+    expect(xml).not.toContain('Classement="1055"');
+  });
+
+  it('équipes : racine CompetitionParEquipes, nom fédéral, tireurs imbriqués, classement', () => {
+    const { imp, competition, fencers } = federalCompetition({ isTeamEvent: true });
+    const teams = resolveFederalTeams(imp.teams, resolveFederalFencers(imp, 'xml'));
+    expect(teams.map(t => t.name)).toEqual(['CLUB EXEMPLE 1']);
+    const xml = exportTeamResultsXMLFFE(
+      competition,
+      [{ rank: 1, name: teams[0].name, club: 'CLUB EXEMPLE', fencers }],
+      [{ id: 'r1', ref: 7, lastName: 'MARTIN', firstName: 'Paul', club: 'CLUB EXEMPLE' } as never]
+    );
+    expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<CompetitionParEquipes ')).toBe(
+      true
+    );
+    expect(xml).toContain('ID="654321"');
+    expect(xml).toContain('Annee="2026 - 2027"');
+    expect(xml).toMatch(/<Equipe ID="1" Nom="CLUB EXEMPLE 1"[^>]* Classement="1">/);
+    expect(xml).toMatch(
+      /<Tireur ID="1" Nom="DURAND"[^>]*LicenceNat="012345" IdOrigine="012345"\/>/
+    );
+    expect(xml).toContain('Prenom="Noé"');
+    expect(xml).toContain('<Arbitre ID="7" Nom="MARTIN"');
+    expect(xml.trimEnd().endsWith('</CompetitionParEquipes>')).toBe(true);
+  });
+});
+
+// ============================================================================
+// exportResultsXMLFFE — conformité FIE 3.3 (#1957, partie 1)
+// ============================================================================
+
+describe('exportResultsXMLFFE — FIE 3.3 (#1957)', () => {
+  it('porte Version="3.3" à la racine', () => {
+    const xml = exportResultsXMLFFE(makeCompetition(), [], []);
+    expect(xml).toMatch(/<CompetitionIndividuelle Version="3\.3"/);
+  });
+
+  it('exporte la latéralité G pour un gaucher, D sinon', () => {
+    const gauche = makeFencer('f1', 1, { handedness: 'L' });
+    const droit = makeFencer('f2', 2);
+    const xml = exportResultsXMLFFE(
+      makeCompetition(),
+      [makeRanking(gauche), makeRanking(droit)],
+      []
+    );
+    expect(xml).toContain('Lateralite="G"');
+    expect(xml).toContain('Lateralite="D"');
+    expect(xml).not.toContain('Lateralite=""');
+  });
+
+  it('exporte le score cible réel du tableau (maxScore), 15 par défaut', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const dix = [
+      { round: 2, fencerA: f1, fencerB: f2, scoreA: 10, scoreB: 5, isBye: false, maxScore: 10 },
+    ];
+    expect(exportResultsXMLFFE(makeCompetition(), [], [], undefined, dix)).toContain(
+      '<PhaseDeTableaux PhaseID="3" ScoreMax="10">'
+    );
+    const quinze = [{ round: 2, fencerA: f1, fencerB: f2, scoreA: 15, scoreB: 5, isBye: false }];
+    expect(exportResultsXMLFFE(makeCompetition(), [], [], undefined, quinze)).toContain(
+      '<PhaseDeTableaux PhaseID="3" ScoreMax="15">'
+    );
+  });
+
+  it('un exempt produit deux <Tireur>, le second vide', () => {
+    const tableauMatches = [
+      { round: 4, fencerA: { ref: 1 }, fencerB: null, scoreA: null, scoreB: null, isBye: true },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Tireur REF="1" Score="0" Statut="Q"/>\n      <Tireur/>');
+  });
+
+  it('ajoute Date et Heure au match à partir de startTime', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const tableauMatches = [
+      {
+        round: 2,
+        fencerA: f1,
+        fencerB: f2,
+        scoreA: 15,
+        scoreB: 10,
+        isBye: false,
+        startTime: new Date(2026, 2, 15, 9, 5),
+      },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Match ID="1" Date="15.03.2026" Heure="09:05">');
   });
 });

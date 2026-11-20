@@ -213,3 +213,48 @@ describe('handleBlackCardCancelled', () => {
     expect(row?.victories).toBe(1);
   });
 });
+
+describe('updateMatchFromRemote', () => {
+  const generated = () => {
+    const r = setup();
+    act(() => {
+      r.current.generatePools(Array.from({ length: 5 }, (_, i) => fencer(i + 1)));
+    });
+    return r;
+  };
+
+  it('vainqueur transmis par le serveur prioritaire, même si le perdant mène (abandon, #1720)', () => {
+    const r = generated();
+    const id = r.current.pools[0].matches[0].id;
+    act(() => r.current.updateMatchFromRemote(id, 4, 1, MatchStatus.FINISHED, 'B'));
+    const m = r.current.pools[0].matches.find(x => x.id === id)!;
+    expect(m.scoreA).toMatchObject({ value: 4, isVictory: false });
+    expect(m.scoreB).toMatchObject({ value: 1, isVictory: true });
+  });
+
+  it('abandon signalé par l’appareil : marque du perdant conservée (#1829)', () => {
+    const r = generated();
+    const id = r.current.pools[0].matches[0].id;
+    act(() => r.current.updateMatchFromRemote(id, 4, 1, MatchStatus.FINISHED, 'B', 'abandon'));
+    const m = r.current.pools[0].matches.find(x => x.id === id)!;
+    expect(m.scoreA).toMatchObject({ isAbstention: true, isExclusion: false, isVictory: false });
+    expect(m.scoreB).toMatchObject({ isAbstention: false, isVictory: true });
+  });
+
+  it('exclusion signalée par l’appareil : marque du perdant, pas celle du vainqueur (#1829)', () => {
+    const r = generated();
+    const id = r.current.pools[0].matches[0].id;
+    act(() => r.current.updateMatchFromRemote(id, 1, 4, MatchStatus.FINISHED, 'B', 'exclusion'));
+    const m = r.current.pools[0].matches.find(x => x.id === id)!;
+    expect(m.scoreA).toMatchObject({ isExclusion: true, isVictory: false });
+    expect(m.scoreB).toMatchObject({ isExclusion: false, isAbstention: false, isVictory: true });
+  });
+
+  it('sans vainqueur transmis : vainqueur au score', () => {
+    const r = generated();
+    const id = r.current.pools[0].matches[0].id;
+    act(() => r.current.updateMatchFromRemote(id, 2, 5, MatchStatus.FINISHED));
+    const m = r.current.pools[0].matches.find(x => x.id === id)!;
+    expect(m.scoreB).toMatchObject({ value: 5, isVictory: true });
+  });
+});

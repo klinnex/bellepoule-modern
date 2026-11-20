@@ -7,7 +7,21 @@ import {
   resolveFencerFileFormat,
 } from './fileParser';
 import { exportFencersToFFF } from './fencerExport';
-import { Gender, FencerStatus, Fencer } from '../types';
+
+import { Category, Competition, Fencer, FencerStatus, Gender, Weapon } from '../types';
+
+const TEST_COMP = {
+  id: 'c1',
+  title: 'Coupe de Dourdan 2026',
+  shortTitle: 'Dourdan 2026',
+  organizer: "CERCLE D'ESCRIME DE DOURDAN",
+  date: new Date('2026-06-07'),
+  weapon: Weapon.SABRE,
+  gender: Gender.MALE,
+  category: Category.SENIOR,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+} as unknown as Competition;
 
 // ============================================================================
 // parseSimpleTXTFile
@@ -310,13 +324,13 @@ describe('issue #906 — import .fff', () => {
     }) as Fencer;
 
   it('aller-retour avec seulement nom/prénom', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean'), mk('Martin', 'Paul')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Dupont', 'Jean'), mk('Martin', 'Paul')]);
     const result = parseFFEFile(out);
     expect(result.fencers.map(f => f.lastName)).toEqual(['DUPONT', 'MARTIN']);
   });
 
   it('nom contenant « nom » / « x » (pas pris pour un en-tête)', () => {
-    const out = exportFencersToFFF([mk('Nomade', 'Alexandre')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Nomade', 'Alexandre')]);
     const result = parseFFEFile(out);
     expect(result.fencers).toHaveLength(1);
     expect(result.fencers[0].lastName).toBe('NOMADE');
@@ -330,12 +344,28 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('club contenant une virgule : champs non décalés', () => {
-    const out = exportFencersToFFF([
+    const out = exportFencersToFFF(TEST_COMP, [
       mk('Dupont', 'Jean', { club: 'Cercle, Paris', license: '42' }),
     ]);
     const f = parseFFEFile(out).fencers[0];
     expect(f.club).toBe('Cercle Paris');
     expect(f.license).toBe('42');
+  });
+
+  it('département : aller-retour export/import FFF (#1504)', () => {
+    const out = exportFencersToFFF(TEST_COMP, [
+      mk('Dupont', 'Jean', { region: 'IDF', department: '75' }),
+    ]);
+    const f = parseFFEFile(out).fencers[0];
+    expect(f.department).toBe('75');
+    expect(f.region).toBe('IDF');
+  });
+
+  it('département : lu après le classement, nationalité non confondue (#1504)', () => {
+    const f = parseFFEFile('DUPONT,Jean,01/01/2000,M,FRA;,,;1,IDF,CE X,3,2a,;1,t').fencers[0];
+    expect(f.department).toBe('2A');
+    const g = parseFFEFile('DUPONT,Jean,01/01/2000,M,FRA;,,;1,IDF,CE X,3,FRA,;1,t').fencers[0];
+    expect(g.department).toBeUndefined();
   });
 
   it('fichier FFE réel (Windows-1252, lignes de métadonnées)', () => {
@@ -355,7 +385,7 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('.fff ouvert via « Importer XML » → parseur FFE', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean')]);
+    const out = exportFencersToFFF(TEST_COMP, [mk('Dupont', 'Jean')]);
     expect(resolveFencerFileFormat('xml', out)).toBe('fff');
     expect(resolveFencerFileFormat('txt', out)).toBe('fff');
     expect(resolveFencerFileFormat('fff', '<Competition/>')).toBe('xml');
@@ -391,5 +421,47 @@ describe('issue #906 — lignes .fff avec champs omis', () => {
       club: 'CE Paris',
       ranking: 5,
     });
+  });
+});
+
+describe('parseXMLFile — #1504 (arbitres, département, latéralité)', () => {
+  const xml = [
+    '<CompetitionIndividuelle><Tireurs>',
+    '<Tireur ID="1" Nom="DUPONT" Prenom="Jean" Sexe="M" Departement="095" Lateralite="G"/>',
+    '<Tireur ID="2" Nom="MARTIN" Prenom="Alice" Sexe="F" Departement="5"/>',
+    '</Tireurs><Arbitres>',
+    '<Arbitre ID="1" Nom="durand" Prenom="Paul" Sexe="M" Club="CE PARIS" Categorie="National"/>',
+    '<Arbitre ID="2" Nom="LEROY" Prenom="Eve" Sexe="F" Nation="BEL"/>',
+    '</Arbitres><Phases><Poule><Arbitre REF="1"/><Tireur REF="1"/></Poule></Phases>',
+    '</CompetitionIndividuelle>',
+  ].join('');
+
+  it('normalise le département 095 → 95 et 5 → 05', () => {
+    const r = parseXMLFile(xml);
+    expect(r.fencers.map(f => f.department)).toEqual(['95', '05']);
+  });
+
+  it('lit la latéralité', () => {
+    const r = parseXMLFile(xml);
+    expect(r.fencers[0].handedness).toBe('L');
+    expect(r.fencers[1].handedness).toBeUndefined();
+  });
+
+  it('lit les arbitres du bloc <Arbitres> (références de poule ignorées)', () => {
+    const r = parseXMLFile(xml);
+    expect(r.referees).toHaveLength(2);
+    expect(r.referees![0]).toMatchObject({
+      lastName: 'DURAND',
+      firstName: 'Paul',
+      club: 'CE PARIS',
+      category: 'National',
+      nationality: 'FRA',
+    });
+    expect(r.referees![1].nationality).toBe('BEL');
+  });
+
+  it('pas de bloc <Arbitres> → referees absent', () => {
+    const r = parseXMLFile('<Tireur Nom="A" Prenom="B" Sexe="M"/>');
+    expect(r.referees).toBeUndefined();
   });
 });

@@ -45,6 +45,20 @@ describe('pendingUpdate', () => {
     expect(readPendingUpdate(userData)).toBeNull();
   });
 
+  it('accepte un fichier dans le répertoire de téléchargement choisi (et lui seul)', () => {
+    const custom = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-pu-dl-'));
+    try {
+      const p = path.join(custom, 'setup.exe');
+      fs.writeFileSync(p, 'x', { mode: 0o600 });
+      writePendingUpdate(userData, { version: '1', path: p, sha256: 'a', downloadedAt: 'n' });
+      expect(readPendingUpdate(userData)).toBeNull();
+      expect(readPendingUpdate(userData, custom)?.path).toBe(p);
+      expect(readPendingUpdate(userData, path.join(custom, 'autre'))).toBeNull();
+    } finally {
+      fs.rmSync(custom, { recursive: true, force: true });
+    }
+  });
+
   it('rejette un traversal de chemin', () => {
     const p = path.join(userData, 'pending-update', '..', 'evil.exe');
     expect(isInsideDir(path.join(userData, 'pending-update'), p)).toBe(false);

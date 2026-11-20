@@ -7,6 +7,8 @@
 import React from 'react';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { TableauMatch } from './tableauTypes';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface TableauPendingSectionProps {
   round: number;
@@ -33,23 +35,12 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
 
   return (
     <div className="is-9c78b6">
-      <div
-        onClick={() => onToggle(round)}
-        style={{
-          padding: '0.75rem 1rem',
-          background: 'var(--tableau-panel-header, var(--color-bg))',
-          cursor: 'pointer',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          userSelect: 'none',
-        }}
-      >
+      <div onClick={() => onToggle(round)} className="tableau-pending-section-1">
         <div className="u-row">
-          <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-          <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
-            {roundName}
+          <span className="tableau-pending-section-2">
+            <Icon icon={isExpanded ? ChevronDown : ChevronRight} />
           </span>
+          <span className="tableau-pending-section-3">{roundName}</span>
         </div>
         <span className="u-hint">
           {translateStatic(`pendingSection.matches_${roundMatches.length > 1 ? 'other' : 'one'}`, {
@@ -58,7 +49,7 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
         </span>
       </div>
       {isExpanded && (
-        <div style={{ padding: '0.5rem' }}>
+        <div className="tableau-pending-section-4">
           {roundMatches.map(match => (
             <div key={match.id} className="mb-2">
               {renderMatch(match)}

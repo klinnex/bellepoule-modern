@@ -6,21 +6,23 @@
 export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau' | 'edit';
 
 /** Phase de navigation à mettre en évidence pour chaque étape */
-export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
+export const TOUR_STEP_PHASE: Record<TourStepId, string | null> = {
   fencers: 'checkin',
   checkin: 'checkin',
-  pools: 'checkin',
+  // Étape 4 : le bouton « Générer les poules » pulse déjà, l'onglet Appel n'a plus à pulser (#1305)
+  pools: null,
   remote: 'remote',
   scores: 'pools',
   tableau: 'tableau',
   edit: 'tableau',
 };
 
+/** La saisie distante (optionnelle) vient en premier */
 export const TOUR_STEPS: TourStepId[] = [
+  'remote',
   'fencers',
   'checkin',
   'pools',
-  'remote',
   'scores',
   'tableau',
   'edit',
@@ -35,6 +37,8 @@ export interface TourState {
   fencersCount: number;
   checkedInCount: number;
   poolsCount: number;
+  /** Poules lancées (clic sur « Lancer les poules » dans la préparation) */
+  poolsLaunched: boolean;
   finishedPoolMatches: number;
   tableauMatchesCount: number;
   /** Matchs de tableau (hors exempts) dont le score est saisi */
@@ -51,10 +55,11 @@ export function tourStepDone(step: TourStepId, s: TourState): boolean {
     case 'checkin':
       return s.checkedInCount > 0;
     case 'pools':
-      return s.poolsCount > 0;
+      // Validée au clic sur « Lancer les poules » (ou si la suite est déjà engagée)
+      return s.poolsLaunched || s.finishedPoolMatches > 0 || s.tableauMatchesCount > 0;
     case 'remote':
-      // Facultative : validée aussi si les scores sont saisis directement sur ce poste
-      return s.remoteActive || s.finishedPoolMatches > 0;
+      // Optionnelle : validée aussi dès que des tireurs existent (étape passée) ou des scores saisis
+      return s.remoteActive || s.fencersCount > 0 || s.finishedPoolMatches > 0;
     case 'scores':
       return s.finishedPoolMatches > 0;
     case 'tableau':
@@ -88,7 +93,9 @@ export const TOUR_STEP_HALOS: Record<TourHaloKey, TourHalo[]> = {
     { selector: '[data-tour="check-in"]', first: true },
   ],
   pools: [{ selector: '[data-tour="generate-pools"]', green: true }],
-  remote: [],
+  // Bouton de démarrage de la saisie distante pulsé (#1305)
+  // Bouton « Saisie distante / Piste » de la barre de compétition + « Démarrer » (#1305)
+  remote: [{ selector: '[data-tour="open-remote"]' }, { selector: '[data-tour="start-remote"]' }],
   scores: [{ selector: '[data-tour="pool-cell"]', first: true }],
   tableau: [{ selector: '[data-tour="view-ranking"]' }, { selector: '[data-tour="go-tableau"]' }],
   edit: [

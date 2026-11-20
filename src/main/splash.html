@@ -286,6 +286,18 @@
     .confirm-btn:active { opacity: 0.75; }
     .confirm-btn:disabled { opacity: 0.5; cursor: default; }
 
+    .hide-next {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #6b7a9a;
+      cursor: pointer;
+    }
+
+    .hide-next input { accent-color: #3B5BDB; cursor: pointer; }
+
     .loading-phrase {
       margin-top: 12px;
       font-size: 11px;
@@ -460,7 +472,9 @@
         <option value="en">🇺🇸  English</option>
         <option value="de">🇩🇪  Deutsch</option>
         <option value="es">🇪🇸  Español</option>
+        <option value="pt">🇵🇹  Português</option>
         <option value="it">🇮🇹  Italiano</option>
+        <option value="ru">🇷🇺  Русский</option>
         <option value="zh-HK">🇭🇰  繁體中文</option>
         <option value="br">🏴  Brezhoneg</option>
         <option value="ca">🟡  Català</option>
@@ -470,6 +484,10 @@
     <button class="confirm-btn" id="confirm-btn" onclick="enterApp()">
       Entrer · Enter
     </button>
+    <label class="hide-next">
+      <input type="checkbox" id="hide-next">
+      <span id="hide-next-label">Ne plus afficher au démarrage</span>
+    </label>
     <div class="loading-phrase" id="loading-phrase"></div>
   </div>
 
@@ -483,7 +501,15 @@
       const norm = iconPath.replace(/\\/g, '/');
       iconPath = 'file://' + (norm.startsWith('/') ? '' : '/') + norm;
     }
-    if (iconEl && iconPath) iconEl.src = iconPath;
+    // Seul un fichier local est accepté (pas de javascript:, http:…) : CodeQL js/xss
+    let iconUrl = null;
+    try {
+      const u = iconPath ? new URL(iconPath) : null;
+      if (u && u.protocol === 'file:' && !u.host) iconUrl = u.href;
+    } catch {
+      /* chemin invalide : pas d'icône */
+    }
+    if (iconEl && iconUrl) iconEl.src = iconUrl;
 
     // Version + build + channel
     const version = params.get('version') || '?';
@@ -512,7 +538,9 @@
       en: ['On guard…', 'Ready…', 'Fence!'],
       de: ['Auf die Plätze…', 'Fertig…', 'Los!'],
       es: ['En guardia…', 'Listos…', '¡Ya!'],
+      pt: ['Em guarda…', 'Prontos…', 'Já!'],
       it: ['In guardia…', 'Pronti…', 'Via!'],
+      ru: ['На изготовку…', 'Готовы…', 'Бой!'],
       'zh-HK': ['準備…', '就緒…', '開始！'],
       br: ['War zouarn…', 'Prest…', 'Allez !'],
       ca: ['En guàrdia…', 'Llestos…', 'Toca!'],
@@ -523,7 +551,9 @@
       en: 'Fencing Tournament Management',
       de: 'Fechtturnier-Verwaltung',
       es: 'Gestión de Torneos de Esgrima',
+      pt: 'Gestão de Torneios de Esgrima',
       it: 'Gestione di Tornei di Scherma',
+      ru: 'Управление фехтовальными турнирами',
       'zh-HK': '擊劍賽事管理',
       br: 'Merañ Tournioù Klezeouriezh',
       ca: 'Gestió de Torneigs d\'Esgrima',
@@ -534,7 +564,9 @@
       en: 'Special thanks to',
       de: 'Besonderer Dank an',
       es: 'Agradecimiento especial a',
+      pt: 'Agradecimento especial a',
       it: 'Un ringraziamento speciale a',
+      ru: 'Особая благодарность',
       'zh-HK': '特別鳴謝',
       br: 'Trugarez ispisial da',
       ca: 'Agraïment especial a',
@@ -545,7 +577,9 @@
       en: 'Enter BellePoule',
       de: 'BellePoule öffnen',
       es: 'Entrar en BellePoule',
+      pt: 'Entrar no BellePoule',
       it: 'Entra in BellePoule',
+      ru: 'Войти в BellePoule',
       'zh-HK': '進入 BellePoule',
       br: 'Mont e BellePoule',
       ca: 'Entrar a BellePoule',
@@ -556,13 +590,30 @@
       en: 'Loading BellePoule',
       de: 'BellePoule wird geladen',
       es: 'Cargando BellePoule',
+      pt: 'A carregar o BellePoule',
       it: 'Caricamento di BellePoule',
+      ru: 'Загрузка BellePoule',
       'zh-HK': '正在載入 BellePoule',
       br: 'O kargañ BellePoule',
       ca: 'Carregant BellePoule',
     };
 
+    var HIDE_NEXT_LABELS = {
+      fr: 'Ne plus afficher au démarrage',
+      en: "Don't show at startup",
+      de: 'Beim Start nicht mehr anzeigen',
+      es: 'No mostrar al iniciar',
+      pt: 'Não mostrar ao iniciar',
+      it: "Non mostrare più all'avvio",
+      ru: 'Не показывать при запуске',
+      'zh-HK': '啟動時不再顯示',
+      br: "Chom hep diskouez pa loc'h",
+      ca: "No mostrar més en iniciar",
+    };
+
     function updateConfirmLabel(lang) {
+      var hide = document.getElementById('hide-next-label');
+      if (hide) hide.textContent = HIDE_NEXT_LABELS[lang] || HIDE_NEXT_LABELS['en'];
       var btn = document.getElementById('confirm-btn');
       if (btn && !btn.disabled) btn.textContent = CONFIRM_LABELS[lang] || CONFIRM_LABELS['en'];
       var sub = document.getElementById('subtitle');
@@ -590,7 +641,8 @@
         phrase.classList.add('active');
       }
       if (window.splashAPI) {
-        window.splashAPI.confirm(selectedLang);
+        var hideNext = document.getElementById('hide-next');
+        window.splashAPI.confirm(selectedLang, !!(hideNext && hideNext.checked));
       }
     }
 

@@ -1,0 +1,40 @@
+/* Styles extraits de ReportIssueModal.tsx (#1895) */
+.report-issue-modal-1.report-issue-modal-1.report-issue-modal-1 {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.report-issue-modal-2.report-issue-modal-2.report-issue-modal-2 {
+  resize: vertical;
+}
+
+.report-issue-modal-3.report-issue-modal-3.report-issue-modal-3 {
+  padding: 0.75rem;
+  background: var(--color-bg);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.report-issue-modal-4.report-issue-modal-4.report-issue-modal-4 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.report-issue-modal-5.report-issue-modal-5.report-issue-modal-5 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.report-issue-modal-6.report-issue-modal-6.report-issue-modal-6 {
+  font-family: monospace;
+}
+
+.report-issue-modal-7.report-issue-modal-7.report-issue-modal-7 {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.75rem;
+  text-align: center;
+}

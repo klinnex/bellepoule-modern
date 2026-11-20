@@ -7,7 +7,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 vi.mock('../../hooks/useTranslation', () => ({
   useTranslation: () => ({
@@ -15,6 +15,7 @@ vi.mock('../../hooks/useTranslation', () => ({
   }),
 }));
 import PoolScoreMatrix from './PoolScoreMatrix';
+import { setPoolNumbering } from '../../hooks/usePoolNumbering';
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
@@ -59,6 +60,13 @@ const pool = (m: Match): Pool => ({
   updatedAt: new Date(),
 });
 
+const renderProps = () => ({
+  isLaserSabre: false,
+  isVisible: (col: string) => col === 'victories',
+  toggleColumn: vi.fn(),
+  onCellClick: vi.fn(),
+});
+
 const renderMatrix = (m: Match, over: Partial<Record<string, any>> = {}) => {
   const props = {
     pool: pool(m),
@@ -84,9 +92,39 @@ describe('PoolScoreMatrix', () => {
     expect(screen.getByText('ranking.victories')).toBeInTheDocument();
   });
 
-  it('affiche le score V5 pour un match gagné', () => {
+  it('affiche V seul pour une victoire au score max (#1990)', () => {
     renderMatrix(match(MatchStatus.FINISHED, 5, 2));
-    expect(screen.getByText('V5')).toBeInTheDocument();
+    expect(screen.getByText('V')).toBeInTheDocument();
+    expect(screen.queryByText('V5')).toBeNull();
+  });
+
+  it('affiche V + score pour une victoire sous le score max', () => {
+    renderMatrix(match(MatchStatus.FINISHED, 4, 2));
+    expect(screen.getByText('V4')).toBeInTheDocument();
+  });
+
+  describe('abandon signalé par l appareil de piste (#2000)', () => {
+    const abandonMatch = (loser: Fencer): Match => ({
+      ...match(MatchStatus.FINISHED, 5, 2),
+      fencerB: loser,
+      scoreB: { value: 2, isVictory: false, isAbstention: true } as any,
+    });
+    const vCells = () =>
+      Array.from(document.querySelectorAll('.is-5c05f4')).map(e => e.textContent);
+
+    it('statut inchangé : combat compté comme victoire normale (V+1)', () => {
+      renderMatrix(abandonMatch({ ...f2, status: FencerStatus.CHECKED_IN }), {
+        isVisible: () => true,
+      });
+      expect(vCells()).toContain('1');
+    });
+
+    it('statut ABANDONED posé par le DT : combat annulé (V reste 0)', () => {
+      renderMatrix(abandonMatch({ ...f2, status: FencerStatus.ABANDONED }), {
+        isVisible: () => true,
+      });
+      expect(vCells()).not.toContain('1');
+    });
   });
 
   it('clic sur une cellule éditable déclenche onCellClick', () => {
@@ -108,8 +146,43 @@ describe('PoolScoreMatrix', () => {
 
   it('rapières : cases de la vague en cours surlignées en violet (#1118)', () => {
     renderMatrix(match(MatchStatus.NOT_STARTED), { waveHighlightPairs: new Set(['1|2']) });
-    expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toContain(
-      '#7c3aed'
+    // jsdom 31 sérialise les couleurs en rgb() : comparaison sur la forme normalisée
+    expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toMatch(
+      /#7c3aed|rgb\(124, 58, 237\)/i
     );
+  });
+
+  it('numérotage : bulles = placement dans la poule au lieu des initiales (#1864)', () => {
+    setPoolNumbering(false);
+    const { unmount } = render(
+      <PoolScoreMatrix
+        {...({ ...renderProps(), pool: pool(match(MatchStatus.NOT_STARTED)) } as any)}
+      />
+    );
+    expect(screen.getAllByText('FD')).toHaveLength(1);
+    unmount();
+    setPoolNumbering(true);
+    renderMatrix(match(MatchStatus.NOT_STARTED));
+    expect(screen.queryByText('FD')).toBeNull();
+    expect(screen.getAllByText('2').length).toBeGreaterThan(1); // en-tête + bulle
+    setPoolNumbering(false);
+  });
+
+  it('rapières : colonne « Cat. » en dernier, seulement avec categoryOf (#1864)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), {
+      isVisible: (col: string) => col === 'club' || col === 'category',
+    });
+    expect(screen.queryByText('poolMatrix.cat')).toBeNull();
+  });
+
+  it('rapières : colonne « Cat. » affiche la catégorie abrégée (#1864)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), {
+      isVisible: (col: string) => col === 'club' || col === 'category',
+      categoryOf: (f: Fencer) => (f.id === '1' ? 'V1' : 'Sen'),
+    });
+    const headers = Array.from(document.querySelectorAll('.pool-row-sticky .pool-cell'));
+    expect(headers[headers.length - 1].textContent).toBe('poolMatrix.cat');
+    expect(screen.getByText('V1')).toBeInTheDocument();
+    expect(screen.getByText('Sen')).toBeInTheDocument();
   });
 });

@@ -195,6 +195,7 @@ export interface Fencer extends BaseEntity {
   gender: Gender; // Sexe
   nationality: string; // Nation (code ISO)
   region?: string; // Région
+  department?: string; // Département (code : 01…95, 2A, 2B, 971…, #1504)
   club?: string; // Club
   license?: string; // Numéro de licence
   ranking?: number; // Classement
@@ -286,6 +287,8 @@ export interface Match extends BaseEntity {
   tableId?: string; // ID du tableau (si match de tableau)
   round?: number; // Tour du tableau (64, 32, 16, 8, 4, 2, 1)
   position?: number; // Position dans le tour
+  /** Dernière correction après tirage du tableau : motif inscrit au journal des scores (#1996) */
+  correction?: { reason: string; at: string };
 
   // Sabre Laser specific
   mode?: MatchMode;
@@ -361,10 +364,17 @@ export interface FencerCompetitionStats {
   touchesZoneB: number;
   touchesZoneC: number;
   totalTouchPoints: number;
+  // Touches reçues (portées par les adversaires), mêmes zones
+  receivedZoneA: number;
+  receivedZoneB: number;
+  receivedZoneC: number;
+  receivedTouchPoints: number;
   // Cartons
   whiteCards: number;
   yellowCards: number;
   redCards: number;
+  /** Cartons noirs (absent des anciennes versions) */
+  blackCards?: number;
   cardsByReason: Partial<Record<CardReason, number>>;
   // Sorties d'arène
   arenaExits: number;
@@ -373,6 +383,36 @@ export interface FencerCompetitionStats {
   totalDurationSeconds: number;
   averageDurationSeconds: number;
   matchesFinishedEarly: number; // durée < 180s (avant le temps réglementaire)
+}
+
+/** Événement des saisies distantes journalisé pour l'onglet Organisation (#1817) */
+export type RemoteEventType = 'dt_call' | 'disconnect' | 'offline_sync' | 'sync_error';
+
+export interface RemoteEvent {
+  id: string;
+  competitionId: string;
+  type: RemoteEventType;
+  arenaId: string | null;
+  matchId: string | null;
+  refereeId: string | null;
+  detail: string | null;
+  createdAt: string;
+}
+
+/** Horodatage d'un match (DB) pour les KPI d'organisation (#1817) */
+export interface MatchTiming {
+  matchId: string;
+  poolId: string | null;
+  tableId: string | null;
+  fencerAId: string | null;
+  fencerBId: string | null;
+  status: string;
+  strip: number | null;
+  refereeId: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  /** Secondes de combat (chrono) si remontées par la tablette, sinon début → fin */
+  duration: number | null;
 }
 
 // ============================================================================
@@ -563,6 +603,8 @@ export interface Competition extends BaseEntity {
 
   // Participants
   fencers: Fencer[]; // Liste des tireurs
+  /** Nombre de tireurs en base, fourni par la liste des compétitions (tireurs non chargés, #1994) */
+  fencerCount?: number;
   referees: Referee[]; // Liste des arbitres
 
   // Phases
@@ -597,6 +639,39 @@ export interface TrainingCustomRules {
   disableSuddenDeath: boolean;
 }
 
+/**
+ * Données fédérales lues dans le fichier de l'extranet (#1938) : valeurs brutes, à restituer
+ * telles quelles dans le fichier de résultats (ID et saison contrôlés par l'extranet).
+ */
+export interface FederalCompetitionInfo {
+  id?: string; // ID : numéro de l'épreuve sur l'extranet
+  season?: string; // Annee (ex. « 2026 - 2027 »)
+  championship?: string; // Championnat (FFE, FIE…)
+  federation?: string; // Federation
+  domain?: string; // Domaine : I international, N national, R régional, L ligue, C entre clubs
+  weapon?: string; // Arme (E/F/S)
+  gender?: string; // Sexe (M/F/X)
+  category?: string; // Categorie (SENIOR, M17, V2…)
+  date?: string; // Date (jj.mm.aaaa)
+  dateStart?: string; // DateDebut
+  dateEnd?: string; // DateFin
+  fileDate?: string; // DateFichierXML (date d'extraction)
+  type?: 'I' | 'E'; // Individuel / équipes
+  title?: string; // TitreLong
+  shortTitle?: string; // TitreCourt
+  location?: string; // Lieu
+  organizer?: string; // Organisateur
+  organizerUrl?: string; // URLorganisateur
+  unlocked?: boolean; // Champs fédéraux déverrouillés par l'utilisateur (risque de refus à l'extranet)
+}
+
+/** Horaires de la compétition (HH:MM) : appel, scratch, début (#1938) */
+export interface CompetitionSchedule {
+  checkIn?: string;
+  scratch?: string;
+  start?: string;
+}
+
 export interface CompetitionSettings {
   defaultPoolMaxScore: number; // Score max en poules (défaut: 5)
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)
@@ -622,10 +697,11 @@ export interface CompetitionSettings {
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
   blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
   trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
+  backupDir?: string; // Dossier dédié aux sauvegardes de cette compétition (absent = dossier global)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   specialMode?: CompetitionSpecialMode; // Mode spécial (arme CUSTOM) : tournoi des rapières (#1118)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
-  expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
+  expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres (actif par défaut)
   maxRefereesPerPool?: number; // Nombre max d'arbitres par poule (mode expert)
   maxRefereesPerMatch?: number; // Nombre max d'arbitres par match DE (mode expert)
   // Modes spéciaux post-poules
@@ -633,6 +709,10 @@ export interface CompetitionSettings {
   postPoolSplitCriteria?: PostPoolSplitCriteria; // Séparation en deux tableaux après les poules
   splitOffCompetitionIds?: Partial<Record<string, string>>; // Groupe (genre) → compétition séparée créée
   splitFromCompetitionId?: string; // Compétition d'origine (si créée par séparation)
+  federal?: FederalCompetitionInfo; // Données de l'extranet fédéral (#1938)
+  schedule?: CompetitionSchedule; // Horaires appel / scratch / début (#1938)
+  gregLevel?: 'L' | 'Z' | 'CN' | 'A' | 'F' | 'IE' | 'X'; // Niveau GREG (publication, #1328) ; absent = X (Autre)
+  poolBoutOrder?: 'fie' | 'free'; // Ordre des matchs de poule : FIE o.69/o.70 (défaut) ou libre, rondes de Berger (#1964)
 }
 
 export interface Phase extends BaseEntity {
@@ -701,7 +781,7 @@ export interface AppState {
 }
 
 export interface UISettings {
-  language: 'fr' | 'en' | 'de' | 'es' | 'it' | 'br' | 'ca' | 'zh-HK';
+  language: 'fr' | 'en' | 'de' | 'es' | 'pt' | 'it' | 'ru' | 'br' | 'ca' | 'zh-HK';
   theme: 'light' | 'dark' | 'system';
   fontSize: 'small' | 'medium' | 'large';
   showTips: boolean;

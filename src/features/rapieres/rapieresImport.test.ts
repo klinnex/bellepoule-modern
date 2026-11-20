@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildRapieresImportTemplate,
   parseBirthDate,
   parseDelimited,
   parseRapieresGender,
   parseRapieresTeams,
   rapieresCategoryFromBirthDate,
+  RAPIERES_IMPORT_HEADER,
 } from './rapieresImport';
 
 const HEADER =
@@ -129,5 +131,39 @@ describe('rapieresImport : club de l’équipe (#1441)', () => {
     ].join('\r\n');
     const { teams } = parseRapieresTeams(csv, REF);
     expect(teams.map(t => t.info.club)).toEqual(['Escrime Nord / Escrime Sud', 'Lame', undefined]);
+  });
+});
+
+describe("buildRapieresImportTemplate (modèle d'import des équipes)", () => {
+  it("commence par un BOM et reprend les 25 colonnes de l'export d'inscriptions", () => {
+    const template = buildRapieresImportTemplate();
+    expect(template.charCodeAt(0)).toBe(0xfeff);
+    const [header] = parseDelimited(template);
+    expect(header).toHaveLength(25);
+    expect(header).toEqual([...RAPIERES_IMPORT_HEADER]);
+  });
+
+  it("est relu par l'import : une équipe d'exemple, colonnes correctement placées", () => {
+    const { teams, skipped } = parseRapieresTeams(buildRapieresImportTemplate(), REF);
+    expect(skipped).toEqual([]);
+    expect(teams).toHaveLength(1);
+    expect(teams[0].name).toBe('EXEMPLE Les Lames Rouges');
+    expect(teams[0].info.fencers[0]).toMatchObject({
+      lastName: 'DUPONT',
+      firstName: 'Jean',
+      gender: 'M',
+      birthDate: '1995-03-15',
+    });
+    expect(teams[0].info.fencers[1]).toMatchObject({
+      lastName: 'MARTIN',
+      firstName: 'Marie',
+      gender: 'F',
+    });
+    expect(teams[0].info.club).toBe('Club A / Club B');
+  });
+
+  it("un modèle sans ligne d'exemple ne produit aucune équipe", () => {
+    const headerOnly = buildRapieresImportTemplate().split('\r\n')[0];
+    expect(parseRapieresTeams(headerOnly, REF).teams).toEqual([]);
   });
 });

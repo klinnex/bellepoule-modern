@@ -3,10 +3,15 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import { ArenaMatch } from '../../shared/types/remote';
+import { Arena, ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import {
+  crossedSabreBreak,
+  crossedScoreLimit,
+  resolveScoreLimit,
+} from '../../shared/utils/matchEndValidation';
 
 type S = RemoteScoreServer;
 
@@ -25,6 +30,7 @@ export interface ArenaOpsContext {
   readonly resolvePoolReferee: S['resolvePoolReferee'];
   readonly resolveReferee: S['resolveReferee'];
   readonly resolveTableauMatchReferees: S['resolveTableauMatchReferees'];
+  readonly session: S['session'];
   readonly sessionMatches: S['sessionMatches'];
   readonly sessionPoolMaxScore: S['sessionPoolMaxScore'];
   readonly sessionTableMaxScore: S['sessionTableMaxScore'];
@@ -55,7 +61,7 @@ export function assignMatchToArena(
   if (!match.referee) {
     const defaultRef =
       ctx.resolveTableauMatchReferees(match.poolId ? null : match.id) ??
-      ctx.resolveReferee((match as any).refereeId) ??
+      ctx.resolveReferee((match as { refereeId?: string | null }).refereeId) ??
       ctx.resolvePoolReferee(match.poolId);
     if (defaultRef) match = { ...match, referee: defaultRef };
   }
@@ -106,7 +112,9 @@ export function updateArenaScore(
   ctx: ArenaOpsContext,
   arenaId: string,
   scoreA: number,
-  scoreB: number
+  scoreB: number,
+  /** Auteur dans le journal des scores : `device` pour l'appareil de piste (#1720) */
+  changedBy: 'referee' | 'device' = 'referee'
 ): void {
   const arena = ctx.arenas.get(arenaId);
   if (!arena || !arena.currentMatch) return;
@@ -138,7 +146,7 @@ export function updateArenaScore(
         previousScoreB: { value: previousScoreB },
         newScoreA: { value: scoreA },
         newScoreB: { value: scoreB },
-        changedBy: 'referee',
+        changedBy,
         reason: 'remote_entry',
       });
     }
@@ -167,14 +175,14 @@ export function updateArenaScore(
 
 /** Score max du match : paramètres de la compétition / formule (#1125 #1134), 15 en Laser Sabre */
 export function getScoreLimit(ctx: ArenaOpsContext, match: ArenaMatch): number {
-  if (ctx.sessionWeapon === Weapon.LASER) return 15;
   const sessionMatch = ctx.sessionMatches.find(m => m.id === match.id);
-  const isTableau = match.isTableau || sessionMatch?.isTableau;
-  const max = isTableau
-    ? ctx.sessionTableMaxScore
-    : (ctx.sessionPoolMaxScore ?? sessionMatch?.maxScore);
-  if (typeof max !== 'number') return 15;
-  return max <= 0 || max >= 999 ? Infinity : max;
+  return resolveScoreLimit({
+    isLaser: ctx.sessionWeapon === Weapon.LASER,
+    isTableau: !!(match.isTableau || sessionMatch?.isTableau),
+    poolMaxScore: ctx.sessionPoolMaxScore,
+    tableMaxScore: ctx.sessionTableMaxScore,
+    matchMaxScore: sessionMatch?.maxScore,
+  });
 }
 
 function checkAndAutoFinishMatch(
@@ -190,9 +198,11 @@ function checkAndAutoFinishMatch(
 
   // Notifier la tablette arbitre uniquement quand un tireur franchit le seuil de 15 points
   const SCORE_LIMIT = getScoreLimit(ctx, arena.currentMatch);
-  const justCrossed =
-    (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
-    (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
+  const justCrossed = crossedScoreLimit(
+    { scoreA: previousScoreA, scoreB: previousScoreB },
+    { scoreA, scoreB },
+    SCORE_LIMIT
+  );
   if (justCrossed) {
     logger.info(
       LogCategory.NETWORK,
@@ -200,4 +210,81 @@ function checkAndAutoFinishMatch(
     );
     ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:score_limit_reached`);
   }
+
+  // Sabre, tableau à 15 : première période terminée à 8 touches (t.39.1, #2001). La tablette
+  // arrête le chrono et lance la minute de repos ; un appareil maître tient sa propre pause.
+  const sessionMatch = ctx.sessionMatches.find(m => m.id === arena.currentMatch?.id);
+  const isTableau = !!(arena.currentMatch.isTableau || sessionMatch?.isTableau);
+  if (
+    isTableau &&
+    crossedSabreBreak(
+      ctx.sessionWeapon === Weapon.SABRE,
+      SCORE_LIMIT,
+      { scoreA: previousScoreA, scoreB: previousScoreB },
+      { scoreA, scoreB }
+    )
+  ) {
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Sabre : 8 touches atteintes, pause de première période sur l'arène ${arenaId}`
+    );
+    ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:sabre_break`, { seconds: 60 });
+  }
 }
+
+export function updateArena(ctx: ArenaOpsContext, arenaId: string, update: Partial<Arena>): void {
+  const arena = ctx.arenas.get(arenaId);
+  if (!arena) return;
+
+  Object.assign(arena, update);
+
+  // Diffuser la mise à jour via WebSocket
+  ctx.broadcastArenaUpdate(arenaId, {
+    arenaId,
+    match: arena.currentMatch,
+    scoreA: arena.currentMatch?.scoreA,
+    scoreB: arena.currentMatch?.scoreB,
+    status: arena.status,
+    fencerA: arena.currentMatch?.fencerA,
+    fencerB: arena.currentMatch?.fencerB,
+  });
+}
+
+/** Id du match en base : `${competitionId}-${id}` pour un match de tableau s'il existe */
+export function resolveDbMatchId(ctx: ArenaOpsContext, match: ArenaMatch): string {
+  if (match.poolId || !ctx.session) return match.id;
+  const composite = `${ctx.session.competitionId}-${match.id}`;
+  try {
+    if (ctx.db.getMatch(composite)) return composite;
+  } catch {
+    /* id non UUID / DB indisponible : id brut */
+  }
+  return match.id;
+}
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_OPS_CONTEXT_KEYS = {
+  state: [
+    'arenaOvertimeType',
+    'arenaRefereeSelected',
+    'arenaSuddenDeath',
+    'arenas',
+    'db',
+    'io',
+    'session',
+    'sessionMatches',
+    'sessionPoolMaxScore',
+    'sessionTableMaxScore',
+    'sessionWeapon',
+  ],
+  methods: [
+    'broadcastArenaUpdate',
+    'isGuestMatch',
+    'persistArenaState',
+    'resolveDbMatchId',
+    'resolvePoolReferee',
+    'resolveReferee',
+    'resolveTableauMatchReferees',
+    'updateArena',
+  ],
+} as const;

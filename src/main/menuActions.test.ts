@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 
 const showSaveDialog = vi.fn();
+const showOpenDialog = vi.fn();
 
 vi.mock('electron', () => ({
-  dialog: { showSaveDialog: (...a: unknown[]) => showSaveDialog(...a), showErrorBox: vi.fn() },
+  dialog: {
+    showSaveDialog: (...a: unknown[]) => showSaveDialog(...a),
+    showOpenDialog: (...a: unknown[]) => showOpenDialog(...a),
+    showErrorBox: vi.fn(),
+  },
 }));
 
 import { createMenuActions } from './menuActions';
@@ -15,6 +20,7 @@ function setup(competition: { title: string } | null) {
     getCompetition: vi.fn(() => competition),
     exportCompetitionToFile: vi.fn(async () => {}),
     exportToFile: vi.fn(async () => {}),
+    mergeFromFile: vi.fn(async () => ['c9']),
   };
   const actions = createMenuActions({ db: db as never, getMainWindow: () => win });
   return { send, db, actions };

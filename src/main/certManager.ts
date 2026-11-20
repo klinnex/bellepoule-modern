@@ -49,10 +49,13 @@ export async function ensureCert(userDataPath: string): Promise<CertBundle> {
   const certPath = path.join(certsDir, 'server.pem');
   const keyPath = path.join(certsDir, 'server.key');
 
-  if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+  // Lecture directe (pas d'existsSync puis read/write : CodeQL js/file-system-race)
+  try {
     const cert = fs.readFileSync(certPath, 'utf-8');
     const key = fs.readFileSync(keyPath, 'utf-8');
     return { cert, key, fingerprint: computeFingerprint(cert) };
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
   }
 
   fs.mkdirSync(certsDir, { recursive: true });

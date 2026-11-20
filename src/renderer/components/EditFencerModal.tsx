@@ -9,6 +9,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 import FencerPhoto from './FencerPhoto';
 import NationalityPicker from './common/NationalityPicker';
+import DepartmentPicker from './common/DepartmentPicker';
+import { Button } from './common/Button';
 
 interface EditFencerModalProps {
   fencer: Fencer;
@@ -24,10 +26,12 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
   const [gender, setGender] = useState<Gender>(fencer.gender);
   const [club, setClub] = useState(fencer.club || '');
   const [region, setRegion] = useState(fencer.region || '');
+  const [department, setDepartment] = useState(fencer.department || '');
   const [nationality, setNationality] = useState(fencer.nationality || 'FRA');
   const [license, setLicense] = useState(fencer.license || '');
   const [ranking, setRanking] = useState(fencer.ranking?.toString() || '');
   const [status, setStatus] = useState<FencerStatus>(fencer.status);
+  const [handedness, setHandedness] = useState<'R' | 'L'>(fencer.handedness ?? 'R');
   const [photo, setPhoto] = useState<string | undefined>(fencer.photo);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,11 +43,13 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
       gender,
       club: club || undefined,
       region: region || undefined,
+      department: department || undefined,
       nationality,
       license: license || undefined,
       ranking: ranking ? parseInt(ranking) : undefined,
       status,
       photo,
+      handedness,
     });
 
     onClose();
@@ -53,21 +59,20 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal edit-fencer-modal-1"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '500px' }}
         role="dialog"
         aria-modal="true"
       >
         <div className="modal-header">
           <h2>{t('editFencer.title')}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-body">
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <div className="edit-fencer-modal-2">
             <FencerPhoto
               photo={photo}
               firstName={firstName}
@@ -77,6 +82,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
               size="medium"
             />
           </div>
+          <p className="privacy-note privacy-note--center">{t('privacy.photo_consent')}</p>
 
           <div className="u-grid-2">
             <div className="form-group">
@@ -156,22 +162,23 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             </div>
 
             <div className="form-group">
-              <label className="form-label">{t('fencer.nationality')}</label>
-              <NationalityPicker value={nationality} onChange={setNationality} />
+              <label className="form-label" htmlFor="edit-fencer-department">
+                {t('fencer.department')}
+              </label>
+              <DepartmentPicker
+                id="edit-fencer-department"
+                value={department}
+                onChange={setDepartment}
+              />
             </div>
           </div>
 
-          <div className="u-grid-2">
-            <div className="form-group">
-              <label className="form-label">{t('editFencer.license_no')}</label>
-              <input
-                type="text"
-                className="form-input"
-                value={license}
-                onChange={e => setLicense(e.target.value)}
-              />
-            </div>
+          <div className="form-group">
+            <label className="form-label">{t('fencer.nationality')}</label>
+            <NationalityPicker value={nationality} onChange={setNationality} />
+          </div>
 
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">{t('fencer.ranking')}</label>
               <input
@@ -183,15 +190,54 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
                 placeholder={t('editFencer.unranked')}
               />
             </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('editFencer.license_no')}</label>
+              <input
+                type="text"
+                className="form-input"
+                value={license}
+                onChange={e => setLicense(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Latéralité modifiable (#1504) */}
+          <div className="form-group">
+            <label className="form-label" id="edit-fencer-handedness">
+              {t('addFencer.handedness')}
+            </label>
+            <div className="u-row" role="radiogroup" aria-labelledby="edit-fencer-handedness">
+              <label>
+                <input
+                  type="radio"
+                  name="edit-handedness"
+                  value="R"
+                  checked={handedness === 'R'}
+                  onChange={() => setHandedness('R')}
+                />{' '}
+                {t('addFencer.right')}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="edit-handedness"
+                  value="L"
+                  checked={handedness === 'L'}
+                  onChange={() => setHandedness('L')}
+                />{' '}
+                {t('addFencer.left')}
+              </label>
+            </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('editFencer.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

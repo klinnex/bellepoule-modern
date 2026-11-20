@@ -4,12 +4,13 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Fencer, Pool, Match, MatchStatus } from '../../shared/types';
 import {
   calculateOptimalPoolCount,
   distributeFencersToPoolsSerpentine,
-  generatePoolMatchOrder,
+  distributeFencersGroupedByLevel,
+  separationQuota,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
 import {
@@ -18,10 +19,29 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import { poolsLayoutKey } from './poolLaunchState';
+import {
+  planPoolBouts,
+  type PoolBoutOrderMode,
+  type PoolBoutPlan,
+} from '../../shared/utils/poolBoutOrder';
 import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
+import { useToast } from './Toast';
+import { stripNumbers } from '../../shared/utils/stripRange';
+import { Button } from './common/Button';
+import { SkipForward, TriangleAlert, UserRound } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
+const NAMES_SWAPPED_KEY = 'bp_poolprep_names_swapped';
+
+/** Libellé d'un tireur : « Prénom N. » ou, inversé, « Nom Prénom » (présentation seule) */
+function formatFencerName(fencer: Fencer, swapped: boolean): string {
+  return swapped
+    ? `${fencer.lastName} ${fencer.firstName}`
+    : `${fencer.firstName} ${fencer.lastName.charAt(0)}.`;
+}
 
 const CRITERION_NOUN: Record<SeparationCriterionKey, string> = {
   byClub: 'pools.prep_crit_club',
@@ -44,9 +64,18 @@ interface PoolPrepViewProps {
   expertMode?: boolean;
   /** Nombre de pistes de la saisie distante (choix de piste en mode expert) */
   arenaCount?: number;
+  /** Première piste de l'intervalle (1 par défaut) */
+  stripStart?: number;
   /** Piste modifiée : appliquée immédiatement si la poule est déjà lancée (#1037) */
   onStripChange?: (poolId: string, strip: number | undefined) => void;
+  /** Poules déjà lancées une fois : le bouton devient « Relancer les poules » (#1499) */
+  poolsLaunched?: boolean;
   onPoolsConfirm: (pools: Pool[]) => void;
+  /**
+   * Poules lancées : sans modification, le bouton devient « Aller aux poules » (sans alerte),
+   * et « Annuler les modifications » revient aux poules lancées (#1992)
+   */
+  onGoToPools?: () => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
   /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
@@ -56,10 +85,28 @@ interface PoolPrepViewProps {
    * Remplace la répartition serpentin et désactive les critères de séparation.
    */
   customDistribution?: (fencers: Fencer[], poolCount: number) => Fencer[][];
-  /** Rang de niveau (0 = plus faible) : ajoute la séparation « Niveau » qui répartit les niveaux (#1441) */
+  /** Rang de niveau (0 = plus faible) : ajoute le critère « Niveau » qui regroupe les mêmes niveaux (#1441) */
   levelRankOf?: (fencer: Fencer) => number;
+  /** Critères proposés (défaut : club, région, nation [+ niveau]) — rapières : club + niveau */
+  separationKeys?: Array<SeparationCriterionKey | 'byLevel' | 'byRanking'>;
+  /** Affichage d'une ligne (rapières : nom d'équipe + bulle niveau) */
+  fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
+  /** Numéro affiché devant le tireur (défaut : position dans la poule) — rapières : n° d'appel (#1816) */
+  positionOf?: (fencer: Fencer) => number | string | undefined;
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
+  /** Ordre des matchs : FIE o.69/o.70 (défaut) ou libre, rondes de Berger (#1964) */
+  boutOrderMode?: PoolBoutOrderMode;
+  /** Brouillon conservé hors de la vue : modifications gardées au retour vers l'appel (#1649) */
+  draft?: PoolPrepDraft | null;
+  onDraftChange?: (draft: PoolPrepDraft) => void;
+}
+
+/** État de préparation en cours (poules, nombre, critères de séparation) */
+export interface PoolPrepDraft {
+  pools: Pool[];
+  poolCount: number;
+  criteria: Array<{ key: SeparationCriterionKey | 'byLevel' | 'byRanking'; enabled: boolean }>;
 }
 
 export interface PoolPrepLaunchAction {
@@ -83,47 +130,111 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   maxFencersPerPool: initialMax = 7,
   expertMode = false,
   arenaCount = 1,
+  stripStart = 1,
   onStripChange,
+  poolsLaunched = false,
   onPoolsConfirm,
+  onGoToPools,
   onSkipPools,
   onSettingsChange,
   onLaunchActionChange,
   customDistribution,
   levelRankOf,
+  separationKeys,
+  fencerDisplay,
   customMatchOrder,
+  boutOrderMode = 'fie',
+  positionOf,
+  draft,
+  onDraftChange,
 }) => {
   const { t } = useTranslation();
-  const [poolCount, setPoolCount] = useState<number>(0);
+  const { showUndoToast } = useToast();
+  // Brouillon pris à l'ouverture seulement (#1649)
+  const [initialDraft] = useState(() => (draft && draft.pools.length > 0 ? draft : null));
+  const [poolCount, setPoolCount] = useState<number>(initialDraft?.poolCount ?? 0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
-  const [pools, setPools] = useState<Pool[]>(initialPools || []);
+  const [pools, setPools] = useState<Pool[]>(initialDraft?.pools ?? initialPools ?? []);
   const [draggedFencer, setDraggedFencer] = useState<{ fencer: Fencer; poolIndex: number } | null>(
     null
   );
   const [dropTarget, setDropTarget] = useState<{ poolIndex: number; index: number } | null>(null);
 
   interface SeparationCriterion {
-    key: SeparationCriterionKey | 'byLevel';
+    key: SeparationCriterionKey | 'byLevel' | 'byRanking';
     label: string;
     enabled: boolean;
   }
-  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>([
-    { key: 'byClub', label: 'Club', enabled: !customDistribution },
-    { key: 'byRegion', label: 'Région', enabled: !customDistribution },
-    { key: 'byNation', label: 'Nation', enabled: false },
-    ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
-  ]);
+  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>(() => {
+    const defaults: SeparationCriterion[] = [
+      // Classement : rang 1 par défaut (BellePoule : serpentin puis échanges dans le chapeau),
+      // toujours actif, déplaçable ; critères placés après = échange dans le chapeau
+      { key: 'byRanking' as const, label: 'Classement', enabled: true },
+      { key: 'byClub' as const, label: 'Club', enabled: !customDistribution },
+      { key: 'byRegion' as const, label: 'Région', enabled: !customDistribution },
+      { key: 'byNation' as const, label: 'Nation', enabled: false },
+      ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
+    ].filter(c => !separationKeys || separationKeys.includes(c.key));
+    if (!initialDraft) return defaults;
+    // Ordre et activation repris du brouillon (#1649)
+    const restored = initialDraft.criteria.flatMap(d => {
+      const c = defaults.find(x => x.key === d.key);
+      return c ? [{ ...c, enabled: c.key === 'byRanking' || d.enabled }] : [];
+    });
+    return [...restored, ...defaults.filter(c => !restored.some(r => r.key === c.key))];
+  });
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
+  const isSeparationKey = (k: SeparationCriterion['key']): k is SeparationCriterionKey =>
+    k in CRITERION_NOUN;
+
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
-    criteria
-      .filter(c => c.enabled && c.key !== 'byLevel')
-      .map(c => c.key as SeparationCriterionKey);
+    criteria.filter(c => c.enabled).flatMap(c => (isSeparationKey(c.key) ? [c.key] : []));
+
+  /** Critères actifs avant / après la pastille Classement */
+  const splitByRanking = (criteria: SeparationCriterion[]) => {
+    const r = criteria.findIndex(c => c.key === 'byRanking');
+    if (r < 0) return { above: getActiveCriteria(criteria), below: [] };
+    return {
+      above: getActiveCriteria(criteria.slice(0, r)),
+      below: getActiveCriteria(criteria.slice(r + 1)),
+    };
+  };
 
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
-  const hasInitialized = useRef(false);
+  const hasInitialized = useRef(initialDraft !== null);
+
+  // Publie le brouillon à chaque modification (#1649)
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    onDraftChange?.({
+      pools,
+      poolCount,
+      criteria: separationCriteria.map(c => ({ key: c.key, enabled: c.enabled })),
+    });
+  }, [pools, poolCount, separationCriteria, onDraftChange]);
 
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
+  // Inversion nom / prénom : présentation uniquement, sans effet sur la répartition
+  const [namesSwapped, setNamesSwapped] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(NAMES_SWAPPED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleNamesSwapped = () => {
+    setNamesSwapped(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(NAMES_SWAPPED_KEY, next ? '1' : '0');
+      } catch {
+        // stockage indisponible : inversion conservée pour la session seulement
+      }
+      return next;
+    });
+  };
   const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
     try {
       return localStorage.getItem(HINT_DISMISSED_KEY) === '1';
@@ -176,24 +287,44 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     return `${minutes}m ${secs}s`;
   };
 
+  /**
+   * Numéros et ordre des matchs (#1964) : coéquipiers sur les numéros réservés (o.70),
+   * sauf échange manuel (keepPositions) où seule la table est choisie.
+   */
+  const planFor = (
+    poolFencers: Fencer[],
+    criteria: SeparationCriterionKey[],
+    keepPositions = false
+  ): Pick<PoolBoutPlan, 'positions' | 'bouts'> =>
+    customMatchOrder
+      ? { positions: poolFencers, bouts: customMatchOrder(poolFencers) }
+      : planPoolBouts(poolFencers, criteria, { mode: boutOrderMode, keepPositions });
+
   // Génère les poules avec la config passée explicitement (évite les closures périmées)
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
-    // Niveau activé : liste triée par niveau, la distribution en serpentin répartit les niveaux
-    const levelSpread = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
-    const ordered =
-      levelSpread && levelRankOf
-        ? [...fencers].sort((a, b) => levelRankOf(a) - levelRankOf(b))
-        : fencers;
+    // Niveau activé : les équipes de même niveau sont regroupées dans les mêmes poules (#1441)
+    const levelGroup = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
     const distribution = customDistribution
       ? customDistribution(fencers, count)
-      : distributeFencersToPoolsSerpentine(ordered, count, getActiveCriteria(criteria));
+      : levelGroup && levelRankOf
+        ? distributeFencersGroupedByLevel(
+            fencers,
+            count,
+            levelRankOf,
+            getActiveCriteria(criteria).includes('byClub')
+          )
+        : (() => {
+            const { above, below } = splitByRanking(criteria);
+            return distributeFencersToPoolsSerpentine(fencers, count, above, below);
+          })();
 
-    const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
-      const matchOrder = customMatchOrder
-        ? customMatchOrder(poolFencers)
-        : generatePoolMatchOrder(poolFencers.length);
+    const generatedPools: Pool[] = distribution.map((drawn, index) => {
+      const { positions: poolFencers, bouts: matchOrder } = planFor(
+        drawn,
+        getActiveCriteria(criteria)
+      );
       const now = new Date();
       // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
       const poolId = crypto.randomUUID();
@@ -277,10 +408,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     }
   };
 
-  const regenerateMatches = (pool: Pool): Pool => {
-    const matchOrder = customMatchOrder
-      ? customMatchOrder(pool.fencers)
-      : generatePoolMatchOrder(pool.fencers.length);
+  const regenerateMatches = (pool: Pool, keepPositions = false): Pool => {
+    const { positions, bouts: matchOrder } = planFor(
+      pool.fencers,
+      getActiveCriteria(separationCriteria),
+      keepPositions
+    );
+    pool = { ...pool, fencers: positions };
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
@@ -304,6 +438,28 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       ranking: [],
       updatedAt: now,
     };
+  };
+
+  /** Table retenue et coéquipiers placés (o.70), ex. « Ordre trio (poule de 7) » (#1964) */
+  const boutBadge = (pool: Pool) => {
+    if (customMatchOrder) return null;
+    const plan = planPoolBouts(pool.fencers, getActiveCriteria(separationCriteria), {
+      mode: boutOrderMode,
+      keepPositions: true,
+    });
+    if (plan.table === 'standard' && plan.groups.length === 0) return null;
+    const detail = plan.groups
+      .map(g => t('matchOrder.group', { value: g.value, positions: g.positions.join(', ') }))
+      .join(' · ');
+    return (
+      <span
+        className="pool-prep-badge-unique pool-prep-badge-order"
+        title={detail || undefined}
+        data-testid="pool-bout-table"
+      >
+        {t(`matchOrder.table_${plan.table}`)}
+      </span>
+    );
   };
 
   const handleDragStart = (fencer: Fencer, poolIndex: number) => {
@@ -339,9 +495,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       newFencers.splice(insertAt, 0, movedFencer);
       setPools(
         pools.map((p, i) =>
-          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
+          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }, true) : p
         )
       );
+      showUndoToast(t('pools.prep_moved'), handleRestore);
       return;
     }
 
@@ -360,6 +517,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     });
 
     setPools(updatedPools);
+    showUndoToast(t('pools.prep_moved'), handleRestore);
   };
 
   // Échanges de tireurs entre poules pour atteindre le minimum de conflits
@@ -396,9 +554,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       seen.add(p.strip);
     });
   }
-  const stripOptions = Array.from(
-    { length: Math.max(arenaCount, ...pools.map(p => p.strip ?? 0)) },
-    (_, i) => i + 1
+  const stripOptions = stripNumbers(
+    stripStart,
+    Math.max(arenaCount, ...pools.map(p => p.strip ?? 0))
   );
 
   const getFencerCountStats = () => {
@@ -438,24 +596,45 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     'rgba(22,163,74,0.10)',
   ];
 
-  /** Valeurs en double dans une poule (club, région…) → nombre d'occurrences */
+  const countBy = (list: Fencer[], pick: (f: Fencer) => string | undefined) => {
+    const counts = new Map<string, number>();
+    list.forEach(f => {
+      const v = pick(f)?.trim();
+      if (v) counts.set(v, (counts.get(v) || 0) + 1);
+    });
+    return counts;
+  };
+  const allPoolFencers = pools.flatMap(p => p.fencers);
+
+  /**
+   * Valeurs au-delà du quota dans une poule (club, région…) → nombre d'occurrences.
+   * Quota BellePoule : ⌈effectif de la valeur / nb poules⌉ (un gros club se répartit sans alerte).
+   */
   const getPoolConflicts = (
     pool: Pool,
     pick: (f: Fencer) => string | undefined
   ): Map<string, number> => {
-    const counts = new Map<string, number>();
-    pool.fencers.forEach(f => {
-      const v = pick(f)?.trim();
-      if (v) counts.set(v, (counts.get(v) || 0) + 1);
-    });
+    const counts = countBy(pool.fencers, pick);
+    const totals = countBy(allPoolFencers, pick);
     counts.forEach((n, v) => {
-      if (n < 2) counts.delete(v);
+      if (n <= separationQuota(totals.get(v) ?? n, pools.length)) counts.delete(v);
     });
     return counts;
   };
 
   const isCriterionEnabled = (key: SeparationCriterionKey) =>
     separationCriteria.some(c => c.key === key && c.enabled);
+
+  /** Critère de séparation de priorité 1 (premier actif) : valeur affichée dans la pastille (#1440) */
+  const primaryKey = separationCriteria.find(
+    (c): c is SeparationCriterion & { key: SeparationCriterionKey } =>
+      c.enabled && c.key in CRITERION_NOUN
+  )?.key;
+  const primaryValue = (f: Fencer): string | undefined => {
+    if (primaryKey === 'byRegion') return f.region;
+    if (primaryKey === 'byNation') return f.nationality;
+    return f.club;
+  };
 
   /** « Club Street Fighter » → « Street Fighter » (gain de place, nom complet en infobulle) */
   const shortClub = (club: string) => club.replace(/^club\s+/i, '');
@@ -466,16 +645,46 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       .map(([v, n]) => `${n}× ${v}`)
       .join(', ');
 
+  /** Avertissement club/région affiché sur au moins une carte → cartes élargies (#1440) */
+  const hasConflictWarning = pools.some(
+    pool =>
+      (isCriterionEnabled('byClub') && getPoolConflicts(pool, f => f.club).size > 0) ||
+      (isCriterionEnabled('byRegion') && getPoolConflicts(pool, f => f.region).size > 0)
+  );
+
   /** Classement moyen des tireurs classés de la poule (force de la poule) */
   const getPoolAvgRanking = (pool: Pool): number | null => {
     const ranks = pool.fencers.map(f => f.ranking).filter((r): r is number => r != null && r > 0);
     return ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length) : null;
   };
 
+  // Poules lancées : modifiées ou non en préparation (#1992)
+  const launchedKey = useMemo(
+    () => (onGoToPools && initialPools?.length ? poolsLayoutKey(initialPools) : null),
+    [onGoToPools, initialPools]
+  );
+  const prepUnchanged = launchedKey !== null && poolsLayoutKey(pools) === launchedKey;
+  const prepModified = launchedKey !== null && !prepUnchanged;
+  const handleDiscardChanges = () => {
+    if (!initialPools) return;
+    saveToHistory();
+    setPools(initialPools);
+    setPoolCount(initialPools.length);
+  };
+
   const launchDisabled =
     poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
-  const launchLabel = poolCount === 0 ? t('pools.prep_skip_pools') : t('pools.prep_launch');
+  const launchLabel =
+    poolCount === 0
+      ? t('pools.prep_skip_pools')
+      : prepUnchanged
+        ? t('pools.prep_goto')
+        : t(poolsLaunched ? 'pools.prep_relaunch' : 'pools.prep_launch');
+  // Tireurs ajoutés depuis l'appel après la préparation : placés seulement à la repréparation (#1499)
+  const placedIds = new Set(pools.flatMap(p => p.fencers.map(f => f.id)));
+  const unplacedCount = poolCount > 0 ? fencers.filter(f => !placedIds.has(f.id)).length : 0;
   const handleLaunch = () => {
+    if (prepUnchanged && onGoToPools) return onGoToPools();
     // Poules transmises (écrans distants / sync) : annulation refusée (#1301)
     undoStack.lock();
     return poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools);
@@ -506,6 +715,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             <div className="u-row">
               <div className="pool-prep-stepper">
                 <button
+                  aria-label={t('actions.decrease')}
                   className="pool-prep-stepper-btn"
                   onClick={() => handlePoolCountChange(poolCount - 1)}
                   disabled={poolCount <= 0}
@@ -514,6 +724,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 </button>
                 <span className="pool-prep-stepper-value">{poolCount}</span>
                 <button
+                  aria-label={t('actions.increase')}
                   className="pool-prep-stepper-btn"
                   onClick={() => handlePoolCountChange(poolCount + 1)}
                   disabled={poolCount >= Math.ceil(fencers.length / 3)}
@@ -522,17 +733,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 </button>
               </div>
               {poolCount !== 1 && (
-                <button
-                  className="btn btn-secondary is-8ee77f"
+                <Button
+                  className="is-8ee77f"
                   onClick={() => handlePoolCountChange(1)}
                   title={t('pools.prep_single_title')}
                 >
                   {t('pools.prep_single')}
-                </button>
+                </Button>
               )}
               {poolCount > 0 && suggestedPoolCount > 0 && suggestedPoolCount !== poolCount && (
-                <button
-                  className="btn btn-secondary is-8ee77f"
+                <Button
+                  className="is-8ee77f"
                   onClick={() => handlePoolCountChange(suggestedPoolCount)}
                   title={t('pools.prep_suggested_title', {
                     min: minFencersPerPool,
@@ -540,15 +751,15 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   })}
                 >
                   {t('pools.prep_suggested', { n: suggestedPoolCount })}
-                </button>
+                </Button>
               )}
             </div>
           </div>
 
           {/* Min / Max fencers */}
-          <div>
-            <label className="is-4a41e7">{t('pools.prep_per_pool')}</label>
-            <div className="is-5c17a8">
+          <div className="pool-prep-minmax">
+            <div>
+              <label className="is-4a41e7">{t('pools.prep_min')}</label>
               <input
                 type="number"
                 value={minFencersPerPool}
@@ -557,7 +768,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 max={maxFencersPerPool}
                 className="is-e30a97"
               />
-              <span className="is-ab16fb">–</span>
+            </div>
+            <span className="pool-prep-minmax-sep" aria-hidden="true" />
+            <div>
+              <label className="is-4a41e7">{t('pools.prep_max')}</label>
               <input
                 type="number"
                 value={maxFencersPerPool}
@@ -597,6 +811,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     }}
                     onDragEnd={() => setDragCriterionIdx(null)}
                     onClick={() => {
+                      if (criterion.key === 'byRanking') return;
                       const next = separationCriteria.map((c, i) =>
                         i === idx ? { ...c, enabled: !c.enabled } : c
                       );
@@ -606,7 +821,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''} is-4b8e01`}
                     aria-pressed={criterion.enabled}
                     title={t(
-                      criterion.enabled ? 'pools.prep_sep_title_on' : 'pools.prep_sep_title_off',
+                      criterion.key === 'byRanking'
+                        ? 'pools.prep_sep_title_ranking'
+                        : criterion.enabled
+                          ? 'pools.prep_sep_title_on'
+                          : 'pools.prep_sep_title_off',
                       { n: String(idx + 1) }
                     )}
                   >
@@ -617,7 +836,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     {t(
                       criterion.key === 'byLevel'
                         ? 'rapieres.level'
-                        : CRITERION_LABEL[criterion.key]
+                        : criterion.key === 'byRanking'
+                          ? 'pools.prep_sep_ranking'
+                          : CRITERION_LABEL[criterion.key]
                     )}
                   </button>
                 ))}
@@ -625,13 +846,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             </div>
           )}
 
-          <button
-            className="btn btn-secondary is-e39735"
+          <Button
+            className="is-e39735"
             onClick={() => setShowMatchOrderModal(true)}
             title={t('pools.prep_match_order_title')}
           >
             {t('pools.prep_match_order')}
-          </button>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleNamesSwapped}
+            aria-label={t('pools.prep_swap_names')}
+            aria-pressed={namesSwapped}
+            title={t('pools.prep_swap_names_title')}
+            icon={<Icon icon={UserRound} />}
+            className={`pool-prep-swap-names${namesSwapped ? ' active' : ''}`}
+          />
 
           {conflictSummary.length > 0 && pools.length > 1 && (
             <div className="pool-prep-conflict-summary">
@@ -649,14 +881,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   <span className="is-bfc11c"> / min {c.min}</span>
                 </span>
               ))}
-              <button
-                className="btn btn-secondary is-8ee77f"
+              <Button
+                className="is-8ee77f"
                 onClick={handleOptimize}
                 disabled={!canOptimize}
                 title={canOptimize ? t('pools.prep_optimize_title') : t('pools.prep_optimize_min')}
               >
                 {t('pools.prep_optimize')}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -669,6 +901,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               {t('pools.prep_stats', { min: stats.min, max: stats.max, avg: stats.avg })}
             </span>
           </div>
+          {unplacedCount > 0 && (
+            <div className="pool-prep-unplaced" role="status">
+              {t('pools.prep_unplaced', { count: unplacedCount })}
+            </div>
+          )}
         </div>
 
         {/* Pools Grid */}
@@ -678,7 +915,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             overflowY: 'auto',
             display: poolCount === 0 ? 'flex' : 'grid',
             gridTemplateColumns:
-              poolCount === 0 ? undefined : 'repeat(auto-fill, minmax(280px, 1fr))',
+              poolCount === 0
+                ? undefined
+                : `repeat(auto-fill, minmax(${hasConflictWarning ? 360 : 280}px, 1fr))`,
             alignItems: poolCount === 0 ? 'center' : undefined,
             justifyContent: poolCount === 0 ? 'center' : undefined,
             gap: '1rem',
@@ -687,7 +926,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         >
           {poolCount === 0 ? (
             <div className="is-4019f6">
-              <div className="is-a4f6e6">⏭</div>
+              <div className="is-a4f6e6">
+                <Icon icon={SkipForward} />
+              </div>
               <div className="is-fa1333">{t('pools.prep_no_pool')}</div>
               <div className="is-27895a">{t('pools.prep_no_pool_hint')}</div>
             </div>
@@ -701,6 +942,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               : new Map<string, number>();
             const regionConflicts = isCriterionEnabled('byRegion')
               ? getPoolConflicts(pool, f => f.region)
+              : new Map<string, number>();
+            const primaryConflicts = primaryKey
+              ? getPoolConflicts(pool, f => primaryValue(f))
               : new Map<string, number>();
             const topClubConflict = [...clubConflicts.entries()].sort((a, b) => b[1] - a[1])[0];
             const avgRanking = getPoolAvgRanking(pool);
@@ -719,19 +963,29 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 }
               >
                 <div className="pool-prep-card-header u-row-between">
-                  <div className="is-5c17a8">
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
+                  <div className="is-5c17a8 pool-prep-card-title">
+                    <h3
+                      style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        margin: 0,
+                        color: accent,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {t('pools.prep_pool_n', { n: pool.number })}
                     </h3>
                     {pools.length === 1 && (
                       <span className="pool-prep-badge-unique">{t('pools.prep_unique')}</span>
                     )}
+                    {boutBadge(pool)}
                     {topClubConflict && (
                       <span
                         className="pool-prep-conflict-warning"
                         title={t('pools.prep_same_club', { list: formatConflicts(clubConflicts) })}
                       >
-                        ⚠ {topClubConflict[1]}× {shortClub(topClubConflict[0])}
+                        <Icon icon={TriangleAlert} /> {topClubConflict[1]}×{' '}
+                        {shortClub(topClubConflict[0])}
                         {clubConflicts.size > 1 && ` +${clubConflicts.size - 1}`}
                       </span>
                     )}
@@ -746,7 +1000,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="u-row">
+                  <div className="u-row pool-prep-card-meta">
                     {avgRanking != null && (
                       <span
                         className="pool-prep-strength"
@@ -794,6 +1048,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     const hasClubConflict = fencer.club
                       ? clubConflicts.has(fencer.club.trim())
                       : false;
+                    // Pastille = critère de priorité 1, en orange s'il est en conflit (#1440)
+                    const pillValue = primaryValue(fencer)?.trim();
+                    const hasPrimaryConflict =
+                      !!primaryKey && !!pillValue && primaryConflicts.has(pillValue);
+                    const display = fencerDisplay?.(fencer);
                     return (
                       <div
                         key={fencer.id}
@@ -817,9 +1076,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex ? ' drop-before' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex + 1 && fencerIndex === pool.fencers.length - 1 ? ' drop-after' : ''}`}
                       >
                         <span className="pool-prep-drag-handle">⠿</span>
-                        <span className="pool-prep-position">{fencerIndex + 1}</span>
+                        <span className="pool-prep-position">
+                          {positionOf?.(fencer) ?? fencerIndex + 1}
+                        </span>
                         <span className="is-b2764b">
-                          {fencer.firstName} {fencer.lastName.charAt(0)}.
+                          {display ? display.label : formatFencerName(fencer, namesSwapped)}
                         </span>
                         {fencer.ranking != null && fencer.ranking > 0 && (
                           <span
@@ -829,14 +1090,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                             #{fencer.ranking}
                           </span>
                         )}
-                        {fencer.club && (
+                        {display?.pill && (
                           <span
                             className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
-                            title={
-                              fencer.region ? `${fencer.club} — ${fencer.region}` : fencer.club
-                            }
+                            title={display.pillTitle ?? display.pill}
                           >
-                            {shortClub(fencer.club)}
+                            {display.pill}
+                          </span>
+                        )}
+                        {!display && pillValue && (
+                          <span
+                            className={`pool-prep-club-pill${hasPrimaryConflict ? ' conflict' : ''}`}
+                            title={[fencer.club, fencer.region, fencer.nationality]
+                              .filter(Boolean)
+                              .join(' — ')}
+                          >
+                            {primaryKey && primaryKey !== 'byClub'
+                              ? pillValue
+                              : shortClub(pillValue)}
                           </span>
                         )}
                       </div>
@@ -870,8 +1141,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         {/* Footer */}
         <div className="pool-prep-footer is-045666">
           <div className="is-d06f59">
-            <button
-              className="btn btn-secondary"
+            <Button
               onClick={handleRestore}
               disabled={!canRestore()}
               style={{
@@ -881,7 +1151,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               }}
             >
               {t('pools.prep_undo')}
-            </button>
+            </Button>
             {canRestore() && (
               <div className="is-9a904f">
                 <div className="pool-prep-undo-bar">
@@ -910,15 +1180,26 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             )}
           </div>
 
+          {prepModified && (
+            <Button
+              onClick={handleDiscardChanges}
+              title={t('pools.prep_discard_title')}
+              className="pool-prep-discard-btn"
+            >
+              {t('pools.prep_discard')}
+            </Button>
+          )}
+
           {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
           {!onLaunchActionChange && (
-            <button
-              className="btn btn-primary is-be99a9"
+            <Button
+              variant="primary"
+              className="is-be99a9"
               onClick={handleLaunch}
               disabled={launchDisabled}
             >
               {launchLabel} →
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -34,6 +34,7 @@ export interface LifecycleContext {
   trainingCustomRules: S['trainingCustomRules'];
   unsubscribeDb: S['unsubscribeDb'];
   useHttps: S['useHttps'];
+  tlsOptions: S['tlsOptions'];
   clearArenaCombatState: S['clearArenaCombatState'];
   getServerUrl: S['getServerUrl'];
   notifyKioskData: S['notifyKioskData'];
@@ -52,7 +53,7 @@ export function startServer(ctx: LifecycleContext): Promise<void> {
   logger.info(LogCategory.NETWORK, `[RemoteScoreServer] URL réseau: ${ctx.getServerUrl()}`);
 
   return new Promise((resolve, reject) => {
-    ctx.server.once('error', (err: any) => {
+    ctx.server.once('error', (err: NodeJS.ErrnoException) => {
       logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       if (err.code === 'EADDRINUSE') {
         logger.error(
@@ -82,7 +83,7 @@ export function startServer(ctx: LifecycleContext): Promise<void> {
         `[RemoteScoreServer] Les arbitres peuvent se connecter sur: ${url}`
       );
       // Switch from one-shot 'once' error handler to persistent one for runtime errors
-      ctx.server.on('error', (err: any) => {
+      ctx.server.on('error', (err: NodeJS.ErrnoException) => {
         logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       });
       resolve();
@@ -116,8 +117,62 @@ export function stopServer(ctx: LifecycleContext): void {
   ctx.io?.disconnectSockets?.(true);
   if (ctx.server) {
     ctx.server.close();
-    (ctx.server as any).closeAllConnections?.();
+    (ctx.server as { closeAllConnections?: () => void }).closeAllConnections?.();
     logger.info(LogCategory.NETWORK, 'Remote score server stopped');
+  }
+}
+
+/** Ferme l'écoute HTTP(S) (connexions keep-alive comprises) et attend la libération du port. */
+function closeListener(server: S['server']): Promise<void> {
+  return new Promise(resolve => {
+    server.close(() => resolve());
+    (server as { closeAllConnections?: () => void }).closeAllConnections?.();
+  });
+}
+
+/** Paramètres réseau du rechargement à chaud. */
+export interface RestartOptions {
+  port: number;
+  host: string;
+  tlsOptions?: { cert: string; key: string };
+}
+
+/**
+ * Rechargement à chaud : nouvelle écoute (port / interface / HTTPS) sur la même application
+ * Express et le même Socket.IO. Session, arènes, files d'attente, jetons et réglages en mémoire
+ * sont conservés ; les clients se reconnectent seuls. En cas d'échec (port occupé…), l'ancienne
+ * écoute est rétablie puis l'erreur est relancée.
+ */
+export async function restartServer(
+  ctx: LifecycleContext,
+  next: RestartOptions,
+  createListener: (tls: RestartOptions['tlsOptions']) => S['server']
+): Promise<void> {
+  const previous: RestartOptions = { port: ctx.port, host: ctx.host, tlsOptions: ctx.tlsOptions };
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Rechargement : ${previous.host}:${previous.port} → ${next.host}:${next.port}`
+  );
+  ctx.io?.disconnectSockets?.(true);
+  await closeListener(ctx.server);
+
+  const bind = async (opts: RestartOptions): Promise<void> => {
+    const listener = createListener(opts.tlsOptions);
+    ctx.server = listener;
+    ctx.port = opts.port;
+    ctx.host = opts.host;
+    ctx.tlsOptions = opts.tlsOptions;
+    ctx.useHttps = !!opts.tlsOptions;
+    ctx.io.attach(listener);
+    await startServer(ctx);
+  };
+
+  try {
+    await bind(next);
+  } catch (err) {
+    await closeListener(ctx.server);
+    await bind(previous);
+    throw err;
   }
 }
 
@@ -148,6 +203,13 @@ export function launchCompetition(ctx: LifecycleContext): void {
 export function stopSession(ctx: LifecycleContext): void {
   ctx.demoPlayer?.stop();
   ctx.demoPlayer = null;
+  // Entraînement / démo : matchs fictifs retirés des pistes (sinon tablettes et écrans
+  // gardent un match jouable après l'arrêt)
+  if (ctx.isTrainingMode) {
+    for (const arenaId of ctx.arenas.keys()) {
+      ctx.updateArena(arenaId, { status: 'idle', currentMatch: null });
+    }
+  }
   ctx.isTrainingMode = false;
   ctx.trainingCustomRules = null;
   ctx.session = null;
@@ -164,3 +226,41 @@ export function stopSession(ctx: LifecycleContext): void {
   ctx.arenaEventBuffer.clear();
   ctx.clearArenaCombatState();
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const LIFECYCLE_CONTEXT_KEYS = {
+  state: [
+    'arenaCount',
+    'arenaEventBuffer',
+    'arenaMatchQueue',
+    'arenaNextMatchIndex',
+    'arenaTokens',
+    'arenas',
+    'cleanupInterval',
+    'demoPlayer',
+    'host',
+    'io',
+    'isTrainingMode',
+    'kioskDataTimer',
+    'poolFencersCache',
+    'poolMatchArenaOverrides',
+    'poolSignaturesCache',
+    'port',
+    'server',
+    'session',
+    'sessionMatchScores',
+    'sessionMatches',
+    'sessionPoolArenas',
+    'tlsOptions',
+    'trainingCustomRules',
+    'unsubscribeDb',
+    'useHttps',
+  ],
+  methods: [
+    'clearArenaCombatState',
+    'getServerUrl',
+    'notifyKioskData',
+    'stopSession',
+    'updateArena',
+  ],
+} as const;

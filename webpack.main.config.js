@@ -25,7 +25,7 @@ const common = {
   // bufferutil / utf-8-validate : dépendances optionnelles natives de ws (socket.io)
   externals: {
     electron: 'commonjs electron',
-    'better-sqlite3': 'commonjs better-sqlite3',
+    'better-sqlite3-multiple-ciphers': 'commonjs better-sqlite3-multiple-ciphers',
     bufferutil: 'commonjs bufferutil',
     'utf-8-validate': 'commonjs utf-8-validate',
   },

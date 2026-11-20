@@ -11,6 +11,7 @@ export const FENCER_TEXT_FIELDS = new Set([
   'nationality',
   'club',
   'region',
+  'department',
   'license',
   'exclusionReason',
 ]);

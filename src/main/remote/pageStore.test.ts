@@ -23,6 +23,9 @@ describe('negotiateEncoding (#1151)', () => {
     expect(negotiateEncoding('identity')).toBeNull();
     expect(negotiateEncoding('gzip;q=0')).toBeNull();
     expect(negotiateEncoding(undefined)).toBeNull();
+    // Noms hostiles : aucun effet sur un prototype (CodeQL js/remote-property-injection)
+    expect(negotiateEncoding('__proto__, toString, constructor')).toBeNull();
+    expect(negotiateEncoding('__proto__;q=1, gzip')).toBe('gzip');
   });
 });
 
@@ -52,6 +55,16 @@ describe('extractInlineScripts', () => {
     expect(out).toContain('type="module" src="/_a/');
     expect(out).toContain('<script type="application/json">{"a":1}</script>');
     expect(hasInlineScript).toBe(true); // le bloc JSON reste inline => repli nonce
+  });
+  it('balise fermante tolérante : </script >, </SCRIPT foo> (CodeQL js/bad-tag-filter)', () => {
+    const assets = new Map<string, StoredBody>();
+    const { html: out } = extractInlineScripts(
+      '<script>var a=1;</script ><script>var b=2;</SCRIPT foo>',
+      assets
+    );
+    expect(assets.size).toBe(2);
+    expect(out).not.toContain('var a');
+    expect(out).not.toContain('var b');
   });
   it('page sans inline restant', () => {
     const assets = new Map<string, StoredBody>();

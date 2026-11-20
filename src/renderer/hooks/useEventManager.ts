@@ -123,7 +123,10 @@ export const useEventManager = () => {
 // Keyboard Event Hook
 // ============================================================================
 
-export const useKeyboardEvents = (keyMap: Record<string, () => void>, dependencies: any[] = []) => {
+export const useKeyboardEvents = (
+  keyMap: Record<string, () => void>,
+  dependencies: unknown[] = []
+) => {
   const { addEventListener, removeEventListener } = useEventManager();
 
   useEffect(() => {
@@ -229,14 +232,14 @@ export const useAutoSave = (
 // IPC Event Hook for Electron
 // ============================================================================
 
-export const useIPCEvents = (eventHandlers: Record<string, (...args: any[]) => void>) => {
-  const listenersRef = useRef<Array<{ channel: string; handler: Function }>>([]);
+export const useIPCEvents = (eventHandlers: Record<string, (...args: unknown[]) => void>) => {
+  const listenersRef = useRef<Array<() => void>>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.electronAPI) {
       // Register all event handlers
       Object.entries(eventHandlers).forEach(([event, handler]) => {
-        const ipcHandler = (...args: any[]) => {
+        const ipcHandler = (...args: unknown[]) => {
           try {
             handler(...args);
           } catch (error) {
@@ -244,32 +247,27 @@ export const useIPCEvents = (eventHandlers: Record<string, (...args: any[]) => v
           }
         };
 
-        // Store for cleanup
-        listenersRef.current.push({ channel: event, handler: ipcHandler });
-
         // Register with electronAPI if method exists
         const methodName =
           `on${event.charAt(0).toUpperCase() + event.slice(1)}` as keyof typeof window.electronAPI;
         const method = window.electronAPI[methodName];
         if (typeof method === 'function') {
-          (method as Function)(ipcHandler);
+          // Le préload retourne la fonction de désabonnement (#1894)
+          const off = (method as Function)(ipcHandler);
+          if (typeof off === 'function') listenersRef.current.push(off as () => void);
         }
       });
     }
 
     // Cleanup function
     return () => {
-      if (typeof window !== 'undefined' && window.electronAPI) {
-        listenersRef.current.forEach(({ channel }) => {
-          try {
-            if (typeof window.electronAPI.removeAllListeners === 'function') {
-              window.electronAPI.removeAllListeners(`menu:${channel}`);
-            }
-          } catch (error) {
-            logger.warn(LogCategory.UI, 'Error removing IPC listener', undefined, error as Error);
-          }
-        });
-      }
+      listenersRef.current.forEach(off => {
+        try {
+          off();
+        } catch (error) {
+          logger.warn(LogCategory.UI, 'Error removing IPC listener', undefined, error as Error);
+        }
+      });
       listenersRef.current = [];
     };
   }, [eventHandlers]);

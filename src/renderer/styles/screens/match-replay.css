@@ -1,0 +1,58 @@
+/* Styles extraits de MatchReplay.tsx (#1895) */
+.match-replay-1.match-replay-1.match-replay-1 {
+  padding: 1rem;
+  color: var(--color-text-light);
+}
+
+.match-replay-2.match-replay-2.match-replay-2 {
+  flex: 1;
+  text-align: center;
+}
+
+.match-replay-3.match-replay-3.match-replay-3 {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.match-replay-4.match-replay-4.match-replay-4 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.match-replay-5.match-replay-5.match-replay-5 {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  min-height: 14px;
+}
+
+.match-replay-6.match-replay-6.match-replay-6 {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.match-replay-7.match-replay-7.match-replay-7 {
+  color: var(--color-text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.match-replay-8.match-replay-8.match-replay-8 {
+  text-align: center;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+.match-replay-9.match-replay-9.match-replay-9 {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.match-replay-10.match-replay-10.match-replay-10 {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}

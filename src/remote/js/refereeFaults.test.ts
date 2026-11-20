@@ -47,7 +47,10 @@ describe('refereeFaults.js', () => {
   });
 
   it('referee.html charge le module et ne redéfinit plus les constantes', () => {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8');
+    const html =
+      fs.readFileSync(path.join(__dirname, '..', 'referee.html'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'refereeApp.js'), 'utf8') +
+      fs.readFileSync(path.join(__dirname, 'refereeAppBase.js'), 'utf8'); // page + script extrait (#1600)
     expect(html).toContain('<script src="/js/refereeFaults.js"></script>');
     expect(html).not.toContain('const FAULT_REASONS');
     expect(html).not.toContain('const PASSIVITY_CARDS');

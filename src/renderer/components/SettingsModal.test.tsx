@@ -21,7 +21,7 @@ beforeEach(() => {
 describe('SettingsModal', () => {
   it("affiche un onglet par section et seulement le contenu de l'onglet actif", () => {
     renderModal();
-    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getAllByRole('tab')).toHaveLength(8);
     expect(screen.getByRole('tab', { name: /Affichage/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Taille du texte')).toBeInTheDocument();
     expect(screen.queryByText('Notifications webhook')).not.toBeInTheDocument();
@@ -57,5 +57,32 @@ describe('SettingsModal', () => {
       target: { value: 'zzzz' },
     });
     expect(screen.getByText('Aucun paramètre ne correspond.')).toBeInTheDocument();
+  });
+});
+
+describe('SettingsModal – export / import des paramètres', () => {
+  it('importe un fichier JSON (logo inclus) et met à jour le stockage', async () => {
+    localStorage.setItem('bellepoule-settings-section', 'system');
+    renderModal();
+    const logo = 'data:image/png;base64,iVBORw0KGgo=';
+    const content = JSON.stringify({
+      format: 'bellepoule-settings',
+      version: 1,
+      exportedAt: '2026-11-06T00:00:00.000Z',
+      settings: { 'bellepoule-logo': logo, 'bellepoule-quick-mouse-scoring': 'true' },
+    });
+    const file = new File([content], 'p.json', { type: 'application/json' });
+    fireEvent.change(screen.getByTestId('settings-import-input'), { target: { files: [file] } });
+    expect(await screen.findByRole('status')).toBeInTheDocument();
+    expect(localStorage.getItem('bellepoule-logo')).toBe(logo);
+    expect(localStorage.getItem('bellepoule-quick-mouse-scoring')).toBe('true');
+  });
+
+  it('signale un fichier invalide', async () => {
+    localStorage.setItem('bellepoule-settings-section', 'system');
+    renderModal();
+    const file = new File(['{}'], 'p.json', { type: 'application/json' });
+    fireEvent.change(screen.getByTestId('settings-import-input'), { target: { files: [file] } });
+    expect(await screen.findByText(/Fichier invalide/)).toBeInTheDocument();
   });
 });

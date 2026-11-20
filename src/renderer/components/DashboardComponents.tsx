@@ -6,6 +6,9 @@
 
 import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { CircleAlert, Sparkles, ThumbsUp, TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { RankMedal } from './common/RankMedal';
 
 // Modern Stat Card with icon and trend
 interface StatCardProps {
@@ -225,12 +228,7 @@ const LeaderboardItem_: React.FC<{
     }
   };
 
-  const getRankIcon = () => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return rank;
-  };
+  const getRankIcon = () => (rank <= 3 ? <RankMedal rank={rank} size={24} /> : rank);
 
   return (
     <div
@@ -293,30 +291,11 @@ const EmptyState_: React.FC<{
     <div className="is-2e1bdd">
       <div className="is-b0a337">{icon}</div>
       <h3 className="is-a646e7">{title}</h3>
-      <p
-        style={{
-          margin: '0 0 24px 0',
-          fontSize: '0.875rem',
-          color: 'var(--color-text-light)',
-          maxWidth: '400px',
-        }}
-      >
-        {description}
-      </p>
+      <p className="dashboard-components-1">{description}</p>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
+          className="dashboard-components-2"
           onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = '#2563eb';
             e.currentTarget.style.transform = 'translateY(-2px)';
@@ -340,10 +319,10 @@ const ConditionWidget_: React.FC<{
   value: string;
 }> = ({ condition, label, value }) => {
   const conditions = {
-    excellent: { color: '#10b981', icon: '✨', label: 'Excellent' },
-    good: { color: '#3b82f6', icon: '👍', label: 'Bon' },
-    fair: { color: '#f59e0b', icon: '⚠️', label: 'Moyen' },
-    poor: { color: '#ef4444', icon: '🔴', label: 'Faible' },
+    excellent: { color: '#10b981', icon: <Icon icon={Sparkles} />, label: 'Excellent' },
+    good: { color: '#3b82f6', icon: <Icon icon={ThumbsUp} />, label: 'Bon' },
+    fair: { color: '#f59e0b', icon: <Icon icon={TriangleAlert} />, label: 'Moyen' },
+    poor: { color: '#ef4444', icon: <Icon icon={CircleAlert} />, label: 'Faible' },
   };
 
   const theme = conditions[condition];
@@ -376,7 +355,7 @@ const ConditionWidget_: React.FC<{
         {theme.icon}
       </div>
       <div>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{label}</p>
+        <p className="dashboard-components-3">{label}</p>
         <p
           style={{
             margin: '2px 0 0 0',

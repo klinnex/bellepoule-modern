@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { FtpPublishConfig } from '../../hooks/useExport';
+import { Button } from '../common/Button';
 
 const STORAGE_KEY = 'bellepoule-ftp-config';
 // Adresse proposée par l'ancien BellePoule : elle part vers GREG (voir isGregUrl), sans identifiant
@@ -101,9 +102,9 @@ const FtpPublishForm: React.FC<FtpPublishFormProps> = ({ onPublish }) => {
           disabled={busy}
         />
       </div>
-      <button className="btn btn-secondary" onClick={handlePublish} disabled={busy || !url.trim()}>
+      <Button onClick={handlePublish} disabled={busy || !url.trim()}>
         {t('exportCenter.ftp_publish')}
-      </button>
+      </Button>
     </div>
   );
 };

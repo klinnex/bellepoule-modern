@@ -81,8 +81,12 @@ prochain match, sa piste et ses résultats.
    **MDP commun** peut s'appliquer à toutes les pistes.
 
 > HTTPS : à la première connexion, chaque appareil affiche un avertissement de
-> certificat. Accepter (comparer l'empreinte si besoin). Changer HTTPS impose un
-> redémarrage du serveur.
+> certificat. Accepter (comparer l'empreinte si besoin).
+
+5. **Recharger** (serveur actif, mode expert, en-tête) : applique interface, port,
+   HTTPS et pistes en attente **sans arrêter la session** (pistes, matchs, scores,
+   jetons arbitres conservés). Les appareils se reconnectent seuls si l'URL ne change
+   pas ; sinon rescanner les QR codes. Port occupé → ancienne écoute rétablie.
 
 ## 3. Pages disponibles
 
@@ -102,9 +106,12 @@ prochain match, sa piste et ses résultats.
 | `/appel` (`/checkin`) | Pointage tireurs/arbitres | mot de passe d'appel obligatoire |
 | `/formateur` | Commentaires des formateurs sur les arbitres | mot de passe formateur (option `trainerCommentsEnabled`) |
 | `/inscription` (`/register`) | Pré-inscription tireur | selon ouverture |
-| `/competition/:id/results` | Résultats publics | libre |
+| `/competition/:id/results` | Résultats publics : classement final, tableau (finale en haut), poules ; liste des tireurs pour la fiche individuelle | libre |
+| `/competition/:id/checkin` | Pointage autonome du tireur (QR « Partager ») : n° de licence + date de naissance | libre ; échecs limités par IP (blocage progressif, comme les mots de passe) |
 
 Alias anglais : `/arena{N}`, `/arena{N}/referee`, `/arena{N}/public`, ...
+
+Mode écran de salle : `?display=1` sur `/kiosk`, `/arene{N}/public`, `/arene{N}/overlay` masque menu, réglages et bascules (lecture seule, routes GET uniquement).
 
 ## 4. Options de la compétition utiles à la saisie distante
 
@@ -171,6 +178,7 @@ Détails : [docs/SECURITE_SAISIE_DISTANTE.md](docs/SECURITE_SAISIE_DISTANTE.md).
 | GET | `/api/bracket`, `/api/competitions/:id/results-data` | Tableau, résultats |
 | GET | `/api/referees/rotation-report` | Rapport de rotation des arbitres |
 | GET/POST | `/api/checkin/*`, `/api/trainer/*`, `/api/register*` | Appel, formateurs, inscription |
+| POST | `/api/competitions/:id/self-checkin` | Pointage autonome (`{ license, birthDate: 'AAAA-MM-JJ' }`), tireur non pointé seulement |
 
 ### Socket.IO
 
@@ -206,3 +214,5 @@ Détails : [docs/SECURITE_SAISIE_DISTANTE.md](docs/SECURITE_SAISIE_DISTANTE.md).
 | Bouton N absent | Carton noir désactivé | Activer `blackCardEnabled` dans les paramètres |
 
 Voir aussi [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
+Appareils de piste Cyrano (UDP 50100) : [docs/CYRANO.md](docs/CYRANO.md).

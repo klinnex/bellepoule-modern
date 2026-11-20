@@ -1,0 +1,17 @@
+name: PR quality
+
+# Mêmes contrôles que le job quality de build-dev.yml, avant merge vers dev
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml

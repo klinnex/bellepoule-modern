@@ -11,9 +11,12 @@ import {
   FencerStatus,
   MatchStatus,
   MatchEventEntry,
+  Referee,
 } from '../types';
 import { getActiveLocale } from './localeFormat';
 import { applyBlackCardRanking } from './blackCardRanking';
+import { GREG_DEFAULT_LEVEL } from './gregPublication';
+import type { TeamResultForFFF } from './fencerExport';
 
 /**
  * Export results as HTML web page
@@ -246,6 +249,15 @@ export interface TableauMatchForXML {
   scoreA: number | null;
   scoreB: number | null;
   isBye: boolean;
+  /** Piste du match (#1328) */
+  arena?: number | null;
+  /** Arbitre principal + arbitres multiples (#1328 : publiés sur GREG) */
+  referee?: { id: string } | null;
+  referees?: Array<{ id: string }>;
+  /** Score cible du tour (#1957) : 10, 15… ; 15 si absent */
+  maxScore?: number;
+  /** Heure de début prévue du match (#1957) → attributs Date / Heure */
+  startTime?: Date | string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -289,8 +301,51 @@ function formatTimeFR(date?: Date | string): string {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+/** Saison sportive (septembre → août) au format fédéral : « 2026 - 2027 » */
+export function sportSeason(date?: Date | string): string {
+  const d = date instanceof Date ? date : date ? new Date(date) : undefined;
+  if (!d || isNaN(d.getTime())) return '';
+  const start = d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+  return `${start} - ${start + 1}`;
+}
+
 /**
- * Export results as BellePoule XML format (CompetitionIndividuelle/CompetitionParEquipe spec).
+ * Attributs d'identification de l'épreuve (#1949). Les valeurs lues dans les fichiers de la
+ * fédération (`settings.federal`, #1938) sont restituées telles quelles : l'extranet rejette
+ * un résultat dont l'ID, la saison, l'arme, le sexe ou la date ne correspondent pas.
+ * Sans données fédérales, `ID` reste vide (jamais l'identifiant interne).
+ */
+export function federalHeaderAttributes(competition: Competition): string {
+  const fed = competition.settings?.federal;
+  const schedule = competition.settings?.schedule;
+  const attr = (name: string, value: string | undefined) => ` ${name}="${escapeXml(value ?? '')}"`;
+  return (
+    attr('Championnat', fed?.championship ?? competition.championship) +
+    attr('ID', fed?.id) +
+    attr('Annee', fed?.season ?? sportSeason(competition.date)) +
+    attr('Arme', fed?.weapon ?? competition.weapon) +
+    attr('Sexe', fed?.gender ?? competition.gender) +
+    (fed?.federation ? attr('Federation', fed.federation) : '') +
+    (fed?.domain ? attr('Domaine', fed.domain) : '') +
+    attr(
+      'Categorie',
+      fed?.category ?? (CATEGORY_LABELS[competition.category] || competition.category)
+    ) +
+    attr('Date', fed?.date ?? formatDateFR(competition.date)) +
+    attr('Appel', schedule?.checkIn ?? formatTimeFR(competition.checkInTime)) +
+    attr('Scratch', schedule?.scratch ?? formatTimeFR(competition.scratchTime)) +
+    attr('Debut', schedule?.start ?? formatTimeFR(competition.startTime))
+  );
+}
+
+/** Licence nationale telle qu'Engarde la renvoie (zéros initiaux conservés) */
+export function federalLicenceAttributes(license?: string): string {
+  const lic = escapeXml(license || '');
+  return lic ? ` LicenceNat="${lic}" IdOrigine="${lic}"` : '';
+}
+
+/**
+ * Export results as BellePoule XML format (CompetitionIndividuelle/CompetitionParEquipes spec).
  * Structure : racine → Tireurs → Equipes → Arbitres → Phases (TourDePoules, PhaseDeTableaux, ClassementGeneral).
  */
 export function exportResultsXMLFFE(
@@ -299,7 +354,8 @@ export function exportResultsXMLFFE(
   finalResults: any[],
   pools?: Pool[],
   tableauMatches?: TableauMatchForXML[],
-  fencers?: Fencer[]
+  fencers?: Fencer[],
+  referees?: Referee[]
 ): string {
   // Carton noir (#1418) : rang NULL (attribut vide), les suivants remontent, ex aequo départagés
   // par le rang de poules. `fencers` (liste courante) rafraîchit statut / motif des instantanés.
@@ -324,7 +380,33 @@ export function exportResultsXMLFFE(
     finalRankMap.set(r.fencer.id, r.rank);
   }
 
-  const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
+  // Arbitres (#1328) : liste courante prioritaire sur l'instantané de la compétition
+  const allReferees = new Map<string, Referee>();
+  for (const a of [...(competition.referees ?? []), ...(referees ?? [])]) allReferees.set(a.id, a);
+  // Rôle FIE 3.3 : P = principal, A = deuxième arbitre (le premier de la liste est P)
+  const refereeRefs = (list: Array<{ id: string } | null | undefined>): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const r of list) {
+      const ref = r ? allReferees.get(r.id)?.ref : undefined;
+      if (r && ref != null && !seen.has(r.id)) {
+        seen.add(r.id);
+        const role = out.length === 0 ? 'P' : 'A';
+        out.push(`<Arbitre REF="${ref}" Role="${role}"/>`);
+      }
+    }
+    return out;
+  };
+  // Latéralité FIE : G = gaucher, D = droitier
+  const lateralite = (f: Fencer): string => (f.handedness === 'L' ? 'G' : 'D');
+  // Date / Heure du match (#1957) : jj.mm.aaaa / HH:MM
+  const matchDateAttrs = (t?: Date | string): string => {
+    const date = formatDateFR(t);
+    if (!date) return '';
+    return ` Date="${date}" Heure="${formatTimeFR(t)}"`;
+  };
+
+  const rootTag = competition.isTeamEvent ? 'CompetitionParEquipes' : 'CompetitionIndividuelle';
   const settings = competition.settings;
   const phaseEnCours =
     tableauMatches && tableauMatches.length > 0 ? 4 : pools && pools.length > 0 ? 2 : 1;
@@ -333,19 +415,11 @@ export function exportResultsXMLFFE(
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(
     `<${rootTag}` +
+      ` Version="3.3"` +
       ` Couleur="${escapeXml(competition.color || '')}"` +
-      ` Championnat="${escapeXml(competition.championship || '')}"` +
-      ` ID="${escapeXml(competition.id)}"` +
-      ` Annee="${competition.date instanceof Date ? competition.date.getFullYear() : new Date(competition.date).getFullYear()}"` +
-      ` Arme="${escapeXml(competition.weapon)}"` +
-      ` Sexe="${escapeXml(competition.gender)}"` +
+      federalHeaderAttributes(competition) +
       ` Organisateur="${escapeXml(competition.organizer || '')}"` +
-      ` Categorie="${escapeXml(CATEGORY_LABELS[competition.category] || competition.category)}"` +
-      ` Niveau=""` +
-      ` Date="${formatDateFR(competition.date)}"` +
-      ` Appel="${formatTimeFR(competition.checkInTime)}"` +
-      ` Scratch="${formatTimeFR(competition.scratchTime)}"` +
-      ` Debut="${formatTimeFR(competition.startTime)}"` +
+      ` Niveau="${escapeXml(settings?.gregLevel ?? GREG_DEFAULT_LEVEL)}"` +
       ` TitreLong="${escapeXml(competition.title)}"` +
       ` URLorganisateur="${escapeXml(competition.organizerUrl || '')}"` +
       ` ScoreAleatoire="${settings?.randomScore ? '1' : '0'}"` +
@@ -373,11 +447,12 @@ export function exportResultsXMLFFE(
         ` Ligue="${escapeXml(f.region || '')}"` +
         ` Club="${escapeXml(f.club || '')}"` +
         ` Licence="${escapeXml(f.license || '')}"` +
+        federalLicenceAttributes(f.license) +
         ` Ranking="${f.ranking ?? 0}"` +
         ` Exporte="0"` +
         ` Statut="${escapeXml(f.status)}"` +
         ` Points=""` +
-        ` Lateralite=""` +
+        ` Lateralite="${lateralite(f)}"` +
         ` Departement=""` +
         ` RangPoules="${r.rank}"` +
         ` RangFinal="${finalRank}"/>`
@@ -388,7 +463,7 @@ export function exportResultsXMLFFE(
   lines.push(' <Equipes/>');
 
   lines.push(' <Arbitres>');
-  for (const a of competition.referees || []) {
+  for (const a of allReferees.values()) {
     lines.push(
       `  <Arbitre` +
         ` ID="${a.ref}"` +
@@ -429,7 +504,9 @@ export function exportResultsXMLFFE(
       }
     }
     for (const pool of pools) {
-      lines.push(`   <Poule ID="${pool.number}">`);
+      lines.push(
+        `   <Poule ID="${pool.number}"${pool.strip != null ? ` Piste="${pool.strip}"` : ''}>`
+      );
       pool.fencers.forEach((f, idx) => {
         const pr = pool.ranking.find(r => r.fencer.id === f.id);
         lines.push(
@@ -438,6 +515,7 @@ export function exportResultsXMLFFE(
             ` TD="${pr?.touchesScored ?? 0}" TR="${pr?.touchesReceived ?? 0}" RangPoule="${pr?.rank ?? ''}"/>`
         );
       });
+      for (const a of refereeRefs(pool.referees ?? [])) lines.push(`    ${a}`);
       let matchId = 1;
       for (const match of pool.matches) {
         if (!match.fencerA || !match.fencerB || match.status !== MatchStatus.FINISHED) continue;
@@ -461,13 +539,14 @@ export function exportResultsXMLFFE(
               : sB?.isVictory
                 ? 'V'
                 : 'D';
-        lines.push(`    <Match ID="${matchId++}">`);
+        lines.push(`    <Match ID="${matchId++}"${matchDateAttrs(match.startTime)}>`);
         lines.push(
           `     <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`
         );
         lines.push(
           `     <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`
         );
+        for (const a of refereeRefs([match.referee])) lines.push(`     ${a}`);
         lines.push(`    </Match>`);
       }
       lines.push(`   </Poule>`);
@@ -476,7 +555,7 @@ export function exportResultsXMLFFE(
   }
 
   if (tableauMatches && tableauMatches.length > 0) {
-    const tableScoreMax = 15;
+    const tableScoreMax = tableauMatches.find(m => m.maxScore != null)?.maxScore ?? 15;
     lines.push(`  <PhaseDeTableaux PhaseID="3" ScoreMax="${tableScoreMax}">`);
     for (const r of poolRanking) {
       const finalRank = finalRankMap.get(r.fencer.id) ?? '';
@@ -494,23 +573,27 @@ export function exportResultsXMLFFE(
       );
       matchesOfRound.forEach((m, idx) => {
         // Exempt (#1328) : le vainqueur par exempt est placé dans sa case, qualifié sans adversaire
+        // Exempt (#1957) : deux <Tireur>, celui de l'exempt reste vide (ni score ni statut)
         if (!m.fencerA || !m.fencerB) {
           const solo = m.fencerA ?? m.fencerB;
           if (!solo) return;
-          lines.push(`     <Match ID="${idx + 1}">`);
+          lines.push(`     <Match ID="${idx + 1}"${matchDateAttrs(m.startTime)}>`);
           lines.push(`      <Tireur REF="${solo.ref}" Score="0" Statut="Q"/>`);
+          lines.push(`      <Tireur/>`);
           lines.push(`     </Match>`);
           return;
         }
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
-        lines.push(`     <Match ID="${idx + 1}">`);
+        const piste = m.arena != null ? ` Piste="${m.arena}"` : '';
+        lines.push(`     <Match ID="${idx + 1}"${piste}${matchDateAttrs(m.startTime)}>`);
         lines.push(
           `      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`
         );
         lines.push(
           `      <Tireur REF="${m.fencerB.ref}" Score="${m.scoreB ?? 0}" Statut="${stB}"/>`
         );
+        for (const a of refereeRefs([m.referee, ...(m.referees ?? [])])) lines.push(`      ${a}`);
         lines.push(`     </Match>`);
       });
       lines.push(`    </Tableau>`);
@@ -522,6 +605,76 @@ export function exportResultsXMLFFE(
   lines.push(`  <ClassementGeneral PhaseID="4"/>`);
   lines.push(' </Phases>');
   lines.push(`</${rootTag}>`);
+  return lines.join('\n');
+}
+
+/**
+ * Résultats d'une épreuve par équipes en XML (#1949), structure des fichiers Engarde acceptés par
+ * l'extranet : racine `CompetitionParEquipes`, équipes avec nom (celui de la fédération),
+ * classement final et tireurs imbriqués (licence en `LicenceNat` / `IdOrigine`), puis arbitres.
+ */
+export function exportTeamResultsXMLFFE(
+  competition: Competition,
+  teams: TeamResultForFFF[],
+  referees: Referee[] = []
+): string {
+  const lines: string[] = ['<?xml version="1.0" encoding="UTF-8"?>'];
+  lines.push(
+    `<CompetitionParEquipes` +
+      federalHeaderAttributes(competition) +
+      ` Organisateur="${escapeXml(competition.organizer || '')}"` +
+      ` TitreLong="${escapeXml(competition.title)}"` +
+      ` TitreCourt="${escapeXml(competition.shortTitle || '')}"` +
+      ` Lieu="${escapeXml(competition.location || '')}"` +
+      ` TailleMinimaleEquipe="${competition.settings?.minTeamSize ?? 3}">`
+  );
+  const sorted = [...teams].sort(
+    (a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER)
+  );
+  lines.push(' <Equipes>');
+  sorted.forEach((team, index) => {
+    const first = team.fencers[0];
+    lines.push(
+      `  <Equipe ID="${index + 1}"` +
+        ` Nom="${escapeXml(team.name)}"` +
+        ` Nation="${escapeXml(first?.nationality || 'FRA')}"` +
+        ` Ligue="${escapeXml(first?.region || '')}"` +
+        ` Club="${escapeXml(team.club || first?.club || '')}"` +
+        ` Classement="${team.rank ?? ''}">`
+    );
+    for (const f of team.fencers) {
+      lines.push(
+        `   <Tireur` +
+          ` ID="${f.ref}"` +
+          ` Nom="${escapeXml(f.lastName)}"` +
+          ` Prenom="${escapeXml(f.firstName)}"` +
+          ` DateNaissance="${formatDateFR(f.birthDate)}"` +
+          ` Sexe="${escapeXml(f.gender)}"` +
+          ` Nation="${escapeXml(f.nationality || '')}"` +
+          ` Ligue="${escapeXml(f.region || '')}"` +
+          ` Club="${escapeXml(f.club || '')}"` +
+          ` Licence="${escapeXml(f.license || '')}"` +
+          federalLicenceAttributes(f.license) +
+          `/>`
+      );
+    }
+    lines.push('  </Equipe>');
+  });
+  lines.push(' </Equipes>');
+  lines.push(' <Arbitres>');
+  for (const a of referees) {
+    lines.push(
+      `  <Arbitre ID="${a.ref}"` +
+        ` Nom="${escapeXml(a.lastName)}"` +
+        ` Prenom="${escapeXml(a.firstName)}"` +
+        ` Nation="${escapeXml(a.nationality || '')}"` +
+        ` Ligue="${escapeXml(a.region || '')}"` +
+        ` Club="${escapeXml(a.club || '')}"` +
+        ` Licence="${escapeXml(a.license || '')}"/>`
+    );
+  }
+  lines.push(' </Arbitres>');
+  lines.push('</CompetitionParEquipes>');
   return lines.join('\n');
 }
 

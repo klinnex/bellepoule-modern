@@ -1,6 +1,6 @@
 # Captures d'écran
 
-Aperçu des principaux écrans et menus de BellePoule Modern, sur une compétition de démonstration (épée senior, 18 tireurs, 3 poules, tableau de 32).
+Aperçu des principaux écrans et menus de BellePoule Modern, sur une compétition de démonstration (épée senior, 18 tireurs, 3 poules, tableau de 32), une journée à deux épreuves et un club de démonstration.
 
 > Captures générées automatiquement : `npm run build && npm run docs:screenshots` (sous Linux sans écran : `xvfb-run -a npm run docs:screenshots`). Script : [`scripts/capture-screenshots.js`](../scripts/capture-screenshots.js).
 
@@ -22,6 +22,14 @@ Aperçu des principaux écrans et menus de BellePoule Modern, sur une compétiti
 14. [Paramètres](#paramètres)
 15. [Mode Entraînement](#mode-entraînement)
 16. [Palette de commandes](#palette-de-commandes)
+17. [Appareils de piste (Cyrano)](#appareils-de-piste-cyrano)
+18. [Tableau de bord analytique](#tableau-de-bord-analytique)
+19. [Salles et pistes](#salles-et-pistes)
+20. [Paramètres Système (agent IA, sauvegardes)](#paramètres-système-agent-ia-sauvegardes)
+21. [Journée multi-épreuves](#journée-multi-épreuves)
+22. [Mode Club : membres](#mode-club--membres)
+23. [Mode Club : séance](#mode-club--séance)
+24. [Mode Club : statistiques](#mode-club--statistiques)
 
 ## Accueil
 
@@ -79,7 +87,7 @@ Phase **Résultats** : podium et classement final.
 
 ## Saisie distante
 
-Phase **Saisie distante** : pistes, vues kiosque, réseau, HTTPS, démarrage du serveur pour les tablettes. Voir [REMOTE_SCORE_GUIDE.md](../REMOTE_SCORE_GUIDE.md).
+Bouton **Saisie distante / Piste** du bandeau de la compétition : serveur démarré, volets **Basique** / **Expert**, pistes (intervalle, plan, mots de passe), kiosque, thème global, écrans connectés. Voir [REMOTE_SCORE_GUIDE.md](../REMOTE_SCORE_GUIDE.md).
 
 ![Saisie distante](screenshots/10-saisie-distante.png)
 
@@ -103,7 +111,7 @@ Barre supérieure : **QR Code WiFi** ([WIFI_QR_GUIDE.md](WIFI_QR_GUIDE.md)), **T
 
 ## Paramètres
 
-Langue, thème, taille du texte, logo organisateur, exports PDF, saisie rapide souris…
+Sections Affichage (langue, thème, taille du texte, densité), Saisie des scores, Documents & PDF, Arbitrage, Notifications, Confidentialité (RGPD), Salles et pistes, Système ; recherche dans les paramètres.
 
 ![Paramètres](screenshots/14-parametres.png)
 
@@ -115,6 +123,54 @@ Arme, nombre de pistes, durée du combat, interface réseau.
 
 ## Palette de commandes
 
-`Ctrl+K` : recherche de compétitions et d'actions.
+`Ctrl+K` : recherche de compétitions et d'actions, navigation entre phases (`Ctrl+1…8`). Voir [COMMANDES.md](COMMANDES.md).
 
 ![Palette de commandes](screenshots/16-palette-commandes.png)
+
+## Appareils de piste (Cyrano)
+
+Saisie distante, onglet **Expert**, volet **Cyrano EFP1 / EFP1.1** : port UDP, pistes ajoutées en lot (IP, arène, protocole, maître / esclave), journal des trames. Voir [CYRANO.md](CYRANO.md).
+
+![Appareils de piste](screenshots/17-appareils-piste.png)
+
+## Tableau de bord analytique
+
+Menu **⋯** → **Analytics** : performances, statistiques, graphiques, organisation (retards), arbitres, journal ; **Rapport PDF** post-tournoi.
+
+![Tableau de bord analytique](screenshots/18-analytics.png)
+
+## Salles et pistes
+
+Paramètres → **Salles et pistes** : salles du poste et leurs pistes, réutilisées par les journées, les arènes et les appareils Cyrano.
+
+![Salles et pistes](screenshots/19-salles-pistes.png)
+
+## Paramètres Système (agent IA, sauvegardes)
+
+Paramètres → **Système** : canal de mise à jour, proxy, **Agent IA (MCP)** local et désactivé par défaut ([MCP.md](MCP.md)), dossier des sauvegardes, export / import des paramètres.
+
+![Paramètres Système](screenshots/20-parametres-systeme.png)
+
+## Journée multi-épreuves
+
+Accueil → **Journées** : épreuves d'une même salle regroupées, pistes de la salle, arbitres saisis une fois et reportés selon leur arme. Voir [JOURNEE_MULTI_EPREUVES.md](JOURNEE_MULTI_EPREUVES.md).
+
+![Journée multi-épreuves](screenshots/21-journee-multi-epreuves.png)
+
+## Mode Club : membres
+
+Bouton **Club** : espace permanent du club, membres (cartes à code, photo webcam, import / export), maîtres d'armes, séances, statistiques, exercices, inventaire. Voir [MODE_CLUB.md](MODE_CLUB.md).
+
+![Mode Club : membres](screenshots/22-mode-club.png)
+
+## Mode Club : séance
+
+Séance ouverte : scan des cartes, pointage, plan de cours, saisie distante des combats libres, pistes.
+
+![Mode Club : séance](screenshots/23-club-seances.png)
+
+## Mode Club : statistiques
+
+Classement du club par période et par catégorie d'âge, à partir des combats des séances.
+
+![Mode Club : statistiques](screenshots/24-club-statistiques.png)

@@ -1,0 +1,9 @@
+/* Redimensionnement manuel en cours (#1652, services/resizeGuard.ts) : rendu allégé */
+html[data-resizing] *,
+html[data-resizing] *::before,
+html[data-resizing] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation-play-state: paused !important;
+  transition: none !important;
+}

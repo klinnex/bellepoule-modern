@@ -1,4 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock d'Electron : sans lui, l'import charge node_modules/electron, dont le
+// postinstall télécharge le binaire (échec CI si GitHub renvoie 503/504).
+vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }));
+
 import { countPdfPages } from './pdfPageCount';
 
 describe('countPdfPages', () => {

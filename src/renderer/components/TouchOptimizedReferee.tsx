@@ -19,11 +19,13 @@ import {
   checkChallengerSuddenDeath,
   isValidSuddenDeathTouch,
   getSuddenDeathOvertimeDuration,
-  drawWinner,
-  isSupplementaryTime,
 } from '../../shared/utils/suddenDeath';
 import TiebreakerAnimation from './TiebreakerAnimation';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
+import { ArrowUpRight, Layers, Mic } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { CardIcon } from './common/CardIcon';
+import type { SpeechRecognitionWindow } from '../utils/speechRecognition';
 
 interface TouchOptimizedRefereeProps {
   match: Match;
@@ -48,7 +50,7 @@ function chipFromEntry(
 ): {
   key: string;
   name: string;
-  delta: string;
+  delta: React.ReactNode;
   score: string;
   bg: string;
   border: string;
@@ -78,14 +80,7 @@ function chipFromEntry(
   }
 
   if (entry.eventType === 'card') {
-    const icon =
-      entry.cardType === 'yellow'
-        ? '🟨'
-        : entry.cardType === 'red'
-          ? '🟥'
-          : entry.cardType === 'black'
-            ? '⬛'
-            : '🃏';
+    const icon = entry.cardType ? <CardIcon type={entry.cardType} /> : <Icon icon={Layers} />;
     return {
       key: entry.id,
       name,
@@ -101,7 +96,7 @@ function chipFromEntry(
     return {
       key: entry.id,
       name,
-      delta: '↗',
+      delta: <Icon icon={ArrowUpRight} />,
       score: entry.exitType ?? 'sortie',
       bg: '#fef3c7',
       border: '#f59e0b',
@@ -250,12 +245,14 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
   useEffect(() => {
     if (!voiceEnabled || !onVoiceCommand) return;
 
-    const recognition = new (window as any).webkitSpeechRecognition();
+    const recognition = new (
+      window as unknown as SpeechRecognitionWindow
+    ).webkitSpeechRecognition!();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'fr-FR';
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = event => {
       const last = event.results.length - 1;
       const command = event.results[last][0].transcript.toLowerCase();
 
@@ -674,15 +671,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                     <span style={{ fontSize: '1rem', fontWeight: 800, color: chip.textColor }}>
                       {chip.delta}
                     </span>
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#6b7280',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {chip.score}
-                    </span>
+                    <span className="touch-optimized-referee-1">{chip.score}</span>
                   </div>
                 ))}
               </div>
@@ -727,7 +716,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                 voiceEnabled ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'
               }`}
             >
-              🎤 {voiceEnabled ? 'Actif' : 'Inactif'}
+              <Icon icon={Mic} /> {voiceEnabled ? 'Actif' : 'Inactif'}
             </button>
             {isListening && (
               <div className="flex items-center space-x-2">

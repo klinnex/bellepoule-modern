@@ -31,7 +31,10 @@ export function isAllowedExternalUrl(url: string): boolean {
   return u.protocol === 'http:' && PRIVATE_HOST.test(u.hostname);
 }
 
-/** Permission caméra (getUserMedia vidéo) depuis l'application uniquement */
+/**
+ * Permissions accordées à l'application uniquement : caméra (getUserMedia vidéo, photo tireur)
+ * et écriture presse-papier (boutons « Copier », #1858). Lecture presse-papier refusée.
+ */
 export function isPermissionAllowed(
   permission: string,
   requestingUrl: string,
@@ -39,9 +42,21 @@ export function isPermissionAllowed(
   mediaTypes?: string[]
 ): boolean {
   if (!isApp(requestingUrl)) return false;
+  if (permission === 'clipboard-sanitized-write') return true;
   if (permission !== 'media' && permission !== 'camera') return false;
   // Jamais de micro : seule la vidéo est utile (photo tireur)
   return !mediaTypes || mediaTypes.every(t => t === 'video');
+}
+
+/**
+ * Origine à contrôler dans setPermissionCheckHandler. En production le bundle est servi en
+ * `file://` : Chromium rapporte alors `file://` (sans chemin), qui n'est pas une URL de page.
+ * On retient l'URL de la page elle-même, sinon la caméra (Mode Club, photo tireur) est refusée
+ * avant même la demande de permission.
+ */
+export function permissionCheckUrl(requestingOrigin: string | undefined, pageUrl: string): string {
+  if (!requestingOrigin || /^file:\/\/\/?$/.test(requestingOrigin)) return pageUrl;
+  return requestingOrigin;
 }
 
 /**

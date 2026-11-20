@@ -77,9 +77,12 @@ export function clearPendingUpdate(userDataDir: string): void {
 
 /**
  * Lit et valide le JSON. Retourne null si absent ou non fiable
- * (JSON invalide, champs manquants, chemin hors dossier privé, propriétaire/droits invalides).
+ * (JSON invalide, champs manquants, chemin hors dossier privé ou répertoire de téléchargement choisi, propriétaire/droits invalides).
  */
-export function readPendingUpdate(userDataDir: string): PendingUpdateData | null {
+export function readPendingUpdate(
+  userDataDir: string,
+  extraAllowedDir?: string
+): PendingUpdateData | null {
   const jsonPath = getPendingJsonPath(userDataDir);
   try {
     if (!fs.existsSync(jsonPath)) return null;
@@ -94,7 +97,8 @@ export function readPendingUpdate(userDataDir: string): PendingUpdateData | null
       return null;
     }
     const dir = path.join(userDataDir, PENDING_UPDATE_DIR);
-    if (!isInsideDir(dir, raw.path)) return null;
+    if (!isInsideDir(dir, raw.path) && !(extraAllowedDir && isInsideDir(extraAllowedDir, raw.path)))
+      return null;
     if (!isOwnedAndPrivate(raw.path)) return null;
     return {
       version: raw.version,

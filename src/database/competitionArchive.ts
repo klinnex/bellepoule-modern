@@ -6,7 +6,7 @@
  * Licensed under GPL-3.0
  */
 
-import type Database from 'better-sqlite3';
+import type Database from 'better-sqlite3-multiple-ciphers';
 
 type Db = Database.Database;
 
@@ -77,10 +77,20 @@ const pruneForeignKeyViolations = (db: Db): void => {
  * Supprime poules, matchs et signatures des autres compétitions : ces tables n'ont
  * pas de `competition_id`. Sans cela, le .bpm embarque les matchs des autres
  * compétitions et leur ouverture écrase leurs scores dans la base active.
+ * Les matchs de tableau (`table_id` = compétition) sont conservés même sans tireur
+ * (tours à venir, places vides) : ils font partie de l'état à restaurer.
  */
-const pruneUnownedRows = (db: Db): void => {
+const pruneUnownedRows = (db: Db, competitionId: string): void => {
   const tables = new Set(listTables(db, 'main'));
   const has = (...names: string[]) => names.every(n => tables.has(n));
+  if (has('event_days', 'competitions')) {
+    // Journée multi-épreuves (#1714) : seule celle de la compétition gardée reste
+    const kept = 'SELECT event_day_id FROM competitions WHERE event_day_id IS NOT NULL';
+    if (has('event_day_referees')) {
+      db.exec(`DELETE FROM event_day_referees WHERE event_day_id NOT IN (${kept})`);
+    }
+    db.exec(`DELETE FROM event_days WHERE id NOT IN (${kept})`);
+  }
   if (has('pools', 'phases')) {
     db.exec('DELETE FROM pools WHERE phase_id NOT IN (SELECT id FROM phases)');
   }
@@ -94,14 +104,16 @@ const pruneUnownedRows = (db: Db): void => {
     const bracket = has('bracket_nodes')
       ? 'OR id IN (SELECT match_id FROM bracket_nodes WHERE match_id IS NOT NULL)'
       : '';
-    db.exec(
+    const hasTableId = listColumns(db, 'main', 'matches').includes('table_id');
+    db.prepare(
       `DELETE FROM matches WHERE NOT (
+         ${hasTableId ? 'COALESCE(table_id = ?, 0) OR' : ''}
          COALESCE(pool_id IN (SELECT id FROM pools), 0)
          OR COALESCE(fencer_a_id IN (SELECT id FROM fencers), 0)
          OR COALESCE(fencer_b_id IN (SELECT id FROM fencers), 0)
          ${bracket}
        )`
-    );
+    ).run(...(hasTableId ? [competitionId] : []));
   }
   if (has('de_match_signatures', 'matches')) {
     db.exec('DELETE FROM de_match_signatures WHERE match_id NOT IN (SELECT id FROM matches)');
@@ -128,7 +140,7 @@ export function keepOnlyCompetition(db: Db, competitionId: string): void {
       }
     }
     db.prepare('DELETE FROM competitions WHERE id != ?').run(competitionId);
-    pruneUnownedRows(db);
+    pruneUnownedRows(db, competitionId);
     pruneForeignKeyViolations(db);
   })();
 }

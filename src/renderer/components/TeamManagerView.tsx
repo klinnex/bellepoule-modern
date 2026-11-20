@@ -13,7 +13,7 @@ import {
   TeamMatchCardRow,
 } from '../../features/teams/types/team.types';
 import {
-  generateRelayOrder,
+  relayOrderFor,
   getTeamTargetRule,
   calculateTeamPoolRanking,
   calculateTableSize,
@@ -45,6 +45,10 @@ import { useConfirm } from './ConfirmDialog';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
+import { Button } from './common/Button';
+import { TriangleAlert, Users } from 'lucide-react';
+import EmptyState from './common/EmptyState';
+import { Icon } from './common/Icon';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
 
@@ -79,7 +83,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
   const boutCap = getLaserArenaBoutCap();
   const tableId = competition.id; // Un seul tableau équipes par compétition
   const { confirm } = useConfirm();
-  const { showToast } = useToast();
+  const { showToast, showUndoToast } = useToast();
   const { t } = useTranslation();
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [matches, setMatches] = useState<TeamMatchRow[]>([]);
@@ -201,7 +205,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
               .filter(f => !f.isReserve)
               .sort((x, y) => x.teamOrder - y.teamOrder);
             if (mainA.length >= teamSize && mainB.length >= teamSize) {
-              const relayOrder = generateRelayOrder(teamSize);
+              const relayOrder = relayOrderFor(teamSize, competition.weapon);
               for (let k = 0; k < relayOrder.length; k++) {
                 const [oi, oj] = relayOrder[k];
                 await window.electronAPI.db.createTeamBout(
@@ -286,9 +290,20 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     await reload();
   };
 
-  const handleRemoveFencer = async (teamId: string, fencerId: string) => {
+  const handleRemoveFencer = async (
+    teamId: string,
+    fencerId: string,
+    teamOrder: number,
+    isReserve: boolean
+  ) => {
     await window.electronAPI.db.removeTeamFencer(teamId, fencerId);
     await reload();
+    // Retrait annulable sans confirmation modale (#1535)
+    showUndoToast(t('teamManager.fencer_removed'), () => {
+      void window.electronAPI.db
+        .upsertTeamFencer(teamId, fencerId, teamOrder, isReserve)
+        .then(reload);
+    });
   };
 
   // ── Générer poule (round-robin) ───────────────────────────────────────────────
@@ -324,7 +339,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           .filter(f => !f.isReserve)
           .sort((x, y) => x.teamOrder - y.teamOrder);
         if (mainA.length >= teamSize && mainB.length >= teamSize) {
-          const relayOrder = generateRelayOrder(teamSize);
+          const relayOrder = relayOrderFor(teamSize, competition.weapon);
           for (let k = 0; k < relayOrder.length; k++) {
             const [oi, oj] = relayOrder[k];
             await window.electronAPI.db.createTeamBout(
@@ -357,7 +372,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
         const mainB = b.fencers.filter(f => !f.isReserve).sort((x, y) => x.teamOrder - y.teamOrder);
 
         if (mainA.length >= teamSize && mainB.length >= teamSize) {
-          const relayOrder = generateRelayOrder(teamSize);
+          const relayOrder = relayOrderFor(teamSize, competition.weapon);
           for (let k = 0; k < relayOrder.length; k++) {
             const [oi, oj] = relayOrder[k];
             await window.electronAPI.db.createTeamBout(
@@ -530,6 +545,45 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     }
   };
 
+  // Résultats pour la fédération (#1949) : classement final, noms d'équipe et licences conservés
+  const handleExportFederal = async (format: 'fff' | 'xml') => {
+    try {
+      const [{ computeTeamFinalRanking }, fff, xml] = await Promise.all([
+        import('../../shared/utils/pdfExport/teamPdf'),
+        import('../../shared/utils/fencerExport'),
+        import('../../shared/utils/multiFormatExport'),
+      ]);
+      const { rows } = computeTeamFinalRanking(rankedTeamsForBracket, tableauMatches);
+      const results = rows.map(r => ({
+        rank: r.rank,
+        name: r.team.name,
+        club: r.team.club,
+        fencers: [...r.team.fencers]
+          .sort((a, b) => Number(a.isReserve) - Number(b.isReserve) || a.teamOrder - b.teamOrder)
+          .map(tf => fencerById.get(tf.fencerId))
+          .filter((f): f is Fencer => !!f),
+      }));
+      const blob =
+        format === 'fff'
+          ? new Blob(
+              [fff.encodeFFFWin1252(fff.exportTeamResultsToFFF(competition, results)) as BlobPart],
+              { type: 'text/plain;charset=windows-1252' }
+            )
+          : new Blob(
+              [xml.exportTeamResultsXMLFFE(competition, results, competition.referees ?? [])],
+              { type: 'application/xml' }
+            );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   const toolbarButtons = (
     <>
       {view === 'teams' && teams.length >= 2 && (
@@ -599,7 +653,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           </div>
 
           {teams.length === 0 && (
-            <div className="text-center text-gray-400 py-10">{t('teamManager.no_team')}</div>
+            <EmptyState icon={<Icon icon={Users} />} title={t('teamManager.no_team')} />
           )}
 
           {/* Liste équipes */}
@@ -629,7 +683,8 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                     ) : (
                       <span className="ml-2 text-xs text-yellow-600 font-medium">
-                        ⚠ {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
+                        <Icon icon={TriangleAlert} />{' '}
+                        {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
                       </span>
                     )}
                   </div>
@@ -641,6 +696,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       {isEditing ? 'Fermer' : 'Gérer'}
                     </button>
                     <button
+                      aria-label={t('actions.delete')}
                       onClick={() => handleDeleteTeam(team.id)}
                       className="text-xs px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
                     >
@@ -662,7 +718,10 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                       {isEditing && (
                         <button
-                          onClick={() => handleRemoveFencer(team.id, f.fencerId)}
+                          aria-label={t('actions.remove')}
+                          onClick={() =>
+                            handleRemoveFencer(team.id, f.fencerId, f.teamOrder, false)
+                          }
                           className="text-red-400 hover:text-red-600 ml-1"
                         >
                           ✕
@@ -681,7 +740,10 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                       {isEditing && (
                         <button
-                          onClick={() => handleRemoveFencer(team.id, reserve.fencerId)}
+                          aria-label={t('actions.remove')}
+                          onClick={() =>
+                            handleRemoveFencer(team.id, reserve.fencerId, reserve.teamOrder, true)
+                          }
                           className="text-red-400 hover:text-red-600 ml-1"
                         >
                           ✕
@@ -787,7 +849,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           selectedReason={selectedReason}
           onSelectReason={setSelectedReason}
           onAddCard={handleAddCard}
-          emptyLabel='Aucun match — cliquez sur "Générer la poule" dans l&apos;onglet Équipes.'
+          emptyLabel={t('teamManager.no_pool_match')}
           isLaserArena={isLaserArena}
           boutCap={boutCap}
           matchCards={matchCards}
@@ -830,9 +892,8 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       {view === 'ranking' && isLaserArena && (
         <div>
           {laserRankings.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-              <button
-                className="btn btn-secondary"
+            <div className="team-manager-view-1">
+              <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {
                   const header = 'Rang,Équipe,Club,V,D,Points+,Points-,Ratio,Égalité\n';
@@ -863,7 +924,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 }}
               >
                 {t('teamManager.export_csv')}
-              </button>
+              </Button>
             </div>
           )}
           {laserRankings.length === 0 ? (
@@ -914,7 +975,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                   >
                     <td className="px-3 py-2 text-center font-bold text-gray-400">
                       {i + 1}
-                      {r.tied && <span className="text-yellow-500 ml-1">⚠</span>}
+                      {r.tied && (
+                        <span className="text-yellow-500 ml-1">
+                          <Icon icon={TriangleAlert} />
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2 font-semibold text-gray-900">
                       {r.team.name}
@@ -943,9 +1008,8 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       {view === 'ranking' && !isLaserArena && (
         <div>
           {fieRankings.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-              <button
-                className="btn btn-secondary"
+            <div className="team-manager-view-1">
+              <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {
                   const header = 'Rang,Équipe,Club,V,D,RelaisG,RelaisP,Ind.,Touches+,Touches-\n';
@@ -975,7 +1039,19 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 }}
               >
                 {t('teamManager.export_csv')}
-              </button>
+              </Button>
+              <Button
+                className="team-manager-export-btn"
+                onClick={() => void handleExportFederal('xml')}
+              >
+                {t('results.export_xml_ffe')}
+              </Button>
+              <Button
+                className="team-manager-export-btn"
+                onClick={() => void handleExportFederal('fff')}
+              >
+                {t('results.export_fff')}
+              </Button>
             </div>
           )}
           {fieRankings.length === 0 ? (

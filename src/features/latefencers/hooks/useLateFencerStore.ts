@@ -10,6 +10,9 @@ import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/shallow';
 import { Fencer } from '../../shared/types';
 
+/** Intervalle de surveillance partagé, rangé sur `window` pour le nettoyage. */
+type LateFencerWindow = Window & { __lateFencerInterval?: ReturnType<typeof setInterval> };
+
 export interface LateFencer {
   fencerId: string;
   fencer: Fencer;
@@ -128,12 +131,12 @@ export const useLateFencerStore = create<LateFencerState & LateFencerActions>()(
             }, 60000); // Every minute
 
             // Store interval ID for cleanup
-            (window as any).__lateFencerInterval = intervalId;
+            (window as LateFencerWindow).__lateFencerInterval = intervalId;
           },
 
           stopMonitoring: () => {
             set({ isMonitoring: false });
-            const intervalId = (window as any).__lateFencerInterval;
+            const intervalId = (window as LateFencerWindow).__lateFencerInterval;
             if (intervalId) {
               clearInterval(intervalId);
             }

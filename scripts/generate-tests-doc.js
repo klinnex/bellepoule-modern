@@ -99,7 +99,7 @@ function countTests(node) {
   return node.tests.length + node.children.reduce((s, c) => s + countTests(c), 0);
 }
 
-const escapeMd = s => s.replace(/\s+/g, ' ').replace(/([|<>*_`[\]])/g, '\\$1');
+const escapeMd = s => s.replace(/\s+/g, ' ').replace(/([\\|<>*_`[\]])/g, '\\$1');
 const flagSuffix = flags => {
   const shown = flags.filter(f => f !== 'concurrent');
   return shown.length ? ` _(${shown.join(', ')})_` : '';
@@ -143,28 +143,35 @@ const STATIC_HEADER = `# Tests opérationnels
 
 > ⚠️ Fichier **généré** par \`npm run docs:tests\` (\`scripts/generate-tests-doc.js\`).
 > Ne pas éditer à la main : modifier le script pour la partie fixe, les fichiers
-> de test pour l'inventaire. La CI échoue (\`npm run check:tests-doc\`) si ce
-> fichier n'est pas régénéré après ajout / suppression / renommage d'un test.
+> de test pour l'inventaire. Régénéré par la CI à chaque push sur \`dev\`
+> (commit \`🔖 Dev Build\`) : ne pas le committer dans les PR (évite les conflits).
 
 ## Contrôles qualité en CI
 
-Job \`quality\` de \`.github/workflows/build-dev.yml\` (push sur \`dev\`) et
-\`.github/workflows/build.yml\` (push sur \`main\`). Les builds par plateforme
-dépendent de ce job.
+Workflow réutilisable \`.github/workflows/quality.yml\` (\`workflow_call\`), appelé par
+\`.github/workflows/pr-quality.yml\` (PR vers \`dev\`, à rendre requis dans la
+protection de branche), \`build-dev.yml\` (push sur \`dev\`) et \`build.yml\`
+(push sur \`main\`). Les builds par plateforme dépendent de ce job. Le job \`nix-build\` (mêmes déclencheurs) build le paquet
+Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 
 | Étape | Commande | Échoue si |
 |---|---|---|
 | Typage | \`npm run type-check\` | erreur TypeScript (\`tsc --noEmit\`, mode strict) |
-| i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\`, ou vs \`src/remote/i18n/fr.js\` pour les pages distantes (paramètres \`{{x}}\` compris) (\`scripts/check-i18n-completeness.js\`) |
-| Doc des tests | \`npm run check:tests-doc\` | \`docs/TESTS.md\` pas à jour vs fichiers de test |
+| i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\`, ou vs \`src/remote/i18n/fr.js\` pour les pages distantes (paramètres \`{{x}}\` compris) ; avertit sans échouer des libellés > 1,6x le français (\`scripts/check-i18n-completeness.js\`) |
 | Doc i18n | \`npm run check:i18n-doc\` | \`docs/I18N.md\` pas à jour, ou clé \`data-i18n\` d'une page distante absente de \`src/remote/i18n.js\` |
 | Doc Socket.IO | \`npm run check:socket-doc\` | \`docs/SOCKET_EVENTS.md\` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\`, \`console.*\`, \`style={{…}}\` (#1157), \`fontSize\` en px (#1156), locale \`'fr'\` en dur (#1160), messages d'erreur serveur en clair (#1159), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs \`scripts/quality-baseline.json\` (\`--update\` pour verrouiller une baisse) |
+| Doc MCP | dans \`npm run test:run\` (\`src/main/mcp/mcpDoc.test.ts\`) ; seul : \`npm run check:mcp-doc\` | référence des outils de \`docs/MCP.md\` pas à jour vs leurs schémas (\`npm run docs:mcp\` pour régénérer, #1880) |
+| Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\`, \`console.*\`, \`style={{…}}\` (#1157), \`fontSize\` en px (#1156), locale \`'fr'\` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes \`src/remote\` (#1532), ou couleur hexadécimale en dur dans les pages distantes \`src/remote\` (hors \`tokens.css\`, #1538), sonde de débogage \`DIAGNOSTIC\` / \`remote:diag\` restée dans \`src\` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs \`scripts/quality-baseline.json\` ; en CI, une baisse non verrouillée échoue aussi (\`--update\` pour verrouiller, #1895) |
+| Build Nix | \`nix build .#default\` (job \`nix-build\`) | le paquet \`flake.nix\` ne build pas : \`npmDepsHash\` périmé vs \`package-lock.json\`, dépendance native cassée, etc. |
 | Tests unitaires | \`npm run test:run\` | un test Vitest échoue |
-| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
+| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
-\`npm run test:e2e\`.
+\`npm run test:e2e\`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
+\`npm run check:i18n-visual\` (\`scripts/capture-i18n.js\`, Electron, après \`npm run build\` ;
+\`xvfb-run -a\` sous Linux ; \`-- --pseudo\` pour la pseudo-localisation) : échoue si un écran clé
+défile horizontalement, rogne un libellé sans ellipse ni infobulle, coupe un mot sur deux lignes
+ou sort de la fenêtre ; captures + \`report.json\` dans \`test-results/i18n-captures\`. Simulateur d'appareil de piste Cyrano : \`npm run cyrano:sim\` (\`scripts/cyrano-simulator.js\`, voir \`docs/CYRANO.md\`).
 
 Sécurité : \`.github/workflows/codeql.yml\` (CodeQL JS/TS, PR vers \`dev\` + hebdo) et \`security.yml\` (\`npm audit --omit=dev\` non bloquant + SBOM CycloneDX), Dependabot (\`.github/dependabot.yml\`).
 
@@ -215,8 +222,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.
-2. \`npm run docs:tests\` → régénère ce fichier.
-3. Committer \`docs/TESTS.md\` avec le test.
+2. Ne pas committer \`docs/TESTS.md\` : la CI \`build-dev.yml\` le régénère au push sur
+   \`dev\` (\`npm run docs:tests\` reste utilisable en local pour consulter l'inventaire).
 `;
 
 function generate() {
@@ -272,7 +279,12 @@ function generate() {
     }
   }
 
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+  return (
+    lines
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd() + '\n'
+  );
 }
 
 const content = generate();

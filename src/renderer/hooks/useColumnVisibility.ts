@@ -16,7 +16,8 @@ export type ColumnId =
   | 'lastName'
   | 'club'
   | 'nation'
-  | 'region';
+  | 'region'
+  | 'category';
 
 export interface ColumnDefinition {
   id: ColumnId;
@@ -35,6 +36,8 @@ export const POOL_COLUMNS: ColumnDefinition[] = [
   { id: 'club', label: 'Club', labelShort: 'Club' },
   { id: 'nation', label: 'Nation', labelShort: 'Nat' },
   { id: 'region', label: 'Région', labelShort: 'Rég' },
+  // Tournoi des rapières uniquement : catégorie d'âge de l'équipe, en dernier (#1864)
+  { id: 'category', label: 'Catégorie', labelShort: 'Cat.' },
 ];
 
 export const RANKING_COLUMNS: ColumnDefinition[] = [
@@ -57,8 +60,11 @@ interface VisibilityState {
   pools: Record<string, ColumnId[]>; // réglages indépendants par poule (clé = pool.id)
 }
 
+// Colonnes de poule affichées par défaut à la première utilisation (issue #1505)
+export const DEFAULT_POOL_COLUMNS: ColumnId[] = ['victories', 'ratio', 'index'];
+
 const DEFAULT_VISIBILITY: VisibilityState = {
-  pool: POOL_COLUMNS.map(c => c.id),
+  pool: DEFAULT_POOL_COLUMNS,
   ranking: RANKING_COLUMNS.map(c => c.id),
   pools: {},
 };

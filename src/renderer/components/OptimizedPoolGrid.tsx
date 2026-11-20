@@ -5,7 +5,7 @@
  */
 
 import React, { memo } from 'react';
-import { Fencer, Match, MatchStatus } from '../../shared/types';
+import { Fencer, Match } from '../../shared/types';
 import { translateStatic } from '../contexts/TranslationContext';
 
 interface PoolGridProps {
@@ -35,18 +35,7 @@ const GridCell = memo(
     colFencer?: Fencer;
   }) => {
     if (isDiagonal) {
-      return (
-        <td
-          style={{
-            backgroundColor: '#f3f4f6',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            border: '1px solid #d1d5db',
-          }}
-        >
-          -
-        </td>
-      );
+      return <td className="optimized-pool-grid-1">-</td>;
     }
 
     const isMatchForfait =
@@ -59,16 +48,7 @@ const GridCell = memo(
 
     if (isFencerAbandoned(rowFencer) || isFencerAbandoned(colFencer) || isMatchForfait) {
       return (
-        <td
-          style={{
-            backgroundColor: '#e5e7eb',
-            textAlign: 'center',
-            border: '1px solid #d1d5db',
-            color: '#9ca3af',
-            cursor: 'not-allowed',
-          }}
-          title={translateStatic('poolGrid.not_played')}
-        >
+        <td className="optimized-pool-grid-2" title={translateStatic('poolGrid.not_played')}>
           -
         </td>
       );
@@ -77,12 +57,7 @@ const GridCell = memo(
     if (!match) {
       return (
         <td
-          style={{
-            backgroundColor: '#fafafa',
-            textAlign: 'center',
-            cursor: 'pointer',
-            border: '1px solid #d1d5db',
-          }}
+          className="optimized-pool-grid-3"
           onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = '#e5e7eb';
           }}
@@ -133,28 +108,8 @@ GridCell.displayName = 'GridCell';
 
 const HeaderRow = memo(({ fencers }: { fencers: Fencer[] }) => (
   <tr>
-    <th
-      style={{
-        backgroundColor: '#1f2937',
-        color: 'white',
-        padding: '8px',
-        border: '1px solid #374151',
-        fontSize: '0.75rem',
-      }}
-    >
-      #
-    </th>
-    <th
-      style={{
-        backgroundColor: '#1f2937',
-        color: 'white',
-        padding: '8px',
-        border: '1px solid #374151',
-        fontSize: '0.75rem',
-      }}
-    >
-      {translateStatic('poolGrid.fencer')}
-    </th>
+    <th className="optimized-pool-grid-4">#</th>
+    <th className="optimized-pool-grid-4">{translateStatic('poolGrid.fencer')}</th>
     {fencers.map(fencer => (
       <th
         key={fencer.id}
@@ -256,36 +211,8 @@ FencerRow.displayName = 'FencerRow';
 
 export const PoolGrid: React.FC<PoolGridProps> = memo(
   ({ fencers, matches, maxScore, onMatchClick }) => {
-    const createMatch = (fencerAId: string, fencerBId: string, index: number): Match => {
-      const fencerA = fencers.find(f => f.id === fencerAId);
-      const fencerB = fencers.find(f => f.id === fencerBId);
-
-      return {
-        id: `temp-${fencerAId}-${fencerBId}`,
-        number: index,
-        fencerA: fencerA || null,
-        fencerB: fencerB || null,
-        scoreA: null,
-        scoreB: null,
-        maxScore,
-        status: MatchStatus.NOT_STARTED,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    };
-
-    const getMatchForCell = (fencerAId: string, fencerBId: string): Match | null => {
-      return (
-        matches.find(
-          match =>
-            (match.fencerA?.id === fencerAId && match.fencerB?.id === fencerBId) ||
-            (match.fencerB?.id === fencerAId && match.fencerA?.id === fencerBId)
-        ) || null
-      );
-    };
-
     return (
-      <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px' }}>
+      <div className="optimized-pool-grid-5">
         <table
           style={{
             borderCollapse: 'collapse',

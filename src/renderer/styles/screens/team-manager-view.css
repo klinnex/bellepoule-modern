@@ -1,0 +1,13 @@
+/* Styles extraits de TeamManagerView.tsx (#1895) */
+.team-manager-view-1.team-manager-view-1.team-manager-view-1 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Exports fédéraux du classement équipes (#1949) */
+.team-manager-export-btn.team-manager-export-btn {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+}

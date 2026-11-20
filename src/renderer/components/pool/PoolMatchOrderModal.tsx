@@ -5,7 +5,13 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { generatePoolMatchOrder } from '../../../shared/utils/poolCalculations';
+import { boutsForTable, type PoolBoutTable } from '../../../shared/utils/poolBoutOrder';
+
+/** Variantes réglementaires par taille (FIE o.70.3 et o.70.4, #1964) */
+const VARIANTS: Record<number, PoolBoutTable[]> = {
+  6: ['standard', 'trio6', 'quartet6'],
+  7: ['standard', 'trio7'],
+};
 
 interface PoolMatchOrderModalProps {
   onClose: () => void;
@@ -14,8 +20,11 @@ interface PoolMatchOrderModalProps {
 const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const [poolSize, setPoolSize] = useState(6);
+  const [variant, setVariant] = useState<PoolBoutTable>('standard');
+  const variants = VARIANTS[poolSize] ?? ['standard'];
+  const table = variants.includes(variant) ? variant : 'standard';
 
-  const matches = generatePoolMatchOrder(poolSize);
+  const matches = boutsForTable(table, poolSize);
   const matchCount = (poolSize * (poolSize - 1)) / 2;
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -23,56 +32,13 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
   };
 
   return (
-    <div
-      onClick={handleOverlayClick}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 12000,
-      }}
-    >
-      <div
-        style={{
-          background: 'var(--color-surface)',
-          color: 'var(--color-text)',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          width: '420px',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        }}
-      >
+    <div onClick={handleOverlayClick} className="pool-match-order-modal-1">
+      <div className="pool-match-order-modal-2">
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '1rem',
-          }}
-        >
+        <div className="pool-match-order-modal-3">
           <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{t('matchOrder.title')}</div>
-            <span
-              style={{
-                fontSize: '0.7rem',
-                padding: '2px 7px',
-                borderRadius: '4px',
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-muted)',
-                fontFamily: 'monospace',
-                marginTop: '0.25rem',
-                display: 'inline-block',
-              }}
-            >
-              {t('matchOrder.ref')}
-            </span>
+            <div className="pool-match-order-modal-4">{t('matchOrder.title')}</div>
+            <span className="pool-match-order-modal-5">{t('matchOrder.ref')}</span>
           </div>
           <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
@@ -80,73 +46,57 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
         </div>
 
         {/* Sélecteur */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <label
-            htmlFor="pool-order-size"
-            style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}
-          >
+        <div className="pool-match-order-modal-6">
+          <label htmlFor="pool-order-size" className="pool-match-order-modal-7">
             {t('matchOrder.size')}
           </label>
           <select
             id="pool-order-size"
             value={poolSize}
-            onChange={e => setPoolSize(Number(e.target.value))}
-            style={{
-              padding: '0.4rem 0.6rem',
-              borderRadius: '6px',
-              border: '1px solid var(--color-border)',
-              fontSize: '0.9rem',
-              background: 'var(--color-surface)',
-              color: 'var(--color-text)',
+            onChange={e => {
+              setPoolSize(Number(e.target.value));
+              setVariant('standard');
             }}
+            className="pool-match-order-modal-8"
           >
-            {[3, 4, 5, 6, 7, 8, 9].map(n => (
+            {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
               <option key={n} value={n}>
                 {t('matchOrder.option', { n, m: (n * (n - 1)) / 2 })}
-                {n >= 9 ? ' (Berger)' : ''}
               </option>
             ))}
           </select>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+          {variants.length > 1 && (
+            <select
+              aria-label={t('matchOrder.variant')}
+              value={table}
+              onChange={e => setVariant(e.target.value as PoolBoutTable)}
+              className="pool-match-order-modal-8"
+              data-testid="pool-order-variant"
+            >
+              {variants.map(v => (
+                <option key={v} value={v}>
+                  {t(`matchOrder.variant_${v}`)}
+                </option>
+              ))}
+            </select>
+          )}
+          <span className="pool-match-order-modal-9">
             {t('matchOrder.matches', { n: matchCount })}
           </span>
         </div>
 
+        {table !== 'standard' && (
+          <p className="pool-match-order-modal-9">{t(`matchOrder.placement_${table}`)}</p>
+        )}
+
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}
         <div className="u-stack-2">
           {matches.map(([a, b], i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.75rem 1rem',
-                background: 'var(--color-surface-2)',
-                borderRadius: '6px',
-                border: '1px solid var(--color-border)',
-                gap: '0.5rem',
-              }}
-            >
-              <span
-                style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', minWidth: '30px' }}
-              >
-                #{i + 1}
-              </span>
-              <span style={{ flex: 1, fontWeight: 500 }}>{t('matchOrder.fencer', { n: a })}</span>
-              <span style={{ color: 'var(--color-text-muted)', padding: '0 0.5rem' }}>
-                {t('matchOrder.vs')}
-              </span>
-              <span style={{ flex: 1, textAlign: 'right', fontWeight: 500 }}>
-                {t('matchOrder.fencer', { n: b })}
-              </span>
+            <div key={i} className="pool-match-order-modal-10">
+              <span className="pool-match-order-modal-11">#{i + 1}</span>
+              <span className="pool-match-order-modal-12">{t('matchOrder.fencer', { n: a })}</span>
+              <span className="pool-match-order-modal-13">{t('matchOrder.vs')}</span>
+              <span className="pool-match-order-modal-14">{t('matchOrder.fencer', { n: b })}</span>
             </div>
           ))}
         </div>

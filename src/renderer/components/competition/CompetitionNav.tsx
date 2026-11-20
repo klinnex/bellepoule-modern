@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,18 +13,29 @@ import {
   Trophy,
   ScrollText,
   CalendarClock,
+  Check,
+  Lock,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Icon } from '../common/Icon';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
 import GuidedTour from '../GuidedTour';
+import { usePhaseShortcuts } from './usePhaseShortcuts';
+import { registerPhases } from './phaseRegistry';
+import { phaseStepStates, nextBlockedReason } from './phaseStepper';
+import { Button } from '../common/Button';
+import { countCompetitionBouts } from '../../../shared/utils/tableauBouts';
+import { FencingMaskIcon } from '../common/FencingMaskIcon';
 
 interface PhaseItem {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   disabled: boolean;
   title?: string;
+  isSupplementary?: boolean;
 }
 
 interface PoolItem {
@@ -33,6 +44,7 @@ interface PoolItem {
 }
 
 interface TableauMatchItem {
+  round?: number;
   winner: unknown;
   fencerA: unknown;
   fencerB: unknown;
@@ -61,7 +73,11 @@ interface CompetitionNavProps {
   t: (key: string, params?: { [key: string]: string | number }) => string;
   handleGoBack: () => void;
   handleGeneratePools: () => void;
+  /** Appel inchangé depuis la préparation : « Aller à la préparation », sans régénérer (#1992) */
+  checkinUnchanged?: boolean;
   poolsNextAction: PoolsNextAction | null;
+  /** Classement : « Voir le tableau » entre « Retour » et « Journal » (#2008) */
+  rankingTableauAction?: PoolsNextAction | null;
   poolPrepLaunch?: PoolPrepLaunchItem | null;
   questEnabled: boolean;
   questConfig: QuestPhaseConfig | undefined;
@@ -69,6 +85,9 @@ interface CompetitionNavProps {
   getCheckedInFencers: () => Fencer[];
   pools: PoolItem[];
   tableauMatches: TableauMatchItem[];
+  /** Consolantes du mode « toutes les places » (décompte des matchs, #1817) */
+  consolationBrackets?: Array<{ matches: TableauMatchItem[] }>;
+  playAllPositions?: boolean;
   onOpenPlanningAssistant?: () => void;
   /** Compétition par équipes : l'appel mène à la composition des équipes (#1085) */
   isTeamEvent?: boolean;
@@ -76,6 +95,7 @@ interface CompetitionNavProps {
   tourReady?: boolean;
   /** Saisie distante active (étape « Saisie distante » du parcours guidé) */
   remoteActive?: boolean;
+  poolsLaunched?: boolean;
 }
 
 const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
@@ -86,7 +106,9 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   t,
   handleGoBack,
   handleGeneratePools,
+  checkinUnchanged = false,
   poolsNextAction,
+  rankingTableauAction = null,
   poolPrepLaunch,
   questEnabled,
   questConfig,
@@ -94,12 +116,43 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   getCheckedInFencers,
   pools,
   tableauMatches,
+  consolationBrackets = [],
+  playAllPositions = false,
   onOpenPlanningAssistant,
   isTeamEvent = false,
   tourReady = false,
   remoteActive = false,
+  poolsLaunched = false,
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
+  usePhaseShortcuts(phases, currentPhase, id => setCurrentPhase(id as Phase));
+  // Publie les phases pour la palette de commandes (Ctrl+K)
+  useEffect(
+    () =>
+      registerPhases({
+        phases,
+        currentId: currentPhase,
+        select: id => setCurrentPhase(id as Phase),
+      }),
+    [phases, currentPhase, setCurrentPhase]
+  );
+  // Dernière étape du flow visitée : référence d'avancement quand Historique/Arbitres est actif (#1650)
+  const [lastFlowPhase, setLastFlowPhase] = useState<string | undefined>(undefined);
+  const onFlowPhase = !phases.find(p => p.id === currentPhase)?.isSupplementary;
+  if (onFlowPhase && lastFlowPhase !== currentPhase) setLastFlowPhase(currentPhase);
+  const stepStates = phaseStepStates(
+    phases,
+    currentPhase,
+    onFlowPhase ? currentPhase : lastFlowPhase
+  );
+  const blockedReason = nextBlockedReason(phases, currentPhase);
+  // Tableau principal + compétition complète en « toutes les places » (#1817)
+  const competitionBouts = countCompetitionBouts(
+    tableauMatches,
+    consolationBrackets,
+    playAllPositions
+  );
+  const tableauBouts = competitionBouts.main;
   return (
     <>
       {tourReady && !isTeamEvent && (
@@ -114,6 +167,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             tableauMatches.filter(m => !m.isBye && m.scoreA != null && m.scoreB != null).length
           }
           remoteActive={remoteActive}
+          poolsLaunched={poolsLaunched}
           prepOpen={currentPhase === 'poolprep'}
         />
       )}
@@ -122,10 +176,12 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         {phases.map((phase, index) => (
           <React.Fragment key={phase.id}>
             <div
-              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}${tourHighlightPhase === phase.id && currentPhase !== phase.id ? ' tour-highlight' : ''}`}
+              data-state={stepStates[index]}
+              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}${stepStates[index] === 'done' ? ' phase-step-completed' : ''}${tourHighlightPhase === phase.id && currentPhase !== phase.id ? ' tour-highlight' : ''}`}
               role="button"
               tabIndex={phase.disabled ? -1 : 0}
               aria-current={currentPhase === phase.id ? 'step' : undefined}
+              aria-keyshortcuts={index < 8 ? `Control+${index + 1}` : undefined}
               aria-disabled={phase.disabled || undefined}
               onClick={() => !phase.disabled && setCurrentPhase(phase.id as Phase)}
               onKeyDown={e => {
@@ -134,12 +190,19 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   setCurrentPhase(phase.id as Phase);
                 }
               }}
-              title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
+              title={phase.title ?? (phase.disabled ? t('phases.unavailable') : phase.label)}
             >
               <span className="phase-step-number" aria-hidden="true">
-                {phase.icon}
+                {stepStates[index] === 'done' ? (
+                  <Check size={12} />
+                ) : stepStates[index] === 'blocked' ? (
+                  <Lock size={12} />
+                ) : (
+                  <Icon icon={phase.icon} />
+                )}
               </span>
-              <span>{phase.label}</span>
+              <span className="phase-step-label">{phase.label}</span>
+              <span className="sr-only">{t(`phases.state_${stepStates[index]}`)}</span>
             </div>
             {index < phases.length - 1 && (
               <div
@@ -148,42 +211,46 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             )}
           </React.Fragment>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="competition-nav-1">
           {currentPhase !== 'checkin' && (
-            <button className="btn btn-secondary btn-icon-label" onClick={handleGoBack}>
+            <Button className="btn-icon-label" onClick={handleGoBack}>
               <ChevronLeft size={15} /> {t('competitionNav.back')}
-            </button>
+            </Button>
           )}
           {currentPhase === 'checkin' &&
             !isTeamEvent &&
             questEnabled &&
             !questConfig?.hasPreliminaryPools && (
-              <button
-                className="btn btn-primary btn-icon-label"
+              <Button
+                variant="primary"
+                className="btn-icon-label"
                 onClick={() => setCurrentPhase('quest')}
                 disabled={getCheckedInFencers().length < 2}
               >
                 {t('competitionNav.quest')} <ChevronRight size={15} />
-              </button>
+              </Button>
             )}
           {currentPhase === 'checkin' && isTeamEvent && (
-            <button
-              className="btn btn-primary btn-icon-label"
+            <Button
+              variant="primary"
+              className="btn-icon-label"
               onClick={() => setCurrentPhase('teams')}
             >
               {t('teams.toCompose')} <ChevronRight size={15} />
-            </button>
+            </Button>
           )}
           {currentPhase === 'checkin' &&
             !isTeamEvent &&
             (!questEnabled || questConfig?.hasPreliminaryPools) && (
               <CoachMark
                 id="generate-pools"
+                dismissLabel={t('competitionNav.coach_dismiss')}
                 message={t('competitionNav.generate_hint')}
                 position="bottom"
               >
-                <button
-                  className="btn btn-primary btn-icon-label"
+                <Button
+                  variant="primary"
+                  className="btn-icon-label"
                   data-tour="generate-pools"
                   onClick={handleGeneratePools}
                   disabled={getCheckedInFencers().length < 4}
@@ -200,17 +267,24 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  {t('competitionNav.generate')}
+                  {t(
+                    pools.length === 0
+                      ? 'competitionNav.generate'
+                      : checkinUnchanged
+                        ? 'competitionNav.goto_prep'
+                        : 'competitionNav.regenerate'
+                  )}
                   {getCheckedInFencers().length < 4 && (
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}
                   <ChevronRight size={15} />
-                </button>
+                </Button>
               </CoachMark>
             )}
           {currentPhase === 'poolprep' && poolPrepLaunch && (
-            <button
-              className="btn btn-primary btn-icon-label"
+            <Button
+              variant="primary"
+              className="btn-icon-label"
               data-tour="launch-pools"
               onClick={poolPrepLaunch.action}
               disabled={poolPrepLaunch.disabled}
@@ -219,28 +293,35 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               }
             >
               {poolPrepLaunch.label} <ChevronRight size={15} />
-            </button>
+            </Button>
           )}
           {currentPhase === 'pools' && poolsNextAction && (
             <CoachMark
               id="pools-next-action"
+              dismissLabel={t('competitionNav.coach_dismiss')}
               message={t('competitionNav.next_step_hint')}
               position="bottom"
             >
-              <button
-                className="btn btn-primary"
-                data-tour="view-ranking"
-                onClick={poolsNextAction.action}
-              >
+              <Button variant="primary" data-tour="view-ranking" onClick={poolsNextAction.action}>
                 {poolsNextAction.label}
-              </button>
+              </Button>
             </CoachMark>
+          )}
+          {currentPhase === 'ranking' && rankingTableauAction && (
+            <Button
+              variant="primary"
+              className="btn-icon-label"
+              data-tour="go-tableau"
+              onClick={rankingTableauAction.action}
+            >
+              {rankingTableauAction.label.replace(/\s*→$/, '')} <ChevronRight size={15} />
+            </Button>
           )}
           {onOpenPlanningAssistant &&
             ((currentPhase === 'pools' && pools.length > 0) ||
               (currentPhase === 'tableau' && tableauMatches.length > 0)) && (
-              <button
-                className="btn btn-secondary btn-icon-label"
+              <Button
+                className="btn-icon-label"
                 onClick={onOpenPlanningAssistant}
                 title={
                   currentPhase === 'tableau'
@@ -250,25 +331,32 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
               >
                 <CalendarClock size={14} /> {t('competitionNav.planning')}
-              </button>
+              </Button>
             )}
-          <button
-            className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
+          <Button
+            className={`btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
             onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
             title={t('competitionNav.log_title')}
             style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
           >
             <ScrollText size={14} /> {t('competitionNav.log')}
-          </button>
+          </Button>
         </div>
       </div>
+
+      {blockedReason && (
+        <div className="phase-nav-reason" role="status">
+          <Lock size={13} aria-hidden="true" /> <strong>{blockedReason.label}</strong> :{' '}
+          {blockedReason.reason}
+        </div>
+      )}
 
       {/* Stats bar */}
       {(pools.length > 0 || tableauMatches.length > 0 || fencers.length > 0) && (
         <div className="comp-stats-bar">
           <div className="comp-stats-bar-item">
             <span className="comp-stats-bar-icon">
-              <Swords size={13} />
+              <FencingMaskIcon size={16} />
             </span>
             <span>
               {t('competitionNav.fencers', { a: getCheckedInFencers().length, b: fencers.length })}
@@ -314,11 +402,31 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 </span>
                 <span>
                   {t('competitionNav.tableau', {
-                    a: tableauMatches.filter(m => m.winner !== null).length,
-                    b: tableauMatches.filter(m => m.fencerA && m.fencerB).length,
+                    a: tableauBouts.done,
+                    b: tableauBouts.total,
                   })}
                 </span>
               </div>
+              {competitionBouts.allPlaces && (
+                <>
+                  <div className="comp-stats-bar-sep" />
+                  <div
+                    className="comp-stats-bar-item"
+                    title={t('competitionNav.all_places_title')}
+                    data-testid="stats-all-places"
+                  >
+                    <span className="comp-stats-bar-icon">
+                      <Swords size={13} />
+                    </span>
+                    <span>
+                      {t('competitionNav.all_places', {
+                        a: competitionBouts.done,
+                        b: competitionBouts.total,
+                      })}
+                    </span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useFencerManagement } from './useFencerManagement';
 import { Competition, Fencer, Gender, FencerStatus } from '../../shared/types';
 
+const showToast = vi.fn();
+vi.mock('../components/Toast', () => ({ useToast: () => ({ showToast }) }));
 vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
 const fencer = (id: string): Fencer => ({
@@ -135,6 +137,22 @@ describe('deleteFencer', () => {
     expect(db.deleteFencer).toHaveBeenCalledWith('1');
     expect(onUpdate.mock.calls[0][0].fencers).toHaveLength(0);
   });
+
+  it('propose d’annuler : le tireur est ré-ajouté sans identifiant (#1535)', async () => {
+    const r = setup();
+    await act(async () => {
+      await r.current.deleteFencer('1');
+    });
+    const options = showToast.mock.calls[showToast.mock.calls.length - 1][2];
+    expect(options.action.label).toBe('fencerList.undo');
+    expect(options.undo).toBe(true); // Ctrl+Z
+    await act(async () => {
+      options.action.onClick();
+    });
+    const data = db.addFencer.mock.calls[0][1];
+    expect(data.lastName).toBe('L1');
+    expect(data.id).toBeUndefined();
+  });
 });
 
 describe('deleteAllFencers', () => {
@@ -145,5 +163,40 @@ describe('deleteAllFencers', () => {
     });
     expect(db.deleteAllFencers).toHaveBeenCalledWith('c1');
     expect(onUpdate.mock.calls[0][0].fencers).toHaveLength(0);
+  });
+});
+
+describe('bus fencers:changed (#1298)', () => {
+  it('recharge les tireurs une seule fois pour une rafale, et se désabonne', async () => {
+    vi.useFakeTimers();
+    let handler: (e: any) => void = () => {};
+    const unsubscribe = vi.fn();
+    db.getFencersByCompetition = vi.fn(async () => [fencer('1'), fencer('2')]);
+    (window as any).electronAPI = {
+      db,
+      onCompetitionEvent: vi.fn((cb: (e: any) => void) => {
+        handler = cb;
+        return unsubscribe;
+      }),
+    };
+    const { result, unmount } = renderHook(() =>
+      useFencerManagement({
+        competition,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    );
+    act(() => {
+      handler({ type: 'fencers:changed', competitionId: 'c1' });
+      handler({ type: 'fencers:changed', competitionId: 'c1' });
+      handler({ type: 'fencers:changed', competitionId: 'other' });
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(db.getFencersByCompetition).toHaveBeenCalledTimes(1);
+    expect(result.current.fencers).toHaveLength(2);
+    unmount();
+    expect(unsubscribe).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });

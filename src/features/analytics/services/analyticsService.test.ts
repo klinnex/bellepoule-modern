@@ -4,7 +4,7 @@
  * BellePoule Modern
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { AnalyticsService } from './analyticsService';
 
 const svc = new AnalyticsService();

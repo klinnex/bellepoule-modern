@@ -2,28 +2,35 @@
 
 > ⚠️ Fichier **généré** par `npm run docs:tests` (`scripts/generate-tests-doc.js`).
 > Ne pas éditer à la main : modifier le script pour la partie fixe, les fichiers
-> de test pour l'inventaire. La CI échoue (`npm run check:tests-doc`) si ce
-> fichier n'est pas régénéré après ajout / suppression / renommage d'un test.
+> de test pour l'inventaire. Régénéré par la CI à chaque push sur `dev`
+> (commit `🔖 Dev Build`) : ne pas le committer dans les PR (évite les conflits).
 
 ## Contrôles qualité en CI
 
-Job `quality` de `.github/workflows/build-dev.yml` (push sur `dev`) et
-`.github/workflows/build.yml` (push sur `main`). Les builds par plateforme
-dépendent de ce job.
+Workflow réutilisable `.github/workflows/quality.yml` (`workflow_call`), appelé par
+`.github/workflows/pr-quality.yml` (PR vers `dev`, à rendre requis dans la
+protection de branche), `build-dev.yml` (push sur `dev`) et `build.yml`
+(push sur `main`). Les builds par plateforme dépendent de ce job. Le job `nix-build` (mêmes déclencheurs) build le paquet
+Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 
 | Étape | Commande | Échoue si |
 |---|---|---|
 | Typage | `npm run type-check` | erreur TypeScript (`tsc --noEmit`, mode strict) |
-| i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) (`scripts/check-i18n-completeness.js`) |
-| Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
+| i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Doc MCP | dans `npm run test:run` (`src/main/mcp/mcpDoc.test.ts`) ; seul : `npm run check:mcp-doc` | référence des outils de `docs/MCP.md` pas à jour vs leurs schémas (`npm run docs:mcp` pour régénérer, #1880) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` ; en CI, une baisse non verrouillée échoue aussi (`--update` pour verrouiller, #1895) |
+| Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
-| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
+| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
-`npm run test:e2e`.
+`npm run test:e2e`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
+`npm run check:i18n-visual` (`scripts/capture-i18n.js`, Electron, après `npm run build` ;
+`xvfb-run -a` sous Linux ; `-- --pseudo` pour la pseudo-localisation) : échoue si un écran clé
+défile horizontalement, rogne un libellé sans ellipse ni infobulle, coupe un mot sur deux lignes
+ou sort de la fenêtre ; captures + `report.json` dans `test-results/i18n-captures`. Simulateur d'appareil de piste Cyrano : `npm run cyrano:sim` (`scripts/cyrano-simulator.js`, voir `docs/CYRANO.md`).
 
 Sécurité : `.github/workflows/codeql.yml` (CodeQL JS/TS, PR vers `dev` + hebdo) et `security.yml` (`npm audit --omit=dev` non bloquant + SBOM CycloneDX), Dependabot (`.github/dependabot.yml`).
 
@@ -74,16 +81,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.
-2. `npm run docs:tests` → régénère ce fichier.
-3. Committer `docs/TESTS.md` avec le test.
+2. Ne pas committer `docs/TESTS.md` : la CI `build-dev.yml` le régénère au push sur
+   `dev` (`npm run docs:tests` reste utilisable en local pour consulter l'inventaire).
 
 ## Synthèse
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 633 |
-| `src/shared/services/` | 8 | 92 |
-| Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
+| `src/shared/utils/` | 84 | 948 |
+| `src/shared/services/` | 8 | 95 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -92,25 +99,36 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
-| Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 5 | 135 |
-| `src/main/` | 47 | 370 |
-| `src/renderer/services/` | 5 | 29 |
-| `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 49 | 244 |
-| E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 23 | 137 |
-| `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 2 | 3 |
+| Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
+| Feature `teams` (`src/features/teams/`) | 7 | 59 |
+| `src/database/` | 20 | 262 |
+| `src/main/` | 113 | 921 |
+| `src/renderer/services/` | 11 | 57 |
+| `src/renderer/hooks/` | 35 | 172 |
+| `src/renderer/components/` | 121 | 648 |
+| E2E Playwright (`e2e/`) | 10 | 39 |
+| `src/remote/` | 60 | 414 |
+| `src/renderer/contexts/` | 1 | 7 |
+| `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **252** | **2071** |
+| **Total** | **503** | **3892** |
 
-Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 493 fichiers, 3853 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
 ### `src/shared/utils/`
+
+<details>
+<summary><code>src/shared/utils/actionableError.test.ts</code> — 3 tests</summary>
+
+- **classifyError**
+  - %s -\> %s _(each)_
+  - chaque cause a une clé i18n errors.hint\_\*
+- **actionableMessage**
+  - compose base et conseil
+
+</details>
 
 <details>
 <summary><code>src/shared/utils/blackCardRanking.test.ts</code> — 10 tests</summary>
@@ -251,6 +269,192 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/clubAge.test.ts</code> — 9 tests</summary>
+
+- **catégories d’âge (#1872)**
+  - jeunes : âge atteint l’année de fin de saison ; vétérans : année de début
+  - membre : date, puis année de naissance, sinon catégorie saisie
+  - codes reconnus, listes nettoyées et ordonnées
+  - plages : bornes incluses, dans les deux sens, ouvertes
+  - exercices : aucune catégorie = commun à tous
+  - tri par catégorie puis nom, inconnues à la fin
+- **séances récurrentes (#1872)**
+  - jours d’ouverture : dates de la période tombant les jours choisis
+  - tous les N jours, N fois ou jusqu’à une date (incluse)
+  - bornes : 60 séances au plus, pas invalide = une seule date, date invalide = aucune
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubImport.test.ts</code> — 3 tests</summary>
+
+- **import des membres du club (#1872)**
+  - tireurs → membres : licence, sexe, année de naissance ; lignes vides ignorées
+  - dédoublonne par licence puis nom (accents/casse), complète sans écraser
+  - statut par ligne, dans l’ordre du fichier
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubInventory.test.ts</code> — 19 tests</summary>
+
+- **normalizeItemInput**
+  - exige un nom
+  - applique les valeurs par défaut et nettoie le texte
+  - borne la quantité et arrondit le prix
+  - refuse un prix négatif ou absurde
+  - refuse une date mal formée
+  - refuse une garantie qui finit avant l’achat
+  - ignore une arme inconnue
+- **dates et retards**
+  - localIsoDate formate en AAAA-MM-JJ local
+  - addDays gère les fins de mois
+  - un prêt est en retard après l’échéance, jamais une fois rendu
+  - alerte garantie : expire dans les 90 jours, pas si déjà expirée
+- **computeInventorySummary**
+  - compte hors réformés, valeur et prêts
+- **toCsv**
+  - séparateur ;, BOM, virgule décimale et échappement
+- **seriesNames (ajout en série)**
+  - numérote sur deux chiffres à partir de 01
+  - reprend après le plus grand suffixe existant, sans doublon (casse ignorée)
+  - ignore un suffixe déjà saisi dans le nom de base
+  - élargit la numérotation au-delà de 99
+  - échappe les caractères spéciaux du nom
+  - refuse un nom vide
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubInventoryIO.test.ts</code> — 11 tests</summary>
+
+- **parseDelimited**
+  - lit le CSV « ; » avec guillemets, retours ligne et BOM
+  - détecte la virgule si c’est le séparateur
+  - ignore les lignes vides
+- **toIsoDate**
+  - accepte ISO, dd/mm/aaaa et numéro de série Excel
+- **itemsToRows / rowsToItems**
+  - aller-retour sans perte des champs utiles
+  - accepte les libellés français, les codes internes et les colonnes dans un ordre quelconque
+  - signale les lignes invalides sans bloquer les autres
+  - refuse un fichier sans colonne Nom
+  - convertit les dates Excel numériques des colonnes de date
+- **catégories du club dans l’échange**
+  - écrit le nom de la catégorie propre et la relit vers sa clé
+  - une catégorie inconnue retombe sur « Autre »
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubLoanContract.test.ts</code> — 5 tests</summary>
+
+- **clubLoanContract**
+  - échappe les données saisies
+  - produit la fiche avec emprunteur, matériel, dates et zones de signature
+  - affiche « — » quand la date de retour est absente
+- **armes des exercices**
+  - garde les codes valides, sans doublon, dans l ordre canonique
+- **facture PDF**
+  - accepte un PDF base64 et refuse le reste
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubMembersExport.test.ts</code> — 2 tests</summary>
+
+- **exportClubMembersToFFF**
+  - écrit en-tête et lignes FFF
+  - se réimporte (nom, licence, sexe, date)
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubMembersIO.test.ts</code> — 12 tests</summary>
+
+- **membersToRows**
+  - écrit les en-têtes français et les valeurs lisibles
+  - laisse vides les champs absents
+- **aller-retour CSV**
+  - se relit à l’identique (nom, licence, sexe, dates, armes, notes)
+- **rowsToMembers**
+  - reconnaît les colonnes sans accents, ni casse, dans un ordre libre
+  - accepte l'année seule, et refuse les années hors plage
+  - accepte les sexes et latéralités en libellés français
+  - marque archivé un membre dont Actif vaut Non
+  - ignore les lignes sans nom ni prénom
+  - refuse un fichier sans colonne Nom
+  - refuse un fichier vide
+- **isMemberTable**
+  - reconnaît une table avec une colonne Nom
+  - ne prend pas pour une table un fichier FFF ni une table sans Nom
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubPlan.test.ts</code> — 3 tests</summary>
+
+- **plan de cours et bilan (#1872)**
+  - plan : titre requis, durée bornée, consignes multilignes, chevrons retirés
+  - durée totale et format
+  - bilan : note 1..5, textes nettoyés, vide → undefined
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubQr.test.ts</code> — 3 tests</summary>
+
+- **QR Mode Club (#1872)**
+  - membre : aller-retour, casse tolérée
+  - piste : aller-retour, bornes 1..99
+  - rejette tout autre contenu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubScanFlow.test.ts</code> — 5 tests</summary>
+
+- **scan webcam : piste puis 2 cartes (#1872)**
+  - piste puis tireurs → complet
+  - ordre libre : tireurs puis piste
+  - erreurs : piste hors séance, même tireur deux fois
+  - troisième carte : remplace le second tireur ; nouvelle piste : change la piste
+  - anti-répétition du même QR
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubShare.test.ts</code> — 4 tests</summary>
+
+- **partage Mode Club (#1872)**
+  - exercices : aller-retour, images conservées, entrées invalides ignorées
+  - erreurs : JSON invalide, mauvais format, vide
+  - plan : sans date ni cases cochées, arme et images conservées
+  - noms de fichiers
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/clubStats.test.ts</code> — 12 tests</summary>
+
+- **Mode Club : périodes (#1872)**
+  - valide les dates ISO
+  - jour, mois, trimestre, année
+  - saison sportive septembre → août
+  - rejette une date invalide
+- **Mode Club : statistiques (#1872)**
+  - V/D/nul, touches, indice, séances
+  - membre sans combat : zéros
+  - vainqueur explicite prime sur le score
+  - classement : % victoires puis indice
+  - face-à-face trié par nombre de combats
+  - progression par trimestre, chronologique
+  - progression par saison : un seul groupe
+  - winnerFromScore
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/conflictResolution.test.ts</code> — 20 tests</summary>
 
 - **resolveConflict**
@@ -283,7 +487,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/countries.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/countries.test.ts</code> — 8 tests</summary>
 
 - **countries**
   - codes uniques et bien formés
@@ -291,11 +495,15 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom localisé et repli sur le code
   - liste triée avec drapeaux
   - formatNationality
+- **countries - drapeaux SVG et recherche**
+  - flagIso depuis CIO ou ISO2
+  - un SVG embarqué existe pour chaque pays
+  - findCountryIndex : premier pays commençant par la saisie
 
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 14 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -307,6 +515,12 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
   - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
+  - resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)
+- **remoteCustomScoring (#1936)**
+  - armes modernes, barème standard : vue olympique (aucun barème envoyé)
+  - armes modernes, barème à zones : seules les phases à zones sont envoyées
+  - Sabre Laser : barème de la formule conservé
+  - autre arme ou rapières : aucun barème
 
 </details>
 
@@ -369,6 +583,41 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/defaultCompetitionSettings.test.ts</code> — 6 tests</summary>
+
+- **buildDefaultCompetitionSettings**
+  - arme olympique individuelle : scores selon la catégorie
+  - M9 : 3 touches en poule, 6 au tableau
+  - équipe : taille et remplaçants repris
+  - Sabre Laser équipe : mode et format
+  - Sabre Laser individuel : aucun réglage imposé
+  - arme personnalisée : formule et réglages dérivés
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/defaultMaxScores.test.ts</code> — 5 tests</summary>
+
+- **getDefaultMaxScores (#1826)**
+  - olympique senior : 5 / 15
+  - M9 : 3 / 6
+  - M11 et M13 : 4 / 8
+  - vétérans : 5 / 10
+  - hors olympique : comportement historique
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/departments.test.ts</code> — 3 tests</summary>
+
+- **departments**
+  - codes uniques, Corse et outre-mer inclus
+  - normalise la saisie
+  - nom et libellé
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/errorLogger.test.ts</code> — 7 tests</summary>
 
 - **logError / getErrorLogs**
@@ -388,13 +637,30 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 11 tests</summary>
+<summary><code>src/shared/utils/eventDay.test.ts</code> — 9 tests</summary>
+
+- **eventDay (#1714)**
+  - parse et sérialise les armes
+  - autorise selon les armes (vide = toutes)
+  - nom complet
+  - statut commun libre / occupé
+  - détecte les conflits sur toute la journée
+  - pas de conflit pour deux poules successives sur la même piste
+  - occupé ailleurs : ignore l’épreuve courante
+- **noms d’arbitres importés des épreuves (#1872)**
+  - rapproche les homonymes sans accents, casse ni ordre
+  - découpe « Prénom Nom » et « NOM Prénom »
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 19 tests</summary>
 
 - **exportFencersToFFF**
-  - commence par l’en-tête FFF standard
+  - commence par l’en-tête FFF;WIN;COMPETITION puis la ligne de compétition
   - met le nom en majuscules et convertit le genre
-  - formate la date de naissance en DD/MM/YYYY
-  - incrémente la position pour chaque tireur
+  - formate la date de naissance en D/M/AAAA comme la spécification
+  - numérote la position dans la liste pour chaque tireur
   - laisse la date vide si absente
 - **exportFencersToTXT**
   - inclut le titre souligné quand fourni
@@ -403,6 +669,18 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche le nom en majuscules et l’année de naissance
   - affiche le classement préfixé de # ou un tiret
   - clôt la liste par une ligne de fin
+- **exportFencersToFFF — département (#1504)**
+  - écrit le département après le classement
+- **exportResultsToFFF (spécification FFF)**
+  - écrit l’en-tête FFF;WIN;competition;organisateur;individuel puis la ligne de compétition
+  - écrit général;FIE;national;rang,T pour un tireur ayant participé au tableau
+  - marque P pour un tireur éliminé dans les poules
+  - trie par rang, met les rangs vides en dernier et omet les exclus
+- **exportTeamResultsToFFF (#1949)**
+  - suit la forme Engarde : en-tête par\_equipes, tireurs, puis ligne d’équipe sans tireur
+- **encodeFFFWin1252**
+  - encode les accents en cp1252 (é = 0xE9, € = 0x80)
+  - remplace les caractères hors cp1252 par ?
 
 </details>
 
@@ -444,7 +722,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fileParser.test.ts</code> — 43 tests</summary>
+<summary><code>src/shared/utils/fileParser.test.ts</code> — 49 tests</summary>
 
 - **parseSimpleTXTFile**
   - fichier vide → success=false, erreur
@@ -488,12 +766,58 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom contenant « nom » / « x » (pas pris pour un en-tête)
   - fichier sans en-tête : premier tireur conservé
   - club contenant une virgule : champs non décalés
+  - département : aller-retour export/import FFF (#1504)
+  - département : lu après le classement, nationalité non confondue (#1504)
   - fichier FFE réel (Windows-1252, lignes de métadonnées)
   - decodeTextFile garde l’UTF-8 valide
   - .fff ouvert via « Importer XML » → parseur FFE
 - **issue #906 — lignes .fff avec champs omis**
   - tireur conservé : %s _(each)_
   - section personnelle incomplète : club et licence non décalés
+- **parseXMLFile — #1504 (arbitres, département, latéralité)**
+  - normalise le département 095 → 95 et 5 → 05
+  - lit la latéralité
+  - lit les arbitres du bloc \<Arbitres\> (références de poule ignorées)
+  - pas de bloc \<Arbitres\> → referees absent
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/fileParser/federalImport.test.ts</code> — 17 tests</summary>
+
+- **decodeXmlEntities**
+  - décode les entités nommées et numériques en un seul passage
+- **parseXMLFile (#1938)**
+  - décode les entités, lit la date de naissance
+  - reconstitue les équipes depuis l'attribut Equipe (section \<Equipes/\> vide)
+  - utilise le nom de la section \<Equipes\> quand Equipe référence un ID
+- **parseCompetitionHeader**
+  - lit les valeurs brutes et les fait correspondre au formulaire
+  - reconnaît une épreuve par équipes
+  - ignore le DOCTYPE et signale les valeurs inconnues
+  - normalise dates et heures
+- **guessFieldsFromFileName**
+  - lit arme / sexe / catégorie du nom de fichier de l'extranet
+- **buildFederalImport**
+  - classe les fichiers du .zip
+  - fusionne xml / fff / txt sans doublon ni incohérence
+  - signale les écarts xml / fff, la source choisie fait foi
+  - signale un fichier d'arbitres vide sans bloquer
+  - réduit les équipes aux tireurs retenus
+  - sans XML : tireurs du FFF, champs devinés depuis le nom de fichier
+- **encodages des fichiers réels**
+  - XML annoncé ISO-8859-1 mais écrit en UTF-8 : décodé en UTF-8
+  - XML réellement en ISO-8859-1 : repli Windows-1252
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/fileParser/fencerTemplate.test.ts</code> — 3 tests</summary>
+
+- **buildFencerImportTemplate**
+  - commence par un BOM UTF-8 et contient les colonnes attendues
+  - est relu par le parseur d'import avec tous les champs de l'exemple
+  - relit un champ entre guillemets contenant un séparateur (cas Excel)
 
 </details>
 
@@ -541,6 +865,26 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/gregLevel.test.ts</code> — 10 tests</summary>
+
+- **niveau GREG (#1328)**
+  - garde les 7 codes de l’ancien BellePoule, « Autre » par défaut
+  - envoie le niveau choisi dans le champ niveau du formulaire
+  - envoie « Autre » tant qu’aucun niveau n’est choisi
+- **levelFromFederalDomain (#1328)**
+  - propose le niveau d’après le Domaine de l’extranet
+  - retombe sur « Autre » pour I, C, \* et les valeurs inconnues
+  - ne propose rien sans Domaine
+- **niveau à l’import (#1328)**
+  - lit l’attribut Niveau d’un fichier BellePoule
+  - propose le niveau d’après Domaine quand Niveau est absent
+  - n’invente rien sans Niveau ni Domaine
+- **export XML : attribut Niveau (#1328)**
+  - écrit « X » par défaut et le niveau choisi sinon
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/gregPublication.test.ts</code> — 11 tests</summary>
 
 - **buildGregFields (#1328)**
@@ -562,6 +906,17 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/handedness.test.ts</code> — 4 tests</summary>
+
+- **needsLeftHandedSwap (#1439)**
+  - gaucher A contre droitier B : inversion
+  - gaucher B contre droitier A : déjà à gauche
+  - deux gauchers ou deux droitiers : placement de l’appel
+  - armes non olympiques : jamais
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/i18nCsv.test.ts</code> — 5 tests</summary>
 
 - **i18n CSV (#1079)**
@@ -574,7 +929,48 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/localeFormat.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/inkSaving.test.ts</code> — 6 tests</summary>
+
+- **applyInkSaving**
+  - insère la feuille avant \</head\> sans retirer de contenu
+  - préfixe le style quand il n’y a pas de \<head\>
+  - est idempotent
+  - retire les fonds et ramène le texte en noir
+- **réglage inkSaving**
+  - est désactivé par défaut
+  - n’accepte que un booléen
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/inlineScoreInput.test.ts</code> — 17 tests</summary>
+
+- **parseInlineScoreInput**
+  - vide
+  - score numérique
+  - V = score max (insensible à la casse)
+  - V sans score max = invalide
+  - W+chiffre = victoire de départage
+  - formats invalides
+- **resolveInlineSubmit : règlement o.17**
+  - W5 contre 5 : égalité au score max refusée
+  - V contre 5 : refusé, sans fenêtre de départage
+  - W4 contre 4 : victoire à égalité sous le max acceptée
+  - Sabre Laser : égalité au max acceptée avec vainqueur
+  - Sabre Laser : égalité sans vainqueur → départage, jamais de match nul
+  - Sabre Laser : V refusé
+- **isInlineScoreComplete**
+  - max 5 : tout chiffre et V sont complets
+  - max 15 : « 1 » attend un second chiffre
+  - incomplet : W seul, vide, sans max, V au laser
+- **inlineCellText / victoryLabel**
+  - victoire au max = V, à égalité = W, sinon le score
+  - affichage : V seul au max, V+score sinon, toujours V+score au laser
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/localeFormat.test.ts</code> — 10 tests</summary>
 
 - **formats selon la langue active (#1160)**
   - français par défaut
@@ -583,10 +979,32 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cantonais (zh-HK) : date et heure localisées
   - langue inconnue : étiquette transmise telle quelle
   - italien : it-IT
+  - portugais : pt-PT, russe : ru-RU
 - **pluriels (Intl.PluralRules, #1160)**
   - 0 / 1 / 2 en français (0 est singulier) et en anglais
   - cantonais : une seule forme
   - clés candidates : catégorie, puis \_other, puis la clé nue
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/matchEndValidation.test.ts</code> — 9 tests</summary>
+
+- **validateMatchEnd (spécification Cyrano §4)**
+  - %s _(each)_
+- **decideMatchWinner**
+  - %s _(each)_
+  - winnerByScore
+- **isAcceptableScore (tablette)**
+  - %s → %s _(each)_
+- **resolveScoreLimit**
+  - %s _(each)_
+  - limites FIE issues des réglages par défaut (t.38, t.40, t.42)
+  - crossedScoreLimit : franchissement seulement
+- **crossedSabreBreak (t.39.1)**
+  - %s _(each)_
+- **passivityWinner (P-noir)**
+  - score, puis classement initial, puis tirage
 
 </details>
 
@@ -606,7 +1024,19 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 47 tests</summary>
+<summary><code>src/shared/utils/miniCalendar.test.ts</code> — 5 tests</summary>
+
+- **mini-calendrier (#1872)**
+  - novembre 2026 : commence le lundi 26 octobre, 6 semaines
+  - mois commençant un lundi (juin 2026)
+  - février bissextile
+  - navigation entre années
+  - libellés localisés
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 57 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -626,10 +1056,11 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - escapes XML special chars in title
   - uses final rank from finalResults when available
   - uses CompetitionIndividuelle root tag
-  - uses CompetitionParEquipe root tag for team events
+  - uses CompetitionParEquipes root tag for team events (#1949)
   - includes pool phase when pools provided
   - inclut les exempts du 1er tour dans leurs cases (#1328)
   - includes elimination bracket when tableauMatches provided
+  - publie les arbitres des poules et du tableau (#1328)
   - maps ABANDONED to A
   - maps EXCLUDED to X
   - maps FORFAIT to F
@@ -662,6 +1093,25 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+- **export pour la fédération (#1949)**
+  - calcule la saison sportive septembre → août
+  - sans données fédérales : ID vide (jamais l’identifiant interne), saison calculée
+  - aller-retour import → export : ID, saison, domaine et valeurs brutes restitués
+  - équipes : racine CompetitionParEquipes, nom fédéral, tireurs imbriqués, classement
+- **exportResultsXMLFFE — FIE 3.3 (#1957)**
+  - porte Version="3.3" à la racine
+  - exporte la latéralité G pour un gaucher, D sinon
+  - exporte le score cible réel du tableau (maxScore), 15 par défaut
+  - un exempt produit deux \<Tireur\>, le second vide
+  - ajoute Date et Heure au match à partir de startTime
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/blackCardReportPdf.test.ts</code> — 1 test</summary>
+
+- **generateBlackCardReportHTML (#1829, annexe 14 FFE)**
+  - une page par tireur exclu, champs pré-remplis et échappés
 
 </details>
 
@@ -678,6 +1128,47 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/pdfExport/clubCardsPdf.test.ts</code> — 6 tests</summary>
+
+- **cartes de membre (#1872)**
+  - 10 cartes par page, nom en majuscules, code en clair
+  - échappe les textes, refuse logo/QR non data:image
+  - QR réels : payload BPC1:M:\<code\>
+  - photo du membre sur la carte (data:image seulement)
+- **QR des pistes (#1872)**
+  - bornes 0..99
+  - 2 pistes par page, titre, payload BPC1:A:n, nom échappé
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/clubPlanPdf.test.ts</code> — 5 tests</summary>
+
+- **plan de cours PDF (#1872)**
+  - en-tête, déroulé chronologique, durée totale, cases à cocher
+  - heure de début : horaires réels
+  - textes échappés, logo non data:image refusé, plan vide
+  - sans intitulé : titre « Plan de cours »
+  - images des exercices sous les consignes
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/fullCompetitionPdf.test.ts</code> — 6 tests</summary>
+
+- **exportPoolsAndTableauxNoSignaturePDF – modèles (#1712)**
+  - les feuilles de poule gardent leur contenu avec le modèle poule
+  - aucun repère OCR dans l’export sans signature
+- **modèle PDF d’un autre type ignoré (#1712)**
+  - poule : un modèle « classement » ne vide pas la grille
+  - tableau : un modèle « classement » ne vide pas les feuilles de match
+  - poule : titre personnalisé d’un modèle « classement » ignoré
+- **exportFullCompetitionPDF – coins OCR (#1712)**
+  - pas de cadre OCR fixe répété sur toutes les pages du dossier
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 5 tests</summary>
 
 - **pdfT**
@@ -690,19 +1181,33 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 8 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 18 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
   - masque V, V/M, TD, TR, Ind et Rg avec hideStatColumns
   - conserve les colonnes non statistiques (club) avec hideStatColumns
   - applique le format paysage
+- **generatePoolHTML – piste dans l'en-tête (#1653)**
+  - affiche le numéro de piste sans saisie distante (pas de QR)
+  - n'affiche aucun bloc piste sans numéro
+  - affiche le QR avec le numéro quand la saisie distante est active
+  - centre le bloc piste dans la barre d'en-tête
+- **generatePoolHTML – repères OCR (#1712)**
+  - pas de cadre OCR bas-droit sans QR (export complet)
+  - cadre OCR et QR présents sur une feuille avec QR
 - **exportMultiplePoolsToPDF – un seul PDF (#1413)**
   - nom par défaut « \<compétition\>-poules.pdf », caractères interdits remplacés
   - toutes les poules dans un seul fichier, une seule boîte de dialogue
+- **printMultiplePoolsHTML – une seule fenêtre (#1413)**
+  - toutes les feuilles dans un seul appel d'impression
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
+- **generatePoolHTML – cartons (#1829, t.124.3.e)**
+  - sans carton : pas de section
+  - cartons P inscrits à part des cartons de faute
+  - modèle personnalisé sans la section : cartons quand même imprimés
 
 </details>
 
@@ -738,12 +1243,41 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 3 tests</summary>
+<summary><code>src/shared/utils/pdfExport/statsCharts.test.ts</code> — 4 tests</summary>
+
+- **touchZoneFigure**
+  - mannequin SVG : zone la plus touchée en foncé, zone vide en gris
+- **statsCharts**
+  - les 2 corps : touches données puis reçues
+  - touches par match : une ligne par match joué, noms échappés
+  - résumé par club : tri alphabétique, « sans club » en dernier, totaux
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.cards.test.ts</code> — 7 tests</summary>
+
+- **matchCardsCellHTML (#1829)**
+  - cartons de faute (avec leur nombre) puis cartons P à part
+  - un seul groupe quand il n’y a que des cartons de faute ou que des cartons P
+  - sans carton : chaîne vide
+- **feuille de match de tableau : colonne « Cartons » (#1829)**
+  - cartons de A et de B sur leur ligne, entre score et signature
+  - sans carton enregistré : cases vides (à remplir à la main)
+- **feuille de poule et feuille de match : mêmes libellés (#1829)**
+  - une seule section « Cartons » sur la feuille de poule
+  - le décompte d’un tireur se lit de la même façon sur les deux feuilles
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 4 tests</summary>
 
 - **generateTableauHTML – feuilles d’arbitrage**
   - par défaut : sous-titre et pastille de l’élimination directe
   - options : sous-titre, pastille et libellé de tour personnalisés (feuilles de vague)
   - flux continu (feuilles de vague, #1441) : pas de saut de page forcé entre pages de feuilles
+  - feuilles seules (vagues rapières, #1441) : ni bandeau titre ni pied de page
 
 </details>
 
@@ -781,6 +1315,16 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/personIdentity.test.ts</code> — 3 tests</summary>
+
+- **personIdentity (#1880)**
+  - accents, casse et espaces ignorés
+  - licence prioritaire, sinon nom + prénom + naissance
+  - import : doublon par nom + prénom ou par licence
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/phaseEta.test.ts</code> — 10 tests</summary>
 
 - **median**
@@ -800,7 +1344,37 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 42 tests</summary>
+<summary><code>src/shared/utils/poolBoutOrder.test.ts</code> — 21 tests</summary>
+
+- **tables officielles (o.69, o.70)**
+  - poules de 6 et 7 : tables o.69
+  - tables spéciales o.70.3.b, o.70.3.c et o.70.4.b
+  - tables 3 à 8 inchangées (non-régression)
+  - tables 9 à 12 : première et dernière rencontre de la table d’usage
+  - chaque table est un tournoi complet, sans match consécutif dès 5 tireurs
+- **detectTeammateGroups**
+  - suit l’ordre des critères ; un tireur appartient au premier groupe trouvé
+  - ignore la casse et les espaces, pas les valeurs vides
+- **planPoolBouts**
+  - sans coéquipiers : numéros et ordre identiques à aujourd’hui
+  - poule de 6, deux tireurs du même club : n°1 et 2, premier match, table o.69
+  - poule de 6, trois paires : (1,2) (3,4) (5,6), chacune tire son premier match entre elle
+  - poule de 6, trio + paire : trio en 1-2-3, paire en 4-5, table trio de 6
+  - poule de 6, deux trios : 1-2-3 et 4-5-6
+  - poule de 6, quatuor : 1 à 4, table quatuor de 6
+  - poule de 7, paires : (1,4) (2,5) (3,6), table o.69
+  - poule de 7, trio + deux paires : 1-2-3, 4-5, 6-7, table trio de 7
+  - autres tailles (o.70.1) : poule de 5, paire en 1-2 ; poule de 8, paire en 2-3
+  - trio de poule de 8 : trois matchs entre eux le plus tôt possible
+  - groupe majoritaire (o.70.2) : pas de placement automatique
+  - keepPositions : garde les numéros et ne prend la table spéciale que s’ils conviennent
+  - ordre libre : rondes de Berger, numéros du serpentin
+  - au-delà de 12 tireurs : pas de placement
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 54 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -853,6 +1427,36 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - match terminé normal : non annulé
   - forfait ou abandon saisi sur un score : annulé
   - match non terminé : jamais annulé
+  - **abandon signalé par l appareil, statut du tireur (#2000, FIE o.74)**
+    - statut inchangé : combat normal, non annulé
+    - statut ABANDONED : combat annulé
+    - classement : V+1 et touches comptées tant que le statut est inchangé, rien une fois ABANDONED
+- **distributeFencersGroupedByLevel (rapières, #1441)**
+  - regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)
+  - séparation club : clubs alternés à niveau égal
+- **distributeFencersToPoolsSerpentine — classement déplaçable**
+  - club avant classement : descente hors du chapeau pour éviter le conflit
+  - quota BellePoule : club plus nombreux que les poules → ⌈N/poules⌉ par poule toléré
+  - classement en rang 1 : échanges au plus proche classement → quotas club respectés
+  - têtes de poule jamais déplacées (premier chapeau)
+  - nation vide : pas de conflit entre tireurs sans nationalité
+  - club après classement : pas de descente hors du chapeau
+  - club après classement : échange dans le chapeau si possible
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolCorrectionImpact.test.ts</code> — 7 tests</summary>
+
+- **arePoolsFrozenByTableau (#1996)**
+  - figées dès qu’un tableau ou une consolante existe
+- **computePoolCorrectionImpact (#1996)**
+  - aucun changement : tableau intact
+  - têtes de série inversées : tableau obsolète, sans entrant ni sortant
+  - qualification : e entre, d sort
+  - rangs du tirage lus sur le tableau, pas sur le classement courant
+  - matchs joués comptés (tableau + consolantes), exempts exclus
+  - tireur exclu après tirage : pas compté parmi les qualifiés corrigés
 
 </details>
 
@@ -901,11 +1505,21 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/postTournamentReport.test.ts</code> — 2 tests</summary>
+
+- **rapport post-tournoi**
+  - buildReportExtras : classement final prioritaire + décompte poules/tableau
+  - liste tous les tireurs (pas de top 5), par club, échappe le HTML
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 6 tests</summary>
 
 - **pseudoLocalize**
   - accentue les lettres et encadre la chaîne
   - préserve les paramètres {{nom}}
+  - allonge la chaîne d'environ 40 %
   - laisse intacts chiffres, accents et symboles
 - **isPseudoLocaleEnabled**
   - vrai uniquement si le drapeau vaut "1"
@@ -961,31 +1575,14 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/scoreValidation.test.ts</code> — 18 tests</summary>
+<summary><code>src/shared/utils/simulatedMatchEvents.test.ts</code> — 4 tests</summary>
 
-- **validateMatchScore**
-  - should validate correct score
-  - should detect scores exceeding max
-  - should detect negative scores
-  - should detect tie when not allowed
-  - should allow tie when explicitly allowed
-  - should warn when winner does not have max score
-  - should warn about unilateral score
-  - should handle null scores
-- **checkDuplicateMatches**
-  - should return null when no duplicate
-  - should detect exact duplicate
-  - should detect reverse duplicate
-  - should ignore cancelled matches
-- **validatePoolMatches**
-  - should validate all matches in pool
-- **formatValidationMessage**
-  - should format error messages
-  - should return empty string for valid result
-- **isValidCompleteScore**
-  - should return true for valid complete score
-  - should return false for null scores
-  - should return false for invalid score
+- **decomposeLaserScore**
+  - somme des zones = score
+- **simulateMatchEvents**
+  - Sabre Laser : touches par zone cohérentes avec le score
+  - arme classique : pas de zones, durée et horodatages dans le match
+  - cartons générés avec motif (rng forcé)
 
 </details>
 
@@ -999,6 +1596,30 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - extrait et renumérote le classement du groupe
   - prépare les données tireur avec le rang après poules et pointe les non-pointés
   - remappe les tireurs en conservant les stats de poule
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/stripRange.test.ts</code> — 4 tests</summary>
+
+- **stripRange (#1501)**
+  - liste les pistes de l’intervalle
+  - normalise les bornes invalides
+  - répartit en rotation sur l’intervalle
+  - computePoolStrips n’utilise que les pistes de l’intervalle
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/stripRules.test.ts</code> — 6 tests</summary>
+
+- **stripRules — réservation des pistes (#1878)**
+  - par défaut tout est autorisé
+  - épreuves autorisées
+  - piste de finale : tableau de 8 et moins, pas de poules
+  - poules seulement
+  - normalisation des entrées invalides
+  - ordre : sans piste d’abord, poules, puis petits tableaux
 
 </details>
 
@@ -1118,14 +1739,31 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/tieBreak.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/tableauBouts.test.ts</code> — 12 tests</summary>
+
+- **tableauBouts (#1817)**
+  - premier tour = plus grand numéro de tour
+  - compte les tours suivants même sans tireurs connus, exempts exclus
+  - tableau de 64 complet : 63 matchs dès le premier tour
+  - qualification d’office (vainqueur sans adversaire) hors décompte
+  - petite finale comptée avec la finale
+  - sans numéro de tour : seuls les matchs aux deux tireurs connus
+  - vagues restantes : tours enchaînés, pistes partagées dans un tour
+- **toutes les places (#1817)**
+  - tableau complet de 2^k : 2^(k−1) × k matchs
+  - exempts au premier tour
+  - barrages : tireurs au-delà de la puissance de 2
+  - taille du champ déduite des barrages
+  - deux décomptes : principal et compétition, consolantes jouées comprises
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/tieBreak.test.ts</code> — 2 tests</summary>
 
 - **allowsVictoryTieBreak**
   - vrai pour laser, épée, fleuret, sabre et rapières
   - faux pour arme à la carte hors rapières
-- **parseVictoryScoreInput**
-  - lit V4-4 (V à gauche) et 4-V4 (V à droite)
-  - score sans V accepté ; saisie invalide refusée
 
 </details>
 
@@ -1193,6 +1831,18 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - reporte arme, genre, catégorie, couleur et settings
   - utilise le nom du modèle comme titre par défaut
   - utilise le titre fourni s’il est présent
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/trainingThemes.test.ts</code> — 5 tests</summary>
+
+- **trainingThemes (#1500)**
+  - liste fermée, Mousquetaires inclus
+  - sombre : défaut partout (pas de thème arbitre, kiosk prédéfini)
+  - chaque thème hors sombre change kiosk et tablette arbitre
+  - Mousquetaires : piste en thème personnalisé
+  - carte du match arbitre (#1808) : suit le thème choisi, pas le thème du téléphone
 
 </details>
 
@@ -1276,7 +1926,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/services/performanceService.test.ts</code> — 15 tests</summary>
+<summary><code>src/shared/services/performanceService.test.ts</code> — 18 tests</summary>
 
 - **CacheService**
   - stocke et relit une valeur
@@ -1297,6 +1947,9 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - borne endIndex au dernier élément
 - **debounce**
   - ne déclenche qu’après le délai et une seule fois
+  - transmet les arguments du dernier appel
+  - cancel() abandonne l’appel en attente
+  - flush() exécute immédiatement, une seule fois
 - **throttle**
   - exécute immédiatement puis limite les appels
 
@@ -1397,6 +2050,54 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **getCompetitionFencerStats / getFencerCompetitionStats**
   - retournent des valeurs vides sans electronAPI
   - délèguent à electronAPI.db
+
+</details>
+
+<details>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 22 tests</summary>
+
+- **normalizeFinishedMatches**
+  - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
+- **fencerIndexRanking**
+  - classe par TD − TR moyen
+- **fencerMatchKpis**
+  - écarts moyens, victoires serrées/dominantes et séries
+  - aucun match → zéros
+- **classement**
+  - rang d’entrée parmi les présents, non classés en fin
+  - progression : delta positif = places gagnées
+- **organisationKpis**
+  - avancement, poules en retard, anneau, débit, attente, pistes actives
+  - tout terminé → pas d’estimation
+- **averageMatchSeconds**
+  - temps de combat si connu, sinon début → fin
+- **weaponKpis (#1817)**
+  - écart moyen, cartons par match, temps limite, statuts
+  - aucun match : zéros
+- **organisationKpis.lastEndAt (#1817)**
+  - fin du dernier match horodaté
+- **bandeau Organisation poules / compétition (#1817)**
+  - tableauWaves : exempts déduits, tours successifs
+  - cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)
+  - pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)
+  - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
+  - poules en cours : fin des poules + tableau projeté
+  - poules finies : fin réelle des poules, tableau généré = ETA globale
+  - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
+  - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
+  - tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)
+  - toutes les places : total de la compétition et deux décomptes (#1817)
+
+</details>
+
+<details>
+<summary><code>src/features/analytics/services/scheduleBaseline.test.ts</code> — 4 tests</summary>
+
+- **scheduleBaseline**
+  - fin planifiée par phase, repli sur la 1re estimation
+  - écart final mémorisé puis effacé
+  - JSON corrompu : valeurs vides
+  - fin de compétition projetée conservée après génération du tableau (#1817)
 
 </details>
 
@@ -1740,25 +2441,29 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 5 tests</summary>
+<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 8 tests</summary>
 
 - **rapieresAge**
   - lit l’année de naissance depuis AAAA-MM-JJ
   - applique les tranches d’âge de la saison (1er septembre)
   - catégorie d’équipe = moyenne des années de naissance des deux tireurs
+  - âge moyen décimal arrondi au-dessus (#1864)
+  - année de naissance seule compte, pas la date (#1864)
   - une seule date connue : elle sert ; aucune : catégorie saisie
   - sexe d’équipe : M, F, mixte ; indéterminé si un sexe manque
+  - abréviation de catégorie pour la colonne « Cat. » des poules (#1864)
 
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 17 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 21 tests</summary>
 
 - **Tournoi des rapières (#1118)**
   - libellé des tireurs de l’équipe
   - **répartition**
     - regroupe par niveau, tailles équilibrées
   - **vagues**
+    - ${n} équipes (impair) : une équipe au repos par vague, la dernière d'abord
     - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
     - ordre des matchs de la poule suivant les vagues
     - vague suivante lancée seulement quand la précédente est saisie
@@ -1769,7 +2474,10 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - exclut les matchs annulés et ceux d’une équipe retirée
     - reprend la piste de la poule
   - **qualification**
-    - 3 poules ou moins : 1ers et 2es ; au-delà : 1ers
+    - mode %s : toutes les équipes au tableau _(each)_
+    - mode semis : 4 équipes
+    - équipe retirée exclue
+    - réglages : petite finale sauf en normal, toutes places en « all »
   - **classements**
     - filtre par niveau : équipes seules, rangs conservés (#1441)
     - filtre par catégorie d’équipe (moyenne des années de naissance, #1441)
@@ -1781,7 +2489,20 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 7 tests</summary>
+<summary><code>src/features/rapieres/rapieresClassicOrder.test.ts</code> — 6 tests</summary>
+
+- **ordre classique des rapières (#1816)**
+  - poule de %i : chaque paire une seule fois _(each)_
+  - nombre de tours par taille
+  - pas de table hors 10 à 15
+  - applyClassicOrder renumérote, garde les ids et donne les vagues des tours
+  - ordre standard conservé si la poule ne suit pas la table
+  - poule sans table inchangée
+
+</details>
+
+<details>
+<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 10 tests</summary>
 
 - **rapieresImport (#1211)**
   - parseDelimited gère BOM, guillemets et CRLF
@@ -1792,6 +2513,10 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
 - **rapieresImport : club de l’équipe (#1441)**
   - club des deux tireurs (colonnes S et X) : distincts joints par « / », identiques une seule fois
+- **buildRapieresImportTemplate (modèle d'import des équipes)**
+  - commence par un BOM et reprend les 25 colonnes de l'export d'inscriptions
+  - est relu par l'import : une équipe d'exemple, colonnes correctement placées
+  - un modèle sans ligne d'exemple ne produit aucune équipe
 
 </details>
 
@@ -1894,7 +2619,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 21 tests</summary>
+<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 27 tests</summary>
 
 - **generateRelayBouts**
   - génère 9 relais dans l’ordre standard
@@ -1910,8 +2635,15 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - est complet après 9 relais terminés
   - retourne null si le match n’est pas terminé
 - **generateRelayOrder**
-  - génère le motif FIE standard pour une équipe de 3
+  - génère la rotation en diagonale pour une équipe de 3
   - génère N² relais où chaque titulaire rencontre chaque adversaire exactement une fois (N=4)
+- **relayOrderFor**
+  - arme %s à 3 : ordre officiel FIE (o.99.3) _(each)_
+  - arme %s : ordre inchangé _(each)_
+  - sans arme ou avec une autre taille d’équipe : ordre inchangé
+  - ordre FIE : chaque titulaire rencontre chaque adversaire une fois, jamais deux relais de suite
+  - renvoie une copie : la constante FIE n’est pas modifiable par l’appelant
+  - generateRelayBouts suit l’arme : relais 1 = 3 contre 6 en sabre, 1 contre 4 en Sabre Laser
 - **getTeamTargetRule / getRelayCap**
   - E/F/S comptent toujours en touches, cible = stepSize × N²
   - Sabre Laser respecte le mode configuré (touches ou points)
@@ -1953,10 +2685,21 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 ### `src/database/`
 
 <details>
-<summary><code>src/database/competitionArchive.test.ts</code> — 4 tests</summary>
+<summary><code>src/database/bpmSnapshot.test.ts</code> — 3 tests</summary>
+
+- **.bpm snapshot (DatabaseManager réel)**
+  - restitue à l’identique le contenu de chaque table de la compétition
+  - n’embarque aucune donnée d’une autre compétition
+  - ré-import remplace l’état existant : aucun match obsolète ne subsiste
+
+</details>
+
+<details>
+<summary><code>src/database/competitionArchive.test.ts</code> — 5 tests</summary>
 
 - **competitionArchive (#1117)**
   - keepOnlyCompetition ne garde que la compétition demandée
+  - keepOnlyCompetition ne garde que la journée de la compétition (#1714)
   - mergeAttachedDatabase importe la compétition et remplace l'état existant
   - mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)
   - keepOnlyCompetition retire poules et matchs des autres compétitions
@@ -1964,7 +2707,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 36 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 39 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -2012,12 +2755,217 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - journalise une nouvelle saisie de score tableau
   - ne journalise pas si le score est inchangé
   - ne journalise pas un match sans score
+  - conserve la marque d’abandon déjà en base quand le renderer réenregistre le match
+  - abandonne les marques si le score ou le vainqueur change
+  - respecte une marque explicitement remise à false
 - **safeJsonParse (#1007)**
   - parse un JSON valide
   - retourne le repli sur JSON corrompu sans lever
   - retourne le repli sur null / vide
 - **cache de statements borné (#1007)**
   - ne dépasse pas la taille max et réutilise les statements
+
+</details>
+
+<details>
+<summary><code>src/database/databaseEncryption.test.ts</code> — 2 tests</summary>
+
+- **DatabaseManager chiffré (#1882)**
+  - migration en clair puis ouverture chiffrée avec migrations
+  - export / sauvegarde auto depuis une base chiffrée : copie en clair lisible
+
+</details>
+
+<details>
+<summary><code>src/database/encryption.test.ts</code> — 7 tests</summary>
+
+- **chiffrement au repos (SQLCipher, #1882)**
+  - une base créée avec clé ne contient pas la donnée en clair
+  - une base en clair existante est migrée en place et reste lisible avec la clé
+  - une mauvaise clé est refusée sans modifier le fichier
+  - une base chiffrée sans clé est refusée
+  - sans clé, une base en clair reste ouverte en clair (fichiers importés)
+  - une migration interrompue laisse un ancien fichier en clair qui est écrasé au démarrage suivant
+  - migration : la base d’origine est intacte si la vérification échoue
+
+</details>
+
+<details>
+<summary><code>src/database/repos/clubBackupRepo.test.ts</code> — 3 tests</summary>
+
+- **ClubBackupRepo (sauvegarde / chargement d’un club)**
+  - recharge tout le club sur un autre poste (via le fichier .bpclub)
+  - club déjà présent : refus sans remplacement, remplacement sans doublon
+  - refuse un fichier qui n’est pas une sauvegarde de club
+
+</details>
+
+<details>
+<summary><code>src/database/repos/clubInventoryRepo.test.ts</code> — 27 tests</summary>
+
+- **ClubInventoryRepo (inventaire du club)**
+  - ajout en série : fiches unitaires numérotées, sans doublon ni n° de série recopié
+  - crée une fiche complète avec achat, garantie et emplacement
+  - refuse une fiche sans nom ou avec une date invalide
+  - prête des exemplaires et décompte les disponibles
+  - refuse un prêt au-delà des disponibles
+  - refuse le prêt à un tireur d’un autre club ou archivé, et le matériel réformé
+  - refuse une échéance passée
+  - rend un prêt : état mis à jour sur le matériel, disponibilité rétablie
+  - refuse un retour antérieur au prêt
+  - signale les prêts en retard tant qu’ils ne sont pas rendus
+  - liste les prêts d’un tireur et les filtre par statut
+  - empêche de réduire la quantité sous le nombre prêté
+  - met à jour partiellement sans perdre les autres champs
+  - réforme sans supprimer : disparaît du prêt, reste dans l’historique
+  - supprimer du matériel prêté est refusé ; une fois rendu, la fiche et son historique partent
+  - supprime un prêt rendu, pas un prêt en cours
+  - effacement RGPD d’un tireur : son prêt reste compté, sans identité
+  - effacement d’un club : matériel et prêts supprimés
+  - import en lot : ignore les n° de série déjà présents ou répétés dans le fichier
+  - **catégories du club**
+    - crée, liste avec le nombre de fiches, renomme
+    - refuse un nom vide ou déjà pris, sans tenir compte de la casse
+    - refuse de supprimer une catégorie utilisée, supprime une catégorie libre
+    - une fiche ne peut utiliser qu’une catégorie de son propre club
+    - la suppression du club efface ses catégories
+  - **verrou et marques**
+    - inventaire verrouillé : consultation oui, toute modification refusée
+    - déverrouillé : les modifications reviennent
+    - catalogue de marques : doublon refusé, renommage propagé aux fiches, suppression si libre
+
+</details>
+
+<details>
+<summary><code>src/database/repos/clubRepo.test.ts</code> — 46 tests</summary>
+
+- **ClubRepo (#1872)**
+  - **membres**
+    - crée, normalise et liste par nom
+    - import en lot : création, complément, doublons
+    - photo : validée, effaçable, import par licence
+    - nom requis
+    - archive : masqué par défaut, visible avec includeInactive
+    - suppression RGPD : combats et présences effacés
+  - **cartes et identité du club**
+    - code carte unique à la création, retrouvé par code (actifs)
+    - régénération : ancienne carte invalide
+    - code non modifiable via updateMember
+    - nom + logo + pistes du club, logo validé, null efface
+    - migration 26 : codes générés pour les membres existants
+  - **préparation et bilan des séances**
+    - heure de début optionnelle : HH:MM valide, sinon absente ; effacée sur null
+    - séance préparée : plan, objectifs, démarrage, une seule ouverte
+    - bilan de séance et remarques par tireur
+  - **maîtres d'armes**
+    - CRUD, archivage, encadrement des séances
+  - **bibliothèque d’exercices**
+    - CRUD, tri par famille, import sans doublon
+    - plan de séance : images et famille conservées
+  - **plusieurs clubs**
+    - membres, séances et combats cloisonnés par club ; résumé pour l’accueil
+    - suppression d’un club : toutes ses données, pas celles des autres
+    - arme du club : par défaut des nouvelles séances, remplaçable
+    - création : nom requis, club inconnu refusé
+    - migration 28 : le club unique devient « club-default »
+    - migration 28 sans données : aucun club créé
+  - **séances**
+    - crée avec pistes bornées, date validée
+    - liste filtrée par plage, plus récente d’abord
+    - pointage idempotent, dépointage
+    - changer la date répercute sur les combats
+    - fermeture : combats en cours annulés, création refusée
+    - réouverture possible alors qu’une autre séance est ouverte
+    - suppression : combats et présences effacés
+  - **combats**
+    - contrôles à la création
+    - cycle : départ, score en cours, fin
+    - correction après coup + vainqueur explicite
+    - piste occupée : second combat refusé, libérée une fois terminé
+    - annulé : non terminable
+    - filtres : membre, plage, arme, terminés seuls par défaut
+    - suppression
+  - **armes du club (#1872)**
+    - garde la liste (ordre canonique, artistique inclus) ; arme par défaut = 1re arme de compétition
+    - sans arme de compétition : pas d’arme par défaut
+  - **catégories d’âge et séances récurrentes**
+    - date de naissance : année déduite, date invalide ignorée
+    - séance : catégories du cours (codes reconnus), effaçables
+    - série : une séance préparée par date, plan copié sans cases cochées
+    - exercice : catégories visées (vide = commun à tous)
+    - jours d’ouverture : séances préparées, dates occupées ignorées, fermeture
+    - plusieurs périodes : dates fusionnées, fermetures sur chaque période
+    - jours d’ouverture : entrées invalides refusées
+
+</details>
+
+<details>
+<summary><code>src/database/repos/competitionFencerCount.test.ts</code> — 1 test</summary>
+
+- décompte par compétition, tireurs non chargés
+
+</details>
+
+<details>
+<summary><code>src/database/repos/cyranoRepo.test.ts</code> — 3 tests</summary>
+
+- **CyranoRepo (#1829)**
+  - enregistre et relit les pistes dans l’ordre
+  - remplace la liste entière sans toucher aux autres compétitions
+  - compétition absente ou identifiant vide : liste vide, pas d’écriture
+
+</details>
+
+<details>
+<summary><code>src/database/repos/eventDayRepo.test.ts</code> — 8 tests</summary>
+
+- **EventDayRepo (#1714)**
+  - crée une journée et rattache des épreuves
+  - borne le nombre de pistes
+  - reporte les arbitres selon leur arme, sans doublon
+  - reprend une fiche homonyme existante et répercute les modifications
+  - importe les arbitres des épreuves : homonymes fusionnés, armes cumulées (#1872)
+  - n'agit pas sur une épreuve hors journée
+  - voit les occupations (poule non terminée, match de tableau en cours) sur la journée
+  - délie les fiches quand on supprime arbitre, rattachement ou journée
+
+</details>
+
+<details>
+<summary><code>src/database/repos/organisationRepo.test.ts</code> — 3 tests</summary>
+
+- **OrganisationRepo (#1817)**
+  - journalise et relit les événements par compétition
+  - renvoie l’horodatage des matchs de la compétition
+  - stats arbitres : appels DT et repos moyen entre affectations
+
+</details>
+
+<details>
+<summary><code>src/database/repos/privacyRepo.test.ts</code> — 12 tests</summary>
+
+- **identityKey / scrubIdentityInJson**
+  - regroupe par licence, sinon par nom sans accents
+  - remplace l'identité des tireurs visés à toute profondeur, sans muter
+- **PrivacyRepo (#1882)**
+  - retrouve une personne dans toutes les compétitions et le club (licence)
+  - exporte toutes les données de la personne (accès / portabilité)
+  - anonymise : identité remplacée partout, résultats conservés
+  - efface la personne de toutes les compétitions et du club
+  - liste les compétitions et membres au-delà de la durée de conservation
+  - anonymise une compétition échue, qui sort de la liste des candidats
+  - anonymisation : commentaires d’arbitre nettoyés (auteur, libellé, noms) (#1882)
+  - membre sans licence : pas rattaché à un homonyme d’une autre date de naissance (#1882)
+  - competitionIdsOf : compétitions de la personne (#1882)
+  - supprime une compétition sans laisser de données orphelines
+
+</details>
+
+<details>
+<summary><code>src/database/repos/refereeRepo.test.ts</code> — 1 test</summary>
+
+- **RefereeRepo.getMatchesWithReferees**
+  - ne plante pas et renvoie poules + tableau de la compétition
 
 </details>
 
@@ -2040,6 +2988,34 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - mappe les lignes en camelCase
   - ne requête pas sans identifiants de match
   - requête par lot avec placeholders
+
+</details>
+
+<details>
+<summary><code>src/database/repos/stripRuleRepo.test.ts</code> — 3 tests</summary>
+
+- **StripRuleRepo (#1878)**
+  - réservation enregistrée, relue, retirée par la règle par défaut
+  - affectation automatique par journée
+  - suppression de la journée : réservations et table Cyrano de la salle supprimées
+
+</details>
+
+<details>
+<summary><code>src/database/repos/teamRepo.test.ts</code> — 1 test</summary>
+
+- **TeamRepo.reopenTeamBout**
+  - rencontre terminée → en cours, vainqueur effacé, scores et relais courant recalculés
+
+</details>
+
+<details>
+<summary><code>src/database/repos/touchStats.test.ts</code> — 3 tests</summary>
+
+- **Touches données / reçues par zone**
+  - compte les touches reçues des adversaires, par zone, hors touches annulées
+  - replaceSimulatedMatchEvents remplace puis efface les seuls événements simulés
+  - getCardsByMatchIds : cartons de plusieurs matchs en ordre chronologique (feuilles, #1829)
 
 </details>
 
@@ -2171,11 +3147,381 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/autosaveBackup.test.ts</code> — 7 tests</summary>
+
+- **runBackupAutosave**
+  - écrit la base complète dans le dossier global
+  - utilise le dossier global réglé par l’utilisateur
+  - une compétition avec dossier dédié est copiée seule dans ce dossier
+  - un dossier dédié invalide (relatif) est ignoré
+  - un échec sur une compétition n’empêche pas les autres
+- **competitionAutosaveName**
+  - assainit le titre et ajoute un suffixe d’id
+  - titre vide → « competition »
+
+</details>
+
+<details>
+<summary><code>src/main/backupSettings.test.ts</code> — 8 tests</summary>
+
+- **sanitizeBackupDir**
+  - accepte un chemin absolu et le normalise
+  - refuse vide, relatif, octet nul ou non-texte
+- **dossier par défaut**
+  - vaut \<Documents\>/BellePoule sans réglage
+  - un réglage invalide dans le fichier retombe sur le défaut
+  - fichier corrompu : pas d’exception, défaut
+- **réglage utilisateur**
+  - écrit puis relit le dossier choisi
+  - réinitialiser (réglage vide) rétablit le défaut
+  - le nom de la sauvegarde automatique est fixe
+
+</details>
+
+<details>
+<summary><code>src/main/bpmCrypto.test.ts</code> — 4 tests</summary>
+
+- **bpmCrypto**
+  - chiffre puis déchiffre à l’identique
+  - refuse un mauvais mot de passe et un fichier altéré
+  - refuse un mot de passe trop court
+  - chiffre un fichier en place et le détecte
+
+</details>
+
+<details>
 <summary><code>src/main/certManager.test.ts</code> — 2 tests</summary>
 
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/cliArgs.test.ts</code> — 10 tests</summary>
+
+- **parseCliArgs**
+  - sans option : mode fenêtré
+  - --headless
+  - BELLEPOULE\_HEADLESS=1
+  - arguments inconnus ignorés
+  - --batch-import \<manifeste\> implique --headless
+  - --batch-import=\<manifeste\>
+  - --mcp : serveur MCP activé pour cette exécution, port facultatif
+  - --mcp-print-config implique --headless
+  - --mcp-new-token : régénère puis affiche la configuration
+  - --batch-import sans valeur : ignoré
+
+</details>
+
+<details>
+<summary><code>src/main/clubBackups.test.ts</code> — 8 tests</summary>
+
+- **backupsToRemove**
+  - garde les 2 plus récentes et supprime les plus anciennes
+  - ignore les fichiers qui ne sont pas des sauvegardes
+- **clubBackupFileName**
+  - produit un nom horodaté trié chronologiquement
+- **sauvegardes sur disque**
+  - rotation : la 3e sauvegarde supprime la plus ancienne
+  - liste vide tant qu’aucune sauvegarde n’existe
+  - restaure une sauvegarde en remplaçant le club
+  - refuse un identifiant de fichier hors format (pas de chemin arbitraire)
+  - refuse la restauration d’une sauvegarde d’un autre club
+
+</details>
+
+<details>
+<summary><code>src/main/clubSync.test.ts</code> — 19 tests</summary>
+
+- **decideSync**
+  - ne fait rien quand rien n a changé
+  - écrit le club quand le fichier n'existe pas
+  - écrit quand seul le poste a changé
+  - reprend le fichier quand seul le fichier a changé
+  - signale un conflit quand les deux côtés ont changé
+  - signale un conflit à la première synchro si le club existe déjà et le fichier aussi
+  - importe à la première synchro sur un poste qui ne connaît pas le club
+  - ne ressuscite pas un club supprimé localement si le fichier n'a pas changé
+  - ne fait rien si le club et le fichier sont absents
+- **clubSyncFileName**
+  - assainit le nom et ajoute un fragment d identifiant
+  - retombe sur « club » pour un nom vide
+- **ClubSyncService (dossier réel, base simulée)**
+  - active la synchro : écrit le fichier et enregistre l'état de référence
+  - ne réécrit ni ne reprend rien quand rien n a changé
+  - reprend un fichier modifié sur un autre poste
+  - écrit le fichier quand ce poste a changé
+  - signale un conflit sans rien écraser quand les deux côtés ont changé
+  - résout un conflit en gardant ce poste
+  - signale une erreur si le dossier de synchro a disparu, sans le recréer
+  - désactiver retire le réglage et laisse le fichier en place
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/codec.test.ts</code> — 28 tests</summary>
+
+- **parseCyrano — trames de la spécification**
+  - HELLO / NEXT / PREV
+  - INFO incomplet sans DISP : chrono, état et données appareil
+  - INFO après DISP vide
+  - INFO complet
+  - INFO en attente sans match
+  - DISP abrégé, espaces parasites retirés
+  - EFP1 et carton P (EFP1.1)
+  - rejette les trames invalides
+  - valeurs hors domaine ignorées
+- **buildCyrano**
+  - HELLO conforme à la spécification
+  - champs obligatoires présents même vides
+  - aller-retour sur une trame complète
+  - EFP1 omet le carton P, EFP1.1 le transmet
+  - nettoie \| et % et tronque
+  - zone droite vide mais gauche présente
+  - sanitizeField
+- **noms et nations**
+  - translittération
+  - convention olympique
+  - nation sur 3 caractères
+  - source du champ nation
+- **fin de match (ACK / NAK)**
+  - cas de la spécification
+  - issue par tireur A / B : insensible à l’inversion droite/gauche
+- **DISP depuis un match**
+  - construit les champs et respecte les longueurs
+  - armes hors protocole
+- **splitCyranoFrames (datagrammes Saint-George SG32)**
+  - une trame seule est rendue telle quelle
+  - deux INFO collés : deux trames, dans l’ordre, la dernière lisible
+  - EFP1 collé à EFP1.1
+- **chrono du DISP selon la version du protocole**
+  - EFP1.1 : centièmes transmis ; EFP1 : retirés (ajout de la version 1.1)
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/cyranoReplay.test.ts</code> — 7 tests</summary>
+
+- **parseCyranoLog (format de formatCyranoLog)**
+  - relit les six trames avec sens, adresse, piste et rejet
+  - ignore et compte les lignes vides ou illisibles
+- **sélection et calendrier**
+  - liste les pistes des trames IN
+  - ne garde que les trames IN valides de la piste demandée
+  - sans piste : toutes les trames IN sauf les illisibles (OUT écartées)
+  - respecte le rythme d’origine, divisé par --speed
+  - refuse une vitesse nulle, négative ou non numérique
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/deviceState.test.ts</code> — 4 tests</summary>
+
+- **deviceState (#1720)**
+  - Id UUID : le préfixe de 8 caractères qui circule dans les trames
+  - parseCyranoStopwatch : m:ss et m:ss.cc
+- **cartons P EFP1.1 (#1829)**
+  - champ 12 → compteurs jaune / rouge / noir P
+  - compteurs → champ 12 du DISP (0, 2 ou 4, noir prime)
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/driver.test.ts</code> — 10 tests</summary>
+
+- **Conversion Cyrano → état normalisé**
+  - INFO complet : état, chrono en secondes, priorité, type, relais, côtés
+  - états, statuts et cartons P (0 à 5)
+  - INFO minimal : champs absents omis (pas de priorité inventée)
+- **Conversion affichage → DISP**
+  - individuel : chrono m:ss, cartons, carton P (rouge = 2, noir = 4)
+  - équipes : Type=T, Round = n° du relais, phase / poule / match omis
+  - chrono : m:ss, centièmes sous 10 s, arrondi
+- **CyranoPisteDriver**
+  - INFO / NEXT / PREV → entrées numérotées par piste, liaison jointe
+  - commandes → DISP / DISP vide / ACK / NAK, épreuve transmise
+  - identifiant tronqué à 8 caractères, liaison et statuts relayés, dispose
+- **PisteHub + ArenaInputGate**
+  - entrée de séquence déjà vue : rejetée avant l’arène, tracée
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/e2e.test.ts</code> — 6 tests</summary>
+
+- **Cyrano bout en bout : UDP réel, appareil simulé (#1829)**
+  - DISP reçu par UDP : tireurs, n° de poule et de match
+  - BEGIN, touches et cartons : l’arène suit l’appareil
+  - VALIDATE → ACK par UDP → match terminé
+  - PREV émis par l’appareil : le match terminé revient pour correction, scores et cartons conservés
+  - égalité sans priorité : NAK, match non terminé
+  - repos de l’appareil : une tablette qui ouvre le match ne remet pas le score à 0 (#1999)
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/e2eTeam.test.ts</code> — 5 tests</summary>
+
+- **Cyrano bout en bout : relais par équipes, UDP réel (#1829)**
+  - DISP Type=T reçu par UDP : relais 1, tireurs du relais, nation = équipe
+  - relais 1 : touches de l’appareil → score du relais sur l’arène équipe
+  - VALIDATE → ACK → relais 2 affiché avec les scores cumulés
+  - relais 2 : BEGIN sans remise à zéro, remplaçant demandé (RESERVE), pas encore pris en compte
+  - VALIDATE → relais 3 ; PREV avant BEGIN → relais 2 rappelé aux mêmes cumuls
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/matchCoords.test.ts</code> — 5 tests</summary>
+
+- **resolveCyranoCoords (#1720)**
+  - poule : numéro de la poule (pas le dernier segment de son UUID) et numéro du match
+  - tableau : A\<taille\> et position + 1, depuis l’id \`\<taille\>-\<position\>\`
+  - tableau : tour et position lus en base (id composite) si l’id ne les porte pas
+  - base indisponible : valeurs par défaut, sans exception
+  - Phase (spéc. § 3) : tour de poules en cours, tableau = dernier tour de poules + 1
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 54 tests</summary>
+
+- **PisteHub — mode appareil maître (#1720)**
+  - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
+  - INFO actif : score et cartons de l’appareil appliqués à l’arène malgré la troncature des Id
+  - inversion droite/gauche : A à gauche de l’appareil, résultats non intervertis
+  - chrono : F → update\_timer (en marche), H → pause\_timer, diffusés avec source device
+  - appareil au repos sans le match (redémarrage, reconnexion) → DISP renvoyé
+  - INFO au repos (W) : scores ignorés
+  - END valide : ACK, résultat de l’appareil enregistré, pas de DISP du match terminé
+  - END envoyé directement (score dans la même trame, sans INFO préalable) : score final retenu
+  - END invalide (égalité sans priorité) → NAK, match non clos
+  - END ou INFO d’un autre match (BAD MATCH) → NAK, arène inchangée
+  - NEXT pendant un match non terminé : refusé, DISP du match courant renvoyé
+  - NEXT après ACK : match suivant chargé et envoyé
+  - correction de score depuis la tablette → DISP avec les scores corrigés
+  - mises à jour de la tablette : jamais marquées source device
+  - sabre laser : champ arme vide dans le DISP
+  - END à égalité avec priorité : vainqueur = tireur prioritaire, inversion comprise
+  - END à égalité, A à gauche après inversion, priorité à droite → B
+  - END sur abandon : l’adversaire gagne même mené au score, abandon marqué
+  - END sur exclusion (statut E) : tireur exclu comme pour un carton noir, annulable (#1829)
+  - END sur abandon : aucune exclusion automatique, le DT est sollicité
+  - END sur exclusion : exclusion marquée sur le tireur exclu
+  - journal des scores : auteur « device » pour l’appareil, « referee » pour la tablette
+  - BAD MATCH : alerte exposée pour le panneau, levée quand l’appareil affiche le bon match
+  - sabre laser : affichage seul — INFO ignorés, END refusé, NEXT sans effet
+  - **PREV — touche PREVIOUS de l’appareil (#1829)**
+    - match terminé sur abandon ou exclusion : le DISP du match rappelé porte le statut (R5 / L5)
+    - après ACK : match rappelé, DISP avec scores et cartons, correction réenregistrée
+    - après NEXT : le match suivant non commencé cède la place au match rappelé
+    - combat en cours : refusé, DISP du match courant renvoyé
+    - rien à rappeler : refusé sans changer l’arène
+    - afficheur : PREV sans effet
+  - **actions de secours depuis le poste (#1829)**
+    - ACK forcé envoyé à la piste
+    - NEXT du poste : mêmes garde-fous que la touche de l’appareil
+    - PREV du poste : rappel du match terminé pour correction (maître seulement)
+    - état P de l’appareil (minute de repos) : repos publié sur l’arène, levé à la reprise (#1829)
+    - bandeau appareil : mode et liaison publiés sur l’arène
+    - PREV émis par l’appareil : rappel du match terminé, comme le bouton du poste
+    - resynchronisation : match de l’arène renvoyé, alerte levée
+    - piste inconnue : refus
+  - **modes par piste (#1829)**
+    - afficheur : DISP reçu, INFO ignorés, END refusé (NAK), NEXT sans effet
+    - afficheur partageant l’arène du maître : reçoit aussi les scores de la tablette
+    - manuel : aucun DISP envoyé, INFO ignorés, END refusé, resynchronisation refusée
+    - retour de manuel vers maître : DISP du match courant renvoyé
+    - appareil hors ligne : bascule en manuel (plus de DISP), retour en ligne : DISP renvoyé
+    - BAD MATCH : notification au DT à la première alerte seulement
+    - reprise : match en cours sauvegardé repris avec son score au redémarrage de la séance
+    - reprise : match déjà terminé en base non repris
+    - mode hors liste : repli sur maître
+  - **verrou des cartons et chrono sauvegardé (#1829)**
+    - maître en ligne : carton ajouté par la tablette refusé et tablette resynchronisée
+    - maître en ligne : retrait permis depuis la tablette, cartons de l’appareil toujours appliqués
+    - maître en ligne : remplacement d’un carton — l’ajout est refusé, le retrait passe
+    - maître en ligne : la tablette ne peut que retirer des points
+    - piste en manuel (ou appareil hors ligne) : la tablette ajoute librement
+    - minute de repos de l’appareil (état P) : le décompte du repos n’écrase pas le chrono du combat
+    - reset\_scores : chrono mémorisé du match effacé, en mémoire et en base
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/pisteHubRouting.test.ts</code> — 6 tests</summary>
+
+- **PisteHub — pistes partagées entre épreuves (#1878)**
+  - la piste suit l’épreuve de son affectation : DISP avec l’arme et l’épreuve du match
+  - INFO de l’appareil appliqué à l’épreuve suivie, jamais à l’autre
+  - piste prise : l’autre épreuve affectée à la même piste attend la fin, puis prend la main
+  - liaison appareil (bandeau, verrou tablette) : publiée sur l’arène de l’épreuve suivie
+  - aucune affectation : la piste reste sur sa dernière épreuve, rien n’est envoyé
+  - une seule épreuve ouverte : comportement inchangé (serveur unique)
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/server.test.ts</code> — 14 tests</summary>
+
+- **CyranoServer**
+  - interface d’écoute : adresse IP ou vide, refus sinon (#1829)
+  - start(port) écoute sur le port demandé, sans piste configurée
+  - HELLO au démarrage, INFO/NEXT reçus, DISP/ACK envoyés
+  - ignore les IP non déclarées et les trames illisibles
+  - supervision : en ligne → incertain → hors ligne
+  - journal borné
+  - version imposée par piste
+- **Interface d’écoute et datagrammes Saint-George**
+  - sous-réseau de l’interface locale
+  - deux INFO dans un datagramme : deux trames traitées, la dernière retenue
+  - interface choisie : reçoit aussi les datagrammes adressés à une autre IP locale (broadcast)
+  - interface choisie : IP inconnues d’un autre réseau ignorées sans trace
+- **détection de la version du protocole (piste en auto)**
+  - appareil jamais entendu : HELLO alterné EFP1.1 / EFP1, puis la version entendue
+  - version imposée : jamais d’alternance
+- **champ Compe**
+  - DISP d’une épreuve : repris par les HELLO, ACK et NAK suivants de la piste
+
+</details>
+
+<details>
+<summary><code>src/main/cyrano/simulatorDevice.test.ts</code> — 18 tests</summary>
+
+- **Appareil Cyrano simulé — télécommande WSG (SG31 / SG32)**
+  - expose toutes les commandes de la télécommande
+  - temps écoulé : GO refusé, PAUSE puis reprise en période 2 sans perdre score ni cartons
+  - RESET remet le temps de la période sans effacer tireurs, score ni cartons
+  - RESET pendant la minute de repos l’écourte (période inchangée)
+  - CLOCK ±1 s arrête le chrono ; RESET ±1 min change la durée de la période
+  - 0:0 et CARDS RESET ; ∨ jaune / ∨ rouge retirent les cartons
+  - cartons P par côté (champ 12 EFP1.1) : montée 0 à 5, descente, INFO, CARDS RESET (#2001)
+  - carton P absent des trames en EFP1 (champ 12 propre à EFP1.1)
+  - DISP d’un match repris (PREV) : carton P installé, puis corrigé par un DISP en cours de match
+  - bloc PC : abandon, expulsion, réserve, médical dans la trame INFO
+  - priorité tirée au sort, P RESET, arme
+  - VALIDATE → E ; NEXT bloqué tant que le match n’est pas acquitté ; RAZ efface tout
+  - NAK : fin refusée, l’appareil revient en halte ; correction puis VALIDATE acceptés (spéc. § 4)
+  - DISP d’un match repris (PREV) : scores et cartons installés
+- **Appareil Cyrano simulé — équipes (Type=T, #1829)**
+  - DISP Type=T : relais 1 installé, type T et Round renvoyés dans l’INFO
+  - ROUND ∧∨ bloqués en équipes : le relais est fixé par le logiciel
+  - fin de relais : ACK → W, DISP du relais suivant avec les cumuls, BEGIN sans remise à zéro
+  - RESERVE : champ 11 = R dans la zone du tireur, effacé au relais suivant
+
+</details>
+
+<details>
+<summary><code>src/main/dbKey.test.ts</code> — 5 tests</summary>
+
+- **clé de la base (SQLCipher, #1882)**
+  - crée une clé de 256 bits au premier lancement, stockée chiffrée
+  - relit la même clé aux lancements suivants
+  - trousseau indisponible : pas de clé (base en clair signalée par l’appelant)
+  - fichier de clé illisible : erreur, aucune nouvelle clé générée
+  - base chiffrée sans fichier de clé : erreur, pas de nouvelle clé
 
 </details>
 
@@ -2208,12 +3554,72 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/domain/settings.test.ts</code> — 8 tests</summary>
+
+- valeurs par défaut, validation, reprise douce des valeurs localStorage
+- dossiers de l’agent : chemins absolus seulement
+- la salle par défaut fournit ses pistes à la journée, au club et à resolveSetting
+- une seule salle par défaut
+- pistes des journées et clubs → salle par défaut
+- aucune piste déclarée : aucune salle créée
+- **fichiers écrits par l’agent**
+  - dossier hors périmètre refusé, lien vers l’extérieur compris
+  - pas d’écrasement sans accord ; remplacement atomique
+
+</details>
+
+<details>
+<summary><code>src/main/domain/sport.test.ts</code> — 12 tests</summary>
+
+- poules → arbitres → scores → tableau → classement final → exports
+- régénérer des poules jouées exige replace
+- correction d’un match de tableau refusée si le tour suivant est joué
+- formats non pris en charge : erreur explicite
+- pas assez de tireurs pointés
+- abandon en poule : statut du tireur, ses autres matchs perdus, écarté du tableau
+- Sabre Laser : scores max effectifs de l’écran (21 en poule)
+- tableau terminé : phase Résultats
+- révision : une sauvegarde de l’écran sur un état périmé est refusée
+- export : dossier hors périmètre refusé, pas d’écrasement par défaut
+- **validation des scores de poule (identique à l’écran)**
+  - score max, égalité, vainqueur contraire
+  - statut spécial au perdant, priorité marquée
+
+</details>
+
+<details>
 <summary><code>src/main/eventLoopMonitor.test.ts</code> — 3 tests</summary>
 
 - **EventLoopMonitor (#1154)**
   - snapshot vide avant toute mesure
   - détecte un blocage synchrone et se remet à zéro
   - start/stop idempotents
+
+</details>
+
+<details>
+<summary><code>src/main/federalFiles.test.ts</code> — 3 tests</summary>
+
+- **unpackFederalFiles**
+  - décode chaque fichier du .zip avec son propre encodage
+  - accepte des fichiers isolés et ignore les extensions inconnues
+  - refuse un fichier texte trop volumineux
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/clubHandlers.test.ts</code> — 9 tests</summary>
+
+- **handlers club:\* (#1872)**
+  - enregistre tous les canaux club:\*
+  - jours d’ouverture et fermetures : délèguent au dépôt
+  - inventaire : délègue au dépôt, filtres et booléens par défaut
+  - booléens stricts et filtres par défaut
+  - club : objets vides par défaut
+  - classement : force les combats terminés
+  - fiche membre : stats, face-à-face, progression par trimestre
+  - période inconnue → mois
+  - score de la tablette → combat club terminé (saisie arbitre), autres matchs ignorés
 
 </details>
 
@@ -2225,6 +3631,52 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - protect / unprotect font l’aller-retour en base64
   - renvoie null sans chiffrement disponible
   - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/cyranoHandlers.test.ts</code> — 6 tests</summary>
+
+- **cyranoHandlers — table des pistes**
+  - épreuve hors journée : table propre à l’épreuve
+  - épreuves d’une même journée : une seule table, partagée
+  - journée encore vide : la table existante de l’épreuve est reprise
+  - épreuve suivie par piste
+  - table modifiée serveur démarré : HELLO envoyé aussitôt
+  - entrées invalides refusées
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/dayStripHandlers.test.ts</code> — 4 tests</summary>
+
+- **dayStripHandlers (#1878)**
+  - tableau des pistes : occupée, libre avec proposition
+  - affectation : piste hors salle ou réservée refusée, piste libre acceptée
+  - réservation : entrées invalides refusées, null retire la réservation
+  - affectation automatique : la piste libre est prise sans clic
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 4 tests</summary>
+
+- **bus d’événements db (#1298)**
+  - emitCompetitionEvent diffuse aux fenêtres
+  - db:updateMatch et db:createMatch émettent matches:changed
+  - db:updateMatch : motif de correction au journal, jamais écrit dans le match (#1996)
+  - db:addFencer émet fencers:changed pour la compétition
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/eventDayHandlers.test.ts</code> — 4 tests</summary>
+
+- **handlers eventDay:\* (#1714)**
+  - importe les arbitres des épreuves puis synchronise toutes les épreuves (#1872)
+  - rattacher importe et synchronise la journée, détacher non
+  - vue d’ensemble : statut commun et conflits
+  - occupé ailleurs : vide hors journée, sinon autres épreuves seulement
 
 </details>
 
@@ -2277,6 +3729,31 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/ipc/mcpHandlers.test.ts</code> — 2 tests</summary>
+
+- **contrôleur MCP**
+  - désactivé par défaut ; --mcp l’active sans toucher aux réglages enregistrés
+  - jeton illisible : serveur non démarré, erreur token\_unreadable, puis régénération
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/privacyHandlers.test.ts</code> — 8 tests</summary>
+
+- **applyRetention**
+  - anonymise par défaut, supprime sur demande
+  - restreint à la sélection
+  - ignore une compétition ouverte, compacte la base après purge (#1882)
+- **handlers privacy:\***
+  - enregistre et applique les réglages (noms abrégés à chaud)
+  - filtre les entrées non fiables
+  - compétition ouverte : anonymisation et effacement refusés (#1882)
+  - effacement : base compactée ensuite (#1882)
+  - archive chiffrée : mot de passe trop court, aucun fichier en attente
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/remoteClientsHandlers.test.ts</code> — 4 tests</summary>
 
 - **registerRemoteClientsHandlers (#1341)**
@@ -2306,12 +3783,18 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/ipc/remoteServerHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/remoteServerHandlers.test.ts</code> — 8 tests</summary>
 
 - **registerRemoteServerHandlers (#1341)**
   - enregistre les canaux de cycle de vie du serveur
   - getServerInfo / stopServer : serveur absent
   - getNetworkInterfaces propose toujours 0.0.0.0
+  - **reloadServer (rechargement à chaud)**
+    - serveur absent
+    - port invalide refusé sans redémarrage
+    - port d’un autre serveur refusé
+    - change port et interface, met à jour le registre (même instance conservée)
+    - échec du redémarrage : registre inchangé
 
 </details>
 
@@ -2334,8 +3817,35 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/ipc/trainingHandlers.test.ts</code> — 6 tests</summary>
 
+- **training:setTheme**
+  - applique un thème intégré au serveur d’entraînement
+  - accepte le thème Mousquetaires (#1500)
+  - refuse un thème inconnu ou personnalisé
+- **registerTrainingHandlers : arrêt du serveur d’entraînement / démo**
+  - stopServer libère le port et arrête le serveur
+  - fenêtre principale fermée (macOS, app dans le Dock) → serveur arrêté
+  - fenêtre principale rechargée (bouton « Arrêter » perdu) → serveur arrêté
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/validation.test.ts</code> — 4 tests</summary>
+
+- **validation IPC (#1774)**
+  - validateUUID accepte un UUID, refuse le reste
+  - validateCompetitionData exige titre, date (Date) et arme
+  - validateFencerData exige nom/prénom, ref optionnelle positive
+  - validateMatchData exige numéro et score max positifs
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 4 tests</summary>
+
+- **rendu PDF isolé (#1880)**
+  - seuls le HTML temporaire et les data: URL sont chargés
 - **registerWindowPrintHandlers (#1341)**
   - enregistre les canaux fenêtre / impression / shell
   - shell:openExternal : https uniquement
@@ -2349,6 +3859,110 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **mainWindowRef**
   - renvoie null par défaut puis la fenêtre définie
   - renvoie null si la fenêtre est détruite
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpClubTools.test.ts</code> — 11 tests</summary>
+
+- sont déclarés en lecture et en écriture
+- liste les clubs et refuse un club inconnu
+- crée une séance ouverte, puis la prépare si planned est vrai
+- valide la date, l’arme et les pistes à la création
+- dryRun décrit sans écrire
+- ouvre une séance préparée, puis refuse de la rouvrir sans la fermer
+- ferme une séance, annule ses combats en cours et la délie du serveur d’entraînement
+- pointe et dépointe les membres ; refuse un membre d’un autre club
+- met à jour le bilan et les notes ; refuse une mise à jour vide
+- refuse les écritures quand l’écriture n’est pas autorisée
+- liste les séances avec filtres de période et de statut
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpDoc.test.ts</code> — 2 tests</summary>
+
+- **docs/MCP.md**
+  - chaque outil : titre, description, schéma objet, nom unique
+  - référence des outils générée depuis les schémas (npm run docs:mcp)
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpExtraTools.test.ts</code> — 17 tests</summary>
+
+- sans écriture : outils de lecture seulement, écritures refusées
+- noms d’outils uniques, outils destructifs annotés
+- poules → scores → tableau → classement final → export, écran prévenu
+- régénérer des poules jouées exige replace
+- contrôle et résultat sans écriture ni notification
+- import hors des dossiers accessibles refusé, sans révéler si le fichier existe
+- import\_referees : épreuve (gestion des arbitres activée) puis rejoué sans doublon
+- import\_referees : journée avec armes, reportés dans les épreuves de ces armes
+- start / stop\_remote\_server passent par le serveur distant de l’application
+- assign\_referees : arbitre du club d’un tireur signalé faute d’arbitre neutre
+- arènes du serveur distant sans écran : poules, sinon pistes de la salle, sinon 1
+- delete\_competition : titre exact exigé
+- salle par défaut → pistes ; réglages sans secret ni dossiers de l’agent
+- classeur Excel et cotcot lus comme à l’écran
+- TXT séparé par des espaces lu comme à l’écran ; fichier sans tireur signalé
+- import\_day : un fichier manquant fait échouer l’import sans rien écrire
+- manifeste de import\_day, chemins relatifs au manifeste, rejouable
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpServer.test.ts</code> — 10 tests</summary>
+
+- **handleMcpMessage**
+  - initialize : version négociée, capacité outils
+  - notification : pas de réponse
+  - tools/list : outils en lecture uniquement
+  - tools/call : données sans date de naissance ni licence
+  - tools/call : argument manquant ou compétition inconnue → isError
+  - méthode ou outil inconnu → erreur JSON-RPC
+- **sécurité**
+  - jeton comparé exactement
+  - Host / Origin limités à la boucle locale
+- **McpServer (HTTP réel)**
+  - 401 sans jeton, 200 avec, 403 hors boucle locale
+  - lots JSON-RPC : 20 messages au plus, traités l’un après l’autre
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpSettings.test.ts</code> — 4 tests</summary>
+
+- **mcpSettings (#1880)**
+  - désactivé par défaut, port validé
+  - jeton chiffré, stable, renouvelable
+- **jeton illisible (#1880)**
+  - autre trousseau : jamais remplacé en silence, régénération explicite
+  - fichier corrompu : erreur, pas de nouveau jeton
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/mcpWriteTools.test.ts</code> — 5 tests</summary>
+
+- **outils d’écriture MCP**
+  - écriture non autorisée : outil refusé et absent de tools/list
+  - create\_competition : dryRun sans écriture, puis création avec réglages par défaut
+  - check\_in : pointe par id ou dossard, laisse les abandons
+  - import\_fencers : doublons ignorés, dryRun, chemin et extension contrôlés
+- **import\_day (#1880)**
+  - crée la journée et ses épreuves, puis ne duplique rien au second passage
+
+</details>
+
+<details>
+<summary><code>src/main/mcp/plugin.test.ts</code> — 4 tests</summary>
+
+- **plugin bellepoule**
+  - manifestes : plugin, marketplace, serveur MCP local à jeton
+  - userConfig : jeton sensible, repli sur les variables d'environnement (#1947)
+  - commandes : description en en-tête
+  - outils cités dans la skill et les commandes : tous publiés
 
 </details>
 
@@ -2418,11 +4032,12 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/pendingUpdate.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/pendingUpdate.test.ts</code> — 7 tests</summary>
 
 - **pendingUpdate**
   - relit un JSON valide
   - rejette un chemin hors du dossier privé
+  - accepte un fichier dans le répertoire de téléchargement choisi (et lui seul)
   - rejette un traversal de chemin
   - rejette un JSON falsifié (champs manquants / invalide)
   - rejette des droits trop larges
@@ -2431,7 +4046,85 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/printDialog.test.ts</code> — 20 tests</summary>
+<summary><code>src/main/piste/arenaInputGate.test.ts</code> — 8 tests</summary>
+
+- **ArenaInputGate**
+  - séquence croissante admise, trame en double ou désordonnée rejetée et tracée
+  - les entrées de la tablette passent sans contrôle
+  - séquences indépendantes par source (pilote + piste) et par arène
+  - séquence non numérique rejetée
+  - forget : un appareil redémarré reprend sa numérotation
+  - journal des rejets borné
+  - fromInput : entrée de pilote → entrée de barrière
+  - rejet journalisé (logger.warn)
+
+</details>
+
+<details>
+<summary><code>src/main/piste/pisteState.test.ts</code> — 5 tests</summary>
+
+- **pisteState**
+  - resolveSide : Id tronqué (pilote) ou complet ; inconnu ou ambigu → null
+  - mapPisteSides : droite/gauche → A/B, inversion comprise
+  - sideCards : jaune, rouges, puis rouges et noirs P (jaune P non repris)
+  - cardCounts : cartons d’arène → compteurs à afficher
+  - isActiveState : assaut, halte, pause
+
+</details>
+
+<details>
+<summary><code>src/main/piste/teamRelayPiste.test.ts</code> — 30 tests</summary>
+
+- **PisteHub — relais FIE par équipes (Type=T)**
+  - rencontre assignée : DISP Type=T du relais 1, tireurs du relais, nation = équipe
+  - rencontre de tableau : phase du tableau, A\<tour\>, position + 1
+  - compétition internationale : nation = pays du tireur
+  - état reçu : score cumulé → score du relais, cartons reportés au relais, chrono, sans écho
+  - cartons cumulés sur la rencontre : le DISP d’un relais reprend ceux déjà reçus par chaque tireur
+  - inversion droite / gauche : équipe A suivie par Id, pas par position
+  - fin d’un relais intermédiaire : toujours correcte, ACK puis DISP du relais suivant avec les cumuls
+  - relais intermédiaire avec abandon ou exclusion : fin toujours correcte (spéc. § 4), ACK et DT prévenu
+  - relais suivant : score du relais = cumul − relais terminés ; END répété (ACK perdu) → nouvel ACK
+  - cumul inférieur aux relais terminés : ignoré, cumul de l’arène renvoyé à l’appareil
+  - cumul au-delà du palier du relais ou de l’objectif : ignoré, tracé, cumul de l’arène renvoyé
+  - BAD MATCH : tireurs d’un autre relais → alerte ; END → NAK
+  - appareil au repos sans le relais en cours → DISP du relais
+  - arme laser : affichage seul (END → NAK) ; format arène laser : non raccordé
+  - rencontre terminée encore assignée : l’arène individuelle N reçoit les entrées
+  - rencontre retirée de l’arène : affichage vide
+  - **remplaçant (R11 / L11 = R)**
+    - accepté : le remplaçant prend la place du tireur dans ses relais suivants
+    - annulé pendant le relais : aucun remplacement
+    - refusé : équipe sans remplaçant, remplaçant déjà utilisé (tracé)
+  - **NEXT / PREV dans la rencontre**
+    - NEXT pendant un relais : refusé, relais en cours renvoyé
+    - PREV avant le début du relais suivant : relais précédent rappelé avec son score
+    - PREV après la fin de la rencontre : dernier relais rouvert, rencontre recalculée en base
+    - PREV refusé une fois le relais en cours commencé
+    - afficheur : NEXT / PREV ignorés, END → NAK
+  - **dernier relais : règles de fin individuelles**
+    - END après une rencontre terminée hors de ce poste (aucun ACK donné) : NAK
+    - égalité sans priorité : NAK
+    - vainqueur imposé (priorité à égalité) : NAK, non enregistrable par le modèle d’équipe
+    - victoire au cumul : ACK, rencontre terminée, affichage vide
+  - **verrou appareil maître sur la tablette équipe**
+    - maître et en ligne : ajout de touche, cartons, relais suivant, remise à zéro refusés ; retrait permis
+    - afficheur ou appareil absent : tablette libre
+
+</details>
+
+<details>
+<summary><code>src/main/preloadApi/subscribe.test.ts</code> — 3 tests</summary>
+
+- **subscribe (préload)**
+  - transmet les arguments sans l'événement Electron
+  - pas de double écouteur après deux abonnements suivis de deux désabonnements
+  - le désabonnement ne retire que son propre écouteur
+
+</details>
+
+<details>
+<summary><code>src/main/printDialog.test.ts</code> — 21 tests</summary>
 
 - **parsePageRanges (#1214)**
   - vide = toutes les pages
@@ -2451,6 +4144,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **handlers print:\* (#1214)**
   - liste les imprimantes, \[\] en cas d’erreur
   - aperçu : PDF en mémoire avec les réglages normalisés
+  - applyPageOverride : règle insérée avant \</head\>, HTML inchangé en auto (#1653)
   - refuse un HTML vide ou non textuel
   - impression : envoie les options et remonte les échecs
 - **enregistrement PDF (#1214)**
@@ -2462,6 +4156,34 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/privacySettings.test.ts</code> — 3 tests</summary>
+
+- **privacySettings**
+  - ignore les valeurs invalides
+  - persiste dans userData, défaut si absent ou corrompu
+  - calcule la date limite (0 = illimitée)
+
+</details>
+
+<details>
+<summary><code>src/main/proxySettings.test.ts</code> — 8 tests</summary>
+
+- **normalizeProxyServer**
+  - hôte:port → http implicite
+  - schémas acceptés
+  - refuse identifiants, chemin, port absent/invalide, schéma inconnu
+- **normalizeBypass**
+  - nettoie la liste
+- **sanitizeProxySettings / toElectronProxyConfig**
+  - modes système et direct
+  - manuel : serveur + exclusions, machine locale toujours en direct
+  - manuel sans serveur valide ou mode inconnu → null
+- **persistance**
+  - défaut système ; relit ce qui est écrit ; fichier corrompu → défaut
+
+</details>
+
+<details>
 <summary><code>src/main/remote/activeWave.test.ts</code> — 4 tests</summary>
 
 - **applyActiveWave**
@@ -2469,6 +4191,54 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - vagues terminées : fermeture des poules réappliquée au redémarrage (#1118)
   - rien de mémorisé (hors rapières) : serveur laissé sans filtre
   - setActiveWave sans serveur : mémorisé ; avec serveur : appliqué ; non-tableau = null
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaBroadcast.test.ts</code> — 3 tests</summary>
+
+- **arenaLeftHanded**
+  - gaucher A contre droitier B : A rouge
+  - droitier A ou deux gauchers : placement de l’appel (A vert)
+  - arme non olympique ou pas de match : rien
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaControl.clock.test.ts</code> — 2 tests</summary>
+
+- **arena\_control chrono (#1829)**
+  - pause : chrono gardé avec le match et persisté
+  - en marche : au plus une écriture toutes les 15 s
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaControl.prev.test.ts</code> — 2 tests</summary>
+
+- **arena\_control prev (#2001)**
+  - renvoie le succès au demandeur
+  - renvoie le motif du refus
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaControl.selectMatch.test.ts</code> — 3 tests</summary>
+
+- **arena\_control select\_match (#1882)**
+  - reprend fencerA / fencerB / referee de la session
+- **arena\_control select\_match, appareil maître (#1999)**
+  - rouvrir le match en cours garde score et cartons, et recale la tablette
+  - mode manuel ou appareil hors ligne : sélection habituelle
+
+</details>
+
+<details>
+<summary><code>src/main/remote/arenaOps.sabreBreak.test.ts</code> — 2 tests</summary>
+
+- **pause sabre à 8 touches (#2001)**
+  - émet sabre\_break une fois en franchissant 8 au sabre en tableau à 15
+  - pas de pause hors sabre, hors tableau, ou limite différente de 15
 
 </details>
 
@@ -2508,6 +4278,23 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/clubArena.test.ts</code> — 9 tests</summary>
+
+- **saisie distante Mode Club (#1872)**
+  - identifiant de match club
+  - match d’arène aux noms des membres
+  - envoi : arène libre, occupée, sans serveur
+  - libération : match d’entraînement libre remis si pas en cours
+- **cartes scannées sur la tablette arbitre (#1872)**
+  - sans séance reliée : refusé
+  - deux cartes : présents pointés, combat enregistré et placé sur la piste
+  - une carte passée : combat libre non enregistré, nom connu affiché
+  - erreurs : carte inconnue, même tireur, piste occupée ou absente
+  - piste occupée : vue arbitre directe ; combat libre par défaut : lecture des cartes
+
+</details>
+
+<details>
 <summary><code>src/main/remote/csp.test.ts</code> — 7 tests</summary>
 
 - **CSP pages distantes (#1149)**
@@ -2518,6 +4305,30 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
+
+</details>
+
+<details>
+<summary><code>src/main/remote/cyranoLock.test.ts</code> — 5 tests</summary>
+
+- **cyranoLock (#1829)**
+  - isCyranoMasterOnline : maître et en ligne seulement
+  - isDeviceSocket : pseudo-socket \`cyrano:\<piste\>\` du PisteHub
+  - addsCard : ajout détecté par type, retrait et réordonnancement permis
+  - keepRemovals : ajouts ignorés, retraits gardés (remplacement d’un carton)
+  - lockedScore : la tablette ne fait que retirer des points
+
+</details>
+
+<details>
+<summary><code>src/main/remote/dayStripBoard.test.ts</code> — 5 tests</summary>
+
+- **dayStripBoard — pistes libérées d’une journée (#1878)**
+  - occupation et propositions : une piste libre reçoit le travail en attente
+  - réservation : piste de finale réservée au tableau de 8 d’une épreuve
+  - piste occupée ou travail inconnu : refus
+  - affectation automatique : une proposition par piste libre, jamais deux fois la même
+  - aucune saisie distante ouverte : tableau hors ligne, sans proposition
 
 </details>
 
@@ -2577,6 +4388,33 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/firewallCheck.test.ts</code> — 17 tests</summary>
+
+- **analyzeFirewall**
+  - autorise le port quand une règle Allow couvre le profil actif
+  - signale l'absence de règle quand le défaut est Block
+  - signale un réseau Public même avec une règle ouverte pour Private seulement
+  - une règle Block prime sur une règle Allow
+  - accepte une plage de ports et une règle par programme
+  - ignore une règle visant un autre programme
+  - profil désactivé : pas de blocage
+  - défaut Allow : entrées autorisées
+  - sans réseau actif ou sans profil lisible : constat dédié
+  - DomainAuthenticated est traité comme le profil Domaine
+- **parseFirewallOutput**
+  - accepte les objets seuls (ConvertTo-Json ne met pas de tableau pour un élément)
+  - sortie vide ou invalide : erreur « unreadable » sans exception
+- **détail des échecs de lecture**
+  - erreur fatale PowerShell : le message est remonté tel quel
+  - texte parasite avant le JSON : le JSON est quand même lu
+  - sortie sans JSON : le début de la sortie est joint au détail
+- **runFirewallCheck**
+  - hors Windows : non pris en charge, aucune commande lancée
+  - le script est en lecture seule (aucune commande de modification)
+
+</details>
+
+<details>
 <summary><code>src/main/remote/htmlLoader.test.ts</code> — 3 tests</summary>
 
 - **htmlLoader**
@@ -2587,19 +4425,29 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/i18nBundle.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/i18nBundle.test.ts</code> — 6 tests</summary>
 
 - **i18n des pages distantes découpé par langue (#1213)**
   - /i18n.js = langues puis moteur ; T() traduit dans la langue configurée
   - chaque langue a les mêmes clés que le français
   - modules js/ extraits des pages servis en /js/\<nom\>.js (#1401)
   - src/remote/js/kioskEta.js est bien servi
+  - tokens.css servi et styles.css sans couleur hexadécimale en dur (#1538)
   - fichiers communs : absents ignorés, i18n.js concaténé
 
 </details>
 
 <details>
-<summary><code>src/main/remote/pageStore.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/lifecycleRestart.test.ts</code> — 2 tests</summary>
+
+- **restartServer (rechargement à chaud)**
+  - bascule sur le nouveau port et libère l’ancien
+  - port occupé : rejette et rétablit l’ancienne écoute
+
+</details>
+
+<details>
+<summary><code>src/main/remote/pageStore.test.ts</code> — 9 tests</summary>
 
 - **negotiateEncoding (#1151)**
   - préfère br puis gzip, respecte q et \*
@@ -2607,6 +4455,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - liste, faible, \*
 - **extractInlineScripts**
   - extrait, déduplique, garde src et JSON, conserve l’ordre
+  - balise fermante tolérante : \</script \>, \</SCRIPT foo\> (CodeQL js/bad-tag-filter)
   - page sans inline restant
 - **sendStored**
   - brotli, gzip ou identité selon Accept-Encoding
@@ -2619,7 +4468,22 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/publicDto.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/prevMatch.test.ts</code> — 7 tests</summary>
+
+- **checkPrevEligibility**
+  - refuse quand rien n’a été terminé sur la piste
+  - accepte dans la fenêtre de correction, match suivant pas démarré
+  - accepte exactement à la limite de la fenêtre
+  - refuse après la fenêtre de correction
+  - ne coupe jamais un combat en cours
+- **restoreForCorrection**
+  - garde scores et tireurs, efface fin et durée
+  - ne modifie pas le snapshot d’origine
+
+</details>
+
+<details>
+<summary><code>src/main/remote/publicDto.test.ts</code> — 12 tests</summary>
 
 - **stripPersonalData**
   - retire date de naissance, licence et photo à toute profondeur, sans muter
@@ -2632,6 +4496,35 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+- **masquage des noms (RGPD, #1882)**
+  - « initial » : NOM P. ; « initials » : N. P. ; « full » inchangé
+  - clés oubliées masquées : arbitre, programme public, cartons noirs (#1882)
+  - nom complet sans majuscules : dernier mot gardé
+  - réglage global appliqué par défaut
+
+</details>
+
+<details>
+<summary><code>src/main/remote/recallPrev.test.ts</code> — 7 tests</summary>
+
+- **recallPrevMatch**
+  - rend le match terminé à l’arène, scores conservés, et restaure les événements
+  - refuse sans rien modifier hors fenêtre
+  - refuse un combat en cours
+  - n’efface rien et ne rend rien si la purge DB échoue
+  - remet en tête de file un match DE non commencé
+- **recallPrevMatchResult (motif du refus pour la tablette, #2001)**
+  - renvoie ok au succès
+  - renvoie le motif : aucun match, hors fenêtre, combat en cours, purge en échec
+
+</details>
+
+<details>
+<summary><code>src/main/remote/reducedMotion.test.ts</code> — 2 tests</summary>
+
+- **pages distantes — prefers-reduced-motion**
+  - common.js injecte le repli
+  - ${page}.html charge common.js
 
 </details>
 
@@ -2658,26 +4551,105 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 9 tests</summary>
 
 - **POST /api/register**
   - refuse un champ texte de plus de 200 caractères sans le traiter
   - retire chevrons et caractères de contrôle, garde apostrophes et &
+  - photo conservée seulement avec consentement coché (RGPD, #1882)
   - ignore les champs non textuels sans planter
+- **pointage autonome /api/competitions/:id/self-checkin (#1858)**
+  - sert la page /competition/:id/checkin
+  - licence (espaces, tirets, casse ignorés) + date de naissance → pointé présent
+  - date fausse : refus générique et échec compté
+  - statut sportif verrouillé, compétition inactive, saisie invalide
+  - déjà présent : succès sans réécriture
 
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 103 tests</summary>
+<summary><code>src/main/remote/routes/resultsRoutes.test.ts</code> — 2 tests</summary>
+
+- **publicTableauRounds (#1858)**
+  - finale en premier, exempts exclus, score et vainqueur exposés
+  - sans tableau : liste vide
+
+</details>
+
+<details>
+<summary><code>src/main/remote/sessionOps.test.ts</code> — 2 tests</summary>
+
+- **updateMatchScore**
+  - match d’entraînement sur une arène : score appliqué, pas d’erreur
+  - match introuvable partout : erreur « Match non trouvé »
+
+</details>
+
+<details>
+<summary><code>src/main/remote/stripHandover.test.ts</code> — 6 tests</summary>
+
+- **stripHandover — travail en attente et piste libérée (#1878)**
+  - poule sans piste : accueillie sur une piste hors de la plage de l’épreuve
+  - épreuve sur les pistes 3–4 : la poule sans piste attend, jamais placée sur une piste masquée
+  - piste sous la plage de l’épreuve ou indisponible
+  - poule en file derrière une piste occupée : installée sur la piste libre, qui la garde
+  - match de tableau en file derrière une piste occupée : déplacé sur la piste libre
+  - sans séance : rien n’attend
+
+</details>
+
+<details>
+<summary><code>src/main/remote/stripPlan.test.ts</code> — 6 tests</summary>
+
+- **normalizeStripPlan**
+  - valeurs par défaut pour une entrée invalide
+  - trie, déduplique et filtre les pistes indisponibles
+- **visibleArenas**
+  - masque les arènes avant la piste de départ
+  - tout visible par défaut
+- **nextFreeStrip (#1878)**
+  - première piste libre dans l’intervalle, hors pistes prises ou indisponibles
+  - aucune piste libre dans l’intervalle : null (la poule attend)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/trainingLobby.test.ts</code> — 17 tests</summary>
+
+- **TrainingLobby (#1500)**
+  - occupe une piste : un autre client est refusé
+  - liste : occupée pour les autres, « mine » pour le propriétaire
+  - libération après 3 minutes sans activité
+  - l'activité repousse l'expiration
+  - release : seulement par le propriétaire ; releaseAll libère tout
+  - takeover : prend la piste d’un autre client et libère sa propre piste précédente
+  - changer de piste libère la précédente
+- **routes du lobby entraînement (#1500)**
+  - sert la page /entrainement-lobby
+  - hors entraînement : état vide, occupation refusée
+  - liste les pistes principales (sans sous-pistes) avec leur occupation
+  - transmet le thème des écrans d’entraînement (défaut sombre)
+  - prévient le kiosk quand une piste est prise puis libérée
+  - piste occupée : 409 arena\_occupied pour un autre client
+  - takeover : reprend une piste occupée, l’ancien client est refusé ensuite
+  - takeover hors entraînement : refusé
+  - validation : piste inconnue 404, client invalide 400
+  - release libère la piste (ou toutes sans numéro)
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.restart.test.ts</code> — 1 test</summary>
+
+- **RemoteScoreServer.restart**
+  - nouveau port, session et pistes conservées
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.security.test.ts</code> — 43 tests</summary>
 
 - **RemoteScoreServer**
-  - **démarrage du serveur**
-    - construit une instance sans erreur
-    - reprend la langue de l'application dès la création (#1213)
-    - getServerUrl retourne une URL avec le bon port
-    - getLocalIPAddress retourne une chaîne non vide
-    - start() appelle server.listen
-    - stop() appelle server.close
   - **route /api/auth/login/:arenaId**
     - retourne 401 si PIN incorrect pour une arène avec mot de passe
     - retourne succès si mot de passe correct (stocké hashé via setArenaPassword)
@@ -2686,71 +4658,6 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - checkScoreRateLimit retourne true pour le premier appel
     - checkScoreRateLimit retourne false après SCORE\_RATE\_LIMIT appels
     - SCORE\_RATE\_LIMIT est défini et \> 0
-  - **arenaEventBuffer**
-    - le buffer est initialement vide pour toutes les arènes
-    - pushArenaEvent ajoute un événement dans le buffer
-    - EVENT\_BUFFER\_MAX limite la taille du buffer
-    - EVENT\_BUFFER\_TTL\_MS est supérieur à 60 secondes
-  - **persistArenaState**
-    - n'appelle pas saveArenaState si pas de session
-    - appelle saveArenaState si une session est active
-  - **kiosk:data (#1152)**
-    - regroupe les notifications sur 300 ms
-    - s’abonne aux écritures de la base et se désabonne à l’arrêt
-  - **broadcastDashboardUpdate (#1069)**
-    - ne relit pas la base quand aucun dashboard n’est abonné
-    - diffuse aux dashboards abonnés
-  - **horodatage des touches pour le replay (#1074)**
-    - conserve la date des événements déjà vus et date les nouveaux
-  - **fin estimée de phase (#1077)**
-    - le snapshot dashboard inclut une ETA basée sur les durées réelles
-    - tableau : seul le tour en cours est estimé, sur les pistes de la session
-    - ajouter des pistes en cours de session crée les arènes
-  - **liste des arbitres de session**
-    - inclut les arbitres ajoutés après le démarrage de la session
-    - ne lit pas la base en mode entraînement
-  - **ordre des matchs public (#911) et arbitre de poule (#908)**
-    - expose uniquement noms, ordre, statut et scores, sans authentification
-    - la liste tablette porte l'arbitre de la poule quand le match n'en a pas
-  - **carton noir (paramètre compétition)**
-    - désactivé par défaut et exposé via /api/session
-    - updateBlackCardEnabled active le flag et le diffuse aux arènes
-  - **score max et repos issus des paramètres (#1125 #1134)**
-    - épée : score max poules / tableau des propriétés, pas 15
-    - formule personnalisée : score max du tableau appliqué aux matchs de tableau
-    - tableau illimité (0) : pas de notification de fin
-    - Laser Sabre : 15 inchangé
-  - **piste assignée aux poules (pool.strip)**
-    - poule assignée piste 3 → match sur arena3, pas arena1
-    - piste au-delà du nombre configuré → arènes étendues
-    - sans piste → ordre des poules sur pistes libres
-  - **réassignation manuelle de piste (#1037)**
-    - match réassigné en tête de liste de la piste cible, retiré de la piste source
-    - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
-    - rapières : vagues terminées, plus aucun match de poule proposé (#1118)
-    - rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)
-    - rapières : sous-piste authentifiée avec le jeton de la piste (#1118)
-    - les réassignations suivantes se rajoutent par le haut
-    - joué ensuite, puis la piste reprend sa propre poule
-  - **arbitre des matchs de tableau assigné depuis l'appli (#977)**
-    - arbitre transmis au match chargé sur la tablette
-    - changement d'arbitre → match en cours mis à jour
-    - arbitre retiré → plus d'arbitre sur la tablette
-    - mode expert : tous les arbitres affichés
-    - match en file d'attente : arbitre porté
-  - **annulation carton noir depuis la tablette**
-    - liste le carton noir de l'arène
-    - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
-    - refuse l'annulation d'un carton noir en tableau
-    - 404 pour une autre arène
-  - **appel distant (#919)**
-    - refuse la connexion tant que le DT n'a pas défini de mot de passe
-    - refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair
-    - liste tireurs/arbitres uniquement avec un cookie valide
-    - pointe un tireur présent (statut P) et un arbitre disponible
-    - n'écrase pas un statut sportif (éliminé)
-    - ferme l'appel hors phase CHECKIN
-    - invalide les sessions quand le mot de passe change
   - **P0 : actions mutantes protégées par l'auth d'arène**
     - POST /api/arenas/:arenaId/%s refuse sans cookie (401) _(each)_
     - POST /api/arenas/:arenaId/score accepte avec un cookie valide
@@ -2795,6 +4702,93 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - fermé tant que non activé / sans mot de passe
     - login puis commentaire enregistré ; sans cookie → 401
     - mauvais mot de passe refusé
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 66 tests</summary>
+
+- **RemoteScoreServer**
+  - **démarrage du serveur**
+    - construit une instance sans erreur
+    - reprend la langue de l'application dès la création (#1213)
+    - getServerUrl retourne une URL avec le bon port
+    - getLocalIPAddress retourne une chaîne non vide
+    - start() appelle server.listen
+    - stop() appelle server.close
+  - **arenaEventBuffer**
+    - le buffer est initialement vide pour toutes les arènes
+    - pushArenaEvent ajoute un événement dans le buffer
+    - EVENT\_BUFFER\_MAX limite la taille du buffer
+    - EVENT\_BUFFER\_TTL\_MS est supérieur à 60 secondes
+  - **persistArenaState**
+    - n'appelle pas saveArenaState si pas de session
+    - appelle saveArenaState si une session est active
+  - **plan des pistes partagé (#1501)**
+    - masque les arènes hors intervalle et diffuse le plan
+  - **kiosk:data (#1152)**
+    - regroupe les notifications sur 300 ms
+    - s’abonne aux écritures de la base et se désabonne à l’arrêt
+  - **broadcastDashboardUpdate (#1069)**
+    - ne relit pas la base quand aucun dashboard n’est abonné
+    - diffuse aux dashboards abonnés
+  - **horodatage des touches pour le replay (#1074)**
+    - conserve la date des événements déjà vus et date les nouveaux
+  - **fin estimée de phase (#1077)**
+    - le snapshot dashboard inclut une ETA basée sur les durées réelles
+    - tableau : seul le tour en cours est estimé, sur les pistes de la session
+    - ajouter des pistes en cours de session crée les arènes
+  - **liste des arbitres de session**
+    - inclut les arbitres ajoutés après le démarrage de la session
+    - ne lit pas la base en mode entraînement
+  - **ordre des matchs public (#911) et arbitre de poule (#908)**
+    - expose uniquement noms, ordre, statut et scores, sans authentification
+    - la liste tablette porte l'arbitre de la poule quand le match n'en a pas
+  - **carton noir (paramètre compétition)**
+    - désactivé par défaut et exposé via /api/session
+    - updateBlackCardEnabled active le flag et le diffuse aux arènes
+  - **score max et repos issus des paramètres (#1125 #1134)**
+    - épée : score max poules / tableau des propriétés, pas 15
+    - formule personnalisée : score max du tableau appliqué aux matchs de tableau
+    - tableau illimité (0) : pas de notification de fin
+    - Laser Sabre : 15 inchangé
+  - **piste assignée aux poules (pool.strip)**
+    - poule assignée piste 3 → match sur arena3, pas arena1
+    - piste au-delà du nombre configuré → arènes étendues
+    - sans piste → ordre des poules sur pistes libres
+  - **plusieurs poules sur la même piste (#1826)**
+    - poule suivante affichée en entier quand la première est terminée
+    - poule en file jouée depuis la liste : son entrée de file n’est pas rejouée
+  - **réassignation manuelle de piste (#1037)**
+    - match réassigné en tête de liste de la piste cible, retiré de la piste source
+    - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
+    - rapières : vagues terminées, plus aucun match de poule proposé (#1118)
+    - rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)
+    - rapières : sous-piste authentifiée avec le jeton de la piste (#1118)
+    - les réassignations suivantes se rajoutent par le haut
+    - joué ensuite, puis la piste reprend sa propre poule
+  - **arbitre des matchs de tableau assigné depuis l'appli (#977)**
+    - arbitre transmis au match chargé sur la tablette
+    - changement d'arbitre → match en cours mis à jour
+    - arbitre retiré → plus d'arbitre sur la tablette
+    - mode expert : tous les arbitres affichés
+    - match en file d'attente : arbitre porté
+  - **annulation carton noir depuis la tablette**
+    - égalité finale : le tireur prioritaire tiré (coin\_flip) gagne (#1442)
+    - vainqueur et bornes via les règles partagées (#1829)
+    - appareil de piste maître en ligne : carton noir de la tablette refusé (#1829)
+    - liste le carton noir de l'arène
+    - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
+    - refuse l'annulation d'un carton noir en tableau
+    - 404 pour une autre arène
+  - **appel distant (#919)**
+    - refuse la connexion tant que le DT n'a pas défini de mot de passe
+    - refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair
+    - liste tireurs/arbitres uniquement avec un cookie valide
+    - pointe un tireur présent (statut P) et un arbitre disponible
+    - n'écrase pas un statut sportif (éliminé)
+    - ferme l'appel hors phase CHECKIN
+    - invalide les sessions quand le mot de passe change
   - **finishPoolMatch (saisie dans l'application)**
     - conserve le drapeau forfait sur le perdant (#1144)
     - sans statut spécial : score simple, aucun drapeau
@@ -2805,29 +4799,57 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/splash.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/repoLocation.test.ts</code> — 1 test</summary>
+
+- **emplacement du dépôt GitHub (#1940)**
+  - aucune référence à l'ancien dépôt dans le code et le plugin
+
+</details>
+
+<details>
+<summary><code>src/main/rowsToXlsx.test.ts</code> — 2 tests</summary>
+
+- **rowsToXlsx**
+  - aller-retour : texte avec caractères spéciaux, nombres et cellules vides
+  - retire les caractères interdits en XML
+
+</details>
+
+<details>
+<summary><code>src/main/splash.test.ts</code> — 6 tests</summary>
 
 - **splash : langue mémorisée (#1341)**
   - fr par défaut sans fichier
   - aller-retour de la langue enregistrée
   - fichier corrompu : repli sur fr
+  - splash activé par défaut
+  - désactivation du splash conserve la langue
   - closeSplash sans fenêtre appelle le rappel immédiatement
 
 </details>
 
 <details>
-<summary><code>src/main/updateAssets.test.ts</code> — 16 tests</summary>
+<summary><code>src/main/updateAssets.test.ts</code> — 24 tests</summary>
 
 - **detectInstallKind**
   - AppImage sous Linux
   - exe portable sous Windows
   - installeur par défaut
+- **detectInstallKind — macOS / paquets Linux**
+  - macOS : bundle .app dans un dossier inscriptible → macapp
+  - macOS : dossier en lecture seule (translocation) → installer
+  - Linux hors AppImage : deb sur Debian/Ubuntu, rpm sinon
+  - AppImage prioritaire sur le paquet
+  - macAppBundle
 - **selectUpdateAsset**
   - Windows installé → setup NSIS, jamais le portable
   - Windows portable → portable
   - macOS respecte l’architecture
   - Linux AppImage → AppImage de la bonne arch
   - Linux paquet → deb en priorité
+  - macOS .app inscriptible → zip de la bonne arch
+  - macOS .app sans zip publié → dmg
+  - Linux deb / rpm → format du système, sinon AppImage
   - accepte un asset sans arch
   - null si rien d’adapté
 - **replaceExecutableInPlace**
@@ -2843,7 +4865,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updateIntegrity.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/updateIntegrity.test.ts</code> — 9 tests</summary>
 
 - **parseSha256Digest**
   - extrait le hash sha256
@@ -2855,6 +4877,23 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+- **toTrustedDownloadUrl**
+  - reconstruit l’URL sur l’hôte de confiance
+  - refuse autre hôte, http, port, identifiants
+
+</details>
+
+<details>
+<summary><code>src/main/updateNativeInstall.test.ts</code> — 6 tests</summary>
+
+- **replaceMacAppBundle**
+  - remplace le bundle par celui de l’archive (ditto simulé)
+  - archive sans .app → erreur, bundle intact, pas de reste
+  - extraction en échec → bundle intact
+- **linuxPackageInstallCommand**
+  - deb : apt-get via pkexec, sinon dpkg
+  - rpm : dnf, zypper, puis rpm
+  - null sans pkexec ou chemin relatif
 
 </details>
 
@@ -2871,7 +4910,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updaterSettings.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/updaterSettings.test.ts</code> — 8 tests</summary>
 
 - **updaterSettings**
   - vérification auto activée par défaut
@@ -2880,6 +4919,8 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - persiste le canal choisi, ignore une valeur invalide
   - resolveChannel : choix utilisateur prioritaire sur le paquet
   - conserve cleanupExe (ancien exe portable à supprimer)
+  - répertoire de téléchargement : persisté, absent par défaut
+  - isUsableDownloadDir : dossier absolu existant uniquement
 
 </details>
 
@@ -2897,15 +4938,20 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 15 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
   - dev : serveur webpack uniquement
 - **isAllowedExternalUrl**
   - https oui, http seulement réseau local, autres schémas non
+- **permissionCheckUrl (caméra en production, Mode Club)**
+  - origine file:// sans chemin → URL de la page (bundle de production)
+  - origine http (dev) inchangée
+  - la vérification de caméra réussit depuis la page de production
 - **isPermissionAllowed**
   - caméra depuis l’app uniquement, sans micro
+  - écriture presse-papier depuis l’app uniquement, jamais la lecture (#1858)
 - **configuration Electron (#1148)**
   - fenêtre principale en sandbox avec garde-fous
   - fuses : RunAsNode off, asar seul
@@ -2928,6 +4974,24 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 ### `src/renderer/services/`
+
+<details>
+<summary><code>src/renderer/services/appSettingsMirror.test.ts</code> — 2 tests</summary>
+
+- **installAppSettingsMirror**
+  - démarrage : langue et thème écrits, autres réglages seulement s’ils manquent
+  - écritures suivies : clés connues seulement, logo effacé
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/blackCardReport.test.ts</code> — 2 tests</summary>
+
+- **buildBlackCardEntries (#1829)**
+  - match de la sanction : celui qui porte le carton noir en base
+  - aucun exclu : rien
+
+</details>
 
 <details>
 <summary><code>src/renderer/services/ipcError.test.ts</code> — 3 tests</summary>
@@ -2990,6 +5054,59 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/services/resizeGuard.test.ts</code> — 2 tests</summary>
+
+- **installResizeGuard (#1652)**
+  - pose data-resizing pendant le geste et le retire après inactivité
+  - dispose retire l’attribut et l’écouteur
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/settingsTransfer.test.ts</code> — 5 tests</summary>
+
+- **settingsTransfer**
+  - exporte uniquement les clés connues, logos compris
+  - aller-retour export → import restaure les valeurs
+  - rejette un JSON invalide ou un autre format
+  - ignore les clés inconnues et les valeurs invalides
+  - nom de fichier daté
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/slashCommands.test.ts</code> — 14 tests</summary>
+
+- **slashCommands – analyse**
+  - parse le nom et les arguments
+  - suggère par préfixe
+  - garde la suggestion quand l’argument est saisi
+  - résout la sélection : gabarit, saisie ou complétion
+  - toutes les commandes ont une description i18n
+- **slashCommands – exécution**
+  - /update quiet active le mode silencieux, /update quiet off le coupe
+  - /update vérifie et signale une version disponible
+  - /update channel et /update auto
+  - /remote start ouvre la phase et émet l’événement
+  - /remote exige une compétition ouverte
+  - /remote status donne l’URL
+  - /phase, /open, /theme, /lang
+  - commande inconnue → erreur
+  - une exception devient un message d’erreur
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/uiDensity.test.ts</code> — 3 tests</summary>
+
+- **densité d’affichage (#1541)**
+  - valeurs admises uniquement, standard par défaut
+  - enregistrement : attribut appliqué et relu au démarrage
+  - tokens.css : variables de densité compacte et confortable
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/uiScale.test.ts</code> — 3 tests</summary>
 
 - **taille du texte de l’interface (#1156)**
@@ -3002,7 +5119,51 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 ### `src/renderer/hooks/`
 
 <details>
-<summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/competitionView/usePoolCorrection.test.tsx</code> — 11 tests</summary>
+
+- **usePoolCorrection (#1996)**
+  - sans tableau : score appliqué directement, poules non figées
+  - tableau tiré : poules figées, mode correction par poule
+  - tableau tiré : impact affiché, rien n’est appliqué avant la décision
+  - garder le tableau : score appliqué avec motif, tableau intact
+  - refaire le tableau : matchs joués → mot de confirmation exigé
+  - abandon / forfait / exclusion refusés une fois le tableau tiré
+  - **corrections cumulées, tableau refait en une fois**
+    - sans correction : tableau conforme, pas d’écart
+    - correction gardée : écart persistant mesuré depuis le tirage
+    - correction suivante : impact cumulé depuis le tirage (retour au tirage = conforme)
+    - refaire le tableau sans nouvelle correction : pas de score, tableau effacé
+    - refaire le tableau avec matchs joués : mot de confirmation exigé
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/remoteScoreManager/useRemoteServerState.test.tsx</code> — 7 tests</summary>
+
+- **fetchVenueStripCount**
+  - interroge la résolution des pistes de l’épreuve
+  - renvoie 0 si inconnu, invalide ou en erreur
+- **useRemoteServerState : nombre de pistes initial**
+  - poules tirées : une arène par poule, sans interroger la salle
+  - pas encore de poules : pistes de la journée ou de la salle
+  - pas de poules ni de salle : une arène
+  - garde la valeur mémorisée sans interroger la salle
+  - garde la valeur du parent sans interroger la salle
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useAppMenuHandlers.test.tsx</code> — 3 tests</summary>
+
+- **useAppMenuHandlers**
+  - relaie les événements vers les derniers handlers, sans réabonnement
+  - .bpm ouvert : recharge, toast, ouvre la compétition unique
+  - démontage : tous les désabonnements appelés
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useAppState.test.tsx</code> — 8 tests</summary>
 
 - **useAppState - état initial**
   - démarre sur la vue home, en chargement
@@ -3010,6 +5171,8 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - handleBack ramène à home
 - **handleUpdateCompetition**
   - met à jour la compétition courante, la liste et les onglets
+- **handleUpdateCompetition : nombre de tireurs de l’accueil (#1994)**
+  - décompte de la base conservé, puis suivi de la liste des tireurs chargée
 - **handleTabSwitch**
   - bascule sur l’onglet ouvert correspondant
   - ne fait rien pour un onglet inexistant
@@ -3017,6 +5180,25 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - charge depuis electronAPI et termine le chargement
 - **setters de modals**
   - basculent les drapeaux d’affichage
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useAutoFitHeight.test.ts</code> — 3 tests</summary>
+
+- **fitHeightToContent (#1826)**
+  - agrandit quand le contenu déborde
+  - ne touche pas une modale sans débordement
+  - plafonne à 90 % de la fenêtre
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useClubTab.test.tsx</code> — 2 tests</summary>
+
+- **useClubTab**
+  - mémorise l’onglet et le club, relit le club affiché
+  - état restauré au montage
 
 </details>
 
@@ -3030,10 +5212,11 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 7 tests</summary>
 
 - **useColumnVisibility**
   - expose les colonnes par défaut visibles
+  - colonnes de poule par défaut : Victoires, Ratio V/M, Indice uniquement
   - toggleColumn masque puis réaffiche une colonne
   - setVisibleColumns remplace la liste
   - réglage par poule indépendant du défaut global
@@ -3043,12 +5226,34 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 3 tests</summary>
+<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 4 tests</summary>
 
 - **useCompetitionEvent**
   - appelle le callback pour la compétition concernée uniquement
+  - filtre par type : matches:changed n'active pas fencers:changed
   - se désabonne au démontage
   - ne plante pas sans electronAPI
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionNavigation.test.tsx</code> — 2 tests</summary>
+
+- **handleGoToTableau (#1996)**
+  - tableau déjà tiré : retour au tableau, rien n’est effacé
+  - pas encore de tableau : choix de la petite finale avant le tirage
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionRestore.test.tsx</code> — 5 tests</summary>
+
+- **useCompetitionRestore – nombre de pistes (#1653)**
+  - par défaut : une piste par poule à partir de la première piste
+  - conserve un nombre de pistes choisi au-delà du nombre de poules (10 pistes pour 9 poules)
+  - conserve la fin de plage choisie (piste 4 à 14 pour 9 poules)
+  - clamp au nombre de poules quand les poules rétrécissent
+  - ne modifie pas la fin de plage quand seule la première piste change
 
 </details>
 
@@ -3117,7 +5322,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 9 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -3130,8 +5335,11 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - applique des MAJ différentes par tireur en un seul état (#1051)
 - **deleteFencer**
   - supprime le tireur et notifie
+  - propose d’annuler : le tireur est ré-ajouté sans identifiant (#1535)
 - **deleteAllFencers**
   - vide la liste et notifie
+- **bus fencers:changed (#1298)**
+  - recharge les tireurs une seule fois pour une rafale, et se désabonne
 
 </details>
 
@@ -3217,7 +5425,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 11 tests</summary>
 
 - **generatePools**
   - refuse moins de 4 tireurs
@@ -3231,6 +5439,11 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - retourne un classement (tableau)
 - **handleBlackCardCancelled**
   - réintègre le combattant, rouvre le match du carton et rend ses résultats aux adversaires
+- **updateMatchFromRemote**
+  - vainqueur transmis par le serveur prioritaire, même si le perdant mène (abandon, #1720)
+  - abandon signalé par l’appareil : marque du perdant conservée (#1829)
+  - exclusion signalée par l’appareil : marque du perdant, pas celle du vainqueur (#1829)
+  - sans vainqueur transmis : vainqueur au score
 
 </details>
 
@@ -3294,6 +5507,16 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useStripPlanSync.test.tsx</code> — 3 tests</summary>
+
+- **useStripPlanSync**
+  - envoie le plan quand la session est active
+  - ne fait rien sans session active
+  - renvoie le plan quand les pistes indisponibles changent
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useTableauUndo.test.tsx</code> — 4 tests</summary>
 
 - **useTableauUndo**
@@ -3315,6 +5538,15 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - charge le thème sauvegardé au montage
   - isLight vrai en mode clair
   - expose 3 thèmes disponibles
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useTrainingSession.test.tsx</code> — 2 tests</summary>
+
+- **useTrainingSession**
+  - lance puis arrête une session
+  - session refusée : serveur arrêté, toast d’erreur
 
 </details>
 
@@ -3345,13 +5577,14 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 7 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
   - ne soumet pas sans nom/prénom
   - annuler efface les champs sans fermer la modale
   - droitier par défaut, gaucher transmis
+  - département choisi dans la liste transmis (#1504)
   - Ajouter garde la modale ouverte et vide le formulaire
   - la liste déroulante des nationalités sélectionne le code
 
@@ -3397,28 +5630,63 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/CoachMark.test.tsx</code> — 3 tests</summary>
+
+- **CoachMark**
+  - affiche l’aide à la première apparition puis la masque définitivement
+  - reste disponible au survol après fermeture, sans bouton de fermeture
+  - garde la bulle dans la fenêtre quand l’ancre est au bord droit (#1543)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 11 tests</summary>
 
 - **CommandPalette**
+  - propose la navigation vers les phases accessibles (#1536)
+  - trouve un paramètre et ouvre son onglet (#1651)
   - affiche les compétitions et les actions statiques
   - filtre selon la requête
   - affiche un message si aucun résultat
   - clic sur une compétition déclenche la sélection
   - Échap ferme la palette
   - clic sur l’action « nouvelle compétition »
+  - « / » affiche les commandes et Entrée exécute
+  - commande à argument : Entrée complète puis exécute
+  - commande inconnue : Entrée la transmet telle quelle
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 7 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
+- **CompetitionList (export accueil)**
+  - pas de bouton Exporter global : export par carte uniquement (#1651)
+  - pas de bouton Exporter sans compétition
+- **CompetitionList (filtres et tri #1534)**
+  - filtre par arme avec une puce, puis réinitialise
+  - trie par nom et mémorise la préférence
+- **CompetitionList (récentes #1534)**
+  - affiche la section après une ouverture, et mémorise l’identifiant
+  - épingler une carte la place dans la section
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/components/CompetitionPropertiesModal.test.tsx</code> — 4 tests</summary>
+
+- **CompetitionPropertiesModal**
+  - affiche 4 onglets verticaux et seulement le contenu de l'onglet actif
+  - range scores, temps et cases à cocher dans des champs distincts de la formule
+  - place tours de poules et élimination directe dans Configuration
+  - enregistre les valeurs saisies dans les autres onglets
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 12 tests</summary>
 
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
@@ -3430,6 +5698,8 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - plusieurs tours de poules : libellé « tour 1/2 »
   - l'appel se stabilise : plus aucun rendu une fois chargé
   - pointer un tireur met à jour son statut en base
+  - **accès aux étapes et relance (#1499)**
+    - Préparation grisée avant « Préparer », Poules grisée avant « Lancer »
   - **compétition par équipes (#1085)**
     - remplace poules/tableau individuels par les phases équipes
     - « Composer les équipes » ouvre la phase équipes intégrée (sans modale)
@@ -3457,12 +5727,25 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - utilise des libellés personnalisés
   - Échap annule le dialogue
 - **useConfirm hors provider**
-  - retombe sur window.confirm
+  - refuse sans appeler window.confirm
 - **prompt()**
   - résout la valeur saisie sur OK
   - Entrée valide la saisie
   - résout null sur annulation
   - hors provider résout null (window.prompt non supporté)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/DayStripBoardPanel.test.tsx</code> — 6 tests</summary>
+
+- **DayStripBoardPanel (#1878)**
+  - piste occupée, piste libre avec proposition, réservation résumée
+  - piste occupée : détail lu en base (poule en cours) quand il concerne la même épreuve
+  - Affecter : la piste libre reçoit le travail choisi
+  - réservation : tableau de 8 enregistré pour une seule épreuve
+  - affectation automatique activée depuis la case
+  - sans saisie distante : occupation prévue en base, sans proposition
 
 </details>
 
@@ -3487,25 +5770,36 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/FencerList.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/EventDayModal.test.tsx</code> — 3 tests</summary>
+
+- **EventDayModal**
+  - affiche la journée, ses épreuves et le statut commun des arbitres
+  - rattache une épreuve et reporte les arbitres
+  - ajoute un arbitre avec ses armes
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/FencerList.test.tsx</code> — 5 tests</summary>
 
 - **FencerList**
   - affiche les tireurs
   - filtre via la recherche (debounce)
   - colonne nationalité masquée par défaut, affichable avec drapeau
   - le bouton ajouter déclenche onAddFencer
+  - abandon : sans modale, toast Annuler qui restaure le statut
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 12 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 13 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
   - ne se propose pas sur une compétition déjà remplie
   - passer le parcours le masque et ne le refait pas apparaître
   - se relance depuis les paramètres
-  - propose la saisie distante après la génération des poules
+  - propose la saisie distante (optionnelle) en première étape
   - met en évidence la phase de l’étape en cours
   - revient à l’étape précédente avec le bouton Retour
   - entoure d’un halo les boutons utiles de l’étape
@@ -3513,6 +5807,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Suivant avance d’une étape, Retour revient
   - refaire l’action après Retour fait avancer de nouveau
   - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
+  - étape poules : validée seulement une fois les poules lancées
 
 </details>
 
@@ -3535,12 +5830,24 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/ImportModal.test.tsx</code> — 6 tests</summary>
 
 - **ImportModal**
   - affiche le fichier et la liste des tireurs parsés
   - importe les tireurs sélectionnés (tous par défaut) puis ferme
   - le bouton fermer déclenche onClose
+  - **XML avec \<Arbitres\> (#1504)**
+    - affiche le nombre d'arbitres et bascule la liste
+    - importe tireurs puis arbitres sélectionnés
+    - sans onImportReferees : arbitres affichés, non importés
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/KeyboardShortcutsHelp.test.tsx</code> — 1 test</summary>
+
+- **KeyboardShortcutsHelp (#1533)**
+  - documente la navigation entre phases : Ctrl + 1…8 et Ctrl + ←/→
 
 </details>
 
@@ -3564,6 +5871,18 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/McpSettingsSection.test.tsx</code> — 5 tests</summary>
+
+- **McpSettingsSection**
+  - configuration du client : URL locale et jeton porteur
+  - jeton illisible : message dédié plutôt que l’erreur brute
+  - journal des appels : plus récent d’abord, erreurs signalées
+  - journal vide : message
+  - dossiers de l’agent : défauts, ajout par le main, retrait
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/MultiStripManager.test.tsx</code> — 3 tests</summary>
 
 - **MultiStripManager**
@@ -3574,17 +5893,50 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/NewCompetitionModal.test.tsx</code> — 5 tests</summary>
 
 - **NewCompetitionModal**
   - crée une compétition avec le titre saisi
   - génère un titre par défaut si vide
+  - propriétés saisies à la création : appliquées à cette compétition seulement
   - le bouton annuler ferme la modale
+  - pré-remplit et verrouille les champs depuis le .zip de l'extranet (#1938)
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 13 tests</summary>
+
+- **PoolPrepView (#1499)**
+  - titres Min / Max séparés au-dessus des deux champs
+  - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
+  - bouton « Lancer » puis « Relancer » une fois les poules lancées
+  - poules lancées non modifiées : « Aller aux poules », sans relance (#1992)
+  - poules lancées modifiées : « Relancer », puis « Annuler les modifications » (#1992)
+  - brouillon : modifications reprises au retour depuis l'appel (#1649)
+  - sans brouillon : publie l'état initial
+- **PoolPrepView – brouillon de préparation (#1649)**
+  - le brouillon prime sur les poules initiales (retour depuis l'appel)
+  - modification manuelle → brouillon transmis
+- **PoolPrepView — pastille du critère prioritaire (#1440)**
+  - club en priorité 1 : pastille club, orange si doublon dans la poule
+  - doublon inévitable (quota BellePoule) : pas d’alerte
+- **PoolPrepView — ordre officiel des matchs (#1964)**
+  - trio du même club : n° 1, 2, 3 et table « trio de 7 »
+  - ordre libre : pas de placement, pastille « Ordre libre »
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolRankingView.test.tsx</code> — 1 test</summary>
+
+- **PoolRankingView – exclusions (#1440)**
+  - carton noir → rang « - » + icône ; exclusion simple → DNF
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 26 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -3593,32 +5945,55 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **PoolView - saisie simplifiée : correction d'un score enregistré (#1046)**
   - préremplit la case avec le score enregistré
   - Entrée enregistre le nouveau score en gardant celui de l'adversaire
+  - victoire au score max préremplie en « V » (#1990)
+  - Tab sur une case enregistrée non modifiée : case suivante, sans réenregistrer (#1990)
+  - Maj+Tab : case précédente (#1990)
+  - chiffre sans ambiguïté : enregistré sans Entrée ni Tab (#1990)
+  - égalité au score max refusée (#1990)
 - **PoolView - couverture saisie, matrice et statuts (#1084)**
   - matrice : affiche victoire/défaite dans les cases du match terminé
   - matrice : case non saisie proposée à la saisie
   - en-tête : indique l'avancement puis « Terminée » selon pool.isComplete
   - saisie des deux cases d'un match neuf : un seul onScoreUpdate avec les deux scores
   - refuse un match nul
+  - V = victoire au score maximum
+  - W+chiffre désigne le vainqueur d’une égalité (case saisie en premier)
+  - W+chiffre désigne le vainqueur d’une égalité (case miroir)
+  - W refusé hors égalité
+  - W refusé si le départage par victoire est inactif
   - refuse un score supérieur au maximum
   - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
   - feuille signée par tous : bandeau de verrouillage et saisie bloquée
   - tireur abandonné : case de la matrice marquée comme statut spécial
+- **PoolView - poule figée par le tableau (#1996)**
+  - tableau tiré : bandeau, cases verrouillées, pas de saisie
+  - mode correction : saisie possible, transmise pour vérification
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/QRCodeShare.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/PrivacySettingsSection.test.tsx</code> — 2 tests</summary>
+
+- **PrivacySettingsSection**
+  - trouve une personne et l’anonymise après confirmation
+  - archive chiffrée : refuse des mots de passe différents
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/QRCodeShare.test.tsx</code> — 5 tests</summary>
 
 - **QRCodeShare**
   - affiche le titre du mode résultats et les onglets
   - affiche un message si le serveur distant n’est pas démarré
   - bascule vers l’onglet pointage
-  - le bouton Fermer déclenche onClose
+  - la croix en haut à droite déclenche onClose, plus de bouton Fermer en pied (#1858)
+  - propose l’impression du QR Code (#1858)
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/SettingsModal.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/SettingsModal.test.tsx</code> — 7 tests</summary>
 
 - **SettingsModal**
   - affiche un onglet par section et seulement le contenu de l'onglet actif
@@ -3626,6 +6001,17 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - rouvre sur le dernier onglet utilisé
   - la recherche filtre toutes les sections (insensible aux accents)
   - affiche un message si aucun résultat
+- **SettingsModal – export / import des paramètres**
+  - importe un fichier JSON (logo inclus) et met à jour le stockage
+  - signale un fichier invalide
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/Skeleton.test.tsx</code> — 1 test</summary>
+
+- **TableSkeleton**
+  - annonce le chargement et rend le nombre de lignes demandé
 
 </details>
 
@@ -3645,7 +6031,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 11 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -3656,15 +6042,53 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - empile plusieurs toasts
 - **useToast hors provider**
   - fournit un showToast no-op sans planter
+- **Toast d’annulation (#1535)**
+  - le bouton Annuler appelle le callback et ferme le toast
+  - Ctrl+Z annule la dernière action et ferme son toast, une seule fois
+  - Ctrl+Z dans un champ de saisie : annulation native, toast conservé
+- **Toast d’erreur actionnable (#1535)**
+  - affiche l’échec suivi de la cause et de l’étape suivante
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/XiaomiRemotePanel.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 5 tests</summary>
+
+- **Tooltip**
+  - apparaît au focus clavier avec role=tooltip et aria-describedby, se ferme avec Échap
+  - TipButton : aria-label par défaut et pas de title natif
+- **placeTooltip (#1755)**
+  - au-dessus, centré sur le déclencheur
+  - bascule en dessous si pas de place en haut
+  - recadré au bord droit de la fenêtre
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/VenuesSettingsSection.test.tsx</code> — 10 tests</summary>
+
+- **resizeStrips**
+  - conserve les libellés, tronque ou complète
+- **VenuesSettingsSection**
+  - liste les salles avec nombre de pistes et badge par défaut
+  - crée une salle
+  - refuse un nom vide
+  - modifie une salle en gardant les libellés de pistes
+  - enregistre libellé et appareil Cyrano d’une piste
+  - refuse une adresse IPv4 invalide sans enregistrer
+  - définit la salle par défaut
+  - supprime après confirmation seulement
+  - affiche une erreur en toast si l’enregistrement échoue
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/XiaomiRemotePanel.test.tsx</code> — 3 tests</summary>
 
 - **XiaomiRemotePanel**
   - charge la liste une fois puis ne réinterroge pas le processus principal
   - ignore la liste poussée par une autre compétition
+  - affiche le QR code de l'URL du lobby au clic
 
 </details>
 
@@ -3675,6 +6099,17 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - répartit les QR Codes sur le nombre de feuilles attendu
   - utilise la grille correspondant au nombre par feuille
   - échappe le HTML des libellés
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/DTCallNotification.test.tsx</code> — 4 tests</summary>
+
+- **DTCallNotification — abandon (#2000)**
+  - affiche « Abandon — NOM Prénom (à confirmer par le DT) » et le bouton d'enregistrement
+  - pas de bouton d'abandon pour un carton noir
+  - le bouton demande l'abandon du tireur à la compétition puis solde l'appel
+  - sans compétition ouverte pour traiter l'abandon, l'appel reste affiché
 
 </details>
 
@@ -3690,22 +6125,282 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/__tests__/ProxySettingsSection.test.tsx</code> — 4 tests</summary>
+
+- **ProxySettingsSection**
+  - système / aucun : appliqué immédiatement
+  - manuel : serveur + exclusions envoyés au clic sur Appliquer
+  - refus du main → message d’adresse invalide
+  - test de connexion : route affichée
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 3 tests</summary>
 
 - **ScoreAuditLog — colonne Arbitre (#1031)**
   - affiche l'arbitre saisi, sinon le ou les arbitres assignés au match
 - **ScoreAuditLog — compacter / déplier (#1123)**
   - masque les entrées au-delà des premières en mode compact, puis les réaffiche
+- **ScoreAuditLog — motif de correction après tirage du tableau (#1996)**
+  - motif affiché pour une correction, motif technique masqué, auteur générique non affiché
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/__tests__/ThemeEditor.test.tsx</code> — 3 tests</summary>
+
+- **ThemeEditor – thèmes prédéfinis**
+  - liste les thèmes prédéfinis de la section
+  - thème prédéfini chargé en lecture seule
+  - dupliquer → copie modifiable sauvegardée sous un nouvel id
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/UpdateMenuButton.test.tsx</code> — 6 tests</summary>
+
+- **UpdateMenuButton — bouton clignotant de l’en-tête**
+  - « À jour » après vérification ; clic → revérifie
+  - « Mise à jour dispo » clignotant dès update:available
+  - vérification au lancement désactivée : pas de requête, bouton « Vérifier »
+  - mise à jour trouvée au lancement : clic ouvre la bannière avec la version
+  - clic : réaffiche la bannière fermée
+  - animation de clignotement définie (et coupée si mouvement réduit)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 6 tests</summary>
 
 - **UpdateNotification — mise à jour intégrée**
   - s’affiche sur update:available et installe sans ouvrir le navigateur
   - affiche la progression du téléchargement
+  - téléchargement lancé depuis le menu : bannière + barre de progression sans update:available
+  - bouton désactivé + lame affichée pendant le téléchargement
+  - erreur %s : message explicite (plus de clic muet) _(each)_
   - ses styles sont dans une feuille chargée (components.css)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/AnalyticsCharts.test.tsx</code> — 4 tests</summary>
+
+- **AnalyticsCharts — zones données / reçues**
+  - affiche les mannequins des touches données et reçues, filtrables par tireur
+  - filtre par club
+- **AnalyticsCharts — armes olympiques (#1817)**
+  - Global en tête, indice moyen, KPI du tireur sélectionné à la place du classement
+- **AnalyticsCharts — motifs de cartons traduits (#1817)**
+  - libellé français + infobulle
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/TouchZoneHeatmap.test.tsx</code> — 3 tests</summary>
+
+- **zoneShade**
+  - foncé = plus sollicitée, moyen = intermédiaire, clair = plus faible
+  - zone sans touche = none ; deux zones touchées = foncé / clair
+- **TouchZoneHeatmap**
+  - affiche les trois zones, dont C, avec leur classe de rang
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/analytics/WeaponStatsCard.test.tsx</code> — 4 tests</summary>
+
+- **WeaponStatsCard (#1817)**
+  - armes olympiques : écart, cartons/match, abandons, temps limite
+  - tournoi des rapières : mêmes indicateurs que l'épée
+  - arme personnalisée hors rapières : indicateurs historiques
+  - sabre laser : indicateurs historiques
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/app/AppTabBar.test.tsx</code> — 2 tests</summary>
+
+- **AppTabBar**
+  - affiche les onglets et relaie les actions
+  - glisser-déposer : réordonne les onglets
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubCoachesPanel.test.tsx</code> — 2 tests</summary>
+
+- **ClubCoachesPanel**
+  - liste les actifs, ajoute, archive et supprime
+- **ClubCoachPicker**
+  - coche un maître d’armes ; archivé proposé seulement s’il est déjà choisi
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubExercisesPanel.test.tsx</code> — 2 tests</summary>
+
+- **ClubExercisesPanel (#1872)**
+  - liste, filtre par famille, création
+  - export des exercices affichés et import d’un fichier partagé
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubImportModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubImportModal (#1872)**
+  - coche par défaut nouveaux et à compléter, décoche, importe la sélection
+  - tout décocher / tout cocher (lignes filtrées)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubInventoryPanel.test.tsx</code> — 7 tests</summary>
+
+- **ClubInventoryPanel (inventaire du club)**
+  - affiche le matériel actif, la synthèse et le prêt en retard ; les réformés sont masqués
+  - colonnes : affiche ou masque, choix mémorisé
+  - prête un exemplaire à un tireur
+  - refuse de supprimer du matériel prêté (bouton désactivé)
+  - enregistre le retour avec l’état constaté
+  - mode consultation : verrou affiché, ajout et actions désactivés, export disponible
+  - le bouton Verrouiller bascule l’inventaire en consultation seule
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubMemberQrModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubMemberQrModal (#1872)**
+  - affiche le QR du membre et imprime sa seule carte
+  - membre archivé : impression désactivée
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubPicker.test.tsx</code> — 4 tests</summary>
+
+- **ClubsHomeSection (Général)**
+  - liste les clubs, ouvre le club choisi
+  - aucun club : rien n’est affiché
+- **ClubPicker (onglet Club)**
+  - choisir un club existant ou en créer un
+  - premier club : message d’accueil
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubScanModal.test.tsx</code> — 2 tests</summary>
+
+- **ClubScanModal**
+  - piste puis 2 cartes : pointe, crée et lance le combat
+  - messages : QR inconnu, carte inconnue, piste hors séance
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubSessionMenu.test.tsx</code> — 5 tests</summary>
+
+- **ClubSessionMenu**
+  - ouvre une séance prévue sans fermer la séance ouverte, puis l’affiche
+  - plusieurs séances ouvertes : affichage et fermeture de l’une d’elles
+  - rouvre une séance passée sans fermer la séance ouverte
+  - refus de confirmation : rien ne change
+  - Préparer renvoie vers l’onglet Séances
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubSessionsPanel.test.tsx</code> — 19 tests</summary>
+
+- **ClubSessionsPanel**
+  - sans séance ouverte : ouvre la séance du jour avec les pistes et l’arme du club
+  - combat en cours sur la piste 1 : saisie du score et fin
+  - piste 2 libre : appariement manuel parmi les présents
+  - pointage (fenêtre, catégories du cours) et fermeture
+  - saisie distante : démarre le serveur, envoie les combats en cours aux tablettes
+  - paramètres de la saisie distante : réseau mémorisé, thème et mot de passe appliqués
+  - aucun présent pointé : menus des pistes libres explicites et désactivés
+  - piste : liens affichage et arbitre une fois la saisie distante active
+  - saisie distante active : lobby des pistes
+  - ouverture avec les catégories d’âge du cours
+  - séance préparée répétée chaque semaine
+  - annuler un combat libère la tablette
+  - séance en cours : exercice coché, notes enregistrées
+  - fermeture : bilan proposé, note et remarque par tireur
+  - préparer une séance à l’avance puis la démarrer
+  - séance ouverte : bascule vers une séance prévue sans fermer la séance en cours
+  - plusieurs séances ouvertes : affiche la séance choisie, liste des ouvertes
+  - ouverture : date choisie dans le mini-calendrier
+  - plan : exercices ajoutés depuis la bibliothèque (échauffement proposé d’abord)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubStatsPanel.test.tsx</code> — 3 tests</summary>
+
+- **scopeFilter**
+  - saison, trimestre, mois, séance, tout
+- **ClubStatsPanel**
+  - classement de la saison, changement de période
+  - fiche membre : progression par trimestre et face-à-face
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubTour.test.tsx</code> — 4 tests</summary>
+
+- **ClubTour**
+  - attend le chargement avant de démarrer
+  - démarre seul sur un club vide, met en évidence le nom
+  - suit l’état réel, Suivant / Retour, passer
+  - terminé puis relancé par le bouton Guide
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/ClubView.test.tsx</code> — 8 tests</summary>
+
+- **ClubView**
+  - affiche le club, ses sous-onglets et les membres
+  - ajoute un membre
+  - archive un membre, affiche les archivés
+  - enregistre le nom du club (onglet Identité)
+  - l'en-tête n'a plus de crayon d'édition de l'identité (#1872)
+  - importe un fichier FFE .fff
+  - importe un tableau CSV du club (colonne Nom)
+  - nombre de pistes enregistré, import des photos ZIP
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/clubRemoteSettings.test.ts</code> — 3 tests</summary>
+
+- **clubRemoteSettings (#1872)**
+  - valeurs invalides ou absentes : défauts
+  - mot de passe : vide ou 8 caractères minimum
+  - seuls interface, port et HTTPS demandent un redémarrage
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/club/clubTourFlags.test.ts</code> — 4 tests</summary>
+
+- **parcours Mode Club (#1872)**
+  - progression : nom → logo → membres → cartes
+  - logo facultatif : validé par les membres
+  - démarrage auto : club vide jamais guidé
+  - 4 étapes
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/CardIcon.test.tsx</code> — 2 tests</summary>
+
+- **CardIcon**
+  - est décorative par défaut et porte la couleur du carton
+  - expose un nom accessible quand elle est seule
 
 </details>
 
@@ -3715,6 +6410,45 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CollapseToggle**
   - compacte puis déplie le contenu
   - mémorise l'état entre deux montages
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/EmptyState.test.tsx</code> — 3 tests</summary>
+
+- **EmptyState**
+  - rend titre, description et déclenche l’action principale
+  - sans action : aucun bouton
+  - rend les actions supplémentaires (children)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/Icon.test.tsx</code> — 2 tests</summary>
+
+- **Icon**
+  - est masquée aux lecteurs d’écran par défaut
+  - expose un nom accessible avec label
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/OperationProgress.test.tsx</code> — 4 tests</summary>
+
+- **OperationProgress**
+  - opération rapide : aucune barre
+  - opération longue : barre affichée après 1 s puis retirée
+  - propage l’erreur de la tâche et retire la barre
+  - hors provider : exécute la tâche
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/RankMedal.test.tsx</code> — 2 tests</summary>
+
+- **RankMedal**
+  - affiche une médaille décorative pour les trois premiers rangs
+  - ne rend rien au-delà du 3e rang ni sans rang
 
 </details>
 
@@ -3730,7 +6464,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/common/primitives.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/common/primitives.test.tsx</code> — 11 tests</summary>
 
 - **Modal**
   - rend titre, corps et pied ; le dialogue est nommé par son titre
@@ -3739,6 +6473,10 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **Button**
   - variante, taille et type="button" par défaut
   - secondaire par défaut, icône + libellé
+  - taille md acceptée
+  - loading : désactivé, aria-busy, spinner masqué aux lecteurs, libellé conservé
+  - sans loading : ni aria-busy ni spinner
+  - icône seule : classe btn-icon-only et nom accessible via aria-label
 - **Card**
   - en-tête, corps et pied
   - sans titre ni actions : pas d’en-tête
@@ -3746,12 +6484,117 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 5 tests</summary>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 5 tests</summary>
+
+- **CompetitionHeader - bouton propriétés (#1505)**
+  - affiche le bouton directement dans le bandeau et ouvre les propriétés
+- **CompetitionHeader - bouton saisie distante**
+  - affiche le bouton et ouvre la saisie distante au clic
+  - reste surligné (aria-current) quand la vue saisie distante est active
+  - non surligné hors de la vue saisie distante
+  - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 12 tests</summary>
+
+- **computeMatchProgress**
+  - renvoie null sans poule ni tableau
+  - compte les matchs de poule terminés
+  - retombe sur le tableau quand il n’y a pas de poule
+  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
+  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
+- **computeEffectiveTableauRanking**
+  - garde le classement tel quel sans option
+  - ne garde que le groupe actif et renumérote
+  - exclut les groupes déjà extraits dans une compétition séparée
+- **rankingTableauNavAction (#2008)**
+  - libellé « Voir le tableau » quand le classement est figé
+  - libellé « Passer au tableau » sinon
+  - déclenche le passage au tableau
+  - aucun bouton : %s _(each)_
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/phaseRegistry.test.ts</code> — 2 tests</summary>
+
+- **phaseRegistry**
+  - liste les phases accessibles hors phase courante, avec leur position
+  - se vide au retrait
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/phaseStepper.test.ts</code> — 5 tests</summary>
+
+- **phaseStepStates**
+  - marque fait, en cours, à faire et bloqué
+  - onglet utilitaire actif : avancement de la dernière étape du flow (#1650)
+  - phase inconnue : rien de fait
+- **nextBlockedReason**
+  - renvoie le motif de la première phase bloquée suivante
+  - null si aucun motif connu après la phase courante
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/usePhaseShortcuts.test.ts</code> — 5 tests</summary>
+
+- **phaseShortcutTarget**
+  - Ctrl+n va à la phase de rang n
+  - ne cible pas une phase désactivée ni un rang absent
+  - Ctrl+→ / Ctrl+← passent à la phase accessible suivante / précédente
+  - aux bornes, pas de cible
+  - autres touches : pas de cible
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListFilters.test.ts</code> — 4 tests</summary>
+
+- **competitionListFilters**
+  - filtre en ET entre groupes et OU dans un groupe
+  - liste les valeurs présentes
+  - trie par date et par nom sans muter la liste
+  - mémorise le tri
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListRecent.test.ts</code> — 4 tests</summary>
+
+- **competitionListRecent**
+  - mémorise les ouvertures sans doublon, la plus récente en tête
+  - épingle puis désépingle
+  - épinglées d’abord, identifiants disparus ignorés, 5 au plus
+  - tolère un stockage corrompu
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListSearch.test.ts</code> — 6 tests</summary>
+
+- **normalizeSearchText**
+  - ignore la casse, les accents et les espaces multiples
+- **filterCompetitions**
+  - requête vide : liste inchangée
+  - cherche dans le nom sans tenir compte des accents ni de la casse
+  - cherche dans le lieu
+  - cherche dans la date (année)
+  - toutes les parties de la requête doivent correspondre
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 6 tests</summary>
 
 - **guidedTour**
-  - commence par l’ajout des tireurs sur une compétition vide
+  - commence par la saisie distante (optionnelle) sur une compétition vide
   - valide les étapes selon l’état de la compétition
-  - la saisie distante est validée par le serveur actif ou par une saisie sur ce poste
+  - la saisie distante est validée par le serveur actif ou en passant à la suite
+  - l’étape poules n’est validée qu’au clic sur Lancer les poules
   - retourne null quand toutes les étapes sont faites
   - mémorise le drapeau et ignore les valeurs invalides
 
@@ -3780,15 +6623,63 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 12 tests</summary>
 
 - **PoolScoreMatrix**
   - affiche les noms des tireurs en en-tête de ligne
   - affiche la colonne Victoires quand isVisible le permet
-  - affiche le score V5 pour un match gagné
+  - affiche V seul pour une victoire au score max (#1990)
+  - affiche V + score pour une victoire sous le score max
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
   - rapières : cases de la vague en cours surlignées en violet (#1118)
+  - numérotage : bulles = placement dans la poule au lieu des initiales (#1864)
+  - rapières : colonne « Cat. » en dernier, seulement avec categoryOf (#1864)
+  - rapières : colonne « Cat. » affiche la catégorie abrégée (#1864)
+  - **abandon signalé par l appareil de piste (#2000)**
+    - statut inchangé : combat compté comme victoire normale (V+1)
+    - statut ABANDONED posé par le DT : combat annulé (V reste 0)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/PoolSignaturesModal.test.tsx</code> — 1 test</summary>
+
+- **PoolSignaturesModal**
+  - liste les tireurs, signature affichée ou « non signé », sans édition
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/PoolStripButton.test.tsx</code> — 2 tests</summary>
+
+- **PoolStripButton**
+  - propose uniquement les pistes de l’intervalle et applique le choix
+  - permet de retirer la piste (automatique)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/poolChainedInput.test.ts</code> — 5 tests</summary>
+
+- **nextChainedPair**
+  - parcourt la ligne 1 de gauche à droite, puis la ligne 2 au-dessus de la diagonale
+  - visite chaque match une seule fois (pas de case miroir)
+  - saute les cases non jouables
+  - renvoie null en fin de poule
+  - reprend depuis une case de la moitié inférieure sans revenir en arrière
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/poolMatrixNav.test.ts</code> — 5 tests</summary>
+
+- **poolMatrixNav**
+  - reconnaît les flèches
+  - droite/gauche : saute la diagonale
+  - bas/haut : saute la diagonale
+  - bords : null
+  - touche non fléchée : null
 
 </details>
 
@@ -3814,6 +6705,29 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/poolLaunchState.test.ts</code> — 12 tests</summary>
+
+- **poolsHaveScores**
+  - faux sans poule ou sans match saisi
+  - vrai dès qu'un match est saisi ou avancé
+- **inferPoolsLaunched (anciennes sessions)**
+  - faux en appel / préparation sans score
+  - vrai si phase postérieure, historique ou score saisi
+- **poolTabLock**
+  - tout verrouillé avant « Préparer les poules »
+  - Préparation libre une fois préparées, Poules libre une fois lancées
+- **scoredMatchesLost (#1992)**
+  - mêmes matchs : rien de perdu
+  - matchs saisis remplacés : perdus
+  - matchs non saisis remplacés : rien de perdu
+- **poolsMatchFencers (#1992)**
+  - mêmes tireurs, ordre indifférent : inchangé
+  - tireur pointé en plus ou en moins : modifié
+  - sans poule : faux
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/poolPrepHistory.test.ts</code> — 3 tests</summary>
 
 - **appendHistory**
@@ -3824,11 +6738,13 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 16 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
   - Imprimer : envoie les réglages choisis puis ferme et mémorise (sans pages)
+  - réglages mémorisés sans imprimer, même si la fenêtre est fermée (#1826)
+  - échelle : saisie libre, validée à la sortie du champ (#1826)
   - plage invalide ou hors document : impression bloquée
   - échec d’impression : message affiché, boîte conservée
   - Enregistrer en PDF : titre du document proposé
@@ -3847,6 +6763,39 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/print/printAdvised.test.ts</code> — 4 tests</summary>
+
+- **impression : plages, échelle, mise à l’échelle conseillée (#1826)**
+  - expandPageRanges
+  - parseScale
+  - feuilles de poule et style conseillé
+  - findAdvisedScale : plus grande échelle qui tient
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/CyranoPanel.test.tsx</code> — 5 tests</summary>
+
+- **CyranoPanel — alerte BAD MATCH (#1720)**
+  - signale la piste dont l’appareil affiche un autre match
+- **CyranoPanel — secours et journal (#1829)**
+  - actions de secours envoyées pour la piste
+  - journal affiché à la demande ; interfaces proposées
+  - journal : défile jusqu’aux dernières trames, dans son cadre (#2001)
+  - ajout de pistes : contrôles compacts sur une rangée, sans style en ligne
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/DisplayOptionsPanel.test.tsx</code> — 2 tests</summary>
+
+- **DisplayOptionsPanel**
+  - change le thème et le synchronise avec le serveur
+  - bascule une vue du kiosk
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/remote/GregAutoPublishToggle.test.tsx</code> — 2 tests</summary>
 
 - **GregAutoPublishToggle**
@@ -3856,7 +6805,102 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/remote/RemoteFoldAll.test.tsx</code> — 4 tests</summary>
+
+- **RemoteFoldAllButton**
+  - volets repliés par défaut sans état mémorisé
+  - tout replier puis tout déplier
+  - un volet replié : propose Tout déplier
+  - ne touche pas aux volets non listés
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/StripPlanCard.test.tsx</code> — 7 tests</summary>
+
+- **StripPlanCard**
+  - est replié par défaut puis affiche les pistes de l’intervalle
+  - passe une piste en indisponible (rouge) et la persiste
+  - recharge les pistes indisponibles d’une compétition
+- **répartition automatique avec pistes indisponibles**
+  - availableStrips exclut les indisponibles, sans jamais renvoyer une liste vide
+  - stripAtIndex tourne sur les pistes disponibles
+  - computePoolStrips saute les pistes indisponibles
+  - buildSessionMatches applique les pistes calculées
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/StripRangeControls.test.tsx</code> — 3 tests</summary>
+
+- **StripRangeControls**
+  - incrémente la piste de départ sans dépasser la fin
+  - bloque le départ à la fin et la fin au départ
+  - modifie la piste de fin par saisie directe
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/UrlCopyRow.test.tsx</code> — 2 tests</summary>
+
+- **UrlCopyRow**
+  - copie l’URL et ouvre le QR code
+  - affiche « Copié » sur la ligne copiée
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/builtinThemes.test.ts</code> — 13 tests</summary>
+
+- **builtinThemes**
+  - liste jamais vide pour chaque section
+  - piste : préréglages Sombre/Clair/Néon
+  - autres écrans : thème custom aux valeurs par défaut
+  - id non prédéfini ou inconnu → null
+  - Steampunk proposé et résolu pour chaque section
+  - chaque thème décoratif couvre toutes les sections avec des variables connues
+  - Licorne : motif SVG répétable sur chaque section
+  - clé héritée de Object.prototype → null
+- **Toutes sources (#1795)**
+  - liste préréglages piste et décoratifs
+  - décoratif → tous les écrans, préréglage → piste seule
+  - retour à Sombre/Clair/Néon après un décoratif : tous les écrans sont réinitialisés (#1936)
+  - thème sauvegardé → son type d’écran
+  - éditeur : thèmes prédéfinis aux variables complètes
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/cyranoPisteTools.test.ts</code> — 9 tests</summary>
+
+- **profils constructeur (#1829)**
+  - port 50100 en standard, 50101 en EFP1.1
+- **ajout en lot**
+  - profil Saint-George : port 50101, IP 192.168.1.(100 + piste)
+  - numéros consécutifs, piste n ↔ arène n, port du profil
+  - ignore les numéros déjà présents
+  - ne dépasse jamais le maximum de pistes
+- **export / import**
+  - aller-retour sans perte
+  - accepte aussi un tableau nu
+  - écarte les lignes invalides et les doublons, et le compte est rendu
+  - refuse le JSON cassé, le mauvais format et la liste vide
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/cyranoSettings.test.ts</code> — 4 tests</summary>
+
+- **réglages Cyrano (#1829)**
+  - démarrage automatique désactivé par défaut
+  - démarrage automatique : port, interface, pistes complètes et options
+  - démarrage automatique sans piste : rien
+  - journal exportable : une trame par ligne
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 7 tests</summary>
 
 - **OrgNotePanel**
   - publie puis masque la note
@@ -3864,16 +6908,64 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ne requête rien hors session distante
   - ignore la liste poussée par le serveur d'une autre compétition (#1292)
   - liste les écrans, renomme et envoie le mode kiosk
+  - change le type de l'écran à distance (affichage / arbitre / arène choisie)
+  - pas de sélecteur d'arène pour un kiosque
+  - annule le changement local si la commande échoue
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 12 tests</summary>
+<summary><code>src/renderer/components/remote/remoteViewMode.test.tsx</code> — 4 tests</summary>
+
+- **remoteViewMode**
+  - Basique par défaut
+  - mémorise le choix par compétition
+  - valeur inconnue : retombe sur Basique
+- **RemoteViewModeTabs**
+  - affiche deux onglets et signale le changement
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/settingsModal.helpers.test.ts</code> — 4 tests</summary>
+
+- **readInputModes (saisie simplifiée / enchaînée exclusives)**
+  - défaut : enchaînée active, simplifiée annulée
+  - simplifiée active → enchaînée désactivée
+  - ne retourne jamais les deux modes actifs, même si les deux clés sont à true
+  - exactement un mode actif dans tous les cas
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/MatchCard.test.tsx</code> — 4 tests</summary>
+
+- **MatchCard clavier**
+  - Entrée sur la carte ouvre la saisie
+  - Espace ouvre aussi la saisie
+  - Entrée sur le bouton piste n'ouvre pas la saisie
+  - lecture seule : carte non focusable
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/TableauDriftBanner.test.tsx</code> — 2 tests</summary>
+
+- **TableauDriftBanner (#1996)**
+  - liste les écarts cumulés et propose de refaire le tableau
+  - replie les têtes de série au-delà de 6
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 15 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
-  - saisir un score appelle setEditScoreA
+  - saisir un score à droite appelle setEditScoreA (premier appelé à droite, #1826)
+  - gaucher contre droitier : le gaucher reste à gauche (#1826)
   - Valider déclenche onSubmit
+  - saisie complète au clavier : score A, Tab, score B, Entrée valide (#1542)
   - bouton Médical : croix rouge médicale (#1256)
   - Échap ferme la modale
   - le clic hors de la fenêtre ne ferme pas (#1115)
@@ -3881,6 +6973,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - hors Laser : aucun bouton V ni tirage au sort, même en égalité
     - Laser sans égalité : pas de bloc vainqueur
     - Laser sans score saisi : pas de bloc vainqueur
+    - bouton V affiché à côté de chaque score, même sans égalité
     - égalité : V manuel pour chaque tireur
     - V déjà actif : un second clic le retire
     - tirage au sort : le résultat désigne le vainqueur
@@ -3888,25 +6981,70 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/tableau/matchCardNav.test.ts</code> — 5 tests</summary>
+
+- **matchCardNav**
+  - isNavKey
+  - bas / haut restent dans la colonne
+  - droite : tour suivant le plus proche
+  - gauche : tour précédent
+  - bord : -1
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/minimapGeometry.test.ts</code> — 5 tests</summary>
+
+- **minimapGeometry**
+  - entrées invalides : null
+  - rectangle visible à l'origine
+  - pan et zoom déplacent / réduisent le rectangle
+  - tout visible quand le bracket tient dans la vue
+  - clic minimap : centre la vue (aller-retour)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
 - **calculateFinalResults - abandon / forfait / exclusion (#1012)**
   - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **calculateFinalResults - 3e place non jouée (#1864)**
+  - deux 3es ex æquo, pas de 4e, puis 5e
+  - petite finale jouée : 3e et 4e distincts
 - **generateFIESeeding (#1080)**
   - tables en dur identiques à la construction FIE générique
   - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
+- **rangs figés au tirage du tableau (#1996)**
+  - premier tour : rang de sortie de poules de chaque tireur
+  - barrages : rangs posés sur les matchs de barrage
+  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 3 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 6 tests</summary>
 
 - **tableauDialogState**
   - états initiaux
   - loadDESignatures associe signature au bon côté
+  - loadDECards : id composite (saisie distante) ou id simple, rangés par côté (#1829)
+  - loadDECards : match saisi à distance, lignes sous l’id simple ignorées (pas de doublon)
+  - loadDECards : undefined sans carton ou en cas d erreur
   - retourne undefined sans lignes ou en cas d erreur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/tableauScoreSides.test.ts</code> — 4 tests</summary>
+
+- **tableauLeftSide (#1826)**
+  - droitiers : le second appelé à gauche
+  - deux gauchers : le second appelé à gauche
+  - gaucher contre droitier : le gaucher à gauche
+  - tireur absent : second appelé à gauche
 
 </details>
 
@@ -3933,6 +7071,50 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/tableau/useBracketZoomPan.test.ts</code> — 9 tests</summary>
+
+- **zoom mémorisé du tableau**
+  - renvoie 1 par défaut
+  - restitue le zoom par compétition
+  - ignore une valeur invalide ou hors bornes
+  - supprime l entrée quand le zoom revient à 1
+- **pan borné du tableau**
+  - bloque le défilement au-dessus / à gauche du bracket
+  - bloque le défilement au-delà du bas / de la droite
+  - tient compte du zoom
+  - contenu plus petit que la vue : reste visible
+  - laisse un pan valide inchangé
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/training/TrainingPrintModal.test.ts</code> — 3 tests</summary>
+
+- **buildTrainingQrTargets (#1500)**
+  - liste kiosk, arbitres, affichages puis lobby
+  - respecte la sélection
+  - renvoie vide si rien de coché
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/venueStripsEdit.test.ts</code> — 8 tests</summary>
+
+- **validation**
+  - IPv4
+  - port facultatif entre 1 et 65535
+  - erreur : IP saisie invalide ou port invalide ; IP vide acceptée
+- **stripToEdit**
+  - relit libellé et appareil, mode maître par défaut
+- **applyStripEdits**
+  - ne touche pas aux pistes non modifiées
+  - pose libellé et appareil, garde arène et protocole
+  - retire l’appareil sans adresse IP, garde le libellé
+  - écrit le port numérique
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/wiki/wikiData.test.ts</code> — 3 tests</summary>
 
 - **wikiData**
@@ -3946,13 +7128,14 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 ### E2E Playwright (`e2e/`)
 
 <details>
-<summary><code>e2e/accessibility.spec.ts</code> — 5 tests</summary>
+<summary><code>e2e/accessibility.spec.ts</code> — 6 tests</summary>
 
 - **Accessibility**
   - should have proper ARIA labels
   - should be keyboard navigable
   - should respect reduced motion preference
   - should pass axe color-contrast (${scheme})
+  - should pass axe color-contrast on modal (${scheme})
   - should have no critical axe violations
 
 </details>
@@ -3988,6 +7171,15 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - should create a new competition
   - should display competition details
   - should delete a competition
+
+</details>
+
+<details>
+<summary><code>e2e/i18n-overflow.spec.ts</code> — 2 tests</summary>
+
+- **i18n : pas de débordement de libellés**
+  - accueil ${lang}${pseudo ? ' (pseudo-localisation)' : ''}
+  - nouvelle compétition ${lang}${pseudo ? ' (pseudo-localisation)' : ''}
 
 </details>
 
@@ -4036,15 +7228,29 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>e2e/visual.spec.ts</code> — 2 tests</summary>
+<summary><code>e2e/visual.spec.ts</code> — 3 tests</summary>
 
 - **Visual regression**
   - accueil (${scheme})
   - nouvelle compétition (${scheme})
+  - accueil sans débordement horizontal (${size.name})
 
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/a11yPages.test.ts</code> — 5 tests</summary>
+
+- **axe sur les pages distantes (#1537)**
+  - ${page}.html : aucune violation
+- **repères et annonces des pages distantes (#1537)**
+  - kiosk : la navigation porte un nom accessible traduit
+  - referee : chaque tireur est une région nommée
+  - les scores de référence, arène et public sont annoncés (aria-live)
+  - clé kiosk.menu\_label présente dans toutes les langues
+
+</details>
 
 <details>
 <summary><code>src/remote/arenaSlotClient.test.ts</code> — 3 tests</summary>
@@ -4053,6 +7259,50 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
   - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
+
+<details>
+<summary><code>src/remote/bpSocket.test.ts</code> — 3 tests</summary>
+
+- **bpSocket (/common.js)**
+  - applique la politique de reconnexion commune
+  - permet de surcharger ou compléter les options sans modifier les défauts
+  - aucune page distante ne reconstruit ces options à la main
+
+</details>
+
+<details>
+<summary><code>src/remote/dialogsA11y.test.ts</code> — 2 tests</summary>
+
+- **dialogues des pages distantes (#1537)**
+  - ${page} : chaque role=dialog est modal et nommé
+  - referee.html : 5 dialogues (fin de match, carton noir, raison, poule, signature)
+
+</details>
+
+<details>
+<summary><code>src/remote/displayMode.test.ts</code> — 4 tests</summary>
+
+- **mode display (#1303)**
+  - %s?display=1 : aucun contrôle visible _(each)_
+  - %s sans paramètre : contrôles inchangés _(each)_
+  - display=10 ou display=0 n’active pas le mode
+  - routes des écrans publics : GET uniquement
+
+</details>
+
+<details>
+<summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
+
+- **échelle typographique fluide (#1540)**
+  - tokens.css définit les tailles en clamp()
+  - overlay-config : aucune taille de police en px
+  - overlay-config : colonne latérale fluide
+- **mode contraste projecteur (#1540)**
+  - ?contrast=1 active la classe et mémorise
+  - stockage indisponible : le paramètre reste appliqué
+  - tokens.css : .theme-contrast sans couleur en dur
 
 </details>
 
@@ -4079,7 +7329,53 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/focusRing.test.ts</code> — 3 tests</summary>
+
+- **focus visible global des pages distantes (#1537)**
+  - tokens.css définit :focus-visible 2 px / décalage 2 px et forced-colors
+  - chaque page distante charge tokens.css
+  - styles.css ne supprime pas le focus sans repli visible
+
+</details>
+
+<details>
+<summary><code>src/remote/inlineStyles.test.ts</code> — 1 test</summary>
+
+- **styles inline des pages distantes (#1600)**
+  - ${page} : au plus ${max} attribut(s) style
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaClient.test.ts</code> — 7 tests</summary>
+
+- **arenaClient.js**
+  - getOrCreateScreenId : créé une fois puis réutilisé
+  - dispatchServerCommand : refresh / navigate / ping
+  - identify : libellé commande \> mémorisé \> identifiant ; durée 5 s par défaut
+  - message : texte requis
+  - initialArenaUpdate : seulement avec un match et un tireur A
+  - isOlympicSession
+  - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaDisplay.test.ts</code> — 7 tests</summary>
+
+- **arenaDisplay.js ArenaDisplay**
+  - déduit la piste de l URL et affiche son numéro
+  - rejoint l arène et s enregistre à la connexion
+  - applique les opérations du plan de mise à jour
+  - signale la déconnexion
+  - bandeau Repos (#2000) : masqué hors repos, visible en état P
+  - bandeau Repos (#2000) : les règles CSS sont dans arena.html (pas styles.css, non chargée)
+  - arena.html ne contient plus de script inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 7 tests</summary>
 
 - **arenaDisplayUtils.js**
   - bannière : texte seul, jamais interprété comme HTML
@@ -4087,6 +7383,8 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - thèmes valides, repli sur dark, mémorisation
   - thème personnalisé : variables et overlay, nettoyé au retour
   - arena.html charge le module avant le script de page
+  - applyScreenTheme : variables sur :root puis retrait (#1600)
+  - public, pool et referee partagent applyScreenTheme (plus de copie inline)
 
 </details>
 
@@ -4136,6 +7434,96 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/arenaScreen.test.ts</code> — 5 tests</summary>
+
+- **arenaScreen.js**
+  - pulseScore : classe seulement si le score change
+  - watchScores : un changement de texte déclenche la classe
+  - touche B : écran noir, toute touche le quitte
+  - touche B ignorée dans un champ de saisie
+  - arena.html charge le module et la feuille n'a pas de couleur en dur
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaUpdate.test.ts</code> — 10 tests</summary>
+
+- **arenaUpdate.js planArenaUpdate**
+  - gaucher (#1439) : A rouge à gauche, scores placés en conséquence
+  - message vide : bannières et visibilité seulement
+  - thème : appliqué si changé, ou personnalisé modifié
+  - tireur prioritaire : cadre effacé si le nouveau match ne le contient pas
+  - scores : respectent l’inversion, y compris celle du même message
+  - photos : intro seulement en statut ready avec photos
+  - statut finished : masque l’animation pile ou face
+  - prochain match : affichage d’attente selon le statut résultant
+  - mort subite : démarrage annule l’attente d’overtime
+  - arena.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/icons.test.ts</code> — 10 tests</summary>
+
+- **icons.js**
+  - rend un SVG décoratif, taille 1em, couleur héritée
+  - icônes pleines : fill = currentColor
+  - nom inconnu ou hostile : chaîne vide, aucun HTML injecté
+  - classe additionnelle échappée
+  - hydrate remplit \[data-icon\] et reste idempotent
+  - rank : médaille pour 1-3, texte au-delà
+  - card : pastille colorée par type, texte échappé si inconnu
+  - expose des noms sans doublon
+- **pages distantes**
+  - %s charge /js/icons.js dès qu’elle utilise une icône _(each)_
+- **noms d’icônes utilisés**
+  - chaque data-icon / bpIcon / icon: référence une icône du jeu
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskApp.test.ts</code> — 2 tests</summary>
+
+- **kioskApp.js dans kiosk.html**
+  - kiosk.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskArenas.test.ts</code> — 11 tests</summary>
+
+- **kioskArenas.js scores**
+  - detectScoreChanges : changement, slash à +3, rien sans historique
+  - detectScoreChanges : scores non numériques, piste sans match ou sans id
+  - snapshotScores : null sans match, pistes sans id ignorées
+- **kioskArenas.js gabarit**
+  - piste libre : en attente, aucun match
+  - entraînement : piste non tenue dans le lobby marquée « Libre » (#1500)
+  - match en cours : B rouge à gauche, A vert à droite
+  - inversion : permutation des côtés et des couleurs
+  - gaucher A contre droitier (#1439) : A rouge à gauche
+  - assigné (pas en cours) et score absent
+  - XSS : noms, clubs et identifiants échappés
+  - kiosk.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskBracketRender.test.ts</code> — 7 tests</summary>
+
+- **kioskBracketRender.js**
+  - bracketBadge : joués / total, byes exclus
+  - géométrie : taille naturelle, centres des matchs, colonnes
+  - réduction à la hauteur disponible
+  - gabarit : cartes, vainqueur, score, arène, connecteurs, bandeau finale
+  - petite finale : pas de connecteur vers ou depuis le round 3
+  - XSS : noms et arène échappés, byes ignorés
+  - kiosk.html charge le module et délègue
+
+</details>
+
+<details>
 <summary><code>src/remote/js/kioskBracketUtils.test.ts</code> — 9 tests</summary>
 
 - **kioskBracketUtils.js**
@@ -4166,6 +7554,22 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/kioskData.test.ts</code> — 8 tests</summary>
+
+- **kioskData.js vues**
+  - viewDefault : final désactivé par défaut, les autres activés
+  - resolveViewChecks : local prioritaire, sinon serveur, sinon null
+- **kioskData.js loadKioskData**
+  - sans session : false, aucun autre appel
+  - compétition : poules, classement général fourni ou null, arènes, suivants
+  - classement général fourni par le serveur transmis
+  - entraînement : historique au lieu des poules
+  - erreur réseau propagée (reprise gérée par l’appelant)
+  - kiosk.html charge le module et délègue
+
+</details>
+
+<details>
 <summary><code>src/remote/js/kioskEta.test.ts</code> — 5 tests</summary>
 
 - **kioskEta.js**
@@ -4187,7 +7591,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - sans petite finale : perdants de demi-finale classés 3e et 4e par tête de série
   - byes ignorés dans les tours principaux
 - **kioskLists.js HTML**
-  - rankLabel : médailles puis rang
+  - rankLabel : texte du rang (la médaille SVG vient de /js/icons.js)
   - finalTableHtml : ligne de tête et échappement
   - notDoneHtml
   - suivantsHtml : vide, regroupement par poule, en cours, initiales, échappement
@@ -4206,6 +7610,134 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - formatBoutDuration
   - trainingRowsHtml : vide, sinon ligne avec heure formatée et échappement
   - kiosk.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskTiming.test.ts</code> — 6 tests</summary>
+
+- **kioskTiming.js**
+  - retryDelay : exponentiel plafonné à 30 s, jitter ±25 %
+  - nextView : circulaire, première vue si inconnue
+  - progressPct : plafonné à 100
+  - createAutoScroller : délai 2 s, défilement 20 s, retour début après 3 s
+  - createAutoScroller : rien à défiler -\> pas de nouvelle image
+  - kiosk.html charge le module et n’a plus la logique inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/priorityDraw.test.ts</code> — 6 tests</summary>
+
+- **priorityDraw.js : cohérence public/arène/arbitre (#1442)**
+  - sideOf / isOtherMatch se basent sur les ids
+  - fromEvent : winnerId prime sur le côté diffusé
+  - refreshFrame : repeint le côté du prioritaire, sauf pendant l animation
+- **priorityDraw.js**
+  - ralentit puis totalise ~3 s
+  - alterne puis se fixe sur le tiré (%s) _(each)_
+  - arbitre : tirage sans vainqueur, chrono remis à 1:00 prêt à lancer
+
+</details>
+
+<details>
+<summary><code>src/remote/js/priorityFrame.test.ts</code> — 3 tests</summary>
+
+- **cadre doré du prioritaire (#1442)**
+  - correspondance côté logique vers panneau affiché
+  - le cadre est sur le panneau qui affiche le nom du prioritaire
+  - le cadre survit au recalcul des classes (updateMatchDisplay)
+
+</details>
+
+<details>
+<summary><code>src/remote/js/publicDisplay.test.ts</code> — 6 tests</summary>
+
+- **publicDisplay.js PublicDisplay**
+  - déduit la piste de l URL
+  - rejoint l arène en rôle public et s enregistre
+  - affiche les scores selon l inversion locale
+  - suit le statut et la sélection de l arbitre
+  - signale la déconnexion
+  - public.html ne contient plus de script inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeApp.test.ts</code> — 15 tests</summary>
+
+- **refereeApp.js dans referee.html**
+  - referee.html ne contient plus de script inline
+  - s exécute sans erreur et branche les événements socket
+- **chrono conservé après rafraîchissement (#1717)**
+  - pendant le match : le chrono diffusé est mémorisé en localStorage
+  - reprise du même match en cours : temps restauré, chrono à l arrêt, arène remise en cours
+  - match non commencé ou autre match : durée initiale, sauvegarde effacée
+  - retour à la liste (fin de match) : sauvegarde du chrono effacée
+- **armes olympiques : point au clic sur la case score (#1713)**
+  - le +1 est masqué et un clic sur la case score ajoute 1 point, chrono arrêté
+- **tournoi des rapières : même vue arbitre que les armes olympiques (#1808)**
+  - arme C sans barème (pool/de vides) : +1/+3/+5 masqués, point au clic sur la case score
+  - arme C avec barème de formule : boutons de zones conservés
+- **appareil de piste maître (#1829) : chrono du serveur et cartons verrouillés**
+  - reprise après redémarrage sans chrono local : temps du serveur, chrono à l’arrêt
+  - chrono local prioritaire sur celui du serveur
+  - maître en ligne : ajout de carton bloqué (classique, P, noir), rien n’est envoyé
+  - maître en ligne : retrait d’un carton permis pour corriger
+  - carton noir refusé par le serveur (409, appareil maître devenu en ligne) : le combat continue
+  - appareil hors ligne : ajout de carton de nouveau permis
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeCards.test.ts</code> — 9 tests</summary>
+
+- **refereeCards.js cartons**
+  - modernYellowOrRed : rouge si déjà jaune ou rouge
+  - cardFromGroup : classique (historique) et moderne
+  - cardEffect : classique +3 / +5, blanc, 2e blanc -\> jaune
+  - cardEffect : moderne, jaune sans point, rouge +1
+  - cardVibration
+- **refereeCards.js passivité**
+  - nextPassivityCard : rouge, noir, puis plus rien
+  - passivityWinner : score, puis classement initial, puis tirage
+  - passivityWinner : parité avec le module partagé (matchEndValidation.ts, #1829)
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeClubCards.test.ts</code> — 8 tests</summary>
+
+- **refereeClubCards (#1872)**
+  - lit le QR de la carte ou le code en clair
+  - piste de l’URL
+  - messages d’erreur du serveur
+  - hors Mode Club : rien n’est installé
+  - séance reliée : bouton « Cartes » à côté de Retour
+  - combat déjà sur la piste : vue arbitre directe, cartes via l’en-tête
+  - caméra utilisable : contexte sécurisé + getUserMedia
+  - piste sans combat : lecture des cartes à l’ouverture
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeControls.test.ts</code> — 12 tests</summary>
+
+- **refereeControls.js controlButtonsState**
+  - tirage du prioritaire : tout verrouillé
+  - attente du temps supplémentaire : libellé avec la durée, pas de bouton repos
+  - tirage au sort : seulement à égalité
+  - match non commencé : désactivé sans match
+  - en cours : pause / reprise, terminer actif
+  - terminé : démarrer désactivé
+- **refereeControls.js chrono et repos**
+  - timerClasses
+  - scoreButtonsLocked
+  - cardButtonsLocked : chrono en marche (#1826)
+  - cardButtonsLocked : actifs avant le départ du chrono (#1936)
+  - canStartRest : toutes les conditions requises
+  - referee.html charge le module et délègue
 
 </details>
 
@@ -4232,14 +7764,207 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/js/timerFormat.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 11 tests</summary>
+
+- **son optionnel**
+  - désactivé par défaut, bascule mémorisée, stockage cassé toléré
+  - beep : false sans WebAudio, true avec
+  - le bouton #btn-sound reflète l état (aria-pressed)
+- **« Annuler la touche » retiré (#1808)**
+  - afterScore ne crée plus de bouton temporaire (doublon du bouton Annuler)
+- **menu d options sur téléphone (#1808)**
+  - ouvre/ferme le menu, ferme au clic extérieur et sur Échap
+  - sans les éléments : aucun effet
+  - referee.html : options regroupées, menu visible uniquement sur téléphone
+- **referee.html (#1539)**
+  - +1/+3/+5 ont un aria-label traduit (deux côtés)
+  - charge le module sans script inline et branche afterScore
+  - portrait et paysage : cibles tactiles \>= 44 px dans les deux orientations
+  - clés i18n présentes dans les dix langues
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLists.test.ts</code> — 8 tests</summary>
+
+- **refereeLists.js données**
+  - pendingMatches : à jouer ou en cours seulement, réponse vide tolérée
+  - mergeMatches : ajoute les absents sans doublon
+  - filterMatches : nom ou prénom, insensible à la casse, vide = tout
+- **refereeLists.js gabarit**
+  - liste vide : message de fin et liens signature / journal de l’arène
+  - numéro d’arène échappé
+  - cartes : noms, clubs, badge selon le statut, id en data-args
+  - tireur inconnu : « ? » ; XSS échappé (noms, clubs, id)
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 17 tests</summary>
+
+- **refereeLobby.js**
+  - arenaFromPath : /areneN/arbitre et /arenaN
+  - clientId : généré puis conservé dans le stockage
+  - clientId : stockage indisponible toléré
+  - createIdleTracker : expire après 3 minutes, l'activité repousse
+  - createIdleTracker : chrono en cours = actif (jamais d'expiration)
+  - install : hors entraînement, rien (pas de claim, pas de bouton)
+  - install : miroir de démo (?demo=1) ignoré
+  - install : piste occupée (409) → redirection vers le lobby
+- **refereeLobby.js : piste reprise par une autre tablette**
+  - install : la vérification périodique renvoie au lobby (?taken=N) sans RAZ
+- **refereeLobby.js : arrivée depuis le lobby → vue arbitre du match (#1500)**
+  - fromLobby : ?lobby=1 uniquement
+  - pickMatch : en cours prioritaire, sinon premier à jouer, sinon null
+  - autoOpen : ouvre le match une fois la liste chargée et retire ?lobby=1
+  - autoOpen : match déjà ouvert ou liste vide → rien
+  - autoOpen : liste jamais chargée → abandon après les essais
+- **refereeLobby.js : bouton Lobby (#1808)**
+  - remplace « Retour » (masqué) avec le même style
+- **referee.html et trainingLobby.html (#1500)**
+  - referee.html charge le module et lance install
+  - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLobbyFinish.test.ts</code> — 3 tests</summary>
+
+- **retour lobby après match (#1826)**
+  - onMatchFinished hors entraînement : sans effet, ne lève pas
+  - refereeApp.js appelle le hook dans les deux chemins de fin de match
+  - la remise à zéro de piste (scores et chrono) est envoyée à l’arène
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereePrevBreak.test.ts</code> — 11 tests</summary>
+
+- **prevFeedback**
+  - succès : notification normale
+  - refus : un message par motif, erreur par défaut
+- **sabreBreakPlan**
+  - démarre sur la tablette pendant un match en cours
+  - laisse la pause à l’appareil maître
+  - ignore sans match, hors match en cours ou pendant un repos
+- **install sur la tablette**
+  - requestPrevMatch émet arena\_control prev
+  - onPrevResult affiche le refus en erreur
+  - pause sabre : chrono arrêté, repos de 60 s lancé, chrono restauré à la fin du repos
+  - pause sabre avec appareil maître : annonce seulement
+  - un repos classique (sans pause sabre) garde son comportement
+- **câblage de la page**
+  - bouton, script, écouteurs et cache hors-ligne
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeScoring.test.ts</code> — 9 tests</summary>
+
+- **refereeScoring.js zones**
+  - activeCustomZones : standard, pool/tableau, zones tronquées à 3
+  - slotPoints et zoneLetter : standard puis personnalisé
+- **refereeScoring.js validateAddScore**
+  - cas simples
+  - mort subite challenger : seulement +5
+  - entraînement : zones autorisées
+  - vibrationMs
+- **refereeScoring.js mort subite challenger**
+  - shouldTriggerChallenger
+  - challengerExit : sous 10 -\> retour supplémentaire ou fin de mort subite
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeTimer.test.ts</code> — 15 tests</summary>
+
+- **refereeTimer.js timerTick**
+  - même dixième : ni affichage complet ni diffusion
+  - changement de seconde : diffusion et annonce
+  - sous 10 s : diffusion à chaque dixième, sans annonce
+  - au-dessus de 10 s : dixième seul ne diffuse pas
+  - fin : plancher à 0, finished
+- **refereeTimer.js timeUpAction**
+  - repos terminé
+  - égalité en temps normal : attente (classique) ou tirage prioritaire (olympique)
+  - égalité en temps supplémentaire : tirage au sort (classique) ou prioritaire (olympique)
+  - pas d’égalité ou mort subite désactivée : temps écoulé
+  - referee.html charge le module et délègue
+- **refereeTimer.js sauvegarde locale du chrono (#1717)**
+  - aller-retour : même match restauré tel quel
+  - autre match, autre arène ou sauvegarde effacée : rien à restaurer
+  - sauvegarde périmée (\> 6 h) ou datée du futur : ignorée
+  - valeurs corrompues : ignorées ; type de prolongation inconnu neutralisé
+  - stockage indisponible (navigation privée, quota) : toléré
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeTts.test.ts</code> — 6 tests</summary>
+
+- **refereeTts.js**
+  - ttsLangCode : normalisation, br et inconnu -\> fr
+  - ttsBcp47 et message d’activation avec repli fr
+  - mergeTtsConfig : champs valides seulement, announce fusionné
+  - announceKey : paliers
+  - announcementFor : phrase, chiffres, repli numérique, palier coupé, rien
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 15 tests</summary>
+
+- **refereeUpdate.js**
+  - scoreValue : nombre, objet, absent
+  - shouldReloadForRules : seulement règles chargées, différentes et hors match
+  - idle : poule terminée, fermé par l’appli, ou simple nettoyage
+  - in\_progress : reprise avec scores (nombre ou objet), ignorée si déjà connu
+  - in\_progress : chrono sauvegardé par le serveur joint à la reprise (#1829)
+  - serverTimerOf : seulement un chrono à l’arrêt et plausible
+  - in\_progress : mise à jour du chrono sans score à plat → score du match (#1999)
+  - serverTimerOf : décompte de la minute de repos ignoré (#1999)
+  - in\_progress : tireurs du match en repli
+  - ready : nouveau match, déjà courant, ou match en cours
+  - replaceOrPush et markReadyOrPush
+  - referee.html charge le module et délègue
+- **leftHandedSwap (#1439)**
+  - gaucher A contre droitier B, arme olympique : inversion
+  - B gaucher, deux gauchers, Laser, sans match : pas d’inversion
+  - planDeviceMirror : seulement les mises à jour de l’appareil pour le match ouvert (#1720)
+
+</details>
+
+<details>
+<summary><code>src/remote/js/timerFormat.test.ts</code> — 8 tests</summary>
 
 - **timerFormat.js**
-  - arbitre : dixième toujours affiché
-  - pause : le dixième n'est pas arrondi à la seconde
-  - écrans : dixièmes seulement dans les 10 dernières secondes
+  - arbitre : dixièmes + centièmes toujours affichés
+  - pause : la fraction n'est pas arrondie à la seconde
+  - écrans : fraction seulement dans les 10 dernières secondes
   - valeurs invalides ou négatives : 00:00
-  - renderTimer : texte + span dixième
+  - renderTimer : texte + span fraction
+  - withTenths : timerSeconds arrondi sup. sur un stockage en centièmes
+  - createSmoothTimer : les centièmes s’écoulent entre deux diffusions
+  - createSmoothTimer : pas d’animation au-dessus de 10 s
+
+</details>
+
+<details>
+<summary><code>src/remote/js/ui.test.ts</code> — 9 tests</summary>
+
+- **ui.js**
+  - bouton : variante inconnue -\> primary, libellé échappé
+  - badge de statut : classe selon le statut, repli pending, libellé échappé
+  - barre de score : parts proportionnelles, 50/50 sans point
+  - en-tête, carte, pied de page : titre échappé
+  - thème : enregistré \> préférence système ; stockage indisponible toléré
+  - init : injecte la feuille une seule fois
+  - la feuille des composants ne contient aucune couleur en dur
+  - pages simples chargent /js/ui.js avec data-bp-init (#1538)
+  - auto-init : data-bp-init applique le thème au chargement
 
 </details>
 
@@ -4273,7 +7998,21 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 13 tests</summary>
+<summary><code>src/remote/refereeTouchErgonomics.test.ts</code> — 7 tests</summary>
+
+- **referee.html ergonomie tactile (#1539)**
+  - espace les cibles de score et de cartons d au moins 8 px
+  - donne un retour visuel à l appui sur les boutons de score et de contrôle
+  - rend le focus visible sur les contrôles de saisie
+  - garde le bouton Annuler plus grand que les sorties d arène
+  - annonce les scores aux lecteurs d écran
+  - hiérarchie : le bouton de score domine les cartons et les sorties (#1539)
+  - prévoit une mise en page paysage compacte qui garde des cibles \>= 44 px
+
+</details>
+
+<details>
+<summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 14 tests</summary>
 
 - **escHtml (/common.js)**
   - échappe & \< \> " ' et \`
@@ -4288,6 +8027,7 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - accepte un fragment audité marqué par un commentaire html
   - arr.map(…).join() : seuls les gabarits internes comptent
   - signale une concaténation brute assignée à innerHTML
+  - bpIcon(…) (icône SVG de /js/icons.js) est une interpolation sûre
   - analyse les scripts inline des pages HTML
 - **pages distantes (barrière de non-régression)**
   - aucune interpolation HTML non échappée dans src/remote
@@ -4351,27 +8091,85 @@ Unitaires : 243 fichiers, 2036 tests. E2E : 9 fichiers, 35 tests (comptage stati
 
 </details>
 
+<details>
+<summary><code>src/remote/swPrecache.test.ts</code> — 2 tests</summary>
+
+- **sw.js précache (#1600)**
+  - ${page} : tous ses scripts /js/\* sont précachés et existent
+  - aucun doublon dans la liste précachée
+
+</details>
+
+<details>
+<summary><code>src/remote/teamRefereeLock.test.ts</code> — 2 tests</summary>
+
+- **tablette équipe — verrou appareil maître**
+  - maître et en ligne : bandeau, ajouts bloqués avec notification, retrait permis
+  - afficheur ou hors ligne : tablette libre
+
+</details>
+
 ### `src/renderer/contexts/`
 
 <details>
-<summary><code>src/renderer/contexts/__tests__/TranslationContext.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/contexts/__tests__/TranslationContext.test.tsx</code> — 7 tests</summary>
 
 - **TranslationContext : langue active (#1160)**
   - attribut lang du document et formats Intl suivent la langue
   - enfants rendus avec la nouvelle langue (date des cartes, #1213)
   - paramètre 0 interpolé (plus remplacé par le gabarit)
   - pluriel : clés \_one / \_other selon Intl.PluralRules
+- **TranslationContext : réglages changés par l’agent (#1880)**
+  - applique la langue et le thème de la base sur settings:changed
+  - ignore les autres événements, les valeurs identiques et inconnues
+  - se désabonne au démontage
 
 </details>
 
 ### `src/renderer/styles/`
 
 <details>
-<summary><code>src/renderer/styles/stylesheets.test.ts</code> — 2 tests</summary>
+<summary><code>src/renderer/styles/contrast.test.ts</code> — 2 tests</summary>
+
+- **contraste AA des teintes sémantiques (#1531)**
+  - thème clair
+  - thème sombre
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/stylesheets.test.ts</code> — 3 tests</summary>
 
 - **main.css / design.css**
   - index.tsx importe design.css après main.css
   - aucune déclaration de main.css écrasée par design.css
+- **palette sombre : source unique (#1531)**
+  - un seul bloc .theme-dark déclare des variables, hors @media / @supports
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/theme.test.ts</code> — 8 tests</summary>
+
+- **theme.css : palette sémantique (#1531)**
+  - est importé après tokens.css
+  - définit surfaces, accent et couleurs sémantiques
+  - teintes douces redéfinies pour le thème sombre
+  - badges sémantiques migrés vers les tokens, sans variante sombre dédiée
+  - étapes terminées et badges de statut classement lisent les tokens sémantiques
+  - échelle d'élévation à 3 niveaux
+  - micro-interactions basées sur les tokens de mouvement, reduced-motion global
+  - tokens.css : un seul bloc .theme-dark de variables, tableau inclus
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/tokens.test.ts</code> — 3 tests</summary>
+
+- **tokens.css : mouvement et surfaces (#1531)**
+  - définit les tokens de mouvement
+  - surface translucide uniquement sous @supports backdrop-filter, repli opaque par défaut
+  - design.css neutralise les animations via prefers-reduced-motion
 
 </details>
 

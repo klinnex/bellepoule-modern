@@ -5,22 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="demo.page_title">Démo - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script>
     <script src="/i18n.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       /* Démo autonome : poules (matrice remplie au fil des matchs), classement, tableau, classement final */
       :root {
-        --bg: #0f172a;
-        --panel: #111c33;
-        --line: #23304d;
-        --text: #e2e8f0;
-        --muted: #94a3b8;
-        --accent: #fbbf24;
-        --win: #22c55e;
-        --lose: #ef4444;
-        --live: #38bdf8;
+        --bg: var(--slate-900);
+        --panel: var(--c-111c33);
+        --line: var(--c-23304d);
+        --text: var(--tw-slate-200);
+        --muted: var(--slate-400);
+        --accent: var(--tw-amber-400);
+        --win: var(--green-500);
+        --lose: var(--red-500);
+        --live: var(--sky-400);
       }
       * { box-sizing: border-box; }
       body {
@@ -63,7 +64,8 @@
       td.name { text-align: left; white-space: nowrap; }
       td.name small { display: block; color: var(--muted); font-size: 0.72rem; }
       .matrix td.cell { width: 2.6rem; border-left: 1px solid var(--line); font-weight: 700; }
-      .matrix td.self { background: #334155; }
+      .matrix .vcol { border-left: 1px solid var(--line); }
+      .matrix td.self { background: var(--slate-700); }
       .matrix td.v { color: var(--win); }
       .matrix td.d { color: var(--lose); }
       .matrix td.live { color: var(--live); animation: pulse 1s infinite alternate; }
@@ -138,7 +140,7 @@
                     const cls = `cell ${win ? 'v' : 'd'}${freshResults.has(res.key) ? ' fresh' : ''}`;
                     return `<td class="${cls}">${win ? 'V' : 'D'}${Number(res.mine)}</td>`;
                   }
-                  if (live.has(`${f.id}|${g.id}`)) return '<td class="cell live">⚔</td>';
+                  if (live.has(`${f.id}|${g.id}`)) return '<td class="cell live">' + bpIcon('swords') + '</td>';
                   return '<td class="cell"></td>';
                 })
                 .join('');
@@ -148,7 +150,7 @@
               <td>${i + 1}</td>
               <td class="name">${esc(fullName(f))}<small>${esc(f.club)}</small></td>
               ${cellsHtml}
-              <td>${played ? Number(r.victories) : ''}</td>
+              <td class="vcol">${played ? Number(r.victories) : ''}</td>
               <td>${played ? Number(r.touchesFor) : ''}</td>
               <td>${played ? Number(r.touchesAgainst) : ''}</td>
               <td>${played ? esc(signed(r.index)) : ''}</td>
@@ -161,7 +163,7 @@
             <h2>${tk('demo.pool_n', { n: pool.number })}</h2>
             <table>
               <thead><tr><th></th><th>${tk('demo.col_fencer')}</th>${headsHtml}
-                <th>V</th><th>${tk('demo.col_td')}</th><th>${tk('demo.col_tr')}</th>
+                <th class="vcol">V</th><th>${tk('demo.col_td')}</th><th>${tk('demo.col_tr')}</th>
                 <th>${tk('demo.col_index')}</th><th>${tk('demo.col_rank')}</th></tr></thead>
               <tbody>${rowsHtml}</tbody>
             </table>
@@ -169,7 +171,7 @@
         }
 
         function rankingHtml(rows, opts) {
-          const MEDALS = ['🥇', '🥈', '🥉', '🥉'];
+          const MEDAL_RANKS = [1, 2, 3, 3]; // 2 bronzes (petite finale)
           const bodyHtml = rows
             .map((r, i) => {
               const out = opts.qualified != null && i >= opts.qualified;
@@ -179,7 +181,7 @@
                   : out
                     ? `<span class="tag e">${tk('demo.eliminated')}</span>`
                     : `<span class="tag q">${tk('demo.qualified')}</span>`;
-              const medalHtml = opts.medals && i < 4 ? `<span class="medal">${esc(MEDALS[i])}</span> ` : '';
+              const medalHtml = opts.medals && i < 4 ? `<span class="medal">${bpRank(MEDAL_RANKS[i])}</span> ` : '';
               return `<tr class="${out ? 'out' : ''}">
               <td class="rank">${medalHtml}${Number(r.rank)}</td>
               <td class="name">${esc(fullName(r.fencer))}<small>${esc(r.fencer.club)}</small></td>

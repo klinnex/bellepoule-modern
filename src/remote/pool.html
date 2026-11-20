@@ -4,17 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="pool.page_title">Saisie Poule – BellePoule</title>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script><script src="/js/arenaDisplayUtils.js"></script>
+    <script src="/js/ui.js" data-bp-init></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       :root {
-        --pool-bg: #1a1a2e;
+        --pool-bg: var(--c-1a1a2e);
         --pool-header-bg: rgba(0, 0, 0, 0.5);
-        --pool-accent: #6366f1;
-        --pool-accent2: #3b82f6;
-        --pool-text: #ffffff;
-        --pool-muted: #64748b;
+        --pool-accent: var(--tw-indigo-500);
+        --pool-accent2: var(--blue-500);
+        --pool-text: var(--color-white);
+        --pool-muted: var(--slate-500);
         --pool-card-bg: rgba(255, 255, 255, 0.04);
         --pool-border: rgba(255, 255, 255, 0.08);
       }
@@ -29,7 +31,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: var(--pool-bg);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-white);
         display: flex;
         flex-direction: column;
       }
@@ -55,7 +57,7 @@
       .header-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
       }
 
       .header-badge {
@@ -63,7 +65,7 @@
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
         background: rgba(99, 102, 241, 0.25);
-        color: #a5b4fc;
+        color: var(--tw-indigo-300);
         border: 1px solid rgba(99, 102, 241, 0.4);
         font-weight: 600;
       }
@@ -73,29 +75,30 @@
         padding: 0.3rem 0.7rem;
         border-radius: 1rem;
         background: rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
+        color: var(--red-200);
         border: 1px solid rgba(239, 68, 68, 0.4);
         transition: all 0.3s;
       }
 
       .connection-badge.connected {
         background: rgba(34, 197, 94, 0.2);
-        color: #86efac;
+        color: var(--tw-green-300);
         border-color: rgba(34, 197, 94, 0.4);
       }
 
+      /* « Arbitre » : même style que « Lobby » (bleu roi, texte blanc) (#1936) */
       .back-to-referee-btn {
         font-size: 0.8rem;
         padding: 0.3rem 0.8rem;
         border-radius: 0.5rem;
-        background: rgba(255, 255, 255, 0.1);
-        color: #cbd5e1;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: var(--color-lobby);
+        color: var(--color-white);
+        border: 1px solid var(--color-lobby-border);
         cursor: pointer;
         white-space: nowrap;
-        transition: background 0.15s;
+        transition: filter 0.15s;
       }
-      .back-to-referee-btn:hover { background: rgba(255, 255, 255, 0.2); }
+      .back-to-referee-btn:hover { filter: brightness(1.12); }
 
       /* ── Tabs ── */
       .tabs {
@@ -111,7 +114,7 @@
         padding: 0.55rem 1.2rem;
         background: none;
         border: none;
-        color: #64748b;
+        color: var(--slate-500);
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
@@ -124,12 +127,12 @@
       }
 
       .tab-btn:hover {
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       .tab-btn.active {
-        color: #e2e8f0;
-        border-bottom-color: #3b82f6;
+        color: var(--tw-slate-200);
+        border-bottom-color: var(--blue-500);
       }
 
       /* ── Pool container ── */
@@ -175,7 +178,7 @@
         min-width: 52px;
         padding: 0.5rem 0;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.8rem;
       }
 
@@ -198,19 +201,19 @@
 
       .fencer-rank {
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--slate-400);
         margin-right: 0.3rem;
         font-size: 0.8rem;
       }
 
       .fencer-lastname {
         font-weight: 700;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         font-size: 0.85rem;
       }
 
       .fencer-firstname {
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.78rem;
         margin-left: 0.25rem;
       }
@@ -234,7 +237,7 @@
       /* Not played */
       table.pool-grid .score-cell.not-played {
         background: rgba(30, 41, 59, 0.5);
-        color: #475569;
+        color: var(--slate-600);
       }
 
       table.pool-grid .score-cell.not-played::after {
@@ -244,19 +247,19 @@
       /* Victory */
       table.pool-grid .score-cell.victory {
         background: rgba(21, 128, 61, 0.5);
-        color: #bbf7d0;
+        color: var(--tw-green-200);
       }
 
       /* Defeat */
       table.pool-grid .score-cell.defeat {
         background: rgba(185, 28, 28, 0.4);
-        color: #fecaca;
+        color: var(--tw-red-200);
       }
 
       /* Special (abandon / forfait / exclusion) */
       table.pool-grid .score-cell.special {
         background: rgba(100, 100, 100, 0.35);
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.75rem;
       }
 
@@ -284,7 +287,7 @@
 
       .match-num {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 600;
         min-width: 28px;
         text-align: center;
@@ -301,18 +304,18 @@
       .match-fencer-name {
         flex: 1;
         font-weight: 600;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .match-fencer-name.winner {
-        color: #86efac;
+        color: var(--tw-green-300);
       }
 
       .match-score-sep {
-        color: #475569;
+        color: var(--slate-600);
         font-weight: 700;
         font-size: 0.85rem;
       }
@@ -325,15 +328,15 @@
       }
 
       .match-score.victory {
-        color: #86efac;
+        color: var(--tw-green-300);
       }
 
       .match-score.defeat {
-        color: #fca5a5;
+        color: var(--red-200);
       }
 
       .match-score.special {
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.8rem;
       }
 
@@ -341,22 +344,22 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #475569;
+        background: var(--slate-600);
         flex-shrink: 0;
       }
 
       .match-status-dot.finished {
-        background: #22c55e;
+        background: var(--green-500);
       }
 
       .match-status-dot.pending {
-        background: #f59e0b;
+        background: var(--tw-amber-500);
       }
 
       /* Section labels */
       .section-label {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.07em;
@@ -370,7 +373,7 @@
         align-items: center;
         height: 200px;
         font-size: 1.1rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       /* ── Boutons (réutilisés par la modale de signature) ── */
@@ -387,8 +390,8 @@
       .btn:hover { opacity: 0.85; }
       .btn:disabled { opacity: 0.4; cursor: default; }
 
-      .btn-primary { background: #2563eb; color: #fff; }
-      .btn-secondary { background: rgba(255, 255, 255, 0.12); color: #cbd5e1; }
+      .btn-primary { background: var(--blue-600); color: var(--color-white); }
+      .btn-secondary { background: rgba(255, 255, 255, 0.12); color: var(--tw-slate-300); }
 
       /* ── FIN bandeau ── */
       .fin-overlay {
@@ -396,7 +399,7 @@
         position: sticky;
         top: 0;
         z-index: 50;
-        background: linear-gradient(90deg, #1e3a5f 0%, #0f172a 100%);
+        background: linear-gradient(90deg, var(--c-1e3a5f) 0%, var(--slate-900) 100%);
         padding: 0.5rem 1rem;
         align-items: center;
         justify-content: center;
@@ -409,7 +412,7 @@
       .fin-overlay h1 {
         font-size: 1rem;
         font-weight: 800;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         letter-spacing: 0.02em;
         margin: 0;
       }
@@ -426,7 +429,7 @@
         border-radius: 50%;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(99, 102, 241, 0.2);
-        color: #a5b4fc;
+        color: var(--tw-indigo-300);
         font-size: 0.85rem;
         cursor: pointer;
         flex-shrink: 0;
@@ -435,7 +438,7 @@
       }
       .sig-btn:hover:not(:disabled) {
         background: rgba(99, 102, 241, 0.45);
-        color: #fff;
+        color: var(--color-white);
       }
       .sig-btn:disabled {
         opacity: 0.3;
@@ -444,11 +447,11 @@
       .sig-btn.signed {
         background: rgba(34, 197, 94, 0.2);
         border-color: rgba(34, 197, 94, 0.4);
-        color: #86efac;
+        color: var(--tw-green-300);
       }
       .sig-btn.signed:hover {
         background: rgba(34, 197, 94, 0.4);
-        color: #fff;
+        color: var(--color-white);
       }
 
       table.pool-grid .sig-header {
@@ -478,7 +481,7 @@
       }
       .sig-modal-overlay.visible { display: flex; }
       .sig-modal {
-        background: #1e293b;
+        background: var(--slate-800);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 1rem;
         padding: 1.5rem;
@@ -491,25 +494,25 @@
       }
       .sig-modal h2 {
         font-size: 0.95rem;
-        color: #94a3b8;
+        color: var(--slate-400);
         text-align: center;
         font-weight: 500;
         margin: 0;
       }
       .sig-modal h2 strong {
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         display: block;
         font-size: 1.05rem;
         margin-top: 0.15rem;
       }
       .sig-instructions {
         font-size: 0.8rem;
-        color: #64748b;
+        color: var(--slate-500);
         text-align: center;
         margin: 0;
       }
       #sig-canvas {
-        background: #fff;
+        background: var(--color-white);
         border-radius: 0.5rem;
         cursor: crosshair;
         touch-action: none;
@@ -538,8 +541,8 @@
         <div class="header-badge" id="match-count-badge" style="display:none"></div>
       </div>
       <button class="back-to-referee-btn" data-click="goBackToReferee" data-i18n="pool.back_referee">← Arbitre</button>
-      <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)" aria-label="Saisie par photo (OCR)" data-i18n-title="pool.ocr" data-i18n-aria-label="pool.ocr">📷</a>
-      <div class="connection-badge" id="connection-badge" role="status" aria-live="polite" data-i18n="pool.connecting">⚡ Connexion…</div>
+      <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)" aria-label="Saisie par photo (OCR)" data-i18n-title="pool.ocr" data-i18n-aria-label="pool.ocr"><span data-icon="camera"></span></a>
+      <div class="connection-badge" id="connection-badge" role="status" aria-live="polite" data-i18n="pool.connecting">Connexion…</div>
     </header>
 
     <div class="tabs" role="tablist" aria-label="Vue de la poule" data-i18n-aria-label="pool.view_label">
@@ -547,7 +550,7 @@
         <span data-i18n="pool.tab_grid">⊞ Tableau</span>
       </button>
       <button class="tab-btn" id="tab-matches" role="tab" aria-selected="false" aria-controls="pool-container" data-click="switchTab" data-args='["matches"]'>
-        <span data-i18n="pool.tab_matches">⚔ Matchs</span>
+        <span data-icon="swords"></span> <span data-i18n="pool.tab_matches">Matchs</span>
       </button>
     </div>
 
@@ -557,15 +560,15 @@
 
     <!-- Overlay fin de poule -->
     <div class="fin-overlay" id="fin-overlay">
-      <span class="fin-icon">🏆</span>
+      <span class="fin-icon" data-icon="trophy"></span>
       <h1 data-i18n="pool.finished">POULE TERMINÉE</h1>
-      <span style="color:#94a3b8;font-size:0.85rem;font-weight:500;" data-i18n="pool.signature_phase">— Phase de signature</span>
+      <span style="color:var(--slate-400);font-size:0.85rem;font-weight:500;" data-i18n="pool.signature_phase">— Phase de signature</span>
     </div>
 
     <!-- Modal signature -->
-    <div class="sig-modal-overlay" id="sig-modal-overlay">
+    <div class="sig-modal-overlay" id="sig-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sig-modal-title">
       <div class="sig-modal">
-        <h2><span data-i18n="pool.signature">Signature</span><strong id="sig-modal-name"></strong></h2>
+        <h2 id="sig-modal-title"><span data-i18n="pool.signature">Signature</span><strong id="sig-modal-name"></strong></h2>
         <p class="sig-instructions" data-i18n="pool.sign_here">Signez dans le cadre ci-dessous</p>
         <canvas id="sig-canvas"></canvas>
         <div class="sig-modal-actions">
@@ -577,17 +580,7 @@
     </div>
 
     <script>
-      function applyScreenTheme(variables) {
-        if (!variables) {
-          const old = document.getElementById('screen-theme-style');
-          if (old) old.remove();
-          return;
-        }
-        let styleEl = document.getElementById('screen-theme-style');
-        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
-        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
-        styleEl.textContent = `:root {\n${vars}\n}`;
-      }
+      const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 
       window.initRemoteI18n().catch(() => {});
 
@@ -617,7 +610,7 @@
       }
 
       // ── Socket.IO ──
-      const socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
+      const socket = bpSocket();
 
       socket.on('connect', () => {
         document.getElementById('connection-badge').textContent = window.T('pool.connected');
@@ -721,6 +714,7 @@
         table.appendChild(thead);
 
         // Corps : lignes "N. NOM Prénom"
+        const allSignedLocked = fencers.length > 0 && fencers.every(f => !!signaturesData[f.id]);
         const tbody = document.createElement('tbody');
         fencers.forEach((rowFencer, rowIdx) => {
           const tr = document.createElement('tr');
@@ -751,12 +745,19 @@
           sigBtn.className = 'sig-btn';
           const isDone = fencerFinishedAll(rowFencer, matches);
           const isSigned = !!signaturesData[rowFencer.id];
-          if (!isDone) {
+          if (allSignedLocked) {
+            // Toutes les signatures enregistrées : poule verrouillée, plus d'édition (#1826)
+            sigBtn.disabled = true;
+            sigBtn.textContent = '✓';
+            sigBtn.classList.add('signed');
+            sigBtn.title = window.T('pool.signatures_locked');
+          } else if (!isDone) {
             sigBtn.disabled = true;
             sigBtn.title = window.T('pool.sign_unavailable');
-            sigBtn.textContent = '✍';
+            sigBtn.innerHTML = bpIcon('sign');
           } else {
-            sigBtn.textContent = isSigned ? '✓' : '✍';
+            if (isSigned) sigBtn.textContent = '✓';
+            else sigBtn.innerHTML = bpIcon('sign');
             sigBtn.title = window.T(isSigned ? 'pool.resign' : 'pool.sign');
             if (isSigned) sigBtn.classList.add('signed');
             sigBtn.addEventListener('click', e => {
@@ -989,7 +990,7 @@
         sigCanvas.width = rect.width * window.devicePixelRatio;
         sigCanvas.height = rect.height * window.devicePixelRatio;
         sigCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        sigCtx.strokeStyle = '#1e293b';
+        sigCtx.strokeStyle = bpCssVar('--slate-800');
         sigCtx.lineWidth = 2.5;
         sigCtx.lineCap = 'round';
         sigCtx.lineJoin = 'round';
@@ -1029,7 +1030,7 @@
         sigOverlay.classList.add('visible');
         resizeCanvas();
         clearCanvas();
-        sigCtx.strokeStyle = '#1e293b';
+        sigCtx.strokeStyle = bpCssVar('--slate-800');
         sigCtx.lineWidth = 2.5;
         sigCtx.lineCap = 'round';
         sigCtx.lineJoin = 'round';

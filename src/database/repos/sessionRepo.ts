@@ -1,13 +1,14 @@
 import { validateId, validateSessionState, sanitizeId } from '../validation';
 import { safeJsonParse } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
+import type { SqlRow } from './rowMappers';
 
 /** État de session (session_state) et état des arènes (arena_state) (#1242) */
 export class SessionRepo {
   constructor(private readonly sql: SqlExecutor) {}
 
   // Session State Management
-  public saveSessionState(competitionId: string, state: any): void {
+  public saveSessionState(competitionId: string, state: unknown): void {
     if (!this.sql.db) throw new Error('Database not open');
     validateId(competitionId, 'competitionId');
     validateSessionState(state);
@@ -18,7 +19,7 @@ export class SessionRepo {
     );
   }
 
-  public getSessionState(competitionId: string): any | null {
+  public getSessionState(competitionId: string): unknown {
     if (!this.sql.db) throw new Error('Database not open');
     validateId(competitionId, 'competitionId');
     const row = this.sql.queryOne<{ state_json: string }>(
@@ -45,9 +46,9 @@ export class SessionRepo {
     arenaId: string,
     state: {
       competitionId: string;
-      currentMatch: any | null;
-      matchQueue: any[];
-      settings: any;
+      currentMatch: unknown;
+      matchQueue: unknown[];
+      settings: unknown;
       status: string;
     }
   ): void {
@@ -69,21 +70,21 @@ export class SessionRepo {
   public getArenaState(arenaId: string): {
     arenaId: string;
     competitionId: string;
-    currentMatch: any | null;
-    matchQueue: any[];
-    settings: any | null;
+    currentMatch: unknown;
+    matchQueue: unknown[];
+    settings: unknown;
     status: string;
     updatedAt: string;
   } | null {
     if (!this.sql.db) throw new Error('Database not open');
-    const r = this.sql.queryOne<any>(`SELECT * FROM arena_state WHERE arena_id=?`, [arenaId]);
+    const r = this.sql.queryOne<SqlRow>(`SELECT * FROM arena_state WHERE arena_id=?`, [arenaId]);
     if (!r) return null;
     return {
       arenaId: r.arena_id as string,
       competitionId: r.competition_id as string,
-      currentMatch: safeJsonParse<any>(r.current_match, null, `arena ${arenaId}`),
-      matchQueue: safeJsonParse<any[]>(r.match_queue, [], `arena ${arenaId}`),
-      settings: safeJsonParse<any>(r.settings, null, `arena ${arenaId}`),
+      currentMatch: safeJsonParse<unknown>(r.current_match, null, `arena ${arenaId}`),
+      matchQueue: safeJsonParse<unknown[]>(r.match_queue, [], `arena ${arenaId}`),
+      settings: safeJsonParse<unknown>(r.settings, null, `arena ${arenaId}`),
       status: r.status as string,
       updatedAt: r.updated_at as string,
     };
@@ -98,7 +99,7 @@ export class SessionRepo {
         competitionId,
       ])
       .map(r => this.getArenaState(r.arena_id))
-      .filter(Boolean) as any;
+      .filter(Boolean);
   }
 
   public clearArenaStates(competitionId: string): void {

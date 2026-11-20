@@ -36,7 +36,7 @@ export function pdfT(key: string, fr: string, params?: PdfParams): string {
 
 /** Sauvegarde PDF via Electron IPC, avec dialogue de fichier. */
 export async function savePDF(html: string, defaultName: string): Promise<void> {
-  const api = (window as any).electronAPI;
+  const api = window.electronAPI;
   if (!api?.dialog?.saveFile || !api?.file?.printHtmlToPDF) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
@@ -76,6 +76,17 @@ export function buildCssOverrides(t: PdfTemplate): string {
     .map(k => `--${k}: ${t.colors[k]};`)
     .join(' ');
   return vars ? `:root { ${vars} }` : '';
+}
+
+/**
+ * Garde le modèle seulement s'il vise ce type de document (#1712) : un modèle « classement »
+ * appliqué à une poule ou un tableau ne garde que l'en-tête et le pied (corps vide).
+ */
+export function templateFor(
+  t: PdfTemplate | undefined,
+  docType: PdfTemplate['docType']
+): PdfTemplate | undefined {
+  return t && t.docType === docType ? t : undefined;
 }
 
 function isVisible(t: PdfTemplate | undefined, id: string): boolean {

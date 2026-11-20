@@ -1,0 +1,10 @@
+/* Styles extraits de EditFencerModal.tsx (#1895) */
+.edit-fencer-modal-1.edit-fencer-modal-1.edit-fencer-modal-1 {
+  max-width: 500px;
+}
+
+.edit-fencer-modal-2.edit-fencer-modal-2.edit-fencer-modal-2 {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}

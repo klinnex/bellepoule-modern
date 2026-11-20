@@ -1,0 +1,126 @@
+import { describe, it, expect } from 'vitest';
+import {
+  getBuiltinThemeOptions,
+  getEditorBuiltinThemes,
+  resolveAllSourcesTheme,
+  resolveBuiltinTheme,
+  THEME_SECTIONS,
+} from './builtinThemes';
+
+const t = (k: string) => k;
+
+describe('builtinThemes', () => {
+  it('liste jamais vide pour chaque section', () => {
+    for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+      expect(getBuiltinThemeOptions(s, t).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('piste : préréglages Sombre/Clair/Néon', () => {
+    expect(getBuiltinThemeOptions('arena', t).map(o => o.id)).toEqual([
+      'builtin:dark',
+      'builtin:light',
+      'builtin:neon',
+      'builtin:steampunk',
+      'builtin:musketeers',
+      'builtin:arcade',
+      'builtin:sumie',
+      'builtin:licorne',
+    ]);
+    expect(resolveBuiltinTheme('arena', 'builtin:light', t)).toEqual({ preset: 'light' });
+  });
+
+  it('autres écrans : thème custom aux valeurs par défaut', () => {
+    const r = resolveBuiltinTheme('referee', 'builtin:default', t);
+    expect(r?.theme?.targetType).toBe('referee');
+    expect(Object.keys(r?.theme?.variables ?? {}).length).toBeGreaterThan(0);
+  });
+
+  it('id non prédéfini ou inconnu → null', () => {
+    expect(resolveBuiltinTheme('arena', 'custom-1', t)).toBeNull();
+    expect(resolveBuiltinTheme('arena', 'builtin:default', t)).toBeNull();
+    expect(resolveBuiltinTheme('pool', 'builtin:dark', t)).toBeNull();
+  });
+
+  it('Steampunk proposé et résolu pour chaque section', () => {
+    for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+      expect(getBuiltinThemeOptions(s, t).map(o => o.id)).toContain('builtin:steampunk');
+      const r = resolveBuiltinTheme(s, 'builtin:steampunk', t);
+      expect(r?.theme?.targetType).toBe(s);
+      expect(Object.values(r?.theme?.variables ?? {}).join(' ')).toMatch(/#d4a64a|#b5893b/);
+    }
+  });
+
+  it('chaque thème décoratif couvre toutes les sections avec des variables connues', () => {
+    for (const key of ['steampunk', 'musketeers', 'arcade', 'sumie', 'licorne']) {
+      for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+        const base = resolveBuiltinTheme(s, s === 'arena' ? 'builtin:dark' : 'builtin:default', t);
+        const r = resolveBuiltinTheme(s, `builtin:${key}`, t);
+        expect(r?.theme?.name).toBe(`rsm.theme_${key}`);
+        // aucune variable inventée : mêmes clés que les valeurs par défaut de l'éditeur
+        if (base?.theme) {
+          expect(Object.keys(r!.theme!.variables).sort()).toEqual(
+            Object.keys(base.theme.variables).sort()
+          );
+        }
+      }
+    }
+  });
+
+  it('Licorne : motif SVG répétable sur chaque section', () => {
+    for (const s of ['arena', 'kiosk', 'public', 'referee', 'pool'] as const) {
+      const r = resolveBuiltinTheme(s, 'builtin:licorne', t);
+      expect(Object.values(r?.theme?.variables ?? {}).join(' ')).toContain('/licorne-pattern.svg');
+    }
+  });
+
+  it('clé héritée de Object.prototype → null', () => {
+    expect(resolveBuiltinTheme('pool', 'builtin:toString', t)).toBeNull();
+  });
+});
+
+describe('Toutes sources (#1795)', () => {
+  const t = (k: string) => k;
+  it('liste préréglages piste et décoratifs', () => {
+    const ids = getBuiltinThemeOptions('all', t).map(o => o.id);
+    expect(ids).toContain('builtin:dark');
+    expect(ids).toContain('builtin:steampunk');
+  });
+  it('décoratif → tous les écrans, préréglage → piste seule', () => {
+    expect(resolveAllSourcesTheme('builtin:steampunk', [], t).map(a => a.section)).toEqual([
+      ...THEME_SECTIONS,
+    ]);
+    expect(resolveAllSourcesTheme('builtin:neon', [], t)).toEqual([
+      { section: 'arena', preset: 'neon' },
+      ...THEME_SECTIONS.filter(s => s !== 'arena').map(section => ({
+        section,
+        theme: resolveBuiltinTheme(section, 'builtin:default', t)?.theme,
+      })),
+    ]);
+  });
+  it('retour à Sombre/Clair/Néon après un décoratif : tous les écrans sont réinitialisés (#1936)', () => {
+    const apps = resolveAllSourcesTheme('builtin:dark', [], t);
+    expect(apps.map(a => a.section)).toEqual([...THEME_SECTIONS]);
+    expect(apps.filter(a => a.theme).length).toBe(THEME_SECTIONS.length - 1);
+    expect(apps.find(a => a.section === 'arena')).toEqual({ section: 'arena', preset: 'dark' });
+  });
+  it('thème sauvegardé → son type d’écran', () => {
+    const saved = { id: 'c1', name: 'X', targetType: 'pool' as const, variables: {} };
+    expect(resolveAllSourcesTheme('c1', [saved], t)).toEqual([{ section: 'pool', theme: saved }]);
+    expect(resolveAllSourcesTheme('inconnu', [saved], t)).toEqual([]);
+  });
+
+  it('éditeur : thèmes prédéfinis aux variables complètes', () => {
+    for (const s of THEME_SECTIONS) {
+      const list = getEditorBuiltinThemes(s, t);
+      expect(list.map(x => x.id)).toEqual(getBuiltinThemeOptions(s, t).map(o => o.id));
+      for (const th of list) {
+        expect(th.targetType).toBe(s);
+        expect(Object.keys(th.variables).length).toBeGreaterThan(0);
+      }
+    }
+    const neon = getEditorBuiltinThemes('arena', t).find(x => x.id === 'builtin:neon');
+    expect(neon?.variables['--score-green']).toBe('#00ff88');
+    expect(neon?.variables['--score-font-size']).toBeDefined();
+  });
+});

@@ -25,13 +25,19 @@ Give answer. Stop.
 - Si aucun changement nécessaire → réponds **uniquement** "OK – à jour" ou "Aucun changement"
 - Jamais plus de 450 lignes de diff par réponse
 - HTML : jamais de nettoyage par regex (`replace(/<script…/)`) → jsdom (scripts/tests) ou `escHtml` (remote). Sinon alerte CodeQL `js/incomplete-multi-character-sanitization`
-- Préfère Haiku 4.5 ou Sonnet 4.6 pour les tâches de doc (beaucoup moins cher)
+
+## Routage des modèles – coût
+- Tâche à faible valeur → déléguer à `Agent` avec `model: "haiku"` (ou `subagent_type: "Explore"` pour la recherche en lecture seule) : grep/recherche de fichiers, listing, `check:i18n`, lint/format, traductions, doc mécanique, résumé de logs, vérif de présence d'un symbole
+- Implémentation courante, tests, refactor local, doc technique → `model: "sonnet"` (Sonnet 5.5, `claude-sonnet-5-5`)
+- Opus (`model: "opus"`, `claude-opus-5-5`) **uniquement** si nécessaire : décision d'architecture, bug multi-fichiers non trivial, sécurité (auth, CodeQL, sanitisation), protocole Cyrano/remote, migration DB, revue critique
+- Sous-agent : demander un résultat court (liste, verdict, chemins:lignes), pas le contenu brut
+- Ne pas déléguer ce qui exige un jugement fin ou une vérification que tu ne peux pas relire toi-même
+- Doc : Haiku 5.5 (`claude-haiku-5-5`) ou Sonnet 5.5 suffisent (beaucoup moins cher)
 
 ## Documentation des tests – règle absolue
 - `docs/TESTS.md` est généré : ne jamais l'éditer à la main
-- Après tout ajout / suppression / renommage de test : `npm run docs:tests` puis committer `docs/TESTS.md`
+- **Ne jamais committer `docs/TESTS.md` dans une PR** : la CI `build-dev.yml` le régénère au push sur `dev` (commit `🔖 Dev Build`). Évite les conflits sur les totaux
 - Nouveau contrôle CI ou script de test → mettre à jour la partie fixe dans `scripts/generate-tests-doc.js`
-- CI échoue si doc pas à jour (`npm run check:tests-doc`)
 
 ## Mise à jour documentation – mode activé par défaut
 Quand on te demande (ou implique) de mettre à jour la doc :
@@ -80,11 +86,15 @@ npm run format:check    # Prettier validation
 npm run type-check      # TypeScript no-emit check
 npm run check:i18n      # Locale completeness (CI)
 npm run check:bundle-size # Bundle budget (CI)
-npm run check:tests-doc # docs/TESTS.md à jour (CI)
+npm run check:tests-doc # docs/TESTS.md à jour (local, hors CI)
+npm run check:i18n-visual # Débordements 10 langues à 1024×768, captures (après build ; xvfb-run -a sous Linux ; -- --pseudo)
 npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
+npm run docs:mcp        # Régénère la référence des outils MCP de docs/MCP.md (contrôle : npm run check:mcp-doc, aussi dans test:run)
 npm run docs:api        # TypeDoc API docs
 npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
 npm run analyze         # Webpack bundle analyzer (opens browser)
+npm run cyrano:sim      # Simulateur d'appareil de piste Cyrano (docs/CYRANO.md)
+npm run cyrano:remote   # Télécommande web des appareils Cyrano simulés, plusieurs pistes (http://127.0.0.1:5099)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode
 ```
@@ -96,13 +106,21 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), dayStripHandlers (pistes libérées et réservation, #1878), cyranoHandlers (cyrano:*, #1720), clubHandlers (club:*, Mode Club #1872), privacyHandlers (privacy:*, RGPD #1882) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
+├── preloadApi/              # Groupes d'API du préload (dbApi, fileApi, dialogApi, remoteApi, printHandler) ; validation IPC dans ipc/validation.ts
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
-├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
+├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, clubArena (combats du Mode Club sur les tablettes, cartes scannées : routes/clubRoutes, #1872 — docs/MODE_CLUB.md), dashboard (contexte typé S['membre']), teamArena + teamRelayDevice (arène équipe, relais FIE piloté par l'appareil de piste, #1829), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
+├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, deviceState (Id, chrono, carton P), server (UDP, HELLO 15 s, supervision, journal), driver (CyranoPisteDriver : pilote du modèle commun, #1829)
+├── piste/                   # Appareils de piste, hors protocole (#1829) — docs/CYRANO.md : types (PisteState/PisteInput/PisteCommand/PisteDriver), pisteState (côtés par Id, cartons, fin ACK/NAK), arenaInputGate (séquence par source), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch), matchDisplay, teamRelayPiste (relais FIE /equipe{N}, Type=T)
+├── mcp/                     # Serveur MCP intégré (#1880) : mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings, mcpTools (lecture), mcpWriteTools / mcpAdminTools / mcpSportTools (écriture sur autorisation) — docs/MCP.md
+├── domain/                  # Couche domaine (#1880) : sport (poules, scores, tableau hors écran), exportResults, settings (resolveSetting), files (dossiers de l'agent)
+├── cliArgs.ts / batchImport.ts  # --headless, --batch-import manifeste.json [--dry-run], --mcp / --mcp-port=N / --mcp-write, --mcp-print-config, --mcp-new-token
+├── privacySettings.ts       # Réglages RGPD <userData>/privacy-settings.json (noms sur le réseau, conservation) — docs/RGPD.md
+├── bpmCrypto.ts             # Archives .bpm chiffrées (AES-256-GCM, scrypt)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
@@ -119,7 +137,7 @@ Renderer Process (src/renderer/)
 ├── hooks/                   # 19 custom hooks
 ├── contexts/                # TranslationContext (i18n)
 ├── services/                # offlineStorage.ts, offlineSync.ts
-├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), it (Italiano), zh-HK
+├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), pt (Português), it (Italiano), ru (Русский), zh-HK
 ├── styles/                  # CSS files
 └── sw.js                    # Service worker (offline support)
 
@@ -159,7 +177,7 @@ Shared (src/shared/)
     ├── fencerDetailPdfExport.ts  # Per-fencer PDF export
     ├── tableCalculations.ts      # Direct elimination bracket logic
     ├── cardSystem.ts             # Yellow/red/black card rules
-    ├── scoreValidation.ts        # Score validation rules
+    ├── matchEndValidation.ts     # Fin de match unifiée (#1829) : fin valide, vainqueur, score limite, P-noir, pause sabre
     ├── suddenDeath.ts            # Overtime / sudden death logic
     ├── touchSystem.ts            # Sabre Laser touch zones (A=1pt, B=3pt, C=5pt)
     ├── customTouchSystem.ts      # Custom touch zone configuration
@@ -185,23 +203,24 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── login.html / checkin.html / register.html / trainer.html
 ├── app.js
 ├── i18n.js + i18n/<lang>.js # Client-side i18n for remote interfaces (moteur + une langue par fichier, servis concaténés en /i18n.js)
+├── js/icons.js              # Jeu d'icônes SVG partagé (lucide) : data-icon, bpIcon(), bpRank(), bpCard() ; plus d'emoji dans src/remote (cliquet remoteEmoji, #1532)
 ├── common.js                # escHtml / html`` partagés : toute donnée dynamique passe par escHtml avant innerHTML (cliquet remoteUnescaped)
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
 └── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)
 
 Database (src/database/)
-├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
-├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
+├── index.ts             # DatabaseManager class (better-sqlite3-multiple-ciphers, SQLCipher), file <userData>/bellepoule.db
+├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature, eventDay, club, privacy) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 20 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 39 versions)
 ```
 
 ### Key Patterns
 
 1. **IPC via Preload**: All renderer-to-main communication uses `window.electronAPI` exposed by `preload.ts`. Never use `remote` or direct IPC in the renderer.
 
-2. **Database**: better-sqlite3 provides synchronous native SQLite (rebuilt via electron-rebuild postinstall). All operations go through `DatabaseManager`. Atomic writes (temp file + rename). Autosave every 2 minutes; save on quit.
+2. **Database**: better-sqlite3-multiple-ciphers (SQLCipher, clé dans safeStorage, #1882) provides synchronous native SQLite (rebuilt via electron-rebuild postinstall). All operations go through `DatabaseManager`. Atomic writes (temp file + rename). Autosave every 2 minutes; save on quit.
 
 3. **Remote Scoring**: Express server with Socket.IO on port 8066 (next free port if busy), HTTPS optional (on by default in UI). Arena display at `/arene{N}`, referee interface at `/arene{N}/arbitre` (password → `bp_token_arena{N}` cookie). Referee actions go through the `arena_control` socket event. HTML served in-memory. Docs: `REMOTE_SCORE_GUIDE.md`, `docs/ARBITRAGE.md`.
 
@@ -213,9 +232,15 @@ Database (src/database/)
    - `dialog.*` – Open/save file dialogs
    - `remote.*` – Start/stop server, manage arenas/sessions/themes/passwords
    - `training.*` – Training-mode server
+   - `eventDay.*` – Journée multi-épreuves : épreuves regroupées, arbitres partagés, conflits (docs/JOURNEE_MULTI_EPREUVES.md)
    - `updater.*` – Auto-update control
    - `crypto.*` – safeStorage protect/unprotect
    - `themes.*` – Screen themes
+   - `cyrano.*` – Appareils de piste Cyrano : start/stop UDP, pistes, statuts, log (#1720)
+   - `club.*` – Mode Club : membres, séances, pointage, combats libres, stats par période (#1872)
+   - `mcp.*` – Serveur MCP intégré (agent IA, 127.0.0.1 + jeton, désactivé par défaut) : statut, réglages, jeton, journal (#1880, docs/MCP.md)
+   - `settings.*` – Paramétrage du poste (table app_settings), salles (venues, venue_strips), dossiers accessibles à l'agent (#1880)
+   - `privacy.*` – RGPD : recherche d'une personne, export JSON/PDF, anonymisation, effacement, durée de conservation, noms sur le réseau, .bpm chiffrés (#1882, docs/RGPD.md)
    - `notifyLanguageChanged(lang)` – Rebuild native menu when UI language changes
 
 ## TypeScript Configuration
@@ -223,7 +248,7 @@ Database (src/database/)
 - Strict mode enabled (no implicit any, strict null checks)
 - Path aliases: `@shared/*`, `@main/*`, `@renderer/*`, `@database/*`
 - Target: ES2020, Module: commonjs, JSX: react-jsx
-- TypeScript 6.0; bundled by Webpack 5 (ts-loader) into `./dist/main`, `./dist/renderer`, `./dist/remote`
+- TypeScript 7.0 for `type-check` (`typescript7` alias), TypeScript 6.0 API for tooling (ts-loader, typescript-eslint, scripts); bundled by Webpack 5 (ts-loader) into `./dist/main`, `./dist/renderer`, `./dist/remote`
 
 ## Testing
 
@@ -269,9 +294,9 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Main process changes require Electron restart; renderer hot-reloads via Webpack
 - Remote score server and Webpack dev server both use port 8066 (référence à l'Ordre 66)
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
-- Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
+- Only native/runtime modules are in `dependencies` (better-sqlite3-multiple-ciphers, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 45; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
+- Electron 45; React 19.3; TypeScript 7.0 (type-check) / 6.0 (outillage); Express 5; Socket.IO 4.8; better-sqlite3-multiple-ciphers 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
 
 ## Git Conventions
 

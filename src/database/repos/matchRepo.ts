@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Fencer, Match, MatchStatus, Referee, MatchEventEntry } from '../../shared/types';
+import { Fencer, Match, MatchStatus, Referee, MatchEventEntry, Score } from '../../shared/types';
 import { safeJsonParse } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
 import type { DatabaseManager } from '../index';
@@ -8,9 +8,45 @@ import {
   parseFencerRow,
   rowToReferee,
   parseAuditRow,
+  type SqlRow,
   parseTimelineRow,
 } from './rowMappers';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+
+/** Ancien format d'entrée : identifiants de tireurs à plat */
+type LegacyMatchInput = Partial<Match> & { fencerAId?: string; fencerBId?: string };
+
+/** Score tel que stocké en JSON (objet Score, ou valeur brute héritée) */
+type StoredScore = unknown;
+
+/** Valeur numérique d'un score stocké (objet { value }), sinon null */
+function storedValue(score: StoredScore): number | null {
+  if (score && typeof score === 'object' && 'value' in score) {
+    const v = (score as { value?: unknown }).value;
+    return typeof v === 'number' ? v : null;
+  }
+  return null;
+}
+
+/**
+ * Marques d'abandon, d'exclusion et de forfait déjà en base, reportées sur un score réenregistré
+ * qui ne les transporte pas (le tableau du renderer n'envoie que `value` et `isVictory`) :
+ * seulement si la valeur et le vainqueur sont inchangés, et sans écraser un `false` explicite.
+ */
+function keepScoreMarks(prev: StoredScore, next: StoredScore): StoredScore {
+  if (!prev || typeof prev !== 'object' || !next || typeof next !== 'object') return next;
+  const p = prev as Record<string, unknown>;
+  const n = next as Record<string, unknown>;
+  if (storedValue(p) !== storedValue(n) || !!p.isVictory !== !!n.isVictory) return next;
+  const marks: Record<string, true> = {};
+  for (const key of ['isAbstention', 'isExclusion', 'isForfait']) {
+    if (p[key] === true && !(key in n)) marks[key] = true;
+  }
+  return Object.keys(marks).length ? { ...n, ...marks } : next;
+}
+
+type ScoreAuditEntry = ReturnType<typeof parseAuditRow>;
+type BracketNodeRow = SqlRow & { isBye: boolean; isThirdPlace: boolean };
 
 /** Matchs (poules + tableau), touches, cartons, arbre, journal des scores et chronologie (#1242) */
 export class MatchRepo {
@@ -31,8 +67,8 @@ export class MatchRepo {
         id,
         match.number || 1,
         poolId || null,
-        match.fencerA?.id || (match as any).fencerAId || null,
-        match.fencerB?.id || (match as any).fencerBId || null,
+        match.fencerA?.id || (match as LegacyMatchInput).fencerAId || null,
+        match.fencerB?.id || (match as LegacyMatchInput).fencerBId || null,
         match.maxScore || 5,
         'not_started',
         now,
@@ -50,12 +86,14 @@ export class MatchRepo {
       position: number;
       fencerAId?: string | null;
       fencerBId?: string | null;
-      scoreA?: any | null;
-      scoreB?: any | null;
+      scoreA?: StoredScore;
+      scoreB?: StoredScore;
       status?: string;
       maxScore?: number;
       isBye?: boolean;
-    }>
+    }>,
+    /** Auteur journalisé des scores modifiés (écran par défaut ; « mcp » pour l'agent, #1880) */
+    audit: { changedBy: string; reason: string } = { changedBy: 'ui', reason: 'tableau_entry' }
   ): void {
     if (!this.sql.db) throw new Error('Database not open');
     if (matches.length === 0) return;
@@ -76,8 +114,8 @@ export class MatchRepo {
         updated_at  = excluded.updated_at
     `);
     // Scores existants : un changement de score alimente l'historique (#927)
-    const existing = new Map<string, { a: any; b: any }>();
-    for (const r of this.sql.queryAll<any>(
+    const existing = new Map<string, { a: StoredScore; b: StoredScore }>();
+    for (const r of this.sql.queryAll<SqlRow>(
       `SELECT id, score_a, score_b FROM matches WHERE table_id = ? AND round IS NOT NULL`,
       [competitionId]
     )) {
@@ -91,8 +129,8 @@ export class MatchRepo {
         const dbId = `${competitionId}-${m.matchId}`;
         const prev = existing.get(dbId);
         const scoreChanged =
-          (prev?.a?.value ?? null) !== (m.scoreA?.value ?? null) ||
-          (prev?.b?.value ?? null) !== (m.scoreB?.value ?? null);
+          storedValue(prev?.a) !== storedValue(m.scoreA) ||
+          storedValue(prev?.b) !== storedValue(m.scoreB);
         if (!m.isBye && m.scoreA != null && m.scoreB != null && scoreChanged) {
           this.logScoreChange({
             matchId: dbId,
@@ -100,18 +138,20 @@ export class MatchRepo {
             previousScoreB: prev?.b ?? undefined,
             newScoreA: m.scoreA,
             newScoreB: m.scoreB,
-            changedBy: 'ui',
-            reason: 'tableau_entry',
+            changedBy: audit.changedBy,
+            reason: audit.reason,
           });
         }
+        const scoreA = keepScoreMarks(prev?.a, m.scoreA);
+        const scoreB = keepScoreMarks(prev?.b, m.scoreB);
         stmt.run(
           dbId,
           parseInt(m.matchId.replace('-', '')) || 0,
           competitionId,
           m.fencerAId ?? null,
           m.fencerBId ?? null,
-          m.scoreA != null ? JSON.stringify(m.scoreA) : null,
-          m.scoreB != null ? JSON.stringify(m.scoreB) : null,
+          scoreA != null ? JSON.stringify(scoreA) : null,
+          scoreB != null ? JSON.stringify(scoreB) : null,
           m.maxScore ?? 15,
           m.status ?? 'not_started',
           m.round,
@@ -131,8 +171,8 @@ export class MatchRepo {
     position: number;
     fencerAId?: string | null;
     fencerBId?: string | null;
-    scoreA?: any | null;
-    scoreB?: any | null;
+    scoreA?: StoredScore;
+    scoreB?: StoredScore;
     status?: string;
     maxScore?: number;
     isBye?: boolean;
@@ -189,7 +229,7 @@ export class MatchRepo {
     winner: { id: string } | null;
   }> {
     if (!this.sql.db) throw new Error('Database not open');
-    const rows = this.sql.queryAll<any>(
+    const rows = this.sql.queryAll<SqlRow>(
       `SELECT m.id, m.round, m.position,
               m.fencer_a_id, m.fencer_b_id, m.score_a, m.score_b,
               fa.first_name AS fa_first, fa.last_name AS fa_last, fa.club AS fa_club,
@@ -249,10 +289,10 @@ export class MatchRepo {
 
   public getMatch(id: string): Match | null {
     if (!this.sql.db) throw new Error('Database not open');
-    const row = this.sql.queryOne<any>('SELECT * FROM matches WHERE id = ?', [id]);
+    const row = this.sql.queryOne<SqlRow>('SELECT * FROM matches WHERE id = ?', [id]);
     if (!row) return null;
-    const scoreA = safeJsonParse<any>(row.score_a, null, `match ${row.id} score_a`);
-    const scoreB = safeJsonParse<any>(row.score_b, null, `match ${row.id} score_b`);
+    const scoreA = safeJsonParse<Score | null>(row.score_a, null, `match ${row.id} score_a`);
+    const scoreB = safeJsonParse<Score | null>(row.score_b, null, `match ${row.id} score_b`);
     const status = healMatchStatus(row.status as MatchStatus, scoreA, scoreB);
     return {
       id: row.id as string,
@@ -276,7 +316,7 @@ export class MatchRepo {
 
   public getMatchesByPool(poolId: string): Match[] {
     if (!this.sql.db) throw new Error('Database not open');
-    const matchRows = this.sql.queryAll<any>(
+    const matchRows = this.sql.queryAll<SqlRow>(
       'SELECT * FROM matches WHERE pool_id = ? ORDER BY number',
       [poolId]
     );
@@ -284,7 +324,7 @@ export class MatchRepo {
   }
 
   // Hydratation batch : charge tous les tireurs/arbitres en 2 requêtes au lieu d'un getMatch() par ligne.
-  private hydrateMatchRows(matchRows: any[]): Match[] {
+  private hydrateMatchRows(matchRows: SqlRow[]): Match[] {
     if (matchRows.length === 0) return [];
 
     const fencerIds = new Set<string>();
@@ -296,7 +336,10 @@ export class MatchRepo {
     if (fencerIds.size > 0) {
       const placeholders = Array.from({ length: fencerIds.size }, () => '?').join(',');
       this.sql
-        .queryAll<any>(`SELECT * FROM fencers WHERE id IN (${placeholders})`, Array.from(fencerIds))
+        .queryAll<SqlRow>(
+          `SELECT * FROM fencers WHERE id IN (${placeholders})`,
+          Array.from(fencerIds)
+        )
         .forEach(fRow => fencersById.set(fRow.id as string, parseFencerRow(fRow)));
     }
 
@@ -308,7 +351,7 @@ export class MatchRepo {
     if (refereeIds.size > 0) {
       const placeholders = Array.from({ length: refereeIds.size }, () => '?').join(',');
       this.sql
-        .queryAll<any>(
+        .queryAll<SqlRow>(
           `SELECT * FROM referees WHERE id IN (${placeholders})`,
           Array.from(refereeIds)
         )
@@ -316,8 +359,8 @@ export class MatchRepo {
     }
 
     return matchRows.map(row => {
-      const scoreA = safeJsonParse<any>(row.score_a, null, `match ${row.id} score_a`);
-      const scoreB = safeJsonParse<any>(row.score_b, null, `match ${row.id} score_b`);
+      const scoreA = safeJsonParse<Score | null>(row.score_a, null, `match ${row.id} score_a`);
+      const scoreB = safeJsonParse<Score | null>(row.score_b, null, `match ${row.id} score_b`);
       const status = healMatchStatus(row.status as MatchStatus, scoreA, scoreB);
       return {
         id: row.id as string,
@@ -345,7 +388,9 @@ export class MatchRepo {
     let poolIds: string[] = [];
     try {
       poolIds = this.sql
-        .queryAll<{ id: string }>(
+        .queryAll<{
+          id: string;
+        }>(
           'SELECT id FROM pools WHERE phase_id IN (SELECT id FROM phases WHERE competition_id = ?) ORDER BY number',
           [competitionId]
         )
@@ -360,7 +405,9 @@ export class MatchRepo {
     if (poolIds.length === 0) {
       try {
         poolIds = this.sql
-          .queryAll<{ id: string }>(
+          .queryAll<{
+            id: string;
+          }>(
             `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ?`,
             [competitionId]
           )
@@ -371,7 +418,7 @@ export class MatchRepo {
     }
     if (poolIds.length === 0) return [];
     const placeholders = poolIds.map(() => '?').join(',');
-    const matchRows = this.sql.queryAll<any>(
+    const matchRows = this.sql.queryAll<SqlRow>(
       `SELECT m.* FROM matches m JOIN pools p ON m.pool_id = p.id WHERE m.pool_id IN (${placeholders}) AND m.status IN ('not_started', 'in_progress') ORDER BY p.number, m.number`,
       poolIds
     );
@@ -383,7 +430,9 @@ export class MatchRepo {
     let poolIds: string[];
     try {
       poolIds = this.sql
-        .queryAll<{ id: string }>(
+        .queryAll<{
+          id: string;
+        }>(
           `SELECT DISTINCT p.id FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.number`,
           [competitionId]
         )
@@ -394,7 +443,7 @@ export class MatchRepo {
     }
     if (poolIds.length === 0) return [];
     const placeholders = poolIds.map(() => '?').join(',');
-    const matchRows = this.sql.queryAll<any>(
+    const matchRows = this.sql.queryAll<SqlRow>(
       `SELECT m.* FROM matches m JOIN pools p ON m.pool_id = p.id WHERE m.pool_id IN (${placeholders}) AND m.status IN ('not_started', 'in_progress') ORDER BY p.number, m.number`,
       poolIds
     );
@@ -404,7 +453,7 @@ export class MatchRepo {
   public getPendingMatchesDirectly(competitionId: string): Match[] {
     if (!this.sql.db) throw new Error('Database not open');
     try {
-      const matchRows = this.sql.queryAll<any>(
+      const matchRows = this.sql.queryAll<SqlRow>(
         `SELECT m.* FROM matches m
          LEFT JOIN pools p ON m.pool_id = p.id
          INNER JOIN fencers fA ON m.fencer_a_id = fA.id
@@ -427,12 +476,12 @@ export class MatchRepo {
     try {
       const compFencers = new Set(
         this.sql
-          .queryAll<{ id: string }>('SELECT id FROM fencers WHERE competition_id = ?', [
-            competitionId,
-          ])
+          .queryAll<{
+            id: string;
+          }>('SELECT id FROM fencers WHERE competition_id = ?', [competitionId])
           .map(r => r.id)
       );
-      const matchRows = this.sql.queryAll<any>('SELECT * FROM matches WHERE status IN (?, ?)', [
+      const matchRows = this.sql.queryAll<SqlRow>('SELECT * FROM matches WHERE status IN (?, ?)', [
         'not_started',
         'in_progress',
       ]);
@@ -490,7 +539,7 @@ export class MatchRepo {
   }> {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         'SELECT id, fencer_id, zone, points, timestamp, is_valid_in_sudden_death, is_reversed FROM match_touches WHERE match_id = ? ORDER BY timestamp ASC',
         [matchId]
       )
@@ -517,7 +566,7 @@ export class MatchRepo {
   }> {
     if (!this.sql.db) return [];
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         'SELECT id, fencer_id, card_type, reason, card_group, timestamp, points_awarded, resulting_exclusion FROM match_cards WHERE match_id = ? ORDER BY timestamp ASC',
         [matchId]
       )
@@ -531,6 +580,32 @@ export class MatchRepo {
         pointsAwarded: r.points_awarded as number,
         resultingExclusion: r.resulting_exclusion === 1,
       }));
+  }
+
+  /**
+   * Cartons d'un ensemble de matchs (feuilles imprimées, #1829) : une requête, ordre chronologique.
+   * Ids vides ou non textuels ignorés ; 999 ids au plus par requête (limite SQLite).
+   */
+  public getCardsByMatchIds(
+    matchIds: string[]
+  ): Array<{ matchId: string; fencerId: string; cardType: string }> {
+    if (!this.sql.db) return [];
+    const ids = [...new Set(matchIds.filter(id => typeof id === 'string' && id))];
+    const out: Array<{ matchId: string; fencerId: string; cardType: string }> = [];
+    for (let i = 0; i < ids.length; i += 999) {
+      const chunk = ids.slice(i, i + 999);
+      const rows = this.sql.queryAll<SqlRow>(
+        `SELECT match_id, fencer_id, card_type FROM match_cards WHERE match_id IN (${chunk.map(() => '?').join(',')}) ORDER BY timestamp ASC`,
+        chunk
+      );
+      for (const r of rows)
+        out.push({
+          matchId: r.match_id as string,
+          fencerId: r.fencer_id as string,
+          cardType: r.card_type as string,
+        });
+    }
+    return out;
   }
 
   // ─── Statistiques combattants ───────────────────────────────────────────────
@@ -602,6 +677,53 @@ export class MatchRepo {
     );
   }
 
+  /**
+   * Remplace les événements simulés d'un match (remplissage automatique) : touches, cartons,
+   * timing. `events = null` les efface (annulation). Retourne false si le match n'existe pas en base.
+   */
+  public replaceSimulatedMatchEvents(
+    matchId: string,
+    events: {
+      timing: { startTime: string | null; endTime: string | null; duration: number | null };
+      touches: Array<Parameters<MatchRepo['saveTouch']>[0]>;
+      cards: Array<Parameters<MatchRepo['saveCard']>[0]>;
+    } | null
+  ): boolean {
+    if (!this.sql.db) throw new Error('Database not open');
+    if (!this.sql.queryOne('SELECT id FROM matches WHERE id = ?', [matchId])) return false;
+    const like = `${matchId}-%-sim-%`;
+    this.sql.transaction(() => {
+      this.sql.run('DELETE FROM match_touches WHERE match_id = ? AND id LIKE ?', [matchId, like]);
+      this.sql.run('DELETE FROM match_cards WHERE match_id = ? AND id LIKE ?', [matchId, like]);
+      if (!events) {
+        this.updateMatchTiming(matchId, null, null, null);
+        return;
+      }
+      for (const t of events.touches) this.saveTouch({ ...t, matchId });
+      for (const c of events.cards) this.saveCard({ ...c, matchId });
+      this.updateMatchTiming(
+        matchId,
+        events.timing.startTime,
+        events.timing.endTime,
+        events.timing.duration
+      );
+    });
+    return true;
+  }
+
+  /**
+   * Efface touches, cartons et sorties d'arène d'un match (rappel PREV pour correction, #1829).
+   * Le match sera réenregistré à sa nouvelle fin : sans purge, les lignes seraient dupliquées.
+   */
+  public clearArenaEvents(matchId: string): void {
+    if (!this.sql.db) throw new Error('Database not open');
+    this.sql.transaction(() => {
+      this.sql.run('DELETE FROM match_touches WHERE match_id = ?', [matchId]);
+      this.sql.run('DELETE FROM match_cards WHERE match_id = ?', [matchId]);
+      this.sql.run('DELETE FROM match_arena_exits WHERE match_id = ?', [matchId]);
+    });
+  }
+
   public saveArenaExit(exit: {
     id: string;
     matchId: string;
@@ -655,10 +777,10 @@ export class MatchRepo {
     );
   }
 
-  public getBracketNodes(competitionId: string, phaseId: string): any[] {
+  public getBracketNodes(competitionId: string, phaseId: string): BracketNodeRow[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT * FROM bracket_nodes WHERE competition_id=? AND phase_id=? ORDER BY round, position`,
         [competitionId, phaseId]
       )
@@ -678,10 +800,10 @@ export class MatchRepo {
   public logScoreChange(entry: {
     matchId: string;
     arenaId?: string;
-    previousScoreA?: any;
-    previousScoreB?: any;
-    newScoreA: any;
-    newScoreB: any;
+    previousScoreA?: StoredScore;
+    previousScoreB?: StoredScore;
+    newScoreA: StoredScore;
+    newScoreB: StoredScore;
     changedBy: string;
     reason?: string;
     refereeId?: string;
@@ -712,20 +834,20 @@ export class MatchRepo {
     );
   }
 
-  public getScoreAuditLog(matchId: string): any[] {
+  public getScoreAuditLog(matchId: string): ScoreAuditEntry[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT sal.*, m.number as match_number, p.number as pool_number FROM score_audit_log sal LEFT JOIN matches m ON sal.match_id = m.id LEFT JOIN pools p ON m.pool_id = p.id WHERE sal.match_id=? ORDER BY sal.changed_at ASC`,
         [matchId]
       )
       .map(r => parseAuditRow(r));
   }
 
-  public getScoreAuditLogByCompetition(competitionId: string): any[] {
+  public getScoreAuditLogByCompetition(competitionId: string): ScoreAuditEntry[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(
+      .queryAll<SqlRow>(
         `SELECT sal.*, m.number as match_number, p.number as pool_number, m.round as tableau_round, m.position as tableau_position
        FROM score_audit_log sal
        JOIN matches m ON sal.match_id = m.id
@@ -790,7 +912,7 @@ export class MatchRepo {
   public getMatchTimeline(matchId: string): MatchEventEntry[] {
     if (!this.sql.db) throw new Error('Database not open');
     return this.sql
-      .queryAll<any>(MatchRepo.TIMELINE_UNION_MATCH, [matchId, matchId, matchId, matchId])
+      .queryAll<SqlRow>(MatchRepo.TIMELINE_UNION_MATCH, [matchId, matchId, matchId, matchId])
       .map(r => parseTimelineRow(r));
   }
 
@@ -860,6 +982,6 @@ export class MatchRepo {
     `;
     // 3 params per matchSubquery × 4 UNION branches = 12 bindings (matchs de tableau inclus, #1031)
     const params = Array<string>(12).fill(competitionId);
-    return this.sql.queryAll<any>(sql, params).map(r => parseTimelineRow(r));
+    return this.sql.queryAll<SqlRow>(sql, params).map(r => parseTimelineRow(r));
   }
 }

@@ -118,7 +118,7 @@ describe('PoolMatchList', () => {
       { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
       { onMatchReset: vi.fn() }
     );
-    const deleteBtn = screen.getByTitle('poolMatches.delete_result');
+    const deleteBtn = screen.getByLabelText('poolMatches.delete_result');
     expect(deleteBtn).toHaveStyle({ opacity: '0' });
 
     fireEvent.mouseEnter(deleteBtn.closest('div')!);
@@ -133,7 +133,7 @@ describe('PoolMatchList', () => {
       { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
       { onMatchReset: vi.fn() }
     );
-    fireEvent.click(screen.getByTitle('poolMatches.delete_result'));
+    fireEvent.click(screen.getByLabelText('poolMatches.delete_result'));
     expect(props.onMatchReset).toHaveBeenCalledWith(0);
   });
 });

@@ -1,0 +1,280 @@
+/* ============================================================
+   TOKENS PARTAGÉS — pages distantes (#1538)
+   Source unique des couleurs, rayons, ombres et typographie des pages servies
+   aux tablettes / écrans. Valeurs alignées sur src/renderer/styles/design.css.
+   Servi en /tokens.css ; les feuilles et pages distantes consomment var(--…)
+   et n'écrivent plus de couleur hexadécimale en dur.
+   ============================================================ */
+
+:root {
+  --color-bg: #f5f4f0;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafaf8;
+  --color-border: #e8e4dc;
+  --color-border-dark: #cfc9bc;
+
+  --color-text: #1a1916;
+  --color-text-light: #7c7163;
+  --color-text-muted: #a89f91;
+
+  --color-primary: #3b5bdb;
+  --color-primary-dark: #2f4ac4;
+  --color-primary-light: #6b84e8;
+  --color-primary-glow: rgba(59, 91, 219, 0.18);
+  --color-on-primary: #ffffff;
+  /* Bouton « Lobby » de la tablette d'entraînement : bleu roi */
+  --color-lobby: #4169e1;
+  --color-lobby-border: #2a4fb8;
+
+  --color-success: #0d9488;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e40af;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #991b1b;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(26, 25, 22, 0.06), 0 1px 2px rgba(26, 25, 22, 0.04);
+  --shadow: 0 2px 8px rgba(26, 25, 22, 0.08), 0 1px 3px rgba(26, 25, 22, 0.06);
+  --shadow-lg: 0 12px 40px rgba(26, 25, 22, 0.14), 0 4px 12px rgba(26, 25, 22, 0.08);
+
+  /* Palette des pages plein écran sombres (connexion, pointage, lobby, inscription) */
+  /* Icône « épées » (lucide) en image de fond : coup important du kiosque (#1532) */
+  --bp-img-swords: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 19 6-6'/%3E%3Cpath d='M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5'/%3E%3Cpath d='m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586'/%3E%3Cpath d='m16 16 4 4'/%3E%3Cpath d='m19 21 2-2'/%3E%3Cpath d='m5 14 4 4'/%3E%3Cpath d='m5 21-2-2'/%3E%3Cpath d='M7.5 16.5 4 20'/%3E%3C/svg%3E");
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --sky-400: #38bdf8;
+  --green-500: #22c55e;
+  --green-600: #43a047;
+  --green-soft: #4caf50;
+  --red-500: #ef4444;
+  --red-soft: #ff8a80;
+  --red-200: #fca5a5;
+  --gray-700: #555555;
+  --brand-navy-900: #1e3c72;
+  --brand-navy-700: #2a5298;
+  --gradient-brand: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
+
+  /* Couleurs ajoutées par la migration des pages (#1538) */
+  --c-ff4444: #ff4444;
+  --c-ffaa00: #ffaa00;
+  --tw-green-400: #4ade80;
+  --tw-amber-400: #fbbf24;
+  --c-111111: #111111;
+  --tw-amber-500: #f59e0b;
+  --tw-blue-300: #93c5fd;
+  --c-111c33: #111c33;
+  --c-23304d: #23304d;
+  --tw-slate-200: #e2e8f0;
+  --tw-green-300: #86efac;
+  --tw-red-400: #f87171;
+  --c-16213e: #16213e;
+  --c-1a1a2e: #1a1a2e;
+  --c-c9a227: #c9a227;
+  --tw-red-950: #450a0a;
+  --c-1e3a5f: #1e3a5f;
+  --tw-amber-300: #fcd34d;
+  --tw-amber-950: #451a03;
+  --tw-blue-400: #60a5fa;
+  --tw-gray-500: #6b7280;
+  --tw-violet-300: #c4b5fd;
+  --tw-violet-900: #4c1d95;
+  --c-0f1117: #0f1117;
+  --c-1a1d27: #1a1d27;
+  --c-232636: #232636;
+  --c-4f8ef7: #4f8ef7;
+  --c-6fa3ff: #6fa3ff;
+  --c-7a7f99: #7a7f99;
+  --c-888888: #888888;
+  --c-aac4ff: #aac4ff;
+  --c-e8eaf0: #e8eaf0;
+  --c-00ccff: #00ccff;
+  --c-00e640: #00e640;
+  --c-00ff88: #00ff88;
+  --c-0a0a0a: #0a0a0a;
+  --c-333333: #333333;
+  --c-c8d8f0: #c8d8f0;
+  --c-e53e3e: #e53e3e;
+  --c-e8edf5: #e8edf5;
+  --c-f5f5f5: #f5f5f5;
+  --c-ff2200: #ff2200;
+  --c-ff3b30: #ff3b30;
+  --c-ff6b35: #ff6b35;
+  --c-ff9500: #ff9500;
+  --c-ffc107: #ffc107;
+  --tw-emerald-600: #059669;
+  --tw-gray-700: #374151;
+  --tw-gray-900: #111827;
+  --tw-blue-700: #1d4ed8;
+  --tw-green-600: #16a34a;
+  --tw-pink-700: #be185d;
+  --tw-red-900: #7f1d1d;
+  --tw-slate-300: #cbd5e1;
+  --tw-violet-600: #7c3aed;
+  --c-0f3460: #0f3460;
+  --tw-amber-700: #b45309;
+  --tw-emerald-500: #10b981;
+  --tw-gray-300: #d1d5db;
+  --tw-gray-400: #9ca3af;
+  --tw-green-200: #bbf7d0;
+  --tw-indigo-300: #a5b4fc;
+  --tw-indigo-500: #6366f1;
+  --tw-red-200: #fecaca;
+  --c-1c1917: #1c1917;
+  --c-d4af37: #d4af37;
+  --tw-amber-800: #92400e;
+  --tw-blue-50: #eff6ff;
+  --tw-gray-100: #f3f4f6;
+  --tw-gray-200: #e5e7eb;
+  --tw-gray-50: #f9fafb;
+  --tw-gray-800: #1f2937;
+  --tw-green-100: #dcfce7;
+  --tw-green-50: #f0fdf4;
+  --tw-green-900: #14532d;
+  --tw-orange-400: #fb923c;
+  --tw-orange-500: #f97316;
+  --tw-orange-600: #ea580c;
+  --tw-red-50: #fef2f2;
+  --c-a0a0a0: #a0a0a0;
+  --c-ff2244: #ff2244;
+  --tw-violet-500: #8b5cf6;
+  --c-001a0d: #001a0d;
+  --c-002e15: #002e15;
+  --c-00e87a: #00e87a;
+  --c-030303: #030303;
+  --c-050505: #050505;
+  --c-0a0800: #0a0800;
+  --c-0c0c09: #0c0c09;
+  --c-1a0000: #1a0000;
+  --c-1a0a2e: #1a0a2e;
+  --c-1a2340: #1a2340;
+  --c-2e0000: #2e0000;
+  --c-a7f3d0: #a7f3d0;
+  --c-e0e0e0: #e0e0e0;
+  --c-f0e6ff: #f0e6ff;
+  --c-f0f0f0: #f0f0f0;
+  --c-ff2d9e: #ff2d9e;
+  --c-ff3ab0: #ff3ab0;
+  --c-ff80cc: #ff80cc;
+  --c-ff9900: #ff9900;
+  --c-ffd700: #ffd700;
+  --tw-emerald-100: #d1fae5;
+  --tw-green-700: #15803d;
+  --tw-orange-800: #9a3412;
+  --tw-red-700: #b91c1c;
+  --c-0a1a3b: #0a1a3b;
+  --c-0a2e1a: #0a2e1a;
+  --c-10224c: #10224c;
+  --c-103d22: #103d22;
+  --c-3b0a0a: #3b0a0a;
+  --c-4c1010: #4c1010;
+  /* Lobby entraînement : thèmes (#1500) */
+  --c-00d4ff: #00d4ff;
+  --c-047857: #047857;
+  --c-059669: #059669;
+  --c-0a1638: #0a1638;
+  --c-0e1d47: #0e1d47;
+  --c-13285e: #13285e;
+  --c-1a2f6b: #1a2f6b;
+  --c-1d4ed8: #1d4ed8;
+  --c-1f3f8f: #1f3f8f;
+  --c-2563eb: #2563eb;
+  --c-374151: #374151;
+  --c-4b5563: #4b5563;
+  --c-7a7a7a: #7a7a7a;
+  --c-8b5cf6: #8b5cf6;
+  --c-8fe3b0: #8fe3b0;
+  --c-9ca3af: #9ca3af;
+  --c-b91c1c: #b91c1c;
+  --c-c4b5fd: #c4b5fd;
+  --c-e8c35a: #e8c35a;
+  --c-eafff4: #eafff4;
+  --c-f5ecd2: #f5ecd2;
+  --c-ff5a6e: #ff5a6e;
+  --c-ff7ad9: #ff7ad9;
+  --c-ff8fa3: #ff8fa3;
+  --c-ffb3ea: #ffb3ea;
+  --c-fff0fb: #fff0fb;
+  --c-ffffff: #ffffff;
+  --tw-amber-100: #fef3c7;
+  --tw-gray-600: #4b5563;
+  --tw-indigo-600: #4f46e5;
+  --tw-indigo-700: #4338ca;
+  --tw-pink-500: #ec4899;
+  --tw-violet-800: #5b21b6;
+
+  /* Échelle typographique fluide (#1540) : de la tablette à l'écran de salle */
+  --fs-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+  --fs-sm: clamp(0.8125rem, 0.76rem + 0.25vw, 1rem);
+  --fs-md: clamp(0.9375rem, 0.85rem + 0.4vw, 1.25rem);
+  --fs-lg: clamp(1.125rem, 0.95rem + 0.8vw, 1.75rem);
+  --fs-xl: clamp(1.5rem, 1.1rem + 1.8vw, 3rem);
+  --fs-display: clamp(2.5rem, 1.5rem + 5vw, 8rem);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.theme-dark {
+  --color-bg: #111110;
+  --color-surface: #1c1b19;
+  --color-surface-2: #242320;
+  --color-border: #2e2c27;
+  --color-border-dark: #3d3b34;
+  --color-text: #f5f3ef;
+  --color-text-light: #a39e93;
+  --color-text-muted: #6e6860;
+  --color-primary-glow: rgba(59, 91, 219, 0.25);
+  --color-info-bg: #1e3a8a;
+  --color-info-text: #dbeafe;
+  --color-danger-bg: #7f1d1d;
+  --color-danger-text: #fee2e2;
+}
+
+/* Mode contraste projecteur (#1540) : fond noir, texte blanc, bordures marquées */
+.theme-contrast {
+  --color-bg: var(--color-black);
+  --color-surface: var(--color-black);
+  --color-surface-2: var(--slate-900);
+  --color-border: var(--color-white);
+  --color-border-dark: var(--color-white);
+  --color-text: var(--color-white);
+  --color-text-light: var(--color-white);
+  --color-text-muted: var(--slate-100);
+  --color-primary: var(--tw-amber-400);
+  --color-on-primary: var(--color-black);
+}
+
+/* Anneau de focus global (issue 1537) : 2 px, décalage 2 px, compatible forced-colors */
+:root {
+  --focus-ring-color: var(--color-primary);
+}
+.theme-dark,
+.theme-contrast {
+  --focus-ring-color: var(--tw-amber-400);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

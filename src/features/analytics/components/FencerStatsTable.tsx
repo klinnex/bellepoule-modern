@@ -3,12 +3,22 @@
  * Licensed under GPL-3.0
  */
 
+import { Button } from '../../../renderer/components/common/Button';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { FencerMatchRecord } from '../../../shared/types/preload';
 import { useTranslation } from '../../../renderer/contexts/TranslationContext';
+import { CardIcon } from '../../../renderer/components/common/CardIcon';
 import { FencerDetailModal } from './FencerDetailModal';
-import { exportCompetitionDetailPDF } from '../../../shared/utils/fencerDetailPdfExport';
+import {
+  exportCompetitionDetailPDF,
+  exportFencerDetailPDF,
+} from '../../../shared/utils/fencerDetailPdfExport';
+import {
+  ColumnsMenu,
+  useColumnVisibility,
+  type ColumnDef,
+} from '../../../renderer/components/analytics/ColumnsMenu';
 
 interface FencerStatsTableProps {
   competition: Competition;
@@ -29,8 +39,28 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
   const [sortAsc, setSortAsc] = useState(true);
   const [selectedFencer, setSelectedFencer] = useState<FencerCompetitionStats | null>(null);
   const [exportingComp, setExportingComp] = useState(false);
+  const [exportingFencerId, setExportingFencerId] = useState<string | null>(null);
 
   const isLaser = competition.weapon === Weapon.LASER;
+  // Colonnes masquables (#1817) ; sorties d'arène : Sabre Laser uniquement
+  const columns: ColumnDef[] = [
+    { id: 'club', label: t('ranking.club') },
+    ...(isLaser
+      ? [
+          { id: 'zones', label: t('stats.zones_column') },
+          { id: 'received', label: t('stats.received_points') },
+        ]
+      : []),
+    { id: 'white', label: t('stats.white_cards') },
+    { id: 'yellow', label: t('stats.yellow_cards') },
+    { id: 'red', label: t('stats.red_cards') },
+    ...(isLaser ? [{ id: 'exits', label: t('stats.arena_exits') }] : []),
+    { id: 'matches', label: t('stats.matches_played') },
+    { id: 'duration', label: t('stats.avg_duration') },
+    { id: 'early', label: t('stats.early_finishes') },
+  ];
+  const { isVisible, toggle } = useColumnVisibility('bp-analytics-stats-columns', columns);
+  const show = (id: string) => columns.some(c => c.id === id) && isVisible(id);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,6 +137,18 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
     }
   };
 
+  // Fiche PDF d'un seul combattant, lancée depuis la ligne (sans ouvrir le modal)
+  const exportFencerPdf = async (s: FencerCompetitionStats) => {
+    if (!window.electronAPI?.db) return;
+    setExportingFencerId(s.fencerId);
+    try {
+      const hist = await window.electronAPI.db.getFencerHistory(s.fencerId);
+      await exportFencerDetailPDF(s, hist.matches, competition, cardReasonLabels());
+    } finally {
+      setExportingFencerId(null);
+    }
+  };
+
   const exportPdf = async () => {
     if (!window.electronAPI?.file) return;
     const rows = sorted
@@ -115,11 +157,11 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       <tr>
         <td>${s.fencerLastName} ${s.fencerFirstName}</td>
         <td>${s.fencerClub ?? '—'}</td>
-        ${isLaser ? `<td>${s.touchesZoneA}</td><td>${s.touchesZoneB}</td><td>${s.touchesZoneC}</td><td>${s.totalTouchPoints}</td>` : ''}
+        ${isLaser ? `<td>${s.touchesZoneA}</td><td>${s.touchesZoneB}</td><td>${s.touchesZoneC}</td><td>${s.totalTouchPoints}</td><td>${s.receivedTouchPoints ?? 0}</td>` : ''}
         <td>${s.whiteCards}</td>
         <td>${s.yellowCards}</td>
         <td>${s.redCards}</td>
-        <td>${s.arenaExits}</td>
+        ${isLaser ? `<td>${s.arenaExits}</td>` : ''}
         <td>${s.matchesPlayed}</td>
         <td>${formatDuration(s.averageDurationSeconds)}</td>
         <td>${s.matchesFinishedEarly}</td>
@@ -127,7 +169,9 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       )
       .join('');
 
-    const laserHeaders = isLaser ? `<th>Zone A</th><th>Zone B</th><th>Zone C</th><th>Pts</th>` : '';
+    const laserHeaders = isLaser
+      ? `<th>Zone A</th><th>Zone B</th><th>Zone C</th><th>Pts</th><th>${t('stats.received_points')}</th>`
+      : '';
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
       <style>
@@ -148,7 +192,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
         <th>${t('stats.white_cards')}</th>
         <th>${t('stats.yellow_cards')}</th>
         <th>${t('stats.red_cards')}</th>
-        <th>${t('stats.arena_exits')}</th>
+        ${isLaser ? `<th>${t('stats.arena_exits')}</th>` : ''}
         <th>${t('stats.matches_played')}</th>
         <th>${t('stats.avg_duration')}</th>
         <th>${t('stats.early_finishes')}</th>
@@ -164,7 +208,10 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
     }
   };
 
-  const Th: React.FC<{ k: keyof FencerCompetitionStats; label: string }> = ({ k, label }) => (
+  const Th: React.FC<{ k: keyof FencerCompetitionStats; label: React.ReactNode }> = ({
+    k,
+    label,
+  }) => (
     <th
       className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
       onClick={() => handleSort(k)}
@@ -201,29 +248,23 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
             {isLaser ? ` — ${t('stats.laser_only')}` : ''}
           </p>
           <div className="flex gap-2">
-            <button
-              onClick={exportCompetitionPdf}
-              disabled={exportingComp}
-              className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {exportingComp ? t('fencerStats.exporting') : t('stats.export_competition_pdf')}
-            </button>
-            <button
-              onClick={exportPdf}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
+            <ColumnsMenu columns={columns} isVisible={isVisible} onToggle={toggle} />
+            <Button size="sm" onClick={exportCompetitionPdf} loading={exportingComp}>
+              {t('stats.export_competition_pdf')}
+            </Button>
+            <Button variant="primary" size="sm" onClick={exportPdf}>
               {t('stats.export_pdf')}
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <table className="min-w-full divide-y divide-gray-100 text-sm">
             <thead className="bg-gray-50">
               <tr>
                 <Th k="fencerLastName" label={t('fencerStats.name')} />
-                <Th k="fencerClub" label={t('ranking.club')} />
-                {isLaser && (
+                {show('club') && <Th k="fencerClub" label={t('ranking.club')} />}
+                {show('zones') && (
                   <>
                     <Th k="touchesZoneA" label={t('stats.zone_a')} />
                     <Th k="touchesZoneB" label={t('stats.zone_b')} />
@@ -231,13 +272,31 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                     <Th k="totalTouchPoints" label={t('stats.total_points')} />
                   </>
                 )}
-                <Th k="whiteCards" label="⬜" />
-                <Th k="yellowCards" label="🟡" />
-                <Th k="redCards" label="🔴" />
-                <Th k="arenaExits" label={t('stats.arena_exits')} />
-                <Th k="matchesPlayed" label={t('stats.matches_played')} />
-                <Th k="averageDurationSeconds" label={t('stats.avg_duration')} />
-                <Th k="matchesFinishedEarly" label={t('stats.early_finishes')} />
+                {show('received') && (
+                  <Th k="receivedTouchPoints" label={t('stats.received_points')} />
+                )}
+                {show('white') && (
+                  <Th
+                    k="whiteCards"
+                    label={<CardIcon type="white" label={t('stats.white_cards')} />}
+                  />
+                )}
+                {show('yellow') && (
+                  <Th
+                    k="yellowCards"
+                    label={<CardIcon type="yellow" label={t('stats.yellow_cards')} />}
+                  />
+                )}
+                {show('red') && (
+                  <Th k="redCards" label={<CardIcon type="red" label={t('stats.red_cards')} />} />
+                )}
+                {show('exits') && <Th k="arenaExits" label={t('stats.arena_exits')} />}
+                {show('matches') && <Th k="matchesPlayed" label={t('stats.matches_played')} />}
+                {show('duration') && (
+                  <Th k="averageDurationSeconds" label={t('stats.avg_duration')} />
+                )}
+                {show('early') && <Th k="matchesFinishedEarly" label={t('stats.early_finishes')} />}
+                <th className="px-2 py-2" aria-label={t('stats.export_fencer_pdf')} />
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -248,11 +307,13 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                   onClick={() => setSelectedFencer(s)}
                   title={t('fencerStats.detail')}
                 >
-                  <td className="px-2 py-2 font-medium whitespace-nowrap underline decoration-dotted decoration-gray-400">
+                  <td className="px-2 py-2 font-medium whitespace-nowrap underline ">
                     {s.fencerLastName} {s.fencerFirstName}
                   </td>
-                  <td className="px-2 py-2 text-gray-600">{s.fencerClub ?? '—'}</td>
-                  {isLaser && (
+                  {show('club') && (
+                    <td className="px-2 py-2 text-gray-600">{s.fencerClub ?? '—'}</td>
+                  )}
+                  {show('zones') && (
                     <>
                       <td className="px-2 py-2 text-center">{s.touchesZoneA}</td>
                       <td className="px-2 py-2 text-center">{s.touchesZoneB}</td>
@@ -260,15 +321,44 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                       <td className="px-2 py-2 text-center font-semibold">{s.totalTouchPoints}</td>
                     </>
                   )}
-                  <td className="px-2 py-2 text-center">{s.whiteCards || '—'}</td>
-                  <td className="px-2 py-2 text-center">{s.yellowCards || '—'}</td>
-                  <td className="px-2 py-2 text-center">{s.redCards || '—'}</td>
-                  <td className="px-2 py-2 text-center">{s.arenaExits || '—'}</td>
-                  <td className="px-2 py-2 text-center">{s.matchesPlayed}</td>
-                  <td className="px-2 py-2 text-center">
-                    {formatDuration(s.averageDurationSeconds)}
+                  {show('received') && (
+                    <td className="px-2 py-2 text-center text-red-600">
+                      {s.receivedTouchPoints ?? 0}
+                    </td>
+                  )}
+                  {show('white') && (
+                    <td className="px-2 py-2 text-center">{s.whiteCards || '—'}</td>
+                  )}
+                  {show('yellow') && (
+                    <td className="px-2 py-2 text-center">{s.yellowCards || '—'}</td>
+                  )}
+                  {show('red') && <td className="px-2 py-2 text-center">{s.redCards || '—'}</td>}
+                  {show('exits') && (
+                    <td className="px-2 py-2 text-center">{s.arenaExits || '—'}</td>
+                  )}
+                  {show('matches') && <td className="px-2 py-2 text-center">{s.matchesPlayed}</td>}
+                  {show('duration') && (
+                    <td className="px-2 py-2 text-center">
+                      {formatDuration(s.averageDurationSeconds)}
+                    </td>
+                  )}
+                  {show('early') && (
+                    <td className="px-2 py-2 text-center">{s.matchesFinishedEarly || '—'}</td>
+                  )}
+                  <td className="px-2 py-2 text-right">
+                    <Button
+                      size="sm"
+                      title={t('stats.export_fencer_pdf')}
+                      loading={exportingFencerId === s.fencerId}
+                      disabled={exportingFencerId !== null && exportingFencerId !== s.fencerId}
+                      onClick={e => {
+                        e.stopPropagation();
+                        void exportFencerPdf(s);
+                      }}
+                    >
+                      PDF
+                    </Button>
                   </td>
-                  <td className="px-2 py-2 text-center">{s.matchesFinishedEarly || '—'}</td>
                 </tr>
               ))}
             </tbody>

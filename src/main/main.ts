@@ -3,27 +3,41 @@
  * Licensed under GPL-3.0
  */
 
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Notification, safeStorage } from 'electron';
+import { loadOrCreateDatabaseKey } from './dbKey';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
-import { fmt, getL, setUiLanguage } from './menuLabels';
-import { registerDbHandlers } from './ipc/dbHandlers';
+import {
+  fmt,
+  getCyranoBadMatchLabels,
+  getCyranoTeamOutLabels,
+  getL,
+  setUiLanguage,
+} from './menuLabels';
+import { registerDbHandlers, emitCompetitionEvent } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
-import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
+import { registerWindowPrintHandlers, renderHtmlToPdfBuffer } from './ipc/windowPrintHandlers';
 import { createMenuActions } from './menuActions';
 import { createMenu } from './menu';
 import { createMainWindow } from './mainWindow';
 import { createSplashWindow, saveLanguageToFile, splashConfirmPromise } from './splash';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
+import { registerEventDayHandlers } from './ipc/eventDayHandlers';
+import { registerDayStripHandlers } from './ipc/dayStripHandlers';
+import { dayStripServer } from './remote/stripHandover';
+import { registerClubHandlers } from './ipc/clubHandlers';
+import { registerClubSyncHandlers, stopClubSync } from './ipc/clubSyncHandlers';
+import { applyStoredPrivacySettings, createPrivacyHandlers } from './ipc/privacyHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
 import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
 import { registerRemoteSessionHandlers } from './ipc/remoteSessionHandlers';
 import { registerRemoteMatchHandlers } from './ipc/remoteMatchHandlers';
-import { registerRemoteServerHandlers } from './ipc/remoteServerHandlers';
+import { registerRemoteServerHandlers, startRemoteServer } from './ipc/remoteServerHandlers';
+import type { RemoteScoreServer } from './remoteScoreServer';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
 import { registerThemesHandlers } from './ipc/themesHandlers';
 import { registerCryptoHandlers } from './ipc/cryptoHandlers';
@@ -31,13 +45,37 @@ import { registerUpdaterHandlers } from './ipc/updaterHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
 import { readUpdaterSettings, resolveChannel } from './updaterSettings';
+import { applyStoredProxySettings, registerProxyHandlers } from './ipc/proxyHandlers';
+import { registerBackupHandlers } from './ipc/backupHandlers';
+import { resolveBackupDir } from './backupSettings';
+import { runBackupAutosave } from './autosaveBackup';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
+import { remoteArenaCount } from './domain/settings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
+import { CyranoServer } from './cyrano/server';
+import { CyranoPisteDriver } from './cyrano/driver';
+import { PisteHub } from './piste/pisteHub';
+import { registerCyranoHandlers } from './ipc/cyranoHandlers';
+import { createMcpController } from './ipc/mcpHandlers';
+import { parseCliArgs } from './cliArgs';
+import { registerSettingsHandlers } from './ipc/settingsHandlers';
+import { runBatchImport } from './batchImport';
+import type { McpWriteDeps } from './mcp/mcpWriteTools';
+import { setInkSavingProvider } from './printInk';
+
+// --headless : process main sans fenêtre (#1880)
+const cli = parseCliArgs(process.argv, process.env);
+// --batch-import : journal sur la sortie d'erreur, la sortie standard ne porte que le rapport JSON
+if (cli.batchImport || cli.mcpPrintConfig) {
+  for (const level of ['log', 'info', 'debug', 'warn'] as const) console[level] = console.error;
+}
 
 // Database instance
 const db = new DatabaseManager();
+// Économie d'encre : réglage du poste lu à chaque impression / PDF (Paramètres → Documents)
+setInkSavingProvider(() => db.settings.getSetting('inkSaving'));
 
 // Auto updater
 let autoUpdater: AutoUpdater | null = null;
@@ -58,7 +96,20 @@ const createWindow = (initialLang?: string): void =>
     buildMenu: lang => buildMenu(lang),
   });
 
-const menuActions = createMenuActions({ db, getMainWindow: () => mainWindow });
+// RGPD (#1882) : droits des personnes, conservation, archives .bpm chiffrées
+const privacyHandlers = createPrivacyHandlers({
+  db,
+  getMainWindow: () => mainWindow,
+  // Compétition ouverte ou servie aux tablettes : anonymisation / effacement refusés (#1882)
+  isCompetitionBusy: id => id === menuActions.getCurrentCompetitionId() || remoteServers.has(id),
+});
+const menuActions = createMenuActions({
+  db,
+  getMainWindow: () => mainWindow,
+  onEncryptedBpm: privacyHandlers.requestEncryptedOpen,
+  // Dossier de sauvegarde par défaut (Paramètres → Sauvegarde)
+  getBackupDir: () => resolveBackupDir(app.getPath('userData'), app.getPath('documents')).dir,
+});
 const { handleOpenFile, exportCompetitionDialog, setCurrentCompetitionId } = menuActions;
 const buildMenu = (language?: string): void =>
   createMenu(
@@ -72,6 +123,17 @@ const buildMenu = (language?: string): void =>
   );
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
+registerEventDayHandlers({ db });
+registerDayStripHandlers({
+  db,
+  getServer: id => {
+    const server = remoteServers.get(id)?.server;
+    return server ? dayStripServer(server) : undefined;
+  },
+});
+registerClubHandlers({ db });
+registerClubSyncHandlers({ db, userDataPath: app.getPath('userData') });
+privacyHandlers.register();
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
 
 // File handlers
@@ -92,7 +154,123 @@ ipcMain.on('app:current-competition', (_, competitionId: unknown) => {
 
 registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 
-registerRemoteServerHandlers({ db, getMainWindow: () => mainWindow });
+// Cyrano scoring machine integration (#1720)
+const cyranoServer = new CyranoServer();
+const pisteHub = new PisteHub(
+  // Pilote Cyrano du modèle commun des appareils de piste (#1829)
+  new CyranoPisteDriver(cyranoServer),
+  // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
+  () => [...remoteServers.values()].map(entry => entry.server),
+  {
+    // Numéros de poule / de match du DISP lus en base
+    coordsSource: db,
+    // BAD MATCH : notification native au DT (#1829), un clic ramène la fenêtre au premier plan
+    onAlert: (piste, alert) => {
+      if (!Notification.isSupported()) return;
+      const labels = getCyranoBadMatchLabels();
+      const arena = alert.arena.replace(/^arena/, '');
+      const notification = new Notification({
+        title: labels.title,
+        body: fmt(labels.body, { piste, arena }),
+      });
+      notification.on('click', () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      });
+      notification.show();
+    },
+    // Relais par équipes : abandon ou exclusion annoncé par l'appareil (relais acquitté)
+    onNotice: (piste, notice) => {
+      if (!Notification.isSupported()) return;
+      const labels = getCyranoTeamOutLabels();
+      const notification = new Notification({
+        title: labels.title,
+        body: fmt(labels[notice.reason], { piste, relay: notice.relay, fencer: notice.fencer }),
+      });
+      notification.on('click', () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      });
+      notification.show();
+    },
+  }
+);
+
+const remoteServerContext = {
+  db,
+  getMainWindow: () => mainWindow,
+  onServerCreated: (server: RemoteScoreServer) => {
+    server.cyranoHook = (arenaId, update) => pisteHub.onArenaUpdate(arenaId, update, server);
+    // Relais par équipes (/equipe{N}) sur l'appareil de piste (#1829)
+    server.cyranoTeamHook = arenaId => pisteHub.onTeamArenaUpdate(arenaId, server);
+  },
+};
+registerRemoteServerHandlers(remoteServerContext);
+
+registerCyranoHandlers({ cyranoServer, pisteHub, db });
+
+// Dossiers accessibles à l'agent tant que l'opérateur n'en a pas choisi (Paramètres → Agent IA)
+const defaultAgentFolders = (['documents', 'downloads', 'desktop'] as const).flatMap(name => {
+  try {
+    return [app.getPath(name)];
+  } catch {
+    return [];
+  }
+});
+
+// Dépendances des outils MCP (#1880) : base, écran à rafraîchir, serveur distant, Cyrano, fichiers
+const mcpDeps: McpWriteDeps = {
+  db,
+  // Écritures de l'agent : écran rafraîchi (#1880, lots 2 et 3)
+  notify: (type, competitionId) => emitCompetitionEvent(type, competitionId),
+  remoteServers: () => [...remoteServers.entries()],
+  cyranoStatus: () => {
+    const alerts = pisteHub.getAlerts();
+    return {
+      running: cyranoServer.running,
+      port: cyranoServer.port,
+      pistes: cyranoServer.getStatuses().map(p => ({ ...p, alert: alerts[p.piste] ?? null })),
+    };
+  },
+  allowedRoots: () => {
+    const folders = db.settings.getSetting('agentFolders');
+    return folders.length > 0 ? folders : defaultAgentFolders;
+  },
+  // HTTPS et interface : paramètres du poste (app_settings), comme l'écran
+  startRemote: async (competitionId, port) => {
+    const { remoteInterface, remoteHttps } = db.settings.getSettings();
+    const result = await startRemoteServer(
+      remoteServerContext,
+      competitionId,
+      port,
+      remoteInterface,
+      remoteHttps
+    );
+    // Sans écran, aucune fenêtre ne règle les arènes : même règle que l'écran (#1880)
+    if (result.success) {
+      remoteServers
+        .get(competitionId)
+        ?.server.setArenaCount(remoteArenaCount({ db }, competitionId));
+    }
+    return result;
+  },
+  stopRemote: competitionId => stopRemoteServer(competitionId),
+  renderPdf: html => renderHtmlToPdfBuffer(html),
+};
+
+// Serveur MCP intégré, désactivé par défaut (#1880) : 127.0.0.1 + jeton
+const mcp = createMcpController({
+  deps: mcpDeps,
+  userDataDir: () => app.getPath('userData'),
+  secretBox: safeStorage,
+  version: app.getVersion(),
+  // --mcp, --mcp-port, --mcp-write : utilisable sans écran, réglages enregistrés inchangés
+  override: { enabled: cli.mcp, port: cli.mcpPort, allowWrite: cli.mcpWrite },
+});
+mcp.register();
+/** Démarrage du MCP à l'ouverture de la base (un seul démarrage, attendu en --headless) */
+let mcpReady: ReturnType<typeof mcp.apply> | null = null;
+registerSettingsHandlers({ db, defaultAgentFolders, getMainWindow: () => mainWindow });
 
 registerRemoteMatchHandlers();
 
@@ -104,6 +282,8 @@ registerWebhookHandlers();
 registerThemesHandlers();
 registerCryptoHandlers();
 registerUpdaterHandlers({ getAutoUpdater: () => autoUpdater });
+registerProxyHandlers();
+registerBackupHandlers();
 
 registerDiagnosticHandlers(createDiagnosticDeps({ getWindow: () => mainWindow, getVersionInfo }));
 
@@ -155,16 +335,7 @@ if (process.platform === 'linux' && process.env.BELLEPOULE_SW_RENDER === '1') {
   app.commandLine.appendSwitch('use-gl', 'swiftshader');
 }
 
-app.whenReady().then(async () => {
-  eventLoopMonitor.start();
-  // Afficher le splash immédiatement pendant que tout le reste charge
-  createSplashWindow();
-
-  // Cache V8 bytecode désactivé : session.setCodeCachePath provoque un crash natif
-  // (access violation dans electron.exe) au démarrage sous Windows avec Electron 44.
-
-  prewarmRendererChunks();
-
+async function openDatabase(): Promise<void> {
   // Initialize database dans un répertoire inscriptible (userData)
   // Sur Windows, process.cwd() peut pointer vers C:\Windows\System32 (non inscriptible)
   const userDataPath = app.getPath('userData');
@@ -182,14 +353,115 @@ app.whenReady().then(async () => {
     }
   }
 
+  // RGPD (#1882) : base chiffrée au repos (SQLCipher), clé dans le trousseau système
+  try {
+    const dbKey = loadOrCreateDatabaseKey(userDataPath, safeStorage, dbPath);
+    if (!dbKey) {
+      logger.warn(
+        LogCategory.SYSTEM,
+        'Trousseau système indisponible : base non chiffrée au repos'
+      );
+    }
+    await db.open(dbPath, { encryptionKey: dbKey });
+    logger.info(LogCategory.SYSTEM, dbKey ? 'Base chiffrée (SQLCipher)' : 'Base en clair');
+  } catch (e) {
+    // Base illisible (clé absente ou incorrecte) : on n'écrase rien, on arrête proprement
+    logger.error(LogCategory.SYSTEM, 'Ouverture de la base impossible:', toError(e));
+    dialog.showErrorBox('BellePoule Modern', e instanceof Error ? e.message : String(e));
+    app.quit();
+    return;
+  }
+  // MCP : démarré une fois la base ouverte, s'il est activé (#1880)
+  mcpReady = mcp.apply();
+  logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
+  // Noms abrégés sur le réseau + purge automatique des données échues (RGPD, #1882)
+  applyStoredPrivacySettings(db, userDataPath);
+}
+
+// Autosave every 2 minutes
+let autosaveInterval: NodeJS.Timeout | null = null;
+
+let autosaveInFlight = false;
+
+const startAutosave = () => {
+  if (autosaveInterval) clearInterval(autosaveInterval);
+  autosaveInterval = setInterval(
+    async () => {
+      if (autosaveInFlight) return; // éviter l'empilement si la sauvegarde précédente traîne
+      autosaveInFlight = true;
+      try {
+        await db.saveAsync(); // async I/O — ne bloque pas le main thread
+        await runBackupAutosave(db, app.getPath('userData'), app.getPath('documents'));
+        logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
+        mainWindow?.webContents.send('autosave:completed');
+      } catch (error) {
+        logger.error(LogCategory.SYSTEM, 'Autosave failed:', toError(error));
+        mainWindow?.webContents.send('autosave:failed');
+      } finally {
+        autosaveInFlight = false;
+      }
+    },
+    2 * 60 * 1000
+  ); // 2 minutes
+};
+
+app.whenReady().then(async () => {
+  eventLoopMonitor.start();
+  // Proxy réseau choisi dans les Paramètres, avant tout accès réseau
+  await applyStoredProxySettings();
+
+  if (cli.headless) {
+    app.dock?.hide();
+    await openDatabase();
+    // Langue du poste lue en base (#1880) : libellés du main et des serveurs distants
+    setUiLanguage(db.settings.getSetting('language'));
+    if (cli.mcpPrintConfig) {
+      // Configuration du client (URL, jeton) sur la sortie standard : à la demande de l'opérateur
+      let exitCode = 0;
+      try {
+        if (cli.mcpNewToken) mcp.regenerateToken();
+        process.stdout.write(`${JSON.stringify(mcp.clientConfig(), null, 2)}\n`);
+      } catch (e) {
+        process.stderr.write(`${toError(e).message}\n`);
+        exitCode = 1;
+      }
+      shutdownDb(db);
+      app.exit(exitCode);
+      return;
+    }
+    if (cli.batchImport) {
+      const result = await runBatchImport(mcpDeps, cli.batchImport, cli.dryRun);
+      process.stdout.write(
+        `${JSON.stringify(result.report ?? { error: result.error }, null, 2)}\n`
+      );
+      shutdownDb(db);
+      app.exit(result.exitCode);
+      return;
+    }
+    startAutosave();
+    const status = await (mcpReady ?? mcp.apply());
+    logger.info(
+      LogCategory.SYSTEM,
+      `[Headless] Prêt, sans fenêtre ; MCP ${status.running ? status.url : status.enabled ? `en échec (${status.error})` : 'désactivé'}`
+    );
+    return;
+  }
+
+  // Afficher le splash immédiatement pendant que tout le reste charge
+  createSplashWindow();
+
+  // Cache V8 bytecode désactivé : session.setCodeCachePath provoque un crash natif
+  // (access violation dans electron.exe) au démarrage sous Windows avec Electron 44.
+
+  prewarmRendererChunks();
+
   // Attendre que l'utilisateur confirme la langue dans le splash
   const confirmedLang = await splashConfirmPromise;
 
   // Créer la fenêtre principale avec la langue choisie
   createWindow(confirmedLang);
 
-  await db.open(dbPath);
-  logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
+  await openDatabase();
 
   // Signaler au renderer que la DB est prête
   mainWindow?.webContents.send('db:ready');
@@ -197,8 +469,8 @@ app.whenReady().then(async () => {
   // Initialize auto updater — dialog différé après affichage de la fenêtre
   if (mainWindow) {
     autoUpdater = new AutoUpdater(mainWindow, {
-      // Téléchargement + vérification SHA-256 en fond, installation proposée à la fin
-      autoDownload: true,
+      // Pas de téléchargement sans validation de l'utilisateur (#1467)
+      autoDownload: false,
       autoInstall: false,
       checkInterval: 12,
       // Canal figé au packaging (docs/VERSIONING.md) : un build dev suit les pré-releases
@@ -236,31 +508,6 @@ app.whenReady().then(async () => {
     });
   }
 
-  // Autosave every 2 minutes
-  let autosaveInterval: NodeJS.Timeout | null = null;
-
-  let autosaveInFlight = false;
-  const startAutosave = () => {
-    if (autosaveInterval) clearInterval(autosaveInterval);
-    autosaveInterval = setInterval(
-      async () => {
-        if (autosaveInFlight) return; // éviter l'empilement si la sauvegarde précédente traîne
-        autosaveInFlight = true;
-        try {
-          await db.saveAsync(); // async I/O — ne bloque pas le main thread
-          logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
-          mainWindow?.webContents.send('autosave:completed');
-        } catch (error) {
-          logger.error(LogCategory.SYSTEM, 'Autosave failed:', toError(error));
-          mainWindow?.webContents.send('autosave:failed');
-        } finally {
-          autosaveInFlight = false;
-        }
-      },
-      2 * 60 * 1000
-    ); // 2 minutes
-  };
-
   startAutosave();
 
   app.on('activate', () => {
@@ -270,12 +517,22 @@ app.whenReady().then(async () => {
   });
 });
 
+// Arrêt propre en --headless (Ctrl+C, service)
+if (cli.headless) {
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => app.quit());
+}
+
 app.on('window-all-closed', () => {
+  // --headless : aucune fenêtre principale ; une fenêtre cachée (rendu PDF du MCP) qui se
+  // ferme ne doit pas arrêter le process (#1880)
+  if (cli.headless) return;
   // macOS : la base reste ouverte (l'app vit dans le Dock, cf. appLifecycle.ts)
   handleAllWindowsClosed(process.platform, db, () => app.quit());
 });
 
 app.on('before-quit', () => {
+  void mcp.stop();
+  stopClubSync();
   shutdownDb(db); // no-op si déjà fermé
 });
 

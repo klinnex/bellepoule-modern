@@ -39,7 +39,9 @@ describe('Inter embarquée (#1153)', () => {
         .map(f => `src/remote/${f}`),
     ];
     for (const f of files) {
-      expect(read(f), f).not.toMatch(/fonts\.googleapis\.com|fonts\.gstatic\.com/);
+      const content = read(f);
+      expect(content, f).not.toContain('fonts.googleapis.com');
+      expect(content, f).not.toContain('fonts.gstatic.com');
     }
     expect(buildPageCsp('n')).not.toMatch(/google|gstatic/);
   });

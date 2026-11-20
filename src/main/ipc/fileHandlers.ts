@@ -15,8 +15,35 @@ import {
   readBoundedFile,
   validateImportedFencers,
 } from '../pathAuthorization';
-import { readImportText } from '../xlsxToCsv';
+import { readImportText, rowsToXlsx } from '../xlsxToCsv';
+import { FEDERAL_MAX_INPUTS, unpackFederalFiles, type FederalInput } from '../federalFiles';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+
+/**
+ * Photos d'un ZIP choisi par l'utilisateur (chemin autorisé) : fichiers .jpg/.jpeg/.png
+ * nommés par licence → { license, photo data URL }. Partagé compétition / Mode Club.
+ */
+export async function readPhotosZip(
+  filepath: string
+): Promise<{ license: string; photo: string }[]> {
+  filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
+  const buffer = await readBoundedFile(filepath);
+  const zip = await JSZip.loadAsync(buffer);
+  const safeNames = checkZipEntries(zip);
+
+  const photos: { license: string; photo: string }[] = [];
+
+  for (const filename of safeNames) {
+    const file = zip.files[filename];
+    const ext = path.extname(filename).toLowerCase();
+    if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
+    const basename = path.basename(filename, ext);
+    const data = await file.async('base64');
+    const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+    photos.push({ license: basename, photo: `data:${mimeType};base64,${data}` });
+  }
+  return photos;
+}
 
 export interface FileHandlersContext {
   db: DatabaseManager;
@@ -59,6 +86,33 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
     await fs.promises.writeFile(resolved, content, 'utf-8');
   });
 
+  // Tableur Excel (.xlsx) écrit depuis une grille de valeurs (Mode Club : inventaire)
+  ipcMain.handle(
+    'file:writeSpreadsheet',
+    async (_, filepath: string, rows: unknown, sheetName?: unknown) => {
+      const resolved = assertAuthorizedPath(filepath, 'write');
+      const appDir = path.resolve(app.getAppPath());
+      if (resolved.startsWith(appDir)) {
+        throw new Error('Writing inside app directory is not allowed');
+      }
+      if (!Array.isArray(rows) || rows.length > 20000) {
+        throw new Error('Tableau invalide (20 000 lignes max)');
+      }
+      const grid = rows.map(
+        r =>
+          (Array.isArray(r) ? r : [])
+            .slice(0, 200)
+            .map(v => (typeof v === 'number' || typeof v === 'string' ? v : '')) as (
+            string | number
+          )[]
+      );
+      await fs.promises.writeFile(
+        resolved,
+        await rowsToXlsx(grid, typeof sheetName === 'string' ? sheetName : undefined)
+      );
+    }
+  );
+
   // Photo ZIP export handler
   ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: string) => {
     filepath = assertAuthorizedPath(filepath, 'write');
@@ -82,23 +136,7 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
 
   // Photo ZIP import handler
   ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: string) => {
-    filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
-    const buffer = await readBoundedFile(filepath);
-    const zip = await JSZip.loadAsync(buffer);
-    const safeNames = checkZipEntries(zip);
-
-    const photos: { license: string; photo: string }[] = [];
-
-    for (const filename of safeNames) {
-      const file = zip.files[filename];
-      const ext = path.extname(filename).toLowerCase();
-      if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
-      const basename = path.basename(filename, ext);
-      const data = await file.async('base64');
-      const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
-      photos.push({ license: basename, photo: `data:${mimeType};base64,${data}` });
-    }
-
+    const photos = await readPhotosZip(filepath);
     return db.updateFencerPhotosByLicense(competitionId, photos);
   });
 
@@ -158,6 +196,44 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
     }
 
     return null;
+  });
+
+  // Fichiers de l'extranet fédéral (#1938) : .zip, ou .xml / .fff / .txt isolés
+  ipcMain.handle('dialog:openFederalFiles', async () => {
+    const result = await dialog.showOpenDialog(getMainWindow()!, {
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        {
+          name: 'FFE / FIE (.zip, .xml, .fff, .txt)',
+          extensions: ['zip', 'xml', 'cotcot', 'fff', 'txt', 'csv'],
+        },
+        { name: '*', extensions: ['*'] },
+      ],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const inputs: FederalInput[] = [];
+    for (const filePath of result.filePaths.slice(0, FEDERAL_MAX_INPUTS)) {
+      inputs.push({ name: path.basename(filePath), bytes: await readBoundedFile(filePath) });
+    }
+    return {
+      names: inputs.map(i => i.name),
+      files: await unpackFederalFiles(inputs),
+    };
+  });
+
+  // Même lecture pour des fichiers glissés-déposés (contenu transmis par le renderer)
+  ipcMain.handle('file:unpackFederalFiles', async (_, raw: unknown) => {
+    if (!Array.isArray(raw) || raw.length === 0 || raw.length > FEDERAL_MAX_INPUTS) {
+      throw new Error('Fichiers invalides');
+    }
+    const inputs = raw.map((item: unknown): FederalInput => {
+      const { name, bytes } = (item ?? {}) as { name?: unknown; bytes?: unknown };
+      if (typeof name !== 'string' || !(bytes instanceof Uint8Array)) {
+        throw new Error('Fichier invalide');
+      }
+      return { name, bytes };
+    });
+    return unpackFederalFiles(inputs);
   });
 
   ipcMain.handle('dialog:saveFile', async (_, options) => {

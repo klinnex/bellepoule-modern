@@ -4,64 +4,46 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Funnel } from 'lucide-react';
-import { useModalResize } from '../hooks/useModalResize';
-import { useStateGroup } from '../hooks/useStateGroup';
-import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
-import { usePoolReferees } from './pool/usePoolReferees';
-import { useFocusTrap } from '../hooks/useFocusTrap';
-import Modal from './common/Modal';
+import { TipButton } from './Tooltip';
+import React from 'react';
 import {
-  Pool,
-  Fencer,
-  MatchStatus,
-  Score,
-  Weapon,
-  FencerStatus,
-  Referee,
-} from '../../shared/types';
-import { Arena } from '../../shared/types/remote';
-import { logger, LogCategory } from '@shared/services/logger';
-import { useToast } from './Toast';
-import { useConfirm } from './ConfirmDialog';
-// pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
-import { useColumnVisibility, POOL_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
-import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
-import { useHistory } from '../hooks/useHistory';
+  ChartColumn,
+  ClipboardList,
+  Dices,
+  Funnel,
+  Gavel,
+  Lock,
+  PenLine,
+  PencilLine,
+  Play,
+  Plus,
+  Printer,
+  Redo2,
+  Swords,
+  Undo2,
+} from 'lucide-react';
+import { Icon } from './common/Icon';
+import { FencerStatus } from '../../shared/types';
+import { POOL_COLUMNS } from '../hooks/useColumnVisibility';
 import PoolScoreMatrix from './pool/PoolScoreMatrix';
 import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
+import { PoolStripButton } from './pool/PoolStripButton';
+import { PoolRefereeModal } from './pool/PoolRefereeModal';
+import { PoolSignaturesModal } from './pool/PoolSignaturesModal';
 import { MatchAuditLog } from './MatchAuditLog';
-import { MedicalCrossIcon } from './common/MedicalCrossIcon';
-import SpecialStatusPanel, {
-  type SpecialStatus as PoolSpecialStatus,
-  type SpecialStatusFencer,
-} from './common/SpecialStatusPanel';
-import { autoAssignReferees } from '../../shared/utils/refereeStats';
-import { specialStatusOutcome } from './pool/poolSpecialStatus';
+import type { PoolViewProps } from './pool/poolViewTypes';
+import { usePoolScoreModal } from '../hooks/poolView/usePoolScoreModal';
+import { usePoolViewActions } from '../hooks/poolView/usePoolViewActions';
+import { usePoolViewInput } from '../hooks/poolView/usePoolViewInput';
+import { usePoolViewState } from '../hooks/poolView/usePoolViewState';
 import {
-  SPECIAL_BTN,
   ROW_BETWEEN,
   MATCH_LABEL,
   MATCH_CENTER,
-  COL_GAP,
-  REF_EMPTY,
-  REF_BTN,
   FENCER_NAME,
   NEXT_MATCH_BOX,
-  SCORE_ROW,
-  SCORE_MODAL,
-  nameCol,
-  nameLast,
-  nameFirst,
-  victoryBtn,
-  SCORE_SEP,
-  SPECIAL_ROW,
-  FOOTER_RIGHT,
-  MUTED_HINT,
-  STATUS_BTN,
   LOG_TOGGLE,
   LOG_WRAP,
   LOG_ITEM,
@@ -72,1446 +54,144 @@ import {
   COL_MENU_HEADER,
   NEXT_MATCH_SUBMIT,
   abandonName,
-  scoreInput,
 } from './poolView.styles';
-import { useTranslation } from '../hooks/useTranslation';
-import { parseVictoryScoreInput } from '../../shared/utils/tieBreak';
-import TiebreakerAnimation from './TiebreakerAnimation';
 
-interface PoolViewProps {
-  pool: Pool;
-  maxScore?: number;
-  weapon?: Weapon;
-  /** Égalité tranchée par V (olympique, rapières, laser) — défaut : laser */
-  tieBreakByVictory?: boolean;
-  competitionName?: string;
-  competitionId?: string;
-  onScoreUpdate: (
-    matchIndex: number,
-    scoreA: number,
-    scoreB: number,
-    winnerOverride?: 'A' | 'B',
-    specialStatus?: 'abandon' | 'forfait' | 'exclusion',
-    priority?: 'A' | 'B'
-  ) => void;
-  onMatchReset?: (matchIndex: number) => void;
-  onMatchCancel?: (matchIndex: number) => void;
-  onFencerChangePool?: (fencer: Fencer) => void;
-  onFencerStatusChange?: (
-    fencerId: string,
-    status: 'abandon' | 'forfait' | 'exclusion',
-    blackCard?: boolean
-  ) => void;
-  onFencerAdded?: (updatedPool: Pool) => void;
-  assignedFencerIds?: ReadonlySet<string>;
-  arenaCount?: number;
-  arenas?: Arena[];
-  isRemoteActive?: boolean;
-  remoteServerUrl?: string;
-  /** Saisie distante active : QR de la piste de la poule sur la feuille (aperçu/impression/export) */
-  stripQr?: { url: string; strip: number };
-  /** Facteur de taille des cartes de poule (préréglage) */
-  cardScale?: number;
-  onMatchArenaChange?: (
-    matchId: string,
-    oldArena: number,
-    newArena: number | null,
-    fencerA?: Fencer | null,
-    fencerB?: Fencer | null
-  ) => void;
-  onRefereeAssigned?: (poolId: string, referees: Referee[]) => void;
-  /** Nombre max d'arbitres assignables simultanément (mode expert) ; 1 = sélection unique */
-  maxRefereesPerPool?: number;
-  /** Arbitres de la compétition utilisés par le remplissage automatique (gestion des arbitres active) */
-  autoFillReferees?: Referee[];
-  /** Arbitres assignés par le remplissage automatique (matchId → arbitre) */
-  onAutoFillReferees?: (assignments: Map<string, Referee>) => void;
-  /** Tournoi des rapières : matchs de la vague en cours (surbrillance violette) */
-  waveMatchIds?: ReadonlySet<string>;
-}
-
-type ViewMode = 'grid' | 'matches';
-
-const specialStatusFencers = (
-  left?: Fencer | null,
-  right?: Fencer | null
-): [SpecialStatusFencer | null, SpecialStatusFencer | null] => {
-  const toItem = (f?: Fencer | null) =>
-    f ? { id: f.id, name: `${f.lastName} ${f.firstName ?? ''}`.trim() } : null;
-  return [toItem(left), toItem(right)];
-};
-
-const PoolViewComponent: React.FC<PoolViewProps> = ({
-  pool,
-  maxScore = 5,
-  weapon,
-  tieBreakByVictory,
-  competitionName,
-  competitionId,
-  onScoreUpdate,
-  onMatchReset,
-  onMatchCancel,
-  onFencerChangePool,
-  onFencerStatusChange,
-  onFencerAdded,
-  assignedFencerIds,
-  arenaCount,
-  arenas,
-  isRemoteActive,
-  remoteServerUrl,
-  stripQr,
-  cardScale = 1,
-  onMatchArenaChange,
-  onRefereeAssigned,
-  maxRefereesPerPool = 1,
-  autoFillReferees,
-  onAutoFillReferees,
-  waveMatchIds,
-}) => {
-  const { t } = useTranslation();
-  const { showToast } = useToast();
-  // Paires de la vague en cours, repérées par tireurs (cellules de la matrice)
-  const waveHighlightPairs = useMemo(() => {
-    if (!waveMatchIds?.size) return undefined;
-    const pairs = new Set<string>();
-    for (const m of pool.matches) {
-      if (!waveMatchIds.has(m.id) || !m.fencerA || !m.fencerB) continue;
-      const [a, b] = [m.fencerA.id, m.fencerB.id];
-      pairs.add(a < b ? `${a}|${b}` : `${b}|${a}`);
-    }
-    return pairs;
-  }, [waveMatchIds, pool.matches]);
-  const { confirm } = useConfirm();
-  const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
-  const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  // Saisie du score regroupée (modale + cellule inline) (#1241)
+const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
+  const poolViewState = usePoolViewState({ ...props });
+  const poolViewInput = usePoolViewInput({ ...props, ...poolViewState });
+  const poolViewActions = usePoolViewActions({ ...props, ...poolViewState, ...poolViewInput });
+  const poolScoreModal = usePoolScoreModal({
+    ...props,
+    ...poolViewState,
+    ...poolViewInput,
+    ...poolViewActions,
+  });
   const {
-    editingMatch,
-    setEditingMatch,
-    isMatchInverted,
-    setIsMatchInverted,
-    editScoreA,
-    setEditScoreA,
-    editScoreB,
-    setEditScoreB,
-    victoryA,
-    setVictoryA,
-    victoryB,
-    setVictoryB,
-    setMatchesUpdateTrigger,
-    keyboardFocusField,
-    setKeyboardFocusField,
-    inlineEditCell,
-    setInlineEditCell,
-    inlineSingleScore,
-    setInlineSingleScore,
-    cellScoreBuffer,
-    setCellScoreBuffer,
-  } = useStateGroup(POOL_SCORE_INPUT_INIT);
-  // Modales et statut spécial en attente de désignation (abandon/forfait/exclusion) (#1241)
-  const {
-    showColumnMenu,
-    setShowColumnMenu,
     showPoolConfetti,
-    setShowPoolConfetti,
-    showAddFencerModal,
+    isLocked,
+    isSignedLocked,
+    tableauFreeze,
+    t,
+    pool,
+    finishedCount,
+    totalMatches,
+    signedFencerIds,
+    openRefereeModal,
+    assignedReferees,
+    isMultiReferee,
+    assignedReferee,
+    stripRange,
+    onStripChange,
+    undo,
+    canUndo,
+    redo,
+    canRedo,
+    handleAutoFillScores,
+    handlePrintPool,
+    isRemoteActive,
+    defaultArena,
+    competitionId,
     setShowAddFencerModal,
-    auditMatchId,
+    columnMenuRef,
+    setShowColumnMenu,
+    showColumnMenu,
+    columnFilterEdited,
+    isLaserSabre,
+    isVisible,
+    toggleColumn,
+    pdfHideStatColumns,
+    togglePdfHideStatColumns,
+    pdfLandscape,
+    togglePdfLandscape,
+    viewMode,
+    setViewMode,
+    orderedMatches,
+    openScoreModal,
+    onMatchReset,
+    handleMatchDelete,
     setAuditMatchId,
-    showFinishedLog,
-    setShowFinishedLog,
-    pendingSpecialStatus,
-    setPendingSpecialStatus,
-  } = useStateGroup(POOL_DIALOGS_INIT);
-  // Options d'export PDF / impression de la feuille de poule (persistées localement)
-  const { pdfHideStatColumns, setPdfHideStatColumns, pdfLandscape, setPdfLandscape } =
-    useStateGroup({
-      pdfHideStatColumns: localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true',
-      pdfLandscape: localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true',
-    });
-  const togglePdfHideStatColumns = () => {
-    const next = !pdfHideStatColumns;
-    setPdfHideStatColumns(next);
-    localStorage.setItem('bellepoule-pool-pdf-hide-stats', String(next));
-  };
-  const togglePdfLandscape = () => {
-    const next = !pdfLandscape;
-    setPdfLandscape(next);
-    localStorage.setItem('bellepoule-pool-pdf-landscape', String(next));
-  };
-
-  const [signedFencerIds, setSignedFencerIds] = useState<string[]>([]);
-  const [matchArenaOverrides, setMatchArenaOverrides] = useState<Map<string, number>>(new Map());
-  // Désignation des arbitres de la poule (modale + affectation) (#1241)
-  const {
+    arenas,
+    matchArenaOverrides,
+    cardScale,
+    waveMatchIds,
+    categoryOf,
+    handleMatchArenaChange,
+    renderScoreModal,
+    showAddFencerModal,
+    maxScore,
+    assignedFencerIds,
+    onFencerAdded,
+    auditMatchId,
     showRefereeModal,
+    maxRefereesPerPool,
     competitionReferees,
     isLoadingReferees,
     pendingRefereeIds,
-    assignedReferees,
-    openRefereeModal,
     closeRefereeModal,
     handleAssignReferee,
     togglePendingReferee,
     confirmPendingReferees,
-  } = usePoolReferees({
-    poolId: pool.id,
-    initialReferees: pool.referees ?? [],
-    competitionId,
-    maxRefereesPerPool,
-    onRefereeAssigned,
-  });
-  const isMultiReferee = maxRefereesPerPool > 1;
-  const assignedReferee = assignedReferees[0] ?? null;
-  const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
-  const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
-  const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
-
-  const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
-
-  const handleMatchArenaChange = useCallback(
-    (
-      matchId: string,
-      oldArena: number,
-      newArena: number | null,
-      fencerA?: Fencer | null,
-      fencerB?: Fencer | null
-    ) => {
-      setMatchArenaOverrides(prev => {
-        const next = new Map(prev);
-        if (newArena === null) {
-          next.delete(matchId);
-        } else {
-          next.set(matchId, newArena);
-        }
-        return next;
-      });
-      onMatchArenaChange?.(matchId, oldArena, newArena, fencerA, fencerB);
-    },
-    [onMatchArenaChange]
-  );
-
-  const { addAction, undo, redo, canUndo, canRedo } = useHistory();
-
-  // Supprime (réinitialise) un match terminé et rend l'opération annulable via Ctrl+Z
-  const handleMatchDelete = useCallback(
-    (matchIndex: number) => {
-      if (!onMatchReset) return;
-      const match = pool.matches[matchIndex];
-
-      if (!match || match.status !== MatchStatus.FINISHED) {
-        onMatchReset(matchIndex);
-        return;
-      }
-
-      const prevScoreA = match.scoreA;
-      const prevScoreB = match.scoreB;
-      const winner: 'A' | 'B' | undefined = prevScoreA?.isVictory
-        ? 'A'
-        : prevScoreB?.isVictory
-          ? 'B'
-          : undefined;
-      const specialStatus: 'abandon' | 'forfait' | 'exclusion' | undefined =
-        prevScoreA?.isAbstention || prevScoreB?.isAbstention
-          ? 'abandon'
-          : prevScoreA?.isForfait || prevScoreB?.isForfait
-            ? 'forfait'
-            : prevScoreA?.isExclusion || prevScoreB?.isExclusion
-              ? 'exclusion'
-              : undefined;
-
-      addAction({
-        type: 'DELETE_MATCH',
-        description: `Suppression score poule ${pool.number} match ${matchIndex + 1}`,
-        undo: () => {
-          if (prevScoreA?.value != null && prevScoreB?.value != null) {
-            onScoreUpdate(matchIndex, prevScoreA.value, prevScoreB.value, winner, specialStatus);
-          }
-        },
-        redo: () => {
-          onMatchReset(matchIndex);
-        },
-      });
-
-      onMatchReset(matchIndex);
-    },
-    [pool, onMatchReset, onScoreUpdate, addAction]
-  );
-
-  const prevIsComplete = useRef(pool.isComplete);
-
-  useEffect(() => {
-    if (pool.isComplete && !prevIsComplete.current) {
-      setShowPoolConfetti(true);
-      setTimeout(() => setShowPoolConfetti(false), 3000);
-    }
-    prevIsComplete.current = pool.isComplete;
-  }, [pool.isComplete]);
-
-  const isLaserSabre = weapon === Weapon.LASER;
-  const tieByVictory = tieBreakByVictory ?? isLaserSabre;
-  const isLocked =
-    pool.fencers.length > 0 &&
-    signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
-  const fencers = pool.fencers;
-
-  const isVisible = useCallback(
-    (columnId: ColumnId): boolean => {
-      if (columnId === 'quest' && !isLaserSabre) return false;
-      return isColumnVisible('pool', columnId, pool.id);
-    },
-    [isLaserSabre, isColumnVisible, pool.id]
-  );
-
-  // Filtre de colonnes modifié (colonne masquée ou option PDF) → bordure orange (#1032)
-  const columnFilterEdited =
-    POOL_COLUMNS.some(col => (col.id !== 'quest' || isLaserSabre) && !isVisible(col.id)) ||
-    pdfHideStatColumns ||
-    pdfLandscape;
-
-  const columnMenuRef = useRef<HTMLDivElement>(null);
-  const handleScoreSubmitRef = useRef<() => void>(() => {});
-  // Égalité (armes olympiques, rapières) : minute prioritaire tirée et saisie rapide V (#1442)
-  const [priorityPick, setPriorityPick] = useState<'A' | 'B' | null>(null);
-  const [showTieChooser, setShowTieChooser] = useState(false);
-  const [showPriorityDraw, setShowPriorityDraw] = useState(false);
-  const [victoryText, setVictoryText] = useState('');
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (columnMenuRef.current && !columnMenuRef.current.contains(event.target as Node)) {
-        setShowColumnMenu(false);
-      }
-    };
-    if (showColumnMenu) document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showColumnMenu]);
-
-  // Charger les signatures au montage et écouter les mises à jour en temps réel
-  useEffect(() => {
-    window.electronAPI.db.getPoolSignatures(pool.id).then(sigs => {
-      setSignedFencerIds(sigs.map(s => s.fencerId));
-    });
-    const unsub = window.electronAPI.onPoolSignatureUpdated(data => {
-      if (data.poolId === pool.id) {
-        setSignedFencerIds(data.signedFencerIds);
-      }
-    });
-    return unsub;
-  }, [pool.id]);
-
-  // Raccourcis clavier
-
-  // Clé de statut stable : recalculée seulement quand un statut change réellement
-  const matchesStatusKey = useMemo(() => pool.matches.map(m => m.status).join(','), [pool.matches]);
-
-  const orderedMatches = useMemo(() => {
-    const cancelled = pool.matches
-      .map((m, idx) => ({ match: m, index: idx }))
-      .filter(({ match }) => match.status === MatchStatus.CANCELLED);
-
-    const pending = pool.matches
-      .map((m, idx) => ({ match: m, index: idx }))
-      .filter(
-        ({ match }) =>
-          match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED
-      );
-
-    const finished = pool.matches
-      .map((m, idx) => ({ match: m, index: idx }))
-      .filter(({ match }) => match.status === MatchStatus.FINISHED);
-
-    if (pending.length === 0) return { pending: [], finished, cancelled };
-
-    // Algorithme pour éviter qu'un tireur combatte 2 fois d'affilée
-    const ordered: typeof pending = [];
-    const remaining = [...pending];
-    let lastFencerIds: Set<string> = new Set();
-
-    // Si des matchs ont déjà été joués, récupérer les derniers combattants
-    if (finished.length > 0) {
-      const lastMatch = finished[finished.length - 1].match;
-      if (lastMatch.fencerA) lastFencerIds.add(lastMatch.fencerA.id);
-      if (lastMatch.fencerB) lastFencerIds.add(lastMatch.fencerB.id);
-    }
-
-    while (remaining.length > 0) {
-      // Chercher un match où aucun des deux tireurs n'a combattu au dernier tour
-      let bestIdx = -1;
-      let bestScore = -1;
-
-      for (let i = 0; i < remaining.length; i++) {
-        const { match } = remaining[i];
-        const fencerAId = match.fencerA?.id || '';
-        const fencerBId = match.fencerB?.id || '';
-
-        let score = 0;
-        if (!lastFencerIds.has(fencerAId)) score++;
-        if (!lastFencerIds.has(fencerBId)) score++;
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestIdx = i;
-        }
-
-        // Score parfait (2) = aucun des deux n'a combattu
-        if (score === 2) break;
-      }
-
-      // Prendre le meilleur match trouvé (ou le premier si aucun idéal)
-      const chosenIdx = bestIdx >= 0 ? bestIdx : 0;
-      const chosen = remaining.splice(chosenIdx, 1)[0];
-      ordered.push(chosen);
-
-      // Mettre à jour les derniers combattants
-      lastFencerIds = new Set();
-      if (chosen.match.fencerA) lastFencerIds.add(chosen.match.fencerA.id);
-      if (chosen.match.fencerB) lastFencerIds.add(chosen.match.fencerB.id);
-    }
-
-    return { pending: ordered, finished, cancelled };
-  }, [pool.matches, matchesStatusKey]);
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ne pas interférer si un input natif est actif (sauf ceux du modal)
-      const target = e.target as HTMLElement;
-      const inModalInput = target.tagName === 'INPUT' && target.closest('.modal');
-
-      if (editingMatch !== null) {
-        // Modal ouvert
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          setEditingMatch(null);
-          setIsMatchInverted(false);
-          setKeyboardFocusField('A');
-          return;
-        }
-        if (e.key === 'Enter' && !inModalInput) {
-          e.preventDefault();
-          handleScoreSubmitRef.current();
-          return;
-        }
-        if (e.key === 'Tab' && !inModalInput) {
-          e.preventDefault();
-          setKeyboardFocusField(prev => (prev === 'A' ? 'B' : 'A'));
-          return;
-        }
-        if ((e.key === 'v' || e.key === 'V') && tieByVictory && !inModalInput) {
-          e.preventDefault();
-          if (keyboardFocusField === 'A') {
-            setVictoryA(prev => !prev);
-            setVictoryB(false);
-          } else {
-            setVictoryB(prev => !prev);
-            setVictoryA(false);
-          }
-          return;
-        }
-        if (/^\d$/.test(e.key) && !inModalInput) {
-          e.preventDefault();
-          const digit = e.key;
-          if (keyboardFocusField === 'A') {
-            setEditScoreA(prev => (prev.length < 2 ? prev + digit : digit));
-          } else {
-            setEditScoreB(prev => (prev.length < 2 ? prev + digit : digit));
-          }
-          return;
-        }
-      } else {
-        // Modal fermé
-        if (
-          (e.key === 'n' || e.key === 'N') &&
-          !inModalInput &&
-          target.tagName !== 'INPUT' &&
-          target.tagName !== 'TEXTAREA'
-        ) {
-          e.preventDefault();
-          if (!isLocked) {
-            const firstPending = orderedMatches.pending[0];
-            if (firstPending) {
-              openScoreModal(firstPending.index);
-              setKeyboardFocusField('A');
-            }
-          }
-          return;
-        }
-        if (e.key === 'z' && e.ctrlKey && !e.shiftKey) {
-          e.preventDefault();
-          if (!isLocked) undo();
-          return;
-        }
-        if (
-          (e.key === 'y' && e.ctrlKey) ||
-          (e.key === 'z' && e.ctrlKey && e.shiftKey) ||
-          (e.key === 'Z' && e.ctrlKey && e.shiftKey)
-        ) {
-          e.preventDefault();
-          if (!isLocked) redo();
-          return;
-        }
-        // Saisie simplifiée : survoler une case puis Suppr efface le score de ce match.
-        if (
-          e.key === 'Delete' &&
-          simplifiedInputMode &&
-          !isLocked &&
-          !inModalInput &&
-          target.tagName !== 'INPUT' &&
-          target.tagName !== 'TEXTAREA' &&
-          hoveredFencerIds.size === 2
-        ) {
-          e.preventDefault();
-          const [idA, idB] = Array.from(hoveredFencerIds);
-          const fencerA = fencers.find(f => f.id === idA);
-          const fencerB = fencers.find(f => f.id === idB);
-          if (fencerA && fencerB) {
-            const matchIndex = getMatchIndex(fencerA, fencerB);
-            if (matchIndex !== -1 && pool.matches[matchIndex]?.status === MatchStatus.FINISHED) {
-              handleMatchDelete(matchIndex);
-            }
-          }
-          return;
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [
-    editingMatch,
-    keyboardFocusField,
-    isLaserSabre,
-    orderedMatches.pending,
-    undo,
-    redo,
-    simplifiedInputMode,
-    isLocked,
+    handleCellClick,
+    onFencerChangePool,
+    getMatchIndex,
+    quickMouseScoring,
     hoveredFencerIds,
-    fencers,
-    pool.matches,
-    handleMatchDelete,
-  ]);
-
-  // Calculer l'ordre optimal des matches restants
-
-  const getMatchIndex = (fencerA: Fencer, fencerB: Fencer): number => {
-    return pool.matches.findIndex(
-      m =>
-        (m.fencerA?.id === fencerA.id && m.fencerB?.id === fencerB.id) ||
-        (m.fencerA?.id === fencerB.id && m.fencerB?.id === fencerA.id)
-    );
-  };
-
-  const { modalRef } = useModalResize({
-    defaultWidth: 1440, // Doublé de 720 à 1440 (+100%)
-    defaultHeight: 400,
-    minWidth: 960, // Doublé de 480 à 960 (+100%)
-    minHeight: 300,
-  });
-
-  const closeAndResetScoreModal = () => {
-    setEditingMatch(null);
-    setIsMatchInverted(false);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
-    setPriorityPick(null);
-    setShowTieChooser(false);
-    setShowPriorityDraw(false);
-    setVictoryText('');
-  };
-
-  /** Égalité tranchée : V, minute prioritaire, ou égalité sans vainqueur (« Aucun ») (#1442) */
-  const commitTie = (scoreA: number, scoreB: number, winner?: 'A' | 'B', priority?: 'A' | 'B') => {
-    if (editingMatch === null) return;
-    const matchIdx = editingMatch;
-    const match = pool.matches[matchIdx];
-    const prevScoreA = match?.scoreA?.value ?? null;
-    const prevScoreB = match?.scoreB?.value ?? null;
-    addAction({
-      type: 'UPDATE_SCORE',
-      description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-      undo: () => {
-        if (prevScoreA !== null && prevScoreB !== null)
-          onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-      },
-      redo: () => {
-        onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
-      },
-    });
-    onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
-    setMatchesUpdateTrigger(prev => prev + 1);
-    closeAndResetScoreModal();
-  };
-
-  /** Choix du vainqueur à égalité (gauche / droite affichées, ou « Aucun ») */
-  const chooseTieWinner = (choice: 'left' | 'right' | 'none') => {
-    const sL = parseInt(editScoreA, 10) || 0;
-    const sR = parseInt(editScoreB, 10) || 0;
-    const scoreA = isMatchInverted ? sR : sL;
-    const scoreB = isMatchInverted ? sL : sR;
-    const winner: 'A' | 'B' | undefined =
-      choice === 'none' ? undefined : (choice === 'left') !== isMatchInverted ? 'A' : 'B';
-    commitTie(scoreA, scoreB, winner);
-  };
-
-  /** Saisie rapide « V4-4 » / « 4-V4 » : remplit les scores et le V affichés */
-  const handleVictoryText = (text: string) => {
-    setVictoryText(text);
-    const parsed = parseVictoryScoreInput(text);
-    if (!parsed) return;
-    setEditScoreA(String(parsed.left));
-    setEditScoreB(String(parsed.right));
-    setVictoryA(parsed.victoryLeft);
-    setVictoryB(parsed.victoryRight);
-  };
-
-  // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
-  const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeAndResetScoreModal);
-
-  const openScoreModal = (matchIndex: number, inverted = false) => {
-    const match = pool.matches[matchIndex];
-    setEditingMatch(matchIndex);
-    setIsMatchInverted(inverted);
-    setEditScoreA(
-      inverted ? match.scoreB?.value?.toString() || '' : match.scoreA?.value?.toString() || ''
-    );
-    setEditScoreB(
-      inverted ? match.scoreA?.value?.toString() || '' : match.scoreB?.value?.toString() || ''
-    );
-    // Restaurer la victoire existante (ex: match déjà saisi par tirage au sort)
-    setVictoryA(!inverted ? !!match.scoreA?.isVictory : !!match.scoreB?.isVictory);
-    setVictoryB(!inverted ? !!match.scoreB?.isVictory : !!match.scoreA?.isVictory);
-  };
-
-  const handleHoverCell = (rowFencer: Fencer, colFencer: Fencer) => {
-    setHoveredFencerIds(new Set([rowFencer.id, colFencer.id]));
-  };
-
-  const handleHoverLeave = () => setHoveredFencerIds(new Set());
-
-  const handleWheelScore = (
-    rowFencer: Fencer,
-    colFencer: Fencer,
-    shiftKey: boolean,
-    delta: number
-  ) => {
-    if (isLocked) return;
-    const matchIndex = getMatchIndex(rowFencer, colFencer);
-    if (matchIndex === -1) return;
-    const match = pool.matches[matchIndex];
-    if (!match || match.status === MatchStatus.CANCELLED) return;
-    if (match.scoreA?.isAbstention || match.scoreA?.isExclusion || match.scoreA?.isForfait) return;
-
-    const inverted = match.fencerA?.id === colFencer.id;
-    const curA = match.scoreA?.value ?? 0;
-    const curB = match.scoreB?.value ?? 0;
-    let scoreLeft = inverted ? curB : curA;
-    let scoreRight = inverted ? curA : curB;
-
-    const effectiveMax = maxScore || match.maxScore || 5;
-    if (!shiftKey) {
-      scoreLeft = Math.max(0, Math.min(effectiveMax, scoreLeft + delta));
-    } else {
-      scoreRight = Math.max(0, Math.min(effectiveMax, scoreRight + delta));
-    }
-
-    const actualScoreA = inverted ? scoreRight : scoreLeft;
-    const actualScoreB = inverted ? scoreLeft : scoreRight;
-
-    if (actualScoreA === actualScoreB) {
-      if (tieByVictory) {
-        openScoreModal(matchIndex, inverted);
-      }
-      return;
-    }
-
-    onScoreUpdate(matchIndex, actualScoreA, actualScoreB);
-  };
-
-  const getOrderedCells = () => {
-    const cells: Array<{
-      rowFencer: Fencer;
-      colFencer: Fencer;
-      key: string;
-      matchIndex: number;
-      inverted: boolean;
-    }> = [];
-    for (const rowFencer of fencers) {
-      for (const colFencer of fencers) {
-        if (rowFencer.id === colFencer.id) continue;
-        const isAbandoned =
-          rowFencer.status === FencerStatus.ABANDONED ||
-          rowFencer.status === FencerStatus.FORFAIT ||
-          rowFencer.status === FencerStatus.EXCLUDED ||
-          colFencer.status === FencerStatus.ABANDONED ||
-          colFencer.status === FencerStatus.FORFAIT ||
-          colFencer.status === FencerStatus.EXCLUDED;
-        if (isAbandoned) continue;
-        const matchIndex = getMatchIndex(rowFencer, colFencer);
-        if (matchIndex === -1) continue;
-        const match = pool.matches[matchIndex];
-        if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED)
-          continue;
-        const inverted = match.fencerA?.id === colFencer.id;
-        cells.push({
-          rowFencer,
-          colFencer,
-          key: `${rowFencer.id}-${colFencer.id}`,
-          matchIndex,
-          inverted,
-        });
-      }
-    }
-    return cells;
-  };
-
-  const openNextCell = (
-    currentKey: string,
-    skipKeys: Set<string>,
-    buffer: Record<string, number>
-  ) => {
-    const cells = getOrderedCells();
-    const currentIndex = cells.findIndex(c => c.key === currentKey);
-    const startFrom = currentIndex === -1 ? 0 : currentIndex + 1;
-    for (let i = startFrom; i < cells.length; i++) {
-      if (!skipKeys.has(cells[i].key)) {
-        const next = cells[i];
-        setInlineEditCell({
-          key: next.key,
-          rowId: next.rowFencer.id,
-          colId: next.colFencer.id,
-          matchIndex: next.matchIndex,
-          inverted: next.inverted,
-        });
-        setInlineSingleScore(buffer[next.key] !== undefined ? String(buffer[next.key]) : '');
-        return;
-      }
-    }
-    setInlineEditCell(null);
-    setInlineSingleScore('');
-  };
-
-  // Score déjà enregistré pour une case (côté ligne), si le match a été saisi
-  const getRecordedCellScore = (matchIndex: number, inverted: boolean, mirror = false) => {
-    const match = pool.matches[matchIndex];
-    if (!match || match.status !== MatchStatus.FINISHED) return undefined;
-    const side = inverted !== mirror ? match.scoreB : match.scoreA;
-    return side?.value ?? undefined;
-  };
-
-  const handleCellClick = (rowFencer: Fencer, colFencer: Fencer) => {
-    if (isLocked) return;
-    if (rowFencer.id === colFencer.id) return;
-    const matchIndex = getMatchIndex(rowFencer, colFencer);
-    if (matchIndex === -1) return;
-    const match = pool.matches[matchIndex];
-    const inverted = match.fencerA?.id === colFencer.id;
-    if (simplifiedInputMode) {
-      const key = `${rowFencer.id}-${colFencer.id}`;
-      setInlineEditCell({ key, rowId: rowFencer.id, colId: colFencer.id, matchIndex, inverted });
-      const current = cellScoreBuffer[key] ?? getRecordedCellScore(matchIndex, inverted);
-      setInlineSingleScore(current !== undefined ? String(current) : '');
-      return;
-    }
-    openScoreModal(matchIndex, inverted);
-  };
-
-  const handleInlineSubmit = () => {
-    if (!inlineEditCell) return;
-    const { key, rowId, colId, matchIndex, inverted } = inlineEditCell;
-    const score = parseInt(inlineSingleScore, 10);
-
-    if (isNaN(score) || score < 0) {
-      openNextCell(key, new Set(), cellScoreBuffer);
-      return;
-    }
-
-    const mirrorKey = `${colId}-${rowId}`;
-    const newBuffer = { ...cellScoreBuffer, [key]: score };
-
-    // Match déjà enregistré : la case miroir reprend son score actuel (#1046)
-    const mirrorScore = newBuffer[mirrorKey] ?? getRecordedCellScore(matchIndex, inverted, true);
-
-    if (mirrorScore !== undefined) {
-      const actualScoreA = inverted ? mirrorScore : score;
-      const actualScoreB = inverted ? score : mirrorScore;
-
-      const effectiveMax = maxScore || pool.matches[matchIndex]?.maxScore || 0;
-      if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
-        showToast(t('poolView.max_score', { max: effectiveMax }), 'error');
-        return;
-      }
-      if (actualScoreA === actualScoreB && !isLaserSabre) {
-        // Olympique / rapières : l'égalité se tranche dans la fenêtre de saisie (V ou prioritaire)
-        if (tieByVictory) {
-          openScoreModal(matchIndex, inverted);
-          return;
-        }
-        showToast(t('poolView.draw_impossible'), 'error');
-        return;
-      }
-
-      const { [key]: _a, [mirrorKey]: _b, ...restBuffer } = newBuffer;
-      setCellScoreBuffer(restBuffer);
-      onScoreUpdate(matchIndex, actualScoreA, actualScoreB);
-      openNextCell(key, new Set([key, mirrorKey]), restBuffer);
-    } else {
-      setCellScoreBuffer(newBuffer);
-      openNextCell(key, new Set(), newBuffer);
-    }
-  };
-
-  const handleInlineCancel = () => {
-    setInlineEditCell(null);
-    setInlineSingleScore('');
-  };
-
-  const handleScoreSubmit = () => {
-    if (editingMatch === null) return;
-
-    const scoreLeft = parseInt(editScoreA, 10) || 0;
-    const scoreRight = parseInt(editScoreB, 10) || 0;
-
-    // Valider que les scores ne dépassent pas le maximum
-    // Le réglage courant (prop) prime sur le maxScore figé à la génération du match
-    const effectiveMax = maxScore || pool.matches[editingMatch]?.maxScore || 0;
-    if (effectiveMax > 0) {
-      if (scoreLeft > effectiveMax) {
-        showToast(t('poolView.max_score_a', { max: effectiveMax }), 'error');
-        return;
-      }
-      if (scoreRight > effectiveMax) {
-        showToast(t('poolView.max_score_b', { max: effectiveMax }), 'error');
-        return;
-      }
-    }
-
-    // Remettre dans l'ordre fencerA/fencerB du match si la vue est inversée
-    const actualScoreA = isMatchInverted ? scoreRight : scoreLeft;
-    const actualScoreB = isMatchInverted ? scoreLeft : scoreRight;
-
-    // Capturer l'ancien score pour l'historique
-    const match = pool.matches[editingMatch];
-    const prevScoreA =
-      typeof match?.scoreA === 'number' ? match.scoreA : ((match?.scoreA as any)?.value ?? null);
-    const prevScoreB =
-      typeof match?.scoreB === 'number' ? match.scoreB : ((match?.scoreB as any)?.value ?? null);
-    const matchIdx = editingMatch;
-
-    if (actualScoreA === actualScoreB) {
-      if (tieByVictory && (victoryA || victoryB)) {
-        // victoryA = victoire du tireur affiché à gauche (= fencerA si normal, fencerB si inversé)
-        const winnerLeft = victoryA;
-        const winner: 'A' | 'B' = isMatchInverted
-          ? winnerLeft
-            ? 'B'
-            : 'A'
-          : winnerLeft
-            ? 'A'
-            : 'B';
-        addAction({
-          type: 'UPDATE_SCORE',
-          description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-          undo: () => {
-            if (prevScoreA !== null && prevScoreB !== null)
-              onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-          },
-          redo: () => {
-            onScoreUpdate(matchIdx, actualScoreA, actualScoreB, winner);
-          },
-        });
-        onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
-      } else if (isLaserSabre) {
-        showToast(t('poolView.draw_laser'), 'warning');
-        return;
-      } else if (victoryA || victoryB) {
-        // Tirage au sort déjà décidé (ex: résultat importé depuis une tablette arbitre)
-        const winnerLeft = victoryA;
-        const winner: 'A' | 'B' = isMatchInverted
-          ? winnerLeft
-            ? 'B'
-            : 'A'
-          : winnerLeft
-            ? 'A'
-            : 'B';
-        addAction({
-          type: 'UPDATE_SCORE',
-          description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-          undo: () => {
-            if (prevScoreA !== null && prevScoreB !== null)
-              onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-          },
-          redo: () => {
-            onScoreUpdate(matchIdx, actualScoreA, actualScoreB, winner);
-          },
-        });
-        onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
-      } else if (tieByVictory) {
-        // Minute prioritaire tirée avant la minute supplémentaire : le prioritaire gagne sans touche
-        if (priorityPick) {
-          commitTie(actualScoreA, actualScoreB, undefined, priorityPick);
-        } else {
-          setShowTieChooser(true);
-        }
-        return;
-      } else {
-        showToast(t('poolView.draw_live'), 'error');
-        return;
-      }
-    } else {
-      addAction({
-        type: 'UPDATE_SCORE',
-        description: `Score poule ${pool.number} match ${matchIdx + 1}`,
-        undo: () => {
-          if (prevScoreA !== null && prevScoreB !== null)
-            onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
-        },
-        redo: () => {
-          onScoreUpdate(matchIdx, actualScoreA, actualScoreB);
-        },
-      });
-      onScoreUpdate(editingMatch, actualScoreA, actualScoreB);
-    }
-
-    // Forcer la mise à jour de l'ordre des matchs
-    setMatchesUpdateTrigger(prev => prev + 1);
-
-    // Fermer le modal immédiatement après la mise à jour
-    closeAndResetScoreModal();
-  };
-
-  // Mettre à jour la ref avec la fonction actuelle
-  handleScoreSubmitRef.current = handleScoreSubmit;
-
-  // Ouvre la modale « Quel est le combattant … ? ». Les erreurs arrivent : on
-  // ne déclenche rien tant que le référent n'a pas désigné un combattant.
-  const handleSpecialStatus = (status: PoolSpecialStatus) => {
-    if (editingMatch === null) return;
-    setPendingSpecialStatus(status);
-  };
-
-  // Le référent a désigné le combattant concerné (côté affiché) dans la modale
-  const applySpecialStatus = (side: 'left' | 'right', blackCard = false) => {
-    const status = pendingSpecialStatus;
-    if (status === null || editingMatch === null) {
-      setPendingSpecialStatus(null);
-      return;
-    }
-
-    const match = pool.matches[editingMatch];
-    const out = specialStatusOutcome({
-      side,
-      inverted: isMatchInverted,
-      status,
-      isLaserSabre,
-      editScoreLeft: editScoreA,
-      editScoreRight: editScoreB,
-      scoreA: match.scoreA?.value,
-      scoreB: match.scoreB?.value,
-      maxScore,
-    });
-    onScoreUpdate(editingMatch, out.scoreA, out.scoreB, out.winner, status);
-    const loserFencer = out.loser === 'A' ? match.fencerA : match.fencerB;
-    if (onFencerStatusChange && loserFencer) {
-      onFencerStatusChange(loserFencer.id, status, blackCard);
-    }
-
-    // Forcer la mise à jour de l'ordre des matchs
-    setMatchesUpdateTrigger(prev => prev + 1);
-
-    // Fermer les modales immédiatement après la mise à jour
-    setPendingSpecialStatus(null);
-    closeAndResetScoreModal();
-  };
-
-  const finishedCount = useMemo(
-    () => pool.matches.filter(m => m.status === MatchStatus.FINISHED).length,
-    [pool.matches]
-  );
-  const totalMatches = pool.matches.length;
-
-  // Options communes à l'export PDF et à l'impression de la feuille de poule
-  const buildPoolPrintOptions = async () => {
-    const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-    const sigsArray = await window.electronAPI.db.getPoolSignatures(pool.id);
-    const signatures = Object.fromEntries(sigsArray.map(s => [s.fencerId, s.signatureData]));
-    return {
-      title: `Poule ${pool.number} - ${pool.fencers.length} tireurs`,
-      includeFinishedMatches: true,
-      includePendingMatches: true,
-      includePoolStats: true,
-      logoBase64: logo,
-      competitionName,
-      competitionId,
-      visibleColumns: getVisibleColumns('pool', pool.id),
-      hideStatColumns: pdfHideStatColumns,
-      landscape: pdfLandscape,
-      signatures,
-      stripQrUrl: stripQr?.url,
-      stripNumber: stripQr?.strip,
-    };
-  };
-
-  const errorText = (e: unknown) => (e instanceof Error ? e.message : t('poolView.unknown_error'));
-
-  // Export PDF function
-  const handleExportPDF = async () => {
-    try {
-      const options = await buildPoolPrintOptions();
-      const { exportPoolToPDF } = await import('../../shared/utils/pdfExport');
-      await exportPoolToPDF(pool, options, poolTemplate);
-      showToast(t('poolView.pdf_done', { n: pool.number }), 'success');
-    } catch (error) {
-      logger.error(LogCategory.UI, "Erreur lors de l'export PDF", error as Error);
-      showToast(t('poolView.pdf_error', { error: errorText(error) }), 'error');
-    }
-  };
-
-  // Impression directe de la feuille de poule (Ctrl+P / bouton 🖨️)
-  const handlePrintPool = async () => {
-    try {
-      const options = await buildPoolPrintOptions();
-      const { printPoolHTML } = await import('../../shared/utils/pdfExport');
-      await printPoolHTML(pool, options, poolTemplate);
-    } catch (error) {
-      logger.error(LogCategory.UI, "Erreur lors de l'impression de la poule", error as Error);
-      showToast(t('poolView.print_error', { error: errorText(error) }), 'error');
-    }
-  };
-
-  // Fonction pour remplir automatiquement tous les scores de la poule (pour les tests)
-  const handleAutoFillScores = async () => {
-    const confirmed = await confirm({
-      message: t('poolView.autofill_confirm'),
-      confirmLabel: t('poolView.autofill_ok'),
-      cancelLabel: t('actions.cancel'),
-    });
-
-    if (!confirmed) return;
-
-    const pendingMatches = pool.matches
-      .map((match, index) => ({ match, index }))
-      .filter(({ match }) => match.status !== MatchStatus.FINISHED);
-
-    if (pendingMatches.length === 0) {
-      showToast(t('poolView.all_finished'), 'info');
-      return;
-    }
-
-    // Arbitres : ceux de la poule en priorité, sinon ceux de la compétition (statistiques de test)
-    const refereeCandidates =
-      assignedReferees.length > 0 ? assignedReferees : (autoFillReferees ?? []);
-    if (onAutoFillReferees && refereeCandidates.length > 0) {
-      const load = new Map<string, number>();
-      for (const m of pool.matches) {
-        if (m.referee) load.set(m.referee.id, (load.get(m.referee.id) ?? 0) + 1);
-      }
-      const assignments = autoAssignReferees(
-        pendingMatches.map(({ match }) => match).filter(m => !m.referee),
-        refereeCandidates,
-        load
-      );
-      if (assignments.size > 0) onAutoFillReferees(assignments);
-    }
-
-    // Scores tirés au hasard, puis appliqués ; une seule action annulable (Ctrl+Z) (#1037)
-    const generated: Array<{ index: number; a: number; b: number; winner?: 'A' | 'B' }> = [];
-    for (const { index } of pendingMatches) {
-      const scoreA = Math.floor(Math.random() * (maxScore + 1));
-      const scoreB = Math.floor(Math.random() * (maxScore + 1));
-
-      if (scoreA === scoreB) {
-        if (isLaserSabre) {
-          // En sabre laser, désigner un vainqueur aléatoire en cas d'égalité
-          generated.push({ index, a: scoreA, b: scoreB, winner: Math.random() > 0.5 ? 'A' : 'B' });
-        } else if (scoreA === 0) {
-          // En escrime classique, éviter l'égalité
-          generated.push({ index, a: 1, b: 0 });
-        } else if (Math.random() > 0.5) {
-          generated.push({ index, a: scoreA + 1, b: scoreB });
-        } else {
-          generated.push({ index, a: scoreA, b: scoreB + 1 });
-        }
-      } else {
-        // Scores différents : désigner le vainqueur explicitement
-        generated.push({ index, a: scoreA, b: scoreB, winner: scoreA > scoreB ? 'A' : 'B' });
-      }
-    }
-
-    const applyGenerated = () => {
-      for (const g of generated) onScoreUpdate(g.index, g.a, g.b, g.winner);
-      setMatchesUpdateTrigger(prev => prev + 1);
-    };
-    addAction({
-      type: 'UPDATE_SCORE',
-      description: `Scores aléatoires poule ${pool.number} (${generated.length} matchs)`,
-      undo: () => {
-        for (const g of generated) onMatchReset?.(g.index);
-        setMatchesUpdateTrigger(prev => prev + 1);
-      },
-      redo: applyGenerated,
-    });
-    applyGenerated();
-
-    showToast(t('plural.scores_generated', { count: pendingMatches.length }), 'success');
-  };
-
-  // Render Score Modal
-  const renderScoreModal = () => {
-    if (editingMatch === null) return null;
-
-    const match = pool.matches[editingMatch];
-
-    return (
-      // Clic hors de la fenêtre : ne ferme pas (#1115)
-      <div className="modal-overlay" ref={scoreTrapRef}>
-        <div
-          ref={modalRef}
-          className="modal resizable"
-          style={SCORE_MODAL}
-          onClick={e => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="modal-header is-0430c2">
-            <h3 className="modal-title">{t('poolView.quick_score')}</h3>
-          </div>
-          <div className="modal-body is-a48125">
-            {/* Égalité olympique / rapières : saisie rapide V4-4 et minute prioritaire (#1442) */}
-            {tieByVictory && !isLaserSabre && (
-              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={victoryText}
-                  placeholder={t('poolView.victory_input_placeholder')}
-                  aria-label={t('poolView.victory_input_placeholder')}
-                  onChange={e => handleVictoryText(e.target.value)}
-                />
-                {editScoreA !== '' &&
-                  editScoreB !== '' &&
-                  (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
-                  !!pool.matches[editingMatch]?.fencerA &&
-                  !!pool.matches[editingMatch]?.fencerB && (
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <button
-                        type="button"
-                        className="btn btn-warning"
-                        onClick={() => setShowPriorityDraw(true)}
-                      >
-                        🪙 {t('poolView.priority_draw')}
-                      </button>
-                      {priorityPick && (
-                        <span className="text-muted">
-                          {t('poolView.priority_holder', {
-                            name: (() => {
-                              const f =
-                                priorityPick === 'A'
-                                  ? pool.matches[editingMatch]?.fencerA
-                                  : pool.matches[editingMatch]?.fencerB;
-                              return f ? `${f.lastName} ${f.firstName}`.trim() : '';
-                            })(),
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  )}
-              </div>
-            )}
-            {showPriorityDraw &&
-              pool.matches[editingMatch]?.fencerA &&
-              pool.matches[editingMatch]?.fencerB && (
-                <TiebreakerAnimation
-                  fencerA={pool.matches[editingMatch]!.fencerA!}
-                  fencerB={pool.matches[editingMatch]!.fencerB!}
-                  onComplete={winner => {
-                    setPriorityPick(winner);
-                    setShowPriorityDraw(false);
-                  }}
-                />
-              )}
-            {/* Ligne unique avec les deux tireurs côte à côte */}
-            <div style={SCORE_ROW}>
-              {/* Tireur gauche (ligne dans la grille) */}
-              {(() => {
-                const f = isMatchInverted ? match.fencerB : match.fencerA;
-                return (
-                  <div style={nameCol('flex-end')}>
-                    <div style={nameLast('right')}>{f?.lastName}</div>
-                    <div style={nameFirst('right')}>
-                      {f?.firstName} {f?.club && `(${f.club})`}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Bouton Victoire (égalité) A */}
-              {tieByVictory && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setVictoryA(!victoryA);
-                    setVictoryB(false);
-                  }}
-                  style={victoryBtn(victoryA)}
-                >
-                  V
-                </button>
-              )}
-
-              {/* Input Score A */}
-              <input
-                type="number"
-                className="form-input"
-                style={scoreInput(
-                  (parseInt(editScoreA, 10) || 0) >
-                    (maxScore ||
-                      (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                      999)
-                )}
-                value={editScoreA}
-                onChange={e => setEditScoreA(e.target.value)}
-                min="0"
-                max={
-                  maxScore ||
-                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                  undefined
-                }
-                autoFocus
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleScoreSubmitRef.current();
-                  } else if (e.key === 'Tab' && !e.shiftKey) {
-                    e.preventDefault();
-                    const modalBody = e.currentTarget.closest('.modal-body');
-                    if (modalBody) {
-                      const inputs = modalBody.querySelectorAll('input[type="number"]');
-                      if (inputs.length > 1) {
-                        const nextInput = inputs[1] as HTMLInputElement;
-                        nextInput.focus();
-                        nextInput.select();
-                      }
-                    }
-                  }
-                }}
-              />
-
-              {/* Séparateur */}
-              <span style={SCORE_SEP}>:</span>
-
-              {/* Input Score B */}
-              <input
-                type="number"
-                className="form-input"
-                style={scoreInput(
-                  (parseInt(editScoreB, 10) || 0) >
-                    (maxScore ||
-                      (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                      999)
-                )}
-                value={editScoreB}
-                onChange={e => setEditScoreB(e.target.value)}
-                min="0"
-                max={
-                  maxScore ||
-                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                  undefined
-                }
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleScoreSubmitRef.current();
-                  } else if (e.key === 'Tab' && e.shiftKey) {
-                    e.preventDefault();
-                    const modalBody = e.currentTarget.closest('.modal-body');
-                    if (modalBody) {
-                      const inputs = modalBody.querySelectorAll('input[type="number"]');
-                      if (inputs.length > 0) {
-                        const prevInput = inputs[0] as HTMLInputElement;
-                        prevInput.focus();
-                        prevInput.select();
-                      }
-                    }
-                  }
-                }}
-              />
-
-              {/* Bouton Victoire (égalité) B */}
-              {tieByVictory && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setVictoryB(!victoryB);
-                    setVictoryA(false);
-                  }}
-                  style={victoryBtn(victoryB)}
-                >
-                  V
-                </button>
-              )}
-
-              {/* Tireur droite (colonne dans la grille) */}
-              {(() => {
-                const f = isMatchInverted ? match.fencerA : match.fencerB;
-                return (
-                  <div style={nameCol('flex-start')}>
-                    <div style={nameLast('left')}>{f?.lastName}</div>
-                    <div style={nameFirst('left')}>
-                      {f?.firstName} {f?.club && `(${f.club})`}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Info égalité sabre laser */}
-            {isLaserSabre && (
-              <p className="text-sm text-muted is-b92227">{t('poolView.tie_hint')}</p>
-            )}
-
-            {/* Choix du tireur concerné : même affichage que le tableau, sans pop-up (#1418) */}
-            {pendingSpecialStatus !== null && editingMatch !== null && (
-              <SpecialStatusPanel
-                status={pendingSpecialStatus}
-                fencers={specialStatusFencers(
-                  pool.matches[editingMatch][isMatchInverted ? 'fencerB' : 'fencerA'],
-                  pool.matches[editingMatch][isMatchInverted ? 'fencerA' : 'fencerB']
-                )}
-                onConfirm={(id, blackCard) => {
-                  const m = pool.matches[editingMatch];
-                  const leftId = (isMatchInverted ? m.fencerB : m.fencerA)?.id;
-                  applySpecialStatus(id === leftId ? 'left' : 'right', blackCard);
-                }}
-                onCancel={() => setPendingSpecialStatus(null)}
-              />
-            )}
-            {/* Boutons spéciaux sur une ligne */}
-            {pendingSpecialStatus === null && (
-              <div style={SPECIAL_ROW}>
-                <button
-                  className="btn btn-warning"
-                  onClick={() => handleSpecialStatus('abandon')}
-                  style={SPECIAL_BTN}
-                >
-                  <MedicalCrossIcon /> {t('poolView.btn_abandon')}
-                </button>
-                <button
-                  className="btn btn-warning"
-                  onClick={() => handleSpecialStatus('forfait')}
-                  style={SPECIAL_BTN}
-                >
-                  {t('poolView.btn_forfeit')}
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleSpecialStatus('exclusion')}
-                  style={SPECIAL_BTN}
-                >
-                  {t('poolView.btn_exclusion')}
-                </button>
-                {onMatchCancel && editingMatch !== null && (
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      if (editingMatch === null) return;
-                      onMatchCancel(editingMatch);
-                      closeAndResetScoreModal();
-                    }}
-                    style={SPECIAL_BTN}
-                  >
-                    {t('poolView.btn_cancel_match')}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          {showTieChooser ? (
-            <div className="modal-footer" style={FOOTER_RIGHT}>
-              <span className="text-muted">{t('poolView.tie_choose_winner')}</span>
-              {(['left', 'right'] as const).map(side => {
-                // Gauche affichée = fencerB si la saisie est inversée
-                const f =
-                  (side === 'left') !== isMatchInverted
-                    ? pool.matches[editingMatch]?.fencerA
-                    : pool.matches[editingMatch]?.fencerB;
-                return (
-                  <button
-                    key={side}
-                    className="btn btn-primary"
-                    onClick={() => chooseTieWinner(side)}
-                  >
-                    V · {f ? `${f.lastName} ${f.firstName}`.trim() : ''}
-                  </button>
-                );
-              })}
-              <button className="btn btn-warning" onClick={() => chooseTieWinner('none')}>
-                {t('poolView.tie_none')}
-              </button>
-              <button className="btn btn-secondary" onClick={() => setShowTieChooser(false)}>
-                {t('actions.cancel')}
-              </button>
-            </div>
-          ) : (
-            <div className="modal-footer" style={FOOTER_RIGHT}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => {
-                  setEditingMatch(null);
-                  setIsMatchInverted(false);
-                }}
-              >
-                {t('actions.cancel')}
-              </button>
-              <button className="btn btn-primary" onClick={handleScoreSubmit}>
-                {t('actions.validate')}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+    waveHighlightPairs,
+    simplifiedInputMode,
+    handleHoverCell,
+    handleHoverLeave,
+    handleWheelScore,
+    inlineEditCell,
+    inlineSingleScore,
+    cellScoreBuffer,
+    setInlineSingleScore,
+    handleInlineSubmit,
+    handleInlineCancel,
+    setShowFinishedLog,
+    showFinishedLog,
+  } = { ...props, ...poolViewState, ...poolViewInput, ...poolViewActions, ...poolScoreModal };
+  // Consultation des signatures depuis la pastille x/x (#1826)
+  const [showSignatures, setShowSignatures] = React.useState(false);
 
   // Modale de désignation du combattant pour abandon / forfait / exclusion.
   // Un bouton par combattant + un bouton Annuler (les erreurs, ça arrive).
   // Render Grid View
   const renderGridView = () => (
     <>
-      <PoolScoreMatrix
-        pool={pool}
-        isLaserSabre={isLaserSabre}
-        isVisible={isVisible}
-        toggleColumn={(context, columnId) => toggleColumn(context, columnId, pool.id)}
-        onCellClick={handleCellClick}
-        onFencerChangePool={onFencerChangePool}
-        isLocked={isLocked}
-        onMatchReset={
-          !isLocked && onMatchReset
-            ? (rowFencer, colFencer) => {
-                const matchIndex = getMatchIndex(rowFencer, colFencer);
-                if (matchIndex !== -1) handleMatchDelete(matchIndex);
-              }
-            : undefined
-        }
-        quickMouseScoring={quickMouseScoring}
-        highlightedFencerIds={hoveredFencerIds}
-        waveHighlightPairs={waveHighlightPairs}
-        onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
-        onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
-        onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
-        simplifiedInputMode={simplifiedInputMode}
-        inlineEditKey={inlineEditCell?.key ?? null}
-        inlineSingleScore={inlineSingleScore}
-        cellScoreBuffer={cellScoreBuffer}
-        onInlineSingleScoreChange={setInlineSingleScore}
-        onInlineSubmit={handleInlineSubmit}
-        onInlineCancel={handleInlineCancel}
-      />
+      <div className="pool-matrix-scroll">
+        <PoolScoreMatrix
+          pool={pool}
+          isLaserSabre={isLaserSabre}
+          isVisible={isVisible}
+          toggleColumn={(context, columnId) => toggleColumn(context, columnId, pool.id)}
+          onCellClick={handleCellClick}
+          onFencerChangePool={onFencerChangePool}
+          isLocked={isLocked}
+          onMatchReset={
+            !isLocked && onMatchReset
+              ? (rowFencer, colFencer) => {
+                  const matchIndex = getMatchIndex(rowFencer, colFencer);
+                  if (matchIndex !== -1) handleMatchDelete(matchIndex);
+                }
+              : undefined
+          }
+          quickMouseScoring={quickMouseScoring}
+          highlightedFencerIds={hoveredFencerIds}
+          waveHighlightPairs={waveHighlightPairs}
+          onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
+          onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
+          onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
+          simplifiedInputMode={simplifiedInputMode}
+          inlineEditKey={inlineEditCell?.key ?? null}
+          inlineSingleScore={inlineSingleScore}
+          cellScoreBuffer={cellScoreBuffer}
+          onInlineSingleScoreChange={setInlineSingleScore}
+          onInlineSubmit={handleInlineSubmit}
+          onInlineCancel={handleInlineCancel}
+          maxScore={maxScore}
+          categoryOf={categoryOf}
+        />
+      </div>
       {orderedMatches.finished.length > 0 && (
         <div className="mt-4">
           <button
@@ -1525,7 +205,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 transform: showFinishedLog ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
             >
-              ▶
+              <Icon icon={Play} />
             </span>
             {t('poolView.finished_log', { count: orderedMatches.finished.length })}
           </button>
@@ -1538,7 +218,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   style={LOG_ITEM}
                   title={t('poolView.view_match_log')}
                 >
-                  📋 {match.fencerA?.lastName} {t('poolView.vs')} {match.fencerB?.lastName}
+                  <Icon icon={ClipboardList} /> {match.fencerA?.lastName} {t('poolView.vs')}{' '}
+                  {match.fencerB?.lastName}
                 </button>
               ))}
             </div>
@@ -1619,8 +300,37 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     <>
       <div className="card">
         <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
-        {isLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
-        <div className="card-header pv-header">
+        {isSignedLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
+        {/* Tableau tiré : poule figée, correction explicite et vérifiée (#1996) */}
+        {tableauFreeze && !isSignedLocked && (
+          <div
+            className={`pv-tableau-freeze${tableauFreeze.correcting ? ' is-correcting' : ''}`}
+            role="status"
+          >
+            <Icon icon={tableauFreeze.correcting ? PencilLine : Lock} />
+            <span className="pv-tableau-freeze-text">
+              {t(
+                tableauFreeze.correcting ? 'poolView.tableau_correcting' : 'poolView.tableau_locked'
+              )}
+            </span>
+            <button
+              type="button"
+              className="pv-tableau-freeze-btn"
+              onClick={
+                tableauFreeze.correcting
+                  ? tableauFreeze.onEndCorrection
+                  : tableauFreeze.onStartCorrection
+              }
+            >
+              {t(
+                tableauFreeze.correcting
+                  ? 'poolView.tableau_correction_end'
+                  : 'poolView.tableau_correction_start'
+              )}
+            </button>
+          </div>
+        )}
+        <div className={`card-header pv-header${(cardScale ?? 1) >= 1.3 ? ' is-nowrap' : ''}`}>
           <div className="pv-header-left">
             <span>{t('poolView.pool_n', { n: pool.number })}</span>
             <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>
@@ -1647,7 +357,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               const allSigned = signed === total && total > 0;
               const noneSigned = signed === 0;
               return (
-                <span
+                <button
+                  type="button"
+                  onClick={() => setShowSignatures(true)}
+                  aria-label={t('poolView.signatures')}
                   title={
                     allSigned
                       ? t('poolView.all_signed')
@@ -1655,8 +368,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }
                   className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
                 >
-                  ✍️ {signed}/{total}
-                </span>
+                  <Icon icon={PenLine} /> {signed}/{total}
+                </button>
               );
             })()}
             <button
@@ -1673,95 +386,83 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               }
               className={`pv-pill${assignedReferee ? ' is-assigned' : ''}`}
             >
-              🧑‍⚖️{' '}
+              <Icon icon={Gavel} />{' '}
               {assignedReferees.length > 0
                 ? assignedReferees.map(r => r.lastName).join(' / ')
                 : t('poolView.add_referee')}
             </button>
+            {stripRange && onStripChange && (
+              <PoolStripButton
+                poolNumber={pool.number}
+                strip={pool.strip}
+                stripRange={stripRange}
+                onChange={strip => onStripChange(pool.id, strip)}
+              />
+            )}
           </div>
           <div className="pv-toolbar">
-            <button
+            <TipButton
               onClick={undo}
               disabled={!canUndo}
               className="pv-icon-btn is-gray"
-              title={t('poolView.undo_title')}
+              tip={t('poolView.undo_title')}
               aria-label={t('poolView.undo_aria')}
             >
-              ↩
-            </button>
-            <button
+              <Icon icon={Undo2} />
+            </TipButton>
+            <TipButton
               onClick={redo}
               disabled={!canRedo}
               className="pv-icon-btn is-gray"
-              title={t('poolView.redo_title')}
+              tip={t('poolView.redo_title')}
               aria-label={t('poolView.redo_aria')}
             >
-              ↪
-            </button>
-            <button
-              onClick={handleAutoFillScores}
-              className="pv-icon-btn is-amber"
-              title={t('poolView.autofill')}
-              aria-label={t('poolView.autofill')}
-            >
-              🎲
-            </button>
-            <button
+              <Icon icon={Redo2} />
+            </TipButton>
+            {!tableauFreeze && (
+              <TipButton
+                onClick={handleAutoFillScores}
+                className="pv-icon-btn is-amber"
+                tip={t('poolView.autofill')}
+              >
+                <Icon icon={Dices} />
+              </TipButton>
+            )}
+            <TipButton
               onClick={handlePrintPool}
               className="pv-icon-btn is-primary"
-              title={t('poolView.print_title')}
+              tip={t('poolView.print_title')}
               aria-label={t('poolView.print_aria')}
             >
-              🖨️
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="pv-icon-btn is-green"
-              title={t('poolView.export_pdf')}
-              aria-label={t('poolView.export_pdf')}
-            >
-              📄
-            </button>
-            {pool.isComplete && isRemoteActive && remoteServerUrl && (
-              <button
-                onClick={() => {
-                  const url = `${remoteServerUrl}/arene${defaultArena}/poule`;
-                  if (window.electronAPI?.openExternal) {
-                    window.electronAPI.openExternal(url);
-                  } else {
-                    window.open(url, '_blank');
-                  }
-                }}
-                className="pv-icon-btn is-indigo"
-                title={t('poolView.signatures_title', { arena: defaultArena })}
-                aria-label={t('poolView.signatures')}
-              >
-                ✍️
-              </button>
-            )}
-            {competitionId && (
-              <button
+              <Icon icon={Printer} />
+            </TipButton>
+            {competitionId && !tableauFreeze && (
+              <TipButton
                 onClick={() => setShowAddFencerModal(true)}
                 className="pv-icon-btn"
-                title={t('poolView.add_fencer')}
+                tip={t('poolView.add_fencer')}
                 aria-label={t('poolView.add_fencer')}
               >
-                ➕
-              </button>
+                <Icon icon={Plus} />
+              </TipButton>
             )}
             <div style={RELATIVE} ref={columnMenuRef}>
-              <button
+              <TipButton
                 onClick={() => setShowColumnMenu(!showColumnMenu)}
                 className={`pv-icon-btn${showColumnMenu ? ' is-open' : ''}${columnFilterEdited ? ' is-edited' : ''}`}
-                title={columnFilterEdited ? t('poolView.columns_edited') : t('poolView.columns')}
+                tip={columnFilterEdited ? t('poolView.columns_edited') : t('poolView.columns')}
                 aria-label={t('poolView.columns')}
               >
                 <Funnel size={14} />
-              </button>
+              </TipButton>
               {showColumnMenu && (
                 <div style={COL_MENU}>
                   <div style={COL_MENU_HEADER}>{t('poolView.columns_shown')}</div>
-                  {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
+                  {POOL_COLUMNS.filter(
+                    col =>
+                      (col.id !== 'quest' || isLaserSabre) &&
+                      (col.id !== 'category' || !!categoryOf)
+                  ).map(col => (
                     <label key={col.id} className="pv-col-menu-label">
                       <input
                         type="checkbox"
@@ -1796,23 +497,23 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </div>
               )}
             </div>
-            <button
+            <TipButton
               type="button"
               role="switch"
               aria-checked={viewMode === 'matches'}
               aria-label={t('poolView.matches_view')}
               onClick={() => setViewMode(viewMode === 'grid' ? 'matches' : 'grid')}
               className={`pv-view-switch${viewMode === 'matches' ? ' is-matches' : ''}`}
-              title={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
+              tip={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
             >
               <span className="pv-view-switch-icon" aria-hidden="true">
-                📊
+                <Icon icon={ChartColumn} />
               </span>
               <span className="pv-view-switch-icon" aria-hidden="true">
-                ⚔️
+                <Icon icon={Swords} />
               </span>
               <span className="pv-view-switch-thumb" aria-hidden="true" />
-            </button>
+            </TipButton>
           </div>
         </div>
         <div className="card-body pv-body">
@@ -1830,7 +531,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onMatchReset={onMatchReset ? handleMatchDelete : undefined}
               onShowMatchAudit={setAuditMatchId}
               defaultArena={defaultArena}
-              arenaCount={arenaCount}
+              stripRange={stripRange}
               arenas={arenas}
               isRemoteActive={isRemoteActive}
               matchArenaOverrides={matchArenaOverrides}
@@ -1842,6 +543,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           {renderScoreModal()}
         </div>
       </div>
+      {showSignatures && (
+        <PoolSignaturesModal
+          poolId={pool.id}
+          poolNumber={pool.number}
+          fencers={pool.fencers}
+          onClose={() => setShowSignatures(false)}
+        />
+      )}
       {showAddFencerModal && competitionId && (
         <AddFencerToPoolModal
           pool={pool}
@@ -1861,71 +570,19 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         </React.Suspense>
       )}
       {showRefereeModal && (
-        <Modal
-          title={isMultiReferee ? t('poolView.assign_referees') : t('poolView.assign_referee')}
+        <PoolRefereeModal
+          poolNumber={pool.number}
+          isMultiReferee={isMultiReferee}
+          maxRefereesPerPool={maxRefereesPerPool}
+          assignedReferee={assignedReferee}
+          competitionReferees={competitionReferees}
+          isLoadingReferees={isLoadingReferees}
+          pendingRefereeIds={pendingRefereeIds}
           onClose={closeRefereeModal}
-          size="sm"
-        >
-          <p className="u-hint mb-4">
-            {isMultiReferee
-              ? t('poolView.select_referees', { max: maxRefereesPerPool, n: pool.number })
-              : t('poolView.select_referee', { n: pool.number })}
-          </p>
-          <div style={COL_GAP}>
-            <button
-              className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => handleAssignReferee(null)}
-              style={REF_BTN}
-            >
-              {t('poolView.no_referee')}
-            </button>
-            {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
-            {!isLoadingReferees && competitionReferees.length === 0 && (
-              <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
-            )}
-            {!isLoadingReferees &&
-              isMultiReferee &&
-              competitionReferees.map(ref => {
-                const order = pendingRefereeIds.indexOf(ref.id);
-                const selected = order >= 0;
-                const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
-                return (
-                  <button
-                    key={ref.id}
-                    onClick={() => togglePendingReferee(ref.id)}
-                    disabled={disabled}
-                    aria-pressed={selected}
-                    style={REF_BTN}
-                    className={`btn pv-ref-btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
-                  >
-                    {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
-                    {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                  </button>
-                );
-              })}
-            {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
-              <button className="btn btn-primary" onClick={confirmPendingReferees} style={REF_BTN}>
-                {t('poolView.validate_n', {
-                  n: pendingRefereeIds.length,
-                  max: maxRefereesPerPool,
-                })}
-              </button>
-            )}
-            {!isLoadingReferees &&
-              !isMultiReferee &&
-              competitionReferees.map(ref => (
-                <button
-                  key={ref.id}
-                  onClick={() => handleAssignReferee(ref)}
-                  style={REF_BTN}
-                  className={`btn pv-ref-btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
-                >
-                  🧑‍⚖️ {ref.lastName} {ref.firstName}
-                  {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                </button>
-              ))}
-          </div>
-        </Modal>
+          onAssign={handleAssignReferee}
+          onToggle={togglePendingReferee}
+          onConfirm={confirmPendingReferees}
+        />
       )}
     </>
   );

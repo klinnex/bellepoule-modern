@@ -3,558 +3,101 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import React, { useState, useMemo } from 'react';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
-import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
-import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
+import ProxySettingsSection from './ProxySettingsSection';
+import BackupDirSettingsSection from './BackupDirSettingsSection';
+import PrivacySettingsSection from './PrivacySettingsSection';
+import McpSettingsSection from './McpSettingsSection';
+import VenuesSettingsSection from './VenuesSettingsSection';
+import { Bell, Hourglass } from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
+import { InkSavingSettingsSection } from './InkSavingSettingsSection';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
-import { logger, LogCategory } from '@shared/services/logger';
-import { isWebhookUrlSafe } from '@shared/services/notificationService';
 import { restartGuidedTour } from './guidedTourFlags';
+import { UI_SCALES, normalizeUiScale } from '../services/uiScale';
+import { UI_DENSITIES, normalizeUiDensity } from '../services/uiDensity';
+import { Button } from './common/Button';
+import { Icon } from './common/Icon';
 import {
-  UI_SCALES,
-  loadUiScale,
-  normalizeUiScale,
-  saveUiScale,
-  type UiScale,
-} from '../services/uiScale';
-import {
-  LOGO_STORAGE_KEY,
-  LOGO_LIBRARY_MAX,
-  type LogoEntry,
-  loadLogoLibrary,
-  saveLogoLibraryLocal,
-  sanitizeLogoLibrary,
-  ensureActiveInLibrary,
-  addLogo,
-  renameLogo,
-  removeLogo,
-  newLogoId,
-  logoNameFromFile,
-} from '../services/logoLibrary';
+  SettingsSectionId,
+  SettingsItemId,
+  SETTINGS_SECTIONS,
+  SECTION_STORAGE_KEY,
+  loadActiveSection,
+  normalizeSearch,
+  TTS_THRESHOLDS,
+  type SettingsModalProps,
+} from './settingsModal.helpers';
+import { useSettingsHandlers } from '../hooks/settingsModal/useSettingsHandlers';
+import { useSettingsPreferences } from '../hooks/settingsModal/useSettingsPreferences';
 
-const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
-const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
-const TTS_CONFIG_KEY = 'bellepoule-tts-config';
-export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
-export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
-
-interface TtsConfig {
-  voiceName: string | null;
-  rate: number;
-  announce: Record<string, boolean>;
-}
-
-const DEFAULT_TTS_CONFIG: TtsConfig = {
-  voiceName: null,
-  rate: 1.1,
-  announce: { '60': true, '30': true, '10': true, '5': true, countdown: true, '0': true },
-};
-
-// Paliers annoncés par le minuteur vocal — clé de config + libellé affiché
-// Paliers annoncés : clé de config → clé de traduction (settings.*)
-const TTS_THRESHOLDS: { key: string; label: string }[] = [
-  { key: '60', label: 'settings.tts_m60' },
-  { key: '30', label: 'settings.tts_m30' },
-  { key: '10', label: 'settings.tts_m10' },
-  { key: '5', label: 'settings.tts_m5' },
-  { key: 'countdown', label: 'settings.tts_countdown' },
-  { key: '0', label: 'settings.tts_m0' },
-];
-
-// Organisation des paramètres : sections (onglets) → réglages.
-// `keys` = clés de traduction parcourues par la recherche.
-type SettingsSectionId =
-  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'system';
-type SettingsItemId =
-  | 'language'
-  | 'pseudo'
-  | 'theme'
-  | 'text_size'
-  | 'animations'
-  | 'quick_mouse'
-  | 'simplified'
-  | 'audit'
-  | 'logo'
-  | 'pdf'
-  | 'tts'
-  | 'webhook'
-  | 'updates'
-  | 'tour';
-
-interface SettingsSectionDef {
-  id: SettingsSectionId;
-  icon: string;
-  labelKey: string;
-  items: { id: SettingsItemId; keys: string[] }[];
-}
-
-const SETTINGS_SECTIONS: SettingsSectionDef[] = [
-  {
-    id: 'display',
-    icon: '🎨',
-    labelKey: 'settings.section_display',
-    items: [
-      { id: 'language', keys: ['settings.language'] },
-      { id: 'theme', keys: ['settings.theme'] },
-      { id: 'text_size', keys: ['settings.text_size'] },
-      { id: 'animations', keys: ['settings.animations_title', 'settings.animations_hint'] },
-      { id: 'pseudo', keys: ['settings.pseudo_locale', 'settings.pseudo_locale_hint'] },
-    ],
-  },
-  {
-    id: 'scoring',
-    icon: '✏️',
-    labelKey: 'settings.section_scoring',
-    items: [
-      { id: 'quick_mouse', keys: ['settings.quick_mouse_title', 'settings.quick_mouse_hint'] },
-      { id: 'simplified', keys: ['settings.simplified_title', 'settings.simplified_hint'] },
-      { id: 'audit', keys: ['settings.audit_title', 'settings.audit_hint'] },
-    ],
-  },
-  {
-    id: 'documents',
-    icon: '📄',
-    labelKey: 'settings.section_documents',
-    items: [
-      { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
-      { id: 'pdf', keys: ['settings.pdf_title', 'settings.pdf_hint'] },
-    ],
-  },
-  {
-    id: 'referee',
-    icon: '🔊',
-    labelKey: 'settings.section_referee',
-    items: [
-      {
-        id: 'tts',
-        keys: [
-          'settings.tts_title',
-          'settings.tts_hint',
-          'settings.tts_voice',
-          'settings.tts_milestones',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'notifications',
-    icon: '🔔',
-    labelKey: 'settings.section_notifications',
-    items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
-  },
-  {
-    id: 'system',
-    icon: '⚙️',
-    labelKey: 'settings.section_system',
-    items: [
-      {
-        id: 'updates',
-        keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
-      },
-      { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
-    ],
-  },
-];
-
-const SECTION_STORAGE_KEY = 'bellepoule-settings-section';
-
-function loadActiveSection(): SettingsSectionId {
-  try {
-    const saved = localStorage.getItem(SECTION_STORAGE_KEY);
-    if (saved && SETTINGS_SECTIONS.some(s => s.id === saved)) return saved as SettingsSectionId;
-  } catch {
-    /* stockage indisponible */
-  }
-  return 'display';
-}
-
-// Minuscules sans accents : « theme » trouve « Thème »
-function normalizeSearch(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
-}
-
-function loadTtsConfig(): TtsConfig {
-  try {
-    const raw = localStorage.getItem(TTS_CONFIG_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        ...DEFAULT_TTS_CONFIG,
-        ...parsed,
-        announce: { ...DEFAULT_TTS_CONFIG.announce, ...(parsed.announce ?? {}) },
-      };
-    }
-  } catch {
-    /* config corrompue → défaut */
-  }
-  return { ...DEFAULT_TTS_CONFIG, announce: { ...DEFAULT_TTS_CONFIG.announce } };
-}
-
-const LOGO_MAX_W = 600;
-const LOGO_MAX_H = 200;
-
-function resizeLogo(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width;
-        let h = img.height;
-        if (w > LOGO_MAX_W || h > LOGO_MAX_H) {
-          const ratio = Math.min(LOGO_MAX_W / w, LOGO_MAX_H / h);
-          w = Math.round(w * ratio);
-          h = Math.round(h * ratio);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = reject;
-      img.src = e.target!.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-interface SettingsModalProps {
-  onClose: () => void;
-  onSave: (settings: any) => void;
-}
-
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const { t, language, theme, changeLanguage, changeTheme, pseudoLocale, setPseudoLocale } =
-    useTranslation();
-  const [showPdfEditor, setShowPdfEditor] = useState(false);
-  const [settings, setSettings] = useState({
-    language: language,
-    theme: theme,
-  });
-  const [logo, setLogo] = useState<string | null>(() => localStorage.getItem(LOGO_STORAGE_KEY));
-  const [logos, setLogos] = useState<LogoEntry[]>(() =>
-    ensureActiveInLibrary(loadLogoLibrary(), localStorage.getItem(LOGO_STORAGE_KEY))
-  );
-  const [isDragging, setIsDragging] = useState(false);
-  const [logoError, setLogoError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Activé par défaut (journal désactivable explicitement, pas activable par défaut négatif)
-  const [auditLogEnabled, setAuditLogEnabled] = useState<boolean>(
-    () => localStorage.getItem(AUDIT_LOG_KEY) !== 'false'
-  );
-
-  const [quickMouseScoring, setQuickMouseScoring] = useState<boolean>(
-    () => localStorage.getItem(QUICK_MOUSE_KEY) === 'true'
-  );
-
-  const [simplifiedInputMode, setSimplifiedInputMode] = useState<boolean>(
-    () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
-  );
-
-  const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
-  const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
-  // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
-  const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
-  const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
-  useEffect(() => {
-    const updater = window.electronAPI?.updater;
-    updater
-      ?.getAutoCheck?.()
-      .then(r => setUpdateAutoCheck(r.enabled))
-      .catch(() => {
-        // updater indisponible (dev / tests)
-      });
-    updater
-      ?.getChannel?.()
-      .then(r => setUpdateChannel(r.channel))
-      .catch(() => {
-        // updater indisponible (dev / tests)
-      });
-  }, []);
-  const [webhookUrl, setWebhookUrl] = useState<string>(
-    () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
-  );
-  const [webhookTestStatus, setWebhookTestStatus] = useState<
-    'idle' | 'testing' | 'success' | 'error'
-  >('idle');
-  const [webhookTestMessage, setWebhookTestMessage] = useState<string>('');
-
-  // Paramètres minuteur vocal (TTS) des tablettes d'arbitrage
-  const [ttsConfig, setTtsConfig] = useState<TtsConfig>(() => loadTtsConfig());
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    setSettings(prev => ({ ...prev, language, theme }));
-  }, [language, theme]);
-
-  // Sync persisted logo from main process if localStorage is empty
-  useEffect(() => {
-    if (!logo) {
-      const api = (window as any).electronAPI;
-      api?.getLogo?.().then((persisted: string | null) => {
-        if (persisted) {
-          setLogo(persisted);
-          localStorage.setItem(LOGO_STORAGE_KEY, persisted);
-        }
-      });
-    }
-    const api = (window as any).electronAPI;
-    // Bibliothèque persistée (logos.json) : fusion avec la copie locale
-    api
-      ?.getLogos?.()
-      .then((raw: unknown) => {
-        const disk = sanitizeLogoLibrary(raw);
-        if (disk.length === 0) return;
-        setLogos(prev => {
-          const ids = new Set(disk.map(l => l.id));
-          const merged = sanitizeLogoLibrary([...disk, ...prev.filter(l => !ids.has(l.id))]);
-          const withActive = ensureActiveInLibrary(merged, localStorage.getItem(LOGO_STORAGE_KEY));
-          saveLogoLibraryLocal(withActive);
-          return withActive;
-        });
-      })
-      .catch(() => {
-        /* bibliothèque optionnelle */
-      });
-    const unsub = api?.onLogoLoaded?.((persisted: string | null) => {
-      if (persisted && !localStorage.getItem(LOGO_STORAGE_KEY)) {
-        setLogo(persisted);
-        localStorage.setItem(LOGO_STORAGE_KEY, persisted);
-      }
-    });
-    return () => {
-      if (typeof unsub === 'function') unsub();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Liste des voix disponibles (peut arriver de façon asynchrone)
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return;
-    const refresh = () => setVoices(window.speechSynthesis.getVoices());
-    refresh();
-    window.speechSynthesis.onvoiceschanged = refresh;
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
-  }, []);
-
-  // Pousse la config TTS : persistance locale + serveurs distants actifs
-  const persistTtsConfig = useCallback((next: TtsConfig) => {
-    setTtsConfig(next);
-    localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(next));
-    (window as any).electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {
-      /* serveur inactif */
-    });
-  }, []);
-
-  const handleTtsVoiceChange = (voiceName: string) => {
-    persistTtsConfig({ ...ttsConfig, voiceName: voiceName || null });
-  };
-
-  const handleTtsRateChange = (rate: number) => {
-    persistTtsConfig({ ...ttsConfig, rate });
-  };
-
-  const handleTtsThresholdToggle = (key: string, enabled: boolean) => {
-    persistTtsConfig({ ...ttsConfig, announce: { ...ttsConfig.announce, [key]: enabled } });
-  };
-
-  const handleTtsTestVoice = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance('30 secondes');
-    const v = voices.find(x => x.name === ttsConfig.voiceName);
-    if (v) {
-      utt.voice = v;
-      utt.lang = v.lang;
-    }
-    utt.rate = ttsConfig.rate;
-    window.speechSynthesis.speak(utt);
-  };
-
-  const handleLanguageChange = (newLanguage: Language) => {
-    setSettings(prev => ({ ...prev, language: newLanguage }));
-  };
-
-  const handleThemeChange = (newTheme: 'default' | 'light' | 'dark') => {
-    setSettings(prev => ({ ...prev, theme: newTheme }));
-  };
-
-  // Logo actif : localStorage (PDF/kiosque) + logo.dat + serveurs distants
-  const setActiveLogo = useCallback((data: string | null) => {
-    setLogo(data);
-    if (data) localStorage.setItem(LOGO_STORAGE_KEY, data);
-    else localStorage.removeItem(LOGO_STORAGE_KEY);
-    const api = (window as any).electronAPI;
-    if (api?.remote?.updateLogo)
-      api.remote.updateLogo(data).catch((err: unknown) => {
-        logger.warn(
-          LogCategory.NETWORK,
-          'Échec mise à jour logo remote',
-          err instanceof Error ? err : undefined
-        );
-      });
-  }, []);
-
-  const persistLogos = useCallback((next: LogoEntry[]) => {
-    setLogos(next);
-    saveLogoLibraryLocal(next);
-    (window as any).electronAPI?.saveLogos?.(next)?.catch?.(() => {
-      /* persistance disque indisponible */
-    });
-  }, []);
-
-  const applyLogo = useCallback(
-    async (file: File) => {
-      setLogoError(null);
-      if (logos.length >= LOGO_LIBRARY_MAX) {
-        setLogoError(t('settings.logo_limit', { max: LOGO_LIBRARY_MAX }));
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setLogoError('Image trop grande (max 5 Mo)');
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        setLogoError('Fichier non supporté — choisissez une image');
-        return;
-      }
-      try {
-        const base64 = await resizeLogo(file);
-        persistLogos(
-          addLogo(logos, { id: newLogoId(), name: logoNameFromFile(file.name), data: base64 })
-        );
-        setActiveLogo(base64);
-      } catch {
-        setLogoError("Impossible de lire l'image");
-      }
-    },
-    [logos, persistLogos, setActiveLogo, t]
-  );
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) applyLogo(file);
-    e.target.value = '';
-  };
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) applyLogo(file);
-    },
-    [applyLogo]
-  );
-
-  const handleDeleteLogo = (id: string) => {
-    const res = removeLogo(logos, id, logo);
-    persistLogos(res.list);
-    if (res.nextActive !== logo) setActiveLogo(res.nextActive);
-  };
-
-  const handleRenameLogo = (id: string, name: string) => {
-    persistLogos(renameLogo(logos, id, name));
-  };
-
-  const handleWebhookUrlChange = (url: string) => {
-    setWebhookUrl(url);
-    setWebhookTestStatus('idle');
-    localStorage.setItem(WEBHOOK_STORAGE_KEY, url);
-    // Synchronise l'URL vers tous les serveurs distants actifs
-    (window as any).electronAPI?.remote?.setWebhookUrl?.(url || null).catch(() => {
-      /* serveur inactif */
-    });
-  };
-
-  const handleTestWebhook = async () => {
-    if (!webhookUrl.trim()) return;
-    if (!isWebhookUrlSafe(webhookUrl)) {
-      setWebhookTestStatus('error');
-      setWebhookTestMessage(t('settings.webhook_invalid'));
-      return;
-    }
-    setWebhookTestStatus('testing');
-    setWebhookTestMessage('');
-    try {
-      // Envoi côté main : la CSP du renderer bloque les hôtes externes (#1269)
-      const res = await window.electronAPI?.remote?.testWebhook?.(webhookUrl.trim());
-      if (!res?.success) throw new Error(res?.error ?? 'failed');
-      setWebhookTestStatus('success');
-      setWebhookTestMessage(t('settings.webhook_success'));
-    } catch (e) {
-      setWebhookTestStatus('error');
-      const detail =
-        e instanceof Error && e.message.startsWith('http_') ? ` (HTTP ${e.message.slice(5)})` : '';
-      setWebhookTestMessage(t('settings.webhook_failed') + detail);
-    }
-  };
-
-  const handleAuditLogChange = (enabled: boolean) => {
-    setAuditLogEnabled(enabled);
-    localStorage.setItem(AUDIT_LOG_KEY, String(enabled));
-  };
-
-  const handleQuickMouseScoringChange = (enabled: boolean) => {
-    setQuickMouseScoring(enabled);
-    localStorage.setItem(QUICK_MOUSE_KEY, String(enabled));
-  };
-
-  const handleConfettiDisabledChange = (disabled: boolean) => {
-    setConfettiDisabled(disabled);
-    localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
-  };
-
-  const handleUpdateAutoCheckChange = (enabled: boolean) => {
-    setUpdateAutoCheck(enabled);
-    window.electronAPI?.updater?.setAutoCheck?.(enabled).catch(() => {
-      setUpdateAutoCheck(!enabled);
-    });
-  };
-
-  const handleUpdateChannelChange = (channel: 'stable' | 'dev') => {
-    const previous = updateChannel;
-    setUpdateChannel(channel);
-    window.electronAPI?.updater?.setChannel?.(channel).catch(() => {
-      setUpdateChannel(previous);
-    });
-  };
-
-  // Taille du texte : appliquée et enregistrée immédiatement (#1156)
-  const handleUiScaleChange = (scale: UiScale) => {
-    setUiScale(scale);
-    saveUiScale(scale);
-  };
-
-  const handleSimplifiedInputModeChange = (enabled: boolean) => {
-    setSimplifiedInputMode(enabled);
-    localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
-  };
-
-  const handleSave = () => {
-    if (settings.language !== language) {
-      changeLanguage(settings.language);
-    }
-    if (settings.theme !== theme) {
-      changeTheme(settings.theme);
-    }
-    onSave(settings);
-    onClose();
-  };
+const SettingsModal: React.FC<SettingsModalProps> = (props: SettingsModalProps) => {
+  const settingsPreferences = useSettingsPreferences({ ...props });
+  const settingsHandlers = useSettingsHandlers({ ...props, ...settingsPreferences });
+  const {
+    modalRef,
+    t,
+    onClose,
+    handleSave,
+    showPdfEditor,
+    setShowPdfEditor,
+    settings,
+    handleLanguageChange,
+    pseudoLocale,
+    setPseudoLocale,
+    handleThemeChange,
+    uiScale,
+    handleUiScaleChange,
+    uiDensity,
+    handleUiDensityChange,
+    setIsDragging,
+    handleDrop,
+    fileInputRef,
+    isDragging,
+    handleFileChange,
+    logoError,
+    logos,
+    logo,
+    handleRenameLogo,
+    setActiveLogo,
+    handleDeleteLogo,
+    quickMouseScoring,
+    handleQuickMouseScoringChange,
+    simplifiedInputMode,
+    handleSimplifiedInputModeChange,
+    chainedInputMode,
+    handleChainedInputModeChange,
+    auditLogEnabled,
+    handleAuditLogChange,
+    confettiDisabled,
+    handleConfettiDisabledChange,
+    splashEnabled,
+    handleSplashEnabledChange,
+    updateAutoCheck,
+    handleUpdateAutoCheckChange,
+    updateDir,
+    handleChooseUpdateDir,
+    handleResetUpdateDir,
+    updateChannel,
+    handleUpdateChannelChange,
+    handleExportSettings,
+    importInputRef,
+    handleImportSettings,
+    backupStatus,
+    webhookUrl,
+    handleWebhookUrlChange,
+    handleTestWebhook,
+    webhookTestStatus,
+    webhookTestMessage,
+    ttsConfig,
+    handleTtsVoiceChange,
+    voices,
+    handleTtsTestVoice,
+    handleTtsRateChange,
+    handleTtsThresholdToggle,
+  } = { ...props, ...settingsPreferences, ...settingsHandlers };
 
   // Navigation par section + recherche transversale
   const [activeSection, setActiveSection] = useState<SettingsSectionId>(() => loadActiveSection());
@@ -658,6 +201,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             </div>
           </>
         );
+      case 'density':
+        return (
+          <>
+            <div className="form-group">
+              <label htmlFor="settings-ui-density">{t('settings.density')}</label>
+              <select
+                id="settings-ui-density"
+                className="form-input form-select"
+                value={uiDensity}
+                onChange={e => handleUiDensityChange(normalizeUiDensity(e.target.value))}
+              >
+                {UI_DENSITIES.map(d => (
+                  <option key={d} value={d}>
+                    {t(`settings.density_${d}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        );
       case 'logo':
         return (
           <>
@@ -683,16 +246,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 }}
               >
                 <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--text-muted, var(--color-text-muted))',
-                    display: 'block',
-                    marginTop: '0.25rem',
-                  }}
-                >
-                  {t('settings.logo_formats')}
-                </span>
+                <span className="settings-modal-1">{t('settings.logo_formats')}</span>
               </div>
               <input
                 ref={fileInputRef}
@@ -720,33 +274,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                         {isActive ? (
                           <span className="logo-library-active">{t('settings.logo_active')}</span>
                         ) : (
-                          <button
+                          <Button
                             type="button"
-                            className="btn btn-secondary"
+
                             style={SMALL_BTN}
                             onClick={() => setActiveLogo(l.data)}
                           >
                             {t('settings.logo_use')}
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           type="button"
-                          className="btn btn-secondary"
+
                           style={SMALL_BTN}
                           aria-label={`${t('settings.logo_delete')} ${l.name}`}
                           onClick={() => handleDeleteLogo(l.id)}
                         >
                           {t('settings.logo_delete')}
-                        </button>
+                        </Button>
                       </li>
                     );
                   })}
                 </ul>
               )}
               {logo && (
-                <button className="btn btn-secondary is-7b69a8" onClick={() => setActiveLogo(null)}>
+                <Button className="is-7b69a8" onClick={() => setActiveLogo(null)}>
                   {t('settings.logo_none')}
-                </button>
+                </Button>
               )}
             </div>
           </>
@@ -757,24 +311,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             <div className="form-group">
               <label style={BOLD}>{t('settings.pdf_title')}</label>
               <p style={HINT}>{t('settings.pdf_hint')}</p>
-              <button
-                className="btn btn-secondary is-af623e"
-                onClick={() => setShowPdfEditor(true)}
-              >
+              <Button className="is-af623e" onClick={() => setShowPdfEditor(true)}>
                 {t('pdfTemplate.openButton')}
-              </button>
+              </Button>
             </div>
           </>
         );
+      case 'ink_saving':
+        return <InkSavingSettingsSection />;
       case 'tour':
         return (
           <>
             <div className="form-group">
               <label style={BOLD}>{t('settings.tour_title')}</label>
               <p style={HINT}>{t('settings.tour_hint')}</p>
-              <button type="button" className="btn btn-secondary" onClick={restartGuidedTour}>
+              <Button type="button" onClick={restartGuidedTour}>
                 {t('settings.tour_restart')}
-              </button>
+              </Button>
             </div>
           </>
         );
@@ -803,11 +356,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <p style={HINT}>{t('settings.simplified_hint')}</p>
               <label className="u-row cursor-pointer">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="pool-input-mode"
                   checked={simplifiedInputMode}
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
                 <span style={TOGGLE_LABEL}>{t('settings.simplified_enable')}</span>
+              </label>
+            </div>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.chained_title')}</label>
+              <p style={HINT}>{t('settings.chained_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="radio"
+                  name="pool-input-mode"
+                  checked={chainedInputMode}
+                  onChange={e => handleChainedInputModeChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.chained_enable')}</span>
               </label>
             </div>
           </>
@@ -844,6 +411,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
               </label>
             </div>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.splash_title')}</label>
+              <p style={HINT}>{t('settings.splash_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={splashEnabled}
+                  onChange={e => handleSplashEnabledChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.splash_enable')}</span>
+              </label>
+            </div>
           </>
         );
       case 'updates':
@@ -861,6 +440,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
               </label>
             </div>
+            {updateDir && (
+              <div className="form-group">
+                <label style={BOLD}>{t('settings.updates_dir')}</label>
+                <p style={HINT}>{t('settings.updates_dir_hint')}</p>
+                <p style={HINT} data-testid="update-dir-current">
+                  {updateDir.dir}
+                  {updateDir.isDefault ? ` (${t('settings.updates_dir_default')})` : ''}
+                </p>
+                <div className="u-row">
+                  <Button
+                    type="button"
+
+                    onClick={handleChooseUpdateDir}
+                  >
+                    {t('settings.updates_dir_choose')}
+                  </Button>
+                  {!updateDir.isDefault && (
+                    <Button
+                      type="button"
+
+                      onClick={handleResetUpdateDir}
+                    >
+                      {t('settings.updates_dir_reset')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
             {updateChannel && (
               <div className="form-group">
                 <label htmlFor="update-channel" style={BOLD}>
@@ -880,12 +487,64 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             )}
           </>
         );
+      case 'proxy':
+        return <ProxySettingsSection />;
+      case 'mcp':
+        return <McpSettingsSection />;
+      case 'privacy_network':
+      case 'privacy_retention':
+      case 'privacy_person':
+      case 'privacy_bpm':
+        return <PrivacySettingsSection item={id} />;
+      case 'venues':
+        return <VenuesSettingsSection />;
+      case 'backup_dir':
+        return <BackupDirSettingsSection />;
+      case 'backup':
+        return (
+          <>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.backup_title')}</label>
+              <p style={HINT}>{t('settings.backup_hint')}</p>
+              <div className="u-row">
+                <Button type="button" onClick={handleExportSettings}>
+                  {t('settings.backup_export')}
+                </Button>
+                <Button
+                  type="button"
+
+                  onClick={() => importInputRef.current?.click()}
+                >
+                  {t('settings.backup_import')}
+                </Button>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  data-testid="settings-import-input"
+                  onChange={handleImportSettings}
+                />
+              </div>
+              {backupStatus && (
+                <p
+                  role="status"
+                  style={HINT}
+                  className={backupStatus.ok ? undefined : 'form-error'}
+                >
+                  {backupStatus.msg}
+                </p>
+              )}
+            </div>
+          </>
+        );
       case 'webhook':
         return (
           <>
             <div className="form-group">
               <label style={BOLD}>{t('settings.webhook_title')}</label>
               <p style={HINT}>{t('settings.webhook_hint')}</p>
+              <p style={HINT}>{t('privacy.export_warning')}</p>
               <input
                 type="url"
                 className="form-input mb-2"
@@ -894,22 +553,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onChange={e => handleWebhookUrlChange(e.target.value)}
               />
               <div className="u-row">
-                <button
-                  className="btn btn-secondary"
+                <Button
                   style={SMALL_BTN}
                   onClick={handleTestWebhook}
                   disabled={!webhookUrl.trim() || webhookTestStatus === 'testing'}
                 >
-                  {webhookTestStatus === 'testing' ? '⏳ Test…' : '🔔 Tester'}
-                </button>
+                  {webhookTestStatus === 'testing' ? (
+                    <>
+                      <Icon icon={Hourglass} /> {t('settings.webhook_testing')}
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon={Bell} /> {t('settings.webhook_test')}
+                    </>
+                  )}
+                </Button>
                 {webhookUrl && (
-                  <button
-                    className="btn btn-secondary"
-                    style={SMALL_BTN}
-                    onClick={() => handleWebhookUrlChange('')}
-                  >
+                  <Button style={SMALL_BTN} onClick={() => handleWebhookUrlChange('')}>
                     {t('settings.webhook_remove')}
-                  </button>
+                  </Button>
                 )}
               </div>
               {webhookTestMessage && (
@@ -950,13 +612,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     </option>
                   ))}
                 </select>
-                <button
-                  className="btn btn-secondary"
-                  style={SMALL_BTN}
-                  onClick={handleTtsTestVoice}
-                >
+                <Button style={SMALL_BTN} onClick={handleTtsTestVoice}>
                   {t('settings.tts_test')}
-                </button>
+                </Button>
               </div>
 
               <label className="is-933a8e">
@@ -1033,7 +691,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                       disabled={searching && count === 0}
                       onClick={() => selectSection(section.id)}
                     >
-                      <span aria-hidden="true">{section.icon}</span>
+                      <section.icon size={16} aria-hidden="true" />
                       <span className="settings-nav-label">{t(section.labelKey)}</span>
                       {searching && count > 0 && (
                         <span className="settings-nav-count">{count}</span>
@@ -1049,7 +707,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 {visibleSections.map(({ section, items }) => (
                   <section key={section.id} className="settings-section">
                     <h3 className="settings-section-title">
-                      <span aria-hidden="true">{section.icon}</span> {t(section.labelKey)}
+                      <section.icon size={16} aria-hidden="true" /> {t(section.labelKey)}
                     </h3>
                     {items.map(item => (
                       <div key={item.id} className="settings-item">
@@ -1063,12 +721,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
           </div>
 
           <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>
-              {t('actions.cancel')}
-            </button>
-            <button className="btn btn-primary" onClick={handleSave}>
+            <Button onClick={onClose}>{t('actions.cancel')}</Button>
+            <Button variant="primary" onClick={handleSave}>
               {t('settings.save')}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

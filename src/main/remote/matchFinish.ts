@@ -3,15 +3,29 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import { MatchStatus } from '../../shared/types';
+import { FencerStatus, MatchStatus } from '../../shared/types';
+import { recordRemoteEvent } from './remoteEvents';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory } from '../../shared/services/logger';
+import type { SessionScore } from './types';
+import {
+  checkPrevEligibility,
+  restoreForCorrection,
+  type LastFinishedSnapshot,
+  type PrevRefusal,
+} from './prevMatch';
+import type { ArenaMatch } from '../../shared/types/remote';
+import { winnerByScore } from '../../shared/utils/matchEndValidation';
 
 type S = RemoteScoreServer;
 
 /** État et services du serveur utilisés par ce module (accesseurs : valeurs toujours à jour). */
+/** Score en mémoire marqué victoire (objet Score), sinon false */
+const isVictory = (s: SessionScore): boolean => typeof s === 'object' && !!s?.isVictory;
+
 export interface MatchFinishContext {
   readonly arenaCards: S['arenaCards'];
   readonly arenaEventTimes: S['arenaEventTimes'];
@@ -20,6 +34,7 @@ export interface MatchFinishContext {
   readonly arenaRefereeSelected: S['arenaRefereeSelected'];
   readonly arenaTouches: S['arenaTouches'];
   readonly arenas: S['arenas'];
+  readonly assignMatchToArena: S['assignMatchToArena'];
   readonly broadcastArenaUpdate: S['broadcastArenaUpdate'];
   readonly broadcastDashboardUpdate: S['broadcastDashboardUpdate'];
   readonly createTrainingMatch: S['createTrainingMatch'];
@@ -31,7 +46,7 @@ export interface MatchFinishContext {
   readonly persistArenaState: S['persistArenaState'];
   readonly recentMatchDurationsMs: S['recentMatchDurationsMs'];
   readonly resolveDbMatchId: S['resolveDbMatchId'];
-  readonly sendDiag: S['sendDiag'];
+  readonly logDiag: S['logDiag'];
   readonly session: S['session'];
   readonly sessionMatchScores: S['sessionMatchScores'];
   readonly sessionModernRules: S['sessionModernRules'];
@@ -39,10 +54,169 @@ export interface MatchFinishContext {
   readonly trainingHistory: S['trainingHistory'];
 }
 
+/** Fin d'un match d'entraînement : écouteurs du process principal (Mode Club #1872) */
+export type TrainingFinishRecord = S['trainingHistory'][number];
+export const trainingFinishListeners = new Set<(record: TrainingFinishRecord) => void>();
+
+/**
+ * Dernier match terminé, par objet arène (PREV, #1829). Lié à l'objet : une réinitialisation
+ * des arènes le supprime sans purge explicite.
+ */
+const lastFinished = new WeakMap<object, LastFinishedSnapshot>();
+
+/** Mémorise le dernier match terminé d'une arène (appelé à la fin de match) */
+export function rememberLastFinished(arena: object, snapshot: LastFinishedSnapshot): void {
+  lastFinished.set(arena, snapshot);
+}
+
+/**
+ * PREV (#1829) : rappelle le dernier match terminé de la piste pour correction, dans la fenêtre
+ * bornée de `prevMatch.ts`. Un match DE non commencé repasse en tête de file (les pools sont
+ * relues par la file normale). Renvoie false si le rappel est refusé, sans rien modifier.
+ */
+export function recallPrevMatch(ctx: MatchFinishContext, arenaId: string): boolean {
+  return recallPrevMatchResult(ctx, arenaId).ok;
+}
+
+/**
+ * Comme `recallPrevMatch`, mais renvoie le motif du refus (`none` / `expired` / `in_progress`,
+ * `error` si la base n'a pas pu être purgée) pour que la tablette l'affiche (#2001).
+ */
+export function recallPrevMatchResult(
+  ctx: MatchFinishContext,
+  arenaId: string
+): { ok: true } | { ok: false; reason: PrevRefusal | 'error' } {
+  const arena = ctx.arenas.get(arenaId);
+  if (!arena || !ctx.session) return { ok: false, reason: 'none' };
+  const snapshot = lastFinished.get(arena);
+  const verdict = checkPrevEligibility(snapshot, arena.currentMatch, Date.now());
+  if (!verdict.ok || !snapshot) {
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] PREV refusé sur arène ${arenaId} : ${verdict.ok ? 'aucun' : verdict.reason}`
+    );
+    return { ok: false, reason: verdict.ok ? 'none' : verdict.reason };
+  }
+
+  const restored = restoreForCorrection(snapshot);
+  // Purge des lignes DB du match : le « fin de match » suivant les réécrit (sinon doublons)
+  if (!ctx.isTrainingMode) {
+    try {
+      const dbId = ctx.resolveDbMatchId(restored);
+      if (dbId) ctx.db.clearArenaEvents(dbId);
+    } catch (e) {
+      logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] PREV : purge DB échouée', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  const pending: ArenaMatch | null = arena.currentMatch;
+  if (pending && pending.status !== 'finished' && pending.isTableau) {
+    ctx.arenaMatchQueue.set(arenaId, [pending, ...(ctx.arenaMatchQueue.get(arenaId) || [])]);
+  }
+
+  const ev = snapshot.events;
+  ctx.arenaCards.set(arenaId, ev.cards ?? { cardsA: [], cardsB: [] });
+  ctx.arenaTouches.set(arenaId, ev.touches ?? { touchesA: [], touchesB: [] });
+  ctx.arenaExits.set(arenaId, [...ev.exits]);
+  if (ev.times) ctx.arenaEventTimes.set(arenaId, ev.times);
+  else ctx.arenaEventTimes.delete(arenaId);
+  lastFinished.delete(arena);
+
+  ctx.assignMatchToArena(arenaId, restored);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] PREV : match ${restored.id} rendu à l'arène ${arenaId} pour correction`
+  );
+  return { ok: true };
+}
+
+/**
+ * Exclusion signalée par l'appareil (statut E, #1829) : même traitement que le carton noir de la
+ * tablette (remote/routes/matchRoutes.ts) — exclusion avec motif `black_card`, donc annulable depuis
+ * la tablette, notification au renderer et appel DT.
+ */
+function applyDeviceExclusion(
+  ctx: MatchFinishContext,
+  arenaId: string,
+  match: ArenaMatch,
+  side: 'A' | 'B'
+): void {
+  const culprit = side === 'A' ? match.fencerA : match.fencerB;
+  if (!culprit?.id) return;
+  try {
+    ctx.db.updateFencer(culprit.id, {
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card',
+    });
+  } catch (e) {
+    logger.warn(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] exclusion appareil : mise à jour échouée',
+      e
+    );
+    return;
+  }
+  const mainWin = getSharedMainWindow();
+  mainWin?.webContents.send('remote:fencer_excluded', {
+    fencerId: culprit.id,
+    matchId: match.id,
+    reason: 'black_card',
+  });
+  recordRemoteEvent(ctx, {
+    type: 'dt_call',
+    arenaId,
+    matchId: match.id,
+    refereeId: match.referee?.id ?? null,
+    detail: 'black_card',
+  });
+  mainWin?.webContents.send('remote:dt_call', {
+    arenaId,
+    arenaNumber: ctx.arenas.get(arenaId)?.number ?? null,
+    matchNumber: (match as { number?: number }).number ?? null,
+    competitionId: ctx.session?.competitionId ?? null,
+    timestamp: Date.now(),
+    reason: 'black_card',
+    fencerName: `${culprit.lastName ?? ''} ${culprit.firstName ?? ''}`.trim() || null,
+  });
+}
+
+/**
+ * Abandon signalé par l'appareil (statut A, #1829) : le DT décide. Jamais de changement automatique
+ * du statut (décision médicale, t.45.1) ; l'appel apparaît dans le panneau DT avec le motif.
+ */
+function proposeAbandonToDT(
+  ctx: MatchFinishContext,
+  arenaId: string,
+  match: ArenaMatch,
+  side: 'A' | 'B'
+): void {
+  const abandoning = side === 'A' ? match.fencerA : match.fencerB;
+  recordRemoteEvent(ctx, {
+    type: 'dt_call',
+    arenaId,
+    matchId: match.id,
+    refereeId: match.referee?.id ?? null,
+    detail: 'abandon',
+  });
+  getSharedMainWindow()?.webContents.send('remote:dt_call', {
+    arenaId,
+    arenaNumber: ctx.arenas.get(arenaId)?.number ?? null,
+    matchNumber: (match as { number?: number }).number ?? null,
+    competitionId: ctx.session?.competitionId ?? null,
+    timestamp: Date.now(),
+    reason: 'abandon',
+    fencerId: abandoning?.id ?? null,
+    fencerName: abandoning
+      ? `${abandoning.lastName ?? ''} ${abandoning.firstName ?? ''}`.trim()
+      : null,
+  });
+}
+
 export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void {
   const arena = ctx.arenas.get(arenaId);
-  ctx.sendDiag(
-    `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as any)?.isTableau}`
+  ctx.logDiag(
+    `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as { isTableau?: boolean } | undefined)?.isTableau}`
   );
   if (!arena || !arena.currentMatch) return;
   // Éviter le double-déclenchement (REST + Socket.IO)
@@ -59,11 +233,28 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
 
   if (arena.startTime) {
     const wallMs = new Date().getTime() - arena.startTime.getTime();
-    arena.currentMatch.duration = Math.floor(wallMs / 1000);
+    // Durée = temps de combat cumulé (périodes, chrono remis à 3:00 après repos) si la
+    // tablette l'a remonté ; sinon horloge murale début → fin (#1817)
+    const fight = arena.currentMatch.fightSeconds;
+    arena.currentMatch.duration =
+      fight && fight > 0 ? Math.min(fight, Math.floor(wallMs / 1000)) : Math.floor(wallMs / 1000);
     // Durées réelles pour l'estimation de fin de phase (#1077)
     ctx.recentMatchDurationsMs.push(wallMs);
     if (ctx.recentMatchDurationsMs.length > 50) ctx.recentMatchDurationsMs.shift();
   }
+
+  // Dernier match terminé : rappelable par PREV pendant la fenêtre de correction (#1829)
+  if (!ctx.isTrainingMode)
+    rememberLastFinished(arena, {
+      match: { ...arena.currentMatch },
+      finishedAt: Date.now(),
+      events: {
+        cards: ctx.arenaCards.get(arenaId),
+        touches: ctx.arenaTouches.get(arenaId),
+        exits: [...(ctx.arenaExits.get(arenaId) ?? [])],
+        times: ctx.arenaEventTimes.get(arenaId),
+      },
+    });
 
   // Persistance secondaire (timing / cartons / touches / sorties) : ces écritures
   // utilisent arena.currentMatch.id qui, pour un match de tableau, n'est PAS l'id DB
@@ -158,7 +349,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
         }
       }
     } catch (e) {
-      ctx.sendDiag(
+      ctx.logDiag(
         `[finishArenaMatch] persistance secondaire échouée (non bloquant): ${(e as Error)?.message}`
       );
       logger.warn(
@@ -180,6 +371,14 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       durationSec: finishedMatch.duration ?? 0,
       finishedAt: new Date().toISOString(),
     });
+    const record = ctx.trainingHistory[ctx.trainingHistory.length - 1];
+    for (const listener of trainingFinishListeners) {
+      try {
+        listener(record);
+      } catch (e) {
+        logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] écouteur fin entraînement:', e);
+      }
+    }
     // Pré-charger le prochain match entraînement dans la file
     const queue = ctx.arenaMatchQueue.get(arenaId) ?? [];
     // Démo : null entre deux phases (la piste se libère, l'arbitre virtuel la réoccupe)
@@ -235,11 +434,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     scoreA: finishedMatch.scoreA,
     scoreB: finishedMatch.scoreB,
     winner:
-      finishedMatch.scoreA > finishedMatch.scoreB
-        ? 'A'
-        : finishedMatch.scoreB > finishedMatch.scoreA
-          ? 'B'
-          : null,
+      finishedMatch.deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB),
     duration: finishedMatch.duration ?? null,
     timestamp: new Date().toISOString(),
     // Compatibilité Slack/Discord : champ text en clair
@@ -263,29 +458,29 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       const effectiveDbId = dbMatch ? finalMatchId : compositeId;
 
       if (effectiveDbMatch && effectiveDbId) {
+        // Fin validée sur l'appareil de piste (#1720) : priorité, abandon, exclusion
+        const deviceEnd = finishedMatch.deviceEnd;
         let winner: 'A' | 'B' | null =
-          finishedMatch.scoreA > finishedMatch.scoreB
-            ? 'A'
-            : finishedMatch.scoreB > finishedMatch.scoreA
-              ? 'B'
-              : null;
+          deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB);
         if (!winner) {
           const mem = ctx.sessionMatchScores.get(finishedMatch.id);
-          if ((mem?.scoreA as any)?.isVictory) winner = 'A';
-          else if ((mem?.scoreB as any)?.isVictory) winner = 'B';
+          if (isVictory(mem?.scoreA)) winner = 'A';
+          else if (isVictory(mem?.scoreB)) winner = 'B';
         }
+        const out = (side: 'A' | 'B', reason: 'abandon' | 'exclusion') =>
+          deviceEnd?.reason === reason && !!winner && winner !== side;
         const scoreAObj = {
           value: finishedMatch.scoreA,
           isVictory: winner === 'A',
-          isAbstention: false,
-          isExclusion: false,
+          isAbstention: out('A', 'abandon'),
+          isExclusion: out('A', 'exclusion'),
           isForfait: false,
         };
         const scoreBObj = {
           value: finishedMatch.scoreB,
           isVictory: winner === 'B',
-          isAbstention: false,
-          isExclusion: false,
+          isAbstention: out('B', 'abandon'),
+          isExclusion: out('B', 'exclusion'),
           isForfait: false,
         };
         ctx.db.updateMatch(effectiveDbId, {
@@ -293,6 +488,13 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           scoreB: scoreBObj,
           status: MatchStatus.FINISHED,
         });
+        emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
+        // Fin signalée par l'appareil avec un tireur exclu (statut E) ou en abandon (statut A) (#1829)
+        if (deviceEnd?.reason === 'exclusion' && winner) {
+          applyDeviceExclusion(ctx, arenaId, finishedMatch, winner === 'A' ? 'B' : 'A');
+        } else if (deviceEnd?.reason === 'abandon' && winner) {
+          proposeAbandonToDT(ctx, arenaId, finishedMatch, winner === 'A' ? 'B' : 'A');
+        }
         ctx.db.logScoreChange({
           matchId: effectiveDbId,
           arenaId,
@@ -300,7 +502,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           previousScoreB: effectiveDbMatch.scoreB ?? null,
           newScoreA: scoreAObj,
           newScoreB: scoreBObj,
-          changedBy: 'referee',
+          changedBy: deviceEnd ? 'device' : 'referee',
           reason: 'arena_finish',
           poolId: finishedMatch.poolId,
         });
@@ -318,14 +520,10 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
   if (mainWindow && !ctx.isTrainingMode) {
     // Dériver le vainqueur depuis la DB pour gérer le cas tirage au sort (scores égaux)
     let winnerForRenderer: 'A' | 'B' | null =
-      finishedMatch.scoreA > finishedMatch.scoreB
-        ? 'A'
-        : finishedMatch.scoreB > finishedMatch.scoreA
-          ? 'B'
-          : null;
+      finishedMatch.deviceEnd?.winner ?? winnerByScore(finishedMatch.scoreA, finishedMatch.scoreB);
     if (!winnerForRenderer) {
       try {
-        const dbM = ctx.db.getMatch(finishedMatch.id) as any;
+        const dbM = ctx.db.getMatch(finishedMatch.id);
         if (dbM?.scoreA?.isVictory) winnerForRenderer = 'A';
         else if (dbM?.scoreB?.isVictory) winnerForRenderer = 'B';
       } catch (err) {
@@ -339,8 +537,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     // Fallback pour les matchs en mémoire (non persistés en DB) : tirage au sort
     if (!winnerForRenderer) {
       const memScore = ctx.sessionMatchScores.get(finishedMatch.id);
-      if ((memScore?.scoreA as any)?.isVictory) winnerForRenderer = 'A';
-      else if ((memScore?.scoreB as any)?.isVictory) winnerForRenderer = 'B';
+      if (isVictory(memScore?.scoreA)) winnerForRenderer = 'A';
+      else if (isVictory(memScore?.scoreB)) winnerForRenderer = 'B';
     }
     mainWindow.webContents.send('match:finished', {
       matchId: finishedMatch.id,
@@ -349,6 +547,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       winner: winnerForRenderer,
       poolId: finishedMatch.poolId,
       isTableau: finishedMatch.isTableau ?? false,
+      deviceReason: finishedMatch.deviceEnd?.reason,
     });
     logger.info(
       LogCategory.NETWORK,
@@ -373,3 +572,36 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     }
   }, 3000);
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const MATCH_FINISH_CONTEXT_KEYS = {
+  state: [
+    'arenaCards',
+    'arenaEventTimes',
+    'arenaExits',
+    'arenaMatchQueue',
+    'arenaRefereeSelected',
+    'arenaTouches',
+    'arenas',
+    'db',
+    'isTrainingMode',
+    'recentMatchDurationsMs',
+    'session',
+    'sessionMatchScores',
+    'sessionModernRules',
+    'sessionWeapon',
+    'trainingHistory',
+  ],
+  methods: [
+    'broadcastArenaUpdate',
+    'broadcastDashboardUpdate',
+    'assignMatchToArena',
+    'createTrainingMatch',
+    'fireWebhook',
+    'loadNextMatch',
+    'peekNextMatch',
+    'persistArenaState',
+    'resolveDbMatchId',
+    'logDiag',
+  ],
+} as const;

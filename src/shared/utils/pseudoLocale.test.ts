@@ -3,15 +3,20 @@ import { pseudoLocalize, isPseudoLocaleEnabled, PSEUDO_LOCALE_STORAGE_KEY } from
 
 describe('pseudoLocalize', () => {
   it('accentue les lettres et encadre la chaîne', () => {
-    expect(pseudoLocalize('Score')).toBe('[!! Ŝçöŕé !!]');
+    expect(pseudoLocalize('Score')).toBe('[!! Ŝçöŕé~~ !!]');
   });
 
   it('préserve les paramètres {{nom}}', () => {
-    expect(pseudoLocalize('{{present}} / {{total}} ok')).toBe('[!! {{present}} / {{total}} öķ !!]');
+    expect(pseudoLocalize('{{present}} / {{total}} ok')).toBe('[!! {{present}} / {{total}} öķ~~~ !!]');
+  });
+
+  it('allonge la chaîne d\'environ 40 %', () => {
+    const out = pseudoLocalize('abcdefghij');
+    expect(out).toBe('[!! áƀçðéƒĝĥíĵ~~~~ !!]');
   });
 
   it('laisse intacts chiffres, accents et symboles', () => {
-    expect(pseudoLocalize('é 12 ⚔')).toBe('[!! é 12 ⚔ !!]');
+    expect(pseudoLocalize('é 12 ⚔')).toBe('[!! é 12 ⚔~~~ !!]');
   });
 });
 

@@ -115,6 +115,20 @@ const MARGIN_INCHES: Record<PrintMargins, number> = { default: 0.4, none: 0, min
 /** Le document décide du format (@page) tant que ni papier ni orientation ne sont imposés */
 const followsDocument = (s: PrintSettings) => s.paperSize === 'auto' && s.orientation === 'auto';
 
+/**
+ * Format / orientation imposés par la boîte d'impression : le `@page { size }` du document
+ * l'emporte sur l'option `landscape` de Chromium (#1653). On ajoute donc une règle `@page`
+ * finale qui reprend le choix de l'utilisateur ; sans choix (`auto`), le HTML est inchangé.
+ */
+export function applyPageOverride(html: string, s: PrintSettings): string {
+  if (followsDocument(s)) return html;
+  const paper = s.paperSize === 'auto' ? 'A4' : s.paperSize;
+  const size = s.orientation === 'auto' ? paper : `${paper} ${s.orientation}`;
+  const rule = `<style data-print-override>@page { size: ${size}; }</style>`;
+  const end = html.toLowerCase().lastIndexOf('</head>');
+  return end >= 0 ? html.slice(0, end) + rule + html.slice(end) : rule + html;
+}
+
 /** Options de `webContents.printToPDF` (aperçu et export PDF) */
 export function buildPdfOptions(s: PrintSettings) {
   // « Par défaut » : marges du document lui-même tant qu'il décide du format

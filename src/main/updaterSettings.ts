@@ -17,6 +17,8 @@ export interface UpdaterSettings {
   channel?: UpdateChannel;
   /** Ancien exe portable à supprimer au prochain lancement (verrouillé tant qu'il tourne) */
   cleanupExe?: string;
+  /** Répertoire de téléchargement choisi ; absent = <userData>/pending-update (défaut) */
+  downloadDir?: string;
 }
 
 const isChannel = (v: unknown): v is UpdateChannel => v === 'stable' || v === 'dev';
@@ -30,6 +32,16 @@ export function resolveChannel(
   return packaged === 'stable' ? 'stable' : 'dev';
 }
 
+/** Répertoire personnalisé utilisable : chemin absolu vers un dossier existant. */
+export function isUsableDownloadDir(dir: unknown): dir is string {
+  if (typeof dir !== 'string' || !path.isAbsolute(dir)) return false;
+  try {
+    return fs.statSync(dir).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 const FILE = 'updater-settings.json';
 const DEFAULTS: UpdaterSettings = { autoCheck: true };
 
@@ -40,6 +52,9 @@ export function readUpdaterSettings(userDataDir: string): UpdaterSettings {
       autoCheck: typeof raw?.autoCheck === 'boolean' ? raw.autoCheck : DEFAULTS.autoCheck,
       ...(isChannel(raw?.channel) ? { channel: raw.channel } : {}),
       ...(typeof raw?.cleanupExe === 'string' ? { cleanupExe: raw.cleanupExe } : {}),
+      ...(typeof raw?.downloadDir === 'string' && raw.downloadDir
+        ? { downloadDir: raw.downloadDir }
+        : {}),
     };
   } catch {
     return { ...DEFAULTS };
@@ -55,6 +70,9 @@ export function writeUpdaterSettings(userDataDir: string, settings: UpdaterSetti
         autoCheck: settings.autoCheck === true,
         ...(isChannel(settings.channel) ? { channel: settings.channel } : {}),
         ...(typeof settings.cleanupExe === 'string' ? { cleanupExe: settings.cleanupExe } : {}),
+        ...(typeof settings.downloadDir === 'string' && settings.downloadDir
+          ? { downloadDir: settings.downloadDir }
+          : {}),
       },
       null,
       2

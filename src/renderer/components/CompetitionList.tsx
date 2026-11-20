@@ -5,26 +5,58 @@
 
 import React from 'react';
 import {
+  CalendarDays,
   ChevronRight,
   Download,
+  Pin,
   FolderOpen,
   LayoutGrid,
+  MapPin,
   Medal,
-  Plus,
   PlayCircle,
+  Search,
   Sparkles,
+  Trash2,
   Trophy,
   Users,
 } from 'lucide-react';
-import { Competition, Weapon, Gender, Category } from '../../shared/types';
+import { Competition } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
+import { filterCompetitions } from './competitionListSearch';
+import { SearchDialogButton, SearchDialogButtonHandle } from './common/SearchDialogButton';
+import {
+  PINNED_KEY,
+  RECENT_KEY,
+  RECENT_MIN_COMPETITIONS,
+  pickRecent,
+  readIds,
+  recordOpen,
+  togglePinned,
+} from './competitionListRecent';
+import {
+  applyFilters,
+  availableValues,
+  emptyFilters,
+  FILTER_GROUPS,
+  hasActiveFilters,
+  readSort,
+  SORT_OPTIONS,
+  sortCompetitions,
+  writeSort,
+  type CompetitionSort,
+  type FilterGroup,
+} from './competitionListFilters';
 import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { restartGuidedTour } from './guidedTourFlags';
+import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
+import { EventDayModal } from './EventDayModal';
+import { Button } from './common/Button';
+import { Icon } from './common/Icon';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -36,6 +68,7 @@ interface CompetitionListProps {
   onNewCompetition: () => void;
   /** Ouvre un fichier compétition existant (absent hors Electron) */
   onOpenFile?: () => void;
+  /** Importe une compétition depuis un .bpm (absent hors Electron) */
   /** Démo autonome : matchs joués seuls + écrans distants (absent hors Electron) */
   onStartDemo?: () => void;
 }
@@ -52,6 +85,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const [showEventDays, setShowEventDays] = React.useState(false);
 
   const handleDelete = async (competition: Competition) => {
     const ok = await confirm({
@@ -60,10 +94,57 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     });
     if (ok) onDelete(competition.id);
   };
+  const [query, setQuery] = React.useState('');
+  const searchRef = React.useRef<SearchDialogButtonHandle>(null);
+  const [filters, setFilters] = React.useState(emptyFilters);
+  const [sort, setSort] = React.useState<CompetitionSort>(readSort);
+  const visibleCompetitions = React.useMemo(
+    () => sortCompetitions(applyFilters(filterCompetitions(competitions, query), filters), sort),
+    [competitions, query, filters, sort]
+  );
+  const toggleFilter = (group: FilterGroup, value: string) =>
+    setFilters(prev => ({
+      ...prev,
+      [group]: prev[group].includes(value)
+        ? prev[group].filter(v => v !== value)
+        : [...prev[group], value],
+    }));
+  const filterLabel = (group: FilterGroup, value: string): string => {
+    switch (group) {
+      case 'weapon': {
+        const key = (
+          { E: 'epee', F: 'foil', S: 'sabre', L: 'laser', C: 'custom' } as Record<string, string>
+        )[value];
+        return key ? t(`weapons.${key}`) : value;
+      }
+      case 'gender': {
+        const key = ({ M: 'male', F: 'female', X: 'mixed' } as Record<string, string>)[value];
+        return key ? t(`genders.${key}`) : value;
+      }
+      case 'category':
+        return categoryLabel(value, t);
+      default:
+        return t(`competitionList.status_${value}`);
+    }
+  };
+  const filtersActive = hasActiveFilters(filters);
+  const [recentIds, setRecentIds] = React.useState(() => readIds(RECENT_KEY));
+  const [pinnedIds, setPinnedIds] = React.useState(() => readIds(PINNED_KEY));
+  const openCompetition = (competition: Competition) => {
+    setRecentIds(recordOpen(competition.id));
+    onSelect(competition);
+  };
+  const recentCompetitions = React.useMemo(
+    () => pickRecent(competitions, recentIds, pinnedIds),
+    [competitions, recentIds, pinnedIds]
+  );
+  const showRecent =
+    !query &&
+    !filtersActive &&
+    competitions.length >= RECENT_MIN_COMPETITIONS &&
+    recentCompetitions.length > 0;
   const {
     items: paginatedCompetitions,
-    page,
-    totalPages,
     totalItems,
     pageSize,
     hasNext,
@@ -76,7 +157,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     pageSizeOptions,
     startIndex,
     endIndex,
-  } = usePagination(competitions, { defaultPageSize: 20 });
+  } = usePagination(visibleCompetitions, { defaultPageSize: 20 });
+
+  // Raccourci « / » : ouvre la boîte de recherche (hors champs de saisie)
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      e.preventDefault();
+      searchRef.current?.open();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (isLoading) {
     return (
@@ -122,116 +216,35 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     ];
     return (
       <div className="content">
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 'calc(100vh - 220px)',
-            gap: '2.5rem',
-          }}
-        >
+        <div className="competition-list-1">
           <div className="text-center">
-            <span
-              style={{ color: 'var(--color-primary)', display: 'inline-block' }}
-              aria-hidden="true"
-            >
+            <span className="brand-logo-wrap" aria-hidden="true">
               <BrandLogo size={72} className="mb-4" />
             </span>
-            <h1
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                marginBottom: '0.5rem',
-              }}
-            >
+            <h1 className="competition-list-2">
               {t('competitionList.welcome', { app: t('app.title') })}
             </h1>
-            <p
-              style={{
-                color: 'var(--color-text-light)',
-                fontSize: '1rem',
-                maxWidth: '48ch',
-                margin: '0 auto',
-              }}
-            >
-              {t('competitionList.tagline')}
-            </p>
+            <p className="competition-list-3">{t('competitionList.tagline')}</p>
           </div>
 
-          <ol
-            aria-label={t('competitionList.steps')}
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              alignItems: 'flex-start',
-              listStyle: 'none',
-              padding: 0,
-              margin: 0,
-            }}
-          >
+          <ol aria-label={t('competitionList.steps')} className="competition-list-4">
             {steps
               .map(({ step, Icon, label, desc }) => (
-                <li
-                  key={step}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    width: 100,
-                  }}
-                >
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
-                      color: 'var(--color-primary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                <li key={step} className="competition-list-5">
+                  <div aria-hidden="true" className="competition-list-6">
                     <Icon size={22} strokeWidth={1.75} />
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.6875rem',
-                      fontWeight: 700,
-                      color: 'var(--color-text-light)',
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <div className="competition-list-7">
                     {t('competitionList.step_n', { n: step })}
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>
-                    {label}
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {desc}
-                  </div>
+                  <div className="competition-list-8">{label}</div>
+                  <div className="competition-list-9">{desc}</div>
                 </li>
               ))
               .reduce<React.ReactNode[]>((acc, el, i) => {
                 if (i > 0)
                   acc.push(
-                    <li
-                      key={`arrow-${i}`}
-                      aria-hidden="true"
-                      style={{ color: 'var(--color-text-light)', marginTop: '0.875rem' }}
-                    >
+                    <li key={`arrow-${i}`} aria-hidden="true" className="competition-list-10">
                       <ChevronRight size={20} />
                     </li>
                   );
@@ -240,34 +253,35 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               }, [])}
           </ol>
 
-          <div
-            style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
-          >
-            <button
-              className="btn btn-primary btn-lg btn-icon-label"
+          <div className="competition-list-11">
+            <Button
+              variant="primary"
+              size="lg"
+              className="btn-icon-label"
               onClick={onNewCompetition}
               style={{ padding: '0.75rem 2rem' }}
             >
-              <Plus size={18} />
+              {/* Sans compétition : libellé seul, sans « + » (#1755) */}
               {t('menu.new_competition')}
-            </button>
+            </Button>
             {onOpenFile && (
-              <button
-                className="btn btn-secondary btn-lg btn-icon-label"
+              <Button
+                size="lg"
+                className="btn-icon-label"
                 onClick={onOpenFile}
                 style={{ padding: '0.75rem 1.5rem' }}
                 title={t('competitionList.open_file_title')}
               >
                 <FolderOpen size={18} />
                 {t('competitionList.open_file')}
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Parcours guidé (#1305) : réactivé même s'il a déjà été fermé */}
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-icon-label"
+            className="btn-icon-label"
             onClick={() => {
               restartGuidedTour();
               onNewCompetition();
@@ -275,20 +289,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             <Sparkles size={16} />
             {t('competitionList.guided_start')}
-          </button>
+          </Button>
           {onStartDemo && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-icon-label"
+              className="btn-icon-label"
               onClick={onStartDemo}
               title={t('demo.hint')}
             >
               <PlayCircle size={16} />
               {t('demo.button')}
-            </button>
+            </Button>
           )}
 
-          <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
+          <p className="competition-list-12">
             {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
             <kbd>K</kbd> {t('competitionList.tip_3')}
           </p>
@@ -310,51 +324,182 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     <div className="content">
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="competition-list-13">
           {onStartDemo && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-lg btn-icon-label"
+              size="lg"
+              className="btn-icon-label"
               onClick={onStartDemo}
               title={t('demo.hint')}
             >
               <PlayCircle size={18} />
               {t('demo.button')}
-            </button>
+            </Button>
+          )}
+          {window.electronAPI?.eventDay && competitions.length > 0 && (
+            <Button
+              type="button"
+              size="lg"
+              className="btn-icon-label"
+              onClick={() => setShowEventDays(true)}
+              title={t('eventDay.button_title')}
+            >
+              <CalendarDays size={18} />
+              {t('eventDay.button')}
+            </Button>
           )}
           {onOpenFile && (
-            <button
-              className="btn btn-secondary btn-lg btn-icon-label"
+            <Button
+              size="lg"
+              className="btn-icon-label"
               onClick={onOpenFile}
               title={t('competitionList.open_file_title')}
             >
               <FolderOpen size={18} />
               {t('competitionList.open_file')}
-            </button>
+            </Button>
           )}
-          <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
+          <Button variant="primary" size="lg" onClick={onNewCompetition}>
             + {t('menu.new_competition')}
-          </button>
+          </Button>
         </div>
       </div>
+
+      <div className="competition-search">
+        <SearchDialogButton
+          ref={searchRef}
+          value={query}
+          onChange={setQuery}
+          placeholder={t('competitionList.search_placeholder')}
+          ariaLabel={t('competitionList.search_aria')}
+        >
+          {query && (
+            <p className="competition-search-count" aria-live="polite">
+              {t('competitionList.search_count', {
+                shown: visibleCompetitions.length,
+                total: competitions.length,
+              })}
+            </p>
+          )}
+        </SearchDialogButton>
+        <select
+          className="form-select competition-sort"
+          value={sort}
+          onChange={e => {
+            const next = e.target.value as CompetitionSort;
+            setSort(next);
+            writeSort(next);
+          }}
+          aria-label={t('competitionList.sort_aria')}
+        >
+          {SORT_OPTIONS.map(o => (
+            <option key={o} value={o}>
+              {t(`competitionList.sort_${o}`)}
+            </option>
+          ))}
+        </select>
+        {(query || filtersActive) && (
+          <span className="competition-search-count" aria-live="polite">
+            {t('competitionList.search_count', {
+              shown: visibleCompetitions.length,
+              total: competitions.length,
+            })}
+          </span>
+        )}
+      </div>
+      <div className="competition-filters">
+        {FILTER_GROUPS.map(group => {
+          const values = availableValues(competitions, group);
+          if (values.length < 2) return null;
+          return (
+            <div
+              key={group}
+              className="competition-filter-group"
+              role="group"
+              aria-label={t(`competitionList.filter_${group}`)}
+            >
+              {values.map(v => (
+                <button
+                  key={v}
+                  type="button"
+                  className={`competition-chip${filters[group].includes(v) ? ' is-active' : ''}`}
+                  aria-pressed={filters[group].includes(v)}
+                  onClick={() => toggleFilter(group, v)}
+                >
+                  {filterLabel(group, v)}
+                </button>
+              ))}
+            </div>
+          );
+        })}
+        {filtersActive && (
+          <Button size="sm" onClick={() => setFilters(emptyFilters())}>
+            {t('competitionList.filters_reset')}
+          </Button>
+        )}
+      </div>
+      {visibleCompetitions.length === 0 && (
+        <EmptyState
+          icon={<Search size={24} />}
+          title={t('competitionList.search_empty')}
+          className="competition-search-empty"
+        />
+      )}
+
+      {showRecent && (
+        <section className="competition-recent" aria-label={t('competitionList.recent_title')}>
+          <h2 className="competition-recent-title">{t('competitionList.recent_title')}</h2>
+          <div className="competition-recent-list">
+            {recentCompetitions.map(c => (
+              <button
+                key={c.id}
+                type="button"
+                className="competition-recent-item"
+                style={{ '--card-accent': c.color || '#3B5BDB' } as React.CSSProperties}
+                onClick={() => openCompetition(c)}
+              >
+                {pinnedIds.includes(c.id) && <Pin size={14} aria-hidden="true" />}
+                <span className="competition-recent-name">{c.title}</span>
+                <span className="competition-recent-date">{formatDate(c.date)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="competition-grid">
         {paginatedCompetitions.map(competition => (
           <div
             key={competition.id}
             className="card competition-card"
-            onClick={() => onSelect(competition)}
+            onClick={() => openCompetition(competition)}
             style={{ '--card-accent': competition.color || '#3B5BDB' } as React.CSSProperties}
           >
             <div className="comp-card-inner">
               <div className="comp-card-top">
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="competition-list-14">
                   <h3 className="comp-card-title">{competition.title}</h3>
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
+                <Button
+                  className="btn-icon comp-card-delete"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setPinnedIds(togglePinned(competition.id));
+                  }}
+                  title={t('competitionList.pin')}
+                  aria-label={t('competitionList.pin')}
+                  aria-pressed={pinnedIds.includes(competition.id)}
+                >
+                  <Pin
+                    size={16}
+                    fill={pinnedIds.includes(competition.id) ? 'currentColor' : 'none'}
+                  />
+                </Button>
                 {onExport && (
-                  <button
-                    className="btn btn-icon btn-secondary comp-card-delete"
+                  <Button
+                    className="btn-icon comp-card-delete"
                     onClick={e => {
                       e.stopPropagation();
                       onExport(competition.id);
@@ -363,18 +508,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                     aria-label={t('competition.export_bpm')}
                   >
                     <Download size={16} />
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className="btn btn-icon btn-secondary comp-card-delete"
+                <Button
+                  className="btn-icon comp-card-delete"
                   onClick={e => {
                     e.stopPropagation();
                     void handleDelete(competition);
                   }}
                   title={t('actions.delete')}
                 >
-                  🗑️
-                </button>
+                  <Icon icon={Trash2} />
+                </Button>
               </div>
 
               <div className="comp-card-pills">
@@ -382,13 +527,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 <span className="comp-pill">{categoryLabel(competition.category, t)}</span>
                 <span className="comp-pill">{competition.gender}</span>
                 {competition.location && (
-                  <span className="comp-pill comp-pill-location">📍 {competition.location}</span>
+                  <span className="comp-pill comp-pill-location">
+                    <Icon icon={MapPin} /> {competition.location}
+                  </span>
                 )}
               </div>
 
               <div className="comp-card-footer">
                 <span className="comp-card-fencers">
-                  {t('competitionList.fencers', { n: competition.fencers.length })}
+                  {t('competitionList.fencers', {
+                    // Décompte de la base, tenu à jour à l'ouverture (#1994)
+                    n: competition.fencerCount ?? competition.fencers.length,
+                  })}
                 </span>
                 <span className="comp-card-open">{t('competitionList.open')}</span>
               </div>
@@ -397,57 +547,50 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         ))}
       </div>
 
+      {showEventDays && (
+        <EventDayModal competitions={competitions} onClose={() => setShowEventDays(false)} />
+      )}
       {totalItems > pageSize && (
-        <div
-          className="pagination-bar"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginTop: '1rem',
-            justifyContent: 'center',
-          }}
-        >
-          <button
-            className="btn btn-secondary btn-sm"
+        <div className="pagination-bar competition-list-15">
+          <Button
+            size="sm"
             onClick={goToFirst}
             disabled={!hasPrev}
             title={t('competitionList.first_page')}
           >
             «
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
+          </Button>
+          <Button
+            size="sm"
             onClick={goToPrev}
             disabled={!hasPrev}
             title={t('competitionList.prev_page')}
           >
             ‹
-          </button>
-          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          </Button>
+          <span className="competition-list-16">
             {startIndex + 1}–{endIndex} / {totalItems}
           </span>
-          <button
-            className="btn btn-secondary btn-sm"
+          <Button
+            size="sm"
             onClick={goToNext}
             disabled={!hasNext}
             title={t('competitionList.next_page')}
           >
             ›
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
+          </Button>
+          <Button
+            size="sm"
             onClick={goToLast}
             disabled={!hasNext}
             title={t('competitionList.last_page')}
           >
             »
-          </button>
+          </Button>
           <select
-            className="form-select form-select-sm"
+            className="form-select form-select-sm competition-list-17"
             value={pageSize}
             onChange={e => setPageSize(Number(e.target.value))}
-            style={{ marginLeft: '0.5rem', fontSize: '0.875rem' }}
           >
             {pageSizeOptions.map(s => (
               <option key={s} value={s}>

@@ -14,43 +14,17 @@ env:
 
 jobs:
   quality:
+    uses: ./.github/workflows/quality.yml
+
+  nix-build:
+    # Paquet Nix (flake.nix) : doit builder avant toute release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run type-check
-
-      - name: i18n completeness
-        run: npm run check:i18n
-
-      - name: Tests documentation up to date
-        run: npm run check:tests-doc
-
-      - name: i18n documentation up to date
-        run: npm run check:i18n-doc
-
-      - name: Socket.IO events documentation up to date
-        run: npm run check:socket-doc
-
-      - name: Quality ratchet (hardcoded strings, any, console)
-        run: npm run check:quality
-
-      - name: Unit tests
-        run: npm run test:run
-
-      - name: Bundle size budget
-        run: |
-          npm run build:renderer
-          node scripts/check-bundle-size.js
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Build Nix package
+        run: nix build .#default --no-link --print-build-logs
 
   version:
     runs-on: ubuntu-latest
@@ -196,7 +170,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-x64-dmg
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*.zip
           retention-days: 5
 
   build-macos-arm64:
@@ -268,7 +244,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-arm64-dmg
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*.zip
           retention-days: 5
 
   build-linux-x64:
@@ -308,8 +286,11 @@ jobs:
       - name: Build TypeScript and Webpack
         run: npm run build:ci
 
+      - name: Install rpm tooling
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Package with Electron Builder
-        run: npx electron-builder --linux AppImage --x64
+        run: npx electron-builder --linux AppImage deb rpm --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -317,7 +298,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-x64-appimage
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 5
 
   build-linux-arm64:
@@ -359,7 +343,7 @@ jobs:
         run: npm run build:ci
 
       - name: Package with Electron Builder
-        run: npx electron-builder --linux AppImage --arm64
+        run: npx electron-builder --linux AppImage deb --arm64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -367,7 +351,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-arm64-appimage
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 5
           if-no-files-found: warn
 
@@ -395,7 +382,7 @@ jobs:
         run: find builds -type f
 
       - name: Create Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           tag_name: ${{ needs.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
@@ -415,8 +402,8 @@ jobs:
             | **Windows** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-win-x64-portable.exe` |
             | **macOS** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-x64.dmg` |
             | **macOS** | ARM64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-arm64.dmg` (Apple Silicon) |
-            | **Linux** | x64 | `…-linux-x64.AppImage` |
-            | **Linux** | ARM64 | `…-linux-arm64.AppImage` (Raspberry Pi…) |
+            | **Linux** | x64 | `…-linux-x86_64.AppImage`, `.deb`, `.rpm` |
+            | **Linux** | ARM64 | `…-linux-arm64.AppImage`, `.deb` (Raspberry Pi…) |
 
             ### 📋 Voir la version
             Menu **Aide > À propos** ou **F1**
@@ -425,9 +412,14 @@ jobs:
           files: |
             builds/windows-exe/*.exe
             builds/macos-x64-dmg/*-x64.dmg
+            builds/macos-x64-dmg/*-x64.zip
             builds/macos-arm64-dmg/*-arm64.dmg
+            builds/macos-arm64-dmg/*-arm64.zip
             builds/linux-x64-appimage/*.AppImage
+            builds/linux-x64-appimage/*.deb
+            builds/linux-x64-appimage/*.rpm
             builds/linux-arm64-appimage/*.AppImage
+            builds/linux-arm64-appimage/*.deb
           fail_on_unmatched_files: false
           draft: false
           prerelease: false

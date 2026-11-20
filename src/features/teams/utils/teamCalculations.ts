@@ -38,10 +38,10 @@ export function getRelayCap(relayIndex: number, stepSize: number): number {
 
 /**
  * Generate the relay pairing order for a team of `teamSize` fencers.
- * Generalizes the FIE 3-fencer pattern (1v1,2v2,3v3,1v2,2v3,3v1,1v3,2v1,3v2)
- * to any team size N: N "rounds" of N simultaneous pairings, each round
- * shifting the opponent index by one (diagonal round-robin), producing N²
- * relais total where every titulaire meets every opposing titulaire once.
+ * Diagonal round-robin (1v1,2v2,3v3,1v2,2v3,3v1,1v3,2v1,3v2 for N=3): N "rounds" of N
+ * pairings, each round shifting the opponent index by one, producing N² relais where
+ * every titulaire meets every opposing titulaire once. This is NOT the FIE order:
+ * see `relayOrderFor`, which keeps it for Sabre Laser and custom weapons only.
  */
 export function generateRelayOrder(teamSize: number): [number, number][] {
   const order: [number, number][] = [];
@@ -54,9 +54,51 @@ export function generateRelayOrder(teamSize: number): [number, number][] {
 }
 
 /**
+ * Ordre officiel FIE des 9 relais pour des équipes de 3 (indices 0-based) :
+ * 3-6, 1-5, 2-4, 1-6, 3-4, 2-5, 1-4, 2-6, 3-5 (équipe A = 1-2-3, équipe B = 4-5-6).
+ * Règlement d'organisation FIE, o.99.3 : ordre impératif dans les trois armes (o.99.1).
+ */
+export const FIE_RELAY_ORDER_3: ReadonlyArray<readonly [number, number]> = [
+  [2, 2],
+  [0, 1],
+  [1, 0],
+  [0, 2],
+  [2, 0],
+  [1, 1],
+  [0, 0],
+  [1, 2],
+  [2, 1],
+];
+
+/** Armes FIE : les rencontres suivent l'ordre FIE des relais (o.99.1, o.99.3) */
+const FIE_RELAY_ORDER_WEAPONS: ReadonlySet<Weapon> = new Set([
+  Weapon.EPEE,
+  Weapon.FOIL,
+  Weapon.SABRE,
+]);
+
+/**
+ * Ordre des relais d'une rencontre selon l'arme.
+ * Épée, fleuret et sabre à 3 titulaires : ordre officiel FIE. Sabre Laser (règlement
+ * ASL-FFE, relais et arène), arme à la carte et autres tailles d'équipe : ordre inchangé
+ * (`generateRelayOrder`).
+ */
+export function relayOrderFor(teamSize: number, weapon?: Weapon): [number, number][] {
+  if (teamSize === 3 && weapon !== undefined && FIE_RELAY_ORDER_WEAPONS.has(weapon)) {
+    return FIE_RELAY_ORDER_3.map(([a, b]) => [a, b] as [number, number]);
+  }
+  return generateRelayOrder(teamSize);
+}
+
+/**
  * Generate relay bouts for a team match
  */
-export function generateRelayBouts(teamA: Team, teamB: Team, maxScore: number = 5): TeamBout[] {
+export function generateRelayBouts(
+  teamA: Team,
+  teamB: Team,
+  maxScore: number = 5,
+  weapon?: Weapon
+): TeamBout[] {
   const mainFencersA = teamA.fencers
     .filter(f => !f.isReserve)
     .sort((a, b) => a.teamOrder - b.teamOrder);
@@ -74,7 +116,7 @@ export function generateRelayBouts(teamA: Team, teamB: Team, maxScore: number = 
     throw new Error('Both teams must have the same number of main fencers');
   }
 
-  const relayOrders = generateRelayOrder(teamSize);
+  const relayOrders = relayOrderFor(teamSize, weapon);
 
   return relayOrders.map((order, index) => ({
     id: `bout-${Date.now()}-${index}`,

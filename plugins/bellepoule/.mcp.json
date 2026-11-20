@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "bellepoule": {
+      "type": "http",
+      "url": "http://127.0.0.1:${user_config.mcp_port}/mcp",
+      "headers": { "Authorization": "Bearer ${user_config.mcp_token}" }
+    }
+  }
+}

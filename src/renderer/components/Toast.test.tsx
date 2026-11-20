@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { ToastProvider, useToast } from './Toast';
+import { translateStatic } from '../contexts/TranslationContext';
 
 // Composant de test déclenchant un toast
 const Trigger: React.FC<{ message: string; type?: any }> = ({ message, type }) => {
@@ -88,5 +89,96 @@ describe('useToast hors provider', () => {
     };
     render(<Outside />);
     expect(() => fireEvent.click(screen.getByText('out'))).not.toThrow();
+  });
+});
+
+describe('Toast d’annulation (#1535)', () => {
+  it('le bouton Annuler appelle le callback et ferme le toast', () => {
+    const onUndo = vi.fn();
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>;
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    const btn = screen.getByRole('alert').querySelectorAll('button')[0];
+    act(() => {
+      fireEvent.click(btn);
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(screen.queryByText('Supprimé')).toBeNull();
+  });
+
+  it('Ctrl+Z annule la dernière action et ferme son toast, une seule fois', () => {
+    const onUndo = vi.fn();
+    const local = vi.fn();
+    document.addEventListener('keydown', local);
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>;
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(local).not.toHaveBeenCalled(); // historique local non déclenché en plus
+    expect(screen.queryByText('Supprimé')).toBeNull();
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(local).toHaveBeenCalledOnce(); // plus de toast : Ctrl+Z laissé aux autres
+    document.removeEventListener('keydown', local);
+  });
+
+  it('Ctrl+Z dans un champ de saisie : annulation native, toast conservé', () => {
+    const onUndo = vi.fn();
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return (
+        <>
+          <input aria-label="champ" />
+          <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>
+        </>
+      );
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    act(() => {
+      fireEvent.keyDown(screen.getByLabelText('champ'), { key: 'z', ctrlKey: true });
+    });
+    expect(onUndo).not.toHaveBeenCalled();
+  });
+});
+
+describe('Toast d’erreur actionnable (#1535)', () => {
+  it('affiche l’échec suivi de la cause et de l’étape suivante', () => {
+    const E: React.FC = () => {
+      const { showActionableError } = useToast();
+      return (
+        <button
+          onClick={() =>
+            showActionableError('messages.import_failed', new Error('ENOSPC: no space left'))
+          }
+        >
+          err-go
+        </button>
+      );
+    };
+    renderWithProvider(<E />);
+    act(() => {
+      fireEvent.click(screen.getByText('err-go'));
+    });
+    const text = screen.getByRole('alert').textContent ?? '';
+    expect(text).toContain('—');
+    expect(text).toContain(translateStatic('errors.hint_disk_full'));
   });
 });

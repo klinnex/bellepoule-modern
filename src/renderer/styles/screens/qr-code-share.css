@@ -1,0 +1,9 @@
+/* Styles extraits de QRCodeShare.tsx (#1895) */
+.qr-code-share-1.qr-code-share-1.qr-code-share-1 {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.qr-code-share-2.qr-code-share-2.qr-code-share-2 {
+  white-space: pre-line;
+}

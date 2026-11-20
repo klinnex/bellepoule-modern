@@ -7,6 +7,7 @@ import type express from 'express';
 import type { Arena, ArenaMatch, OrgNote, RemoteSession } from '../../../shared/types/remote';
 import type { CustomScoringConfig } from '../../../shared/types';
 import type { MatchRouteContext } from './matchRoutes';
+import { registerClubRoutes } from './clubRoutes';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** État et opérations utilisés par l'API configuration / session / arènes / poules. */
@@ -34,6 +35,7 @@ export interface ApiRouteContext extends MatchRouteContext {
     demo?: boolean;
   } | null;
   readonly ttsConfig: { voiceName: string | null; rate: number; announce: Record<string, boolean> };
+  readonly stripPlan: { start: number; unavailable: number[] };
   readonly arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }>;
   readonly arenaTouches: Map<string, { touchesA: string[]; touchesB: string[] }>;
   readonly arenaSuddenDeath: Map<string, boolean>;
@@ -43,6 +45,7 @@ export interface ApiRouteContext extends MatchRouteContext {
   assignMatchToArena(arenaId: string, match: ArenaMatch, fromReferee?: boolean): void;
   createSession(competitionId: string, strips: number): Promise<RemoteSession>;
   getAllArenas(): Arena[];
+  getVisibleArenas(): Arena[];
   getArena(arenaId: string): Arena | null;
   getLocalIPAddress(): string;
   getServerUrl(): string;
@@ -55,6 +58,7 @@ export interface ApiRouteContext extends MatchRouteContext {
 
 /** Configuration, session, arènes et poules (API). */
 export function registerApiRoutes(ctx: ApiRouteContext): void {
+  registerClubRoutes(ctx); // Mode Club : cartes scannées sur la tablette arbitre (#1872)
   // Fallback /bp-sio.js : sert le client socket.io déjà chargé en mémoire au
   // démarrage. Normalement inutile (le client est injecté inline dans le HTML),
   // mais couvre le cas d'un HTML mis en cache par le service worker.
@@ -177,7 +181,12 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
 
   // Arena routes
   ctx.app.get('/api/arenas', (req, res) => {
-    res.json(ctx.getAllArenas().map(a => ctx.toPublicArena(a)));
+    res.json(ctx.getVisibleArenas().map(a => ctx.toPublicArena(a)));
+  });
+
+  // Plan des pistes (intervalle + pistes indisponibles) pour tablettes et écrans (#1501)
+  ctx.app.get('/api/strip-plan', (req, res) => {
+    res.json(ctx.stripPlan);
   });
 
   ctx.app.get('/api/arenas/:arenaId', (req, res) => {
@@ -226,7 +235,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
         fatigueScore,
         isActive,
         needsRest: consecutive >= MAX_CONSECUTIVE || fatigueScore >= 80,
-        category: (ref as any).category ?? null,
+        category: ref.category ?? null,
       };
     });
 
@@ -358,4 +367,131 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
+
+  // État de la journée multi-épreuves (#1714) : pistes et épreuves, sans session requise
+  ctx.app.get('/api/journee-status', (req, res) => {
+    try {
+      const competitionId = ctx.session?.competitionId;
+      const dayId = competitionId ? ctx.db.eventDays.getCompetitionDayId(competitionId) : null;
+      if (!dayId) {
+        return res.json({ day: null, strips: [], competitions: [] });
+      }
+      const day = ctx.db.eventDays.getDay(dayId);
+      const strips = ctx.db.eventDays.getStripOccupation(dayId);
+      const weapons = ctx.db.eventDays.getCompetitionWeapons(dayId);
+      const competitions =
+        day?.competitionIds.map(cid => {
+          const c = ctx.db.getCompetition(cid);
+          return {
+            id: cid,
+            title: c?.title ?? cid,
+            weapon: weapons[cid] ?? null,
+          };
+        }) ?? [];
+      res.json({ day, strips, competitions });
+    } catch (error) {
+      logger.error(LogCategory.NETWORK, 'Error getting journee status:', toError(error));
+      res.status(500).json({ error: 'journee_status_failed' });
+    }
+  });
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const API_ROUTE_CONTEXT_KEYS = {
+  state: [
+    'app',
+    'db',
+    'session',
+    'isTrainingMode',
+    'arenas',
+    'sessionPoolArenas',
+    'sessionMatches',
+    'sessionMatchScores',
+    'trainingHistory',
+    'trainingTheme',
+    'demoPlayer',
+    'registrationEnabled',
+    'checkinEnabled',
+    'checkinPassword',
+    'checkinTokens',
+    'trainerEnabled',
+    'trainerPassword',
+    'trainerTokens',
+    'io',
+    'arenaTokens',
+    'poolFencersCache',
+    'poolSignaturesCache',
+    'arenaMatchQueue',
+    'poolMatchArenaOverrides',
+    'sessionBlackCardEnabled',
+    'sessionBlackCards',
+    'port',
+    'currentLang',
+    'socketIoClientJs',
+    'sessionWeapon',
+    'sessionCustomScoring',
+    'sessionModernRules',
+    'sessionKioskViews',
+    'orgNote',
+    'sessionLogo',
+    'sessionWallpaper',
+    'trainingCustomRules',
+    'ttsConfig',
+    'arenaCards',
+    'arenaTouches',
+    'arenaSuddenDeath',
+    'arenaWaitingOvertime',
+    'requireArenaAuth',
+    'requireLoopback',
+  ],
+  methods: [
+    'sendHtmlFromMemory',
+    'checkArenaAuth',
+    'hasAnyValidToken',
+    'computePhaseEta',
+    'getClientIp',
+    'checkRegistrationRateLimit',
+    'checkLoginAllowed',
+    'recordLoginFailure',
+    'recordLoginSuccess',
+    'checkCheckinAuth',
+    'checkTrainerAuth',
+    'checkinGuard',
+    'trainerGuard',
+    'findArenaOfReferee',
+    'arenaMatchLabel',
+    'checkScoreRateLimit',
+    'resolveReferee',
+    'broadcastDashboardUpdate',
+    'applySmartMatchOrder',
+    'arenaHomePoolId',
+    'broadcastMessage',
+    'cancelBlackCard',
+    'finishArenaMatch',
+    'formatFencerName',
+    'getArenaBlackCards',
+    'guestQueue',
+    'isInActiveWave',
+    'claimArenaSlot',
+    'isMatchPlayable',
+    'isPendingMatch',
+    'resolvePoolReferee',
+    'restorableStatus',
+    'logDiag',
+    'updateMatchScore',
+    'assignMatchToArena',
+    'createSession',
+    'getAllArenas',
+    'getVisibleArenas',
+    'stripPlan',
+    'getArena',
+    'getLocalIPAddress',
+    'getServerUrl',
+    'pauseArenaMatch',
+    'startArenaMatch',
+    'stopSession',
+    'toPublicArena',
+    'updateArenaScore',
+    'notifyKioskData',
+  ],
+} as const;

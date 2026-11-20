@@ -51,4 +51,25 @@ describe('generateTableauHTML – feuilles d’arbitrage', () => {
     expect(forced).toContain('class="page page-break"');
     expect(flow).not.toContain('class="page page-break"');
   });
+
+  it('feuilles seules (vagues rapières, #1441) : ni bandeau titre ni pied de page', () => {
+    const matches = [1, 2].map(i => match(`m${i}`, 0, 'Vague 1 — Poule 1'));
+    const html = generateTableauHTML(
+      matches,
+      2,
+      'Coupe X',
+      undefined,
+      undefined,
+      false,
+      undefined,
+      {
+        continuous: true,
+        sheetsOnly: true,
+      }
+    );
+    expect(html).not.toContain('Coupe X</h1>');
+    expect(html).not.toContain('<div class="doc-header ');
+    expect(html).not.toContain('<div class="doc-footer">');
+    expect(html).toContain('Vague 1 — Poule 1');
+  });
 });

@@ -3,10 +3,20 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
+import type { Socket } from 'socket.io';
 import { ArenaMatch } from '../../shared/types/remote';
 import { sanitizeAnnouncement } from './announcement';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
+import { recordRemoteEvent } from './remoteEvents';
+import {
+  addsCard,
+  keepRemovals,
+  lockedScore,
+  isCyranoMasterOnline,
+  isDeviceSocket,
+} from './cyranoLock';
 
 type S = RemoteScoreServer;
 
@@ -23,6 +33,7 @@ export interface ArenaControlContext {
   readonly arenaWaitingOvertime: S['arenaWaitingOvertime'];
   readonly assignMatchToArena: S['assignMatchToArena'];
   readonly broadcastArenaUpdate: S['broadcastArenaUpdate'];
+  readonly persistArenaState: S['persistArenaState'];
   readonly db: S['db'];
   readonly finishArenaMatch: S['finishArenaMatch'];
   readonly getArena: S['getArena'];
@@ -31,9 +42,10 @@ export interface ArenaControlContext {
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
+  readonly recallPrev: S['recallPrev'];
   readonly resolveReferee: S['resolveReferee'];
   readonly scoreUpdateDebounce: S['scoreUpdateDebounce'];
-  readonly sendDiag: S['sendDiag'];
+  readonly logDiag: S['logDiag'];
   readonly session: S['session'];
   readonly sessionCardAnnounce: S['sessionCardAnnounce'];
   readonly sessionMatches: S['sessionMatches'];
@@ -43,9 +55,13 @@ export interface ArenaControlContext {
   readonly updateArenaScore: S['updateArenaScore'];
 }
 
+/** Persistance du chrono en marche : au plus une écriture par arène toutes les 15 s (#1829) */
+const CLOCK_PERSIST_MS = 15_000;
+const clockPersistedAt = new Map<string, number>();
+
 export function handleArenaControl(
   ctx: ArenaControlContext,
-  socket: any,
+  socket: Socket,
   data: {
     arenaId: string;
     action: string;
@@ -54,6 +70,8 @@ export function handleArenaControl(
     scoreB?: number;
     time?: number;
     timerStatus?: 'running' | 'paused' | 'reset';
+    /** Minute de repos sur l'appareil de piste (#1829) */
+    resting?: boolean;
     fencer?: 'A' | 'B';
     cardType?: 'white' | 'yellow' | 'red';
     cardsA?: string[];
@@ -62,10 +80,13 @@ export function handleArenaControl(
     touchesB?: string[];
     suddenDeath?: boolean;
     winner?: 'A' | 'B';
+    priority?: boolean;
+    winnerId?: string;
     overtimeType?: string | null;
     isVoluntary?: boolean;
     matchId?: string;
     refereeId?: string;
+    fightSeconds?: number;
     announcement?: {
       fencer: 'A' | 'B';
       fencerName: string;
@@ -81,21 +102,59 @@ export function handleArenaControl(
     socket.emit('error', { message: 'Arène non trouvée' });
     return;
   }
+  // Repos de l'appareil de piste : porté par l'arène, diffusé à chaque mise à jour (#1829)
+  if (typeof data.resting === 'boolean') arena.resting = data.resting;
+
+  // Appareil de piste Cyrano (pseudo-socket `cyrano:<piste>`, #1720) : tablettes en miroir
+  const source = isDeviceSocket(socket.id) ? { source: 'device' as const } : {};
+  // Appareil maître et en ligne : la tablette ne peut pas ajouter de carton, seulement en retirer (#1829)
+  const cardLock = !('source' in source) && isCyranoMasterOnline(arena);
 
   switch (data.action) {
     case 'select_match':
       // Sélection d'un match par l'arbitre (depuis sa tablette)
       if (data.match) {
         const m = data.match;
-        ctx.sendDiag(
+        ctx.logDiag(
           `[select_match] arena=${data.arenaId} matchId=${m.id} isTableau=${(m as any).isTableau}`
         );
         // Restaurer isTableau depuis sessionMatches car la tablette ne le transmet pas
         const sessionMatch = ctx.sessionMatches.find(sm => sm.id === m.id);
+        // Appareil maître en ligne : rouvrir sur la tablette le match en cours de l'appareil ne
+        // touche ni au score ni aux cartons, qui viennent de l'appareil (#1999)
+        const current = arena.currentMatch;
+        const keepDeviceState =
+          cardLock &&
+          !!current &&
+          current.id === m.id &&
+          (arena.status === 'in_progress' || !!current.startTime);
+        if (keepDeviceState && current) {
+          ctx.logDiag(`[select_match] arena=${data.arenaId} état de l'appareil maître conservé`);
+          ctx.arenaRefereeSelected.set(data.arenaId, true);
+          // La tablette se cale sur l'état de l'arène, comme pour une mise à jour de l'appareil
+          const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+          socket.emit(`arena:${data.arenaId}:update`, {
+            arenaId: data.arenaId,
+            match: current,
+            scoreA: current.scoreA,
+            scoreB: current.scoreB,
+            cardsA: held.cardsA,
+            cardsB: held.cardsB,
+            status: arena.status,
+            cyrano: arena.cyrano ?? null,
+            source: 'device',
+          });
+          break;
+        }
         ctx.assignMatchToArena(
           data.arenaId,
           {
             ...m,
+            // Tireurs repris de la session : la tablette reçoit des noms abrégés quand le
+            // masquage RGPD est actif, ils ne doivent pas remplacer les vrais (#1882)
+            ...(sessionMatch?.fencerA ? { fencerA: sessionMatch.fencerA } : {}),
+            ...(sessionMatch?.fencerB ? { fencerB: sessionMatch.fencerB } : {}),
+            ...(sessionMatch?.referee ? { referee: sessionMatch.referee } : {}),
             isTableau: m.isTableau ?? sessionMatch?.isTableau ?? false,
             scoreA:
               typeof (m.scoreA as unknown) === 'object'
@@ -128,10 +187,17 @@ export function handleArenaControl(
       ctx.pauseArenaMatch(data.arenaId);
       break;
     case 'finish':
-      ctx.sendDiag(`[socket finish] arena=${data.arenaId}`);
+      ctx.logDiag(`[socket finish] arena=${data.arenaId}`);
       ctx.arenaSuddenDeath.set(data.arenaId, false);
       ctx.arenaOvertimeType.set(data.arenaId, null);
       ctx.arenaWaitingOvertime.set(data.arenaId, false);
+      if (
+        arena.currentMatch &&
+        typeof data.fightSeconds === 'number' &&
+        data.fightSeconds > 0 &&
+        data.fightSeconds < 6 * 3600
+      )
+        arena.currentMatch.fightSeconds = Math.round(data.fightSeconds);
       ctx.finishArenaMatch(data.arenaId);
       ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
       ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -143,7 +209,8 @@ export function handleArenaControl(
       ctx.broadcastArenaUpdate(data.arenaId, {
         arenaId: data.arenaId,
         match: arena.currentMatch,
-        time: 0,
+        // Minute prioritaire (#1442) : chrono déjà remis à 1:00, prêt à lancer
+        time: typeof data.time === 'number' && data.time >= 0 && data.time <= 600 ? data.time : 0,
         timerStatus: 'paused',
         suddenDeath: false,
         overtimeType: null,
@@ -153,6 +220,12 @@ export function handleArenaControl(
       break;
     case 'coin_flip':
       if (data.winner === 'A' || data.winner === 'B') {
+        // Minute prioritaire : l'id du tireur prime sur le côté A/B (même source que la tablette arbitre)
+        if (data.priority === true && typeof data.winnerId === 'string') {
+          const cm = arena.currentMatch;
+          if (cm?.fencerA?.id === data.winnerId) data.winner = 'A';
+          else if (cm?.fencerB?.id === data.winnerId) data.winner = 'B';
+        }
         // Minute prioritaire (#1442) : le tireur tiré gagne si l'égalité persiste à la fin
         const matchId = arena.currentMatch?.id;
         if (matchId) {
@@ -175,12 +248,21 @@ export function handleArenaControl(
         }
         ctx.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:coin_flip`, {
           winner: data.winner,
+          winnerId: data.winnerId,
+          priority: data.priority === true, // tirage du prioritaire : animation cadre doré (#1442)
           fencerA: arena.currentMatch?.fencerA,
           fencerB: arena.currentMatch?.fencerB,
         });
       }
       break;
     case 'dt_call': {
+      recordRemoteEvent(ctx, {
+        type: 'dt_call',
+        arenaId: data.arenaId,
+        matchId: arena.currentMatch?.id ?? null,
+        refereeId: arena.currentMatch?.referee?.id ?? null,
+        detail: null,
+      });
       const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('remote:dt_call', {
@@ -200,6 +282,13 @@ export function handleArenaControl(
       }
       break;
     }
+    case 'prev': {
+      // Rappel du match précédent pour correction, fenêtre bornée (#1829). Le verdict (succès ou
+      // motif du refus) revient à la tablette demandeuse, qui l'affiche (#2001)
+      const verdict = ctx.recallPrev(data.arenaId);
+      socket.emit(`arena:${data.arenaId}:prev_result`, verdict);
+      break;
+    }
     case 'next':
       ctx.loadNextMatch(data.arenaId);
       ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
@@ -213,7 +302,9 @@ export function handleArenaControl(
     case 'update_score': {
       const debounceKey = `${socket.id}:${data.arenaId}`;
       const lastUpdate = ctx.scoreUpdateDebounce.get(debounceKey) ?? 0;
-      if (Date.now() - lastUpdate < ctx.SCORE_UPDATE_DEBOUNCE_MS) break;
+      // Anti-rebond des tablettes (filtre temporel par socket+arène, distinct de shared debounce, #1898) ;
+      // l'appareil n'envoie que des changements (PisteHub)
+      if (!('source' in source) && Date.now() - lastUpdate < ctx.SCORE_UPDATE_DEBOUNCE_MS) break;
       ctx.scoreUpdateDebounce.set(debounceKey, Date.now());
       // Supprimer la mort subite si désactivée en entraînement
       const effectiveSuddenDeath =
@@ -226,8 +317,40 @@ export function handleArenaControl(
       if (data.overtimeType !== undefined) {
         ctx.arenaOvertimeType.set(data.arenaId, data.overtimeType);
       }
+      // Appareil maître en ligne : la tablette ne peut que retirer des points (#1829)
+      if (cardLock && data.scoreA !== undefined && data.scoreB !== undefined) {
+        data.scoreA = lockedScore(arena.currentMatch?.scoreA, data.scoreA);
+        data.scoreB = lockedScore(arena.currentMatch?.scoreB, data.scoreB);
+      }
       if (data.scoreA !== undefined && data.scoreB !== undefined) {
-        ctx.updateArenaScore(data.arenaId, data.scoreA, data.scoreB);
+        ctx.updateArenaScore(
+          data.arenaId,
+          data.scoreA,
+          data.scoreB,
+          'source' in source ? 'device' : 'referee'
+        );
+      }
+      // Carton ajouté depuis la tablette alors que l'appareil fait foi : cartons refusés, la
+      // tablette est resynchronisée sur les cartons de l'arène (le reste de la mise à jour passe)
+      if (cardLock) {
+        const held = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+        if (addsCard(held.cardsA, data.cardsA) || addsCard(held.cardsB, data.cardsB)) {
+          ctx.logDiag(`[Cyrano] arène ${data.arenaId} : carton ajouté par la tablette refusé`);
+          // Ajouts ignorés, retraits gardés (remplacement d'un carton : le retrait passe)
+          if (data.cardsA !== undefined) data.cardsA = keepRemovals(held.cardsA, data.cardsA);
+          if (data.cardsB !== undefined) data.cardsB = keepRemovals(held.cardsB, data.cardsB);
+          socket.emit(`arena:${data.arenaId}:update`, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: arena.currentMatch?.scoreA,
+            scoreB: arena.currentMatch?.scoreB,
+            cardsA: data.cardsA ?? held.cardsA,
+            cardsB: data.cardsB ?? held.cardsB,
+            status: arena.status,
+            cyrano: arena.cyrano ?? null,
+            source: 'device',
+          });
+        }
       }
       // Mettre à jour aussi les cartons si fournis
       if (data.cardsA !== undefined || data.cardsB !== undefined) {
@@ -261,12 +384,17 @@ export function handleArenaControl(
           overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
           waitingOvertime: ctx.arenaWaitingOvertime.get(data.arenaId) ?? false,
           status: arena.status,
+          ...source,
         });
       }
       break;
     }
     case 'add_card':
-      // Gestion des cartons
+      // Gestion des cartons (refusée quand l'appareil maître fait foi, #1829)
+      if (cardLock) {
+        ctx.logDiag(`[Cyrano] arène ${data.arenaId} : add_card de la tablette refusé`);
+        break;
+      }
       if (data.fencer && data.cardType) {
         const currentCards = ctx.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
         const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
@@ -301,6 +429,11 @@ export function handleArenaControl(
         ctx.arenaSuddenDeath.set(data.arenaId, false);
         ctx.arenaOvertimeType.set(data.arenaId, null);
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
+        // Chrono mémorisé du match effacé avec les scores (#1829)
+        if (arena.currentMatch.clockSeconds !== undefined) {
+          delete arena.currentMatch.clockSeconds;
+          ctx.persistArenaState(data.arenaId);
+        }
         ctx.updateArenaScore(data.arenaId, 0, 0);
         ctx.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         ctx.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
@@ -366,6 +499,24 @@ export function handleArenaControl(
       if (timerSuddenDeath) {
         ctx.arenaWaitingOvertime.set(data.arenaId, false);
       }
+      // Reprise du chrono au redémarrage (#1829) : dernière valeur gardée avec le match,
+      // persistée à la pause / remise à zéro et au plus toutes les 15 s en marche.
+      // Minute de repos de l'appareil de piste (état P, `arena.resting`) : le décompte reçu est
+      // celui du repos, il ne remplace pas le chrono du combat.
+      if (
+        arena.currentMatch &&
+        typeof data.time === 'number' &&
+        data.time >= 0 &&
+        arena.resting !== true
+      ) {
+        arena.currentMatch.clockSeconds = data.time;
+        const now = Date.now();
+        const last = clockPersistedAt.get(data.arenaId) ?? 0;
+        if (data.action !== 'update_timer' || now - last >= CLOCK_PERSIST_MS) {
+          clockPersistedAt.set(data.arenaId, now);
+          ctx.persistArenaState(data.arenaId);
+        }
+      }
       ctx.broadcastArenaUpdate(data.arenaId, {
         arenaId: data.arenaId,
         match: arena.currentMatch,
@@ -375,6 +526,7 @@ export function handleArenaControl(
         overtimeType: ctx.arenaOvertimeType.get(data.arenaId) ?? null,
         waitingOvertime: ctx.arenaWaitingOvertime.get(data.arenaId) ?? false,
         status: arena.status,
+        ...source,
       });
       break;
     }
@@ -382,8 +534,9 @@ export function handleArenaControl(
       if (!data.matchId || !data.refereeId || !arena.currentMatch) break;
       if (arena.currentMatch.id !== data.matchId) break;
       ctx.db.updateMatch(data.matchId, { refereeId: data.refereeId });
+      emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
       // Mettre à jour sessionMatches en mémoire
-      const idx = ctx.sessionMatches.findIndex((m: any) => m.id === data.matchId);
+      const idx = ctx.sessionMatches.findIndex(m => m.id === data.matchId);
       if (idx >= 0)
         ctx.sessionMatches[idx] = { ...ctx.sessionMatches[idx], refereeId: data.refereeId };
       // Mettre à jour l'ArenaMatch courant
@@ -413,3 +566,42 @@ export function handleArenaControl(
       socket.emit('error', { message: 'Action non reconnue' });
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const ARENA_CONTROL_CONTEXT_KEYS = {
+  state: [
+    'SCORE_UPDATE_DEBOUNCE_MS',
+    'arenaCards',
+    'arenaEventTimes',
+    'arenaExits',
+    'arenaOvertimeType',
+    'arenaRefereeSelected',
+    'arenaSuddenDeath',
+    'arenaTouches',
+    'arenaWaitingOvertime',
+    'db',
+    'io',
+    'sessionMatchScores',
+    'isTrainingMode',
+    'scoreUpdateDebounce',
+    'session',
+    'sessionCardAnnounce',
+    'sessionMatches',
+    'trainingCustomRules',
+  ],
+  methods: [
+    'assignMatchToArena',
+    'broadcastArenaUpdate',
+    'persistArenaState',
+    'finishArenaMatch',
+    'getArena',
+    'loadNextMatch',
+    'pauseArenaMatch',
+    'recallPrev',
+    'resolveReferee',
+    'logDiag',
+    'stampArenaEvents',
+    'startArenaMatch',
+    'updateArenaScore',
+  ],
+} as const;

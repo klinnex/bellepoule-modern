@@ -33,14 +33,22 @@ export interface HttpStack {
 }
 
 /** Application Express, serveur HTTP(S) et Socket.IO (CORS limité au réseau local). */
+/** Serveur HTTP(S) nu pour l'application Express (recréé au rechargement à chaud). */
+export function createHttpListener(
+  app: express.Application,
+  tlsOptions: { cert: string; key: string } | undefined
+): HttpStack['server'] {
+  return tlsOptions
+    ? createHttpsServer({ cert: tlsOptions.cert, key: tlsOptions.key }, app)
+    : createHttpServer(app);
+}
+
 export function createHttpStack(
   tlsOptions: { cert: string; key: string } | undefined,
   showPhotos: () => boolean
 ): HttpStack {
   const app = express();
-  const server = tlsOptions
-    ? createHttpsServer({ cert: tlsOptions.cert, key: tlsOptions.key }, app)
-    : createHttpServer(app);
+  const server = createHttpListener(app, tlsOptions);
   const io = new SocketIOServer(server, {
     // 1 Mo : select_match peut transporter les photos base64 des tireurs
     maxHttpBufferSize: 1e6,

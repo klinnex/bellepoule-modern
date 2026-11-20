@@ -34,6 +34,27 @@ export function isTrustedDownloadUrl(url: unknown): boolean {
   }
 }
 
+/**
+ * URL de téléchargement reconstruite sur l'hôte CONSTANT de la liste de confiance
+ * (jamais la chaîne reçue telle quelle : CodeQL js/request-forgery).
+ * null si non HTTPS, hôte non autorisé, port ou identifiants présents.
+ */
+export function toTrustedDownloadUrl(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'https:' || parsed.port || parsed.username || parsed.password) {
+    return null;
+  }
+  const host = TRUSTED_DOWNLOAD_HOSTS.find(h => h === parsed.hostname);
+  if (!host) return null;
+  return `https://${host}${parsed.pathname}${parsed.search}`;
+}
+
 /** Calcule le SHA-256 (hex minuscule) d'un fichier. */
 export function sha256File(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {

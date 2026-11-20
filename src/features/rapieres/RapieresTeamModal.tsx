@@ -22,6 +22,7 @@ import {
   RapieresLevel,
   RapieresTeamInfo,
 } from './rapieres.types';
+import { Button } from '../../renderer/components/common/Button';
 
 export interface RapieresTeamDraft {
   name: string;
@@ -123,13 +124,13 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
           </button>
         </div>
         <form onSubmit={submit}>
-          <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+          <div className="modal-body rapieres-team-modal-1">
             {error && (
               <div className="alert alert-warning" role="alert">
                 {t('rapieres.team_incomplete')}
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+            <div className="rapieres-team-modal-2">
               <div className="form-group">
                 <label className="form-label" htmlFor="rapieres-team-name">
                   {t('rapieres.team_name')} *
@@ -161,7 +162,7 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                 </select>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="rapieres-team-modal-3">
               <div className="form-group">
                 <label className="form-label" htmlFor="rapieres-team-club">
                   {t('rapieres.club')}
@@ -188,17 +189,11 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
               </div>
             </div>
             {([0, 1] as const).map(i => (
-              <fieldset key={i} style={{ border: 'none', padding: 0, margin: 0 }}>
-                <legend className="form-label" style={{ fontWeight: 600 }}>
+              <fieldset key={i} className="rapieres-team-modal-4">
+                <legend className="form-label rapieres-team-modal-5">
                   {t('rapieres.fencer_n', { n: String(i + 1) })}
                 </legend>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: '1rem',
-                  }}
-                >
+                <div className="rapieres-team-modal-6">
                   <div className="form-group">
                     <label className="form-label" htmlFor={`rapieres-f${i}-last`}>
                       {t('rapieres.last_name')} *
@@ -279,23 +274,23 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
               </fieldset>
             ))}
             {teamCategory && (
-              <p className="text-muted" style={{ margin: 0 }}>
+              <p className="text-muted rapieres-team-modal-7">
                 {t('rapieres.team_category', { category: t(`rapieres.cat_${teamCategory}`) })}
               </p>
             )}
           </div>
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('rapieres.cancel')}
-            </button>
+            </Button>
             {!initial && (
-              <button type="button" className="btn btn-secondary" onClick={e => submit(e, true)}>
+              <Button type="button" onClick={e => submit(e, true)}>
                 {t('rapieres.save_and_add')}
-              </button>
+              </Button>
             )}
-            <button type="submit" className="btn btn-primary">
+            <Button type="submit" variant="primary">
               {t('rapieres.save_team')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

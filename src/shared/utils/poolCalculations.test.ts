@@ -17,8 +17,10 @@ import {
   isDnf,
   isDnsRanking,
   isMatchVoidedByForfeit,
+  distributeFencersGroupedByLevel,
+  distributeFencersToPoolsSerpentine,
 } from './poolCalculations';
-import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
+import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Gender } from '../types';
 
 // ============================================================================
 // Helper Functions for Tests
@@ -809,5 +811,147 @@ describe('isMatchVoidedByForfeit (#1144)', () => {
     expect(isMatchVoidedByForfeit(mk(sc({ isForfait: true }), sc(), MatchStatus.NOT_STARTED))).toBe(
       false
     );
+  });
+  describe('abandon signalé par l appareil, statut du tireur (#2000, FIE o.74)', () => {
+    const mkF = (loserStatus: FencerStatus): Match =>
+      ({
+        status: MatchStatus.FINISHED,
+        scoreA: sc({ value: 5, isVictory: true }),
+        scoreB: sc({ value: 2, isAbstention: true }),
+        fencerA: { id: 'a', status: FencerStatus.CHECKED_IN },
+        fencerB: { id: 'b', status: loserStatus },
+      }) as unknown as Match;
+
+    it('statut inchangé : combat normal, non annulé', () => {
+      expect(isMatchVoidedByForfeit(mkF(FencerStatus.CHECKED_IN))).toBe(false);
+    });
+    it('statut ABANDONED : combat annulé', () => {
+      expect(isMatchVoidedByForfeit(mkF(FencerStatus.ABANDONED))).toBe(true);
+    });
+    it('classement : V+1 et touches comptées tant que le statut est inchangé, rien une fois ABANDONED', () => {
+      const m = mkF(FencerStatus.CHECKED_IN);
+      const winner = m.fencerA as Fencer;
+      expect(calculateFencerPoolStats(winner, [m])).toMatchObject({
+        victories: 1,
+        touchesScored: 5,
+        touchesReceived: 2,
+        index: 3,
+      });
+      const after = mkF(FencerStatus.ABANDONED);
+      expect(calculateFencerPoolStats(after.fencerA as Fencer, [after])).toMatchObject({
+        victories: 0,
+        matchesPlayed: 0,
+        index: 0,
+      });
+    });
+  });
+});
+
+describe('distributeFencersGroupedByLevel (rapières, #1441)', () => {
+  const team = (id: string, level: number, club: string) => ({
+    ...createMockFencer(id, Number(id.slice(1)), id),
+    club,
+    level,
+  });
+  const teams = [
+    team('t1', 2, 'A'),
+    team('t2', 0, 'A'),
+    team('t3', 1, 'B'),
+    team('t4', 0, 'A'),
+    team('t5', 2, 'C'),
+    team('t6', 1, 'B'),
+    team('t7', 0, 'B'),
+    team('t8', 1, 'C'),
+    team('t9', 2, 'A'),
+  ];
+  const levelOf = (f: Fencer) => (f as Fencer & { level: number }).level;
+
+  it('regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)', () => {
+    const pools = distributeFencersGroupedByLevel(teams, 3, levelOf, false);
+    expect(pools.map(p => p.length)).toEqual([3, 3, 3]);
+    pools.forEach(p => expect(new Set(p.map(levelOf)).size).toBe(1));
+    expect(pools.map(p => levelOf(p[0]))).toEqual([0, 1, 2]);
+  });
+
+  it('séparation club : clubs alternés à niveau égal', () => {
+    const pools = distributeFencersGroupedByLevel(teams, 3, levelOf, true);
+    expect(pools[0].map(f => f.club)).toEqual(['A', 'B', 'A']);
+    expect(pools.flat()).toHaveLength(9);
+  });
+});
+
+describe('distributeFencersToPoolsSerpentine — classement déplaçable', () => {
+  // 3 poules, rangée 2 (rangs 4-6) toute du club C, comme le rang 3
+  const clubs = ['A', 'B', 'C', 'C', 'C', 'C', 'X', 'Y', 'Z'];
+  const fencers = clubs.map((club, i) => ({
+    ...createMockFencer(`f${i + 1}`, i + 1, `N${i + 1}`),
+    ranking: i + 1,
+    club,
+  }));
+  const poolOf = (pools: Fencer[][], id: string) => pools.findIndex(p => p.some(f => f.id === id));
+
+  it('club avant classement : descente hors du chapeau pour éviter le conflit', () => {
+    // C : 3 tireurs / 3 poules → quota 1 par poule
+    const fs = fencers.map(f => (['f5', 'f6'].includes(f.id) ? { ...f, club: f.id } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byClub']);
+    expect(poolOf(pools, 'f4')).not.toBe(poolOf(pools, 'f3'));
+    expect(poolOf(pools, 'f7')).not.toBe(poolOf(pools, 'f3'));
+  });
+
+  it('quota BellePoule : club plus nombreux que les poules → ⌈N/poules⌉ par poule toléré', () => {
+    const fs = Array.from({ length: 12 }, (_, i) => ({
+      ...createMockFencer(`q${i + 1}`, i + 1, `Q${i + 1}`),
+      ranking: i + 1,
+      club: i < 8 ? 'BIG' : `S${i}`,
+    }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 4, ['byClub']);
+    pools.forEach(p => expect(p.filter(f => f.club === 'BIG').length).toBeLessThanOrEqual(2));
+  });
+
+  it('classement en rang 1 : échanges au plus proche classement → quotas club respectés', () => {
+    // Chapeau 2 (f4 B, f5 C, f6 A) : la poule 1 (A) ne reçoit que f6 A → échange avec f5
+    const clubsOf = ['A', 'B', 'C', 'B', 'C', 'A', 'X', 'Y', 'Z'];
+    const fs = clubsOf.map((club, i) => ({
+      ...createMockFencer(`s${i + 1}`, i + 1, `S${i + 1}`),
+      ranking: i + 1,
+      club,
+    }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, [], ['byClub']);
+    const total = (c: string) => fs.filter(f => f.club === c).length;
+    pools.forEach(p =>
+      ['A', 'B', 'C'].forEach(c =>
+        expect(p.filter(f => f.club === c).length).toBeLessThanOrEqual(Math.ceil(total(c) / 3))
+      )
+    );
+    expect(['s1', 's2', 's3'].map(id => poolOf(pools, id))).toEqual([0, 1, 2]);
+  });
+
+  it('têtes de poule jamais déplacées (premier chapeau)', () => {
+    const fs = fencers.map(f => (f.id === 'f2' ? { ...f, club: 'A' } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byClub']);
+    expect([0, 1, 2].map(i => poolOf(pools, `f${i + 1}`))).toEqual([0, 1, 2]);
+  });
+
+  it('nation vide : pas de conflit entre tireurs sans nationalité', () => {
+    const fs = fencers.map(f => ({ ...f, club: f.id, nationality: '' }));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, ['byNation']);
+    expect(pools.map(p => p.map(f => f.ranking).sort((x, y) => (x ?? 0) - (y ?? 0)))).toEqual([
+      [1, 6, 7],
+      [2, 5, 8],
+      [3, 4, 9],
+    ]);
+  });
+
+  it('club après classement : pas de descente hors du chapeau', () => {
+    const pools = distributeFencersToPoolsSerpentine(fencers, 3, [], ['byClub']);
+    expect(poolOf(pools, 'f4')).toBe(poolOf(pools, 'f3'));
+    expect(pools.map(p => p.length)).toEqual([3, 3, 3]);
+  });
+
+  it('club après classement : échange dans le chapeau si possible', () => {
+    const fs = fencers.map(f => (f.id === 'f5' ? { ...f, club: 'W' } : f));
+    const pools = distributeFencersToPoolsSerpentine(fs, 3, [], ['byClub']);
+    expect(poolOf(pools, 'f5')).toBe(poolOf(pools, 'f3'));
+    expect(poolOf(pools, 'f7')).not.toBe(poolOf(pools, 'f3'));
   });
 });

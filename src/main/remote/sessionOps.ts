@@ -7,6 +7,7 @@ import { MatchStatus, type Score } from '../../shared/types';
 import type { ArenaMatch, RemoteScoreUpdate, RemoteSession } from '../../shared/types/remote';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 
 type S = RemoteScoreServer;
 
@@ -127,10 +128,20 @@ export async function updateMatchScore(
       scoreB,
       status: update.status === 'finished' ? MatchStatus.FINISHED : MatchStatus.IN_PROGRESS,
     });
+    emitCompetitionEvent('matches:changed');
   } else {
     // Match en mémoire uniquement (poule non persistée) : mettre à jour via Socket.IO
     const inMemory = ctx.sessionMatches.find(m => m.id === matchId);
     if (!inMemory) {
+      // Match d'entraînement (lobby) : seulement porté par l'arène, pas de liste de session.
+      // Sans ce cas, la tablette mettait le score en file hors-ligne et affichait
+      // « Échec – Réessayer » en permanence (#1500).
+      for (const [arenaId, arena] of ctx.arenas) {
+        if (arena.currentMatch?.id === matchId) {
+          ctx.updateArenaScore(arenaId, update.scoreA, update.scoreB);
+          return;
+        }
+      }
       throw new Error('Match non trouvé');
     }
     // Synchroniser les scores dans l'arène en mémoire
@@ -148,3 +159,9 @@ export async function updateMatchScore(
     });
   }
 }
+
+/** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */
+export const SESSION_OPS_CONTEXT_KEYS = {
+  state: ['arenas', 'db', 'sessionMatchScores', 'sessionMatches'],
+  methods: ['assignMatchToArena', 'loadSessionReferees', 'setArenaCount', 'updateArenaScore'],
+} as const;

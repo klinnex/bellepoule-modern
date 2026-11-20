@@ -1,0 +1,298 @@
+/**
+ * Orchestration sportive dans le main (#1880, lot 3), base SQLite réelle :
+ * poules → arbitres → scores → tableau → résultats → export.
+ */
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { DatabaseManager } from '../../database';
+import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
+import { Category, FencerStatus, Gender, Weapon } from '../../shared/types';
+import { buildMatchScores, validatePoolScore } from '../../shared/utils/poolOrchestration';
+import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
+import type { DomainChange, DomainContext } from './context';
+import { assignPoolReferees, buildBracket, generatePools, listMatches, recordScore } from './sport';
+import { getBracket, getPoolRanking } from './sessionView';
+import { exportResults } from './exportResults';
+
+vi.mock('better-sqlite3-multiple-ciphers', async () => ({
+  default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
+}));
+
+const d = hasNodeSqlite ? describe : describe.skip;
+
+let db: DatabaseManager;
+let ctx: DomainContext;
+let changes: DomainChange[];
+let dir: string;
+
+const CLUBS = ['Paris', 'Lyon', 'Nice', 'Lille'];
+
+async function setup(fencerCount: number, weapon = Weapon.EPEE) {
+  const comp = db.createCompetition({
+    title: 'Test',
+    date: new Date('2026-12-06'),
+    weapon,
+    gender: Gender.MALE,
+    category: Category.SENIOR,
+    settings: buildDefaultCompetitionSettings({ weapon, category: Category.SENIOR }),
+  });
+  for (let i = 0; i < fencerCount; i++) {
+    db.addFencer(comp.id, {
+      lastName: `NOM${i}`,
+      firstName: `P${i}`,
+      club: CLUBS[i % CLUBS.length],
+      ranking: i + 1,
+      status: FencerStatus.CHECKED_IN,
+    });
+  }
+  return comp;
+}
+
+/** Joue tous les matchs prêts : A gagne 5-n (poule) ou 15-n (tableau) */
+function playAll(competitionId: string, kind: 'pool' | 'bracket') {
+  let guard = 0;
+  for (;;) {
+    const ready = listMatches(ctx, competitionId, { state: 'ready' }).filter(m => m.kind === kind);
+    if (ready.length === 0 || guard++ > 200) return;
+    for (const m of ready) {
+      recordScore(ctx, competitionId, {
+        matchId: m.matchId,
+        scoreA: kind === 'pool' ? 5 : 15,
+        scoreB: (m.fencerB?.lastName.length ?? 0) % 4,
+      });
+    }
+  }
+}
+
+beforeEach(async () => {
+  db = new DatabaseManager(':memory:');
+  await db.open(':memory:');
+  changes = [];
+  ctx = { db, emitChange: c => changes.push(c) };
+  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-sport-'));
+});
+afterEach(() => {
+  db.close();
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+describe('validation des scores de poule (identique à l’écran)', () => {
+  const base = { maxScore: 5, isLaserSabre: false, tieByVictory: true };
+  it('score max, égalité, vainqueur contraire', () => {
+    expect(validatePoolScore({ ...base, scoreA: 6, scoreB: 2 })).toBe('score_above_max');
+    expect(validatePoolScore({ ...base, scoreA: 3, scoreB: 3 })).toBe('draw_needs_winner');
+    expect(validatePoolScore({ ...base, scoreA: 3, scoreB: 3, priority: 'A' })).toBeNull();
+    // Règlement o.17 : pas d'égalité au score max, même avec vainqueur (#1990)
+    expect(validatePoolScore({ ...base, scoreA: 5, scoreB: 5, winner: 'A' })).toBe('tie_at_max');
+    expect(
+      validatePoolScore({
+        ...base,
+        isLaserSabre: true,
+        maxScore: 21,
+        scoreA: 21,
+        scoreB: 21,
+        winner: 'A',
+      })
+    ).toBeNull();
+    expect(
+      validatePoolScore({ ...base, tieByVictory: false, scoreA: 3, scoreB: 3, priority: 'A' })
+    ).toBe('priority_not_allowed');
+    expect(validatePoolScore({ ...base, isLaserSabre: true, scoreA: 3, scoreB: 3 })).toBe(
+      'draw_not_allowed'
+    );
+    expect(validatePoolScore({ ...base, scoreA: 2, scoreB: 4, winner: 'A' })).toBe(
+      'winner_contradicts_score'
+    );
+    expect(
+      validatePoolScore({ ...base, scoreA: 2, scoreB: 4, winner: 'A', specialStatus: 'abandon' })
+    ).toBeNull();
+  });
+
+  it('statut spécial au perdant, priorité marquée', () => {
+    const s = buildMatchScores(2, 4, 'A', 'abandon');
+    expect(s.scoreA.isVictory).toBe(true);
+    expect(s.scoreB).toMatchObject({ isVictory: false, isAbstention: true });
+    expect(buildMatchScores(3, 3, undefined, undefined, 'B').scoreB).toMatchObject({
+      isVictory: true,
+      isPriority: true,
+    });
+  });
+});
+
+d('déroulé complet piloté hors écran', () => {
+  it('poules → arbitres → scores → tableau → classement final → exports', async () => {
+    const comp = await setup(14);
+    db.createReferee(comp.id, { name: 'Anne ARBITRE', club: 'Paris' });
+    const refs = db.getRefereesByCompetition(comp.id);
+    db.updateReferee(refs[0].id, { status: 'available' } as never);
+
+    const sim = generatePools(ctx, comp.id, { dryRun: true });
+    expect(sim.poolCount).toBe(2);
+    expect(listMatches(ctx, comp.id)).toHaveLength(0);
+
+    const pools = generatePools(ctx, comp.id);
+    expect(pools.pools.map(p => p.fencers.length).sort()).toEqual([7, 7]);
+    expect(db.getSessionState(comp.id)).toMatchObject({ currentPhase: 2, poolsLaunched: true });
+    expect(changes[changes.length - 1]).toEqual({
+      scope: 'session',
+      competitionIds: [comp.id],
+    });
+    // Tables de poules aussi écrites (repli de l'écran, serveur distant)
+    const phase = db.getPhasesByCompetition(comp.id).find(p => p.type === 'pool')!;
+    expect(db.getPoolsByPhase(phase.id)).toHaveLength(2);
+
+    const assigned = assignPoolReferees(ctx, comp.id);
+    expect(assigned.assignments).toHaveLength(2);
+
+    // Bracket refusé tant que les poules ne sont pas finies
+    expect(() => buildBracket(ctx, comp.id)).toThrow(/poules/);
+    const first = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: first.matchId, scoreA: 9, scoreB: 1 })
+    ).toThrow(/score_above_max/);
+    playAll(comp.id, 'pool');
+    const ranking = getPoolRanking(ctx, comp.id);
+    expect(ranking.pools.every(p => p.complete)).toBe(true);
+    expect(ranking.overallRanking).toHaveLength(14);
+
+    const bracket = buildBracket(ctx, comp.id, { thirdPlaceMatch: true });
+    expect(bracket.size).toBe(16);
+    expect(db.getCompetition(comp.id)?.settings.thirdPlaceMatch).toBe(true);
+    // Score de poule figé une fois le tableau construit
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: first.matchId, scoreA: 5, scoreB: 0 })
+    ).toThrow(/figé/);
+    playAll(comp.id, 'bracket');
+    const final = getBracket(ctx, comp.id);
+    expect(final.matches.every(m => m.isBye || m.state === 'done')).toBe(true);
+    expect(final.finalResults).toHaveLength(14);
+    expect(final.finalResults[0].rank).toBe(1);
+
+    // Matchs de tableau en base (id composite)
+    expect(db.getTableauMatchesForExport(comp.id).length).toBeGreaterThan(0);
+
+    for (const format of ['xml', 'fff', 'csv', 'html'] as const) {
+      const out = path.join(dir, `r.${format}`);
+      const r = await exportResults(ctx, comp.id, { format, outputPath: out });
+      expect(r.bytes).toBeGreaterThan(0);
+    }
+    await expect(
+      exportResults(ctx, comp.id, { format: 'xml', outputPath: path.join(dir, 'r.xml') })
+    ).rejects.toThrow(/existe déjà/);
+    await expect(
+      exportResults(ctx, comp.id, { format: 'pdf', outputPath: path.join(dir, 'r.pdf') })
+    ).rejects.toThrow(/PDF indisponible/);
+    expect(fs.readFileSync(path.join(dir, 'r.xml'), 'utf-8')).toContain('NOM');
+  });
+
+  it('régénérer des poules jouées exige replace', async () => {
+    const comp = await setup(8);
+    generatePools(ctx, comp.id);
+    const m = listMatches(ctx, comp.id)[0];
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 1 });
+    expect(() => generatePools(ctx, comp.id)).toThrow(/replace/);
+    expect(generatePools(ctx, comp.id, { replace: true }).poolCount).toBeGreaterThan(0);
+  });
+
+  it('correction d’un match de tableau refusée si le tour suivant est joué', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    const semis = listMatches(ctx, comp.id, { state: 'ready' });
+    expect(semis).toHaveLength(2);
+    for (const s of semis) recordScore(ctx, comp.id, { matchId: s.matchId, scoreA: 15, scoreB: 3 });
+    // Égalité au tableau : vainqueur exigé
+    const finalMatch = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: finalMatch.matchId, scoreA: 7, scoreB: 7 })
+    ).toThrow(/vainqueur/);
+    recordScore(ctx, comp.id, { matchId: finalMatch.matchId, scoreA: 7, scoreB: 7, winner: 'B' });
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: semis[0].matchId, scoreA: 15, scoreB: 4 })
+    ).toThrow(/tour suivant/);
+    expect(getBracket(ctx, comp.id).finalResults[0].fencer?.id).toBe(finalMatch.fencerB?.id);
+  });
+
+  it('formats non pris en charge : erreur explicite', async () => {
+    const comp = await setup(6);
+    db.updateCompetition(comp.id, { isTeamEvent: true } as never);
+    expect(() => generatePools(ctx, comp.id)).toThrow(/équipes/);
+  });
+
+  it('pas assez de tireurs pointés', async () => {
+    const comp = await setup(3);
+    expect(() => generatePools(ctx, comp.id)).toThrow(/au moins 4/);
+  });
+
+  it('abandon en poule : statut du tireur, ses autres matchs perdus, écarté du tableau', async () => {
+    const comp = await setup(5);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const first = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    recordScore(ctx, comp.id, {
+      matchId: first.matchId,
+      scoreA: 3,
+      scoreB: 1,
+      winner: 'A',
+      specialStatus: 'abandon',
+    });
+    const loserId = first.fencerB!.id;
+    expect(db.getFencer(loserId)?.status).toBe(FencerStatus.ABANDONED);
+    const loserMatches = listMatches(ctx, comp.id).filter(
+      m => m.fencerA?.id === loserId || m.fencerB?.id === loserId
+    );
+    expect(loserMatches.every(m => m.state === 'done')).toBe(true);
+    playAll(comp.id, 'pool');
+    const bracket = buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    expect(bracket.qualified).toBe(4);
+  });
+
+  it('Sabre Laser : scores max effectifs de l’écran (21 en poule)', async () => {
+    const comp = await setup(4, Weapon.LASER);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 8, scoreB: 3 })
+    ).not.toThrow();
+  });
+
+  it('tableau terminé : phase Résultats', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    playAll(comp.id, 'bracket');
+    expect((db.getSessionState(comp.id) as { currentPhase: number }).currentPhase).toBe(6);
+  });
+
+  it('révision : une sauvegarde de l’écran sur un état périmé est refusée', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const loaded = db.getSessionState(comp.id) as { revision: number };
+    const m = listMatches(ctx, comp.id)[0];
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 2 });
+    expect(db.saveSessionStateChecked(comp.id, { ...loaded, pools: [] })).toBe(false);
+    const current = db.getSessionState(comp.id) as { revision: number };
+    expect(current.revision).toBe(loaded.revision + 1);
+    expect(db.saveSessionStateChecked(comp.id, current)).toBe(true);
+  });
+
+  it('export : dossier hors périmètre refusé, pas d’écrasement par défaut', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    const allowed = fs.mkdtempSync(path.join(dir, 'ok-'));
+    const restricted = { ...ctx, allowedRoots: () => [allowed] };
+    await expect(
+      exportResults(restricted, comp.id, { format: 'csv', outputPath: path.join(dir, 'x.csv') })
+    ).rejects.toThrow(/hors des dossiers/);
+    const out = path.join(allowed, 'x.csv');
+    await exportResults(restricted, comp.id, { format: 'csv', outputPath: out });
+    await expect(
+      exportResults(restricted, comp.id, { format: 'csv', outputPath: out })
+    ).rejects.toThrow(/existe déjà/);
+    await exportResults(restricted, comp.id, { format: 'csv', outputPath: out, overwrite: true });
+  });
+});

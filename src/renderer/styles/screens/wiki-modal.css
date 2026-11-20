@@ -1,0 +1,10 @@
+/* Styles extraits de WikiModal.tsx (#1895) */
+.wiki-modal-1.wiki-modal-1.wiki-modal-1 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+}

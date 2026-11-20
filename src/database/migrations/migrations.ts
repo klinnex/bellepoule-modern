@@ -616,4 +616,604 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 21,
+    description: 'Département des tireurs (code 01…95, 2A, 2B, 971…, #1504)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE fencers ADD COLUMN department TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 22,
+    description: 'Journée multi-épreuves : pistes de la salle et arbitres partagés (#1714)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_days (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          date TEXT NOT NULL,
+          strip_count INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      // weapons = codes d'arme séparés par des virgules ("F,E") ; vide = toutes armes
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_day_referees (
+          id TEXT PRIMARY KEY,
+          event_day_id TEXT NOT NULL,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          club TEXT,
+          license TEXT,
+          category TEXT,
+          weapons TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (event_day_id) REFERENCES event_days(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_event_day_referees_day ON event_day_referees(event_day_id)`
+      );
+      try {
+        db.run(`ALTER TABLE competitions ADD COLUMN event_day_id TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      // Lien arbitre de l'épreuve → arbitre de la journée
+      try {
+        db.run(`ALTER TABLE referees ADD COLUMN day_referee_id TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      db.run(`CREATE INDEX IF NOT EXISTS idx_referees_day_referee ON referees(day_referee_id)`);
+    },
+  },
+  {
+    version: 23,
+    description:
+      'Table remote_events : appels DT, déconnexions et resynchros des tablettes (#1817)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS remote_events (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          arena_id TEXT,
+          match_id TEXT,
+          referee_id TEXT,
+          detail TEXT,
+          created_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_remote_events_comp ON remote_events(competition_id, type)`
+      );
+    },
+  },
+  {
+    version: 24,
+    description:
+      'Table cyrano_pistes : table des pistes des appareils Cyrano, par compétition (#1829)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS cyrano_pistes (
+          competition_id TEXT NOT NULL,
+          piste TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          config TEXT NOT NULL,
+          PRIMARY KEY (competition_id, piste)
+        )
+      `);
+    },
+  },
+  {
+    version: 25,
+    description:
+      'Mode Club : membres, séances, présences et combats libres conservés sur la saison (#1872)',
+    up(db) {
+      // weapons = codes d'arme séparés par des virgules ; vide = toutes armes
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_members (
+          id TEXT PRIMARY KEY,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          license TEXT,
+          gender TEXT,
+          birth_year INTEGER,
+          weapons TEXT NOT NULL DEFAULT '',
+          laterality TEXT,
+          category TEXT,
+          notes TEXT,
+          active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_members_name ON club_members(last_name, first_name)`
+      );
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_sessions (
+          id TEXT PRIMARY KEY,
+          date TEXT NOT NULL,
+          label TEXT,
+          weapon TEXT,
+          strip_count INTEGER NOT NULL DEFAULT 1,
+          status TEXT NOT NULL DEFAULT 'open',
+          opened_at TEXT NOT NULL,
+          closed_at TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_sessions_date ON club_sessions(date)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_attendance (
+          session_id TEXT NOT NULL,
+          member_id TEXT NOT NULL,
+          checked_in_at TEXT NOT NULL,
+          PRIMARY KEY (session_id, member_id)
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_bouts (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          strip INTEGER,
+          member_a_id TEXT NOT NULL,
+          member_b_id TEXT NOT NULL,
+          score_a INTEGER NOT NULL DEFAULT 0,
+          score_b INTEGER NOT NULL DEFAULT 0,
+          max_score INTEGER NOT NULL DEFAULT 5,
+          winner_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          entry_mode TEXT NOT NULL DEFAULT 'master',
+          weapon TEXT,
+          started_at TEXT,
+          finished_at TEXT,
+          duration INTEGER,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_session ON club_bouts(session_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_date ON club_bouts(date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_a ON club_bouts(member_a_id, date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_b ON club_bouts(member_b_id, date)`);
+    },
+  },
+  {
+    version: 26,
+    description: 'Mode Club : code de carte de membre (QR) et identité du club (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_members ADD COLUMN card_code TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      // Membres existants : code aléatoire 10 hex (40 bits)
+      db.run(
+        `UPDATE club_members SET card_code = upper(hex(randomblob(5))) WHERE card_code IS NULL`
+      );
+      db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_club_members_card ON club_members(card_code)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        )
+      `);
+    },
+  },
+  {
+    version: 27,
+    description: 'Mode Club : photo des membres (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_members ADD COLUMN photo TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 28,
+    description:
+      'Mode Club : plusieurs clubs (table clubs, club_id), club existant conservé (#1872)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS clubs (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL DEFAULT '',
+          logo TEXT,
+          strip_count INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      for (const table of ['club_members', 'club_sessions', 'club_bouts']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN club_id TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      // Club unique des versions 25-27 : devient le club « club-default » s'il a des données
+      db.run(`
+        INSERT OR IGNORE INTO clubs (id, name, logo, strip_count, created_at, updated_at)
+        SELECT 'club-default',
+          COALESCE((SELECT value FROM club_settings WHERE key = 'name'), ''),
+          (SELECT value FROM club_settings WHERE key = 'logo'),
+          COALESCE(CAST((SELECT value FROM club_settings WHERE key = 'strip_count') AS INTEGER), 1),
+          strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+        WHERE EXISTS (SELECT 1 FROM club_settings)
+           OR EXISTS (SELECT 1 FROM club_members)
+           OR EXISTS (SELECT 1 FROM club_sessions)
+      `);
+      for (const table of ['club_members', 'club_sessions', 'club_bouts']) {
+        db.run(`UPDATE ${table} SET club_id = 'club-default' WHERE club_id IS NULL`);
+      }
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_members_club ON club_members(club_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_sessions_club ON club_sessions(club_id, date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_bouts_club ON club_bouts(club_id, date)`);
+    },
+  },
+  {
+    version: 29,
+    description:
+      'Mode Club : préparation des séances (objectifs, plan, notes) et bilan (séance, par tireur) (#1872)',
+    up(db) {
+      for (const col of ['objectives', 'plan', 'notes', 'feedback']) {
+        try {
+          db.run(`ALTER TABLE club_sessions ADD COLUMN ${col} TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      try {
+        db.run(`ALTER TABLE club_attendance ADD COLUMN feedback TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 30,
+    description: 'Mode Club : arme par défaut du club (règles de la saisie distante) (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN weapon TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 31,
+    description: "Mode Club : bibliothèque d'exercices (échauffements, technique…) (#1872)",
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_exercises (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          category TEXT NOT NULL DEFAULT 'other',
+          minutes INTEGER NOT NULL DEFAULT 0,
+          details TEXT,
+          images TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_exercises_cat ON club_exercises(category, title)`
+      );
+    },
+  },
+  {
+    version: 32,
+    description:
+      "Mode Club : date de naissance, catégories d'âge des séances et exercices, séances récurrentes (#1872)",
+    up(db) {
+      const cols: Array<[string, string]> = [
+        ['club_members', 'birth_date'],
+        ['club_sessions', 'age_from'],
+        ['club_sessions', 'age_to'],
+        ['club_sessions', 'series_id'],
+        ['club_exercises', 'age_categories'],
+      ];
+      for (const [table, col] of cols) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN ${col} TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_sessions_series ON club_sessions(series_id, date)`
+      );
+    },
+  },
+  {
+    version: 33,
+    description:
+      "RGPD : horodatage d'anonymisation des compétitions et des membres du club (#1882)",
+    up(db) {
+      for (const table of ['competitions', 'club_members']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN anonymized_at TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+    },
+  },
+  {
+    version: 34,
+    description:
+      'Mode Club : inventaire du matériel (club_items) et prêts aux tireurs (club_loans)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_items (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          category TEXT NOT NULL,
+          brand TEXT,
+          model TEXT,
+          serial_number TEXT,
+          weapon TEXT,
+          size TEXT,
+          color TEXT,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          purchase_date TEXT,
+          purchase_price REAL,
+          supplier TEXT,
+          invoice_ref TEXT,
+          warranty_until TEXT,
+          condition TEXT NOT NULL DEFAULT 'good',
+          location TEXT,
+          notes TEXT,
+          retired INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_items_club ON club_items(club_id, category)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_loans (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          member_id TEXT,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          lent_at TEXT NOT NULL,
+          due_date TEXT,
+          returned_at TEXT,
+          condition_out TEXT NOT NULL DEFAULT 'good',
+          condition_in TEXT,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_item ON club_loans(item_id, returned_at)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_member ON club_loans(member_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_loans_club ON club_loans(club_id, lent_at)`);
+    },
+  },
+  {
+    version: 35,
+    description: 'Mode Club : catégories de matériel créées par le club (club_item_categories)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_item_categories (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_club_item_categories_name ON club_item_categories(club_id, name COLLATE NOCASE)`
+      );
+    },
+  },
+  {
+    version: 36,
+    description: 'Mode Club : catalogue de marques du matériel et verrou de l’inventaire',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_item_brands (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_club_item_brands_name ON club_item_brands(club_id, name COLLATE NOCASE)`
+      );
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN inventory_locked INTEGER NOT NULL DEFAULT 0`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 37,
+    description:
+      'Journée multi-épreuves : réservation des pistes et affectation automatique des pistes libérées (#1878)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS event_day_strip_rules (
+          event_day_id TEXT NOT NULL,
+          strip INTEGER NOT NULL,
+          rule TEXT NOT NULL,
+          PRIMARY KEY (event_day_id, strip)
+        )
+      `);
+      try {
+        db.run(`ALTER TABLE event_days ADD COLUMN auto_assign INTEGER NOT NULL DEFAULT 0`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 38,
+    description:
+      'Paramétrage global du poste (app_settings) et salles déclarées une fois (venues, venue_strips) (#1880)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venues (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          is_default INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS venue_strips (
+          venue_id TEXT NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+          number INTEGER NOT NULL,
+          label TEXT,
+          cyrano_config TEXT,
+          PRIMARY KEY (venue_id, number)
+        )
+      `);
+      // Une seule salle par défaut
+      db.run(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_venues_single_default ON venues(is_default) WHERE is_default = 1`
+      );
+      for (const table of ['event_days', 'club_sessions']) {
+        try {
+          db.run(`ALTER TABLE ${table} ADD COLUMN venue_id TEXT`);
+        } catch {
+          /* colonne déjà présente */
+        }
+      }
+      // Reprise : les pistes déjà déclarées (journées, clubs) deviennent la salle par défaut,
+      // une fois, si aucune salle n'existe ; les journées gardent leur propre nombre de pistes
+      const strips = `(SELECT MIN(100, MAX(n)) FROM (
+          SELECT MAX(strip_count) AS n FROM event_days
+          UNION ALL SELECT MAX(strip_count) FROM clubs WHERE strip_count > 1))`;
+      db.run(`
+        INSERT INTO venues (id, name, is_default, created_at, updated_at)
+        SELECT lower(hex(randomblob(16))), 'Salle principale', 1, datetime('now'), datetime('now')
+        WHERE NOT EXISTS (SELECT 1 FROM venues) AND COALESCE(${strips}, 0) > 0
+      `);
+      db.run(`
+        WITH RECURSIVE seq(k) AS (SELECT 1 UNION ALL SELECT k + 1 FROM seq WHERE k < ${strips})
+        INSERT INTO venue_strips (venue_id, number, label, cyrano_config)
+        SELECT v.id, seq.k, NULL, NULL FROM venues v, seq
+        WHERE v.is_default = 1 AND NOT EXISTS (SELECT 1 FROM venue_strips WHERE venue_id = v.id)
+      `);
+    },
+  },
+  {
+    version: 39,
+    description: "Mode Club : maîtres d'armes du club et encadrement des séances",
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_coaches (
+          id TEXT PRIMARY KEY,
+          club_id TEXT NOT NULL,
+          first_name TEXT NOT NULL DEFAULT '',
+          last_name TEXT NOT NULL DEFAULT '',
+          title TEXT,
+          phone TEXT,
+          email TEXT,
+          weapons TEXT,
+          notes TEXT,
+          active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_club_coaches_club ON club_coaches(club_id)`);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS club_session_coaches (
+          session_id TEXT NOT NULL,
+          coach_id TEXT NOT NULL,
+          PRIMARY KEY (session_id, coach_id)
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_club_session_coaches_coach ON club_session_coaches(coach_id)`
+      );
+    },
+  },
+  {
+    version: 40,
+    description: 'Mode Club : armes visées par les exercices (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_exercises ADD COLUMN weapons TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 41,
+    description: 'Mode Club : facture PDF importée sur le matériel (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_items ADD COLUMN invoice_pdf TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 42,
+    description: 'Mode Club : heure de début des séances (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_sessions ADD COLUMN start_time TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
+  {
+    version: 43,
+    description: 'Mode Club : plusieurs armes par club (liste, copie de l’arme actuelle) (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE clubs ADD COLUMN weapons TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      db.run(`UPDATE clubs SET weapons = weapon WHERE weapons IS NULL AND weapon IS NOT NULL`);
+    },
+  },
+  {
+    version: 44,
+    description: 'Mode Club : image du matériel (JPEG/PNG redimensionnée 720p) (#1872)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE club_items ADD COLUMN image TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

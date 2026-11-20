@@ -1,0 +1,14 @@
+{
+  "name": "bellepoule-modern",
+  "owner": { "name": "BellePoule Modern" },
+  "metadata": {
+    "description": "Plugins Claude Code de BellePoule Modern (gestion de compétitions d'escrime)."
+  },
+  "plugins": [
+    {
+      "name": "bellepoule",
+      "source": "./plugins/bellepoule",
+      "description": "Serveur MCP local de BellePoule Modern, skill escrime et commandes /bp-etat, /bp-journee, /bp-epreuve."
+    }
+  ]
+}

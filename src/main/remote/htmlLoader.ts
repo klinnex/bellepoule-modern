@@ -1,6 +1,8 @@
 /**
  * BellePoule Modern - Chargement en mémoire des pages distantes et du client socket.io (#1240)
  * Fonctions pures de lecture disque : l'état (htmlFiles, remoteBasePath…) reste dans le serveur.
+ * Lecture synchrone au démarrage du serveur uniquement : les pages sont ensuite servies
+ * depuis la mémoire, jamais relues par requête (#1776).
  * Licensed under GPL-3.0
  */
 import * as fs from 'fs';
@@ -23,6 +25,7 @@ export const REMOTE_HTML_FILES = [
   'overlay-config.html',
   'register.html',
   'checkin.html',
+  'selfcheckin.html',
   'trainer.html',
   'matchs.html',
   'results.html',
@@ -31,6 +34,8 @@ export const REMOTE_HTML_FILES = [
   'teamArena.html',
   'teamReferee.html',
   'demo.html',
+  'trainingLobby.html',
+  'journee.html',
 ] as const;
 
 /**
@@ -64,15 +69,14 @@ export function loadSocketIoClient(): string | null {
 
   for (const candidate of candidates) {
     try {
-      if (fs.existsSync(candidate)) {
-        const js = fs.readFileSync(candidate, 'utf-8');
-        logger.info(
-          LogCategory.NETWORK,
-          `[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`
-        );
-        return js;
-      }
+      const js = fs.readFileSync(candidate, 'utf-8');
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`
+      );
+      return js;
     } catch (err) {
+      if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') continue;
       logger.error(
         LogCategory.NETWORK,
         `[RemoteScoreServer] Erreur lecture client socket.io ${candidate}:`,
@@ -101,7 +105,8 @@ export function inlineSocketIoClient(html: string, socketIoClientJs: string): st
 }
 
 /**
- * Charge les pages HTML distantes en mémoire (premier dossier contenant au moins un fichier).
+ * Charge les pages HTML distantes en mémoire : chaque page est cherchée dans les dossiers
+ * candidats, dans l'ordre (un dossier de build partiel ne masque pas les autres).
  * Si `socketIoClientJs` est fourni, il est injecté inline dans chaque page.
  */
 export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
@@ -137,25 +142,32 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
       if (fs.existsSync(basePath)) {
         logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chemin trouvé: ${basePath}`);
 
+        // Fichier par fichier : un dossier partiel (build antérieur, page ajoutée depuis)
+        // ne doit pas masquer les pages présentes dans les dossiers suivants
+        let loadedHere = 0;
         for (const file of REMOTE_HTML_FILES) {
+          if (htmlFiles.has(file)) continue;
           const filePath = path.join(basePath, file);
-          if (fs.existsSync(filePath)) {
+          try {
             htmlFiles.set(file, fs.readFileSync(filePath, 'utf-8'));
+            loadedHere++;
             logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chargé: ${file}`);
-          } else {
+          } catch (e) {
+            if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') throw e;
             logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Fichier non trouvé: ${filePath}`);
           }
         }
 
-        // Si on a chargé au moins un fichier, on utilise ce chemin
-        if (htmlFiles.size > 0) {
+        // Premier dossier ayant fourni des fichiers : base des autres ressources statiques
+        if (loadedHere > 0 && remoteBasePath === null) {
           logger.info(
             LogCategory.NETWORK,
-            `[RemoteScoreServer] ${htmlFiles.size} fichiers chargés depuis: ${basePath}`
+            `[RemoteScoreServer] ${loadedHere} fichiers chargés depuis: ${basePath}`
           );
           remoteBasePath = basePath;
-          break;
         }
+        // Toutes les pages trouvées : inutile de chercher plus loin
+        if (htmlFiles.size === REMOTE_HTML_FILES.length) break;
       }
     } catch (err) {
       logger.error(

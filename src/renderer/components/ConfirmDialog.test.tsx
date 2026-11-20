@@ -13,7 +13,7 @@ import { ConfirmProvider, useConfirm } from './ConfirmDialog';
 // Composant exposant le résultat de confirm()
 const Harness: React.FC<{ options?: any }> = ({ options }) => {
   const { confirm } = useConfirm();
-  const [res, setRes] = useState<string>('');
+  const [, setRes] = useState<string>('');
   return (
     <button onClick={async () => setRes(String(await confirm(options ?? 'Continuer ?')))}>
       ask
@@ -77,11 +77,9 @@ describe('ConfirmProvider / useConfirm', () => {
 });
 
 describe('useConfirm hors provider', () => {
-  it('retombe sur window.confirm', async () => {
-    vi.stubGlobal(
-      'confirm',
-      vi.fn(() => true)
-    );
+  it('refuse sans appeler window.confirm', async () => {
+    const nativeConfirm = vi.fn(() => true);
+    vi.stubGlobal('confirm', nativeConfirm);
     const Outside: React.FC = () => {
       const { confirm } = useConfirm();
       const [r, setR] = useState('');
@@ -94,7 +92,8 @@ describe('useConfirm hors provider', () => {
     };
     render(<Outside />);
     fireEvent.click(screen.getByText('out'));
-    await waitFor(() => expect(screen.getByTestId('r').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('r').textContent).toBe('false'));
+    expect(nativeConfirm).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
 });

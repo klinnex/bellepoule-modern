@@ -6,6 +6,7 @@ import {
   cleanupReplacedExecutable,
   detectInstallKind,
   isSafePortableCleanup,
+  macAppBundle,
   portableSideBySidePath,
   replaceExecutableInPlace,
   selectUpdateAsset,
@@ -19,6 +20,7 @@ const ASSETS = [
   asset(`BellePoule-Modern-${V}-mac-x64.dmg`),
   asset(`BellePoule-Modern-${V}-mac-arm64.dmg`),
   asset(`BellePoule-Modern-${V}-mac-arm64.zip`),
+  asset(`BellePoule-Modern-${V}-mac-x64.zip`),
   asset(`BellePoule-Modern-${V}-linux-amd64.deb`),
   asset(`BellePoule-Modern-${V}-linux-x86_64.rpm`),
   asset(`BellePoule-Modern-${V}-linux-x86_64.AppImage`),
@@ -47,9 +49,51 @@ describe('detectInstallKind', () => {
   });
 });
 
+describe('detectInstallKind — macOS / paquets Linux', () => {
+  const MAC_EXE = '/Applications/BellePoule Modern.app/Contents/MacOS/BellePoule Modern';
+  const files =
+    (...l: string[]) =>
+    (p: string) =>
+      l.includes(p);
+
+  it('macOS : bundle .app dans un dossier inscriptible → macapp', () => {
+    expect(detectInstallKind('darwin', {}, { execPath: MAC_EXE, canWrite: () => true })).toEqual({
+      kind: 'macapp',
+      target: '/Applications/BellePoule Modern.app',
+    });
+  });
+
+  it('macOS : dossier en lecture seule (translocation) → installer', () => {
+    expect(detectInstallKind('darwin', {}, { execPath: MAC_EXE, canWrite: () => false }).kind).toBe(
+      'installer'
+    );
+  });
+
+  it('Linux hors AppImage : deb sur Debian/Ubuntu, rpm sinon', () => {
+    const deb = files('/etc/debian_version', '/usr/bin/dpkg', '/usr/bin/rpm');
+    expect(detectInstallKind('linux', {}, { exists: deb }).kind).toBe('deb');
+    expect(detectInstallKind('linux', {}, { exists: files('/usr/bin/rpm') }).kind).toBe('rpm');
+    expect(detectInstallKind('linux', {}, { exists: files() }).kind).toBe('installer');
+  });
+
+  it('AppImage prioritaire sur le paquet', () => {
+    expect(
+      detectInstallKind('linux', { APPIMAGE: '/a.AppImage' }, { exists: () => true }).kind
+    ).toBe('appimage');
+  });
+
+  it('macAppBundle', () => {
+    expect(macAppBundle(MAC_EXE)).toBe('/Applications/BellePoule Modern.app');
+    expect(macAppBundle('/usr/bin/node')).toBeNull();
+  });
+});
+
 describe('selectUpdateAsset', () => {
-  const pick = (p: NodeJS.Platform, arch: string, kind: 'appimage' | 'portable' | 'installer') =>
-    selectUpdateAsset(ASSETS, p, arch, kind)?.name;
+  const pick = (
+    p: NodeJS.Platform,
+    arch: string,
+    kind: 'appimage' | 'portable' | 'macapp' | 'deb' | 'rpm' | 'installer'
+  ) => selectUpdateAsset(ASSETS, p, arch, kind)?.name;
 
   it('Windows installé → setup NSIS, jamais le portable', () => {
     expect(pick('win32', 'x64', 'installer')).toMatch(/-setup\.exe$/);
@@ -71,6 +115,22 @@ describe('selectUpdateAsset', () => {
 
   it('Linux paquet → deb en priorité', () => {
     expect(pick('linux', 'x64', 'installer')).toMatch(/amd64\.deb$/);
+  });
+
+  it('macOS .app inscriptible → zip de la bonne arch', () => {
+    expect(pick('darwin', 'arm64', 'macapp')).toMatch(/mac-arm64\.zip$/);
+    expect(pick('darwin', 'x64', 'macapp')).toMatch(/mac-x64\.zip$/);
+  });
+
+  it('macOS .app sans zip publié → dmg', () => {
+    const dmgOnly = [asset(`BellePoule-Modern-${V}-mac-x64.dmg`)];
+    expect(selectUpdateAsset(dmgOnly, 'darwin', 'x64', 'macapp')?.name).toMatch(/\.dmg$/);
+  });
+
+  it('Linux deb / rpm → format du système, sinon AppImage', () => {
+    expect(pick('linux', 'x64', 'deb')).toMatch(/amd64\.deb$/);
+    expect(pick('linux', 'x64', 'rpm')).toMatch(/x86_64\.rpm$/);
+    expect(pick('linux', 'arm64', 'rpm')).toMatch(/arm64\.AppImage$/);
   });
 
   it('accepte un asset sans arch', () => {

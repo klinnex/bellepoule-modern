@@ -1,0 +1,167 @@
+/**
+ * BellePoule Modern - Compléments des boutons (#1529)
+ * Étend les classes .btn-* de design.css pour la primitive <Button> :
+ * icône seule, état de chargement. Licensed under GPL-3.0
+ */
+
+/* Bouton icône seule : carré, nom accessible via aria-label */
+.btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0.4375rem;
+}
+
+/* État de chargement : libellé conservé, spinner, pas de clic */
+.btn-loading {
+  cursor: progress;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.4em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* Icônes lucide (composant Icon) */
+.ui-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Médailles et pastilles de carton (remplacent les emojis 🥇🥈🥉 🟨🟥, #1532) */
+.ui-icon.medal-gold {
+  color: #d4a017;
+}
+.ui-icon.medal-silver {
+  color: #8c96a3;
+}
+.ui-icon.medal-bronze {
+  color: #b87333;
+}
+.ui-icon.icon-fill {
+  fill: currentColor;
+}
+.ui-icon.icon-yellow {
+  color: #eab308;
+}
+.ui-icon.icon-red {
+  color: #dc2626;
+}
+.ui-icon.icon-black {
+  color: #1f2937;
+}
+.ui-icon.icon-white {
+  color: #ffffff;
+  stroke: #9ca3af;
+}
+@media (forced-colors: active) {
+  .ui-icon.medal-gold,
+  .ui-icon.medal-silver,
+  .ui-icon.medal-bronze,
+  .ui-icon.icon-yellow,
+  .ui-icon.icon-red,
+  .ui-icon.icon-black,
+  .ui-icon.icon-white {
+    color: CanvasText;
+    stroke: CanvasText;
+  }
+}
+
+/* Raccourci clavier affiché dans un bouton (#1536) */
+.btn-kbd {
+  margin-left: 0.375rem;
+  padding: 0.0625rem 0.3125rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+/* « Ne plus afficher » d'une aide ponctuelle (CoachMark) */
+.coach-dismiss {
+  display: block;
+  margin-top: 0.375rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.7rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Cartes / boutons activables (remplacent les cases à cocher, #1872) */
+.toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.toggle-chip:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+.toggle-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.toggle-chip.is-on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.toggle-chip.is-on:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+.toggle-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.toggle-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+.toggle-chip-group > legend {
+  padding: 0 0.25rem;
+}

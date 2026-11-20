@@ -32,6 +32,7 @@ beforeEach(() => {
     renameClient: vi.fn().mockResolvedValue({ success: true }),
     identifyClient: vi.fn(),
     setClientKioskMode: vi.fn().mockResolvedValue({ success: true }),
+    sendClientCommand: vi.fn().mockResolvedValue({ success: true }),
   };
   (window as any).electronAPI = { remote };
 });
@@ -61,7 +62,7 @@ describe('OrgNotePanel', () => {
 
 describe('ConnectedScreensPanel', () => {
   it('ne requête rien hors session distante', () => {
-    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive={false} />);
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive={false} arenaCount={3} />);
     expect(remote.getConnectedClients).not.toHaveBeenCalled();
   });
 
@@ -71,7 +72,7 @@ describe('ConnectedScreensPanel', () => {
       push = cb;
       return () => {};
     }) as any);
-    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive />);
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive arenaCount={3} />);
     expect(await screen.findByText('Hall')).toBeInTheDocument();
     act(() => push([{ socketId: 'zzzzzzzz1', clientType: 'kiosk', label: 'Autre' }], 'c2'));
     expect(screen.queryByText('Autre')).not.toBeInTheDocument();
@@ -80,7 +81,7 @@ describe('ConnectedScreensPanel', () => {
   });
 
   it('liste les écrans, renomme et envoie le mode kiosk', async () => {
-    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive />);
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive arenaCount={3} />);
     expect(await screen.findByText('Hall')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('rsm.rename_placeholder'), {
       target: { value: 'Entrée' },
@@ -97,6 +98,52 @@ describe('ConnectedScreensPanel', () => {
         'abcdefgh123',
         expect.objectContaining({ rotationSec: 15 })
       )
+    );
+  });
+
+  it("change le type de l'écran à distance (affichage / arbitre / arène choisie)", async () => {
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive arenaCount={3} />);
+    expect(await screen.findByText('Hall')).toBeInTheDocument();
+    const role = screen.getByTitle('xiaomi.tablet_role') as HTMLSelectElement;
+    expect(role.value).toBe('kiosk');
+    fireEvent.change(role, { target: { value: 'affichage' } });
+    await waitFor(() =>
+      expect(remote.sendClientCommand).toHaveBeenLastCalledWith('c1', 'abcdefgh123', {
+        type: 'navigate',
+        url: '/arene1',
+      })
+    );
+    expect((screen.getByTitle('xiaomi.tablet_role') as HTMLSelectElement).value).toBe('affichage');
+    const arena = screen.getByTitle('xiaomi.arena') as HTMLSelectElement;
+    fireEvent.change(arena, { target: { value: '3' } });
+    await waitFor(() =>
+      expect(remote.sendClientCommand).toHaveBeenLastCalledWith('c1', 'abcdefgh123', {
+        type: 'navigate',
+        url: '/arene3',
+      })
+    );
+    fireEvent.change(screen.getByTitle('xiaomi.tablet_role'), { target: { value: 'arbitre' } });
+    await waitFor(() =>
+      expect(remote.sendClientCommand).toHaveBeenLastCalledWith('c1', 'abcdefgh123', {
+        type: 'navigate',
+        url: '/arene3/arbitre',
+      })
+    );
+  });
+
+  it("pas de sélecteur d'arène pour un kiosque", async () => {
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive arenaCount={3} />);
+    expect(await screen.findByText('Hall')).toBeInTheDocument();
+    expect(screen.queryByTitle('xiaomi.arena')).not.toBeInTheDocument();
+  });
+
+  it('annule le changement local si la commande échoue', async () => {
+    remote.sendClientCommand.mockResolvedValueOnce({ success: false, error: 'server_not_started' });
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive arenaCount={3} />);
+    expect(await screen.findByText('Hall')).toBeInTheDocument();
+    fireEvent.change(screen.getByTitle('xiaomi.tablet_role'), { target: { value: 'affichage' } });
+    await waitFor(() =>
+      expect((screen.getByTitle('xiaomi.tablet_role') as HTMLSelectElement).value).toBe('kiosk')
     );
   });
 });

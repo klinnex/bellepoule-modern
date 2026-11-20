@@ -41,7 +41,8 @@ export interface RefereeResolverContext {
   getSession(): RemoteSession | null;
   /** Liste des arbitres de la session, rafraîchie depuis la base. */
   getSessionReferees(): RemoteSession['referees'];
-  getSessionState(competitionId: string): SessionStateLike | null | undefined;
+  /** État de session JSON brut (lu en SessionStateLike) */
+  getSessionState(competitionId: string): unknown;
 }
 
 /** Nom d'un arbitre : session d'abord, sinon les champs du payload. */
@@ -78,7 +79,7 @@ export function resolvePoolReferee(
   const session = ctx.getSession();
   if (!poolId || !session) return null;
   try {
-    const state = ctx.getSessionState(session.competitionId);
+    const state = ctx.getSessionState(session.competitionId) as SessionStateLike | null;
     const pool = asList<StateEntry>(state?.pools).find(p => p?.id === poolId);
     const refs = refsOf(pool);
     return refs.length === 0 ? null : joinReferees(ctx, refs);
@@ -98,7 +99,7 @@ export function resolveTableauMatchReferees(
   const session = ctx.getSession();
   if (!matchId || !session) return null;
   try {
-    const state = ctx.getSessionState(session.competitionId);
+    const state = ctx.getSessionState(session.competitionId) as SessionStateLike | null;
     const all = [
       ...asList<StateEntry>(state?.tableauMatches),
       ...asList<StateEntry>(state?.consolationBrackets).flatMap(b =>

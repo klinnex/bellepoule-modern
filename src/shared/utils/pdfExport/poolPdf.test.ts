@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { generatePoolHTML, exportMultiplePoolsToPDF, allPoolsFileName } from './poolPdf';
+import {
+  generatePoolHTML,
+  exportMultiplePoolsToPDF,
+  printMultiplePoolsHTML,
+  allPoolsFileName,
+} from './poolPdf';
 import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
@@ -48,6 +53,46 @@ describe('generatePoolHTML – options export (#932)', () => {
   });
 });
 
+describe("generatePoolHTML – piste dans l'en-tête (#1653)", () => {
+  it('affiche le numéro de piste sans saisie distante (pas de QR)', () => {
+    const html = generatePoolHTML(makePool(), { stripNumber: 3 });
+    expect(html).toContain('doc-header-strip-qr');
+    expect(html).toContain('<span>Piste 3</span>');
+    expect(html).not.toContain('alt="QR"');
+  });
+
+  it("n'affiche aucun bloc piste sans numéro", () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('class="doc-header-strip-qr"');
+  });
+
+  it('affiche le QR avec le numéro quand la saisie distante est active', () => {
+    const html = generatePoolHTML(makePool(), {
+      stripNumber: 7,
+      stripQrDataUrl: 'data:image/png;base64,QR',
+    });
+    expect(html).toContain('<img src="data:image/png;base64,QR" alt="QR" />');
+    expect(html).toContain('<span>Piste 7</span>');
+  });
+
+  it("centre le bloc piste dans la barre d'en-tête", () => {
+    const html = generatePoolHTML(makePool(), { stripNumber: 1 });
+    expect(html).toContain('.doc-header { position: relative; }');
+    expect(html).toContain('left: 50%;');
+  });
+});
+
+describe('generatePoolHTML – repères OCR (#1712)', () => {
+  it('pas de cadre OCR bas-droit sans QR (export complet)', () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('class="ocr-corner');
+  });
+
+  it('cadre OCR et QR présents sur une feuille avec QR', () => {
+    const html = generatePoolHTML(makePool(), { qrDataUrl: 'data:image/png;base64,AAAA' });
+    expect(html).toContain('class="ocr-corner ocr-br"');
+    expect(html).toContain('data:image/png;base64,AAAA');
+  });
+});
+
 describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -75,6 +120,24 @@ describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
   });
 });
 
+describe('printMultiplePoolsHTML – une seule fenêtre (#1413)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("toutes les feuilles dans un seul appel d'impression", async () => {
+    const printHtml = vi.fn().mockResolvedValue({ success: true });
+    vi.stubGlobal('window', { electronAPI: { file: { printHtml } } });
+    const p1 = makePool();
+    const p2 = { ...makePool(), id: 'p2', number: 2 } as Pool;
+    await printMultiplePoolsHTML([p1, p2], 'T', undefined, undefined, 'Open');
+    expect(printHtml).toHaveBeenCalledTimes(1);
+    const html = printHtml.mock.calls[0][0] as string;
+    expect(html).toContain('pools-export-break');
+    expect(html.match(/<!DOCTYPE html>/g)).toHaveLength(1);
+  });
+});
+
 describe('generatePoolHTML – couleurs du modèle (#992)', () => {
   it('la surcharge de couleurs suit le CSS de base (sinon écrasée)', () => {
     const tpl = buildDefaultTemplate('pool');
@@ -90,5 +153,46 @@ describe('generatePoolHTML – couleurs du modèle (#992)', () => {
     tpl.colors = { navy: 'red;} body{display:none', gold: '#00ff00', green: '#0000ff' };
     const html = generatePoolHTML(makePool(), {}, tpl);
     expect(html).not.toContain('display:none');
+  });
+});
+
+describe('generatePoolHTML – cartons (#1829, t.124.3.e)', () => {
+  const withCards = (cards: Array<{ fencerId: string; type: string }>): Pool => {
+    const pool = makePool();
+    pool.matches[0] = {
+      ...pool.matches[0],
+      status: MatchStatus.FINISHED,
+      cards: cards.map((c, i) => ({ id: `c${i}`, matchId: 'm1', ...c })),
+    } as unknown as Match;
+    return pool;
+  };
+
+  it('sans carton : pas de section', () => {
+    expect(generatePoolHTML(makePool(), {})).not.toContain('<table class="pool-cards-table"');
+  });
+
+  it('cartons P inscrits à part des cartons de faute', () => {
+    const html = generatePoolHTML(
+      withCards([
+        { fencerId: 'a', type: 'yellow' },
+        { fencerId: 'a', type: 'p-red' },
+        { fencerId: 'b', type: 'p-red' },
+        { fencerId: 'b', type: 'red' },
+        { fencerId: 'b', type: 'red' },
+      ]),
+      {}
+    );
+    expect(html).toContain('<table class="pool-cards-table"');
+    expect(html).toMatch(/ALPHA X<\/td><td>Jaune<\/td><td>Rouge P<\/td>/);
+    expect(html).toMatch(/BRAVO X<\/td><td>Rouge ×2<\/td><td>Rouge P<\/td>/);
+  });
+
+  it('modèle personnalisé sans la section : cartons quand même imprimés', () => {
+    const html = generatePoolHTML(
+      withCards([{ fencerId: 'a', type: 'p-black' }]),
+      {},
+      buildDefaultTemplate('pool')
+    );
+    expect(html).toContain('Noir P');
   });
 });

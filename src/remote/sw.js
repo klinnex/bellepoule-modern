@@ -4,14 +4,45 @@
  * Licensed under GPL-3.0
  */
 
-const CACHE_NAME = 'bellepoule-referee-v7';
+const CACHE_NAME = 'bellepoule-referee-v13';
 // Seuls les fichiers réellement servis (pas de /styles.css ni /app.js qui sont inline)
+// Modules /js/* des pages arbitre et arène (#1600) : cache granulaire, une modification n'invalide qu'un fichier
 const ASSETS = [
   '/',
   '/referee.html',
   '/arena.html',
   '/common.js',
+  '/js/arenaClient.js',
+  '/js/arenaDisplay.js',
+  '/js/arenaDisplayUtils.js',
+  '/js/arenaOverlays.js',
+  '/js/arenaPanels.js',
+  '/js/arenaRender.js',
+  '/js/arenaScreen.js',
+  '/js/arenaUpdate.js',
+  '/js/icons.js',
+  '/js/offlineQueue.js',
+  '/js/priorityDraw.js',
+  '/js/refereeApp.js',
+  '/js/refereeAppBase.js',
+  '/js/refereeCards.js',
+  '/js/refereeControls.js',
+  '/js/refereeDemoMirror.js',
+  '/js/refereeFaults.js',
+  '/js/refereeFeedback.js',
+  '/js/refereeLists.js',
+  '/js/refereeLobby.js',
+  '/js/refereeClubCards.js',
+  '/js/refereePrevBreak.js',
+  '/js/refereeScoring.js',
+  '/js/refereeTimer.js',
+  '/js/refereeTts.js',
+  '/js/refereeUpdate.js',
+  '/js/timerFormat.js',
   '/fonts.css',
+  '/refereeBar.css',
+  '/refereePhone.css',
+  '/licorne-pattern.svg',
   '/fonts/Inter-latin-Variable.woff2',
 ];
 
@@ -160,6 +191,8 @@ self.addEventListener('sync', event => {
 });
 
 self.addEventListener('message', event => {
+  // Messages des seuls clients de même origine (CodeQL js/missing-origin-check)
+  if (event.origin !== self.location.origin) return;
   if (event.data?.type === 'QUEUE_ACTION') {
     queueAction({
       type: event.data.actionType,

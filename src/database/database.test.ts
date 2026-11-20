@@ -11,7 +11,7 @@ const makeStmt = (overrides: Partial<{ get: any; all: any; run: any }> = {}) => 
   ...overrides,
 });
 
-vi.mock('better-sqlite3', () => ({
+vi.mock('better-sqlite3-multiple-ciphers', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: vi.fn().mockImplementation(function (this: any) {
     return mockDb;
@@ -21,6 +21,10 @@ vi.mock('better-sqlite3', () => ({
 vi.mock('fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
   mkdirSync: vi.fn(),
+  // Chiffrement (#1882) : base absente → isEncryptedDatabaseFile renvoie false
+  statSync: vi.fn(() => {
+    throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+  }),
 }));
 
 vi.mock('./migrations', () => ({
@@ -56,7 +60,7 @@ describe('DatabaseManager', () => {
 
   describe('initialize (open)', () => {
     it('crée une Database et configure les pragmas', async () => {
-      const Database = (await import('better-sqlite3')).default as any;
+      const Database = (await import('better-sqlite3-multiple-ciphers')).default as any;
       await manager.open();
       expect(Database).toHaveBeenCalledWith('/tmp/test-bellepoule.db');
       expect(mockDb.pragma).toHaveBeenCalledWith('journal_mode = WAL');
@@ -245,16 +249,18 @@ describe('DatabaseManager', () => {
         firstName: 'Jean\t<b>',
         club: '<script>Club</script>',
         region: ' IDF ',
+        department: ' 75<> ',
         license: '12<3>',
       });
       const params = run.mock.calls.find(c => c.length >= 12)!;
       // id, competition_id, ref, last_name, first_name, birth_date, gender, nationality,
-      // club, region, license
+      // club, region, department, license
       expect(params[3]).toBe('img src=x onerror=1DUPONT');
       expect(params[4]).toBe('Jean b');
       expect(params[8]).toBe('scriptClub/script');
       expect(params[9]).toBe('IDF');
-      expect(params[10]).toBe('123');
+      expect(params[10]).toBe('75');
+      expect(params[11]).toBe('123');
     });
   });
 
@@ -552,13 +558,22 @@ describe('DatabaseManager', () => {
 describe('DatabaseManager — historique tableau (#927)', () => {
   let manager: DatabaseManager;
   let auditRuns: unknown[][];
+  let upsertRuns: unknown[][];
 
   const setup = async (existingRows: any[]) => {
     auditRuns = [];
+    upsertRuns = [];
     mockDb = {
       pragma: vi.fn(),
       exec: vi.fn(),
       prepare: vi.fn().mockImplementation((sql: string) => {
+        if (sql.includes('ON CONFLICT(id) DO UPDATE')) {
+          return makeStmt({
+            run: vi.fn().mockImplementation((...args: unknown[]) => {
+              upsertRuns.push(args);
+            }),
+          });
+        }
         if (sql.includes('INSERT INTO score_audit_log')) {
           return makeStmt({
             run: vi.fn().mockImplementation((...args: unknown[]) => {
@@ -618,6 +633,51 @@ describe('DatabaseManager — historique tableau (#927)', () => {
     await setup([]);
     manager.upsertMultipleTableauMatches('c1', [match(null, null)]);
     expect(auditRuns).toHaveLength(0);
+  });
+
+  // Colonnes de l'upsert : id, number, table_id, fencer_a, fencer_b, score_a, score_b, …
+  const storedScores = () => [5, 6].map(i => JSON.parse(upsertRuns[0][i] as string));
+
+  it('conserve la marque d’abandon déjà en base quand le renderer réenregistre le match', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true, isAbstention: false }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isAbstention: true }),
+      },
+    ]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 10)]);
+    expect(storedScores()).toEqual([
+      { value: 15, isVictory: true },
+      { value: 10, isVictory: false, isAbstention: true },
+    ]);
+  });
+
+  it('abandonne les marques si le score ou le vainqueur change', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isExclusion: true }),
+      },
+    ]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 12)]);
+    expect(storedScores()[1]).toEqual({ value: 12, isVictory: false });
+  });
+
+  it('respecte une marque explicitement remise à false', async () => {
+    await setup([
+      {
+        id: 'c1-m1',
+        score_a: JSON.stringify({ value: 15, isVictory: true }),
+        score_b: JSON.stringify({ value: 10, isVictory: false, isAbstention: true }),
+      },
+    ]);
+    const m = match(15, 10);
+    manager.upsertMultipleTableauMatches('c1', [
+      { ...m, scoreB: { ...m.scoreB!, isAbstention: false } },
+    ]);
+    expect(storedScores()[1]).toEqual({ value: 10, isVictory: false, isAbstention: false });
   });
 });
 

@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title data-i18n="ocr.page_title">Saisie par photo — BellePoule</title>
+  <link rel="stylesheet" href="/tokens.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --navy: #1a1a2e;
-      --navy2: #16213e;
-      --gold: #c9a227;
-      --green: #22c55e;
-      --red: #ef4444;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --border: #334155;
+      --navy: var(--c-1a1a2e);
+      --navy2: var(--c-16213e);
+      --gold: var(--c-c9a227);
+      --green: var(--green-500);
+      --red: var(--red-500);
+      --text: var(--tw-slate-200);
+      --muted: var(--slate-400);
+      --border: var(--slate-700);
       --btn-h: 48px;
     }
 
@@ -68,7 +69,7 @@
     .btn:disabled { opacity: .4; cursor: not-allowed; }
     .btn-primary   { background: var(--gold); color: var(--navy); }
     .btn-secondary { background: var(--border); color: var(--text); }
-    .btn-success   { background: var(--green); color: #fff; }
+    .btn-success   { background: var(--green); color: var(--color-white); }
     .btn-block { width: 100%; }
 
     /* ── Corners stage ── */
@@ -88,7 +89,7 @@
       width: 28px; height: 28px;
       border-radius: 50%;
       background: var(--gold);
-      border: 2px solid #fff;
+      border: 2px solid var(--color-white);
       cursor: grab;
       transform: translate(-50%, -50%);
       touch-action: none;
@@ -184,7 +185,7 @@
     /* ── Error toast ── */
     #toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--red); color: #fff; border-radius: 8px;
+      background: var(--red); color: var(--color-white); border-radius: 8px;
       padding: 10px 20px; font-size: 0.85rem; font-weight: 600;
       display: none; z-index: 9999; max-width: 90vw; text-align: center;
     }
@@ -192,20 +193,21 @@
     .row-actions { display: flex; gap: 8px; }
     .label-sm { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
   </style>
-  <script src="/common.js"></script>
+  <script src="/common.js"></script><script src="/js/icons.js"></script>
+    <script src="/js/ui.js" data-bp-init></script>
   <script src="/i18n.js"></script>
 </head>
 <body>
 
 <div class="topbar">
   <a class="back" href="#" data-click="history.back" data-i18n="ocr.back">← Retour</a>
-  <h1 data-i18n="ocr.title">📸 Saisie par photo</h1>
+  <h1><span data-icon="camera"></span> <span data-i18n="ocr.title">Saisie par photo</span></h1>
 </div>
 
 <!-- ════ STAGE : SCAN ════ -->
 <div id="stage-scan" class="stage active">
   <label class="upload-zone" for="photo-input" id="upload-zone">
-    <div class="icon">📷</div>
+    <div class="icon"><span data-icon="camera"></span></div>
     <strong data-i18n="ocr.take_photo">Photographier la feuille de poule</strong>
     <p data-i18n="ocr.take_photo_hint">Appuyez pour prendre une photo ou choisir une image</p>
   </label>
@@ -261,7 +263,7 @@
 <!-- ════ STAGE : DONE ════ -->
 <div id="stage-done" class="stage">
   <div class="done-center">
-    <div class="done-icon">✅</div>
+    <div class="done-icon"><span data-icon="check-circle"></span></div>
     <h2 data-i18n="ocr.done">Import terminé</h2>
     <p id="done-msg"></p>
     <a href="#" data-click="history.back" class="btn btn-secondary" data-i18n="ocr.back_short">Retour</a>
@@ -413,7 +415,7 @@ function drawOverlay() {
   ctx.restore();
 
   // Draw quad outline
-  ctx.strokeStyle = '#c9a227';
+  ctx.strokeStyle = bpCssVar('--c-c9a227');
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(tl.x, tl.y);
@@ -467,7 +469,7 @@ function showPoolSelector() {
         return;
       }
       const sel = document.createElement('select');
-      sel.style.cssText = 'background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
+      sel.style.cssText = 'background:var(--slate-800);color:var(--tw-slate-200);border:1px solid var(--slate-700);border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
       sel.innerHTML = '<option value="">' + tk('ocr.choose_pool') + '</option>';
       pools.forEach(p => {
         const label = p.name || tk('ocr.pool_n', { n: p.number || '?' });
@@ -742,7 +744,6 @@ function buildValidationUI() {
 $('btn-import').addEventListener('click', async () => {
   const inputs = $('val-table').querySelectorAll('input.score-input');
   const { fencers, matches } = S.poolData;
-  const n = fencers.length;
 
   // Parse all inputs into (matchId, scoreA, scoreB) pairs
   // Grid cell (row, col): row = fencerA, col = fencerB
@@ -751,7 +752,6 @@ $('btn-import').addEventListener('click', async () => {
 
   inputs.forEach(inp => {
     const row = +inp.dataset.row;
-    const col = +inp.dataset.col;
     const mid = inp.dataset.mid;
     if (!mid) return;
     const raw = inp.value.trim().toUpperCase();
@@ -795,7 +795,7 @@ $('btn-import').addEventListener('click', async () => {
   let ok = 0, fail = 0;
   const pid = S.poolData.poolId;
 
-  for (const { mid, scoreA, scoreB, victoryA } of toSubmit) {
+  for (const { mid, scoreA, scoreB } of toSubmit) {
     try {
       const r = await fetch(`/api/pools/${encodeURIComponent(pid)}/matches/${encodeURIComponent(mid)}/score`, {
         method: 'POST',

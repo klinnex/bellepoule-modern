@@ -1,0 +1,46 @@
+/* Plan des pistes et pistes indisponibles (#1501) */
+.strip-plan {
+  margin-top: var(--space-2);
+}
+
+.strip-plan-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.strip-plan-count {
+  margin-left: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-danger, #dc2626);
+}
+
+.strip-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.strip-plan-cell {
+  padding: var(--space-2);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-raised);
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Piste indisponible : case rouge (plan, cartes de matchs, bouton de piste des poules) */
+.strip-plan-cell.is-unavailable,
+.match-badge-btn.is-unavailable,
+.pv-pill.is-unavailable,
+.btn.is-unavailable {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}

@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Menu natif de l'application (i18n fr/en/de/it/zh-HK)
+ * BellePoule Modern - Menu natif de l'application (i18n fr/en/de/pt/it/ru/zh-HK)
  * (extrait de main.ts, #1341).
  * Licensed under GPL-3.0
  */
@@ -205,7 +205,7 @@ export function createMenu(
         {
           label: L.docs,
           click: () => {
-            shell.openExternal('https://github.com/klinnex/bellepoule-modern/wiki');
+            shell.openExternal('https://github.com/BellePoule-Modern/bellepoule-modern/wiki');
           },
         },
         {
@@ -219,7 +219,7 @@ export function createMenu(
         {
           label: 'GitHub',
           click: () => {
-            shell.openExternal('https://github.com/klinnex/bellepoule-modern');
+            shell.openExternal('https://github.com/BellePoule-Modern/bellepoule-modern');
           },
         },
       ],

@@ -10,13 +10,27 @@ import type { DatabaseManager } from '../database';
 import { getL } from './menuLabels';
 import { authorizePath } from './pathAuthorization';
 import { readImportText } from './xlsxToCsv';
+import { isEncryptedBpm } from './bpmCrypto';
 
 export interface MenuActionsContext {
   db: DatabaseManager;
   getMainWindow(): BrowserWindow | null;
+  /** Archive .bpm chiffrée (RGPD, #1882) : le renderer demande le mot de passe */
+  onEncryptedBpm?: (filepath: string) => void;
+  /** Dossier de sauvegarde par défaut (Paramètres → Sauvegarde) */
+  getBackupDir?: () => string;
 }
 
-export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
+export function createMenuActions({
+  db,
+  getMainWindow,
+  onEncryptedBpm,
+  getBackupDir,
+}: MenuActionsContext) {
+  /** Chemin proposé par « Enregistrer sous » : dossier de sauvegarde + nom */
+  const defaultSavePath = (fileName: string, dedicatedDir?: string): string =>
+    path.join(dedicatedDir || (getBackupDir ? getBackupDir() : '.'), fileName);
+
   function startRemoteScoreServer(): void {
     const L = getL();
     dialog.showMessageBox(getMainWindow()!, {
@@ -50,6 +64,10 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
           // Fichier BellePoule classique : import XML dans la compétition ouverte
           const content = await readImportText(filepath);
           getMainWindow()?.webContents.send('menu:import', 'xml', filepath, content);
+          return;
+        }
+        if (onEncryptedBpm && (await isEncryptedBpm(filepath))) {
+          onEncryptedBpm(filepath);
           return;
         }
         // Fusion dans la base active, état d'avancement compris (#1117)
@@ -87,7 +105,10 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
     if (!competition) return { success: false, error: 'competition_not_found' };
     const result = await dialog.showSaveDialog(getMainWindow()!, {
       title: L.saveTitle,
-      defaultPath: competitionFileName(competition.title),
+      defaultPath: defaultSavePath(
+        competitionFileName(competition.title),
+        competition.settings?.backupDir
+      ),
       filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
     });
     if (result.canceled || !result.filePath) return { success: false, canceled: true };
@@ -122,7 +143,7 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
     const L = getL();
     const result = await dialog.showSaveDialog(getMainWindow()!, {
       title: L.saveTitle,
-      defaultPath: sessionBackupPath ?? 'competition.bpm',
+      defaultPath: sessionBackupPath ?? defaultSavePath('competition.bpm'),
       filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
     });
     if (result.canceled || !result.filePath) return;
@@ -159,7 +180,7 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
         break;
       case 'fff':
         title = L.importFffTitle;
-        filters = [{ name: L.filterFfe, extensions: ['fff', 'csv', 'txt'] }];
+        filters = [{ name: L.filterFfe, extensions: ['fff', 'csv', 'txt', 'xlsx'] }];
         break;
       case 'ranking':
         title = L.importRankingTitle;
@@ -211,5 +232,6 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
     startRemoteScoreServer,
     stopRemoteScoreServer,
     setCurrentCompetitionId,
+    getCurrentCompetitionId: (): string | null => currentCompetitionId,
   };
 }

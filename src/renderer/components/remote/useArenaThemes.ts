@@ -7,6 +7,7 @@
 import { useCallback, useEffect } from 'react';
 import { useStateGroup } from '../../hooks/useStateGroup';
 import type { CustomTheme, DisplayTheme } from '../../../shared/types/remote';
+import type { GlobalThemeSection } from './builtinThemes';
 
 interface UseArenaThemesOptions {
   competitionId: string;
@@ -38,7 +39,8 @@ export function useArenaThemes({ competitionId, hasSession }: UseArenaThemesOpti
     themeEditorScreenType: 'arena' as 'arena' | 'public' | 'referee' | 'pool',
     showArenaQrModal: false,
     savedThemes: [] as CustomTheme[],
-    globalThemeSection: 'arena' as 'arena' | 'kiosk' | 'public' | 'referee' | 'pool',
+    // « Toutes sources » par défaut (#1795)
+    globalThemeSection: 'all' as GlobalThemeSection,
     globalThemeId: '',
   });
   const { setArenaThemes, setSavedThemes } = themeState;

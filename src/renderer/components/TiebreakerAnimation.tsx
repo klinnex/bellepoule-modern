@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Fencer } from '../../shared/types';
 import { drawWinner } from '../../shared/utils/suddenDeath';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface TiebreakerAnimationProps {
   fencerA: Fencer;
@@ -84,9 +85,9 @@ const TiebreakerAnimation: React.FC<TiebreakerAnimationProps> = ({
         )}
 
         {phase === 'done' && (
-          <button className="btn btn-primary btn-continue" onClick={handleContinue}>
+          <Button variant="primary" className="btn-continue" onClick={handleContinue}>
             {t('tiebreaker.continue')}
-          </button>
+          </Button>
         )}
       </div>
     </div>

@@ -3,12 +3,17 @@
  * Licensed under GPL-3.0
  */
 
+import { TipButton } from '../Tooltip';
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Match, Fencer, FencerStatus } from '../../../shared/types';
 import { Arena } from '../../../shared/types/remote';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { isMatchVoidedByForfeit } from '../../../shared/utils/poolCalculations';
+import { stripNumbers } from '../../../shared/utils/stripRange';
+import { Button } from '../common/Button';
+import { ClipboardList, Flag, MapPin, Pause, Swords, Trash2 } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface OrderedMatchEntry {
   match: Match;
@@ -29,7 +34,8 @@ interface PoolMatchListProps {
   onMatchReset?: (index: number) => void;
   onShowMatchAudit?: (matchId: string) => void;
   defaultArena?: number;
-  arenaCount?: number;
+  /** Intervalle de pistes (saisie distante) */
+  stripRange?: { start: number; end: number };
   arenas?: Arena[];
   isRemoteActive?: boolean;
   matchArenaOverrides?: Map<string, number>;
@@ -81,9 +87,9 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
     .join(' ');
 
   return (
-    <button
+    <TipButton
       onClick={isRemoteActive ? onClick : undefined}
-      title={
+      tip={
         isRemoteActive
           ? t('poolView.arena_reassign', { n: assignedArena })
           : t('poolView.remote_not_started')
@@ -92,8 +98,8 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
       className={className}
       style={scale !== 1 ? ({ '--badge-scale': scale } as React.CSSProperties) : undefined}
     >
-      🏟 {assignedArena}
-    </button>
+      <Icon icon={MapPin} /> {assignedArena}
+    </TipButton>
   );
 };
 
@@ -105,7 +111,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   onMatchReset,
   onShowMatchAudit,
   defaultArena = 1,
-  arenaCount = 0,
+  stripRange,
   arenas = [],
   isRemoteActive = false,
   matchArenaOverrides,
@@ -114,6 +120,8 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   onMatchArenaChange,
 }) => {
   const { t } = useTranslation();
+  const arenaCount = stripRange?.end ?? 0;
+  const stripStart = stripRange?.start ?? 1;
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [highlightedMatchId, setHighlightedMatchId] = useState<string | null>(null);
@@ -208,7 +216,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   <div className="pml-name">{nextMatch.match.fencerA?.lastName}</div>
                   <div className="pml-firstname">{nextMatch.match.fencerA?.firstName}</div>
                 </div>
-                <div className="pml-vs">⚔</div>
+                <div className="pml-vs">
+                  <Icon icon={Swords} />
+                </div>
                 <div className="pml-side">
                   <div className="pml-name">{nextMatch.match.fencerB?.lastName}</div>
                   <div className="pml-firstname">{nextMatch.match.fencerB?.firstName}</div>
@@ -332,29 +342,29 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     {fencerBAbandoned && ' ✕'}
                   </span>
                   {onShowMatchAudit && (
-                    <button
+                    <TipButton
                       onClick={e => {
                         e.stopPropagation();
                         onShowMatchAudit(match.id);
                       }}
-                      title={t('poolMatches.match_log')}
+                      tip={t('poolMatches.match_log')}
                       className="pml-icon-btn"
                     >
-                      📋
-                    </button>
+                      <Icon icon={ClipboardList} />
+                    </TipButton>
                   )}
                   {!isAbandonMatch && !isLocked && onMatchReset && (
-                    <button
+                    <TipButton
                       onClick={e => {
                         e.stopPropagation();
                         onMatchReset(index);
                       }}
-                      title={t('poolMatches.delete_result')}
+                      tip={t('poolMatches.delete_result')}
                       className="pml-icon-btn is-danger"
                       style={{ opacity: isHighlighted ? 1 : 0 }}
                     >
-                      🗑
-                    </button>
+                      <Icon icon={Trash2} />
+                    </TipButton>
                   )}
                 </div>
               );
@@ -372,7 +382,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
           <div className="pml-list">
             {orderedMatches.cancelled.map(({ match, index }) => (
               <div key={index} className="pml-cancelled-row">
-                <span className="pml-cancelled-icon">⏸</span>
+                <span className="pml-cancelled-icon">
+                  <Icon icon={Pause} />
+                </span>
                 <span className="pml-cancelled-name">
                   {match.fencerA?.lastName} {t('poolMatches.vs')} {match.fencerB?.lastName}
                 </span>
@@ -394,7 +406,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Poule terminée */}
       {orderedMatches.pending.length === 0 && orderedMatches.cancelled.length === 0 && (
         <div className="pml-done">
-          <div className="pml-done-icon">🏁</div>
+          <div className="pml-done-icon">
+            <Icon icon={Flag} />
+          </div>
           <div className="pml-done-title">{t('poolMatches.done')}</div>
           <div className="pml-done-sub">{t('poolMatches.done_sub')}</div>
         </div>
@@ -415,20 +429,25 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
               <h3 className="modal-title" id="pool-arena-title">
                 {t('poolMatches.assign')}
               </h3>
-              <button className="btn-close" onClick={closeArenaModal}>
+              <button
+                className="btn-close"
+                aria-label={t('actions.close')}
+                onClick={closeArenaModal}
+              >
                 ×
               </button>
             </div>
             <div className="modal-body">
               <p className="u-hint mb-4">{t('poolMatches.select_strip')}</p>
               <div className="pml-arena-grid">
-                <button
-                  className={`btn is-full ${!matchArenaOverrides?.has(selectedMatch.id) ? 'btn-primary' : 'btn-secondary'}`}
+                <Button
+                  variant={!matchArenaOverrides?.has(selectedMatch.id) ? 'primary' : 'secondary'}
+                  className="is-full"
                   onClick={() => handleAssignArena(null)}
                 >
                   {t('poolMatches.default_strip', { n: defaultArena })}
-                </button>
-                {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
+                </Button>
+                {stripNumbers(stripStart, arenaCount).map(arenaNum => {
                   const arenaObj = arenas.find(a => a.number === arenaNum);
                   const isCurrentArena =
                     (matchArenaOverrides?.get(selectedMatch.id) ?? defaultArena) === arenaNum;
@@ -440,14 +459,14 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                         : ''
                     : '';
                   return (
-                    <button
+                    <Button
                       key={arenaNum}
-                      className={`btn ${isCurrentArena ? 'btn-primary' : 'btn-secondary'}`}
+                      variant={isCurrentArena ? 'primary' : 'secondary'}
                       onClick={() => handleAssignArena(arenaNum)}
                     >
                       {t('poolMatches.strip_n', { n: arenaNum })}
                       {statusIcon}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

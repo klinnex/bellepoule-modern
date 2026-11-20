@@ -4,25 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title data-i18n="team.referee_page_title">Arbitre équipe — BellePoule</title>
-    <script src="/i18n.js"></script>
+    <script src="/js/icons.js"></script><script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
       body {
         margin: 0;
         font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        background: #0f172a;
-        color: #f1f5f9;
+        background: var(--slate-900);
+        color: var(--slate-100);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
       }
       header {
         padding: 0.75rem 1rem;
-        background: #1e293b;
+        background: var(--slate-800);
         text-align: center;
         font-size: 0.85rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       #waiting {
         flex: 1;
@@ -30,7 +31,7 @@
         align-items: center;
         justify-content: center;
         font-size: 1.1rem;
-        color: #64748b;
+        color: var(--slate-500);
         padding: 2rem;
         text-align: center;
       }
@@ -44,7 +45,7 @@
       .bout-info {
         text-align: center;
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       .teams {
         display: grid;
@@ -54,8 +55,8 @@
       }
       .team-col { text-align: center; }
       .team-name { font-weight: 700; font-size: 1rem; }
-      .fencer-name { font-size: 0.85rem; color: #cbd5e1; margin-top: 0.15rem; }
-      .vs { color: #64748b; font-weight: 700; }
+      .fencer-name { font-size: 0.85rem; color: var(--tw-slate-300); margin-top: 0.15rem; }
+      .vs { color: var(--slate-500); font-weight: 700; }
       .timer {
         text-align: center;
         font-variant-numeric: tabular-nums;
@@ -63,16 +64,16 @@
         font-weight: 700;
         letter-spacing: 0.05em;
       }
-      .timer.running { color: #4ade80; }
-      .timer.warning { color: #f87171; }
+      .timer.running { color: var(--tw-green-400); }
+      .timer.warning { color: var(--tw-red-400); }
       .timer-controls { display: flex; justify-content: center; gap: 0.5rem; }
       button {
         font-family: inherit;
         border: none;
         border-radius: 0.6rem;
         cursor: pointer;
-        color: #f1f5f9;
-        background: #334155;
+        color: var(--slate-100);
+        background: var(--slate-700);
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
       }
@@ -85,58 +86,63 @@
         gap: 0.5rem;
       }
       .score { font-size: 3rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
-      .score-sep { font-size: 2rem; color: #475569; text-align: center; }
-      .cap { text-align: center; font-size: 0.75rem; color: #64748b; }
+      .score-sep { font-size: 2rem; color: var(--slate-600); text-align: center; }
+      .cap { text-align: center; font-size: 0.75rem; color: var(--slate-500); }
       .zone-row { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
       .zone-btn { flex: 1; min-width: 4.5rem; padding: 1.2rem 0.5rem; font-size: 1.3rem; font-weight: 700; }
-      .zone-A { background: #1d4ed8; }
-      .zone-B { background: #7c3aed; }
-      .zone-C { background: #be185d; }
-      .touch-btn { flex: 1; padding: 1.4rem; font-size: 1.6rem; font-weight: 700; background: #1d4ed8; }
+      .zone-A { background: var(--tw-blue-700); }
+      .zone-B { background: var(--tw-violet-600); }
+      .zone-C { background: var(--tw-pink-700); }
+      .touch-btn { flex: 1; padding: 1.4rem; font-size: 1.6rem; font-weight: 700; background: var(--tw-blue-700); }
       .actions-row { display: flex; gap: 0.5rem; }
       .advance-btn {
         flex: 1;
         padding: 1rem;
         font-size: 1.1rem;
         font-weight: 700;
-        background: #16a34a;
+        background: var(--tw-green-600);
       }
-      .advance-btn.ready { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
-      .reset-btn { background: #7f1d1d; }
+      .advance-btn.ready { background: var(--green-500); box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
+      .reset-btn { background: var(--tw-red-900); }
       .cards-section {
-        border-top: 1px solid #334155;
+        border-top: 1px solid var(--slate-700);
         padding-top: 0.6rem;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.6rem;
       }
       .cards-team { text-align: center; }
-      .cards-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.3rem; }
+      .cards-label { font-size: 0.7rem; color: var(--slate-400); margin-bottom: 0.3rem; }
       .card-buttons { display: flex; gap: 0.3rem; justify-content: center; }
-      .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: #1e293b; border: 1px solid #334155; }
+      /* Appareil de piste maître et en ligne : tablette verrouillée (#1829) */
+      .device-lock { margin: 0.5rem 0; padding: 0.5rem 0.75rem; border-radius: 8px; background: var(--slate-800); border-left: 4px solid var(--tw-red-400); font-size: 0.8rem; color: var(--slate-100); }
+      .team-toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); max-width: 90vw; padding: 0.75rem 1rem; border-radius: 10px; background: var(--slate-700); color: var(--slate-100); z-index: 1000; }
+      .remove-btn { padding: 1.4rem 1rem; font-size: 1.2rem; font-weight: 700; background: var(--slate-700); }
+      .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: var(--slate-800); border: 1px solid var(--slate-700); }
       .cards-log { margin-top: 0.3rem; font-size: 0.9rem; }
       .reason-select {
         width: 100%;
         margin-bottom: 0.3rem;
         padding: 0.35rem;
         border-radius: 0.4rem;
-        background: #1e293b;
-        color: #f1f5f9;
-        border: 1px solid #334155;
+        background: var(--slate-800);
+        color: var(--slate-100);
+        border: 1px solid var(--slate-700);
         font-size: 0.8rem;
       }
-      .relay-live { text-align: center; font-size: 0.85rem; color: #cbd5e1; }
+      .relay-live { text-align: center; font-size: 0.85rem; color: var(--tw-slate-300); }
       .match-complete {
         text-align: center;
         font-size: 1rem;
         font-weight: 700;
-        color: #4ade80;
+        color: var(--tw-green-400);
         padding: 1rem;
       }
     </style>
   </head>
   <body>
     <header><span data-i18n="team.arena">Arène</span> <span id="arena-number">—</span> · <span id="format-label" data-i18n="team.format">Format arène Sabre Laser équipe</span></header>
+    <main>
     <div id="waiting" data-i18n="team.waiting_referee">En attente d'assignation d'une rencontre depuis l'application…</div>
     <div id="match">
       <div class="bout-info" id="bout-info">Assaut —/—</div>
@@ -158,19 +164,20 @@
         <div class="score" id="score-b">0</div>
       </div>
       <div class="relay-live" id="relay-live" style="display: none"></div>
+      <div class="device-lock" id="device-lock" role="status" style="display: none" data-i18n="referee.cyrano_master_lock"></div>
       <div class="cap" id="cap-label">/ 5 touches · 3:00</div>
 
       <div class="timer" id="timer">3:00</div>
       <div class="timer-controls">
-        <button id="timer-start" data-i18n="team.start">▶ Démarrer</button>
-        <button id="timer-pause" data-i18n="team.pause">⏸ Pause</button>
+        <button id="timer-start"><span data-icon="play"></span> <span data-i18n="team.start">Démarrer</span></button>
+        <button id="timer-pause"><span data-icon="pause"></span> <span data-i18n="team.pause">Pause</span></button>
       </div>
 
       <div id="zones-a" class="zone-row"></div>
       <div id="zones-b" class="zone-row"></div>
 
       <div class="actions-row">
-        <button class="reset-btn" id="reset-bout" data-i18n="team.reset_bout">↩ Réinitialiser l'assaut</button>
+        <button class="reset-btn" id="reset-bout"><span data-icon="undo"></span> <span data-i18n="team.reset_bout">Réinitialiser l'assaut</span></button>
         <button class="advance-btn" id="advance-bout" data-i18n="team.next_relay">Relais suivant →</button>
       </div>
 
@@ -191,10 +198,11 @@
         Rencontre terminée — tous les assauts ont été joués.
       </div>
     </div>
+    <div class="team-toast" id="team-toast" role="status" style="display: none"></div>
+    </main>
 
     <script>
       (function () {
-        const CARD_BADGE = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
         const CARD_TYPES = ['white', 'yellow', 'red', 'black'];
 
         function getArenaId() {
@@ -209,7 +217,6 @@
         const tk = (key, params) => (window.T ? window.T(key, params) : key);
         if (window.initRemoteI18n) window.initRemoteI18n();
         const socket = io({ reconnection: true, reconnectionDelay: 300, reconnectionDelayMax: 5000 });
-        let localTimer = null;
         let lastState = null;
 
         socket.on('connect', () => {
@@ -227,6 +234,25 @@
           return `${m}:${r.toString().padStart(2, '0')}`;
         }
 
+        // Appareil de piste maître et en ligne : la tablette ne fait que corriger par retrait (#1829)
+        function deviceLocked() {
+          return !!(lastState && lastState.cyrano && lastState.cyrano.mode === 'master' && lastState.cyrano.online);
+        }
+        let toastTimer = null;
+        function notify(key) {
+          const toast = document.getElementById('team-toast');
+          toast.textContent = tk(key);
+          toast.style.display = 'block';
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => (toast.style.display = 'none'), 3000);
+        }
+        // Vrai (et notification) si l'action est bloquée par l'appareil
+        function locked(key) {
+          if (!deviceLocked()) return false;
+          notify(key);
+          return true;
+        }
+
         function renderZones(container, side) {
           container.innerHTML = '';
           if (lastState.isLaserPoints) {
@@ -239,7 +265,9 @@
               btn.className = `zone-btn ${cls}`;
               btn.textContent = `${zone} (${points})`;
               btn.disabled = !lastState.currentBout || lastState.boutComplete;
-              btn.onclick = () => socket.emit('team_touch', { arenaId, side, points });
+              btn.onclick = () => {
+                if (!locked('referee.cyrano_master_lock')) socket.emit('team_touch', { arenaId, side, points });
+              };
               container.appendChild(btn);
             });
           } else {
@@ -247,9 +275,21 @@
             btn.className = 'touch-btn';
             btn.textContent = tk('team.touch_side', { side });
             btn.disabled = !lastState.currentBout || lastState.boutComplete;
-            btn.onclick = () => socket.emit('team_touch', { arenaId, side, points: 1 });
+            btn.onclick = () => {
+              if (!locked('referee.cyrano_master_lock')) socket.emit('team_touch', { arenaId, side, points: 1 });
+            };
             container.appendChild(btn);
           }
+          // Retrait d'une touche (correction), permis même quand l'appareil fait foi
+          const live = side === 'A' ? lastState.liveScoreA : lastState.liveScoreB;
+          const minus = document.createElement('button');
+          minus.className = 'remove-btn';
+          minus.textContent = '−1';
+          minus.title = tk('team.touch_remove', { side });
+          minus.setAttribute('aria-label', minus.title);
+          minus.disabled = !lastState.currentBout || live <= 0;
+          minus.onclick = () => socket.emit('team_touch', { arenaId, side, points: -1 });
+          container.appendChild(minus);
         }
 
         function renderCardButtons(container, teamId) {
@@ -257,9 +297,11 @@
           CARD_TYPES.filter(type => type !== 'black' || lastState.blackCardEnabled).forEach(type => {
             const btn = document.createElement('button');
             btn.className = 'card-btn';
-            btn.textContent = CARD_BADGE[type];
+            btn.innerHTML = bpCard(type);
             btn.title = tk('team.card_title', { type });
-            btn.onclick = () => socket.emit('team_card', { arenaId, teamId, type });
+            btn.onclick = () => {
+              if (!locked('referee.cyrano_master_card_lock')) socket.emit('team_card', { arenaId, teamId, type });
+            };
             container.appendChild(btn);
           });
         }
@@ -281,7 +323,9 @@
           btn.className = 'card-btn';
           btn.textContent = tk('team.fencer_card');
           btn.disabled = !lastState.currentBout;
-          btn.onclick = () => socket.emit('team_fencer_card', { arenaId, side, reason: select.value });
+          btn.onclick = () => {
+            if (!locked('referee.cyrano_master_card_lock')) socket.emit('team_fencer_card', { arenaId, side, reason: select.value });
+          };
           container.appendChild(select);
           container.appendChild(btn);
         }
@@ -289,7 +333,7 @@
         function fencerCardsLog(fencerId) {
           return lastState.fencerCards
             .filter(c => c.fencerId === fencerId)
-            .map(c => CARD_BADGE[String(c.type).toLowerCase()] || c.type)
+            .map(c => bpCard(c.type))
             .join(' ');
         }
 
@@ -303,6 +347,7 @@
           }
           waiting.style.display = 'none';
           match.style.display = 'flex';
+          document.getElementById('device-lock').style.display = deviceLocked() ? 'block' : 'none';
 
           document.getElementById('team-a-name').textContent = lastState.teamAName;
           document.getElementById('team-b-name').textContent = lastState.teamBName;
@@ -369,17 +414,17 @@
           const logA = document.getElementById('cards-log-a');
           const logB = document.getElementById('cards-log-b');
           if (isRelay()) {
-            logA.textContent = bout0 ? fencerCardsLog(bout0.fencerAId) : '';
-            logB.textContent = bout0 ? fencerCardsLog(bout0.fencerBId) : '';
+            logA.innerHTML = bout0 ? fencerCardsLog(bout0.fencerAId) : '';
+            logB.innerHTML = bout0 ? fencerCardsLog(bout0.fencerBId) : '';
             return;
           }
-          logA.textContent = lastState.cards
+          logA.innerHTML = lastState.cards
             .filter(c => c.teamId === lastState.teamAId)
-            .map(c => CARD_BADGE[c.type])
+            .map(c => bpCard(c.type))
             .join(' ');
-          logB.textContent = lastState.cards
+          logB.innerHTML = lastState.cards
             .filter(c => c.teamId === lastState.teamBId)
-            .map(c => CARD_BADGE[c.type])
+            .map(c => bpCard(c.type))
             .join(' ');
         }
 
@@ -396,9 +441,12 @@
         document.getElementById('timer-start').onclick = () => socket.emit('team_timer_start', { arenaId });
         document.getElementById('timer-pause').onclick = () => socket.emit('team_timer_pause', { arenaId });
         document.getElementById('reset-bout').onclick = () => {
+          if (locked('team.cyrano_master_relay_lock')) return;
           if (confirm(tk('team.reset_confirm'))) socket.emit('team_reset_bout', { arenaId });
         };
-        document.getElementById('advance-bout').onclick = () => socket.emit('team_advance_bout', { arenaId });
+        document.getElementById('advance-bout').onclick = () => {
+          if (!locked('team.cyrano_master_relay_lock')) socket.emit('team_advance_bout', { arenaId });
+        };
       })();
     </script>
   </body>

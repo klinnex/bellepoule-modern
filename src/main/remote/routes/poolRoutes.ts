@@ -6,11 +6,13 @@
 import path from 'path';
 import os from 'os';
 import type { Server as SocketIOServer } from 'socket.io';
-import { MatchStatus, Weapon, type Score } from '../../../shared/types';
+import { MatchStatus, Weapon, type Match, type Score } from '../../../shared/types';
+import type { SessionMatch } from './context';
 import type { RegistrationRouteContext } from './registrationRoutes';
 import { baseArenaId } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 
 /** Tireur d'une poule tel que transmis par le renderer. */
 export type PoolFencer = Record<string, unknown> & { id: string };
@@ -79,7 +81,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       const matches = (() => {
         const inMemory = ctx.sessionMatches
           .filter(m => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId)
-          .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+          .sort((a, b) => (a.number || 0) - (b.number || 0));
         if (inMemory.length > 0) {
           return inMemory.map(m => {
             const update = ctx.sessionMatchScores.get(m.id);
@@ -89,7 +91,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         return ctx.db.getMatchesByPool(poolId);
       })();
       const isComplete =
-        matches.length > 0 && matches.every((m: any) => m.status === MatchStatus.FINISHED);
+        matches.length > 0 && matches.every(m => m.status === MatchStatus.FINISHED);
 
       const poolName = (() => {
         if (!ctx.session) return 'Poule';
@@ -137,21 +139,22 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       if (!poolId) return res.json({ poolName: null, matches: [] });
 
       const inMemory = ctx.sessionMatches.filter(
-        (m: any) => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId
+        m => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId
       );
-      const source: any[] =
+      const source: Array<Match | SessionMatch> =
         inMemory.length > 0
-          ? inMemory.map((m: any) => {
+          ? inMemory.map(m => {
               const update = ctx.sessionMatchScores.get(m.id);
               return update ? { ...m, ...update } : m;
             })
           : ctx.db.getMatchesByPool(poolId);
-      const fencerName = (f: any) =>
+      const fencerName = (f?: { lastName?: unknown; firstName?: unknown } | null) =>
         f ? [String(f.lastName ?? '').toUpperCase(), f.firstName].filter(Boolean).join(' ') : '—';
-      const scoreValue = (sc: any) => (typeof sc === 'object' ? (sc?.value ?? null) : (sc ?? null));
+      const scoreValue = (sc: unknown) =>
+        typeof sc === 'object' ? ((sc as { value?: number } | null)?.value ?? null) : (sc ?? null);
       const matches = [...source]
-        .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
-        .map((m: any, i: number) => {
+        .sort((a, b) => (a.number || 0) - (b.number || 0))
+        .map((m, i: number) => {
           const finished = m.status === MatchStatus.FINISHED || m.status === 'finished';
           const current = arena?.currentMatch?.id === m.id && !finished;
           return {
@@ -257,6 +260,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         scoreB: scoreBObj,
         status: MatchStatus.FINISHED,
       });
+      emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
 
       try {
         ctx.db.logScoreChange({
@@ -288,7 +292,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       const matches = (() => {
         const inMemory = ctx.sessionMatches
           .filter(m => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId)
-          .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+          .sort((a, b) => (a.number || 0) - (b.number || 0));
         if (inMemory.length > 0) {
           return inMemory.map(m => {
             const update = ctx.sessionMatchScores.get(m.id);
@@ -297,7 +301,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         }
         return ctx.db.getMatchesByPool(poolId);
       })();
-      const isComplete = matches.every((m: any) => m.status === MatchStatus.FINISHED);
+      const isComplete = matches.every(m => m.status === MatchStatus.FINISHED);
       const sigMap = ctx.poolSignaturesCache.get(poolId);
       const signatures: Record<string, string> = sigMap ? Object.fromEntries(sigMap) : {};
       for (const [aId, arena] of ctx.arenas) {
@@ -358,19 +362,32 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     })();
 
     const fencerMatches = allMatches.filter(
-      (m: any) =>
+      m =>
         m.fencerA?.id === fencerId ||
-        m.fencerAId === fencerId ||
+        (m as { fencerAId?: string }).fencerAId === fencerId ||
         m.fencerB?.id === fencerId ||
-        m.fencerBId === fencerId
+        (m as { fencerBId?: string }).fencerBId === fencerId
     );
 
     if (fencerMatches.length === 0) {
       return res.status(404).json({ error: 'fencer_not_in_pool' });
     }
-    const allDone = fencerMatches.every((m: any) => m.status === MatchStatus.FINISHED);
+    const allDone = fencerMatches.every(m => m.status === MatchStatus.FINISHED);
     if (!allDone) {
       return res.status(403).json({ error: 'fencer_matches_pending' });
+    }
+
+    // Poule verrouillée dès que tous les tireurs ont signé : plus de re-signature (#1826)
+    const poolFencerIds = new Set<string>();
+    for (const m of allMatches) {
+      const a = m.fencerA?.id ?? (m as { fencerAId?: string }).fencerAId;
+      const b = m.fencerB?.id ?? (m as { fencerBId?: string }).fencerBId;
+      if (a) poolFencerIds.add(a);
+      if (b) poolFencerIds.add(b);
+    }
+    const signedIds = new Set(ctx.db.getPoolSignatures(poolId).map(sig => sig.fencerId));
+    if (poolFencerIds.size > 0 && [...poolFencerIds].every(id => signedIds.has(id))) {
+      return res.status(409).json({ error: 'signatures_locked' });
     }
 
     try {
@@ -384,7 +401,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       // Broadcaster la mise à jour avec signatures
       const fencers = ctx.poolFencersCache.get(poolId) ?? ctx.db.getPoolFencers(poolId);
       const signatures = Object.fromEntries(ctx.poolSignaturesCache.get(poolId)!);
-      const isComplete = allMatches.every((m: any) => m.status === MatchStatus.FINISHED);
+      const isComplete = allMatches.every(m => m.status === MatchStatus.FINISHED);
       for (const [aId, arena] of ctx.arenas) {
         if ((arena.currentMatch?.poolId ?? arena.activePoolId) === poolId) {
           ctx.io.to(`pool:${aId}`).emit(`pool:${aId}:update`, {
@@ -425,10 +442,10 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       const fencers = ctx.poolFencersCache.get(poolId) ?? ctx.db.getPoolFencers(poolId);
       const matches = (() => {
         const inMemory = ctx.sessionMatches
-          .filter((m: any) => (m.poolId || m.pool?.id) === poolId)
-          .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+          .filter(m => (m.poolId || m.pool?.id) === poolId)
+          .sort((a, b) => (a.number || 0) - (b.number || 0));
         if (inMemory.length > 0) {
-          return inMemory.map((m: any) => {
+          return inMemory.map(m => {
             const upd = ctx.sessionMatchScores.get(m.id);
             return upd ? { ...m, ...upd } : m;
           });
@@ -438,7 +455,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       const poolName = (() => {
         if (!ctx.session) return 'Poule';
         const all = ctx.db.getCompetitionPools(ctx.session.competitionId);
-        return all.find((p: any) => p.id === poolId)?.name ?? 'Poule';
+        return all.find(p => p.id === poolId)?.name ?? 'Poule';
       })();
       res.json({ poolId, poolName, fencers, matches });
     } catch (err) {
@@ -475,7 +492,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       });
       await worker.setParameters({
         tessedit_char_whitelist: 'VD0123456789',
-        tessedit_pageseg_mode: '13' as any, // PSM.RAW_LINE
+        tessedit_pageseg_mode: Tesseract.PSM.RAW_LINE,
       });
 
       const results: Array<{ row: number; col: number; text: string; confidence: number }> = [];
@@ -495,9 +512,9 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
 
       await worker.terminate();
       res.json({ cells: results });
-    } catch (err: any) {
+    } catch (err) {
       logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur OCR:', toError(err));
-      res.status(500).json({ error: 'ocr_failed', detail: String(err?.message ?? '') });
+      res.status(500).json({ error: 'ocr_failed', detail: toError(err).message });
     }
   });
 
@@ -522,9 +539,8 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     const compositeId = ctx.session?.competitionId
       ? `${ctx.session.competitionId}-${matchId}`
       : null;
-    const dbMatch: any =
-      ctx.db.getMatch(matchId) ?? (compositeId ? ctx.db.getMatch(compositeId) : null);
-    const inMemoryMatch: any = !dbMatch && ctx.sessionMatches.find((m: any) => m.id === matchId);
+    const dbMatch = ctx.db.getMatch(matchId) ?? (compositeId ? ctx.db.getMatch(compositeId) : null);
+    const inMemoryMatch = dbMatch ? undefined : ctx.sessionMatches.find(m => m.id === matchId);
     if (!dbMatch && !inMemoryMatch) {
       return res.status(404).json({ error: 'match_not_found' });
     }

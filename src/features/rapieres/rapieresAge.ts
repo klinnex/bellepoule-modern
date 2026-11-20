@@ -2,6 +2,8 @@
  * BellePoule Modern - Tournoi des rapières : âge et catégorie des équipes (#1441)
  * Catégorie d'équipe = moyenne des années de naissance des deux tireurs
  * ((naissance 1 + naissance 2) / 2), appliquée aux tranches d'âge de la saison.
+ * Âge = année de saison − année de naissance (jamais l'âge réel à la date du jour).
+ * Âge moyen décimal (ex. 39,5) arrondi au-dessus (40 → V1) (#1864).
  * Sexe d'équipe : M / F / mixte (un homme et une femme).
  * Licensed under GPL-3.0
  */
@@ -21,7 +23,8 @@ export function rapieresBirthYear(fencer: Pick<RapieresFencer, 'birthDate'>): nu
 
 /**
  * Catégorie d'âge pour une année de naissance (éventuellement moyenne décimale) :
- * âge = année de début de saison (1er septembre) − année de naissance.
+ * âge = année de début de saison (1er septembre) − année de naissance, arrondi au-dessus
+ * si la moyenne d'équipe est décimale (39,5 → 40) (#1864).
  * M20 < 20 ans, Seniors 20-39, V1 40-49, V2 50-59, V3 60-69, V4 70+.
  */
 export function rapieresCategoryFromBirthYear(
@@ -29,7 +32,7 @@ export function rapieresCategoryFromBirthYear(
   refDate: Date = new Date()
 ): RapieresAgeCategory {
   const seasonStart = refDate.getMonth() >= 8 ? refDate.getFullYear() : refDate.getFullYear() - 1;
-  const age = seasonStart - birthYear;
+  const age = Math.ceil(seasonStart - birthYear);
   if (age < 20) return 'M20';
   if (age < 40) return 'SENIOR';
   if (age < 50) return 'V1';
@@ -54,6 +57,13 @@ export function rapieresTeamCategory(
     return rapieresCategoryFromBirthYear(average, refDate);
   }
   return info.fencers.find(f => f.category)?.category ?? 'SENIOR';
+}
+
+/** Abréviation de catégorie (colonne « Cat. » des poules, #1864) */
+export function rapieresCategoryAbbr(category: RapieresAgeCategory): string {
+  if (category === 'SENIOR') return 'Sen';
+  if (category === 'HANDI') return 'Hand';
+  return category;
 }
 
 /** Sexe d'une équipe ; undefined si un des deux sexes n'est pas renseigné */

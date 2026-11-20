@@ -25,6 +25,7 @@ import {
   printRapieresRanking,
   RapieresColumnKind,
 } from './rapieresPdf';
+import { Button } from '../../renderer/components/common/Button';
 
 const HIDDEN_KEY = 'bellepoule_rapieres_ranking_hidden_columns';
 
@@ -190,12 +191,11 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
   };
 
   return (
-    <div className="card" style={{ padding: '1rem', margin: '1rem', display: 'grid', gap: '1rem' }}>
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
+    <div className="card rapieres-ranking-panel-1">
+      <div className="rapieres-ranking-panel-2">
+        <h3 className="rapieres-ranking-panel-3">{title}</h3>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.category')}
           value={category}
           onChange={e => setCategory(e.target.value as RapieresAgeCategory | '')}
@@ -208,8 +208,7 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.level')}
           value={level}
           onChange={e => setLevel(e.target.value as RapieresLevel | '')}
@@ -222,8 +221,7 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <select
-          className="form-input"
-          style={{ width: 'auto' }}
+          className="form-input rapieres-ranking-panel-4"
           aria-label={t('rapieres.gender')}
           value={gender}
           onChange={e => setGender(e.target.value as RapieresTeamGender | '')}
@@ -236,15 +234,15 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <div className="ranking-col-wrap">
-          <button
+          <Button
             type="button"
-            className={`btn btn-secondary ranking-col-btn${hidden.length > 0 ? ' ranking-col-btn-active' : ''}`}
+            className={`ranking-col-btn${hidden.length > 0 ? ' ranking-col-btn-active' : ''}`}
             title={t('poolRanking.columns_title')}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(o => !o)}
           >
             <Funnel size={15} /> {t('poolRanking.columns')}
-          </button>
+          </Button>
           {menuOpen && (
             <div className="ranking-col-menu">
               <div className="ranking-col-menu-title">{t('poolRanking.columns_shown')}</div>
@@ -261,22 +259,22 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
             </div>
           )}
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary"
+
           disabled={rows.length === 0}
           onClick={exportPdf}
         >
           {t('rapieres.export_pdf')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="btn btn-secondary"
+
           disabled={rows.length === 0}
           onClick={print}
         >
           {t('rapieres.print')}
-        </button>
+        </Button>
       </div>
       {rows.length === 0 ? (
         <p className="text-muted">{t('rapieres.no_ranking')}</p>

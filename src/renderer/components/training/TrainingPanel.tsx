@@ -1,3 +1,4 @@
+import { Tooltip } from '../Tooltip';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import {
@@ -11,9 +12,16 @@ import {
   Check,
   Settings,
   Monitor,
+  Printer,
 } from 'lucide-react';
 import type { TrainingMatchRecord } from '../../../shared/types/preload';
+import TrainingPrintModal from './TrainingPrintModal';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
+import { Button } from '../common/Button';
+import type { TrainingTheme } from '../../../shared/utils/trainingThemes';
+
+// Thèmes intégrés (pas de thème personnalisé en entraînement) : piste, kiosk, arbitre et lobby
+import { TRAINING_THEME_OPTIONS } from './trainingThemeOptions';
 
 const WEAPON_LABELS: Record<string, string> = {
   E: 'weapons.epee',
@@ -65,68 +73,24 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
           alt={`QR ${label}`}
           width={80}
           height={80}
-          style={{ border: '1px solid var(--color-border)', borderRadius: '6px', flexShrink: 0 }}
+          className="training-panel-1"
         />
       ) : (
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            border: '1px solid var(--color-border)',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            color: 'var(--color-text-muted)',
-            fontSize: '0.7rem',
-          }}
-        >
-          …
-        </div>
+        <div className="training-panel-2">…</div>
       )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: 'var(--color-text-muted)',
-            marginBottom: '0.25rem',
-          }}
-        >
-          {label}
-        </div>
-        <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
-          <code
-            style={{
-              fontSize: '0.7rem',
-              background: 'var(--color-surface-raised, rgba(0,0,0,0.05))',
-              padding: '0.125rem 0.375rem',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-            }}
-          >
-            {url}
-          </code>
-          <button
-            onClick={handleCopy}
-            title={t('trainingPanel.copy_url')}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              color: copied ? '#16a34a' : 'var(--color-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            {copied ? <Check size={13} /> : <Copy size={13} />}
-          </button>
+      <div className="training-panel-3">
+        <div className="training-panel-4">{label}</div>
+        <div className="training-panel-5">
+          <code className="training-panel-6">{url}</code>
+          <Tooltip content={t('trainingPanel.copy_url')}>
+            <button
+              onClick={handleCopy}
+              aria-label={t('trainingPanel.copy_url')}
+              className={`training-copy-btn${copied ? ' is-copied' : ''}`}
+            >
+              {copied ? <Check size={20} /> : <Copy size={16} />}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -136,8 +100,10 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
 // ── Bloc kiosk grand écran ───────────────────────────────────────────────────
 interface KioskBlockProps {
   kioskUrl: string;
+  title?: string;
+  label?: string;
 }
-const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
+const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl, title, label }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
@@ -156,14 +122,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
   }, [open, kioskUrl]);
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--color-border)',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-    >
+    <div className="training-panel-7">
       <button
         onClick={() => setOpen(v => !v)}
         style={{
@@ -178,33 +137,17 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
           color: 'var(--color-text)',
         }}
       >
-        <span
-          style={{
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-          }}
-        >
-          <Monitor size={13} /> {t('trainingPanel.kiosk_big')}
+        <span className="training-panel-8">
+          <Monitor size={13} /> {title ?? t('trainingPanel.kiosk_big')}
         </span>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: 'var(--color-text-muted)',
-            fontSize: '0.75rem',
-          }}
-        >
+        <div className="training-panel-9">
           <QrCode size={13} />
           {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </div>
       </button>
       {open && (
-        <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
-          <UrlRow label={t('trainingPanel.kiosk')} url={kioskUrl} qrDataUrl={qr} />
+        <div className="training-panel-10">
+          <UrlRow label={label ?? t('trainingPanel.kiosk')} url={kioskUrl} qrDataUrl={qr} />
         </div>
       )}
     </div>
@@ -243,14 +186,7 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
   }, [open, refereeUrl, displayUrl]);
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--color-border)',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-    >
+    <div className="training-panel-7">
       {/* Header */}
       <button
         onClick={() => setOpen(v => !v)}
@@ -266,18 +202,8 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
           color: 'var(--color-text)',
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-          {t('trainingPanel.strip_n', { n: number })}
-        </span>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: 'var(--color-text-muted)',
-            fontSize: '0.75rem',
-          }}
-        >
+        <span className="training-panel-11">{t('trainingPanel.strip_n', { n: number })}</span>
+        <div className="training-panel-9">
           <QrCode size={13} />
           {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </div>
@@ -285,17 +211,9 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
 
       {/* Expanded */}
       {open && (
-        <div
-          style={{
-            padding: '0.5rem 0.75rem',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-          }}
-        >
+        <div className="training-panel-12">
           <UrlRow label={t('trainingPanel.referee')} url={refereeUrl} qrDataUrl={qrReferee} />
-          <div style={{ height: '1px', background: 'var(--color-border)', margin: '0.25rem 0' }} />
+          <div className="training-panel-13" />
           <UrlRow label={t('trainingPanel.display')} url={displayUrl} qrDataUrl={qrDisplay} />
         </div>
       )}
@@ -323,6 +241,15 @@ const TrainingPanel: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const [history, setHistory] = useState<TrainingMatchRecord[]>([]);
+  const [printOpen, setPrintOpen] = useState(false);
+  const [theme, setTheme] = useState<TrainingTheme>('dark');
+
+  const handleThemeChange = async (next: TrainingTheme) => {
+    const previous = theme;
+    setTheme(next);
+    const res = await window.electronAPI?.training?.setTheme(next);
+    if (res && !res.success) setTheme(previous);
+  };
 
   const refreshHistory = useCallback(async () => {
     const result = await window.electronAPI?.training?.getHistory();
@@ -347,80 +274,33 @@ const TrainingPanel: React.FC<Props> = ({
   }));
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2000,
-      }}
-    >
-      <div
-        style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '12px',
-          boxShadow: 'var(--shadow-xl)',
-          width: '560px',
-          maxHeight: '85vh',
-          display: 'flex',
-          flexDirection: 'column',
-          color: 'var(--color-text)',
-        }}
-      >
+    <div className="training-panel-14">
+      <div className="training-panel-15">
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid var(--color-border)',
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+        <div className="training-panel-16">
+          <h2 className="training-panel-17">
             <Swords size={18} />
             {t('trainingPanel.title', {
               weapon: WEAPON_LABELS[weapon] ? t(WEAPON_LABELS[weapon]) : weapon,
             })}
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                background: '#22c55e20',
-                color: '#16a34a',
-                padding: '0.125rem 0.5rem',
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                marginLeft: '0.25rem',
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: '#16a34a',
-                  display: 'inline-block',
-                }}
-              />
+            <span className="training-panel-18">
+              <span className="training-panel-19" />
               {t('trainingPanel.in_progress')}
             </span>
           </h2>
+          <select
+            aria-label={t('rsm.display_theme')}
+            title={t('rsm.display_theme')}
+            value={theme}
+            onChange={e => handleThemeChange(e.target.value as TrainingTheme)}
+            className="training-panel-20"
+          >
+            {TRAINING_THEME_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label ?? t(opt.labelKey!)}
+              </option>
+            ))}
+          </select>
           <button
             className="btn-close"
             onClick={onClose}
@@ -431,35 +311,22 @@ const TrainingPanel: React.FC<Props> = ({
           </button>
         </div>
 
-        <div
-          style={{
-            overflowY: 'auto',
-            padding: '1.25rem 1.5rem',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-          }}
-        >
+        <div className="training-panel-21">
           {/* Kiosk */}
           <KioskBlock kioskUrl={`${serverUrl}/kiosk`} />
+          <KioskBlock
+            kioskUrl={`${serverUrl}/entrainement-lobby`}
+            title={t('trainingPanel.lobby_big')}
+            label={t('trainingPanel.lobby')}
+          />
 
           {/* Pistes */}
           <div>
-            <div
-              style={{
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                color: 'var(--color-text-muted)',
-                marginBottom: '0.5rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
+            <div className="training-panel-22">
               <QrCode size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />
               {t('trainingPanel.strips', { count: strips })}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            <div className="training-panel-23">
               {arenas.map(({ number, referee, display }) => (
                 <ArenaBlock
                   key={number}
@@ -473,42 +340,14 @@ const TrainingPanel: React.FC<Props> = ({
 
           {/* Historique */}
           <div>
-            <div
-              style={{
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                color: 'var(--color-text-muted)',
-                marginBottom: '0.5rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
+            <div className="training-panel-22">
               <Trophy size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />
               {t('trainingPanel.history', { count: history.length })}
             </div>
             {history.length === 0 ? (
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--color-text-muted)',
-                  padding: '0.75rem',
-                  textAlign: 'center',
-                  background: 'var(--color-surface-raised, rgba(0,0,0,0.04))',
-                  borderRadius: '8px',
-                }}
-              >
-                {t('trainingPanel.no_bout')}
-              </div>
+              <div className="training-panel-24">{t('trainingPanel.no_bout')}</div>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.25rem',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                }}
-              >
+              <div className="training-panel-25">
                 {[...history].reverse().map((rec, idx) => (
                   <div
                     key={rec.id}
@@ -525,32 +364,18 @@ const TrainingPanel: React.FC<Props> = ({
                       fontSize: '0.875rem',
                     }}
                   >
-                    <span
-                      style={{
-                        minWidth: '4rem',
-                        color: 'var(--color-text-muted)',
-                        fontSize: '0.75rem',
-                      }}
-                    >
+                    <span className="training-panel-26">
                       {t('trainingPanel.strip_n', { n: rec.arenaNumber })}
                     </span>
-                    <span style={{ flex: 1, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    <span className="training-panel-27">
                       {rec.scoreA} — {rec.scoreB}
                     </span>
                     {rec.durationSec > 0 && (
-                      <span
-                        style={{
-                          color: 'var(--color-text-muted)',
-                          fontSize: '0.75rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                        }}
-                      >
+                      <span className="training-panel-28">
                         <Clock size={11} /> {formatDuration(rec.durationSec)}
                       </span>
                     )}
-                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                    <span className="training-panel-29">
                       {new Date(rec.finishedAt).toLocaleTimeString(getActiveLocale(), {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -564,27 +389,36 @@ const TrainingPanel: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            padding: '1rem 1.5rem',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <button
-            className="btn btn-secondary btn-icon-label"
-            onClick={onOpenSettings}
-            title={t('trainingPanel.settings')}
-          >
-            <Settings size={14} /> {t('trainingPanel.settings')}
-          </button>
-          <button className="btn btn-danger" onClick={onStop}>
+        <div className="training-panel-30">
+          <div className="training-footer-left">
+            <Button
+              className="btn-icon-label"
+              onClick={onOpenSettings}
+              title={t('trainingPanel.settings')}
+            >
+              <Settings size={14} /> {t('trainingPanel.settings')}
+            </Button>
+            <Button
+              className="btn-icon-label"
+              onClick={() => setPrintOpen(true)}
+              title={t('trainingPanel.print')}
+              aria-label={t('trainingPanel.print')}
+            >
+              <Printer size={14} />
+            </Button>
+          </div>
+          <Button variant="danger" onClick={onStop}>
             {t('trainingPanel.stop')}
-          </button>
+          </Button>
         </div>
       </div>
+      {printOpen && (
+        <TrainingPrintModal
+          serverUrl={serverUrl}
+          strips={strips}
+          onClose={() => setPrintOpen(false)}
+        />
+      )}
     </div>
   );
 };

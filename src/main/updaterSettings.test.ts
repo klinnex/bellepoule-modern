@@ -2,7 +2,12 @@ import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { readUpdaterSettings, resolveChannel, writeUpdaterSettings } from './updaterSettings';
+import {
+  isUsableDownloadDir,
+  readUpdaterSettings,
+  resolveChannel,
+  writeUpdaterSettings,
+} from './updaterSettings';
 
 describe('updaterSettings', () => {
   let dir: string;
@@ -48,5 +53,25 @@ describe('updaterSettings', () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-upds-'));
     writeUpdaterSettings(dir, { autoCheck: false, cleanupExe: 'D:\\bp\\old.exe' });
     expect(readUpdaterSettings(dir)).toEqual({ autoCheck: false, cleanupExe: 'D:\\bp\\old.exe' });
+  });
+
+  it('répertoire de téléchargement : persisté, absent par défaut', () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-upds-'));
+    expect(readUpdaterSettings(dir).downloadDir).toBeUndefined();
+    writeUpdaterSettings(dir, { autoCheck: true, downloadDir: dir });
+    expect(readUpdaterSettings(dir)).toEqual({ autoCheck: true, downloadDir: dir });
+    writeUpdaterSettings(dir, { autoCheck: true });
+    expect(readUpdaterSettings(dir).downloadDir).toBeUndefined();
+  });
+
+  it('isUsableDownloadDir : dossier absolu existant uniquement', () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-upds-'));
+    expect(isUsableDownloadDir(dir)).toBe(true);
+    expect(isUsableDownloadDir(path.join(dir, 'absent'))).toBe(false);
+    expect(isUsableDownloadDir('relatif/dir')).toBe(false);
+    expect(isUsableDownloadDir(42)).toBe(false);
+    const f = path.join(dir, 'f.txt');
+    fs.writeFileSync(f, 'x');
+    expect(isUsableDownloadDir(f)).toBe(false);
   });
 });

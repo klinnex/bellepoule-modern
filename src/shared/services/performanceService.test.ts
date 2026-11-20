@@ -137,6 +137,36 @@ describe('debounce', () => {
     vi.advanceTimersByTime(200);
     expect(fn).toHaveBeenCalledTimes(1);
   });
+
+  it('transmet les arguments du dernier appel', () => {
+    const fn = vi.fn();
+    const d = debounce((a: number, b: string) => fn(a, b), 100);
+    d(1, 'a');
+    d(2, 'b');
+    vi.advanceTimersByTime(100);
+    expect(fn).toHaveBeenCalledExactlyOnceWith(2, 'b');
+  });
+
+  it('cancel() abandonne l’appel en attente', () => {
+    const fn = vi.fn();
+    const d = debounce(fn, 100);
+    d();
+    d.cancel();
+    vi.advanceTimersByTime(500);
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it('flush() exécute immédiatement, une seule fois', () => {
+    const fn = vi.fn();
+    const d = debounce(fn, 100);
+    d();
+    d.flush();
+    expect(fn).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(500);
+    expect(fn).toHaveBeenCalledTimes(1);
+    d.flush();
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('throttle', () => {

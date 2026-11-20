@@ -7,7 +7,6 @@ import {
   simulateFormula,
 } from './customRankingCalculator';
 import {
-  AdvancementRule,
   CustomFormulaConfig,
   Fencer,
   FencerStatus,

@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { Tooltip } from '../Tooltip';
 import React, { useCallback, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -55,16 +56,18 @@ export const CollapseToggle: React.FC<CollapseToggleProps> = ({
       : t('ui.expand')
     : t('ui.compact');
   return (
-    <button
-      type="button"
-      className="collapse-toggle-btn"
-      onClick={onToggle}
-      title={label}
-      aria-label={label}
-      aria-expanded={!collapsed}
-    >
-      {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-    </button>
+    <Tooltip content={label}>
+      <button
+        type="button"
+        className="collapse-toggle-btn"
+        onClick={onToggle}
+
+        aria-label={label}
+        aria-expanded={!collapsed}
+      >
+        {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+      </button>
+    </Tooltip>
   );
 };
 

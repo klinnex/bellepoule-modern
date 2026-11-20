@@ -15,7 +15,7 @@ import {
   TableauSpecialStatusType,
 } from './tableauTypes';
 
-export const BASE_MATCH_HEIGHT = 100;
+export const BASE_MATCH_HEIGHT = 120; // +20 px : bandeau des badges piste/arbitre/signatures (#1440)
 export const SLOT_HEIGHT = BASE_MATCH_HEIGHT + 50; // hauteur d'un créneau dans la première colonne
 
 export const getTableauSize = (fencerCount: number): number => {
@@ -224,6 +224,8 @@ export const buildTableauMatches = (
         position: i,
         fencerA,
         fencerB,
+        seedA: qualifiedFencers[seedA - 1]?.rank ?? null,
+        seedB: qualifiedFencers[seedB - 1]?.rank ?? null,
         scoreA: null,
         scoreB: null,
         winner: null,
@@ -259,6 +261,8 @@ export const buildTableauMatches = (
       position: i,
       fencerA,
       fencerB,
+      seedA: fencerA ? directFencers[seedA - 1].rank : null,
+      seedB: fencerB ? directFencers[seedB - 1].rank : null,
       scoreA: null,
       scoreB: null,
       winner,
@@ -734,9 +738,13 @@ export const calculateFinalResults = (
     losersData.sort((a, b) => a.poolRank - b.poolRank);
 
     // Issue #60: Assigner des rangs distincts (pas le même rang pour tous)
+    // #1864 : sans petite finale jouée, les deux perdants des demi-finales sont 3es ex æquo
+    // (pas de 4e place, on passe directement à la 5e)
+    const tiedThird = round === 4 && !thirdPlaceMatch?.winner;
+    const firstRank = currentRank;
     for (const loserData of losersData) {
       results.push({
-        rank: currentRank,
+        rank: tiedThird ? firstRank : currentRank,
         fencer: loserData.fencer,
         eliminatedAt: getRoundName(round),
         poolTouches: loserData.poolTouches,
@@ -875,4 +883,19 @@ export const calculateMatchVerticalPosition = (
   const k = baseRound / matchRound;
   // Centre ce match verticalement dans ses k créneaux
   return (matchPosition + 0.5) * k * SLOT_HEIGHT - BASE_MATCH_HEIGHT / 2;
+};
+
+/**
+ * Rangs figés au tirage du tableau (#1996), par tireur ; null pour un tableau tiré avant
+ * l'enregistrement des rangs (le rang courant sert alors de repli).
+ */
+export const tableauSeedRanks = (
+  matches: Array<Pick<TableauMatch, 'fencerA' | 'fencerB' | 'seedA' | 'seedB'>>
+): Map<string, number> | null => {
+  const seeds = new Map<string, number>();
+  for (const m of matches) {
+    if (m.fencerA && m.seedA != null && !seeds.has(m.fencerA.id)) seeds.set(m.fencerA.id, m.seedA);
+    if (m.fencerB && m.seedB != null && !seeds.has(m.fencerB.id)) seeds.set(m.fencerB.id, m.seedB);
+  }
+  return seeds.size > 0 ? seeds : null;
 };

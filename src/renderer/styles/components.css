@@ -659,7 +659,7 @@
   color: var(--color-danger, #b91c1c);
   font-size: var(--fs-sm);
 }
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .print-dialog {
     flex-direction: column;
   }
@@ -861,7 +861,7 @@
   }
   45%,
   70% {
-    transform: translate(calc(100% + 0.9rem), 1.15rem);
+    transform: translate(calc(100% + 0.9rem), 0); /* glissement horizontal (#1305) */
     box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.35);
   }
   90%,
@@ -1040,14 +1040,6 @@
   .tour-drag-moving {
     animation: none;
   }
-}
-
-.tools-menu-item {
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 /* Paramètres : navigation par onglets + recherche */
@@ -1268,5 +1260,232 @@
   .update-notification {
     left: var(--space-4, 16px);
     max-width: none;
+  }
+}
+
+/* Barre de progression « sabre laser » : poignée + lame verte qui s'allume */
+.update-saber {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2, 8px);
+}
+
+.update-saber-hilt {
+  flex-shrink: 0;
+  width: 30px;
+  height: 10px;
+  border-radius: 2px 0 0 2px;
+  background: repeating-linear-gradient(90deg, #c8ccd0 0 4px, #4a4f55 4px 6px);
+  border-right: 3px solid #1d1f22;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.update-notification-progress {
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  filter: drop-shadow(0 0 3px #39ff14) drop-shadow(0 0 6px #39ff14);
+  animation: update-saber-hum 0.12s infinite alternate;
+}
+
+.update-notification-progress::-webkit-progress-bar {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0 4px 4px 0;
+}
+
+.update-notification-progress::-webkit-progress-value {
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, #39ff14 0%, #eaffea 45%, #eaffea 55%, #39ff14 100%);
+  transition: width 0.2s ease-out;
+}
+
+.update-notification-progress::-moz-progress-bar {
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, #39ff14 0%, #eaffea 45%, #eaffea 55%, #39ff14 100%);
+}
+
+@keyframes update-saber-hum {
+  from {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-notification-progress {
+    animation: none;
+  }
+
+  .update-notification-progress::-webkit-progress-value {
+    transition: none;
+  }
+}
+
+/* Logo de marque (BrandLogo) */
+.brand-logo-wrap {
+  display: inline-block;
+  color: var(--color-primary);
+}
+
+.header-title .brand-logo-wrap {
+  display: inline-flex;
+}
+
+.brand-logo-laser {
+  stroke: var(--color-laser, #ef4444);
+}
+
+/* Paramètres → Proxy réseau (ProxySettingsSection.tsx) */
+.proxy-manual {
+  margin: var(--space-2, 8px) 0 0 var(--space-6, 24px);
+}
+
+.proxy-actions {
+  margin-top: var(--space-2, 8px);
+}
+
+.proxy-status {
+  min-height: 1.2em;
+  margin-top: var(--space-2, 8px);
+  font-size: var(--fs-sm);
+}
+
+.proxy-status--ok {
+  color: var(--success, #16a34a);
+}
+
+.proxy-status--error {
+  color: var(--danger, #ef4444);
+}
+
+/* Sélecteur de nationalité (#1415) */
+.flag-img {
+  width: 20px;
+  height: 15px;
+  object-fit: contain;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.nat-list {
+  position: absolute; /* surimpression : n'étire pas la carte (#1504) */
+  z-index: 50;
+  width: max-content;
+  box-shadow: var(--shadow-lg);
+  background: var(--color-surface);
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nat-option {
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.nat-option--active {
+  background: var(--color-primary, #2563eb);
+  color: #fff;
+}
+
+/* Bouton « Mise à jour » de l'en-tête : clignote tant qu'une mise à jour est disponible */
+@keyframes update-menu-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(118, 75, 162, 0.6);
+  }
+  50% {
+    opacity: 0.45;
+    box-shadow: 0 0 0 6px rgba(118, 75, 162, 0);
+  }
+}
+
+.update-menu-button {
+  animation: update-menu-blink 1.2s ease-in-out infinite;
+}
+
+.update-menu-button:hover,
+.update-menu-button:focus-visible {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-menu-button {
+    animation: none;
+    outline: 2px solid currentColor;
+  }
+}
+
+/* Fenêtre des propriétés de compétition : groupes de champs (onglet Formule) */
+.properties-modal .settings-layout {
+  min-height: 420px;
+}
+.properties-group {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+}
+.properties-group legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0 0.4rem;
+}
+
+/* Choix de la compétition à exporter depuis l'accueil (CompetitionExportPicker) */
+.competition-export-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.competition-export-picker__item {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* Tableaux à défilement contrôlé : en-têtes collants plutôt que débordement (#1541) */
+.table-scroll {
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.table-scroll .table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-scroll .table th:first-child,
+.table-scroll .table td:first-child {
+  position: sticky;
+  left: 0;
+}
+
+.table-scroll .table th:first-child {
+  z-index: 2;
+}
+
+.table-scroll .table td:first-child {
+  background: var(--color-surface);
+  z-index: 1;
+}
+
+/* Fenêtre étroite (≤ 1280 px) : cellules resserrées d'un cran en densité standard */
+@media (max-width: 1280px) {
+  :root:not([data-density]) .table th,
+  :root:not([data-density]) .table td,
+  :root[data-density='standard'] .table th,
+  :root[data-density='standard'] .table td {
+    padding: 0.5rem 0.75rem;
   }
 }

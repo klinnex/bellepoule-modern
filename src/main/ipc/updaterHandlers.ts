@@ -3,7 +3,7 @@
  * (extraits de main.ts, #1341).
  * Licensed under GPL-3.0
  */
-import { ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain } from 'electron';
 import type { AutoUpdater } from '../autoUpdater';
 
 export interface UpdaterHandlersContext {
@@ -79,6 +79,41 @@ export function registerUpdaterHandlers({ getAutoUpdater }: UpdaterHandlersConte
     if (!autoUpdater) return { success: false, error: 'updater_unavailable' };
     autoUpdater.setAutoCheck(enabled);
     return { success: true, enabled };
+  });
+
+  ipcMain.handle('updater:getDownloadDir', async () => {
+    const autoUpdater = getAutoUpdater();
+    if (!autoUpdater) return { dir: '', defaultDir: '', isDefault: true };
+    const defaultDir = autoUpdater.getDefaultDownloadDir();
+    const dir = autoUpdater.getDownloadDir();
+    return { dir, defaultDir, isDefault: dir === defaultDir };
+  });
+
+  ipcMain.handle('updater:chooseDownloadDir', async () => {
+    const autoUpdater = getAutoUpdater();
+    if (!autoUpdater) return { success: false, error: 'updater_unavailable' };
+    const win = BrowserWindow.getFocusedWindow();
+    const options = {
+      defaultPath: autoUpdater.getDownloadDir(),
+      properties: ['openDirectory', 'createDirectory'] as Array<
+        'openDirectory' | 'createDirectory'
+      >,
+    };
+    const res = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    if (res.canceled || res.filePaths.length === 0) return { success: false, canceled: true };
+    if (!autoUpdater.setDownloadDir(res.filePaths[0])) {
+      return { success: false, error: 'invalid_directory' };
+    }
+    return { success: true, dir: res.filePaths[0] };
+  });
+
+  ipcMain.handle('updater:resetDownloadDir', async () => {
+    const autoUpdater = getAutoUpdater();
+    if (!autoUpdater) return { success: false, error: 'updater_unavailable' };
+    autoUpdater.setDownloadDir(null);
+    return { success: true, dir: autoUpdater.getDownloadDir() };
   });
 
   ipcMain.handle('updater:getChannel', async () => {
