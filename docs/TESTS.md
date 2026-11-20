@@ -113,10 +113,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 21 | 198 |
-| **Total** | **520** | **4015** |
+| `src/shared/domain/` | 21 | 201 |
+| **Total** | **520** | **4018** |
 
-Unitaires : 510 fichiers, 3976 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -8295,7 +8295,7 @@ Unitaires : 510 fichiers, 3976 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/domain/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/domain/tableau/tableauCalculations.test.ts</code> — 12 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
@@ -8311,6 +8311,10 @@ Unitaires : 510 fichiers, 3976 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - premier tour : rang de sortie de poules de chaque tireur
   - barrages : rangs posés sur les matchs de barrage
   - tableau tiré avant l’enregistrement des rangs : aucun rang figé
+- **planTableau : génération unique écran / moteur (#1979, lot 4e)**
+  - qualifiés triés par rang, retirés et éliminés écartés
+  - « toutes les places » : plus grand tableau plein
+  - petite finale selon le réglage
 
 </details>
 
