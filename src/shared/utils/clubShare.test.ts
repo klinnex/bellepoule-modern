@@ -84,7 +84,7 @@ describe('partage Mode Club (#1872)', () => {
     const session = {
       id: 's',
       clubId: 'c',
-      date: '2026-11-20',
+      date: '2001-02-03', // jamais la date du jour (exportedAt)
       label: 'Parades',
       weapon: 'F',
       stripCount: 2,
@@ -110,7 +110,7 @@ describe('partage Mode Club (#1872)', () => {
       updatedAt: '',
     } as ClubSession;
     const text = buildPlanFile(session);
-    expect(text).not.toContain('2026-11-20');
+    expect(text).not.toContain('2001-02-03');
     expect(text).not.toContain('rating');
     expect(parsePlanFile(text)).toEqual({
       label: 'Parades',
