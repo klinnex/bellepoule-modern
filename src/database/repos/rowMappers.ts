@@ -16,6 +16,7 @@ import {
   MatchEventType,
 } from '../../shared/types';
 import { safeJsonParse } from './dbUtils';
+import { getFallbackCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Ligne SQLite brute (colonnes snake_case) : chaque lecture est convertie explicitement (#1775) */
@@ -26,21 +27,11 @@ type LoggedScore = { value: number | null } | null;
 
 export function parseCompetitionRow(row: SqlRow): Competition {
   try {
-    let settings: CompetitionSettings = {
-      defaultPoolMaxScore: 5,
-      defaultTableMaxScore: 21,
-      defaultPoolTimerSeconds: 180,
-      defaultTableTimerSeconds: 180,
-      poolRounds: 1,
-      hasDirectElimination: true,
-      thirdPlaceMatch: true,
-      signTableauMatches: false,
-      blackCardEnabled: false,
-      manualRanking: false,
-      defaultRanking: 0,
-      randomScore: false,
-      minTeamSize: 3,
-    };
+    // Repli unifié avec la création et les propriétés (#2013)
+    let settings: CompetitionSettings = getFallbackCompetitionSettings(
+      row.weapon as Weapon,
+      row.category as Category
+    );
     if (row.settings) {
       try {
         settings = JSON.parse(row.settings as string);

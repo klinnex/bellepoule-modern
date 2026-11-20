@@ -9,7 +9,6 @@ export const MODAL_FLAGS = [
   'showPlanningAssistant',
   'showExportCenter',
   'showPropertiesModal',
-  'showThirdPlaceDialog',
   'showFencerComparison',
   'showAnalytics',
   'showSeasonRanking',

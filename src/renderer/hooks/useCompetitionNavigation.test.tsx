@@ -11,17 +11,17 @@ vi.mock('../components/Toast', () => ({ useToast: () => ({ showToast: vi.fn() })
 vi.mock('../components/ConfirmDialog', () => ({ useConfirm: () => ({ confirm: vi.fn() }) }));
 vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
-const setup = (tableauMatches: TableauMatch[], rankingChanged = false) => {
+const setup = (tableauMatches: TableauMatch[], rankingChanged = false, thirdPlaceMatch = false) => {
   const fns = {
     setCurrentPhase: vi.fn(),
     setTableauMatches: vi.fn(),
     setConsolationBrackets: vi.fn(),
-    setShowThirdPlaceDialog: vi.fn(),
     setRankingChanged: vi.fn(),
   };
+  const onUpdate = vi.fn();
   const params = {
     competition: { id: 'c', settings: {} },
-    onUpdate: vi.fn(),
+    onUpdate,
     fencers: [],
     updateFencers: vi.fn(),
     getCheckedInFencers: () => [],
@@ -36,7 +36,7 @@ const setup = (tableauMatches: TableauMatch[], rankingChanged = false) => {
     poolRoundQualifiers: undefined,
     customFormula: undefined,
     hasDirectElimination: true,
-    thirdPlaceMatch: false,
+    thirdPlaceMatch,
     playAllPositions: false,
     isRapieres: false,
     updateRapieres: vi.fn(),
@@ -59,7 +59,7 @@ const setup = (tableauMatches: TableauMatch[], rankingChanged = false) => {
   const { result } = renderHook(() =>
     useCompetitionNavigation(params as unknown as Parameters<typeof useCompetitionNavigation>[0])
   );
-  return { ...fns, go: result.current.handleGoToTableau };
+  return { ...fns, onUpdate, go: result.current.handleGoToTableau };
 };
 
 describe('handleGoToTableau (#1996)', () => {
@@ -69,12 +69,20 @@ describe('handleGoToTableau (#1996)', () => {
     expect(s.setCurrentPhase).toHaveBeenCalledWith('tableau');
     expect(s.setTableauMatches).not.toHaveBeenCalled();
     expect(s.setConsolationBrackets).not.toHaveBeenCalled();
-    expect(s.setShowThirdPlaceDialog).not.toHaveBeenCalled();
+    expect(s.onUpdate).not.toHaveBeenCalled();
   });
 
-  it('pas encore de tableau : choix de la petite finale avant le tirage', () => {
-    const s = setup([]);
-    s.go();
-    expect(s.setShowThirdPlaceDialog).toHaveBeenCalledWith(true);
-  });
+  it.each([false, true])(
+    'pas encore de tableau : petite finale reprise de la formule, sans question (#2013) — %s',
+    thirdPlace => {
+      const s = setup([], false, thirdPlace);
+      s.go();
+      expect(s.onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          settings: expect.objectContaining({ thirdPlaceMatch: thirdPlace }),
+        })
+      );
+      expect(s.setCurrentPhase).toHaveBeenCalledWith('tableau');
+    }
+  );
 });

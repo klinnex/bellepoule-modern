@@ -187,6 +187,10 @@ export const validateCompetitionSettings = (settings: CompetitionSettings): void
       validateNumber(n, `poolRoundQualifiers[${i}]`, 0, 10000)
     );
   }
+  if (settings.poolSizeMin !== undefined)
+    validateNumber(settings.poolSizeMin, 'poolSizeMin', 3, 64);
+  if (settings.poolSizeMax !== undefined)
+    validateNumber(settings.poolSizeMax, 'poolSizeMax', settings.poolSizeMin ?? 3, 64);
   validateNumber(settings.defaultRanking, 'defaultRanking', 0);
   validateNumber(settings.minTeamSize, 'minTeamSize', 1);
 

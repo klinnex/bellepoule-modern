@@ -41,7 +41,6 @@ import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
-import { Button } from './common/Button';
 import CompetitionExportModals from './competition/CompetitionExportModals';
 import CompetitionSecondaryModals from './competition/CompetitionSecondaryModals';
 import RefereesPhase from './competition/RefereesPhase';
@@ -239,7 +238,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     showRapieresTableauDialog,
     handleRapieresTableauMode,
     setShowRapieresTableauDialog,
-    handleThirdPlaceDecision,
     areAllPoolsComplete,
     updateScore,
     handleGoToRanking,
@@ -771,20 +769,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
           onChoose={handleRapieresTableauMode}
           onClose={() => setShowRapieresTableauDialog(false)}
         />
-      )}
-
-      {modals.showThirdPlaceDialog && (
-        <div className="modal-overlay" style={CV_STYLES.thirdPlaceOverlay}>
-          <div style={CV_STYLES.thirdPlaceModal}>
-            <h3 style={CV_STYLES.thirdPlaceTitle}>{t('competition.third_place_match_dialog')}</h3>
-            <div style={CV_STYLES.thirdPlaceBtnRow}>
-              <Button onClick={() => handleThirdPlaceDecision(false)}>{t('actions.no')}</Button>
-              <Button variant="primary" onClick={() => handleThirdPlaceDecision(true)}>
-                {t('actions.yes')}
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
 
       {poolCorrectionDialog}
