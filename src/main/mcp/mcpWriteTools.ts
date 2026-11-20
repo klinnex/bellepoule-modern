@@ -21,7 +21,7 @@ import { syncDay } from '../ipc/eventDayHandlers';
 import { importIdentityKeys } from '../../shared/utils/personIdentity';
 import { McpToolError, type McpDeps, type McpTool } from './mcpTools';
 import { xlsxToCsv } from '../xlsxToCsv';
-import { isWithinRoots } from '../domain/files';
+import { isWithinRoots } from '../engine/commands/files';
 
 /** Écran à rafraîchir après une écriture de l'agent */
 export type McpNotify = (

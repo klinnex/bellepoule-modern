@@ -4,8 +4,8 @@
  * laissés tels quels. Partagé par l'écran (IPC) et l'agent (MCP check_in).
  * Licensed under GPL-3.0
  */
-import { FencerStatus, type Fencer } from '../../shared/types';
-import type { DomainContext } from './context';
+import { FencerStatus, type Fencer } from '../../../shared/types';
+import type { CommandContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
 import { EVENT, recordEvents } from './eventLog';
 
@@ -16,7 +16,7 @@ export interface CheckInInput {
   dryRun?: boolean;
 }
 
-export function checkInFencers(ctx: DomainContext, input: CheckInInput) {
+export function checkInFencers(ctx: CommandContext, input: CheckInInput) {
   const competition = getCompetitionOrThrow(ctx, input.competitionId);
   const status = input.present ? FencerStatus.CHECKED_IN : FencerStatus.NOT_CHECKED_IN;
   const all = ctx.db.getFencersByCompetition(competition.id);

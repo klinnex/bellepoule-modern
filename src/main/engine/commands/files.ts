@@ -7,7 +7,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { DomainError } from './context';
+import { CommandError } from './context';
 
 const realOrNull = (p: string): string | null => {
   try {
@@ -41,7 +41,7 @@ function nearestExistingAncestor(dir: string): string | null {
 }
 
 const outsideRoots = () =>
-  new DomainError(
+  new CommandError(
     'path_not_allowed',
     'Chemin hors des dossiers accessibles à l’agent (Paramètres → Système → Agent IA)'
   );
@@ -56,11 +56,11 @@ export function resolveOutputPath(
   options: { overwrite?: boolean; roots?: readonly string[] } = {}
 ): string {
   if (typeof outputPath !== 'string' || !path.isAbsolute(outputPath) || outputPath.includes('\0')) {
-    throw new DomainError('invalid_path', 'Chemin de sortie absolu attendu');
+    throw new CommandError('invalid_path', 'Chemin de sortie absolu attendu');
   }
   const resolved = path.resolve(outputPath);
   if (path.extname(resolved).toLowerCase() !== extension) {
-    throw new DomainError('invalid_extension', `Extension ${extension} attendue`);
+    throw new CommandError('invalid_extension', `Extension ${extension} attendue`);
   }
   const realDir = realOrNull(path.dirname(resolved));
   if (options.roots) {
@@ -70,7 +70,7 @@ export function resolveOutputPath(
     if (!checked || !isWithinRoots(checked, options.roots)) throw outsideRoots();
   }
   if (!realDir || !fs.statSync(realDir).isDirectory()) {
-    throw new DomainError(
+    throw new CommandError(
       'dir_not_found',
       'Dossier de sortie introuvable : créez-le d’abord (l’agent ne crée pas de dossier)'
     );
@@ -79,13 +79,14 @@ export function resolveOutputPath(
   let exists = false;
   try {
     const st = fs.lstatSync(target);
-    if (st.isSymbolicLink() || !st.isFile()) throw new DomainError('invalid_path', 'Cible refusée');
+    if (st.isSymbolicLink() || !st.isFile())
+      throw new CommandError('invalid_path', 'Cible refusée');
     exists = true;
   } catch (e) {
-    if (e instanceof DomainError) throw e;
+    if (e instanceof CommandError) throw e;
   }
   if (exists && !options.overwrite) {
-    throw new DomainError(
+    throw new CommandError(
       'file_exists',
       'Le fichier existe déjà : overwrite=true pour le remplacer'
     );
@@ -106,13 +107,13 @@ export async function writeOutputFile(
     await writeOutput(target, content, overwrite);
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
-      throw new DomainError(
+      throw new CommandError(
         'file_exists',
         'Le fichier existe déjà : overwrite=true pour le remplacer'
       );
     }
     // Erreur système sans le chemin (renvoyée à l'agent et au journal)
-    throw new DomainError('write_failed', `Écriture impossible (${fsCode(e)})`);
+    throw new CommandError('write_failed', `Écriture impossible (${fsCode(e)})`);
   }
 }
 

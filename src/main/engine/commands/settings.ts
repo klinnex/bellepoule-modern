@@ -9,8 +9,8 @@ import {
   type AppSettings,
   type Venue,
   type VenueInput,
-} from '../../shared/types/appSettings';
-import type { DomainContext } from './context';
+} from '../../../shared/types/appSettings';
+import type { CommandContext } from './context';
 import { readSession } from './sessionView';
 
 export interface SettingScope {
@@ -39,7 +39,7 @@ const venueStripCount = (venue: Venue | null): number | null =>
  * Une seule fonction pour l'écran, le mode --headless et le MCP.
  */
 export function resolveSetting<K extends ResolvableKey>(
-  ctx: DomainContext,
+  ctx: CommandContext,
   key: K,
   scope: SettingScope = {}
 ): ResolvedValue<K> {
@@ -63,7 +63,7 @@ export function resolveSetting<K extends ResolvableKey>(
  * Nombre d'arènes du serveur distant, même règle que l'écran (useRemoteServerState) :
  * une par poule, sinon pistes de la journée ou de la salle, sinon 1.
  */
-export function remoteArenaCount(ctx: DomainContext, competitionId: string): number {
+export function remoteArenaCount(ctx: CommandContext, competitionId: string): number {
   const { pools } = readSession(ctx, competitionId);
   if (Array.isArray(pools) && pools.length > 0) return pools.length;
   const strips = resolveSetting(ctx, 'stripCount', { competitionId });
@@ -71,12 +71,12 @@ export function remoteArenaCount(ctx: DomainContext, competitionId: string): num
 }
 
 /** Paramètres du poste effectifs (aucun secret : le jeton MCP vit hors base, chiffré) */
-export function getSettings(ctx: DomainContext): AppSettings {
+export function getSettings(ctx: CommandContext): AppSettings {
   return ctx.db.settings.getSettings();
 }
 
 export function updateSettings(
-  ctx: DomainContext,
+  ctx: CommandContext,
   updates: Partial<Record<AppSettingKey, unknown>>
 ): AppSettings {
   const result = ctx.db.settings.updateSettings(updates);
@@ -84,17 +84,17 @@ export function updateSettings(
   return result;
 }
 
-export function listVenues(ctx: DomainContext): Venue[] {
+export function listVenues(ctx: CommandContext): Venue[] {
   return ctx.db.settings.listVenues();
 }
 
-export function upsertVenue(ctx: DomainContext, input: VenueInput): Venue {
+export function upsertVenue(ctx: CommandContext, input: VenueInput): Venue {
   const venue = ctx.db.settings.upsertVenue(input);
   ctx.emitChange?.({ scope: 'settings', competitionIds: [] });
   return venue;
 }
 
-export function setDefaultVenue(ctx: DomainContext, id: string): Venue {
+export function setDefaultVenue(ctx: CommandContext, id: string): Venue {
   ctx.db.settings.setDefaultVenue(id);
   ctx.emitChange?.({ scope: 'settings', competitionIds: [] });
   return ctx.db.settings.getVenue(id)!;

@@ -9,7 +9,7 @@ import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import type { DatabaseManager } from '../../database';
 import type { AppSettingKey, VenueInput } from '../../shared/types/appSettings';
 import { LEGACY_LOCAL_STORAGE_KEYS, fromLegacyStorage } from '../../shared/types/appSettings';
-import { resolveSetting, type ResolvableKey, type SettingScope } from '../domain/settings';
+import { resolveSetting, type ResolvableKey, type SettingScope } from '../engine/commands/settings';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface SettingsHandlersContext {

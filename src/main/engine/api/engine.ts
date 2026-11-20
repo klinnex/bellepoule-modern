@@ -11,15 +11,15 @@ import {
   type OperationName,
   type Output,
   type ParsedInput,
-} from '../../shared/api/contract';
-import { ApiError } from '../../shared/api/client';
-import { DomainError, type DomainContext } from '../domain/context';
-import { recordScore } from '../domain/sport';
-import { checkInFencers } from '../domain/checkIn';
-import { getCompetitionOrThrow } from '../domain/competitions';
-import type { CompetitionEvent } from '../../database/repos/eventLogRepo';
+} from '../../../shared/api/contract';
+import { ApiError } from '../../../shared/api/client';
+import { CommandError, type CommandContext } from '../commands/context';
+import { recordScore } from '../commands/sport';
+import { checkInFencers } from '../commands/checkIn';
+import { getCompetitionOrThrow } from '../commands/competitions';
+import type { CompetitionEvent } from '../../../database/repos/eventLogRepo';
 import { onCompetitionEvent, publishCompetitionEvent } from './events';
-import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Événement du journal tel que le contrat l'expose (sans l'épreuve, déjà connue) */
 const publicEvent = ({ competitionId: _c, ...e }: CompetitionEvent) => e;
@@ -28,8 +28,8 @@ const publicEvent = ({ competitionId: _c, ...e }: CompetitionEvent) => e;
 const CONFLICT_EVENTS = 200;
 
 type Handler<N extends OperationName> = Contract[N]['kind'] extends 'subscription'
-  ? (ctx: DomainContext, input: ParsedInput<N>, emit: (event: Output<N>) => void) => () => void
-  : (ctx: DomainContext, input: ParsedInput<N>) => Output<N> | Promise<Output<N>>;
+  ? (ctx: CommandContext, input: ParsedInput<N>, emit: (event: Output<N>) => void) => () => void
+  : (ctx: CommandContext, input: ParsedInput<N>) => Output<N> | Promise<Output<N>>;
 
 export const handlers: { [N in OperationName]: Handler<N> } = {
   checkIn: (ctx, input) => checkInFencers(ctx, input),
@@ -75,7 +75,7 @@ export function parseInput<N extends OperationName>(name: N, raw: unknown): Pars
 /** Toute erreur → ApiError (code stable, message pour l'opérateur ou l'agent) */
 export function toApiError(e: unknown): ApiError {
   if (e instanceof ApiError) return e;
-  if (e instanceof DomainError) return new ApiError(e.code, e.message);
+  if (e instanceof CommandError) return new ApiError(e.code, e.message);
   logger.error(LogCategory.SYSTEM, '[api] erreur interne', toError(e));
   return new ApiError('internal', 'Erreur interne');
 }
@@ -87,7 +87,7 @@ export function resolveOperation(name: unknown): OperationName {
 }
 
 /** Commande ou requête : validation puis exécution ; lève ApiError */
-export async function invoke(ctx: DomainContext, name: unknown, raw: unknown): Promise<unknown> {
+export async function invoke(ctx: CommandContext, name: unknown, raw: unknown): Promise<unknown> {
   const op = resolveOperation(name);
   if (contract[op].kind === 'subscription') {
     throw new ApiError('unknown_operation', `« ${op} » est un abonnement`);
@@ -97,7 +97,7 @@ export async function invoke(ctx: DomainContext, name: unknown, raw: unknown): P
   const before = log ? checkRevision(ctx, log.competitionId, log.expected) : 0;
   let result: unknown;
   try {
-    result = await (handlers[op] as (c: DomainContext, i: unknown) => unknown)(ctx, input);
+    result = await (handlers[op] as (c: CommandContext, i: unknown) => unknown)(ctx, input);
   } catch (e) {
     throw toApiError(e);
   }
@@ -116,7 +116,7 @@ export async function invoke(ctx: DomainContext, name: unknown, raw: unknown): P
 }
 
 /** Commande portant sur une épreuve dont le journal est disponible */
-function journalOf(ctx: DomainContext, input: unknown) {
+function journalOf(ctx: CommandContext, input: unknown) {
   const { competitionId, expectedRevision } = (input ?? {}) as {
     competitionId?: unknown;
     expectedRevision?: unknown;
@@ -132,7 +132,7 @@ function journalOf(ctx: DomainContext, input: unknown) {
  * Révision attendue périmée : refus explicite, avec les événements manquants.
  * Les handlers sont synchrones côté base : pas d'écriture entre ce contrôle et la commande.
  */
-function checkRevision(ctx: DomainContext, competitionId: string, expected?: number): number {
+function checkRevision(ctx: CommandContext, competitionId: string, expected?: number): number {
   const current = ctx.db.eventLog.getRevision(competitionId);
   if (expected === undefined || expected === current) return current;
   const missing =
@@ -148,7 +148,7 @@ function checkRevision(ctx: DomainContext, competitionId: string, expected?: num
 
 /** Abonnement : validation puis inscription ; retourne la fonction de désabonnement */
 export function subscribe(
-  ctx: DomainContext,
+  ctx: CommandContext,
   name: unknown,
   raw: unknown,
   emit: (event: unknown) => void
@@ -158,7 +158,7 @@ export function subscribe(
     throw new ApiError('unknown_operation', `« ${op} » n'est pas un abonnement`);
   }
   const input = parseInput(op, raw);
-  return (handlers[op] as (c: DomainContext, i: unknown, e: (v: unknown) => void) => () => void)(
+  return (handlers[op] as (c: CommandContext, i: unknown, e: (v: unknown) => void) => () => void)(
     ctx,
     input,
     emit

@@ -16,7 +16,7 @@ import {
   setDefaultVenue,
   updateSettings,
   upsertVenue,
-} from '../domain/settings';
+} from '../engine/commands/settings';
 import { McpToolError, type McpTool } from './mcpTools';
 import {
   competitionOrThrow,

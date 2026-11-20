@@ -4,11 +4,11 @@
  * Mêmes générateurs que l'écran ; le PDF passe par une fenêtre cachée (injectée).
  * Licensed under GPL-3.0
  */
-import type { Competition } from '../../shared/types';
-import { exportRankingCSV, exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
-import { encodeFFFWin1252, exportResultsToFFF } from '../../shared/utils/fencerExport';
-import { generateResultsHTML } from '../../shared/utils/pdfExport/resultsPdf';
-import { DomainError, type DomainContext } from './context';
+import type { Competition } from '../../../shared/types';
+import { exportRankingCSV, exportResultsXMLFFE } from '../../../shared/utils/multiFormatExport';
+import { encodeFFFWin1252, exportResultsToFFF } from '../../../shared/utils/fencerExport';
+import { generateResultsHTML } from '../../../shared/utils/pdfExport/resultsPdf';
+import { CommandError, type CommandContext } from './context';
 import { resultsData } from './sport';
 import { resolveOutputPath, writeOutputFile } from './files';
 
@@ -34,7 +34,7 @@ export interface ExportResultsOptions {
 }
 
 export async function exportResults(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   options: ExportResultsOptions
 ): Promise<{ path: string; format: ResultsFormat; bytes: number }> {
@@ -48,13 +48,13 @@ export async function exportResults(
   const needFinal =
     options.format === 'fff' || options.format === 'html' || options.format === 'pdf';
   if (needFinal && data.finalResults.length === 0) {
-    throw new DomainError(
+    throw new CommandError(
       'no_final_results',
       'Classement final indisponible : tableau non terminé'
     );
   }
   if (options.format === 'csv' && data.overallRanking.length === 0) {
-    throw new DomainError('no_ranking', 'Classement après poules indisponible');
+    throw new CommandError('no_ranking', 'Classement après poules indisponible');
   }
   let content: string | Uint8Array;
   switch (options.format) {
@@ -96,7 +96,7 @@ export async function exportResults(
         content = html;
         break;
       }
-      if (!options.renderPdf) throw new DomainError('pdf_unavailable', 'Rendu PDF indisponible');
+      if (!options.renderPdf) throw new CommandError('pdf_unavailable', 'Rendu PDF indisponible');
       content = await options.renderPdf(html);
       break;
     }

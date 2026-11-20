@@ -6,10 +6,10 @@
  * Licensed under GPL-3.0
  */
 import { z } from 'zod';
-import { contract, type OperationDef, type OperationName } from '../../shared/api/contract';
-import { McpToolError, type McpTool } from '../mcp/mcpTools';
-import type { McpWriteTool } from '../mcp/mcpWriteTools';
-import { readDomain, writeDomain } from '../mcp/mcpDomain';
+import { contract, type OperationDef, type OperationName } from '../../../shared/api/contract';
+import { McpToolError, type McpTool } from '../../mcp/mcpTools';
+import type { McpWriteTool } from '../../mcp/mcpWriteTools';
+import { readDomain, writeDomain } from '../../mcp/mcpDomain';
 import { invoke, toApiError } from './engine';
 
 type InputSchema = McpTool['inputSchema'];

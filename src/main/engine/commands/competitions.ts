@@ -2,12 +2,12 @@
  * BellePoule Modern - Couche domaine : accès aux épreuves (#1880)
  * Licensed under GPL-3.0
  */
-import type { Competition } from '../../shared/types';
-import { DomainError, type DomainContext } from './context';
+import type { Competition } from '../../../shared/types';
+import { CommandError, type CommandContext } from './context';
 
-export function getCompetitionOrThrow(ctx: DomainContext, id: string): Competition {
+export function getCompetitionOrThrow(ctx: CommandContext, id: string): Competition {
   const comp = typeof id === 'string' && id ? ctx.db.getCompetition(id) : null;
-  if (!comp) throw new DomainError('competition_not_found', `Épreuve introuvable : ${id}`);
+  if (!comp) throw new CommandError('competition_not_found', `Épreuve introuvable : ${id}`);
   return comp;
 }
 

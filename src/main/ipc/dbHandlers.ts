@@ -8,7 +8,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
 import type { CompetitionEventType } from '../../shared/types/preload';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
-import { publishCompetitionEvent } from '../api/events';
+import { publishCompetitionEvent } from '../engine/api/events';
 
 export interface DbHandlersContext {
   db: DatabaseManager;

@@ -51,7 +51,7 @@ import { resolveBackupDir } from './backupSettings';
 import { runBackupAutosave } from './autosaveBackup';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
-import { remoteArenaCount } from './domain/settings';
+import { remoteArenaCount } from './engine/commands/settings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
@@ -62,7 +62,7 @@ import { MultiPisteDriver } from './piste/multiDriver';
 import { registerOpp2Handlers } from './ipc/opp2Handlers';
 import { PisteHub } from './piste/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
-import { registerApiHandlers } from './api/ipcAdapter';
+import { registerApiHandlers } from './engine/api/ipcAdapter';
 import { emitChangeVia } from './mcp/mcpDomain';
 import { createMcpController } from './ipc/mcpHandlers';
 import { parseCliArgs } from './cliArgs';
