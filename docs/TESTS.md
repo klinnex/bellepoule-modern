@@ -88,9 +88,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 84 | 948 |
+| `src/shared/utils/` | 85 | 961 |
 | `src/shared/services/` | 8 | 95 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 38 |
+| Feature `analytics` (`src/features/analytics/`) | 4 | 40 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -102,18 +102,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 20 | 262 |
-| `src/main/` | 113 | 922 |
+| `src/main/` | 114 | 929 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 121 | 648 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
+| `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **503** | **3893** |
+| **Total** | **506** | **3918** |
 
-Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -984,6 +985,26 @@ Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - 0 / 1 / 2 en français (0 est singulier) et en anglais
   - cantonais : une seule forme
   - clés candidates : catégorie, puis \_other, puis la clé nue
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/matchDurations.test.ts</code> — 13 tests</summary>
+
+- **matchDurations (#1965)**
+  - valeurs par défaut : poule d’épée 3 min 30, tableau de sabre 8 min
+  - score différent : durée proportionnelle (relais 45 touches)
+  - arme L / C : depuis le chrono et le score, jamais 0
+  - priorité : réglage \> historique (≥ 30 matchs) \> défaut
+  - clé précise sans valeur : remonte à la clé plus large
+  - mélange : suit la formule avec 0, 3, 5, 10 et 20 matchs mesurés
+  - fenêtre glissante de 20 matchs
+  - match de 25 min (blessure) ou de 10 s : sans effet
+  - fourchette : 80ᵉ centile ≥ médiane
+  - agrégats : médiane, 80ᵉ centile et nombre par clé, sans donnée personnelle
+  - code arme depuis un libellé
+  - fin de phase et simulation : même durée pour la même clé
+  - fin de phase avec référence : mesuré dès 3 matchs, aberrants exclus
 
 </details>
 
@@ -2054,7 +2075,7 @@ Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 22 tests</summary>
+<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 24 tests</summary>
 
 - **normalizeFinishedMatches**
   - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
@@ -2087,6 +2108,9 @@ Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
   - tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)
   - toutes les places : total de la compétition et deux décomptes (#1817)
+- **organisationKpis : durées de référence (#1965)**
+  - tableau d’épée sans mesure : 12 min + changement de piste
+  - sans clé : anciennes valeurs par défaut
 
 </details>
 
@@ -3133,6 +3157,20 @@ Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/main/`
+
+<details>
+<summary><code>src/main/api/contractApi.test.ts</code> — 7 tests</summary>
+
+- **contrat d’API (#1981)**
+  - entrée invalide : même erreur en IPC et en MCP
+  - erreur métier : code du domaine conservé
+  - opération inconnue ou abonnement appelé en commande : refusés
+  - checkIn par IPC : pointe, prévient l’écran ; même résultat par MCP
+  - requête de cartons : servie en IPC, pas exposée en MCP
+  - outils MCP générés pour chaque opération marquée mcp, sans doublon
+  - abonnement : événements filtrés par épreuve, désabonnement
+
+</details>
 
 <details>
 <summary><code>src/main/appLifecycle.test.ts</code> — 4 tests</summary>
@@ -8107,6 +8145,18 @@ Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **tablette équipe — verrou appareil maître**
   - maître et en ligne : bandeau, ajouts bloqués avec notification, retrait permis
   - afficheur ou hors ligne : tablette libre
+
+</details>
+
+### `src/renderer/api/`
+
+<details>
+<summary><code>src/renderer/api/IpcClient.test.ts</code> — 3 tests</summary>
+
+- **IpcClient**
+  - commande : donnée de l’enveloppe ; erreur : ApiError avec code
+  - hors Electron : ApiError « unavailable »
+  - abonnement : événements routés par id, désabonnement
 
 </details>
 
