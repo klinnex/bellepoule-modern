@@ -106,16 +106,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 118 | 966 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 122 | 661 |
+| `src/renderer/components/` | 120 | 633 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **515** | **3998** |
+| `src/shared/domain/` | 3 | 28 |
+| **Total** | **516** | **3998** |
 
-Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -6675,18 +6676,8 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 12 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 4 tests</summary>
 
-- **computeMatchProgress**
-  - renvoie null sans poule ni tableau
-  - compte les matchs de poule terminés
-  - retombe sur le tableau quand il n’y a pas de poule
-  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
-  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
-- **computeEffectiveTableauRanking**
-  - garde le classement tel quel sans option
-  - ne garde que le groupe actif et renumérote
-  - exclut les groupes déjà extraits dans une compétition séparée
 - **rankingTableauNavAction (#2008)**
   - libellé « Voir le tableau » quand le classement est figé
   - libellé « Passer au tableau » sinon
@@ -7197,26 +7188,6 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
-
-- **autoFillAllPositions**
-  - %i tireurs (tableau de %i) : classement complet _(each)_
-- **calculateFinalResults - abandon / forfait / exclusion (#1012)**
-  - mentionne l’évènement entre parenthèses pour le tireur concerné
-- **calculateFinalResults - 3e place non jouée (#1864)**
-  - deux 3es ex æquo, pas de 4e, puis 5e
-  - petite finale jouée : 3e et 4e distincts
-- **generateFIESeeding (#1080)**
-  - tables en dur identiques à la construction FIE générique
-  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
-- **rangs figés au tirage du tableau (#1996)**
-  - premier tour : rang de sortie de poules de chaque tireur
-  - barrages : rangs posés sur les matchs de barrage
-  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
-
-</details>
-
-<details>
 <summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 6 tests</summary>
 
 - **tableauDialogState**
@@ -7237,28 +7208,6 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - deux gauchers : le second appelé à gauche
   - gaucher contre droitier : le gaucher à gauche
   - tireur absent : second appelé à gauche
-
-</details>
-
-<details>
-<summary><code>src/renderer/components/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
-
-- **propagateWinners**
-  - apparie les feeders par position même si matchList est désordonné
-- **propagateWinners - taille périmée/invalide**
-  - propage même si size vaut 0
-  - propage le vainqueur des 8es vers les quarts (size correct)
-- **propagateWinners - abandon / forfait / exclusion (#1012)**
-  - conserve le vainqueur d’un match sans score (abandon en finale)
-  - efface un vainqueur périmé qui n’est plus dans le match
-- **resetTableauMatch (#1115)**
-  - efface le score et retire le vainqueur du tour suivant
-  - refuse si le match suivant a déjà été joué
-  - vide les perdants de la petite finale pour une demi-finale
-- **resolveTableauWinner**
-  - le score décide hors égalité, un V éventuel est ignoré
-  - en égalité, le vainqueur désigné (V ou tirage) gagne
-  - en égalité sans vainqueur désigné, pas de vainqueur
 
 </details>
 
@@ -8392,5 +8341,65 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 
 - **writeHtmlWithCssom**
   - écrit le document et réapplique les attributs style par CSSOM
+
+</details>
+
+### `src/shared/domain/`
+
+<details>
+<summary><code>src/shared/domain/ranking/tableauRanking.test.ts</code> — 8 tests</summary>
+
+- **computeMatchProgress**
+  - renvoie null sans poule ni tableau
+  - compte les matchs de poule terminés
+  - retombe sur le tableau quand il n’y a pas de poule
+  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
+  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
+- **computeEffectiveTableauRanking**
+  - garde le classement tel quel sans option
+  - ne garde que le groupe actif et renumérote
+  - exclut les groupes déjà extraits dans une compétition séparée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
+
+- **autoFillAllPositions**
+  - %i tireurs (tableau de %i) : classement complet _(each)_
+- **calculateFinalResults - abandon / forfait / exclusion (#1012)**
+  - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **calculateFinalResults - 3e place non jouée (#1864)**
+  - deux 3es ex æquo, pas de 4e, puis 5e
+  - petite finale jouée : 3e et 4e distincts
+- **generateFIESeeding (#1080)**
+  - tables en dur identiques à la construction FIE générique
+  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
+- **rangs figés au tirage du tableau (#1996)**
+  - premier tour : rang de sortie de poules de chaque tireur
+  - barrages : rangs posés sur les matchs de barrage
+  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
+
+- **propagateWinners**
+  - apparie les feeders par position même si matchList est désordonné
+- **propagateWinners - taille périmée/invalide**
+  - propage même si size vaut 0
+  - propage le vainqueur des 8es vers les quarts (size correct)
+- **propagateWinners - abandon / forfait / exclusion (#1012)**
+  - conserve le vainqueur d’un match sans score (abandon en finale)
+  - efface un vainqueur périmé qui n’est plus dans le match
+- **resetTableauMatch (#1115)**
+  - efface le score et retire le vainqueur du tour suivant
+  - refuse si le match suivant a déjà été joué
+  - vide les perdants de la petite finale pour une demi-finale
+- **resolveTableauWinner**
+  - le score décide hors égalité, un V éventuel est ignoré
+  - en égalité, le vainqueur désigné (V ou tirage) gagne
+  - en égalité sans vainqueur désigné, pas de vainqueur
 
 </details>
