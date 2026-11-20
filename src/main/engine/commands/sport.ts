@@ -30,7 +30,7 @@ import {
   type PoolSpecialStatus,
 } from '../../../shared/utils/poolOrchestration';
 import { allowsVictoryTieBreak } from '../../../shared/utils/tieBreak';
-import { isTieAtScoreLimit } from '../../../shared/utils/matchEndValidation';
+import { isTieAtScoreLimit } from '../../../shared/domain/match/matchEndValidation';
 import {
   getActiveFormula,
   resolveCompetitionSettings,

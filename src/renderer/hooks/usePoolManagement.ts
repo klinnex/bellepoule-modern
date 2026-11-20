@@ -20,6 +20,7 @@ import {
 } from '../../shared/utils/poolOrchestration';
 import { useTranslation } from './useTranslation';
 import { areAllPoolsComplete as allPoolsComplete } from '../../shared/domain/pools/poolCompletion';
+import { winnerByScore } from '../../shared/domain/match/matchEndValidation';
 
 interface UsePoolManagementProps {
   isLaserSabre: boolean;
@@ -426,8 +427,7 @@ export const usePoolManagement = ({
               // Le vainqueur transmis par le serveur fait foi, comme au tableau : tirage au sort
               // (scores égaux), mais aussi abandon / exclusion signalés par l'appareil de piste
               // (#1720), où le perdant peut mener au score
-              const winner =
-                winnerOverride ?? (scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null);
+              const winner = winnerOverride ?? winnerByScore(scoreA, scoreB);
 
               // Abandon / exclusion du perdant signalés par l'appareil : marque conservée,
               // sinon l'annulation des résultats (#1144) ne s'applique pas (#1829)

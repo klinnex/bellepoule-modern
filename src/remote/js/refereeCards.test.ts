@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
-import { passivityWinner as sharedPassivityWinner } from '../../shared/utils/matchEndValidation';
+import { passivityWinner as sharedPassivityWinner } from '../../shared/domain/match/matchEndValidation';
 
 const req = createRequire(import.meta.url);
 const C = req('./refereeCards.js');

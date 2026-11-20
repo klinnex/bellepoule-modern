@@ -16,6 +16,7 @@ import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { DT_CONFIRM_ABANDON_EVENT } from '../services/dtCallEvents';
 import type { DtConfirmAbandonDetail } from '../services/dtCallEvents';
 import type { usePoolManagement } from './usePoolManagement';
+import { winnerByScore } from '../../shared/domain/match/matchEndValidation';
 
 interface UseRemoteScoreSyncParams {
   competitionId: string;
@@ -74,21 +75,16 @@ export function useRemoteScoreSync({
       const scoreA = toNum(scoreARaw);
       const scoreB = toNum(scoreBRaw);
       const status = finished ? MatchStatus.FINISHED : MatchStatus.IN_PROGRESS;
-      // Le vainqueur transmis par le serveur (winnerOverride) fait foi : il gère les
-      // cas d'égalité (tirage au sort) et reste correct même si le score transporté
-      // est ambigu. On retombe sur la comparaison des scores en dernier recours.
-      const resolveWinner = (match: TableauMatch) =>
-        !finished
-          ? (match.winner ?? null)
-          : winnerOverride === 'A'
-            ? match.fencerA
-            : winnerOverride === 'B'
-              ? match.fencerB
-              : scoreA > scoreB
-                ? match.fencerA
-                : scoreB > scoreA
-                  ? match.fencerB
-                  : null;
+      // Le vainqueur transmis par le serveur (winnerOverride) fait foi : le serveur l'a
+      // décidé par decideMatchWinner (carton noir, égalité tranchée). Sans lui, le score.
+      const resolveWinner = (match: TableauMatch) => {
+        if (!finished) return match.winner ?? null;
+        const side =
+          winnerOverride === 'A' || winnerOverride === 'B'
+            ? winnerOverride
+            : winnerByScore(scoreA, scoreB);
+        return side === 'A' ? match.fencerA : side === 'B' ? match.fencerB : null;
+      };
 
       // La tablette/serveur peut renvoyer l'ID brut du match ('16-0') ou l'ID
       // composite stocké en base ('${competitionId}-16-0'). On apparie les deux

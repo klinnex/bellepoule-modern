@@ -4,6 +4,7 @@
  */
 
 import { Fencer } from '../../types';
+import { decideMatchWinner, winnerByScore } from '../match/matchEndValidation';
 
 export interface TableauMatch {
   id: string;
@@ -65,13 +66,13 @@ export interface ConsolationBracket {
 export function resolveWinnerFromScores(match: TableauMatch): void {
   if (match.winner) return;
   if (match.scoreA === null || match.scoreB === null) return;
-  if (match.scoreA > match.scoreB) match.winner = match.fencerA;
-  else if (match.scoreB > match.scoreA) match.winner = match.fencerB;
+  const side = winnerByScore(match.scoreA, match.scoreB);
+  if (side) match.winner = side === 'A' ? match.fencerA : match.fencerB;
 }
 
 /**
- * Vainqueur d'un match saisi à la main. Hors égalité, le score décide. En égalité
- * (Sabre Laser), seul le vainqueur désigné (V manuel ou tirage au sort) compte.
+ * Vainqueur d'un match saisi à la main : decideMatchWinner (shared/domain/match). Hors
+ * égalité, le score décide ; à égalité, le vainqueur désigné (V manuel ou tirage au sort).
  */
 export function resolveTableauWinner(
   fencerA: Fencer | null,
@@ -80,11 +81,9 @@ export function resolveTableauWinner(
   scoreB: number,
   tieWinner: 'A' | 'B' | null
 ): Fencer | null {
-  if (scoreA > scoreB) return fencerA;
-  if (scoreB > scoreA) return fencerB;
-  if (tieWinner === 'A') return fencerA;
-  if (tieWinner === 'B') return fencerB;
-  return null;
+  // Règle unique de fin de match (écran, MCP, tablettes, appareils de piste ; #1979 lot 4)
+  const { winner } = decideMatchWinner({ scoreA, scoreB, override: tieWinner });
+  return winner === 'A' ? fencerA : winner === 'B' ? fencerB : null;
 }
 
 /** Clé i18n de l'erreur de score à la saisie (égalité), ou null si le score est valide. */

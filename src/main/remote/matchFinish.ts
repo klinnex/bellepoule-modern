@@ -18,7 +18,7 @@ import {
   type PrevRefusal,
 } from './prevMatch';
 import type { ArenaMatch } from '../../shared/types/remote';
-import { winnerByScore } from '../../shared/utils/matchEndValidation';
+import { winnerByScore } from '../../shared/domain/match/matchEndValidation';
 
 type S = RemoteScoreServer;
 
