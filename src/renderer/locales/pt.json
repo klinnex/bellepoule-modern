@@ -1897,6 +1897,7 @@
     "reason_nationality": "nacionalidade",
     "reason_region": "liga",
     "conflict_warning": "Conflito de neutralidade com um atirador: {{reasons}}",
+    "settings_save_failed": "Definições de arbitragem não guardadas: {{message}}",
     "all_covered": "Todos os assaltos pendentes têm um árbitro neutro.",
     "match_n": "Assalto {{n}}",
     "locked": "manual",

@@ -1897,6 +1897,7 @@
     "reason_nationality": "nationality",
     "reason_region": "league",
     "conflict_warning": "Neutrality conflict with a fencer: {{reasons}}",
+    "settings_save_failed": "Refereeing settings not saved: {{message}}",
     "all_covered": "Every pending match has a neutral referee.",
     "match_n": "Match {{n}}",
     "locked": "manual",

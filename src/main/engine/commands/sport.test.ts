@@ -12,7 +12,8 @@ import { Category, FencerStatus, Gender, Weapon } from '../../../shared/types';
 import { buildMatchScores, validatePoolScore } from '../../../shared/utils/poolOrchestration';
 import { buildDefaultCompetitionSettings } from '../../../shared/utils/defaultCompetitionSettings';
 import type { DomainChange, CommandContext } from './context';
-import { assignPoolReferees, buildBracket, generatePools, listMatches, recordScore } from './sport';
+import { buildBracket, generatePools, listMatches, recordScore } from './sport';
+import { assignPoolReferees } from './refereeing';
 import { getBracket, getPoolRanking } from './sessionView';
 import { exportResults } from './exportResults';
 

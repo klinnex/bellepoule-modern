@@ -1897,6 +1897,7 @@
     "reason_nationality": "Nationalität",
     "reason_region": "Landesverband",
     "conflict_warning": "Neutralitätskonflikt mit einem Fechter: {{reasons}}",
+    "settings_save_failed": "Schiedsrichter-Einstellungen nicht gespeichert: {{message}}",
     "all_covered": "Alle offenen Gefechte haben einen neutralen Kampfrichter.",
     "match_n": "Gefecht {{n}}",
     "locked": "manuell",

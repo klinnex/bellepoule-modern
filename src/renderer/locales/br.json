@@ -1897,6 +1897,7 @@
     "reason_nationality": "broadelezh",
     "reason_region": "liamm",
     "conflict_warning": "Tabut neptuegezh gant ur skrimer : {{reasons}}",
+    "settings_save_failed": "Arventennoù an arbitrerezh n’int ket bet enrollet : {{message}}",
     "all_covered": "Un arbitr neptu en deus an holl c’hrogadoù o c’hortoz.",
     "match_n": "Krogad {{n}}",
     "locked": "gant an dorn",

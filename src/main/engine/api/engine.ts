@@ -15,6 +15,11 @@ import {
 import { ApiError } from '../../../shared/api/client';
 import { CommandError, type CommandContext } from '../commands/context';
 import { recordScore } from '../commands/sport';
+import {
+  assignPoolReferee,
+  assignPoolReferees,
+  setRefereeingSettings,
+} from '../commands/refereeing';
 import { checkInFencers } from '../commands/checkIn';
 import { getCompetitionOrThrow } from '../commands/competitions';
 import type { CompetitionEvent } from '../../../database/repos/eventLogRepo';
@@ -34,6 +39,12 @@ type Handler<N extends OperationName> = Contract[N]['kind'] extends 'subscriptio
 export const handlers: { [N in OperationName]: Handler<N> } = {
   checkIn: (ctx, input) => checkInFencers(ctx, input),
   recordScore: (ctx, { competitionId, ...rest }) => recordScore(ctx, competitionId, rest),
+  setRefereeingSettings: (ctx, { competitionId, expectedRevision: _r, ...patch }) =>
+    setRefereeingSettings(ctx, competitionId, patch),
+  assignReferees: (ctx, { competitionId, expectedRevision: _r, ...options }) =>
+    assignPoolReferees(ctx, competitionId, options),
+  assignReferee: (ctx, { competitionId, expectedRevision: _r, ...input }) =>
+    assignPoolReferee(ctx, competitionId, input),
   getMatchCards: (ctx, { matchId }) => ctx.db.getCards(matchId),
   getCardsByMatchIds: (ctx, { matchIds }) => ctx.db.getCardsByMatchIds(matchIds),
   getCompetitionEvents: (ctx, { competitionId, since, limit }) => {

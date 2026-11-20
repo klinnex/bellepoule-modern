@@ -7,12 +7,7 @@
  * Licensed under GPL-3.0
  */
 
-import {
-  assignPoolReferees,
-  buildBracket,
-  generatePools,
-  listMatches,
-} from '../engine/commands/sport';
+import { buildBracket, generatePools, listMatches } from '../engine/commands/sport';
 import { exportResults, type ResultsFormat } from '../engine/commands/exportResults';
 import type { McpTool } from './mcpTools';
 import type { McpWriteTool } from './mcpWriteTools';
@@ -94,31 +89,8 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
         })
       ),
   },
-  {
-    name: 'assign_referees',
-    title: 'Arbitres des poules',
-    description:
-      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité club et, selon l’épreuve, nation et ligue ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        ...competitionId,
-        replace: { type: 'boolean', description: 'Réaffecter toutes les poules' },
-        includeUnchecked: { type: 'boolean', description: 'Accepter les arbitres non pointés' },
-        ...dryRun,
-      },
-      required: ['competitionId'],
-    },
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    run: (deps, args) =>
-      guard(() =>
-        assignPoolReferees(writeDomain(deps), reqStr(args, 'competitionId'), {
-          replace: optBool(args, 'replace'),
-          includeUnchecked: optBool(args, 'includeUnchecked'),
-          dryRun: optBool(args, 'dryRun'),
-        })
-      ),
-  },
+  // assign_referees, assign_referee, set_refereeing_settings : générés depuis le contrat d'API
+  // (src/shared/api/contract.ts, docs/adr/0014)
   // record_score : généré depuis le contrat d'API (src/shared/api/contract.ts, #1981)
   {
     name: 'build_bracket',
