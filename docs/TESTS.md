@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 21 | 266 |
-| `src/main/` | 114 | 934 |
+| `src/main/` | 114 | 943 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 122 | 661 |
@@ -112,9 +112,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **509** | **3946** |
+| **Total** | **509** | **3955** |
 
-Unitaires : 499 fichiers, 3907 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 499 fichiers, 3916 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4968,7 +4968,7 @@ Unitaires : 499 fichiers, 3907 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/updateReleases.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/updateReleases.test.ts</code> — 13 tests</summary>
 
 - **parseReleaseBuild**
   - lit le build dans le nom, sinon le tag, sinon le corps
@@ -4976,6 +4976,18 @@ Unitaires : 499 fichiers, 3907 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - canal dev : build le plus élevé, quel que soit l’ordre
   - canal stable : ignore les pré-releases
   - ignore les brouillons ; null si rien
+- **parseReleaseVersion**
+  - lit X.Y.Z dans le tag, sinon le nom
+  - lit le build des pré-releases de maintenance
+- **compareVersionPoints**
+  - X.Y.Z d’abord, build ensuite
+  - version inconnue : build seul
+- **branche de maintenance**
+  - canal dev : la 3.0.0-dev l’emporte sur un correctif 2.0.1 au build plus élevé
+  - canal stable : le correctif 2.0.1
+  - un 3.0.0-dev ne se voit pas proposer la 2.0.1
+  - un 2.0.0 stable se voit proposer la 2.0.1
+  - un testeur 3.0.0-dev.1995 ne redescend pas vers la 3.0.0 (Build #1990)
 
 </details>
 
