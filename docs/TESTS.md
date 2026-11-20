@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 21 | 266 |
-| `src/main/` | 114 | 943 |
+| `src/main/` | 118 | 966 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 122 | 661 |
@@ -112,9 +112,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **509** | **3955** |
+| **Total** | **513** | **3978** |
 
-Unitaires : 499 fichiers, 3916 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 503 fichiers, 3939 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4058,6 +4058,57 @@ Unitaires : 499 fichiers, 3916 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/opp2/driver.test.ts</code> — 8 tests</summary>
+
+- **pilote OPP2 (#1960)**
+  - démarrage : BellePoule annoncé (retenu), appareil en ligne via apparatus/connection
+  - état, score, chrono, lampes, cartons P, médical → état complet
+  - doublon QoS 1 écarté ; redémarrage (seq plus petit, ts plus récent) accepté
+  - END + état E : une seule fin proposée ; NEXT / PREV ; piste inconnue relevée
+  - affichage : software/fencers, match, score, clock ; Id attendus dans l’état ; ACK / NAK
+  - inversion gaucher par l’arbitre : apparatus/fencers échange les Id
+  - reprise après coupure : états retenus relus au démarrage
+- **plusieurs protocoles (#1960)**
+  - chaque piste routée vers son pilote ; Id tronqué selon le protocole de la piste
+
+</details>
+
+<details>
+<summary><code>src/main/opp2/e2e.test.ts</code> — 5 tests</summary>
+
+- **OPP2 bout en bout : broker MQTT réel, appareil simulé (#1960)**
+  - affichage reçu par l’appareil : tireurs (Id complets), arme, poule et match
+  - assaut et touches : l’arène suit l’appareil
+  - END valide → ACK, match terminé ; NEXT → match suivant
+  - END à égalité sans priorité → NAK, match non terminé
+  - coupure : hors ligne (dernière volonté) ; retour : état repris des messages retenus
+
+</details>
+
+<details>
+<summary><code>src/main/opp2/mqttBroker.test.ts</code> — 4 tests</summary>
+
+- **broker MQTT intégré (#1960)**
+  - messages retenus livrés à l’abonnement, réseau et interne
+  - dernière volonté publiée sur coupure brutale, pas sur DISCONNECT
+  - authentification et droit de publication par rôle
+  - paquet invalide : connexion coupée
+
+</details>
+
+<details>
+<summary><code>src/main/opp2/mqttPacket.test.ts</code> — 5 tests</summary>
+
+- **paquets MQTT 3.1.1 (#1960)**
+  - CONNECT avec dernière volonté et identifiants : aller-retour
+  - PUBLISH QoS 1 retenu : aller-retour
+  - flux morcelé puis groupé
+  - paquet trop volumineux ou type inconnu : erreur de protocole
+  - jokers + et #
+
+</details>
+
+<details>
 <summary><code>src/main/pathAuthorization.test.ts</code> — 14 tests</summary>
 
 - **chemins autorisés (#1146)**
@@ -4116,7 +4167,7 @@ Unitaires : 499 fichiers, 3916 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/piste/arenaInputGate.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/piste/arenaInputGate.test.ts</code> — 9 tests</summary>
 
 - **ArenaInputGate**
   - séquence croissante admise, trame en double ou désordonnée rejetée et tracée
@@ -4124,6 +4175,7 @@ Unitaires : 499 fichiers, 3916 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - séquences indépendantes par source (pilote + piste) et par arène
   - séquence non numérique rejetée
   - forget : un appareil redémarré reprend sa numérotation
+  - forgetPiste : la piste repart à zéro quel que soit son pilote (#1960)
   - journal des rejets borné
   - fromInput : entrée de pilote → entrée de barrière
   - rejet journalisé (logger.warn)
