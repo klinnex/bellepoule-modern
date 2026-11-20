@@ -38,9 +38,8 @@ import {
 import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
 import { specialStatusPatch } from '../../../shared/utils/forfeit';
 import {
-  buildTableauMatches,
+  planTableau,
   calculateFinalResults,
-  getTableauSize,
   isTableauDone,
 } from '../../../shared/domain/tableau/tableauCalculations';
 import {
@@ -57,7 +56,6 @@ import { EVENT, recordEvents } from './eventLog';
 import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
 import { areAllPoolsComplete, isPoolComplete } from '../../../shared/domain/pools/poolCompletion';
-import { isTableauEligible } from '../../../shared/domain/fencers/fencerStatus';
 import type { PoolSeparation } from '../../../shared/domain/pools/poolDraw';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
@@ -566,15 +564,15 @@ export function buildBracket(
   }
   // Statuts à jour (abandon, exclusion après les poules)
   // Statuts du classement (comme l'écran) : un décompte différent ferait régénérer le tableau
-  const qualified = tableauRanking(comp, session)
-    .filter(r => isTableauEligible(r.fencer))
-    .sort((a, b) => a.rank - b.rank);
+  const thirdPlace = options.thirdPlaceMatch ?? eff.thirdPlaceMatch;
+  // Génération unique écran / moteur (#1979, lot 4)
+  const { qualified, size, matches } = planTableau(tableauRanking(comp, session), {
+    playAllPositions: false,
+    thirdPlaceMatch: thirdPlace,
+  });
   if (qualified.length < 2) {
     throw new CommandError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');
   }
-  const thirdPlace = options.thirdPlaceMatch ?? eff.thirdPlaceMatch;
-  const size = getTableauSize(qualified.length);
-  const matches = buildTableauMatches(qualified, size, false, thirdPlace);
   const summary = {
     dryRun: !!options.dryRun,
     size,
