@@ -102,7 +102,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
 | `src/database/` | 20 | 262 |
-| `src/main/` | 113 | 921 |
+| `src/main/` | 113 | 922 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 121 | 648 |
@@ -111,9 +111,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **503** | **3892** |
+| **Total** | **503** | **3893** |
 
-Unitaires : 493 fichiers, 3853 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 493 fichiers, 3854 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3514,7 +3514,7 @@ Unitaires : 493 fichiers, 3853 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/dbKey.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/dbKey.test.ts</code> — 6 tests</summary>
 
 - **clé de la base (SQLCipher, #1882)**
   - crée une clé de 256 bits au premier lancement, stockée chiffrée
@@ -3522,6 +3522,7 @@ Unitaires : 493 fichiers, 3853 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - trousseau indisponible : pas de clé (base en clair signalée par l’appelant)
   - fichier de clé illisible : erreur, aucune nouvelle clé générée
   - base chiffrée sans fichier de clé : erreur, pas de nouvelle clé
+  - clé du trousseau renouvelée : même clé de base, fichier rechiffré (#1988)
 
 </details>
 
