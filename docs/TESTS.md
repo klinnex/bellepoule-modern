@@ -101,21 +101,22 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
-| Feature `teams` (`src/features/teams/`) | 7 | 59 |
+| Feature `teams` (`src/features/teams/`) | 1 | 7 |
 | `src/database/` | 21 | 266 |
 | `src/main/` | 118 | 966 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 122 | 661 |
+| `src/renderer/components/` | 120 | 633 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **515** | **3998** |
+| `src/shared/domain/` | 9 | 80 |
+| **Total** | **516** | **3998** |
 
-Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2644,117 +2645,6 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - marque le match terminé et le vainqueur
 - **generatePools**
   - répartit les équipes en poules selon la taille
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/laserArenaBracketRules.test.ts</code> — 4 tests</summary>
-
-- **buildPoolPairHistory**
-  - n'enregistre que les rencontres de poule terminées
-- **applyRematchAvoidanceSwap**
-  - ne modifie rien avec moins de 6 équipes classées
-  - ne modifie rien si aucune revanche n'est détectée au 1er tour
-  - échange les équipes classées 5 et 6 si leur confrontation au 1er tour est une revanche de poule
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/laserArenaCalculations.test.ts</code> — 9 tests</summary>
-
-- **getLaserArenaBoutCap**
-  - plafonne à 5 touches ou 3 minutes
-- **isLaserArenaBoutComplete**
-  - se termine dès que le cumul des deux côtés atteint 5
-  - se termine au bout de 3 minutes même sans 5 touches
-- **calculateLaserArenaMatchScore**
-  - additionne uniquement les assauts terminés
-- **isLaserArenaMatchComplete / getLaserArenaMatchWinner**
-  - n'est pas terminée tant que tous les assauts ne le sont pas
-  - désigne le vainqueur au total de points, pas au nombre d’assauts gagnés
-  - renvoie null en cas d’égalité totale (départage au niveau poule)
-- **calculateLaserArenaPoolRanking**
-  - classe par total de points marqués, pas par nombre de victoires
-  - signale une égalité totale (points et ratio) sans la départager
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/laserArenaPoolSchedules.test.ts</code> — 5 tests</summary>
-
-- **getLaserArenaPoolSchedule**
-  - renvoie le calendrier figé pour 8 et 12 équipes uniquement
-- **assignTeamsToPoolSlots**
-  - affecte les équipes par blocs de 4 (A puis B puis C)
-- **resolveLaserArenaSchedule — 12 équipes**
-  - génère exactement 6 rencontres par poule (round-robin complet à 4 équipes)
-  - chaque équipe rencontre toutes les autres de sa poule exactement une fois
-- **resolveLaserArenaSchedule — 8 équipes**
-  - génère exactement 6 rencontres par poule pour 2 poules de 4
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 27 tests</summary>
-
-- **generateRelayBouts**
-  - génère 9 relais dans l’ordre standard
-  - ignore les réservistes et trie par teamOrder
-  - lève une erreur si moins de 3 titulaires
-- **calculateTeamScore**
-  - compte uniquement les relais terminés avec vainqueur
-- **validateTeamComposition**
-  - valide une équipe de 3 titulaires d’ordres 1,2,3
-  - refuse moins de 3 titulaires
-  - refuse plus d’un réserviste
-- **isTeamMatchComplete / getTeamMatchWinner**
-  - est complet après 9 relais terminés
-  - retourne null si le match n’est pas terminé
-- **generateRelayOrder**
-  - génère la rotation en diagonale pour une équipe de 3
-  - génère N² relais où chaque titulaire rencontre chaque adversaire exactement une fois (N=4)
-- **relayOrderFor**
-  - arme %s à 3 : ordre officiel FIE (o.99.3) _(each)_
-  - arme %s : ordre inchangé _(each)_
-  - sans arme ou avec une autre taille d’équipe : ordre inchangé
-  - ordre FIE : chaque titulaire rencontre chaque adversaire une fois, jamais deux relais de suite
-  - renvoie une copie : la constante FIE n’est pas modifiable par l’appelant
-  - generateRelayBouts suit l’arme : relais 1 = 3 contre 6 en sabre, 1 contre 4 en Sabre Laser
-- **getTeamTargetRule / getRelayCap**
-  - E/F/S comptent toujours en touches, cible = stepSize × N²
-  - Sabre Laser respecte le mode configuré (touches ou points)
-  - getRelayCap calcule le palier cumulé (5-10-15…)
-- **calculateTeamPoolRanking**
-  - classe les équipes par victoires, puis relais gagnés, puis touches
-  - ignore les matchs non terminés
-- **placeRankedTeamsInTable / resolveTeamTableauSlot**
-  - place la tête de série n°1 en première position
-  - résout un exempt (bye) quand une équipe est seule dans son couple de départ
-  - propage un exempt jusqu’à la finale quand l’adversaire du tour suivant est aussi exempté
-  - résout la finale à partir des vainqueurs des demi-finales persistées en DB
-  - demi-finale terminée + autre en cours : finale en attente, pas d’exempt prématuré
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/teamCardEscalation.test.ts</code> — 3 tests</summary>
-
-- **determineTeamCardEscalation**
-  - attribue un carton blanc à la première désignation tardive de la rencontre
-  - attribue un carton jaune dès qu’un blanc a déjà été donné, même dans un autre assaut
-- **countTeamYellowCards**
-  - compte uniquement les jaunes de l’équipe concernée
-
-</details>
-
-<details>
-<summary><code>src/features/teams/utils/teamRelayLive.test.ts</code> — 4 tests</summary>
-
-- **teamRelayLive (#1086)**
-  - cumul = relais précédents terminés + relais en cours
-  - palier progressif plafonné à la cible
-  - relais terminé au palier ou au bout de 3 minutes
-  - vainqueur au cumul, null si égalité
 
 </details>
 
@@ -6675,18 +6565,8 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 12 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 4 tests</summary>
 
-- **computeMatchProgress**
-  - renvoie null sans poule ni tableau
-  - compte les matchs de poule terminés
-  - retombe sur le tableau quand il n’y a pas de poule
-  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
-  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
-- **computeEffectiveTableauRanking**
-  - garde le classement tel quel sans option
-  - ne garde que le groupe actif et renumérote
-  - exclut les groupes déjà extraits dans une compétition séparée
 - **rankingTableauNavAction (#2008)**
   - libellé « Voir le tableau » quand le classement est figé
   - libellé « Passer au tableau » sinon
@@ -7197,26 +7077,6 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
-
-- **autoFillAllPositions**
-  - %i tireurs (tableau de %i) : classement complet _(each)_
-- **calculateFinalResults - abandon / forfait / exclusion (#1012)**
-  - mentionne l’évènement entre parenthèses pour le tireur concerné
-- **calculateFinalResults - 3e place non jouée (#1864)**
-  - deux 3es ex æquo, pas de 4e, puis 5e
-  - petite finale jouée : 3e et 4e distincts
-- **generateFIESeeding (#1080)**
-  - tables en dur identiques à la construction FIE générique
-  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
-- **rangs figés au tirage du tableau (#1996)**
-  - premier tour : rang de sortie de poules de chaque tireur
-  - barrages : rangs posés sur les matchs de barrage
-  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
-
-</details>
-
-<details>
 <summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 6 tests</summary>
 
 - **tableauDialogState**
@@ -7237,28 +7097,6 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - deux gauchers : le second appelé à gauche
   - gaucher contre droitier : le gaucher à gauche
   - tireur absent : second appelé à gauche
-
-</details>
-
-<details>
-<summary><code>src/renderer/components/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
-
-- **propagateWinners**
-  - apparie les feeders par position même si matchList est désordonné
-- **propagateWinners - taille périmée/invalide**
-  - propage même si size vaut 0
-  - propage le vainqueur des 8es vers les quarts (size correct)
-- **propagateWinners - abandon / forfait / exclusion (#1012)**
-  - conserve le vainqueur d’un match sans score (abandon en finale)
-  - efface un vainqueur périmé qui n’est plus dans le match
-- **resetTableauMatch (#1115)**
-  - efface le score et retire le vainqueur du tour suivant
-  - refuse si le match suivant a déjà été joué
-  - vide les perdants de la petite finale pour une demi-finale
-- **resolveTableauWinner**
-  - le score décide hors égalité, un V éventuel est ignoré
-  - en égalité, le vainqueur désigné (V ou tirage) gagne
-  - en égalité sans vainqueur désigné, pas de vainqueur
 
 </details>
 
@@ -8392,5 +8230,176 @@ Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 
 - **writeHtmlWithCssom**
   - écrit le document et réapplique les attributs style par CSSOM
+
+</details>
+
+### `src/shared/domain/`
+
+<details>
+<summary><code>src/shared/domain/ranking/tableauRanking.test.ts</code> — 8 tests</summary>
+
+- **computeMatchProgress**
+  - renvoie null sans poule ni tableau
+  - compte les matchs de poule terminés
+  - retombe sur le tableau quand il n’y a pas de poule
+  - tableau terminé avec un exempt : pas plus de matchs faits que de matchs à jouer (15/14)
+  - compte les tours suivants dont les tireurs ne sont pas encore connus (#1817)
+- **computeEffectiveTableauRanking**
+  - garde le classement tel quel sans option
+  - ne garde que le groupe actif et renumérote
+  - exclut les groupes déjà extraits dans une compétition séparée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/tableau/tableauCalculations.test.ts</code> — 9 tests</summary>
+
+- **autoFillAllPositions**
+  - %i tireurs (tableau de %i) : classement complet _(each)_
+- **calculateFinalResults - abandon / forfait / exclusion (#1012)**
+  - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **calculateFinalResults - 3e place non jouée (#1864)**
+  - deux 3es ex æquo, pas de 4e, puis 5e
+  - petite finale jouée : 3e et 4e distincts
+- **generateFIESeeding (#1080)**
+  - tables en dur identiques à la construction FIE générique
+  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
+- **rangs figés au tirage du tableau (#1996)**
+  - premier tour : rang de sortie de poules de chaque tireur
+  - barrages : rangs posés sur les matchs de barrage
+  - tableau tiré avant l’enregistrement des rangs : aucun rang figé
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
+
+- **propagateWinners**
+  - apparie les feeders par position même si matchList est désordonné
+- **propagateWinners - taille périmée/invalide**
+  - propage même si size vaut 0
+  - propage le vainqueur des 8es vers les quarts (size correct)
+- **propagateWinners - abandon / forfait / exclusion (#1012)**
+  - conserve le vainqueur d’un match sans score (abandon en finale)
+  - efface un vainqueur périmé qui n’est plus dans le match
+- **resetTableauMatch (#1115)**
+  - efface le score et retire le vainqueur du tour suivant
+  - refuse si le match suivant a déjà été joué
+  - vide les perdants de la petite finale pour une demi-finale
+- **resolveTableauWinner**
+  - le score décide hors égalité, un V éventuel est ignoré
+  - en égalité, le vainqueur désigné (V ou tirage) gagne
+  - en égalité sans vainqueur désigné, pas de vainqueur
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/laserArenaBracketRules.test.ts</code> — 4 tests</summary>
+
+- **buildPoolPairHistory**
+  - n'enregistre que les rencontres de poule terminées
+- **applyRematchAvoidanceSwap**
+  - ne modifie rien avec moins de 6 équipes classées
+  - ne modifie rien si aucune revanche n'est détectée au 1er tour
+  - échange les équipes classées 5 et 6 si leur confrontation au 1er tour est une revanche de poule
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/laserArenaCalculations.test.ts</code> — 9 tests</summary>
+
+- **getLaserArenaBoutCap**
+  - plafonne à 5 touches ou 3 minutes
+- **isLaserArenaBoutComplete**
+  - se termine dès que le cumul des deux côtés atteint 5
+  - se termine au bout de 3 minutes même sans 5 touches
+- **calculateLaserArenaMatchScore**
+  - additionne uniquement les assauts terminés
+- **isLaserArenaMatchComplete / getLaserArenaMatchWinner**
+  - n'est pas terminée tant que tous les assauts ne le sont pas
+  - désigne le vainqueur au total de points, pas au nombre d’assauts gagnés
+  - renvoie null en cas d’égalité totale (départage au niveau poule)
+- **calculateLaserArenaPoolRanking**
+  - classe par total de points marqués, pas par nombre de victoires
+  - signale une égalité totale (points et ratio) sans la départager
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/laserArenaPoolSchedules.test.ts</code> — 5 tests</summary>
+
+- **getLaserArenaPoolSchedule**
+  - renvoie le calendrier figé pour 8 et 12 équipes uniquement
+- **assignTeamsToPoolSlots**
+  - affecte les équipes par blocs de 4 (A puis B puis C)
+- **resolveLaserArenaSchedule — 12 équipes**
+  - génère exactement 6 rencontres par poule (round-robin complet à 4 équipes)
+  - chaque équipe rencontre toutes les autres de sa poule exactement une fois
+- **resolveLaserArenaSchedule — 8 équipes**
+  - génère exactement 6 rencontres par poule pour 2 poules de 4
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/teamCalculations.test.ts</code> — 27 tests</summary>
+
+- **generateRelayBouts**
+  - génère 9 relais dans l’ordre standard
+  - ignore les réservistes et trie par teamOrder
+  - lève une erreur si moins de 3 titulaires
+- **calculateTeamScore**
+  - compte uniquement les relais terminés avec vainqueur
+- **validateTeamComposition**
+  - valide une équipe de 3 titulaires d’ordres 1,2,3
+  - refuse moins de 3 titulaires
+  - refuse plus d’un réserviste
+- **isTeamMatchComplete / getTeamMatchWinner**
+  - est complet après 9 relais terminés
+  - retourne null si le match n’est pas terminé
+- **generateRelayOrder**
+  - génère la rotation en diagonale pour une équipe de 3
+  - génère N² relais où chaque titulaire rencontre chaque adversaire exactement une fois (N=4)
+- **relayOrderFor**
+  - arme %s à 3 : ordre officiel FIE (o.99.3) _(each)_
+  - arme %s : ordre inchangé _(each)_
+  - sans arme ou avec une autre taille d’équipe : ordre inchangé
+  - ordre FIE : chaque titulaire rencontre chaque adversaire une fois, jamais deux relais de suite
+  - renvoie une copie : la constante FIE n’est pas modifiable par l’appelant
+  - generateRelayBouts suit l’arme : relais 1 = 3 contre 6 en sabre, 1 contre 4 en Sabre Laser
+- **getTeamTargetRule / getRelayCap**
+  - E/F/S comptent toujours en touches, cible = stepSize × N²
+  - Sabre Laser respecte le mode configuré (touches ou points)
+  - getRelayCap calcule le palier cumulé (5-10-15…)
+- **calculateTeamPoolRanking**
+  - classe les équipes par victoires, puis relais gagnés, puis touches
+  - ignore les matchs non terminés
+- **placeRankedTeamsInTable / resolveTeamTableauSlot**
+  - place la tête de série n°1 en première position
+  - résout un exempt (bye) quand une équipe est seule dans son couple de départ
+  - propage un exempt jusqu’à la finale quand l’adversaire du tour suivant est aussi exempté
+  - résout la finale à partir des vainqueurs des demi-finales persistées en DB
+  - demi-finale terminée + autre en cours : finale en attente, pas d’exempt prématuré
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/teamCardEscalation.test.ts</code> — 3 tests</summary>
+
+- **determineTeamCardEscalation**
+  - attribue un carton blanc à la première désignation tardive de la rencontre
+  - attribue un carton jaune dès qu’un blanc a déjà été donné, même dans un autre assaut
+- **countTeamYellowCards**
+  - compte uniquement les jaunes de l’équipe concernée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/teams/teamRelayLive.test.ts</code> — 4 tests</summary>
+
+- **teamRelayLive (#1086)**
+  - cumul = relais précédents terminés + relais en cours
+  - palier progressif plafonné à la cible
+  - relais terminé au palier ou au bout de 3 minutes
+  - vainqueur au cumul, null si égalité
 
 </details>
