@@ -1402,20 +1402,9 @@ export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; por
   rejected?: 'unknown_ip' | 'malformed';
 };
 
-/** Transport IPC du contrat d'API (#1981), utilisé par IpcClient */
-export interface ApiBridge {
-  invoke: (name: string, input: unknown) => Promise<import('../api/client').ApiEnvelope>;
-  subscribe: (
-    id: string,
-    name: string,
-    input: unknown
-  ) => Promise<import('../api/client').ApiEnvelope<null>>;
-  unsubscribe: (id: string) => void;
-  onEvent: (callback: (id: string, event: unknown) => void) => () => void;
-}
-
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
-  api: ApiBridge;
+  /** Contrat d'API (#1981) */
+  api: import('../api/client').ApiBridge;
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
   file: FileAPI;

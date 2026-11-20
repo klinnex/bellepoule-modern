@@ -47,3 +47,11 @@ export function unwrap<T>(envelope: ApiEnvelope<T>): T {
   const error = envelope && !envelope.ok ? envelope.error : undefined;
   throw new ApiError(error?.code ?? 'internal', error?.message ?? 'Réponse invalide');
 }
+
+/** Transport IPC du contrat d'API (préload → IpcClient) */
+export interface ApiBridge {
+  invoke: (name: string, input: unknown) => Promise<ApiEnvelope>;
+  subscribe: (id: string, name: string, input: unknown) => Promise<ApiEnvelope<null>>;
+  unsubscribe: (id: string) => void;
+  onEvent: (callback: (id: string, event: unknown) => void) => () => void;
+}

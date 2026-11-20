@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 import { ipcRenderer } from 'electron';
-import type { ApiBridge } from '../../shared/types/preload';
+import type { ApiBridge } from '../../shared/api/client';
 import { subscribe as subscribeChannel } from './subscribe';
 
 export const apiBridge: ApiBridge = {

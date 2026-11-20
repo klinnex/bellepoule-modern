@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IpcClient } from './IpcClient';
 import { ApiError } from '../../shared/api/client';
-import type { ApiBridge } from '../../shared/types/preload';
+import type { ApiBridge } from '../../shared/api/client';
 
 function bridge() {
   let listener: ((id: string, e: unknown) => void) | null = null;

@@ -7,10 +7,12 @@ describe('pseudoLocalize', () => {
   });
 
   it('préserve les paramètres {{nom}}', () => {
-    expect(pseudoLocalize('{{present}} / {{total}} ok')).toBe('[!! {{present}} / {{total}} öķ~~~ !!]');
+    expect(pseudoLocalize('{{present}} / {{total}} ok')).toBe(
+      '[!! {{present}} / {{total}} öķ~~~ !!]'
+    );
   });
 
-  it('allonge la chaîne d\'environ 40 %', () => {
+  it("allonge la chaîne d'environ 40 %", () => {
     const out = pseudoLocalize('abcdefghij');
     expect(out).toBe('[!! áƀçðéƒĝĥíĵ~~~~ !!]');
   });

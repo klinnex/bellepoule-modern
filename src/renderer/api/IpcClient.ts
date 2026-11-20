@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 import { ApiError, unwrap, type BpmClient } from '../../shared/api/client';
-import type { ApiBridge } from '../../shared/types/preload';
+import type { ApiBridge } from '../../shared/api/client';
 import { logger, LogCategory } from '../../shared/services/logger';
 
 let nextId = 0;
