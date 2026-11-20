@@ -58,6 +58,8 @@ import { CyranoServer } from './cyrano/server';
 import { CyranoPisteDriver } from './cyrano/driver';
 import { PisteHub } from './piste/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
+import { registerApiHandlers } from './api/ipcAdapter';
+import { emitChangeVia } from './mcp/mcpDomain';
 import { createMcpController } from './ipc/mcpHandlers';
 import { parseCliArgs } from './cliArgs';
 import { registerSettingsHandlers } from './ipc/settingsHandlers';
@@ -123,6 +125,11 @@ const buildMenu = (language?: string): void =>
   );
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
+// Contrat d'API unique (#1981) : api:invoke / api:subscribe
+registerApiHandlers({
+  db,
+  emitChange: emitChangeVia((type, competitionId) => emitCompetitionEvent(type, competitionId)),
+});
 registerEventDayHandlers({ db });
 registerDayStripHandlers({
   db,

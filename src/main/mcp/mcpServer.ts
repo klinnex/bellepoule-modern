@@ -13,6 +13,7 @@ import { MCP_WRITE_TOOLS, type McpWriteDeps, type McpWriteTool } from './mcpWrit
 import { MCP_SPORT_READ_TOOLS, MCP_SPORT_TOOLS } from './mcpSportTools';
 import { MCP_ADMIN_READ_TOOLS, MCP_ADMIN_TOOLS } from './mcpAdminTools';
 import { MCP_CLUB_READ_TOOLS, MCP_CLUB_TOOLS } from './mcpClubTools';
+import { CONTRACT_MCP_TOOLS } from '../api/mcpAdapter';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { McpLogEntry } from '../../shared/types/mcp';
 
@@ -28,6 +29,7 @@ export const READ_TOOLS: McpTool[] = [
   ...MCP_SPORT_READ_TOOLS,
   ...MCP_ADMIN_READ_TOOLS,
   ...MCP_CLUB_READ_TOOLS,
+  ...CONTRACT_MCP_TOOLS.read,
 ];
 /** Outils d'écriture (sur autorisation) : lot 2, compléments, orchestration sportive (lot 3) */
 export const WRITE_TOOLS: McpWriteTool[] = [
@@ -35,6 +37,7 @@ export const WRITE_TOOLS: McpWriteTool[] = [
   ...MCP_ADMIN_TOOLS,
   ...MCP_SPORT_TOOLS,
   ...MCP_CLUB_TOOLS,
+  ...CONTRACT_MCP_TOOLS.write,
 ];
 const LOG_MAX = 200;
 

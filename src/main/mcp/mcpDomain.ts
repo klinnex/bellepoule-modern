@@ -14,24 +14,29 @@ type Args = Record<string, unknown>;
 /** Contexte de domaine en lecture */
 export const readDomain = (deps: McpDeps): DomainContext => ({ db: deps.db });
 
+/** Écriture hors écran → événement competition:event de l'écran (MCP, IPC du contrat) */
+export function emitChangeVia(notify: McpWriteDeps['notify']): DomainContext['emitChange'] {
+  return ({ scope, competitionIds }) => {
+    if (scope === 'referees') return;
+    const type =
+      scope === 'settings'
+        ? 'settings:changed'
+        : scope === 'session'
+          ? 'session:changed'
+          : scope === 'fencers'
+            ? 'fencers:changed'
+            : 'competitions:changed';
+    if (competitionIds.length === 0) notify(type);
+    for (const id of competitionIds) notify(type, id);
+  };
+}
+
 /** Contexte de domaine en écriture : l'écran ouvert est prévenu (competition:event) */
 export function writeDomain(deps: McpWriteDeps): DomainContext {
   return {
     db: deps.db,
     allowedRoots: deps.allowedRoots,
-    emitChange: ({ scope, competitionIds }) => {
-      if (scope === 'referees') return;
-      const type =
-        scope === 'settings'
-          ? 'settings:changed'
-          : scope === 'session'
-            ? 'session:changed'
-            : scope === 'fencers'
-              ? 'fencers:changed'
-              : 'competitions:changed';
-      if (competitionIds.length === 0) deps.notify(type);
-      for (const id of competitionIds) deps.notify(type, id);
-    },
+    emitChange: emitChangeVia(deps.notify),
   };
 }
 

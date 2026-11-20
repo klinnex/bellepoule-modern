@@ -1,0 +1,44 @@
+/**
+ * BellePoule Modern - Pointage des tireurs (#1981, opération pilote du contrat d'API)
+ * Par identifiant ou numéro de dossard ; statuts de résultat (abandon, exclusion, forfait…)
+ * laissés tels quels. Partagé par l'écran (IPC) et l'agent (MCP check_in).
+ * Licensed under GPL-3.0
+ */
+import { FencerStatus, type Fencer } from '../../shared/types';
+import type { DomainContext } from './context';
+import { getCompetitionOrThrow } from './competitions';
+
+export interface CheckInInput {
+  competitionId: string;
+  fencers: Array<string | number>;
+  present: boolean;
+  dryRun?: boolean;
+}
+
+export function checkInFencers(ctx: DomainContext, input: CheckInInput) {
+  const competition = getCompetitionOrThrow(ctx, input.competitionId);
+  const status = input.present ? FencerStatus.CHECKED_IN : FencerStatus.NOT_CHECKED_IN;
+  const all = ctx.db.getFencersByCompetition(competition.id);
+  const found: Fencer[] = [];
+  const unknown: Array<string | number> = [];
+  for (const ref of input.fencers.slice(0, 1000)) {
+    const f = all.find(x => x.id === ref || (typeof ref === 'number' && x.ref === ref));
+    if (f) found.push(f);
+    else unknown.push(ref);
+  }
+  const changeable = found.filter(f =>
+    [FencerStatus.CHECKED_IN, FencerStatus.NOT_CHECKED_IN].includes(f.status)
+  );
+  const toUpdate = changeable.filter(f => f.status !== status);
+  const report = {
+    status,
+    matched: found.length,
+    updated: toUpdate.length,
+    skipped: found.length - changeable.length,
+    unknown,
+  };
+  if (input.dryRun) return { dryRun: true, ...report };
+  for (const f of toUpdate) ctx.db.updateFencer(f.id, { status });
+  if (report.updated > 0) ctx.emitChange?.({ scope: 'fencers', competitionIds: [competition.id] });
+  return { dryRun: false, ...report };
+}

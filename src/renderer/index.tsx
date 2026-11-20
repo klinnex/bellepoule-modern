@@ -7,6 +7,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { BpmClientProvider } from './api/BpmClientContext';
 import { applyUiScale, loadUiScale } from './services/uiScale';
 import { applyUiDensity, loadUiDensity } from './services/uiDensity';
 import { installResizeGuard } from './services/resizeGuard';
@@ -66,7 +67,9 @@ if (container) {
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        <App />
+        <BpmClientProvider>
+          <App />
+        </BpmClientProvider>
       </ErrorBoundary>
     </React.StrictMode>
   );
