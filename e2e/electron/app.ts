@@ -35,7 +35,12 @@ export const test = base.extend<{ app: ElectronApplication; win: Page }>({
     const env = { ...process.env } as Record<string, string>;
     // Une session qui exporte ELECTRON_RUN_AS_NODE ferait tourner Electron comme Node
     delete env.ELECTRON_RUN_AS_NODE;
-    const app = await _electron.launch({ args: [ROOT, `--user-data-dir=${userData}`], env });
+    // CI (runner Ubuntu) : le bac à sable de Chromium exige des espaces de noms non accordés
+    const sandbox = process.env.CI ? ['--no-sandbox'] : [];
+    const app = await _electron.launch({
+      args: [ROOT, `--user-data-dir=${userData}`, ...sandbox],
+      env,
+    });
     await provide(app);
     await app.close();
     fs.rmSync(userData, { recursive: true, force: true });
