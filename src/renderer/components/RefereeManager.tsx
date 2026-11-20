@@ -8,7 +8,20 @@ import { SMALL_BTN } from './fencerList.styles';
 import { Lock, Pencil, Trash2, TriangleAlert } from 'lucide-react';
 import { Icon } from './common/Icon';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
+import {
+  Referee,
+  Match,
+  Pool,
+  Competition,
+  MatchStatus,
+  type RefereeingSettings,
+} from '../../shared/types';
+import {
+  resolveRefereeing,
+  type ResolvedRefereeing,
+} from '../../shared/domain/referees/refereeingSettings';
+import { useBpmClient } from '../api/BpmClientContext';
+import { useToast } from './Toast';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
 import {
   autoAssignReferees,
@@ -80,19 +93,41 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   const { t } = useTranslation();
   // Journée multi-épreuves (#1714) : occupation dans les autres épreuves
   const busyElsewhere = useBusyElsewhere(competition.id);
-  const [config, setConfig] = useState<RefereeRotationConfig>({
-    maxConsecutiveMatches: 3,
-    minRestTimeMinutes: 15,
-    avoidSameClub: true,
-    balanceAssignment: true,
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  // Réglages d'affectation enregistrés dans l'épreuve (docs/adr/0014), lus aussi par le MCP
+  const saved = resolveRefereeing(competition.settings?.refereeing);
+  const savedKey = JSON.stringify(saved);
+  const toConfig = (r: ResolvedRefereeing): RefereeRotationConfig => ({
+    maxConsecutiveMatches: r.maxConsecutiveMatches,
+    minRestTimeMinutes: r.minRestTimeMinutes,
+    avoidSameClub: r.neutrality.club,
+    balanceAssignment: r.balance,
   });
+  const [config, setConfig] = useState<RefereeRotationConfig>(() => toConfig(saved));
   const [assignments, setAssignments] = useState<Map<string, Referee>>(new Map());
   // Affectation optimale (#1959) : neutralité réglable, verrous manuels, diagnostic
-  const [neutrality, setNeutrality] = useState<NeutralityRules>({
-    club: true,
-    nationality: false,
-    region: false,
-  });
+  const [neutrality, setNeutrality] = useState<NeutralityRules>(() => saved.neutrality);
+  // Réglages relus (autre poste, MCP) : l'écran suit
+  useEffect(() => {
+    const next = resolveRefereeing(competition.settings?.refereeing);
+    setConfig(toConfig(next));
+    setNeutrality(next.neutrality);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedKey]);
+  /** Enregistre un réglage par le moteur (fusion côté moteur) ; l'écran affiche l'échec */
+  const saveRefereeing = (patch: RefereeingSettings) => {
+    client
+      .call('setRefereeingSettings', { competitionId: competition.id, ...patch })
+      .catch((e: unknown) =>
+        showToast(
+          t('refereeManager.settings_save_failed', {
+            message: e instanceof Error ? e.message : String(e),
+          }),
+          'error'
+        )
+      );
+  };
   const [lockedMatchIds, setLockedMatchIds] = useState<Set<string>>(new Set());
   const [shortages, setShortages] = useState<AutoAssignShortage[] | null>(null);
   const [showReport, setShowReport] = useState(false);
@@ -814,7 +849,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="checkbox"
                   checked={config.avoidSameClub}
-                  onChange={e => setConfig({ ...config, avoidSameClub: e.target.checked })}
+                  onChange={e => {
+                    setConfig({ ...config, avoidSameClub: e.target.checked });
+                    saveRefereeing({ neutrality: { club: e.target.checked } });
+                  }}
                 />
                 {t('refereeManager.avoid_club')}
               </label>
@@ -822,7 +860,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="checkbox"
                   checked={neutrality.nationality}
-                  onChange={e => setNeutrality({ ...neutrality, nationality: e.target.checked })}
+                  onChange={e => {
+                    setNeutrality({ ...neutrality, nationality: e.target.checked });
+                    saveRefereeing({ neutrality: { nationality: e.target.checked } });
+                  }}
                 />
                 {t('refereeManager.neutral_nationality')}
               </label>
@@ -830,7 +871,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="checkbox"
                   checked={neutrality.region}
-                  onChange={e => setNeutrality({ ...neutrality, region: e.target.checked })}
+                  onChange={e => {
+                    setNeutrality({ ...neutrality, region: e.target.checked });
+                    saveRefereeing({ neutrality: { region: e.target.checked } });
+                  }}
                 />
                 {t('refereeManager.neutral_region')}
               </label>
@@ -838,7 +882,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="checkbox"
                   checked={config.balanceAssignment}
-                  onChange={e => setConfig({ ...config, balanceAssignment: e.target.checked })}
+                  onChange={e => {
+                    setConfig({ ...config, balanceAssignment: e.target.checked });
+                    saveRefereeing({ balance: e.target.checked });
+                  }}
                 />
                 {t('refereeManager.balance')}
               </label>
@@ -847,9 +894,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="number"
                   value={config.maxConsecutiveMatches}
-                  onChange={e =>
-                    setConfig({ ...config, maxConsecutiveMatches: parseInt(e.target.value) || 3 })
-                  }
+                  onChange={e => {
+                    const n = parseInt(e.target.value) || 3;
+                    setConfig({ ...config, maxConsecutiveMatches: n });
+                    saveRefereeing({ maxConsecutiveMatches: Math.min(20, Math.max(1, n)) });
+                  }}
                   style={{ ...SMALL_INPUT, width: '48px', marginLeft: 0, flexShrink: 0 }}
                   min="1"
                   max="10"
@@ -860,9 +909,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 <input
                   type="number"
                   value={config.minRestTimeMinutes}
-                  onChange={e =>
-                    setConfig({ ...config, minRestTimeMinutes: parseInt(e.target.value) || 15 })
-                  }
+                  onChange={e => {
+                    const n = parseInt(e.target.value) || 15;
+                    setConfig({ ...config, minRestTimeMinutes: n });
+                    saveRefereeing({ minRestTimeMinutes: Math.min(240, Math.max(0, n)) });
+                  }}
                   style={{ ...SMALL_INPUT, width: '48px', marginLeft: 0, flexShrink: 0 }}
                   min="0"
                   max="60"

@@ -15,11 +15,9 @@ import {
   MatchStatus,
   Weapon,
   type Competition,
-  type CompetitionSettings,
   type Fencer,
   type Pool,
   type PoolRanking,
-  type Referee,
 } from '../../../shared/types';
 import {
   applyFencerForfeit,
@@ -31,9 +29,6 @@ import {
   validatePoolScore,
   type PoolSpecialStatus,
 } from '../../../shared/utils/poolOrchestration';
-import { propagatePoolReferee } from '../../../shared/utils/refereeStats';
-import { autoAssignReferees } from '../../../shared/domain/referees/refereeAutoAssign';
-import { DEFAULT_NEUTRALITY } from '../../../shared/domain/referees/refereeMatching';
 import { allowsVictoryTieBreak } from '../../../shared/utils/tieBreak';
 import { isTieAtScoreLimit } from '../../../shared/utils/matchEndValidation';
 import {
@@ -101,7 +96,7 @@ export function effectiveSettings(comp: Competition) {
 }
 
 /** Formats non pilotables hors écran : erreur explicite */
-function assertSupported(comp: Competition, session: Record<string, unknown>): void {
+export function assertSupported(comp: Competition, session: Record<string, unknown>): void {
   if (comp.isTeamEvent) {
     throw new CommandError('unsupported_format', 'Épreuve par équipes : à piloter à l’écran');
   }
@@ -118,7 +113,7 @@ function assertSupported(comp: Competition, session: Record<string, unknown>): v
 }
 
 /** Écrit l'état de session (fusion) et prévient l'écran, qui le relit */
-function writeSession(
+export function writeSession(
   ctx: CommandContext,
   competitionId: string,
   patch: Record<string, unknown>
@@ -138,10 +133,10 @@ function writeSession(
   ctx.db.saveSessionState(competitionId, next);
 }
 
-const emitSession = (ctx: CommandContext, competitionId: string) =>
+export const emitSession = (ctx: CommandContext, competitionId: string) =>
   ctx.emitChange?.({ scope: 'session', competitionIds: [competitionId] });
 
-const sessionPools = (session: Record<string, unknown>): Pool[] =>
+export const sessionPools = (session: Record<string, unknown>): Pool[] =>
   Array.isArray(session.pools) ? (session.pools as Pool[]) : [];
 const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
   Array.isArray(session.tableauMatches) ? (session.tableauMatches as TableauMatch[]) : [];
@@ -259,118 +254,6 @@ export function generatePools(
   });
   emitSession(ctx, competitionId);
   return summary;
-}
-
-/** Règles de neutralité de l'épreuve (docs/adr/0014) : réglage `refereeing`, sinon club seul */
-function refereeingRules(comp: { settings?: CompetitionSettings | null }) {
-  const r = comp.settings?.refereeing;
-  return {
-    neutrality: { ...DEFAULT_NEUTRALITY, ...(r?.neutrality ?? {}) },
-    balance: r?.balance ?? true,
-  };
-}
-
-/**
- * Arbitres des poules : un arbitre principal par poule sans arbitre (ou toutes avec
- * replace), parmi les arbitres pointés, par le moteur d'affectation unique (couplage
- * optimal, neutralité club / nation / ligue selon l'épreuve, docs/adr/0014). Un arbitre
- * peut enchaîner plusieurs poules s'il en manque ; une poule sans arbitre neutre reste
- * sans arbitre et est expliquée (« unassigned »).
- */
-export function assignPoolReferees(
-  ctx: CommandContext,
-  competitionId: string,
-  options: { replace?: boolean; includeUnchecked?: boolean; dryRun?: boolean } = {}
-) {
-  const comp = getCompetitionOrThrow(ctx, competitionId);
-  const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
-  const pools = sessionPools(session);
-  if (pools.length === 0)
-    throw new CommandError('no_pools', 'Aucune poule : generate_pools d’abord');
-  const referees = ctx.db.getRefereesByCompetition(competitionId);
-  const candidates = options.includeUnchecked
-    ? referees.map(r => ({ ...r, status: 'available' as const }))
-    : referees.filter(r => r.status !== 'unavailable');
-  if (candidates.length === 0) {
-    throw new CommandError(
-      'no_referees',
-      options.includeUnchecked ? 'Aucun arbitre dans l’épreuve' : 'Aucun arbitre pointé'
-    );
-  }
-  const targets = pools.filter(p => options.replace || !p.referees?.length);
-  // Charge : poules déjà arbitrées et conservées
-  const load = new Map<string, number>();
-  for (const p of pools) {
-    const id = p.referees?.[0]?.id;
-    if (id && !targets.includes(p)) load.set(id, (load.get(id) ?? 0) + 1);
-  }
-  const rules = refereeingRules(comp);
-  const result = autoAssignReferees(
-    targets.flatMap(p => p.matches.map(m => ({ ...m, poolId: p.id }))),
-    targets,
-    candidates,
-    {
-      neutrality: rules.neutrality,
-      balance: rules.balance,
-      matchesToday: load,
-      reuseReferees: true,
-    }
-  );
-  const refOfPool = (pool: Pool): Referee | undefined =>
-    pool.matches.map(m => result.assignments.get(m.id)).find((r): r is Referee => !!r);
-
-  const assignments: Array<{ poolNumber: number; referee: string; refereeId: string }> = [];
-  const warnings: string[] = [];
-  const matchChanges: Array<{ matchId: string; refereeId: string | null }> = [];
-  const nextPools = pools.map(pool => {
-    if (!targets.includes(pool)) return pool;
-    const found = refOfPool(pool);
-    // Poule sans match (rare) : pas de créneau, l'arbitre n'est pas choisi
-    if (!found) return pool;
-    const ref = referees.find(r => r.id === found.id) ?? found;
-    const name = `${ref.firstName} ${ref.lastName}`.trim();
-    assignments.push({ poolNumber: pool.number, referee: name, refereeId: ref.id });
-    const { matches, changes } = propagatePoolReferee(pool.matches, pool.referees?.[0]?.id, ref);
-    matchChanges.push(...changes);
-    return { ...pool, referees: [ref], matches };
-  });
-  // Poules restées sans arbitre : raisons (neutralité) pour le DT ou l'agent
-  const unassigned = result.shortages.flatMap(sh =>
-    sh.slots
-      .filter(sl => sl.kind === 'pool')
-      .map(sl => ({
-        poolNumber: sl.number,
-        conflicts: sh.conflicts
-          .filter(c => c.slot.kind === 'pool' && c.slot.number === sl.number)
-          .map(c => ({
-            referee: `${c.referee.firstName} ${c.referee.lastName}`.trim(),
-            refereeId: c.referee.id,
-            reasons: c.reasons,
-          })),
-      }))
-  );
-  for (const u of unassigned) {
-    warnings.push(
-      u.conflicts.length > 0
-        ? `Poule ${u.poolNumber} : aucun arbitre neutre (${u.conflicts
-            .map(c => `${c.referee} : ${c.reasons.join(', ')}`)
-            .join(' ; ')})`
-        : `Poule ${u.poolNumber} : aucun arbitre disponible`
-    );
-  }
-  const out = { dryRun: !!options.dryRun, assignments, unassigned, warnings };
-  if (options.dryRun || assignments.length === 0) return out;
-  ctx.db.transaction(() => {
-    for (const pool of nextPools) {
-      const a = assignments.find(x => x.poolNumber === pool.number);
-      if (a) ctx.db.updatePoolReferees(pool.id, [a.refereeId]);
-    }
-    for (const c of matchChanges) ctx.db.updateMatch(c.matchId, { refereeId: c.refereeId });
-    writeSession(ctx, competitionId, { pools: nextPools });
-  });
-  emitSession(ctx, competitionId);
-  return out;
 }
 
 // ─── Matchs ──────────────────────────────────────────────────────────────────

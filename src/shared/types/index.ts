@@ -672,6 +672,21 @@ export interface CompetitionSchedule {
   start?: string;
 }
 
+/**
+ * Réglages d'affectation des arbitres d'une épreuve (docs/adr/0014), lus par le moteur et
+ * l'écran ; écrits par la commande setRefereeingSettings (fusion côté moteur).
+ */
+export interface RefereeingSettings {
+  /** Neutralité exigée ; défaut : club seul */
+  neutrality?: { club?: boolean; nationality?: boolean; region?: boolean };
+  /** Équilibrer la charge entre arbitres (défaut : oui) */
+  balance?: boolean;
+  /** Rapport de rotation : matchs consécutifs tolérés (défaut 3) */
+  maxConsecutiveMatches?: number;
+  /** Rapport de rotation : repos minimal en minutes (défaut 15) */
+  minRestTimeMinutes?: number;
+}
+
 export interface CompetitionSettings {
   defaultPoolMaxScore: number; // Score max en poules (défaut: 5)
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)
@@ -683,10 +698,7 @@ export interface CompetitionSettings {
   poolSizeMin?: number; // Taille de poule cible, minimum (formule, #2013) ; défaut 5
   poolSizeMax?: number; // Taille de poule cible, maximum (formule, #2013) ; défaut 7
   /** Affectation des arbitres (docs/adr/0014) : lue par le moteur ; défaut : neutralité de club seule */
-  refereeing?: {
-    neutrality?: { club?: boolean; nationality?: boolean; region?: boolean };
-    balance?: boolean;
-  };
+  refereeing?: RefereeingSettings;
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)
   thirdPlaceMatch: boolean; // Match pour la 3ème place activé (défaut: false)
   signTableauMatches?: boolean; // Signature des combattants sur tablette après chaque match du tableau (défaut: true)

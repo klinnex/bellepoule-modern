@@ -1897,6 +1897,7 @@
     "reason_nationality": "nazionalità",
     "reason_region": "comitato",
     "conflict_warning": "Conflitto di neutralità con uno schermidore: {{reasons}}",
+    "settings_save_failed": "Impostazioni arbitrali non salvate: {{message}}",
     "all_covered": "Tutti gli assalti in attesa hanno un arbitro neutrale.",
     "match_n": "Assalto {{n}}",
     "locked": "manuale",

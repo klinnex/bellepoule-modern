@@ -51,12 +51,15 @@ const off = client.subscribe('onCompetitionEvents', { competitionId }, e => …)
 `BpmClientProvider` (monté dans `index.tsx`) fournit `IpcClient`. Hors React : `defaultBpmClient`.
 Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du contrat.
 
-## Opérations pilotes (lot 1)
+## Opérations
 
 | Opération | Nature | MCP |
 |---|---|---|
 | `checkIn` | commande | `check_in` |
 | `recordScore` | commande | `record_score` |
+| `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
+| `assignReferees` | commande (`referees:write`) — arbitres des poules par le moteur unique | `assign_referees` |
+| `assignReferee` | commande (`referees:write`) — arbitre d'une poule à la main, neutralité signalée | `assign_referee` |
 | `getMatchCards` | requête | — |
 | `getCardsByMatchIds` | requête | — |
 | `getCompetitionEvents` | requête | `get_competition_events` |

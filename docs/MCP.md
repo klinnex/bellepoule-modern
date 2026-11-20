@@ -180,7 +180,7 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (39)
+## Référence des outils (41)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
@@ -318,7 +318,7 @@ Aucun argument.
 | `since` | integer |  | Dernière révision connue (0 : tout) |
 | `limit` | integer |  | Nombre maximum (1000) |
 
-### En écriture, sur autorisation (22)
+### En écriture, sur autorisation (24)
 
 ### `create_competition` — Créer une épreuve
 
@@ -442,17 +442,6 @@ Aucun argument.
 | `replace` | boolean |  | Remplacer des poules ou un tableau existants |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
-### `assign_referees` — Arbitres des poules
-
-*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité club et, selon l’épreuve, nation et ligue ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
-| `replace` | boolean |  | Réaffecter toutes les poules |
-| `includeUnchecked` | boolean |  | Accepter les arbitres non pointés |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
 ### `build_bracket` — Construire le tableau
 
 *⚠️ écriture, destructif.* Tableau d’élimination directe depuis le classement après poules (poules terminées ; abandons, forfaits, exclus et éliminés écartés). Petite finale selon l’épreuve, ou « thirdPlaceMatch ». « replace: true » efface un tableau déjà joué : accord du DT indispensable.
@@ -573,6 +562,44 @@ Aucun argument.
 | `winner` | `A`, `B` |  | Vainqueur imposé |
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+
+### `set_refereeing_settings` — Réglages d’affectation des arbitres
+
+*écriture, idempotent.* Réglages d’affectation des arbitres de l’épreuve (neutralité club / nation / ligue, équilibrage de la charge, rotation). Seuls les champs fournis changent ; les autres réglages de l’épreuve sont conservés.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `neutrality` | object |  |  |
+| `balance` | boolean |  | Équilibrer la charge entre arbitres |
+| `maxConsecutiveMatches` | integer |  |  |
+| `minRestTimeMinutes` | integer |  |  |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+
+### `assign_referees` — Arbitres des poules
+
+*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité selon les réglages de l’épreuve ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `replace` | boolean |  | Réaffecter toutes les poules |
+| `includeUnchecked` | boolean |  | Accepter les arbitres non pointés |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+
+### `assign_referee` — Arbitre d’une poule (à la main)
+
+*écriture, idempotent.* Arbitre d’une poule choisi à la main : il remplace l’arbitre principal et passe sur les matchs de la poule. Un arbitre non neutre est accepté et signalé (« conflicts »). « refereeId: null » retire l’arbitre.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `poolNumber` | integer | oui | Numéro de la poule |
+| `refereeId` | string / null | oui | Identifiant de l’arbitre (list_referees), ou null |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
 

@@ -1897,6 +1897,7 @@
     "reason_nationality": "nacionalitat",
     "reason_region": "lliga",
     "conflict_warning": "Conflicte de neutralitat amb un tirador: {{reasons}}",
+    "settings_save_failed": "Configuració d’arbitratge no desada: {{message}}",
     "all_covered": "Tots els assalts pendents tenen un àrbitre neutral.",
     "match_n": "Assalt {{n}}",
     "locked": "manual",

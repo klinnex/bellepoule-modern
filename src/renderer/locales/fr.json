@@ -1897,6 +1897,7 @@
     "reason_nationality": "nationalité",
     "reason_region": "ligue",
     "conflict_warning": "Conflit de neutralité avec un tireur : {{reasons}}",
+    "settings_save_failed": "Réglages d’arbitrage non enregistrés : {{message}}",
     "all_covered": "Tous les matchs en attente ont un arbitre neutre.",
     "match_n": "Match {{n}}",
     "locked": "manuel",

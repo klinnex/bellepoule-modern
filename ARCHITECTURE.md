@@ -317,7 +317,7 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 | Vainqueur d'un match de tableau | `tableauTypes.ts` (écran, MCP), `main/remote/routes/matchRoutes.ts` (tablettes), `useRemoteScoreSync.ts`, `usePoolManagement.ts` | Vainqueur différent selon la source du score |
 | Objets score d'un match de poule | `poolOrchestration.buildMatchScores`, `usePoolManagement.ts`, `main/remote/poolScore.ts` | — |
 | Tirage des poules | `PoolPrepView.tsx` (critères configurables, niveau), `poolOrchestration.buildPools` (MCP, critères figés) | Tirage différent selon le client |
-| ✅ Affectation des arbitres | ~~`refereeStats.autoAssignReferees`, `shared/services/refereeManager.assignRefereesToMatches`, `sport.ts` chooseNeutralReferee~~ → un seul moteur `shared/domain/referees` (lot 3e) | [ADR-0014](docs/adr/0014-affectation-arbitres-moteur-unique.md) ; reste : réglages enregistrés et commandes du contrat |
+| ✅ Affectation des arbitres | ~~`refereeStats.autoAssignReferees`, `shared/services/refereeManager.assignRefereesToMatches`, `sport.ts` chooseNeutralReferee~~ → un seul moteur `shared/domain/referees` (lot 3e) ; réglages enregistrés (`setRefereeingSettings`), commandes `assignReferees` / `assignReferee` | [ADR-0014](docs/adr/0014-affectation-arbitres-moteur-unique.md) ; le bouton « Affecter » de l'écran passera par la commande quand le moteur gérera plusieurs tours, les équipes et les rapières (lot 4) |
 | Numéros et ordre des phases | `useCompetitionSession.ts`, `useCompetitionPhases.ts`, `sport.ts`, `useSplitGroups.ts` (en dur) | — |
 | Palier de relais d'équipe | `TeamManagerView.tsx`, `teamRelayLive.relayCapFor`, `teamCalculations.getRelayCap` | Écran et tablettes divergents |
 

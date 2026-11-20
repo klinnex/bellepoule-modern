@@ -10,7 +10,8 @@
 import { z } from 'zod';
 
 /** Droits (utilisés par le sous-ticket 4, rôles et permissions) */
-export type Permission = 'competition:read' | 'fencers:write' | 'score:write' | 'cards:read';
+export type Permission =
+  'competition:read' | 'fencers:write' | 'score:write' | 'cards:read' | 'referees:write';
 
 export type OperationKind = 'command' | 'query' | 'subscription';
 
@@ -82,6 +83,19 @@ const CompetitionEvent = z.object({
   at: z.string(),
 });
 
+const NeutralityCriterion = z.enum(['club', 'nationality', 'region']);
+const Neutrality = z.object({
+  club: z.boolean().optional().describe('Pas d’arbitre du club d’un tireur'),
+  nationality: z.boolean().optional().describe('Pas d’arbitre de la nation d’un tireur'),
+  region: z.boolean().optional().describe('Pas d’arbitre de la ligue d’un tireur'),
+});
+const ResolvedRefereeing = z.object({
+  neutrality: z.object({ club: z.boolean(), nationality: z.boolean(), region: z.boolean() }),
+  balance: z.boolean(),
+  maxConsecutiveMatches: z.number(),
+  minRestTimeMinutes: z.number(),
+});
+
 const MatchCard = z.object({
   id: z.string(),
   fencerId: z.string(),
@@ -144,6 +158,83 @@ export const contract = {
     }),
     permission: 'score:write',
     mcp: { name: 'record_score', title: 'Saisir un score', idempotent: true },
+  }),
+
+  setRefereeingSettings: command({
+    description:
+      'Réglages d’affectation des arbitres de l’épreuve (neutralité club / nation / ligue, équilibrage de la charge, rotation). Seuls les champs fournis changent ; les autres réglages de l’épreuve sont conservés.',
+    input: z.object({
+      competitionId: CompetitionId,
+      neutrality: Neutrality.optional(),
+      balance: z.boolean().optional().describe('Équilibrer la charge entre arbitres'),
+      maxConsecutiveMatches: z.number().int().min(1).max(20).optional(),
+      minRestTimeMinutes: z.number().int().min(0).max(240).optional(),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+    }),
+    output: z.object({ dryRun: z.boolean(), refereeing: ResolvedRefereeing, revision: Revision }),
+    permission: 'referees:write',
+    mcp: {
+      name: 'set_refereeing_settings',
+      title: 'Réglages d’affectation des arbitres',
+      idempotent: true,
+    },
+  }),
+
+  assignReferees: command({
+    description:
+      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité selon les réglages de l’épreuve ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.',
+    input: z.object({
+      competitionId: CompetitionId,
+      replace: z.boolean().optional().describe('Réaffecter toutes les poules'),
+      includeUnchecked: z.boolean().optional().describe('Accepter les arbitres non pointés'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      assignments: z.array(
+        z.object({ poolNumber: z.number(), referee: z.string(), refereeId: z.string() })
+      ),
+      unassigned: z.array(
+        z.object({
+          poolNumber: z.number(),
+          conflicts: z.array(
+            z.object({
+              referee: z.string(),
+              refereeId: z.string(),
+              reasons: z.array(NeutralityCriterion),
+            })
+          ),
+        })
+      ),
+      warnings: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'referees:write',
+    mcp: { name: 'assign_referees', title: 'Arbitres des poules', idempotent: true },
+  }),
+
+  assignReferee: command({
+    description:
+      'Arbitre d’une poule choisi à la main : il remplace l’arbitre principal et passe sur les matchs de la poule. Un arbitre non neutre est accepté et signalé (« conflicts »). « refereeId: null » retire l’arbitre.',
+    input: z.object({
+      competitionId: CompetitionId,
+      poolNumber: z.number().int().min(1).describe('Numéro de la poule'),
+      refereeId: Id.nullable().describe('Identifiant de l’arbitre (list_referees), ou null'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      poolNumber: z.number(),
+      referee: z.string().nullable(),
+      conflicts: z.array(NeutralityCriterion),
+      warnings: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'referees:write',
+    mcp: { name: 'assign_referee', title: 'Arbitre d’une poule (à la main)', idempotent: true },
   }),
 
   getMatchCards: query({
