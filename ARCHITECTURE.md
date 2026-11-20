@@ -3,6 +3,7 @@
 > Version **1.0.3**, build **#1365** (octobre 2026).
 > Dépendances et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md).
 > Interface d'arbitrage : [docs/ARBITRAGE.md](docs/ARBITRAGE.md).
+> Décisions d'architecture : [docs/adr/](docs/adr/README.md) ; couches et inventaire du renderer : [§ 9](#9-couches-dépendances-et-inventaire-du-renderer-1979).
 
 ## 1. Vue d'ensemble
 
@@ -75,7 +76,7 @@ bellepoule-modern/
 │   │   ├── styles/, assets/
 │   │   └── sw.js                 # Service worker
 │   │
-│   ├── features/                 # Modules métier (store Zustand + services)
+│   ├── features/                 # Couche d'interface : stores Zustand + services (ADR-0004)
 │   │   ├── analytics/            # analyticsService, useAnalyticsStore, FencerDetailModal
 │   │   ├── bracket/              # bracketGenerator, bracketService
 │   │   ├── competition/          # competitionService, useCompetitionStore (immer)
@@ -201,7 +202,8 @@ Détails : [REMOTE_SCORE_GUIDE.md](REMOTE_SCORE_GUIDE.md) et [docs/ARBITRAGE.md]
 - Stores Zustand par fonctionnalité (`src/features/*/hooks/use*Store.ts`), certains avec
   `immer`.
 - État applicatif dans `App.tsx` / `useAppState`.
-- Calculs purs dans `src/shared/utils` (testés unitairement).
+- Calculs purs dans `src/shared/utils` (testés unitairement) ; cible : `src/shared/domain`
+  ([ADR-0002](docs/adr/0002-couches-et-dependances.md), § 9).
 - i18n : `TranslationContext` + `src/renderer/locales/*.json` (complétude vérifiée par
   `npm run check:i18n`).
 
@@ -211,3 +213,116 @@ Détails : [REMOTE_SCORE_GUIDE.md](REMOTE_SCORE_GUIDE.md) et [docs/ARBITRAGE.md]
   (`src/shared`, `src/main`, `src/database`, `src/renderer`, `src/features`).
 - **E2E** : Playwright (`e2e/`).
 - **CI** : type-check, i18n, tests, budget bundle avant chaque build.
+
+## 9. Couches, dépendances et inventaire du renderer (#1979)
+
+Décisions : [docs/adr/](docs/adr/README.md). Ce paragraphe en est le résumé opérationnel.
+
+### 9.1 Couches
+
+| Couche | Dossier | Contient | N'importe pas |
+|---|---|---|---|
+| Interface | `src/renderer`, `src/features` ([ADR-0004](docs/adr/0004-features-couche-interface.md)), `src/remote` | Vues, état d'écran, appels au client d'API (`BpmClient`) | `src/database`, `src/main` |
+| Moteur | `src/main` (commandes : `src/main/domain`, renommé `src/main/engine/commands` au lot 3, [ADR-0003](docs/adr/0003-main-domain-couche-application.md)) | Contrat d'API, commandes, serveurs, pilotes | `src/renderer`, `src/features` |
+| Domaine pur | `src/shared/domain` ([ADR-0002](docs/adr/0002-couches-et-dependances.md)) | Règles : tirage, placement, classement, fin de match, cartons, qualification, formule | React, Electron, `src/database`, Node, date système, hasard non injecté |
+| Persistance | `src/database` | Dépôts, migrations ([ADR-0011](docs/adr/0011-migrations-schema-3-0.md)) | `src/renderer`, `src/features`, `src/main` |
+
+```text
+renderer, features ──▶ shared (domain, api, types, utils)
+main ─────────────────▶ shared, database
+database ─────────────▶ shared/types
+shared/domain ────────▶ shared/types
+```
+
+Une règle métier nouvelle naît dans `src/shared/domain`. Une écriture passe par une commande du
+contrat ([ADR-0005](docs/adr/0005-journal-un-fait-un-chemin.md), [ADR-0008](docs/adr/0008-nommage-contrat.md)).
+
+**État de départ** (dev, 2026-11-20, hors tests), mesuré par le cliquet au lot 2 :
+
+| Compteur | Valeur | Fichiers |
+|---|---|---|
+| `rendererImports` (main, shared, database → renderer) | 1 | `main/domain/sport.ts` (tableau, classement) |
+| `featuresImports` (main, shared, database → features) | 4 | `main/remote/teamArena.ts`, `main/remote/teamRelayDevice.ts`, `shared/utils/pdfExport/teamPdf.ts`, `shared/utils/cardSystem.ts` |
+| `electronApiCalls` (renderer → `window.electronAPI`) | 120 | — |
+
+### 9.2 Classement du renderer
+
+395 fichiers `.ts`/`.tsx` hors tests. 188 lus en détail : les `.ts` sans React, tous les hooks,
+les composants de plus de 400 lignes. Les autres composants sont des **vues**.
+
+| Classe | Définition | Fichiers lus | Destination |
+|---|---|---|---|
+| Vue | Rendu, mise en page, interactions | 69 (+ 207 petits composants) | reste |
+| État d'écran | Sélection, filtres, onglet, modale, préférences, session d'écran | 61 | reste |
+| Technique | i18n, client IPC, thèmes, hors-ligne, impression | 33 | reste |
+| Orchestration | Enchaîne règles et écritures | 18 | commandes du moteur |
+| Règle métier | Serait faux si recodé autrement ailleurs | 7 + 14 fichiers mixtes | `src/shared/domain` |
+
+### 9.3 Inventaire à traiter, par valeur
+
+Valeur = utilisé par le MCP, les tablettes ou une fonction à venir (#1948 formules v2, #1958
+planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chemins relatifs à
+`src/renderer`. Effort : XS < 50 lignes déplacées, S, M, L.
+
+| Fichier | Classe | Contenu métier | Cible | Doublon existant | Valeur | Effort | Lot |
+|---|---|---|---|---|---|---|---|
+| `components/tableau/tableauCalculations.ts` | Règle | Taille, têtes de série FIE, construction, consolantes, classement final | `shared/domain/tableau` | `shared/utils/tableCalculations.ts` (taille, têtes de série, nom de tour, classement) | MCP (`sport.ts` l'importe), tablettes, #1966 | M | 3 |
+| `components/tableau/tableauTypes.ts` | Règle | Vainqueur, propagation, premier tour, remise à zéro d'un match | `shared/domain/tableau` | `tableCalculations.updateTableAfterMatch` ; vainqueur recalculé dans `hooks/useRemoteScoreSync.ts` | MCP, tablettes, #1966 | S (42 importeurs) | 3 |
+| `components/competition/competitionDerived.ts` | Règle | Qualifiés du tableau (vainqueurs de poule, formule, rapières, séparation par genre) | `shared/domain/ranking` | — (`sport.ts` l'importe) | MCP, #1948 | XS | 3 |
+| `components/formula/formulaDraft.ts` | Règle | Tours de poules, Tour Quest, cohérence, conversion en réglages | `shared/domain/formula` | `shared/utils/formulaCoherence`, `defaultCompetitionSettings` | #1948, #2013 | S | 3 ([ADR-0012](docs/adr/0012-formule-domaine.md)) |
+| `components/PoolPrepView.tsx` | Vue + règle | Tirage des poules (critères, niveau), ré-génération des matchs, statistiques de répartition | `shared/domain/pools` (étendre `buildPools`) | `shared/utils/poolOrchestration.buildPools` : critères figés, utilisé par le MCP et `usePoolManagement` | MCP, #1964 | M | 4 |
+| `hooks/usePoolManagement.ts` | Orchestration | Annulation de match, tour suivant, poules terminées, forfait, annulation d'abandon, score distant | commandes `recordScore`, `setFencerStatus`, `closePoolRound` | `poolOrchestration` ; `main/remote/poolScore.ts` (scores reconstruits) | MCP, tablettes, #1964 | L | 4 |
+| `hooks/poolView/usePoolViewActions.ts` | Orchestration | Saisie d'un score de poule : plafond, égalité au max, égalité Laser, priorité | commande `recordScore` | `poolOrchestration.validatePoolScore` (« identique à l'écran », appelé par le MCP seulement) | MCP, tablettes | S | 4 |
+| `hooks/useRemoteScoreSync.ts` | Orchestration | Score venu d'une tablette : vainqueur, fin périmée, propagation | commande `recordScore` | `sport.ts` recordScore ; `main/remote/routes/matchRoutes.ts` | tablettes, MCP | M | #1980 (scores) |
+| `hooks/tableauView/useTableauViewScoring.ts` | Orchestration | Génération du tableau, éligibles, score et annulation d'un match | commandes `generateTableau`, `recordScore` | `sport.ts` (construction du tableau, statuts éliminés) | MCP, #1966 | M | 4 |
+| `hooks/useCompetitionNavigation.ts` | Orchestration | Passage au tableau (reprise, remise à zéro), tour de poules suivant (qualifiés, minimum 4) | commandes `closePools`, `generateTableau`, `startNextPoolRound` | `sport.ts` (clôture des poules, partielle) ; `shared/utils/poolRounds` | MCP, #1948, #1966 | L | 4 |
+| `hooks/useCompetitionPhases.ts` | État + règle | Ordre des phases par format, déverrouillages | `shared/domain/formula` | `sport.ts` (`PHASE`, `PHASE_LABEL`) ; `hooks/useCompetitionSession.ts` (`PHASE_NUMBERS`) | MCP, #1948 | M | 3 |
+| `components/RefereeManager.tsx` | Vue + orchestration | Affectation automatique et manuelle, conflit de club | commandes `autoAssignReferees`, `assignReferee` | 3 moteurs : `shared/utils/refereeAutoAssign`, `shared/utils/refereeStats.autoAssignReferees`, `shared/services/refereeManager` ; conflit recodé (`refereeMatching.neutralityConflicts` existe) | #1959, #1958, MCP | M | avant #1959 |
+| `hooks/useCompetitionReferees.ts` | Orchestration | Arbitre de poule propagé aux matchs | commande `assignPoolReferees` | `sport.ts` assignPoolReferees ; `refereeStats.propagatePoolReferee` | #1959, MCP | S | avant #1959 |
+| `components/TeamManagerView.tsx` | Vue + orchestration | Poule d'équipes, ordre de relais, palier de relais, arène Laser | commandes `generateTeamPool`, `scoreTeamBout` ; règle → `shared/domain/teams` | `features/teams/utils/teamRelayLive.relayCapFor` (tablettes), `teamCalculations.getRelayCap` | tablettes, MCP | L | 3 + 5 |
+| `hooks/competitionView/usePoolCorrection.tsx` | Orchestration | Correction de score après tirage du tableau | commande `correctPoolScore` | `shared/utils/poolCorrectionImpact` | MCP, tablettes | M | 4 |
+| `hooks/useMatchDbSync.ts` | Orchestration | Écriture du tableau | commande `generateTableau` | `sport.ts` (écriture quasi identique) | MCP | XS | 4 |
+| `components/poolPersistence.ts` | Orchestration | Écriture des poules | commande `generatePools` | `sport.ts` generatePools | MCP | XS | 4 |
+| `components/poolLaunchState.ts` | Règle | Poules lancées, scores perdus au retirage | `shared/domain/pools` | `sport.ts` (« déjà joué ») | MCP | XS | 3 |
+| `components/pool/poolSpecialStatus.ts` | Règle | Score imposé par abandon, forfait, exclusion | `shared/domain/pools` | `shared/utils/forfeit.specialStatusPatch`, `poolOrchestration.applyFencerForfeit` | tablettes, MCP | XS | 3 |
+| `components/ResultsView.tsx` | Vue + règle | Classement final (tableau puis éliminés de poule) | `shared/domain/ranking` | `KioskDisplay` ; `sport.ts` resultsData | MCP, tablettes | S | 3 |
+| `components/KioskDisplay.tsx` | Vue + règle | Podium, classement des éliminés, nom de tour | `shared/domain/tableau` | `tableauCalculations.calculateFinalResults`, `getRoundName` | tablettes | S | 3 |
+| `hooks/tableauView/useTableauViewState.tsx` | État + règle | Répartition des pistes du tableau | `shared/domain/planning` | `shared/utils/stripRange`, `poolStrips`, `main/remote/stripPlan.ts` | #1958, tablettes | S | avant #1958 |
+| `hooks/useStripAvailability.ts` | État | Pistes indisponibles, stockées par poste (localStorage) | donnée du moteur | — | #1958, tablettes | S | avant #1958 |
+| `hooks/useFencerManagement.ts` | Orchestration | Pointage (déjà `checkIn` pour le pointage groupé), import de classement | commande `checkIn` | `main/domain/checkIn.ts` | MCP, tablettes | S | rattrapage #2020 |
+| `hooks/useSplitGroups.ts` | Orchestration | Scission d'une épreuve (`currentPhase: 3` en dur) | commande `splitCompetition` | `shared/utils/splitCompetition` | #1948, MCP | S | 4 |
+| `hooks/useCompetitionImport.ts` | Orchestration | Import d'arbitres (dédoublonnage), import de classement | commande `importReferees` | `shared/utils/personIdentity` | #1959, MCP | S | après ADR-0008 |
+| `hooks/useCompetitionTabs.ts` | Orchestration | Création, suppression d'épreuve | commande `createCompetition` | `main/domain/competitions.ts` (lecture) | MCP | S | après ADR-0008 |
+| `hooks/useExport.ts` | Orchestration | Export des résultats, QR des pistes | commande `exportResults` | `main/domain/exportResults.ts` | MCP | S | après ADR-0008 |
+| `components/QuestPhaseView.tsx` | Vue + orchestration | Lancement du Tour Quest | commande `launchQuest` | `shared/utils/questScheduler` | #1948 | S | 4 |
+| `services/blackCardReport.ts` | Orchestration + règle | Rapport des cartons noirs | requête du contrat ; règle → `shared/domain/cards` | `shared/utils/blackCardRanking.isBlackCarded` | MCP | S | rattrapage #2020 |
+| `services/federalCreation.ts` | Orchestration | Création depuis les fichiers fédéraux | commande `createFromFederalFiles` | `main/federalFiles.ts`, `main/batchImport.ts` | MCP | S | après ADR-0008 |
+| `hooks/useCompetitionSession.ts`, `hooks/competitionView/useCompetitionCore.ts` | État + règle | Numéros de phase, réglages effectifs (scores max, départage) | `shared/domain/formula` | `sport.ts` (`PHASE`, effectiveSettings « comme l'écran ») | MCP | XS | 3 |
+| `components/remote/sessionMatches.ts` | Règle | Matchs jouables d'une session | `shared/domain/pools` | — | tablettes | XS | 3 |
+| `components/NewCompetitionModal.tsx`, `CompetitionPropertiesModal.tsx`, `CompetitionView.tsx`, `SeasonRankingView.tsx` | Vue + règle | Genre imposé par l'arme, assemblage des réglages, changement de statut, ajout au classement saisonnier | `shared/domain/formula`, commande `setFencerStatus` | `formulaDraft.draftToSettings`, `usePoolManagement` | MCP, #1948 | XS à S | 3–4 |
+
+### 9.4 Règles recodées à plusieurs endroits
+
+À unifier dans `shared/domain` en même temps que le déplacement du lot concerné.
+
+| Règle | Endroits | Risque |
+|---|---|---|
+| Tireur inactif (abandon, forfait, exclusion) | `PoolView.tsx`, `pool/PoolMatchList.tsx`, `pool/PoolScoreMatrix.tsx`, `CompetitionView.tsx`, `usePoolManagement.ts`, `useTableauViewScoring.ts`, `main/domain/sport.ts` | « Poules terminées » diverge : l'écran compte un match d'un tireur inactif comme joué, le MCP exige `FINISHED` |
+| Exclusion par carton noir | `PoolRankingView.tsx`, `ResultsView.tsx`, `services/blackCardReport.ts`, `shared/utils/pdfExport/resultsPdf.ts` (canonique : `shared/utils/blackCardRanking.ts`) | Classement différent entre écran et PDF |
+| Validation d'un score de poule | `usePoolViewActions.ts` (écran), `poolOrchestration.validatePoolScore` (MCP) | Un score refusé à l'écran peut être accepté par le MCP |
+| Vainqueur d'un match de tableau | `tableauTypes.ts` (écran, MCP), `main/remote/routes/matchRoutes.ts` (tablettes), `useRemoteScoreSync.ts`, `usePoolManagement.ts` | Vainqueur différent selon la source du score |
+| Objets score d'un match de poule | `poolOrchestration.buildMatchScores`, `usePoolManagement.ts`, `main/remote/poolScore.ts` | — |
+| Tirage des poules | `PoolPrepView.tsx` (critères configurables, niveau), `poolOrchestration.buildPools` (MCP, critères figés) | Tirage différent selon le client |
+| Affectation des arbitres | `refereeAutoAssign`, `refereeStats.autoAssignReferees`, `shared/services/refereeManager`, `sport.ts` | À trancher avant #1959 |
+| Numéros et ordre des phases | `useCompetitionSession.ts`, `useCompetitionPhases.ts`, `sport.ts`, `useSplitGroups.ts` (en dur) | — |
+| Palier de relais d'équipe | `TeamManagerView.tsx`, `teamRelayLive.relayCapFor`, `teamCalculations.getRelayCap` | Écran et tablettes divergents |
+
+### 9.5 Code sans importeur
+
+À supprimer dans une PR dédiée (hors refactor, aucun changement visible) :
+`components/TouchOptimizedReferee.tsx`, `components/LiveDashboard.tsx`,
+`hooks/usePoolOptimizations.ts`, `hooks/useElectronDB.ts`, `hooks/useEventManager.ts`,
+`hooks/useKeyboardShortcuts.ts`, `hooks/useTheme.ts`, `services/offlineSync.ts`, et sept composants :
+`CardModal`, `ChangePoolModal`, `ConflictResolutionModal`,
+`MultiStripManager`, `OptimizedPoolGrid`, `VoiceScoreController`, `VirtualList`.
+`features/bracket/services/bracketService.ts` n'est appelé nulle part hors de son module.
