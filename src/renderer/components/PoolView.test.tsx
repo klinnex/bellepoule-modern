@@ -403,3 +403,99 @@ describe('PoolView - poule figée par le tableau (#1996)', () => {
     expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 4);
   });
 });
+
+describe('PoolView - fenêtre de saisie du score (validatePoolScore, #1979 lot 4b)', () => {
+  const pendingMatch: Match = {
+    ...finishedMatch,
+    id: 'm3',
+    scoreA: undefined as any,
+    scoreB: undefined as any,
+    status: MatchStatus.NOT_STARTED,
+  };
+  const pendingPool: Pool = { ...testPool, matches: [pendingMatch] };
+
+  /** Ouvre la fenêtre depuis la case (ligne, colonne), saisit gauche / droite, valide */
+  const submit = (cell: RegExp, left: string, right: string, victory?: 'left' | 'right') => {
+    fireEvent.click(screen.getByLabelText(cell));
+    expect(screen.getByText('poolView.quick_score')).toBeInTheDocument();
+    const [a, b] = screen.getAllByRole('spinbutton');
+    fireEvent.change(a, { target: { value: left } });
+    fireEvent.change(b, { target: { value: right } });
+    if (victory) {
+      const buttons = screen.getAllByRole('button', { name: 'V' });
+      fireEvent.click(buttons[victory === 'left' ? 0 : 1]);
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'actions.validate' }));
+  };
+  const DUPONT_VS_MARTIN = /Dupont F poolView.cell_vs Martin F/i;
+  const MARTIN_VS_DUPONT = /Martin F poolView.cell_vs Dupont F/i;
+  const args = (fn: ReturnType<typeof vi.fn>) => fn.mock.calls[0];
+
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: { getPoolSignatures: vi.fn().mockResolvedValue([]) },
+      onPoolSignatureUpdated: vi.fn().mockReturnValue(() => {}),
+    };
+    localStorage.setItem('bellepoule-simplified-input-mode', 'false');
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('score valide : enregistré, sans vainqueur imposé', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} />);
+    submit(DUPONT_VS_MARTIN, '5', '3');
+    expect(args(onScoreUpdate)).toEqual([0, 5, 3, undefined]);
+  });
+
+  it('vue inversée : scores remis dans l’ordre du match', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} />);
+    submit(MARTIN_VS_DUPONT, '5', '3');
+    expect(args(onScoreUpdate)).toEqual([0, 3, 5, undefined]);
+  });
+
+  it.each([
+    ['au-delà du score max', '6', '2'],
+    ['égalité au score max (o.17)', '5', '5'],
+    ['score négatif', '-1', '3'],
+    ['égalité sans départage par victoire', '3', '3'],
+  ])('refusé : %s', (_label, left, right) => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} />);
+    submit(DUPONT_VS_MARTIN, left, right);
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText('poolView.quick_score')).toBeInTheDocument();
+  });
+
+  it('égalité + V à gauche : vainqueur A', () => {
+    const onScoreUpdate = vi.fn();
+    render(
+      <PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} tieBreakByVictory />
+    );
+    submit(DUPONT_VS_MARTIN, '3', '3', 'left');
+    expect(args(onScoreUpdate)).toEqual([0, 3, 3, 'A']);
+  });
+
+  it('vue inversée, égalité + V à gauche : vainqueur B (tireur affiché à gauche)', () => {
+    const onScoreUpdate = vi.fn();
+    render(
+      <PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} tieBreakByVictory />
+    );
+    submit(MARTIN_VS_DUPONT, '3', '3', 'left');
+    expect(args(onScoreUpdate)).toEqual([0, 3, 3, 'B']);
+  });
+
+  it('égalité sans V, départage actif : choix du vainqueur proposé, rien enregistré', () => {
+    const onScoreUpdate = vi.fn();
+    render(
+      <PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} maxScore={5} tieBreakByVictory />
+    );
+    submit(DUPONT_VS_MARTIN, '3', '3');
+    expect(screen.getByText('poolView.tie_choose_winner')).toBeInTheDocument();
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+  });
+});
