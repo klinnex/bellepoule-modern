@@ -113,10 +113,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 18 | 179 |
-| **Total** | **518** | **3999** |
+| `src/shared/domain/` | 19 | 184 |
+| **Total** | **519** | **4004** |
 
-Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 509 fichiers, 3965 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -8118,6 +8118,19 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - dernier tour non retirable
   - laser : Tour Quest sans poules → 0 tour, poules ajoutées → 1 tour
   - scission vide : clé retirée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/pools/poolCompletion.test.ts</code> — 5 tests</summary>
+
+- **statuts de tireur (#1979, lot 4)**
+  - retiré : abandon, forfait, exclusion
+  - éligible au tableau : ni retiré ni éliminé
+  - carton noir : exclusion motivée seulement
+- **poule terminée (#1979, lot 4)**
+  - match terminé ou tireur retiré : réglé
+  - toutes les poules
 
 </details>
 
