@@ -431,7 +431,7 @@ Aucun argument.
 
 ### `generate_pools` — Générer les poules
 
-*⚠️ écriture, destructif.* Tirage des poules sur les tireurs pointés (serpentin sur le classement, clubs et régions séparés), poules lancées, poule n sur la piste n. Épreuve individuelle, un tour de poules. « replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.
+*⚠️ écriture, destructif.* Tirage des poules sur les tireurs pointés, par la même fonction que l’écran : serpentin sur le classement, puis clubs et régions séparés (défaut), ou les critères de « separation ». Poules lancées, poule n sur la piste n. Épreuve individuelle, un tour de poules. « replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|
@@ -440,6 +440,7 @@ Aucun argument.
 | `minPerPool` | number |  | Tireurs par poule, minimum (défaut 5) |
 | `maxPerPool` | number |  | Tireurs par poule, maximum (défaut 7) |
 | `replace` | boolean |  | Remplacer des poules ou un tableau existants |
+| `separation` | `byRanking`, `byClub`, `byRegion`, `byNation`[] |  | Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"] |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
 ### `build_bracket` — Construire le tableau

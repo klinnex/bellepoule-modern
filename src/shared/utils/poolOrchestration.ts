@@ -19,10 +19,9 @@ import {
   calculateOverallRankingQuest,
   calculatePoolRanking,
   calculatePoolRankingQuest,
-  distributeFencersToPoolsSerpentine,
-  type SeparationCriterionKey,
 } from './poolCalculations';
-import { planPoolBouts, type PoolBoutOrderMode } from './poolBoutOrder';
+import type { PoolBoutOrderMode } from './poolBoutOrder';
+import { drawPools, type PoolSeparation } from '../domain/pools/poolDraw';
 import { mergeRoundRankings } from './poolRounds';
 import { isTieAtScoreLimit } from '../domain/match/matchEndValidation';
 
@@ -38,13 +37,17 @@ export interface BuildPoolsOptions {
   maxPerPool?: number;
   /** Ordre des matchs : règlement FIE (défaut) ou rondes sans placement (#1964) */
   boutOrder?: PoolBoutOrderMode;
+  /** Critères de séparation ordonnés ; défaut : classement, puis club et région */
+  separation?: readonly PoolSeparation[];
   newId: () => string;
   now?: () => Date;
+  /** Tirage des positions dans la poule ; défaut Math.random */
+  random?: () => number;
 }
 
 /**
- * Tirage des poules : serpentin sur le classement, puis échanges dans le chapeau pour
- * séparer clubs et régions. Ordre des matchs selon la taille de la poule.
+ * Tirage des poules (MCP, usePoolManagement) : drawPools avec contrôle de l'effectif et
+ * nombre de poules optimal. Défaut : serpentin, puis club et région dans le chapeau.
  */
 export function buildPools(fencers: Fencer[], options: BuildPoolsOptions): Pool[] {
   if (fencers.length < MIN_FENCERS_FOR_POOLS) {
@@ -57,40 +60,16 @@ export function buildPools(fencers: Fencer[], options: BuildPoolsOptions): Pool[
   const poolCount =
     options.poolCount ??
     calculateOptimalPoolCount(fencers.length, options.minPerPool ?? 5, options.maxPerPool ?? 7);
-  // Classement en rang 1 : club/région résolus par échanges dans le chapeau
-  const criteria: SeparationCriterionKey[] = ['byClub', 'byRegion'];
-  const distribution = distributeFencersToPoolsSerpentine(fencers, poolCount, [], criteria);
-  return distribution.map((drawn, index) => {
-    const poolId = options.newId();
-    // Coéquipiers restés ensemble : numéros réservés et tables FIE o.70 (#1964)
-    const plan = planPoolBouts(drawn, criteria, { mode: options.boutOrder });
-    const poolFencers = plan.positions;
-    const matches: Match[] = plan.bouts.map(([a, b], matchIndex) => ({
-      id: options.newId(),
-      poolId,
-      number: matchIndex + 1,
-      fencerA: poolFencers[a - 1],
-      fencerB: poolFencers[b - 1],
-      scoreA: null,
-      scoreB: null,
-      maxScore: options.poolMaxScore,
-      status: MatchStatus.NOT_STARTED,
-      createdAt: now(),
-      updatedAt: now(),
-    }));
-    return {
-      id: poolId,
-      number: index + 1,
-      phaseId: round > 1 ? `phase-pools-r${round}` : 'phase-pools',
-      fencers: poolFencers,
-      matches,
-      referees: [],
-      isComplete: false,
-      hasError: false,
-      ranking: [],
-      createdAt: now(),
-      updatedAt: now(),
-    };
+  // Tirage unique écran / moteur (#1979, lot 4) : critères de l'épreuve, défaut BellePoule
+  return drawPools(fencers, {
+    poolCount,
+    poolMaxScore: options.poolMaxScore,
+    separation: options.separation,
+    boutOrder: options.boutOrder,
+    round,
+    newId: options.newId,
+    now,
+    random: options.random ?? Math.random,
   });
 }
 

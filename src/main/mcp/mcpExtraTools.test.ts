@@ -162,6 +162,17 @@ d('orchestration sportive (lot 3)', () => {
     const id = await competition();
     const sim = await ok('generate_pools', { competitionId: id, dryRun: true });
     expect(sim).toMatchObject({ dryRun: true, poolCount: 1 });
+    // Critères de l'écran (#1979, lot 4) : liste ordonnée, valeurs contrôlées
+    expect(
+      await ok('generate_pools', {
+        competitionId: id,
+        dryRun: true,
+        separation: ['byNation', 'byRanking', 'byClub'],
+      })
+    ).toMatchObject({ dryRun: true, poolCount: 1 });
+    expect(
+      await ko('generate_pools', { competitionId: id, dryRun: true, separation: ['byAge'] })
+    ).toContain('separation');
     expect(await ok('list_matches', { competitionId: id })).toHaveLength(0);
 
     await ok('generate_pools', { competitionId: id });
