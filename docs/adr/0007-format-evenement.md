@@ -1,6 +1,6 @@
 # ADR-0007 — Format d'événement du journal et migration 46
 
-- **Statut** : Acceptée pour les principes (2026-11-20) ; Proposée pour le schéma détaillé
+- **Statut** : Acceptée (principes, schéma et idempotence : 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #1980, #1981, #1982, #2023
 
@@ -42,7 +42,7 @@ Ce format présente cinq manques :
 - La **migration 46** applique ce format **avant la sortie de la 3.0**, après l'acceptation de
   cette ADR.
 
-### Schéma (proposé)
+### Schéma (accepté)
 
 ```sql
 -- Migration 46 : recrée la table (changement de clé primaire), recopie la 45

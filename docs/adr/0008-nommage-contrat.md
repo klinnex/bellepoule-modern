@@ -1,6 +1,6 @@
 # ADR-0008 — Nommage et forme des opérations du contrat
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (arbitrage du 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #1981, #2020
 

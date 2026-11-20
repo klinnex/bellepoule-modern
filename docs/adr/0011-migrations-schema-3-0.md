@@ -1,6 +1,6 @@
 # ADR-0011 — Aucune migration de schéma sans ADR jusqu'à la sortie de la 3.0
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (arbitrage du 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #1978, #1980, #1982
 

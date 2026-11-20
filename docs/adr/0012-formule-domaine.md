@@ -1,6 +1,6 @@
 # ADR-0012 — Formule : modèle dans `shared/domain/formula`, validée par le moteur à chaque écriture
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (arbitrage du 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #2013, #2022, #1948
 

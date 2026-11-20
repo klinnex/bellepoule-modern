@@ -1,6 +1,6 @@
 # ADR-0010 — Un seul bus : le journal d'un côté, les signaux de changement de l'autre
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (arbitrage du 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #1980, #1981, #2020, #2023
 

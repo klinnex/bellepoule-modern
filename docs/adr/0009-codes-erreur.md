@@ -1,6 +1,6 @@
 # ADR-0009 — Un catalogue unique des codes d'erreur
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (arbitrage du 2026-11-20)
 - **Date** : 2026-11-20
 - **Tickets** : #1981, #2020
 
