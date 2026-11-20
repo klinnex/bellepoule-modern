@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 86 | 967 |
+| `src/shared/utils/` | 88 | 987 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 40 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -112,9 +112,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **513** | **3978** |
+| **Total** | **515** | **3998** |
 
-Unitaires : 503 fichiers, 3939 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 505 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1581,6 +1581,43 @@ Unitaires : 503 fichiers, 3939 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - détecte les doublons
   - détecte une distribution déséquilibrée
   - compte correctement les combats par tireur
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/refereeAutoAssign.test.ts</code> — 4 tests</summary>
+
+- **autoAssignReferees**
+  - exemple de l’issue : chaque poule a un arbitre neutre, même arbitre pour toute la poule
+  - ignore les arbitres occupés dans une autre épreuve et diagnostique le manque
+  - garde l’arbitre verrouillé à la main
+  - tableau : neutralité sur les deux tireurs, un arbitre par match du tour
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/refereeMatching.test.ts</code> — 16 tests</summary>
+
+- **hungarian**
+  - trouve l’affectation de coût minimal
+  - matrice vide
+- **neutralityConflicts**
+  - club, nationalité et ligue selon les règles
+  - arbitre sans club : neutre
+- **solveRefereeMatching**
+  - exemple de l’issue : P1/P2/R1/R2, deux poules neutres (le glouton échoue)
+  - met les meilleurs arbitres sur les poules les plus relevées
+  - rotation : préfère l’arbitre qui a le moins arbitré
+  - stabilité : garde l’arbitre sur sa piste
+  - écarte les arbitres indisponibles et au plafond
+  - neutralité de nationalité (épreuve internationale)
+  - respecte les affectations verrouillées
+  - verrou en conflit de neutralité : conservé tel quel
+  - diagnostic de Hall : poules 4 et 7, un seul arbitre neutre
+  - trouve une répartition complète si elle existe (cas aléatoires)
+  - plus de poules que d’arbitres
+- **refereeLevelFromCategory**
+  - ordonne international \> national \> régional \> autre
 
 </details>
 
