@@ -58,6 +58,7 @@ import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
 import { areAllPoolsComplete, isPoolComplete } from '../../../shared/domain/pools/poolCompletion';
 import { isTableauEligible } from '../../../shared/domain/fencers/fencerStatus';
+import type { PoolSeparation } from '../../../shared/domain/pools/poolDraw';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
 export const PHASE = {
@@ -152,6 +153,8 @@ export interface GeneratePoolsOptions {
   /** Remplacer des poules dont des matchs sont déjà joués (destructif) */
   replace?: boolean;
   dryRun?: boolean;
+  /** Critères de séparation ordonnés, comme la préparation des poules de l'écran */
+  separation?: PoolSeparation[];
 }
 
 /**
@@ -197,6 +200,7 @@ export function generatePools(
       minPerPool: min,
       maxPerPool: max,
       boutOrder: comp.settings?.poolBoutOrder,
+      separation: options.separation,
       newId: uuidv4,
     });
   } catch (e) {

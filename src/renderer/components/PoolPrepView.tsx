@@ -8,8 +8,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Fencer, Pool, Match, MatchStatus } from '../../shared/types';
 import {
   calculateOptimalPoolCount,
-  distributeFencersToPoolsSerpentine,
-  distributeFencersGroupedByLevel,
   separationQuota,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
@@ -32,6 +30,7 @@ import { stripNumbers } from '../../shared/utils/stripRange';
 import { Button } from './common/Button';
 import { SkipForward, TriangleAlert, UserRound } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { drawPools } from '../../shared/domain/pools/poolDraw';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
 const NAMES_SWAPPED_KEY = 'bp_poolprep_names_swapped';
@@ -192,16 +191,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
     criteria.filter(c => c.enabled).flatMap(c => (isSeparationKey(c.key) ? [c.key] : []));
 
-  /** Critères actifs avant / après la pastille Classement */
-  const splitByRanking = (criteria: SeparationCriterion[]) => {
-    const r = criteria.findIndex(c => c.key === 'byRanking');
-    if (r < 0) return { above: getActiveCriteria(criteria), below: [] };
-    return {
-      above: getActiveCriteria(criteria.slice(0, r)),
-      below: getActiveCriteria(criteria.slice(r + 1)),
-    };
-  };
-
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
   const hasInitialized = useRef(initialDraft !== null);
 
@@ -300,65 +289,25 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       ? { positions: poolFencers, bouts: customMatchOrder(poolFencers) }
       : planPoolBouts(poolFencers, criteria, { mode: boutOrderMode, keepPositions });
 
-  // Génère les poules avec la config passée explicitement (évite les closures périmées)
+  // Génère les poules avec la config passée explicitement (évite les closures périmées).
+  // Tirage unique écran / moteur (#1979, lot 4) : shared/domain/pools/poolDraw
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
-
-    // Niveau activé : les équipes de même niveau sont regroupées dans les mêmes poules (#1441)
-    const levelGroup = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
-    const distribution = customDistribution
-      ? customDistribution(fencers, count)
-      : levelGroup && levelRankOf
-        ? distributeFencersGroupedByLevel(
-            fencers,
-            count,
-            levelRankOf,
-            getActiveCriteria(criteria).includes('byClub')
-          )
-        : (() => {
-            const { above, below } = splitByRanking(criteria);
-            return distributeFencersToPoolsSerpentine(fencers, count, above, below);
-          })();
-
-    const generatedPools: Pool[] = distribution.map((drawn, index) => {
-      const { positions: poolFencers, bouts: matchOrder } = planFor(
-        drawn,
-        getActiveCriteria(criteria)
-      );
-      const now = new Date();
-      // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
-      const poolId = crypto.randomUUID();
-
-      const matches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-        id: crypto.randomUUID(),
-        number: matchIndex + 1,
-        fencerA: poolFencers[a - 1],
-        fencerB: poolFencers[b - 1],
-        scoreA: null,
-        scoreB: null,
-        maxScore,
-        status: MatchStatus.NOT_STARTED,
-        poolId,
-        createdAt: now,
-        updatedAt: now,
-      }));
-
-      return {
-        id: poolId,
-        number: index + 1,
-        phaseId: 'phase-pools',
-        fencers: poolFencers,
-        matches,
-        referees: [],
-        isComplete: false,
-        hasError: false,
-        ranking: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-    });
-
-    setPools(generatedPools);
+    setPools(
+      drawPools(fencers, {
+        poolCount: count,
+        poolMaxScore: maxScore,
+        separation: criteria,
+        levelRankOf,
+        customDistribution,
+        customMatchOrder,
+        boutOrder: boutOrderMode,
+        // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
+        newId: () => crypto.randomUUID(),
+        now: () => new Date(),
+        random: Math.random,
+      })
+    );
   };
 
   // Initialisation unique : depuis initialPools (session restaurée) ou calcul optimal

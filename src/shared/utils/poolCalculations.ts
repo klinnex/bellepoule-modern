@@ -605,7 +605,9 @@ export function distributeFencersToPoolsSerpentine(
   fencers: Fencer[],
   poolCount: number,
   separation: SeparationCriterionKey[],
-  belowRanking: SeparationCriterionKey[] = []
+  belowRanking: SeparationCriterionKey[] = [],
+  /** Tirage des positions dans la poule (FIE §3) : injectable (domaine pur, tests) */
+  random: () => number = Math.random
 ): Fencer[][] {
   if (!Array.isArray(fencers))
     throw new TypeError('distributeFencersToPoolsSerpentine: fencers doit être un tableau');
@@ -700,7 +702,7 @@ export function distributeFencersToPoolsSerpentine(
   // Tirage au sort des positions dans la poule (FIE §3)
   for (const pool of pools) {
     for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
   }

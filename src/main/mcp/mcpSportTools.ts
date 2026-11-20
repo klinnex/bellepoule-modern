@@ -9,7 +9,7 @@
 
 import { buildBracket, generatePools, listMatches } from '../engine/commands/sport';
 import { exportResults, type ResultsFormat } from '../engine/commands/exportResults';
-import type { McpTool } from './mcpTools';
+import { McpToolError, type McpTool } from './mcpTools';
 import type { McpWriteTool } from './mcpWriteTools';
 import {
   guard,
@@ -22,6 +22,7 @@ import {
   reqStr,
   writeDomain,
 } from './mcpDomain';
+import type { PoolSeparation } from '../../shared/domain/pools/poolDraw';
 
 const competitionId = {
   competitionId: {
@@ -31,6 +32,22 @@ const competitionId = {
 };
 const dryRun = { dryRun: { type: 'boolean', description: 'Décrit le résultat sans rien écrire' } };
 const FORMATS = ['xml', 'fff', 'csv', 'html', 'pdf'] as const;
+
+const SEPARATION_KEYS = ['byRanking', 'byClub', 'byRegion', 'byNation'] as const;
+
+/** Critères ordonnés de l'agent → séparation du tirage (classement toujours actif, en tête par défaut) */
+function separationArg(raw: unknown): PoolSeparation[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.some(k => !SEPARATION_KEYS.includes(k))) {
+    throw new McpToolError(`separation : liste de ${SEPARATION_KEYS.join(', ')}`);
+  }
+  const keys = [...new Set(raw as (typeof SEPARATION_KEYS)[number][])];
+  const ordered = keys.includes('byRanking') ? keys : ['byRanking' as const, ...keys];
+  return [
+    ...ordered.map(key => ({ key, enabled: true })),
+    ...SEPARATION_KEYS.filter(k => !ordered.includes(k)).map(key => ({ key, enabled: false })),
+  ];
+}
 
 export const MCP_SPORT_READ_TOOLS: McpTool[] = [
   {
@@ -63,7 +80,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
     name: 'generate_pools',
     title: 'Générer les poules',
     description:
-      'Tirage des poules sur les tireurs pointés (serpentin sur le classement, clubs et régions séparés), poules lancées, poule n sur la piste n. Épreuve individuelle, un tour de poules. ' +
+      'Tirage des poules sur les tireurs pointés, par la même fonction que l’écran : serpentin sur le classement, puis clubs et régions séparés (défaut), ou les critères de « separation ». Poules lancées, poule n sur la piste n. Épreuve individuelle, un tour de poules. ' +
       '« replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.',
     inputSchema: {
       type: 'object',
@@ -73,6 +90,12 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
         minPerPool: { type: 'number', description: 'Tireurs par poule, minimum (défaut 5)' },
         maxPerPool: { type: 'number', description: 'Tireurs par poule, maximum (défaut 7)' },
         replace: { type: 'boolean', description: 'Remplacer des poules ou un tableau existants' },
+        separation: {
+          type: 'array',
+          items: { type: 'string', enum: ['byRanking', 'byClub', 'byRegion', 'byNation'] },
+          description:
+            'Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"]',
+        },
         ...dryRun,
       },
       required: ['competitionId'],
@@ -86,6 +109,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
           maxPerPool: optInt(args, 'maxPerPool', 3, 12),
           replace: optBool(args, 'replace'),
           dryRun: optBool(args, 'dryRun'),
+          separation: separationArg(args.separation),
         })
       ),
   },
