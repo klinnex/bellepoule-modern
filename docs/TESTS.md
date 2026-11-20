@@ -53,21 +53,23 @@ npx vitest run src/shared/utils/poolCalculations.test.ts   # un fichier
 
 ## Tests E2E — Playwright
 
-- Config : `playwright.config.ts` — `testDir: ./e2e`, Chromium par défaut
-  (`E2E_ALL_BROWSERS=1` : + Firefox, WebKit, Mobile Chrome, Mobile Safari) ; 2 retries et
-  1 worker en CI.
-- `webServer` : `npm run dev:renderer` (Webpack, port **8066**), `baseURL`
-  `http://localhost:8066` ; l'interface tourne dans le navigateur, sans `window.electronAPI`.
+- Config : `playwright.config.ts` — `testDir: ./e2e`, deux projets (#2045) :
+  - `chromium` : l'interface servie par `npm run dev:renderer` (Webpack, port **8066**), dans le
+    navigateur, sans `window.electronAPI` (accueil, fenêtres, accessibilité axe, débordements i18n) ;
+  - `electron` : l'application construite (`dist/`), lancée par `_electron.launch` avec un profil
+    vierge (`e2e/electron/app.ts`) — parcours qui écrivent en base : créer, rouvrir, supprimer une
+    épreuve ; tireurs, pointage, poules, saisie d'un score. Ignorés sans build ou sans écran.
+- `pretest:e2e` construit l'application (`npm run build`) ; sous Linux sans écran : `xvfb-run -a`.
+- `E2E_ALL_BROWSERS=1` ajoute Firefox, WebKit, Mobile Chrome, Mobile Safari ; 2 retries et 1 worker en CI.
 - Navigateur : `npx playwright install chromium` (version attendue par Playwright).
-- **Non exécutés en CI** ; 14 tests en échec connus, antérieurs à #1979 (#2045).
-- Beaucoup de scénarios appellent `test.skip()` à l'exécution si l'état requis
-  (compétition existante, poule, tableau…) est absent.
+- **Non exécutés en CI** (#2045).
+- Quelques scénarios appellent `test.skip()` si l'état requis (compétition existante, tableau…) est absent.
 
 ```bash
-npm run test:e2e                      # Chromium
-E2E_ALL_BROWSERS=1 npm run test:e2e   # tous navigateurs
-npm run e2e:debug                     # mode debug
-npx playwright test e2e/pools.spec.ts
+xvfb-run -a npm run test:e2e                      # navigateur + Electron (Linux sans écran)
+npm run test:e2e -- --project=chromium            # interface seule
+E2E_ALL_BROWSERS=1 npm run test:e2e               # tous navigateurs
+npm run e2e:debug                                 # mode debug
 ```
 
 ## Simulateur et benchmarks
@@ -109,16 +111,16 @@ npx playwright test e2e/pools.spec.ts
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 119 | 632 |
-| E2E Playwright (`e2e/`) | 10 | 39 |
+| E2E Playwright (`e2e/`) | 10 | 38 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
 | `src/shared/domain/` | 21 | 201 |
-| **Total** | **520** | **4018** |
+| **Total** | **520** | **4017** |
 
-Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -7002,12 +7004,11 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>e2e/competition-full.spec.ts</code> — 6 tests</summary>
+<summary><code>e2e/competition-full.spec.ts</code> — 5 tests</summary>
 
 - **Flow complet compétition**
   - ouvrir l'app affiche l'écran principal
   - cliquer "Nouvelle compétition" ouvre le formulaire
-  - remplir et sauvegarder une nouvelle compétition
   - la liste de compétitions ou l'état vide est affiché
   - ouvrir une compétition existante affiche l'onglet tireurs
   - ajouter un tireur manuellement
@@ -7015,12 +7016,21 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>e2e/competition.spec.ts</code> — 3 tests</summary>
+<summary><code>e2e/electron/competition.spec.ts</code> — 3 tests</summary>
 
-- **Competition Management**
-  - should create a new competition
-  - should display competition details
-  - should delete a competition
+- **Compétitions (application Electron)**
+  - créer une compétition ouvre son onglet
+  - la compétition créée figure sur l’accueil et se rouvre
+  - supprimer une compétition la retire de l’accueil
+
+</details>
+
+<details>
+<summary><code>e2e/electron/pools.spec.ts</code> — 2 tests</summary>
+
+- **Poules (application Electron)**
+  - six tireurs pointés : une poule de 15 matchs
+  - saisir un score de poule l’inscrit dans la matrice
 
 </details>
 
@@ -7043,15 +7053,6 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - le modal d'import se ferme avec Annuler/Fermer
   - le bouton Export est accessible depuis une compétition
   - l'import via CSV affiche un feedback d'erreur si fichier invalide
-
-</details>
-
-<details>
-<summary><code>e2e/pools.spec.ts</code> — 2 tests</summary>
-
-- **Pool Management**
-  - should generate pools
-  - should update pool scores
 
 </details>
 
