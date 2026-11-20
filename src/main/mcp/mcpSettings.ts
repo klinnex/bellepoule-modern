@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { randomBytes } from 'crypto';
+import { writeSecretFile, type SecretVault } from '../secretVault';
 
 export interface McpSettings {
   enabled: boolean;
@@ -18,12 +19,8 @@ export interface McpSettings {
 
 export const DEFAULT_MCP_SETTINGS: McpSettings = { enabled: false, port: 8067, allowWrite: false };
 
-/** Chiffrement du système (Electron safeStorage), injecté pour les tests */
-export interface SecretBox {
-  isEncryptionAvailable(): boolean;
-  encryptString(plain: string): Buffer;
-  decryptString(data: Buffer): string;
-}
+/** Chiffrement du système (Electron safeStorage, API asynchrone #1988), injecté pour les tests */
+export type SecretBox = SecretVault;
 
 const settingsFile = (dir: string) => path.join(dir, 'mcp-settings.json');
 const tokenFile = (dir: string) => path.join(dir, 'mcp-token.bin');
@@ -53,14 +50,17 @@ export function writeMcpSettings(dir: string, settings: McpSettings): void {
 }
 
 /** Nouveau jeton (256 bits), enregistré chiffré si le système le permet */
-export function regenerateMcpToken(dir: string, box: SecretBox): string {
+export async function regenerateMcpToken(dir: string, box: SecretBox): Promise<string> {
   const token = randomBytes(32).toString('base64url');
   fs.mkdirSync(dir, { recursive: true });
-  const data = box.isEncryptionAvailable()
-    ? Buffer.concat([Buffer.from('ENC1'), box.encryptString(token)])
-    : Buffer.from(`RAW1${token}`);
-  fs.writeFileSync(tokenFile(dir), data, { mode: 0o600 });
+  await writeSecretFile(tokenFile(dir), await encodeToken(token, box));
   return token;
+}
+
+async function encodeToken(token: string, box: SecretBox): Promise<Buffer> {
+  return (await box.isAsyncEncryptionAvailable())
+    ? Buffer.concat([Buffer.from('ENC1'), await box.encryptStringAsync(token)])
+    : Buffer.from(`RAW1${token}`);
 }
 
 /** Jeton enregistré mais indéchiffrable dans ce contexte (trousseau différent ou verrouillé) */
@@ -77,22 +77,29 @@ export class McpTokenUnreadableError extends Error {
  * SSH, session sans bureau) n'est jamais remplacé en silence : les clients déjà configurés
  * seraient refusés sans explication. L'opérateur le régénère explicitement.
  */
-export function getMcpToken(dir: string, box: SecretBox): string {
+export async function getMcpToken(dir: string, box: SecretBox): Promise<string> {
   let data: Buffer;
   try {
-    data = fs.readFileSync(tokenFile(dir));
+    data = await fs.promises.readFile(tokenFile(dir));
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return regenerateMcpToken(dir, box);
     throw new McpTokenUnreadableError();
   }
   const tag = data.subarray(0, 4).toString();
   if (tag === 'RAW1' && data.length > 4) return data.subarray(4).toString();
-  if (tag === 'ENC1' && box.isEncryptionAvailable()) {
-    try {
-      const token = box.decryptString(data.subarray(4));
-      if (token) return token;
-    } catch {
-      /* indéchiffrable dans ce contexte */
+  if (tag === 'ENC1' && (await box.isAsyncEncryptionAvailable())) {
+    const decrypted = await box.decryptStringAsync(data.subarray(4)).catch(() => null);
+    const token = decrypted?.result;
+    if (token) {
+      // Clé du trousseau renouvelée : même jeton, rechiffré (les clients restent valides)
+      if (decrypted.shouldReEncrypt) {
+        try {
+          await writeSecretFile(tokenFile(dir), await encodeToken(token, box));
+        } catch {
+          /* l'ancien fichier reste lisible */
+        }
+      }
+      return token;
     }
   }
   throw new McpTokenUnreadableError();

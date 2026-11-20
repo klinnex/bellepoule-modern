@@ -51,17 +51,17 @@ export function createMcpController({
   };
 
   /** Jeton, ou chaîne vide s'il est illisible dans ce contexte (erreur token_unreadable) */
-  const tokenOrEmpty = (): string => {
+  const tokenOrEmpty = async (): Promise<string> => {
     try {
-      return getMcpToken(userDataDir(), secretBox);
+      return await getMcpToken(userDataDir(), secretBox);
     } catch {
       return '';
     }
   };
 
-  const status = (): McpStatus => {
+  const status = async (): Promise<McpStatus> => {
     const s = settings();
-    const token = tokenOrEmpty();
+    const token = await tokenOrEmpty();
     const error = token ? lastError : 'token_unreadable';
     return {
       enabled: s.enabled,
@@ -83,7 +83,7 @@ export function createMcpController({
       else
         await server.start({
           port: s.port,
-          token: getMcpToken(userDataDir(), secretBox),
+          token: await getMcpToken(userDataDir(), secretBox),
           version,
           deps,
           allowWrite: s.allowWrite,
@@ -97,13 +97,13 @@ export function createMcpController({
     return status();
   };
 
-  /** Bloc `.mcp.json` du client (URL, jeton) ; lève McpTokenUnreadableError si le jeton est illisible */
-  const clientConfig = (): Record<string, unknown> => ({
+  /** Bloc `.mcp.json` du client (URL, jeton) ; rejette McpTokenUnreadableError si le jeton est illisible */
+  const clientConfig = async (): Promise<Record<string, unknown>> => ({
     mcpServers: {
       bellepoule: {
         type: 'http',
         url: `http://127.0.0.1:${settings().port}/mcp`,
-        headers: { Authorization: `Bearer ${getMcpToken(userDataDir(), secretBox)}` },
+        headers: { Authorization: `Bearer ${await getMcpToken(userDataDir(), secretBox)}` },
       },
     },
   });
@@ -120,7 +120,7 @@ export function createMcpController({
       return apply();
     });
     ipcMain.handle('mcp:regenerateToken', async () => {
-      regenerateMcpToken(userDataDir(), secretBox);
+      await regenerateMcpToken(userDataDir(), secretBox);
       return apply();
     });
     ipcMain.handle('mcp:getLog', () => server.getLog());
