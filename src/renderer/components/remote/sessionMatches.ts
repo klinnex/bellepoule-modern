@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 import type { Pool } from '../../../shared/types';
-import type { TableauMatch } from '../tableau/tableauTypes';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 
 /**
  * Prépare la liste de matchs de la session distante.

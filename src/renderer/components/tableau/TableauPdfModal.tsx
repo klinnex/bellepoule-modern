@@ -8,8 +8,8 @@ import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { createPortal } from 'react-dom';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
-import { TableauMatch } from './tableauTypes';
-import { getRoundName } from './tableauCalculations';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
+import { getRoundName } from '../../../shared/domain/tableau/tableauCalculations';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 

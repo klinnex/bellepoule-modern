@@ -44,15 +44,15 @@ import {
   calculateFinalResults,
   getTableauSize,
   isTableauDone,
-} from '../../renderer/components/tableau/tableauCalculations';
+} from '../../shared/domain/tableau/tableauCalculations';
 import {
   deriveFirstRound,
   propagateWinners,
   resetTableauMatch,
   resolveTableauWinner,
   type TableauMatch,
-} from '../../renderer/components/tableau/tableauTypes';
-import { computeEffectiveTableauRanking } from '../../renderer/components/competition/competitionDerived';
+} from '../../shared/domain/tableau/tableauTypes';
+import { computeEffectiveTableauRanking } from '../../shared/domain/ranking/tableauRanking';
 import { DomainError, type DomainContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
 import { EVENT, recordEvents } from './eventLog';

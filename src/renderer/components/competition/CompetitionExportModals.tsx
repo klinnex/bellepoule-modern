@@ -5,7 +5,11 @@
  */
 import React, { Suspense } from 'react';
 import type { Competition, Fencer, Pool, PoolRanking } from '../../../shared/types';
-import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
+import type {
+  ConsolationBracket,
+  FinalResult,
+  TableauMatch,
+} from '../../../shared/domain/tableau/tableauTypes';
 import type { Phase } from '../../hooks/useCompetitionSession';
 import type { useExport } from '../../hooks/useExport';
 import { useOperation } from '../common/OperationProgress';

@@ -28,8 +28,6 @@ const NO_APP_IN_DOMAIN = {
 };
 const LAYER_FILES = ['src/main/**/*.ts', 'src/shared/**/*.ts', 'src/database/**/*.ts'];
 const LAYER_TESTS = ['**/*.test.ts', '**/__tests__/**'];
-/** Import du renderer toléré jusqu'au lot 3 de #1979 (tableau, classement) */
-const RENDERER_IMPORT_EXCEPTIONS = ['src/main/domain/sport.ts'];
 /** Import de features toléré jusqu'au lot 3 de #1979 (équipes, pénalités → shared/domain) */
 const FEATURES_IMPORT_EXCEPTIONS = [
   'src/main/remote/teamArena.ts',
@@ -152,12 +150,8 @@ module.exports = [
   // Couches (#1979) : dernier bloc correspondant gagne, d'où un bloc par cas d'exception.
   {
     files: LAYER_FILES,
-    ignores: [...LAYER_TESTS, ...RENDERER_IMPORT_EXCEPTIONS, ...FEATURES_IMPORT_EXCEPTIONS],
+    ignores: [...LAYER_TESTS, ...FEATURES_IMPORT_EXCEPTIONS],
     rules: restrict(NO_RENDERER, NO_FEATURES),
-  },
-  {
-    files: RENDERER_IMPORT_EXCEPTIONS,
-    rules: restrict(NO_FEATURES),
   },
   {
     files: FEATURES_IMPORT_EXCEPTIONS,
@@ -166,7 +160,30 @@ module.exports = [
   {
     files: ['src/shared/domain/**/*.ts'],
     ignores: LAYER_TESTS,
-    rules: restrict(NO_APP_IN_DOMAIN),
+    rules: {
+      ...restrict(NO_APP_IN_DOMAIN),
+      // Ni heure système ni hasard : injectés par l'appelant (docs/adr/0002)
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Date',
+          property: 'now',
+          message: 'Domaine pur : recevoir l’heure en paramètre (docs/adr/0002).',
+        },
+        {
+          object: 'Math',
+          property: 'random',
+          message: 'Domaine pur : recevoir le tirage aléatoire en paramètre (docs/adr/0002).',
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: 'Domaine pur : recevoir l’heure en paramètre (docs/adr/0002).',
+        },
+      ],
+    },
   },
   {
     // JS distant servi aux navigateurs (CSP, sans bundler) : scripts classiques, globales navigateur (#1600)

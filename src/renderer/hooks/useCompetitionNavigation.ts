@@ -23,7 +23,7 @@ import type {
   ConsolationBracket,
   FinalResult,
   TableauMatch,
-} from '../components/tableau/tableauTypes';
+} from '../../shared/domain/tableau/tableauTypes';
 import { useConfirm } from '../components/ConfirmDialog';
 import { useToast } from '../components/Toast';
 import type { Phase } from './useCompetitionSession';

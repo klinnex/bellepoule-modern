@@ -5,7 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useCompetitionNavigation } from './useCompetitionNavigation';
-import type { TableauMatch } from '../components/tableau/tableauTypes';
+import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 
 vi.mock('../components/Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
 vi.mock('../components/ConfirmDialog', () => ({ useConfirm: () => ({ confirm: vi.fn() }) }));

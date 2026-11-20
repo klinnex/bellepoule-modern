@@ -1,12 +1,12 @@
 import { TipButton } from '../Tooltip';
 import React from 'react';
-import { TableauMatch } from './tableauTypes';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { useStripAvailability } from '../../hooks/useStripAvailability';
 import { focusNeighbourCard, isNavKey } from './matchCardNav';
 import { PenLine, Pencil, Plus } from 'lucide-react';
 import { Icon } from '../common/Icon';
-import { BASE_MATCH_HEIGHT } from './tableauCalculations';
+import { BASE_MATCH_HEIGHT } from './tableauLayout';
 
 interface MatchCardProps {
   match: TableauMatch;

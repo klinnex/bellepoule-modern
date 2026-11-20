@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PoolRanking } from '../../../shared/types';
+import { PoolRanking } from '../../types';
 import {
   buildTableauMatches,
   autoFillAllPositions,
@@ -8,7 +8,7 @@ import {
   generateFIESeeding,
   tableauSeedRanks,
 } from './tableauCalculations';
-import { generateSeedingChart } from '../../../shared/utils/tableCalculations';
+import { generateSeedingChart } from '../../utils/tableCalculations';
 import { TableauMatch } from './tableauTypes';
 
 const mkRanking = (n: number): PoolRanking[] =>
@@ -40,7 +40,8 @@ describe('autoFillAllPositions', () => {
       [],
       15,
       size,
-      ranking
+      ranking,
+      { random: Math.random, now: 1 }
     );
 
     expect(updatedMatches.every(m => m.isBye || !!m.winner)).toBe(true);

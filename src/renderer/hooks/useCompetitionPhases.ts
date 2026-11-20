@@ -6,7 +6,7 @@
 import { useEffect, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Pool, QuestPhaseConfig } from '../../shared/types';
-import type { FinalResult, TableauMatch } from '../components/tableau/tableauTypes';
+import type { FinalResult, TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import { PHASE_ICONS, TEAM_PHASE_ICONS } from '../components/competition/phaseIcons';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from '../components/competition/teamPhases';
 import type { TeamPhase } from '../components/competition/teamPhases';

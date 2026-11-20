@@ -5,7 +5,11 @@
  */
 import React, { Suspense } from 'react';
 import type { Competition, Fencer, Pool, PoolRanking } from '../../../shared/types';
-import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
+import type {
+  ConsolationBracket,
+  FinalResult,
+  TableauMatch,
+} from '../../../shared/domain/tableau/tableauTypes';
 import type { usePoolManagement } from '../../hooks/usePoolManagement';
 import { QRCodeShare } from '../QRCodeShare';
 import KioskScoreEntry from './KioskScoreEntry';

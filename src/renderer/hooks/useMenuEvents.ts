@@ -7,7 +7,7 @@
 import { useEffect, useCallback } from 'react';
 import { PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import { FinalResult } from '../components/tableau/tableauTypes';
+import { FinalResult } from '../../shared/domain/tableau/tableauTypes';
 import type { Phase } from './useCompetitionSession';
 
 interface UseMenuEventsProps {

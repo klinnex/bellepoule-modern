@@ -4,7 +4,7 @@
  */
 import type { Dispatch, SetStateAction } from 'react';
 import type { Fencer, PoolRanking } from '../../shared/types';
-import type { FinalResult } from '../components/tableau/tableauTypes';
+import type { FinalResult } from '../../shared/domain/tableau/tableauTypes';
 import { useOperation } from '../components/common/OperationProgress';
 import { useToast } from '../components/Toast';
 import type { ImportData } from './useCompetitionImport';

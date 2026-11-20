@@ -7,7 +7,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import { TableauMatch, FinalResult, ConsolationBracket } from '../components/tableau/tableauTypes';
+import {
+  TableauMatch,
+  FinalResult,
+  ConsolationBracket,
+} from '../../shared/domain/tableau/tableauTypes';
 import type { RapieresLegacyState, RapieresSession } from '../../features/rapieres/rapieres.types';
 
 export type Phase =

@@ -9,7 +9,7 @@ import { MatchStatus } from '../../shared/types';
 import type { Match, Pool, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { poolMatchesWithReferee, propagatePoolReferee } from '../../shared/utils/refereeStats';
-import type { ConsolationBracket, TableauMatch } from '../components/tableau/tableauTypes';
+import type { ConsolationBracket, TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 
 interface UseCompetitionRefereesParams {
   competitionId: string;

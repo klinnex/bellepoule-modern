@@ -4,8 +4,8 @@
  */
 import type { Pool } from '../../../shared/types';
 import type { MatchAuditOption } from '../MatchAuditLog';
-import { getRoundName } from '../tableau/tableauCalculations';
-import type { TableauMatch } from '../tableau/tableauTypes';
+import { getRoundName } from '../../../shared/domain/tableau/tableauCalculations';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 
 /** Libellés + arbitres des matchs pour le journal (sélection par match / arbitre) */
 export function buildMatchAuditOptions(

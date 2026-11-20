@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import type { Pool } from '../../shared/types';
 import type { MatchUpdateData } from '../../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
-import type { TableauMatch } from '../components/tableau/tableauTypes';
+import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 
 interface UseMatchDbSyncParams {
   competitionId: string;

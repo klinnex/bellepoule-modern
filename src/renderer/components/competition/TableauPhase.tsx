@@ -13,7 +13,11 @@ import type { useFencerManagement } from '../../hooks/useFencerManagement';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useConfirm } from '../ConfirmDialog';
 import { TableSkeleton } from '../Skeleton';
-import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
+import type {
+  ConsolationBracket,
+  FinalResult,
+  TableauMatch,
+} from '../../../shared/domain/tableau/tableauTypes';
 import { SplitGroupTabs } from './SplitGroupTabs';
 import { TableauDriftBanner } from '../tableau/TableauDriftBanner';
 import type { PoolCorrectionImpact } from '../../../shared/utils/poolCorrectionImpact';

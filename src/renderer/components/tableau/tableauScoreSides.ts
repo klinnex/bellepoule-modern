@@ -5,7 +5,7 @@
  * Licensed under GPL-3.0
  */
 
-import type { TableauMatch } from './tableauTypes';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 
 export type TableauSide = 'A' | 'B';
 

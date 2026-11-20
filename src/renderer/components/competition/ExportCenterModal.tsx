@@ -9,7 +9,7 @@ import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import Modal from '../common/Modal';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
-import { FinalResult } from '../tableau/tableauTypes';
+import { FinalResult } from '../../../shared/domain/tableau/tableauTypes';
 import type { XmlExportTarget } from '../../hooks/useExport';
 import FtpPublishForm from './FtpPublishForm';
 import { Button } from '../common/Button';

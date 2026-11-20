@@ -17,7 +17,7 @@ import { encodeFFFWin1252, exportResultsToFFF } from '../../shared/utils/fencerE
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
 import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
-import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
+import type { ConsolationBracket, TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
 import BookSectionsModal from './BookSectionsModal';
 import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';

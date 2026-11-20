@@ -7,7 +7,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../../hooks/useTranslation';
-import { TableauMatch } from './tableauTypes';
+import { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';

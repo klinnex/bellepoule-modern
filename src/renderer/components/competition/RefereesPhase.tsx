@@ -6,7 +6,7 @@ import React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Competition, Match, Pool, Referee } from '../../../shared/types';
 import { poolMatchesWithReferee } from '../../../shared/utils/refereeStats';
-import type { ConsolationBracket, TableauMatch } from '../tableau/tableauTypes';
+import type { ConsolationBracket, TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { RefereeManagerComponent } from '../RefereeManager';
 
 interface RefereesPhaseProps {

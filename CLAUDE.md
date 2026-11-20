@@ -160,6 +160,7 @@ Feature Modules (src/features/)
 └── teams/               # teamCalculations, teamBracketService, laserArena* (Sabre Laser team format), useTeamStore
 
 Shared (src/shared/)
+├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), rapieres/ — ni React, ni Electron, ni Node, ni base ; heure et hasard injectés (ESLint)
 ├── types/
 │   ├── index.ts              # All TypeScript definitions (enums, interfaces)
 │   ├── pdfTemplate.types.ts

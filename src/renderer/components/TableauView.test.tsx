@@ -11,7 +11,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 vi.mock('../hooks/useTranslation', () => import('../testUtils/i18nMock'));
 
 import TableauView from './TableauView';
-import { TableauMatch, FinalResult } from './tableau/tableauTypes';
+import { TableauMatch, FinalResult } from '../../shared/domain/tableau/tableauTypes';
 import { ToastProvider } from './Toast';
 import { ConfirmProvider } from './ConfirmDialog';
 import { Fencer, Gender, FencerStatus, PoolRanking } from '../../shared/types';

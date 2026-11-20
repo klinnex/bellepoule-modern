@@ -6,7 +6,7 @@
  */
 
 import { FencerStatus, MatchStatus, type Fencer, type Pool } from '../../shared/types';
-import type { TableauMatch } from '../components/tableau/tableauTypes';
+import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import type { BlackCardReportEntry } from '../../shared/utils/pdfExport/blackCardReportPdf';
 
 interface Candidate {

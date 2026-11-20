@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 import { Competition, Pool } from '../../../shared/types';
-import { TableauMatch, ConsolationBracket } from '../tableau/tableauTypes';
+import { TableauMatch, ConsolationBracket } from '../../../shared/domain/tableau/tableauTypes';
 
 export interface RemoteScoreManagerProps {
   competition: Competition;

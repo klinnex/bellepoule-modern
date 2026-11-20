@@ -22,7 +22,7 @@ import type {
   ConsolationBracket,
   FinalResult,
   TableauMatch,
-} from '../../components/tableau/tableauTypes';
+} from '../../../shared/domain/tableau/tableauTypes';
 import type { PoolTableauFreeze } from '../../components/pool/poolViewTypes';
 import { PoolCorrectionDialog } from '../../components/pool/PoolCorrectionDialog';
 import { logger, LogCategory } from '@shared/services/logger';
