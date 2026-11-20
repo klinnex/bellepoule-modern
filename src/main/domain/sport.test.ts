@@ -267,6 +267,34 @@ d('déroulé complet piloté hors écran', () => {
     expect((db.getSessionState(comp.id) as { currentPhase: number }).currentPhase).toBe(6);
   });
 
+  it('journal de l’épreuve (#1980) : scores, poule terminée, tableau, auteur et source', async () => {
+    const comp = await setup(4);
+    ctx.actor = { source: 'mcp', author: 'agent' };
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const [m] = listMatches(ctx, comp.id);
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 2, dryRun: true });
+    expect(db.eventLog.getRevision(comp.id)).toBe(0);
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 4, scoreB: 2 });
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 2 });
+    const history = db.eventLog.getMatchHistory(comp.id, m.matchId);
+    expect(history.map(e => [e.type, e.payload.scoreA, e.source, e.author])).toEqual([
+      ['ScoreRecorded', 4, 'mcp', 'agent'],
+      ['ScoreRecorded', 5, 'mcp', 'agent'],
+    ]);
+    playAll(comp.id, 'pool');
+    const types = db.eventLog.getSince(comp.id).map(e => e.type);
+    expect(types.filter(t => t === 'PoolCompleted')).toHaveLength(1);
+    expect(types.at(-1)).toBe('PoolCompleted');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    playAll(comp.id, 'bracket');
+    const all = db.eventLog.getSince(comp.id);
+    expect(all.map(e => e.revision)).toEqual(all.map((_, i) => i + 1));
+    expect(all.filter(e => e.type === 'TableauMatchDecided')).toHaveLength(3);
+    expect(all.at(-1)?.type).toBe('TableauCompleted');
+    // RGPD : identifiants seulement
+    expect(JSON.stringify(all)).not.toContain('NOM');
+  });
+
   it('révision : une sauvegarde de l’écran sur un état périmé est refusée', async () => {
     const comp = await setup(4);
     generatePools(ctx, comp.id, { poolCount: 1 });

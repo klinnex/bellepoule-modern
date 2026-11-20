@@ -7,6 +7,7 @@
 import { FencerStatus, type Fencer } from '../../shared/types';
 import type { DomainContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
+import { EVENT, recordEvents } from './eventLog';
 
 export interface CheckInInput {
   competitionId: string;
@@ -38,7 +39,21 @@ export function checkInFencers(ctx: DomainContext, input: CheckInInput) {
     unknown,
   };
   if (input.dryRun) return { dryRun: true, ...report };
-  for (const f of toUpdate) ctx.db.updateFencer(f.id, { status });
+  const write = () => {
+    for (const f of toUpdate) ctx.db.updateFencer(f.id, { status });
+    recordEvents(
+      ctx,
+      competition.id,
+      toUpdate.map(f => ({
+        type: input.present ? EVENT.fencerCheckedIn : EVENT.fencerCheckedOut,
+        payload: { fencerId: f.id },
+      }))
+    );
+  };
+  if (toUpdate.length) {
+    if (typeof ctx.db.transaction === 'function') ctx.db.transaction(write);
+    else write();
+  }
   if (report.updated > 0) ctx.emitChange?.({ scope: 'fencers', competitionIds: [competition.id] });
   return { dryRun: false, ...report };
 }

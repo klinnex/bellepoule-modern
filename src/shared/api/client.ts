@@ -22,6 +22,8 @@ export type ApiErrorCode = 'invalid_input' | 'unknown_operation' | 'internal' | 
 export interface ApiErrorData {
   code: ApiErrorCode;
   message: string;
+  /** Données de l'erreur (ex. revision_conflict : révision actuelle, événements manquants) */
+  data?: unknown;
 }
 
 /** Réponse d'un transport : l'IPC Electron perd les classes d'erreur, d'où l'enveloppe */
@@ -30,14 +32,17 @@ export type ApiEnvelope<T = unknown> = { ok: true; data: T } | { ok: false; erro
 export class ApiError extends Error {
   constructor(
     public readonly code: ApiErrorCode,
-    message: string
+    message: string,
+    public readonly data?: unknown
   ) {
     super(message);
     this.name = 'ApiError';
   }
 
   toJSON(): ApiErrorData {
-    return { code: this.code, message: this.message };
+    return this.data === undefined
+      ? { code: this.code, message: this.message }
+      : { code: this.code, message: this.message, data: this.data };
   }
 }
 
@@ -45,7 +50,7 @@ export class ApiError extends Error {
 export function unwrap<T>(envelope: ApiEnvelope<T>): T {
   if (envelope && envelope.ok) return envelope.data;
   const error = envelope && !envelope.ok ? envelope.error : undefined;
-  throw new ApiError(error?.code ?? 'internal', error?.message ?? 'Réponse invalide');
+  throw new ApiError(error?.code ?? 'internal', error?.message ?? 'Réponse invalide', error?.data);
 }
 
 /** Transport IPC du contrat d'API (préload → IpcClient) */

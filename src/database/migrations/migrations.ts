@@ -1216,4 +1216,22 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 45,
+    description: 'Journal des événements par épreuve, en ajout seul (#1980)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS competition_events (
+          competition_id TEXT NOT NULL,
+          revision INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          author TEXT,
+          source TEXT NOT NULL,
+          at TEXT NOT NULL,
+          PRIMARY KEY (competition_id, revision)
+        )
+      `);
+    },
+  },
 ];

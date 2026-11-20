@@ -8,6 +8,8 @@ import { EventEmitter } from 'events';
 export interface CompetitionEventPayload {
   type: string;
   competitionId?: string;
+  /** journal:appended : nouvelle révision du journal de l'épreuve (#1980) */
+  revision?: number;
 }
 
 const bus = new EventEmitter();

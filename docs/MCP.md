@@ -180,11 +180,11 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (38)
+## Référence des outils (39)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
-### En lecture (16)
+### En lecture (17)
 
 ### `list_competitions` — Lister les épreuves
 
@@ -307,6 +307,16 @@ Aucun argument.
 | Argument | Type | Requis | Description |
 |---|---|---|---|
 | `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
+
+### `get_competition_events` — Journal d’une épreuve
+
+*lecture.* Journal d’une épreuve (#1980) : événements postérieurs à la révision « since » (resynchronisation, audit), auteur, source et heure. Identifiants seulement, pas de noms.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `since` | integer |  | Dernière révision connue (0 : tout) |
+| `limit` | integer |  | Nombre maximum (1000) |
 
 ### En écriture, sur autorisation (22)
 
@@ -548,6 +558,7 @@ Aucun argument.
 | `fencers` | string / integer[] | oui | Identifiants ou numéros (ref) |
 | `present` | boolean | oui | true : présent ; false : absent |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
 
 ### `record_score` — Saisir un score
 
@@ -563,5 +574,6 @@ Aucun argument.
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
 
 <!-- outils-mcp:fin -->

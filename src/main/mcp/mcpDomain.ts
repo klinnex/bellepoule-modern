@@ -37,6 +37,7 @@ export function writeDomain(deps: McpWriteDeps): DomainContext {
     db: deps.db,
     allowedRoots: deps.allowedRoots,
     emitChange: emitChangeVia(deps.notify),
+    actor: { source: 'mcp', author: 'agent' },
   };
 }
 

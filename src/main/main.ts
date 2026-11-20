@@ -128,6 +128,7 @@ registerDbHandlers({ db, remoteServers, stopRemoteServer });
 // Contrat d'API unique (#1981) : api:invoke / api:subscribe
 registerApiHandlers({
   db,
+  actor: { source: 'screen' },
   emitChange: emitChangeVia((type, competitionId) => emitCompetitionEvent(type, competitionId)),
 });
 registerEventDayHandlers({ db });

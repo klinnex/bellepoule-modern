@@ -55,6 +55,7 @@ import {
 import { computeEffectiveTableauRanking } from '../../renderer/components/competition/competitionDerived';
 import { DomainError, type DomainContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
+import { EVENT, recordEvents } from './eventLog';
 import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
 
@@ -536,12 +537,31 @@ function recordPoolScore(
         reason: 'mcp_entry',
         poolId: pool.id,
       });
+      const completed: string[] = [];
       for (const p of nextPools) {
         const old = pools.find(x => x.id === p.id);
         const complete = p.matches.every(m => m.status === MatchStatus.FINISHED);
         if (old && complete !== old.isComplete) ctx.db.updatePool({ ...p, isComplete: complete });
+        const wasComplete = !!old?.matches.every(m => m.status === MatchStatus.FINISHED);
+        if (complete && !wasComplete) completed.push(p.id);
       }
       writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
+      recordEvents(ctx, comp.id, [
+        {
+          type: EVENT.scoreRecorded,
+          payload: {
+            matchId: match.id,
+            poolId: pool.id,
+            scoreA: input.scoreA,
+            scoreB: input.scoreB,
+            winnerId: (scores.scoreA.isVictory ? match.fencerA : match.fencerB)?.id ?? null,
+            ...(input.specialStatus
+              ? { specialStatus: input.specialStatus, fencerId: loser?.id ?? null }
+              : {}),
+          },
+        },
+        ...completed.map(poolId => ({ type: EVENT.poolCompleted, payload: { poolId } })),
+      ]);
     });
   if (!input.dryRun) {
     emitSession(ctx, comp.id);
@@ -764,6 +784,22 @@ function recordBracketScore(
         finalResults,
         ...(done ? { currentPhase: PHASE.results } : {}),
       });
+      recordEvents(ctx, comp.id, [
+        {
+          type: EVENT.scoreRecorded,
+          payload: {
+            matchId: m.id,
+            scoreA,
+            scoreB,
+            winnerId: winner.id,
+            ...(input.specialStatus
+              ? { specialStatus: input.specialStatus, fencerId: loser.id }
+              : {}),
+          },
+        },
+        { type: EVENT.tableauMatchDecided, payload: { matchId: m.id, winnerId: winner.id } },
+        ...(done ? [{ type: EVENT.tableauCompleted, payload: {} }] : []),
+      ]);
     });
   if (!input.dryRun) {
     emitSession(ctx, comp.id);
