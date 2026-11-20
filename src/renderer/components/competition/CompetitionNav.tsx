@@ -76,6 +76,8 @@ interface CompetitionNavProps {
   /** Appel inchangé depuis la préparation : « Aller à la préparation », sans régénérer (#1992) */
   checkinUnchanged?: boolean;
   poolsNextAction: PoolsNextAction | null;
+  /** Classement : « Voir le tableau » entre « Retour » et « Journal » (#2008) */
+  rankingTableauAction?: PoolsNextAction | null;
   poolPrepLaunch?: PoolPrepLaunchItem | null;
   questEnabled: boolean;
   questConfig: QuestPhaseConfig | undefined;
@@ -106,6 +108,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   handleGeneratePools,
   checkinUnchanged = false,
   poolsNextAction,
+  rankingTableauAction = null,
   poolPrepLaunch,
   questEnabled,
   questConfig,
@@ -303,6 +306,16 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 {poolsNextAction.label}
               </Button>
             </CoachMark>
+          )}
+          {currentPhase === 'ranking' && rankingTableauAction && (
+            <Button
+              variant="primary"
+              className="btn-icon-label"
+              data-tour="go-tableau"
+              onClick={rankingTableauAction.action}
+            >
+              {rankingTableauAction.label.replace(/\s*→$/, '')} <ChevronRight size={15} />
+            </Button>
           )}
           {onOpenPlanningAssistant &&
             ((currentPhase === 'pools' && pools.length > 0) ||

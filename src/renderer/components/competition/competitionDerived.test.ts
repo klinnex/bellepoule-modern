@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { MatchStatus } from '../../../shared/types';
 import type { Pool, PoolRanking } from '../../../shared/types';
 import type { TableauMatch } from '../tableau/tableauTypes';
-import { computeEffectiveTableauRanking, computeMatchProgress } from './competitionDerived';
+import {
+  computeEffectiveTableauRanking,
+  computeMatchProgress,
+  rankingTableauNavAction,
+} from './competitionDerived';
 
 const pool = (statuses: MatchStatus[]): Pool =>
   ({
@@ -89,5 +93,45 @@ describe('computeEffectiveTableauRanking', () => {
       splitOffCompetitionIds: { F: 'comp-f' },
     });
     expect(result.map(r => r.fencer.id)).toEqual(['a', 'c']);
+  });
+});
+
+describe('rankingTableauNavAction (#2008)', () => {
+  const t = (key: string) => key;
+  const base = {
+    t,
+    hasDirectElimination: true,
+    hasNextRound: false,
+    viewingPastRound: false,
+    splitByGender: false,
+    frozen: false,
+    poolWinnersOnly: false,
+    pools: [] as Pool[],
+    onGoToTableau: () => {},
+  };
+
+  it('libellé « Voir le tableau » quand le classement est figé', () => {
+    expect(rankingTableauNavAction({ ...base, frozen: true })?.label).toBe(
+      'poolRanking.see_tableau'
+    );
+  });
+
+  it('libellé « Passer au tableau » sinon', () => {
+    expect(rankingTableauNavAction(base)?.label).toBe('poolRanking.go_tableau');
+  });
+
+  it('déclenche le passage au tableau', () => {
+    let called = false;
+    rankingTableauNavAction({ ...base, onGoToTableau: () => (called = true) })?.action();
+    expect(called).toBe(true);
+  });
+
+  it.each([
+    ['sans élimination directe', { hasDirectElimination: false }],
+    ['tour suivant à lancer', { hasNextRound: true }],
+    ['tour passé consulté', { viewingPastRound: true }],
+    ['séparation par genre', { splitByGender: true }],
+  ])('aucun bouton : %s', (_label, over) => {
+    expect(rankingTableauNavAction({ ...base, ...over })).toBeNull();
   });
 });
