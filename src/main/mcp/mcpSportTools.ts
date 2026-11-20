@@ -1,14 +1,19 @@
 /**
  * BellePoule Modern - Outils MCP d'orchestration sportive (#1880, lot 3)
  * Poules, arbitres de poule, scores, tableau, export des résultats. La logique est dans
- * src/main/domain/sport.ts : mêmes fonctions pures que l'écran, qui relit l'état de
+ * src/main/engine/commands/sport.ts : mêmes fonctions pures que l'écran, qui relit l'état de
  * session après chaque écriture (competition:event « session:changed »).
  * Outils d'écriture proposés seulement si « Autoriser l'écriture » est coché.
  * Licensed under GPL-3.0
  */
 
-import { assignPoolReferees, buildBracket, generatePools, listMatches } from '../domain/sport';
-import { exportResults, type ResultsFormat } from '../domain/exportResults';
+import {
+  assignPoolReferees,
+  buildBracket,
+  generatePools,
+  listMatches,
+} from '../engine/commands/sport';
+import { exportResults, type ResultsFormat } from '../engine/commands/exportResults';
 import type { McpTool } from './mcpTools';
 import type { McpWriteTool } from './mcpWriteTools';
 import {

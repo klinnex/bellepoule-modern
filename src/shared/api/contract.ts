@@ -1,8 +1,8 @@
 /**
  * BellePoule Modern - Contrat d'API unique (#1981, lot 1)
  * Chaque opération est décrite une seule fois : entrée (validée par zod), sortie, droit requis,
- * exposition MCP. Les adaptateurs IPC (src/main/api/ipcAdapter.ts) et MCP
- * (src/main/api/mcpAdapter.ts) en sont dérivés ; l'écran appelle un BpmClient
+ * exposition MCP. Les adaptateurs IPC (src/main/engine/api/ipcAdapter.ts) et MCP
+ * (src/main/engine/api/mcpAdapter.ts) en sont dérivés ; l'écran appelle un BpmClient
  * (src/shared/api/client.ts) au lieu de window.electronAPI.
  * Le renderer n'importe que les types (import type) : zod reste dans le bundle main.
  * Licensed under GPL-3.0

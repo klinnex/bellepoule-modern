@@ -5,8 +5,8 @@
  * de comportement).
  * Licensed under GPL-3.0
  */
-import type { NewCompetitionEvent } from '../../database/repos/eventLogRepo';
-import type { DomainContext } from './context';
+import type { NewCompetitionEvent } from '../../../database/repos/eventLogRepo';
+import type { CommandContext } from './context';
 
 /** Types d'événements écrits par le moteur */
 export const EVENT = {
@@ -20,7 +20,7 @@ export const EVENT = {
 
 /** Ajoute des événements au journal de l'épreuve ; rend la révision (null : aucun journal) */
 export function recordEvents(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   events: NewCompetitionEvent[]
 ): number | null {

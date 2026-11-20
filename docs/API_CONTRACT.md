@@ -19,14 +19,14 @@ recordScore: command({
 - `command` : écriture ; `query` : lecture ; `subscription` : flux d'événements.
 - `mcp` (facultatif) : outil MCP généré. Commande → outil d'écriture (si « Autoriser l'écriture »),
   requête → outil de lecture. Schéma JSON tiré de zod ; `npm run docs:mcp` le documente.
-- Implémentation : `handlers` dans `src/main/api/engine.ts` (appel à `src/main/domain`).
+- Implémentation : `handlers` dans `src/main/engine/api/engine.ts` (appel à `src/main/engine/commands`).
 
 ## Transports
 
 | Transport | Fichier | Entrée |
 |---|---|---|
-| IPC | `src/main/api/ipcAdapter.ts` | `api:invoke`, `api:subscribe` / `api:unsubscribe`, événements `api:event` |
-| MCP | `src/main/api/mcpAdapter.ts` | `tools/call` |
+| IPC | `src/main/engine/api/ipcAdapter.ts` | `api:invoke`, `api:subscribe` / `api:unsubscribe`, événements `api:event` |
+| MCP | `src/main/engine/api/mcpAdapter.ts` | `tools/call` |
 
 Même validation partout. Erreur : `ApiError { code, message }`.
 
@@ -72,7 +72,7 @@ Table `competition_events` (migration 45) : `competition_id`, `revision` (croiss
 épreuve), `type`, `payload` (JSON, identifiants seulement), `author`, `source`
 (`screen`, `mcp`, `tablet`, `cyrano`, `engine`), `at`. Ajout seul
 (`src/database/repos/eventLogRepo.ts`). Les tables actuelles et `session_state` restent la
-lecture : le journal s'écrit **en plus**, dans la même transaction (`src/main/domain/eventLog.ts`).
+lecture : le journal s'écrit **en plus**, dans la même transaction (`src/main/engine/commands/eventLog.ts`).
 
 | Commande | Événements |
 |---|---|

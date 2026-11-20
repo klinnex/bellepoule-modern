@@ -13,7 +13,7 @@ import { MCP_WRITE_TOOLS, type McpWriteDeps, type McpWriteTool } from './mcpWrit
 import { MCP_SPORT_READ_TOOLS, MCP_SPORT_TOOLS } from './mcpSportTools';
 import { MCP_ADMIN_READ_TOOLS, MCP_ADMIN_TOOLS } from './mcpAdminTools';
 import { MCP_CLUB_READ_TOOLS, MCP_CLUB_TOOLS } from './mcpClubTools';
-import { CONTRACT_MCP_TOOLS } from '../api/mcpAdapter';
+import { CONTRACT_MCP_TOOLS } from '../engine/api/mcpAdapter';
 import { logger, LogCategory } from '../../shared/services/logger';
 import type { McpLogEntry } from '../../shared/types/mcp';
 

@@ -6,24 +6,24 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { DatabaseManager } from '../../database';
-import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
-import { Category, FencerStatus, Gender, Weapon } from '../../shared/types';
-import { buildMatchScores, validatePoolScore } from '../../shared/utils/poolOrchestration';
-import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
-import type { DomainChange, DomainContext } from './context';
+import { DatabaseManager } from '../../../database';
+import { hasNodeSqlite } from '../../../database/testing/nodeSqliteDatabase';
+import { Category, FencerStatus, Gender, Weapon } from '../../../shared/types';
+import { buildMatchScores, validatePoolScore } from '../../../shared/utils/poolOrchestration';
+import { buildDefaultCompetitionSettings } from '../../../shared/utils/defaultCompetitionSettings';
+import type { DomainChange, CommandContext } from './context';
 import { assignPoolReferees, buildBracket, generatePools, listMatches, recordScore } from './sport';
 import { getBracket, getPoolRanking } from './sessionView';
 import { exportResults } from './exportResults';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
-  default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
+  default: (await import('../../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 
 const d = hasNodeSqlite ? describe : describe.skip;
 
 let db: DatabaseManager;
-let ctx: DomainContext;
+let ctx: CommandContext;
 let changes: DomainChange[];
 let dir: string;
 

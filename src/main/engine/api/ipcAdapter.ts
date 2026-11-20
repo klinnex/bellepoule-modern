@@ -5,8 +5,8 @@
  * Licensed under GPL-3.0
  */
 import { ipcMain, type WebContents } from 'electron';
-import type { ApiEnvelope } from '../../shared/api/client';
-import type { DomainContext } from '../domain/context';
+import type { ApiEnvelope } from '../../../shared/api/client';
+import type { CommandContext } from '../commands/context';
 import { invoke, subscribe, toApiError } from './engine';
 
 export const API_CHANNELS = {
@@ -18,7 +18,7 @@ export const API_CHANNELS = {
 
 /** Exécute une opération et rend une enveloppe sérialisable (sans exception) */
 export async function invokeEnvelope(
-  ctx: DomainContext,
+  ctx: CommandContext,
   name: unknown,
   input: unknown
 ): Promise<ApiEnvelope> {
@@ -29,7 +29,7 @@ export async function invokeEnvelope(
   }
 }
 
-export function registerApiHandlers(ctx: DomainContext): void {
+export function registerApiHandlers(ctx: CommandContext): void {
   /** Abonnements actifs par fenêtre : id fourni par le renderer → désabonnement */
   const subs = new Map<WebContents, Map<string, () => void>>();
   const release = (sender: WebContents, id?: string) => {

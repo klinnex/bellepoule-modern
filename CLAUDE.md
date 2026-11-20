@@ -120,9 +120,10 @@ Main Process (src/main/)
 ├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, deviceState (Id, chrono, carton P), server (UDP, HELLO 15 s, supervision, journal), driver (CyranoPisteDriver : pilote du modèle commun, #1829)
 ├── opp2/                    # Protocole OPP2 (JSON sur MQTT, #1960) : mqttPacket/mqttBroker (broker MQTT 3.1.1 intégré), mqttClient, codec (sujets openpiste/{piste}/{rôle}/{message}), driver (Opp2PisteDriver) — docs/OPP2.md
 ├── piste/                   # Appareils de piste, hors protocole (#1829) — docs/CYRANO.md : types (PisteState/PisteInput/PisteCommand/PisteDriver), pisteState (côtés par Id, cartons, fin ACK/NAK), arenaInputGate (séquence par source), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch), matchDisplay, teamRelayPiste (relais FIE /equipe{N}, Type=T), multiDriver (Cyrano + OPP2 dans le même PisteHub, #1960)
-├── api/                     # Contrat d'API unique (#1981) : engine (validation zod, ApiError, handlers), ipcAdapter (api:invoke/api:subscribe), mcpAdapter (outils MCP générés), events — docs/API_CONTRACT.md
+├── engine/                  # Moteur (#1979, docs/adr/0003)
+│   ├── api/                 # Contrat d'API unique (#1981) : engine (validation zod, ApiError, handlers), ipcAdapter (api:invoke/api:subscribe), mcpAdapter (outils MCP générés), events — docs/API_CONTRACT.md
+│   └── commands/            # Commandes (ex-main/domain, #1880) : sport (poules, scores, tableau hors écran), checkIn, exportResults, settings (resolveSetting), files (dossiers de l'agent) ; CommandContext, CommandError. Pas de règle ici : elles sont dans src/shared/domain
 ├── mcp/                     # Serveur MCP intégré (#1880) : mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings, mcpTools (lecture), mcpWriteTools / mcpAdminTools / mcpSportTools (écriture sur autorisation) — docs/MCP.md
-├── domain/                  # Couche domaine (#1880) : sport (poules, scores, tableau hors écran), exportResults, settings (resolveSetting), files (dossiers de l'agent)
 ├── cliArgs.ts / batchImport.ts  # --headless, --batch-import manifeste.json [--dry-run], --mcp / --mcp-port=N / --mcp-write, --mcp-print-config, --mcp-new-token
 ├── privacySettings.ts       # Réglages RGPD <userData>/privacy-settings.json (noms sur le réseau, conservation) — docs/RGPD.md
 ├── bpmCrypto.ts             # Archives .bpm chiffrées (AES-256-GCM, scrypt)

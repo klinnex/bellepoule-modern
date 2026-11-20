@@ -13,7 +13,7 @@ import { handleMcpMessage } from './mcpServer';
 import type { McpWriteDeps } from './mcpWriteTools';
 import { runBatchImport } from '../batchImport';
 import { rowsToXlsx } from '../xlsxToCsv';
-import { remoteArenaCount } from '../domain/settings';
+import { remoteArenaCount } from '../engine/commands/settings';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,

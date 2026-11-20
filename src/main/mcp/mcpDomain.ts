@@ -5,17 +5,17 @@
  * Licensed under GPL-3.0
  */
 
-import { DomainError, type DomainContext } from '../domain/context';
+import { CommandError, type CommandContext } from '../engine/commands/context';
 import { McpToolError, type McpDeps } from './mcpTools';
 import type { McpWriteDeps } from './mcpWriteTools';
 
 type Args = Record<string, unknown>;
 
 /** Contexte de domaine en lecture */
-export const readDomain = (deps: McpDeps): DomainContext => ({ db: deps.db });
+export const readDomain = (deps: McpDeps): CommandContext => ({ db: deps.db });
 
 /** Écriture hors écran → événement competition:event de l'écran (MCP, IPC du contrat) */
-export function emitChangeVia(notify: McpWriteDeps['notify']): DomainContext['emitChange'] {
+export function emitChangeVia(notify: McpWriteDeps['notify']): CommandContext['emitChange'] {
   return ({ scope, competitionIds }) => {
     if (scope === 'referees') return;
     const type =
@@ -32,7 +32,7 @@ export function emitChangeVia(notify: McpWriteDeps['notify']): DomainContext['em
 }
 
 /** Contexte de domaine en écriture : l'écran ouvert est prévenu (competition:event) */
-export function writeDomain(deps: McpWriteDeps): DomainContext {
+export function writeDomain(deps: McpWriteDeps): CommandContext {
   return {
     db: deps.db,
     allowedRoots: deps.allowedRoots,
@@ -42,7 +42,7 @@ export function writeDomain(deps: McpWriteDeps): DomainContext {
 }
 
 const asToolError = (e: unknown): unknown =>
-  e instanceof DomainError ? new McpToolError(`${e.message} (${e.code})`) : e;
+  e instanceof CommandError ? new McpToolError(`${e.message} (${e.code})`) : e;
 
 /** Erreur métier du domaine → résultat `isError` lisible par l'agent */
 export function guard<T>(fn: () => T): T {

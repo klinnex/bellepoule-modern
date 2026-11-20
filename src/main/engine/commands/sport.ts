@@ -19,7 +19,7 @@ import {
   type Pool,
   type PoolRanking,
   type Referee,
-} from '../../shared/types';
+} from '../../../shared/types';
 import {
   applyFencerForfeit,
   applyScoreToPool,
@@ -29,31 +29,31 @@ import {
   computeOverallRankingFor,
   validatePoolScore,
   type PoolSpecialStatus,
-} from '../../shared/utils/poolOrchestration';
-import { propagatePoolReferee } from '../../shared/utils/refereeStats';
-import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
-import { isTieAtScoreLimit } from '../../shared/utils/matchEndValidation';
+} from '../../../shared/utils/poolOrchestration';
+import { propagatePoolReferee } from '../../../shared/utils/refereeStats';
+import { allowsVictoryTieBreak } from '../../../shared/utils/tieBreak';
+import { isTieAtScoreLimit } from '../../../shared/utils/matchEndValidation';
 import {
   getActiveFormula,
   resolveCompetitionSettings,
-} from '../../shared/utils/customFormulaSettings';
-import { getDefaultMaxScores } from '../../shared/utils/defaultMaxScores';
-import { specialStatusPatch } from '../../shared/utils/forfeit';
+} from '../../../shared/utils/customFormulaSettings';
+import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
+import { specialStatusPatch } from '../../../shared/utils/forfeit';
 import {
   buildTableauMatches,
   calculateFinalResults,
   getTableauSize,
   isTableauDone,
-} from '../../shared/domain/tableau/tableauCalculations';
+} from '../../../shared/domain/tableau/tableauCalculations';
 import {
   deriveFirstRound,
   propagateWinners,
   resetTableauMatch,
   resolveTableauWinner,
   type TableauMatch,
-} from '../../shared/domain/tableau/tableauTypes';
-import { computeEffectiveTableauRanking } from '../../shared/domain/ranking/tableauRanking';
-import { DomainError, type DomainContext } from './context';
+} from '../../../shared/domain/tableau/tableauTypes';
+import { computeEffectiveTableauRanking } from '../../../shared/domain/ranking/tableauRanking';
+import { CommandError, type CommandContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
 import { EVENT, recordEvents } from './eventLog';
 import { resolveSetting } from './settings';
@@ -100,23 +100,23 @@ export function effectiveSettings(comp: Competition) {
 /** Formats non pilotables hors écran : erreur explicite */
 function assertSupported(comp: Competition, session: Record<string, unknown>): void {
   if (comp.isTeamEvent) {
-    throw new DomainError('unsupported_format', 'Épreuve par équipes : à piloter à l’écran');
+    throw new CommandError('unsupported_format', 'Épreuve par équipes : à piloter à l’écran');
   }
   if (comp.settings?.specialMode) {
-    throw new DomainError('unsupported_format', 'Mode spécial (rapières) : à piloter à l’écran');
+    throw new CommandError('unsupported_format', 'Mode spécial (rapières) : à piloter à l’écran');
   }
   if (
     effectiveSettings(comp).poolRounds > 1 ||
     Number(session.currentPoolRound ?? 1) > 1 ||
     (Array.isArray(session.poolHistory) && session.poolHistory.length > 0)
   ) {
-    throw new DomainError('unsupported_format', 'Plusieurs tours de poules : à piloter à l’écran');
+    throw new CommandError('unsupported_format', 'Plusieurs tours de poules : à piloter à l’écran');
   }
 }
 
 /** Écrit l'état de session (fusion) et prévient l'écran, qui le relit */
 function writeSession(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   patch: Record<string, unknown>
 ): void {
@@ -135,7 +135,7 @@ function writeSession(
   ctx.db.saveSessionState(competitionId, next);
 }
 
-const emitSession = (ctx: DomainContext, competitionId: string) =>
+const emitSession = (ctx: CommandContext, competitionId: string) =>
   ctx.emitChange?.({ scope: 'session', competitionIds: [competitionId] });
 
 const sessionPools = (session: Record<string, unknown>): Pool[] =>
@@ -159,7 +159,7 @@ export interface GeneratePoolsOptions {
  * puis poules lancées (phase Poules). Pistes : poule n sur la piste n (salle / journée).
  */
 export function generatePools(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   options: GeneratePoolsOptions = {}
 ) {
@@ -169,22 +169,25 @@ export function generatePools(
   const existing = sessionPools(session);
   const played = existing.some(p => p.matches?.some(m => m.status === MatchStatus.FINISHED));
   if (played && !options.replace) {
-    throw new DomainError(
+    throw new CommandError(
       'pools_have_scores',
       'Des matchs de poule sont déjà joués : relancer avec replace=true pour les effacer'
     );
   }
   if (sessionTableau(session).length > 0 && !options.replace) {
-    throw new DomainError('bracket_exists', 'Le tableau est déjà construit : replace=true requis');
+    throw new CommandError('bracket_exists', 'Le tableau est déjà construit : replace=true requis');
   }
   const fencers = ctx.db
     .getFencersByCompetition(competitionId)
     .filter(f => f.status === FencerStatus.CHECKED_IN);
   const min = options.minPerPool ?? 5;
   const max = options.maxPerPool ?? 7;
-  if (min > max) throw new DomainError('invalid_pool_size', 'minPerPool > maxPerPool');
+  if (min > max) throw new CommandError('invalid_pool_size', 'minPerPool > maxPerPool');
   if (options.poolCount !== undefined && options.poolCount > Math.floor(fencers.length / 3)) {
-    throw new DomainError('invalid_pool_count', 'Trop de poules pour le nombre de tireurs pointés');
+    throw new CommandError(
+      'invalid_pool_count',
+      'Trop de poules pour le nombre de tireurs pointés'
+    );
   }
   let pools: Pool[];
   try {
@@ -197,7 +200,7 @@ export function generatePools(
       newId: uuidv4,
     });
   } catch (e) {
-    throw new DomainError('not_enough_fencers', (e as Error).message);
+    throw new CommandError('not_enough_fencers', (e as Error).message);
   }
   const strips = resolveSetting(ctx, 'stripCount', { competitionId });
   if (strips > 0) pools.forEach((p, i) => (p.strip = (i % strips) + 1));
@@ -275,7 +278,7 @@ export function chooseNeutralReferee(
  * replace), choisi parmi les arbitres pointés, hors club des tireurs de la poule.
  */
 export function assignPoolReferees(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   options: { replace?: boolean; includeUnchecked?: boolean; dryRun?: boolean } = {}
 ) {
@@ -284,13 +287,13 @@ export function assignPoolReferees(
   assertSupported(comp, session);
   const pools = sessionPools(session);
   if (pools.length === 0)
-    throw new DomainError('no_pools', 'Aucune poule : generate_pools d’abord');
+    throw new CommandError('no_pools', 'Aucune poule : generate_pools d’abord');
   const referees = ctx.db.getRefereesByCompetition(competitionId);
   const candidates = options.includeUnchecked
     ? referees
     : referees.filter(r => r.status !== 'unavailable');
   if (candidates.length === 0) {
-    throw new DomainError(
+    throw new CommandError(
       'no_referees',
       options.includeUnchecked ? 'Aucun arbitre dans l’épreuve' : 'Aucun arbitre pointé'
     );
@@ -366,7 +369,7 @@ const scoreNum = (s: unknown): number | null =>
 
 /** Matchs de poule et de tableau, avec leur identifiant pour record_score */
 export function listMatches(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   filter: { poolNumber?: number; state?: 'pending' | 'ready' | 'done' } = {}
 ): MatchListItem[] {
@@ -426,7 +429,7 @@ export interface RecordScoreInput {
 }
 
 /** Saisie d'un score, mêmes validations que l'écran ; poules et tableau */
-export function recordScore(ctx: DomainContext, competitionId: string, input: RecordScoreInput) {
+export function recordScore(ctx: CommandContext, competitionId: string, input: RecordScoreInput) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
   assertSupported(comp, session);
@@ -436,11 +439,11 @@ export function recordScore(ctx: DomainContext, competitionId: string, input: Re
   if (sessionTableau(session).some(m => m.id === input.matchId)) {
     return recordBracketScore(ctx, comp, session, input);
   }
-  throw new DomainError('match_not_found', `Match introuvable : ${input.matchId} (list_matches)`);
+  throw new CommandError('match_not_found', `Match introuvable : ${input.matchId} (list_matches)`);
 }
 
 function recordPoolScore(
-  ctx: DomainContext,
+  ctx: CommandContext,
   comp: Competition,
   session: Record<string, unknown>,
   pools: Pool[],
@@ -448,7 +451,7 @@ function recordPoolScore(
   input: RecordScoreInput
 ) {
   if (sessionTableau(session).length > 0) {
-    throw new DomainError('bracket_exists', 'Tableau déjà construit : score de poule figé');
+    throw new CommandError('bracket_exists', 'Tableau déjà construit : score de poule figé');
   }
   const pool = pools[poolIndex];
   const matchIndex = pool.matches.findIndex(m => m.id === input.matchId);
@@ -463,7 +466,7 @@ function recordPoolScore(
     isLaserSabre: isLaser(comp),
     tieByVictory: allowsVictoryTieBreak(comp.weapon),
   });
-  if (error) throw new DomainError(error, `Score refusé : ${error}`);
+  if (error) throw new CommandError(error, `Score refusé : ${error}`);
   const scores = buildMatchScores(
     input.scoreA,
     input.scoreB,
@@ -599,7 +602,7 @@ const ELIMINATED_STATUSES = new Set<string>([
   FencerStatus.ELIMINATED,
 ]);
 
-function persistTableau(ctx: DomainContext, comp: Competition, matches: TableauMatch[]): void {
+function persistTableau(ctx: CommandContext, comp: Competition, matches: TableauMatch[]): void {
   const audit = { changedBy: 'mcp', reason: 'mcp_entry' };
   const maxScore = effectiveSettings(comp).tableMaxScore;
   ctx.db.upsertMultipleTableauMatches(
@@ -627,7 +630,7 @@ function persistTableau(ctx: DomainContext, comp: Competition, matches: TableauM
  * abandons, forfaits et exclus écartés), avec ou sans petite finale.
  */
 export function buildBracket(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   options: { thirdPlaceMatch?: boolean; replace?: boolean; dryRun?: boolean } = {}
 ) {
@@ -635,14 +638,14 @@ export function buildBracket(
   const session = readSession(ctx, competitionId);
   assertSupported(comp, session);
   if (comp.settings?.playAllPositions) {
-    throw new DomainError(
+    throw new CommandError(
       'unsupported_format',
       '« Tirer toutes les places » : à piloter à l’écran'
     );
   }
   const eff = effectiveSettings(comp);
   if (!eff.hasDirectElimination) {
-    throw new DomainError('no_direct_elimination', 'Épreuve sans élimination directe');
+    throw new CommandError('no_direct_elimination', 'Épreuve sans élimination directe');
   }
   const pools = sessionPools(session);
   if (
@@ -650,11 +653,11 @@ export function buildBracket(
     (pools.length === 0 ||
       !pools.every(p => p.matches.every(m => m.status === MatchStatus.FINISHED)))
   ) {
-    throw new DomainError('pools_not_complete', 'Toutes les poules doivent être terminées');
+    throw new CommandError('pools_not_complete', 'Toutes les poules doivent être terminées');
   }
   const existing = sessionTableau(session);
   if (existing.some(m => m.winner && !m.isBye) && !options.replace) {
-    throw new DomainError(
+    throw new CommandError(
       'bracket_has_scores',
       'Des matchs du tableau sont joués : replace=true requis'
     );
@@ -665,7 +668,7 @@ export function buildBracket(
     .filter(r => !ELIMINATED_STATUSES.has(r.fencer.status))
     .sort((a, b) => a.rank - b.rank);
   if (qualified.length < 2) {
-    throw new DomainError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');
+    throw new CommandError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');
   }
   const thirdPlace = options.thirdPlaceMatch ?? eff.thirdPlaceMatch;
   const size = getTableauSize(qualified.length);
@@ -703,13 +706,13 @@ export function buildBracket(
 }
 
 function recordBracketScore(
-  ctx: DomainContext,
+  ctx: CommandContext,
   comp: Competition,
   session: Record<string, unknown>,
   input: RecordScoreInput
 ) {
   if (comp.settings?.playAllPositions) {
-    throw new DomainError(
+    throw new CommandError(
       'unsupported_format',
       '« Tirer toutes les places » : à piloter à l’écran'
     );
@@ -717,33 +720,33 @@ function recordBracketScore(
   let matches = sessionTableau(session).map(m => ({ ...m }));
   const target = matches.find(m => m.id === input.matchId)!;
   if (target.isBye || !target.fencerA || !target.fencerB) {
-    throw new DomainError('match_not_ready', 'Match incomplet (tireur attendu) ou exempt');
+    throw new CommandError('match_not_ready', 'Match incomplet (tireur attendu) ou exempt');
   }
   if (target.winner) {
     // Correction : possible tant que le vainqueur n'a pas tiré le tour suivant
     const reset = resetTableauMatch(matches, target.id);
-    if (!reset) throw new DomainError('next_match_played', 'Le tour suivant est déjà joué');
+    if (!reset) throw new CommandError('next_match_played', 'Le tour suivant est déjà joué');
     matches = reset;
   }
   const { scoreA, scoreB } = input;
   if (![scoreA, scoreB].every(s => Number.isInteger(s) && s >= 0)) {
-    throw new DomainError('score_invalid', 'Score refusé : score_invalid');
+    throw new CommandError('score_invalid', 'Score refusé : score_invalid');
   }
   const max = effectiveSettings(comp).tableMaxScore;
   if (!input.specialStatus && max > 0 && (scoreA > max || scoreB > max)) {
-    throw new DomainError('score_above_max', `Score refusé : ${max} touches maximum`);
+    throw new CommandError('score_above_max', `Score refusé : ${max} touches maximum`);
   }
   if (!input.specialStatus && !isLaser(comp) && isTieAtScoreLimit(scoreA, scoreB, max)) {
-    throw new DomainError('tie_at_max', `Score refusé : égalité impossible à ${max} touches`);
+    throw new CommandError('tie_at_max', `Score refusé : égalité impossible à ${max} touches`);
   }
   if (scoreA === scoreB && !input.winner) {
-    throw new DomainError(
+    throw new CommandError(
       'draw_needs_winner',
       'Égalité : préciser le vainqueur (winner), pas de match nul au tableau'
     );
   }
   if (input.specialStatus && !input.winner) {
-    throw new DomainError('winner_required', 'Abandon, forfait ou exclusion : préciser winner');
+    throw new CommandError('winner_required', 'Abandon, forfait ou exclusion : préciser winner');
   }
   const m = matches.find(x => x.id === input.matchId)!;
   const tieWinner = input.winner ?? null;
@@ -752,11 +755,11 @@ function recordBracketScore(
       ? m.fencerA
       : m.fencerB
     : resolveTableauWinner(m.fencerA, m.fencerB, scoreA, scoreB, tieWinner);
-  if (!winner) throw new DomainError('winner_unresolved', 'Vainqueur indéterminé');
+  if (!winner) throw new CommandError('winner_unresolved', 'Vainqueur indéterminé');
   if (!input.specialStatus && input.winner && scoreA !== scoreB) {
     const expected = scoreA > scoreB ? 'A' : 'B';
     if (expected !== input.winner) {
-      throw new DomainError('winner_contradicts_score', 'Vainqueur contraire au score');
+      throw new CommandError('winner_contradicts_score', 'Vainqueur contraire au score');
     }
   }
   const loser = winner.id === m.fencerA!.id ? m.fencerB! : m.fencerA!;
@@ -817,7 +820,7 @@ function recordBracketScore(
 // ─── Résultats ──────────────────────────────────────────────────────────────
 
 /** Données de résultats d'une épreuve (export) */
-export function resultsData(ctx: DomainContext, competitionId: string) {
+export function resultsData(ctx: CommandContext, competitionId: string) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
   const fencers: Fencer[] = ctx.db.getFencersByCompetition(competitionId);

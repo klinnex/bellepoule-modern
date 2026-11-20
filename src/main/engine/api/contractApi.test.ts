@@ -3,16 +3,16 @@
  * même validation et la même erreur ; abonnements ; outils MCP générés.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { FencerStatus, type Fencer } from '../../shared/types';
-import { contract } from '../../shared/api/contract';
-import { ApiError } from '../../shared/api/client';
+import { FencerStatus, type Fencer } from '../../../shared/types';
+import { contract } from '../../../shared/api/contract';
+import { ApiError } from '../../../shared/api/client';
 import { invoke, subscribe } from './engine';
 import { invokeEnvelope } from './ipcAdapter';
 import { CONTRACT_MCP_TOOLS } from './mcpAdapter';
 import { publishCompetitionEvent } from './events';
-import { handleMcpMessage, WRITE_TOOLS } from '../mcp/mcpServer';
-import type { McpWriteDeps } from '../mcp/mcpWriteTools';
-import type { DomainContext } from '../domain/context';
+import { handleMcpMessage, WRITE_TOOLS } from '../../mcp/mcpServer';
+import type { McpWriteDeps } from '../../mcp/mcpWriteTools';
+import type { CommandContext } from '../commands/context';
 
 function setup() {
   const fencers = [
@@ -27,7 +27,7 @@ function setup() {
   };
   const notify = vi.fn();
   const emitChange = vi.fn();
-  const ctx = { db, emitChange } as unknown as DomainContext;
+  const ctx = { db, emitChange } as unknown as CommandContext;
   const deps = {
     db,
     notify,
@@ -185,7 +185,7 @@ describe('journal par épreuve (#1980)', () => {
       );
     });
     Object.assign(base.db, { eventLog, updateFencer });
-    const ctx = { ...base.ctx, actor: { source: 'screen' } } as DomainContext;
+    const ctx = { ...base.ctx, actor: { source: 'screen' } } as CommandContext;
     return { ...base, ctx, rows };
   }
 

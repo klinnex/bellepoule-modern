@@ -6,22 +6,22 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { DatabaseManager } from '../../database';
-import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
-import type { DomainChange, DomainContext } from './context';
+import { DatabaseManager } from '../../../database';
+import { hasNodeSqlite } from '../../../database/testing/nodeSqliteDatabase';
+import type { DomainChange, CommandContext } from './context';
 import { resolveOutputPath, writeOutputFile } from './files';
 import { resolveSetting, upsertVenue } from './settings';
-import { ALL_MIGRATIONS } from '../../database/migrations/migrations';
-import { NodeSqliteDatabase } from '../../database/testing/nodeSqliteDatabase';
+import { ALL_MIGRATIONS } from '../../../database/migrations/migrations';
+import { NodeSqliteDatabase } from '../../../database/testing/nodeSqliteDatabase';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
-  default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
+  default: (await import('../../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
 }));
 
 const d = hasNodeSqlite ? describe : describe.skip;
 
 let db: DatabaseManager;
-let ctx: DomainContext;
+let ctx: CommandContext;
 let changes: DomainChange[];
 let dir: string;
 

@@ -4,9 +4,9 @@
  * repli sur les tables de poules si l'état de session n'a pas de poules.
  * Licensed under GPL-3.0
  */
-import type { Fencer, Pool, PoolRanking } from '../../shared/types';
-import { calculatePoolRanking } from '../../shared/utils/poolCalculations';
-import type { DomainContext } from './context';
+import type { Fencer, Pool, PoolRanking } from '../../../shared/types';
+import { calculatePoolRanking } from '../../../shared/utils/poolCalculations';
+import type { CommandContext } from './context';
 import { getCompetitionOrThrow, phaseName } from './competitions';
 
 /** Tireur réduit à l'identité utile à un agent */
@@ -48,13 +48,13 @@ const rankingRow = (r: Partial<PoolRanking>): RankingRow => ({
 });
 
 /** État de session brut d'une épreuve (objet vide si jamais ouverte) */
-export function readSession(ctx: DomainContext, competitionId: string): Record<string, unknown> {
+export function readSession(ctx: CommandContext, competitionId: string): Record<string, unknown> {
   const s = ctx.db.getSessionState(competitionId);
   return s && typeof s === 'object' ? (s as Record<string, unknown>) : {};
 }
 
 /** Poules de l'épreuve : état de session, sinon tables (phase de poules) */
-export function readPools(ctx: DomainContext, competitionId: string): Pool[] {
+export function readPools(ctx: CommandContext, competitionId: string): Pool[] {
   const session = readSession(ctx, competitionId);
   if (Array.isArray(session.pools) && session.pools.length > 0) return session.pools as Pool[];
   const phase = ctx.db.getPhasesByCompetition(competitionId).find(p => p.type === 'pool');
@@ -99,7 +99,7 @@ export function summarizePool(pool: Pool): PoolSummary {
 
 /** Classement d'une poule, ou classement général après poules */
 export function getPoolRanking(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   poolNumber?: number
 ): { phase: string | null; pools: PoolSummary[]; overallRanking: RankingRow[] } {
@@ -166,7 +166,7 @@ export function bracketMatchView(m: RawTableauMatch): BracketMatchView {
 
 /** Tableau d'élimination directe (état de session) */
 export function getBracket(
-  ctx: DomainContext,
+  ctx: CommandContext,
   competitionId: string,
   round?: number
 ): { phase: string | null; size: number; matches: BracketMatchView[]; finalResults: RankingRow[] } {

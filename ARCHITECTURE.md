@@ -222,7 +222,7 @@ Décisions : [docs/adr/](docs/adr/README.md). Ce paragraphe en est le résumé o
 | Couche | Dossier | Contient | N'importe pas |
 |---|---|---|---|
 | Interface | `src/renderer`, `src/features` ([ADR-0004](docs/adr/0004-features-couche-interface.md)), `src/remote` | Vues, état d'écran, appels au client d'API (`BpmClient`) | `src/database`, `src/main` |
-| Moteur | `src/main` (commandes : `src/main/domain`, renommé `src/main/engine/commands` au lot 3, [ADR-0003](docs/adr/0003-main-domain-couche-application.md)) | Contrat d'API, commandes, serveurs, pilotes | `src/renderer`, `src/features` |
+| Moteur | `src/main` (contrat : `src/main/engine/api` ; commandes : `src/main/engine/commands`, ex-`src/main/domain`, [ADR-0003](docs/adr/0003-main-domain-couche-application.md)) | Contrat d'API, commandes, serveurs, pilotes | `src/renderer`, `src/features` |
 | Domaine pur | `src/shared/domain` ([ADR-0002](docs/adr/0002-couches-et-dependances.md)) | Règles : tirage, placement, classement, fin de match, cartons, qualification, formule | React, Electron, `src/database`, Node, date système, hasard non injecté |
 | Persistance | `src/database` | Dépôts, migrations ([ADR-0011](docs/adr/0011-migrations-schema-3-0.md)) | `src/renderer`, `src/features`, `src/main` |
 
@@ -293,11 +293,11 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 | `components/KioskDisplay.tsx` | Vue + règle | Podium, classement des éliminés, nom de tour | `shared/domain/tableau` | `tableauCalculations.calculateFinalResults`, `getRoundName` | tablettes | S | 3 |
 | `hooks/tableauView/useTableauViewState.tsx` | État + règle | Répartition des pistes du tableau | `shared/domain/planning` | `shared/utils/stripRange`, `poolStrips`, `main/remote/stripPlan.ts` | #1958, tablettes | S | [ADR-0015](docs/adr/0015-plan-des-pistes-moteur.md) |
 | `hooks/useStripAvailability.ts` | État | Pistes indisponibles, stockées par poste (localStorage) | donnée du moteur (commande `setStripAvailability`) | `main/remote/stripPlan.ts` (copie poussée par l'écran) | #1958, #1878, tablettes | S | ADR-0015 |
-| `hooks/useFencerManagement.ts` | Orchestration | Pointage (déjà `checkIn` pour le pointage groupé), import de classement | commande `checkIn` | `main/domain/checkIn.ts` | MCP, tablettes | S | rattrapage #2020 |
+| `hooks/useFencerManagement.ts` | Orchestration | Pointage (déjà `checkIn` pour le pointage groupé), import de classement | commande `checkIn` | `main/engine/commands/checkIn.ts` | MCP, tablettes | S | rattrapage #2020 |
 | `hooks/useSplitGroups.ts` | Orchestration | Scission d'une épreuve (`currentPhase: 3` en dur) | commande `splitCompetition` | `shared/utils/splitCompetition` | #1948, MCP | S | 4 |
 | `hooks/useCompetitionImport.ts` | Orchestration | Import d'arbitres (dédoublonnage), import de classement | commande `importReferees` | `shared/utils/personIdentity` | #1959, MCP | S | après ADR-0008 |
-| `hooks/useCompetitionTabs.ts` | Orchestration | Création, suppression d'épreuve | commande `createCompetition` | `main/domain/competitions.ts` (lecture) | MCP | S | après ADR-0008 |
-| `hooks/useExport.ts` | Orchestration | Export des résultats, QR des pistes | commande `exportResults` | `main/domain/exportResults.ts` | MCP | S | après ADR-0008 |
+| `hooks/useCompetitionTabs.ts` | Orchestration | Création, suppression d'épreuve | commande `createCompetition` | `main/engine/commands/competitions.ts` (lecture) | MCP | S | après ADR-0008 |
+| `hooks/useExport.ts` | Orchestration | Export des résultats, QR des pistes | commande `exportResults` | `main/engine/commands/exportResults.ts` | MCP | S | après ADR-0008 |
 | `components/QuestPhaseView.tsx` | Vue + orchestration | Lancement du Tour Quest | commande `launchQuest` | `shared/utils/questScheduler` | #1948 | S | 4 |
 | `services/blackCardReport.ts` | Orchestration + règle | Rapport des cartons noirs | requête du contrat ; règle → `shared/domain/cards` | `shared/utils/blackCardRanking.isBlackCarded` | MCP | S | rattrapage #2020 |
 | `services/federalCreation.ts` | Orchestration | Création depuis les fichiers fédéraux | commande `createFromFederalFiles` | `main/federalFiles.ts`, `main/batchImport.ts` | MCP | S | après ADR-0008 |
@@ -311,7 +311,7 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 
 | Règle | Endroits | Risque |
 |---|---|---|
-| Tireur inactif (abandon, forfait, exclusion) | `PoolView.tsx`, `pool/PoolMatchList.tsx`, `pool/PoolScoreMatrix.tsx`, `CompetitionView.tsx`, `usePoolManagement.ts`, `useTableauViewScoring.ts`, `main/domain/sport.ts` | « Poules terminées » diverge : l'écran compte un match d'un tireur inactif comme joué, le MCP exige `FINISHED` |
+| Tireur inactif (abandon, forfait, exclusion) | `PoolView.tsx`, `pool/PoolMatchList.tsx`, `pool/PoolScoreMatrix.tsx`, `CompetitionView.tsx`, `usePoolManagement.ts`, `useTableauViewScoring.ts`, `main/engine/commands/sport.ts` | « Poules terminées » diverge : l'écran compte un match d'un tireur inactif comme joué, le MCP exige `FINISHED` |
 | Exclusion par carton noir | `PoolRankingView.tsx`, `ResultsView.tsx`, `services/blackCardReport.ts`, `shared/utils/pdfExport/resultsPdf.ts` (canonique : `shared/utils/blackCardRanking.ts`) | Classement différent entre écran et PDF |
 | Validation d'un score de poule | `usePoolViewActions.ts` (écran), `poolOrchestration.validatePoolScore` (MCP) | Un score refusé à l'écran peut être accepté par le MCP |
 | Vainqueur d'un match de tableau | `tableauTypes.ts` (écran, MCP), `main/remote/routes/matchRoutes.ts` (tablettes), `useRemoteScoreSync.ts`, `usePoolManagement.ts` | Vainqueur différent selon la source du score |

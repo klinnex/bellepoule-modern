@@ -103,7 +103,7 @@ Chaque outil accepte `dryRun: true` (rapport sans écriture). Toute écriture pr
 ## Orchestration sportive (lot 3)
 
 Mêmes fonctions que l'écran (`src/shared/utils/poolOrchestration.ts`, calcul du tableau), exécutées
-dans le main (`src/main/domain/sport.ts`). Chaque écriture met à jour les tables **et** l'état de
+dans le main (`src/main/engine/commands/sport.ts`). Chaque écriture met à jour les tables **et** l'état de
 session, puis prévient l'écran (`competition:event` : `session:changed`), qui le relit. L'état de
 session porte une révision : une sauvegarde de l'écran faite sur un état périmé est refusée, puis relue.
 
@@ -164,7 +164,7 @@ encore envoyée à l'écran du club après une écriture de l'agent.
 | `src/main/mcp/mcpAdminTools.ts` | Paramétrage, salles, arbitres, serveur distant, suppression |
 | `src/main/mcp/mcpSportTools.ts` | Orchestration sportive (lot 3) |
 | `src/main/mcp/mcpClubTools.ts` | Séances du Mode Club |
-| `src/main/domain/` | Couche domaine : `sport.ts` (poules, scores, tableau), `exportResults.ts`, `settings.ts`, `files.ts` |
+| `src/main/engine/commands/` | Commandes du moteur (ADR-0003, ex-`src/main/domain`) : `sport.ts` (poules, scores, tableau), `exportResults.ts`, `settings.ts`, `files.ts` |
 | `src/main/batchImport.ts`, `src/main/cliArgs.ts` | `--batch-import`, `--mcp*` |
 | `src/main/mcp/mcpServer.ts` | Serveur HTTP JSON-RPC, jeton, contrôle Host / Origin |
 | `src/main/mcp/mcpSettings.ts` | Réglages et jeton chiffré |
