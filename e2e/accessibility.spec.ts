@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { settleAnimations } from './support/settle';
 
 test.describe('Accessibility', () => {
   test('should have proper ARIA labels', async ({ page }) => {
@@ -68,6 +69,7 @@ test.describe('Accessibility', () => {
     test(`should pass axe color-contrast (${scheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto('/');
+      await settleAnimations(page);
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
         .withRules(['color-contrast'])
@@ -85,6 +87,7 @@ test.describe('Accessibility', () => {
       test.skip(!(await create.isVisible().catch(() => false)), 'bouton absent');
       await create.click();
       await page.waitForSelector('[role="dialog"], .modal', { timeout: 5000 });
+      await settleAnimations(page);
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
         .withRules(['color-contrast'])
@@ -95,6 +98,7 @@ test.describe('Accessibility', () => {
 
   test('should have no critical axe violations', async ({ page }) => {
     await page.goto('/');
+    await settleAnimations(page);
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
     const critical = results.violations.filter(v => v.impact === 'critical');
     expect(critical.map(v => `${v.id}: ${v.nodes.length}`)).toEqual([]);

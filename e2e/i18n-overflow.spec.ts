@@ -1,10 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settleAnimations } from './support/settle';
 
 // Débordements de libellés par langue (#1543) : accueil à 1024x768 (taille minimale
 // de la fenêtre) et modale « nouvelle compétition », avec et sans pseudo-localisation (+40 %).
 const LANGUAGES = ['fr', 'en', 'de', 'ru', 'br', 'ca', 'es', 'it', 'pt', 'zh-HK'];
 
 async function expectNoOverflow(page: Page) {
+  await settleAnimations(page);
   const horizontal = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
