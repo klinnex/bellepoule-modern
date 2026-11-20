@@ -6,7 +6,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { usePenaltyStore } from './usePenaltyStore';
-import { CardType, PenaltyReason, DEFAULT_PENALTY_CONFIG } from '../types/penalty.types';
+import {
+  CardType,
+  PenaltyReason,
+  DEFAULT_PENALTY_CONFIG,
+} from '../../../shared/domain/penalties/penalty.types';
 
 const reset = () =>
   usePenaltyStore.setState({ penalties: [], config: DEFAULT_PENALTY_CONFIG, error: null });

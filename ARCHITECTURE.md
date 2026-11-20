@@ -84,10 +84,9 @@ bellepoule-modern/
 │   │   ├── latefencers/          # useLateFencerStore
 │   │   ├── matchAuditLog/        # useMatchAuditStore
 │   │   ├── pdfTemplates/         # usePdfTemplateStore
-│   │   ├── penalties/            # penaltyUtils, usePenaltyStore
+│   │   ├── penalties/            # penaltyUtils, usePenaltyStore (types : shared/domain/penalties)
 │   │   ├── pools/                # poolCalculator, poolService, usePoolStore
-│   │   └── teams/                # teamCalculations, teamBracketService, laserArena*,
-│   │                             # teamCardEscalation, useTeamStore
+│   │   └── teams/                # useTeamStore (règles : shared/domain/teams, #1979)
 │   │
 │   ├── shared/                   # Code commun main/renderer
 │   │   ├── types/                # index.ts (domaine), remote.ts, preload.ts, pdfTemplate.types.ts
@@ -247,7 +246,7 @@ contrat ([ADR-0005](docs/adr/0005-journal-un-fait-un-chemin.md), [ADR-0008](docs
 | Compteur | Valeur | Fichiers |
 |---|---|---|
 | `rendererImports` (main, shared, database → renderer) | ~~1~~ **0** (lot 3) | `main/domain/sport.ts` importait le tableau et le classement du renderer |
-| `featuresImports` (main, shared, database → features) | 4 | `main/remote/teamArena.ts`, `main/remote/teamRelayDevice.ts`, `shared/utils/pdfExport/teamPdf.ts`, `shared/utils/cardSystem.ts` |
+| `featuresImports` (main, shared, database → features) | ~~4~~ **0** (lot 3) | `teamArena.ts`, `teamRelayDevice.ts`, `teamPdf.ts`, `cardSystem.ts` importaient les règles d'équipes et de pénalités, parties dans `shared/domain/teams` et `shared/domain/penalties` |
 | `electronApiCalls` (renderer hors `src/renderer/api`, et features → `window.electronAPI`) | 126 | 117 dans `src/renderer`, 9 dans `src/features` |
 
 ### 9.2 Classement du renderer
@@ -284,7 +283,7 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 | `hooks/useCompetitionPhases.ts` | État + règle | Ordre des phases par format, déverrouillages | `shared/domain/formula` | `sport.ts` (`PHASE`, `PHASE_LABEL`) ; `hooks/useCompetitionSession.ts` (`PHASE_NUMBERS`) | MCP, #1948 | M | 3 |
 | `components/RefereeManager.tsx` | Vue + orchestration | Affectation automatique et manuelle, conflit de club | commandes `autoAssignReferees`, `assignReferee` | 3 moteurs : `shared/utils/refereeAutoAssign`, `shared/utils/refereeStats.autoAssignReferees`, `shared/services/refereeManager` ; conflit recodé (`refereeMatching.neutralityConflicts` existe) | #1959, #1958, MCP | M | [ADR-0014](docs/adr/0014-affectation-arbitres-moteur-unique.md) |
 | `hooks/useCompetitionReferees.ts` | Orchestration | Arbitre de poule propagé aux matchs | commande `assignPoolReferees` | `sport.ts` assignPoolReferees ; `refereeStats.propagatePoolReferee` | #1959, MCP | S | ADR-0014 |
-| `components/TeamManagerView.tsx` | Vue + orchestration | Poule d'équipes, ordre de relais, palier de relais, arène Laser | commandes `generateTeamPool`, `scoreTeamBout` ; règle → `shared/domain/teams` | `features/teams/utils/teamRelayLive.relayCapFor` (tablettes), `teamCalculations.getRelayCap` | tablettes, MCP | L | 3 + 5 |
+| `components/TeamManagerView.tsx` | Vue + orchestration | Poule d'équipes, ordre de relais, palier de relais, arène Laser | commandes `generateTeamPool`, `scoreTeamBout` ; règle → `shared/domain/teams` | `shared/domain/teams/teamRelayLive.relayCapFor` (tablettes), `teamCalculations.getRelayCap` | tablettes, MCP | L | 3 + 5 |
 | `hooks/competitionView/usePoolCorrection.tsx` | Orchestration | Correction de score après tirage du tableau | commande `correctPoolScore` | `shared/utils/poolCorrectionImpact` | MCP, tablettes | M | 4 |
 | `hooks/useMatchDbSync.ts` | Orchestration | Écriture du tableau | commande `generateTableau` | `sport.ts` (écriture quasi identique) | MCP | XS | 4 |
 | `components/poolPersistence.ts` | Orchestration | Écriture des poules | commande `generatePools` | `sport.ts` generatePools | MCP | XS | 4 |

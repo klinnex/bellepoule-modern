@@ -8,7 +8,7 @@
  * Licensed under GPL-3.0
  */
 
-import { TeamMatchRow, TeamRow } from '../types/team.types';
+import { TeamMatchRow, TeamRow } from './team.types';
 
 export interface LaserArenaBoutCap {
   maxTouches: number;

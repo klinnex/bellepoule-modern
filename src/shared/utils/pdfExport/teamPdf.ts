@@ -4,17 +4,17 @@
  * Licensed under GPL-3.0
  */
 
-import type { TeamMatchRow, TeamRow } from '../../../features/teams/types/team.types';
+import type { TeamMatchRow, TeamRow } from '../../domain/teams/team.types';
 import {
   calculateTableSize,
   calculateTeamPoolRanking,
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
-} from '../../../features/teams/utils/teamCalculations';
+} from '../../domain/teams/teamCalculations';
 import {
   calculateLaserArenaMatchScore,
   calculateLaserArenaPoolRanking,
-} from '../../../features/teams/utils/laserArenaCalculations';
+} from '../../domain/teams/laserArenaCalculations';
 import { savePDF, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
 import { exportBookPDF, type BookItem } from './bookPdf';

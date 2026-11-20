@@ -13,10 +13,10 @@ import {
   TeamMatchRow,
   TeamBoutRow,
   TeamMatchCardRow,
-} from '../../features/teams/types/team.types';
-import { TeamTargetRule, getRelayCap } from '../../features/teams/utils/teamCalculations';
-import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
-import { determineTeamCardEscalation } from '../../features/teams/utils/teamCardEscalation';
+} from '../../shared/domain/teams/team.types';
+import { TeamTargetRule, getRelayCap } from '../../shared/domain/teams/teamCalculations';
+import { LaserArenaBoutCap } from '../../shared/domain/teams/laserArenaCalculations';
+import { determineTeamCardEscalation } from '../../shared/domain/teams/teamCardEscalation';
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../contexts/TranslationContext';

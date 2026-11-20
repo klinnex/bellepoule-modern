@@ -6,9 +6,8 @@
  * Licensed under GPL-3.0
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import { calculateTableSize, generateSeedingChart } from '../../../shared/utils/tableCalculations';
-import { Team } from '../types/team.types';
+import { calculateTableSize, generateSeedingChart } from '../../utils/tableCalculations';
+import { Team } from './team.types';
 
 export interface TeamTableNode {
   id: string;
@@ -48,7 +47,8 @@ export function placeTeamsInTable(teams: Team[], tableSize: number): (Team | nul
  * Construit l'arbre complet du tableau équipes (tous tours), en propageant
  * automatiquement les exempts (byes) round par round.
  */
-export function generateTeamBracket(teams: Team[]): TeamTableNode[] {
+/** `newId` : générateur d'identifiants injecté (domaine pur, docs/adr/0002), ex. uuid v4 */
+export function generateTeamBracket(teams: Team[], newId: () => string): TeamTableNode[] {
   const tableSize = calculateTableSize(teams.length);
   const placements = placeTeamsInTable(teams, tableSize);
   const nodes: TeamTableNode[] = [];
@@ -60,7 +60,7 @@ export function generateTeamBracket(teams: Team[]): TeamTableNode[] {
     const isBye = !teamA || !teamB;
 
     const node: TeamTableNode = {
-      id: uuidv4(),
+      id: newId(),
       position: i,
       round: tableSize / 2,
       teamA: teamA ?? undefined,
@@ -87,7 +87,7 @@ export function generateTeamBracket(teams: Team[]): TeamTableNode[] {
       const parentB = nodes[previousRoundStart + i * 2 + 1];
 
       const node: TeamTableNode = {
-        id: uuidv4(),
+        id: newId(),
         position: i,
         round: currentRound,
         parentA: parentA.id,

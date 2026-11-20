@@ -18,7 +18,7 @@ import {
   CARD_GROUP_LABELS,
 } from './cardSystem';
 import { Card, CardGroup, CardReason, Weapon } from '../types';
-import { CardType } from '../../features/penalties/types/penalty.types';
+import { CardType } from '../domain/penalties/penalty.types';
 
 // ============================================================================
 // Helper pour créer des cartons de test

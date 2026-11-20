@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { determineCardType, isFencerExcluded } from '../../shared/utils/cardSystem';
 import { Card, CardGroup, CardReason } from '../../shared/types';
-import { CardType } from './types/penalty.types';
+import { CardType } from '../../shared/domain/penalties/penalty.types';
 import {
   getPenaltyDescription,
   getPenaltyColor,
   validatePenalty,
   getCardTypeLabel,
 } from './utils/penaltyUtils';
-import { PenaltyReason } from './types/penalty.types';
+import { PenaltyReason } from '../../shared/domain/penalties/penalty.types';
 
 // ============================================================================
 // Helpers

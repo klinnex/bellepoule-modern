@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { determineTeamCardEscalation, countTeamYellowCards } from './teamCardEscalation';
-import { TeamMatchCardRow } from '../types/team.types';
+import { TeamMatchCardRow } from './team.types';
 
 const card = (overrides: Partial<TeamMatchCardRow> = {}): TeamMatchCardRow => ({
   id: overrides.id ?? 'c',

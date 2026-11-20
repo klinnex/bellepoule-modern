@@ -8,7 +8,7 @@
  * Licensed under GPL-3.0
  */
 
-import { TeamRow } from '../types/team.types';
+import { TeamRow } from './team.types';
 
 export interface LaserArenaScheduleSlot {
   pool: string; // 'A' | 'B' | 'C'

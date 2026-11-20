@@ -14,14 +14,14 @@ import {
   TeamMatchRow,
   TeamBoutRow,
   TeamMatchCardRow,
-} from '../../features/teams/types/team.types';
+} from '../../shared/domain/teams/team.types';
 import {
   TeamTargetRule,
   calculateTableSize,
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
-} from '../../features/teams/utils/teamCalculations';
-import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
+} from '../../shared/domain/teams/teamCalculations';
+import { LaserArenaBoutCap } from '../../shared/domain/teams/laserArenaCalculations';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
 import { useTranslation } from '../contexts/TranslationContext';
 

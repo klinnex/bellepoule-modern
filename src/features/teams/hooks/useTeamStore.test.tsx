@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useTeamStore } from './useTeamStore';
-import type { Team, TeamMatch, TeamBout } from '../types/team.types';
+import type { Team, TeamMatch, TeamBout } from '../../../shared/domain/teams/team.types';
 
 const reset = () =>
   useTeamStore.setState({ teams: [], matches: [], pools: [], currentMatch: null, error: null });

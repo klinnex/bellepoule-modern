@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { applyRematchAvoidanceSwap, buildPoolPairHistory } from './laserArenaBracketRules';
 import { calculateTableSize, placeRankedTeamsInTable } from './teamCalculations';
-import { TeamRow, TeamMatchRow } from '../types/team.types';
+import { TeamRow, TeamMatchRow } from './team.types';
 
 const makeTeams = (count: number): TeamRow[] =>
   Array.from({ length: count }, (_, i) => ({

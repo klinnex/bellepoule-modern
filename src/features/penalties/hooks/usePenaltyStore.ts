@@ -17,7 +17,7 @@ import {
   CreatePenaltyDTO,
   DEFAULT_PENALTY_CONFIG,
   PenaltyConfig,
-} from '../types/penalty.types';
+} from '../../../shared/domain/penalties/penalty.types';
 import { createDebouncedJSONStorage } from '../../../shared/utils/debouncedStorage';
 
 interface PenaltyState {

@@ -16,7 +16,7 @@ export type {
   PenaltyReason,
   CreatePenaltyDTO,
   PenaltyConfig,
-} from './types/penalty.types';
+} from '../../shared/domain/penalties/penalty.types';
 
 // Utils
 export { getPenaltyDescription, validatePenalty, getPenaltyColor } from './utils/penaltyUtils';

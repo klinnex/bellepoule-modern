@@ -19,8 +19,8 @@ import {
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
 } from './teamCalculations';
-import { Team, TeamFencer, TeamMatch, TeamBout, TeamRow, TeamMatchRow } from '../types/team.types';
-import { Weapon } from '../../../shared/types';
+import { Team, TeamFencer, TeamMatch, TeamBout, TeamRow, TeamMatchRow } from './team.types';
+import { Weapon } from '../../types';
 
 const tf = (id: string, order: number, isReserve = false): TeamFencer =>
   ({ id, lastName: id, firstName: id, teamOrder: order, isReserve }) as unknown as TeamFencer;
@@ -40,7 +40,7 @@ const teamB = () => team('B', [tf('b1', 1), tf('b2', 2), tf('b3', 3)]);
 
 describe('generateRelayBouts', () => {
   it('génère 9 relais dans l’ordre standard', () => {
-    const bouts = generateRelayBouts(teamA(), teamB());
+    const bouts = generateRelayBouts(teamA(), teamB(), 5, undefined, 1);
     expect(bouts).toHaveLength(9);
     expect(bouts[0].fencerA.id).toBe('a1');
     expect(bouts[0].fencerB.id).toBe('b1');
@@ -51,13 +51,13 @@ describe('generateRelayBouts', () => {
 
   it('ignore les réservistes et trie par teamOrder', () => {
     const a = team('A', [tf('a3', 3), tf('a1', 1), tf('a2', 2), tf('aR', 4, true)]);
-    const bouts = generateRelayBouts(a, teamB());
+    const bouts = generateRelayBouts(a, teamB(), 5, undefined, 1);
     expect(bouts[0].fencerA.id).toBe('a1');
   });
 
   it('lève une erreur si moins de 3 titulaires', () => {
     const short = team('A', [tf('a1', 1), tf('a2', 2)]);
-    expect(() => generateRelayBouts(short, teamB())).toThrow();
+    expect(() => generateRelayBouts(short, teamB(), 5, undefined, 1)).toThrow();
   });
 });
 
@@ -238,10 +238,10 @@ describe('relayOrderFor', () => {
   });
 
   it('generateRelayBouts suit l’arme : relais 1 = 3 contre 6 en sabre, 1 contre 4 en Sabre Laser', () => {
-    const sabre = generateRelayBouts(teamA(), teamB(), 5, Weapon.SABRE);
+    const sabre = generateRelayBouts(teamA(), teamB(), 5, Weapon.SABRE, 1);
     expect([sabre[0].fencerA.id, sabre[0].fencerB.id]).toEqual(['a3', 'b3']);
     expect([sabre[8].fencerA.id, sabre[8].fencerB.id]).toEqual(['a3', 'b2']);
-    const laser = generateRelayBouts(teamA(), teamB(), 5, Weapon.LASER);
+    const laser = generateRelayBouts(teamA(), teamB(), 5, Weapon.LASER, 1);
     expect([laser[0].fencerA.id, laser[0].fencerB.id]).toEqual(['a1', 'b1']);
   });
 });
