@@ -106,14 +106,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 118 | 966 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 120 | 633 |
+| `src/renderer/components/` | 119 | 626 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 9 | 80 |
+| `src/shared/domain/` | 10 | 87 |
 | **Total** | **516** | **3998** |
 
 Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
@@ -3112,25 +3112,6 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/main/`
 
 <details>
-<summary><code>src/main/api/contractApi.test.ts</code> — 11 tests</summary>
-
-- **contrat d’API (#1981)**
-  - entrée invalide : même erreur en IPC et en MCP
-  - erreur métier : code du domaine conservé
-  - opération inconnue ou abonnement appelé en commande : refusés
-  - checkIn par IPC : pointe, prévient l’écran ; même résultat par MCP
-  - requête de cartons : servie en IPC, pas exposée en MCP
-  - outils MCP générés pour chaque opération marquée mcp, sans doublon
-  - abonnement : événements filtrés par épreuve, désabonnement
-- **journal par épreuve (#1980)**
-  - commande : événements au journal (identifiants, source), révision rendue et diffusée
-  - dryRun ou rien à faire : ni événement ni révision
-  - révision attendue périmée : refus revision\_conflict avec les événements manquants
-  - getCompetitionEvents / getMatchHistory : lecture du journal
-
-</details>
-
-<details>
 <summary><code>src/main/appLifecycle.test.ts</code> — 4 tests</summary>
 
 - **shutdownDb**
@@ -3551,7 +3532,26 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/domain/settings.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/engine/api/contractApi.test.ts</code> — 11 tests</summary>
+
+- **contrat d’API (#1981)**
+  - entrée invalide : même erreur en IPC et en MCP
+  - erreur métier : code du domaine conservé
+  - opération inconnue ou abonnement appelé en commande : refusés
+  - checkIn par IPC : pointe, prévient l’écran ; même résultat par MCP
+  - requête de cartons : servie en IPC, pas exposée en MCP
+  - outils MCP générés pour chaque opération marquée mcp, sans doublon
+  - abonnement : événements filtrés par épreuve, désabonnement
+- **journal par épreuve (#1980)**
+  - commande : événements au journal (identifiants, source), révision rendue et diffusée
+  - dryRun ou rien à faire : ni événement ni révision
+  - révision attendue périmée : refus revision\_conflict avec les événements manquants
+  - getCompetitionEvents / getMatchHistory : lecture du journal
+
+</details>
+
+<details>
+<summary><code>src/main/engine/commands/settings.test.ts</code> — 8 tests</summary>
 
 - valeurs par défaut, validation, reprise douce des valeurs localStorage
 - dossiers de l’agent : chemins absolus seulement
@@ -3566,7 +3566,7 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/domain/sport.test.ts</code> — 13 tests</summary>
+<summary><code>src/main/engine/commands/sport.test.ts</code> — 13 tests</summary>
 
 - poules → arbitres → scores → tableau → classement final → exports
 - régénérer des poules jouées exige replace
@@ -6646,20 +6646,6 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/formula/formulaDraft.test.ts</code> — 7 tests</summary>
-
-- **formulaDraft**
-  - sans réglages : repli unifié (5 / 15, poules 5 à 7, pas de 3e place)
-  - aller-retour réglages → brouillon → réglages
-  - plafond de ${MAX\_POOL\_ROUNDS} tours, aligné sur la validation
-  - retirer le tour 2 sur 3 : les qualifiés du tour 3 remontent
-  - dernier tour non retirable
-  - laser : Tour Quest sans poules → 0 tour, poules ajoutées → 1 tour
-  - scission vide : clé retirée
-
-</details>
-
-<details>
 <summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 6 tests</summary>
 
 - **guidedTour**
@@ -8234,6 +8220,20 @@ Unitaires : 506 fichiers, 3959 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 ### `src/shared/domain/`
+
+<details>
+<summary><code>src/shared/domain/formula/formulaDraft.test.ts</code> — 7 tests</summary>
+
+- **formulaDraft**
+  - sans réglages : repli unifié (5 / 15, poules 5 à 7, pas de 3e place)
+  - aller-retour réglages → brouillon → réglages
+  - plafond de ${MAX\_POOL\_ROUNDS} tours, aligné sur la validation
+  - retirer le tour 2 sur 3 : les qualifiés du tour 3 remontent
+  - dernier tour non retirable
+  - laser : Tour Quest sans poules → 0 tour, poules ajoutées → 1 tour
+  - scission vide : clé retirée
+
+</details>
 
 <details>
 <summary><code>src/shared/domain/ranking/tableauRanking.test.ts</code> — 8 tests</summary>
