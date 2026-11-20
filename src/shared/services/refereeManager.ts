@@ -249,6 +249,14 @@ export class RefereeManager {
   }
 
   /**
+   * Enregistre une affectation décidée hors du service (appariement optimal, #1959)
+   */
+  recordExternalAssignment(refereeId: string, match: Match): void {
+    const referee = this.referees.find(r => r.id === refereeId);
+    if (referee) this.recordAssignment(referee, match);
+  }
+
+  /**
    * Score de fatigue [0–100] pour l'affichage UI (100 = épuisé)
    */
   getFatigueScore(refereeId: string): number {

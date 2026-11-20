@@ -1886,7 +1886,20 @@
     "h_match": "Gefecht",
     "h_fencer_a": "Fechter A",
     "h_fencer_b": "Fechter B",
-    "h_score": "Ergebnis"
+    "h_score": "Ergebnis",
+    "neutral_nationality": "Neutralität der Nationalität (internationales Turnier)",
+    "neutral_region": "Neutralität des Landesverbands",
+    "shortage_title": "{{slots}}: {{n}} Kampfrichter fehlen.",
+    "shortage_compatible": "Mögliche neutrale Kampfrichter: {{names}}.",
+    "shortage_no_compatible": "Kein neutraler Kampfrichter verfügbar.",
+    "shortage_conflicts": "Frei, aber im Konflikt: {{list}}. Neutralen Kampfrichter hinzufügen oder manuell zuweisen.",
+    "reason_club": "Verein",
+    "reason_nationality": "Nationalität",
+    "reason_region": "Landesverband",
+    "all_covered": "Alle offenen Gefechte haben einen neutralen Kampfrichter.",
+    "match_n": "Gefecht {{n}}",
+    "locked": "manuell",
+    "unlock": "Manuelle Zuweisung bleibt bei automatischer Zuweisung erhalten. Klicken zum Entsperren."
   },
   "season": {
     "title": "Quest-Saisonrangliste",

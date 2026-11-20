@@ -1886,7 +1886,20 @@
     "h_match": "Combat",
     "h_fencer_a": "Tirador A",
     "h_fencer_b": "Tirador B",
-    "h_score": "Resultat"
+    "h_score": "Resultat",
+    "neutral_nationality": "Neutralitat de nacionalitat (prova internacional)",
+    "neutral_region": "Neutralitat de lliga",
+    "shortage_title": "{{slots}}: falten {{n}} àrbitre(s).",
+    "shortage_compatible": "Àrbitres neutrals possibles: {{names}}.",
+    "shortage_no_compatible": "Cap àrbitre neutral disponible.",
+    "shortage_conflicts": "Lliures però en conflicte: {{list}}. Afegiu un àrbitre neutral o assigneu-ne un manualment.",
+    "reason_club": "club",
+    "reason_nationality": "nacionalitat",
+    "reason_region": "lliga",
+    "all_covered": "Tots els assalts pendents tenen un àrbitre neutral.",
+    "match_n": "Assalt {{n}}",
+    "locked": "manual",
+    "unlock": "Assignació manual conservada per l’assignació automàtica. Feu clic per desbloquejar."
   },
   "season": {
     "title": "Classificació de temporada Quest",

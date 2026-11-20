@@ -1886,7 +1886,20 @@
     "h_match": "Bout",
     "h_fencer_a": "Fencer A",
     "h_fencer_b": "Fencer B",
-    "h_score": "Score"
+    "h_score": "Score",
+    "neutral_nationality": "Nationality neutrality (international event)",
+    "neutral_region": "League neutrality",
+    "shortage_title": "{{slots}}: {{n}} referee(s) missing.",
+    "shortage_compatible": "Possible neutral referees: {{names}}.",
+    "shortage_no_compatible": "No neutral referee available.",
+    "shortage_conflicts": "Free but in conflict: {{list}}. Add a neutral referee or assign one manually.",
+    "reason_club": "club",
+    "reason_nationality": "nationality",
+    "reason_region": "league",
+    "all_covered": "Every pending match has a neutral referee.",
+    "match_n": "Match {{n}}",
+    "locked": "manual",
+    "unlock": "Manual assignment kept by automatic assignment. Click to unlock."
   },
   "season": {
     "title": "Quest season ranking",

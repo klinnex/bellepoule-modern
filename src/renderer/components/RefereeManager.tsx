@@ -5,11 +5,17 @@
  */
 
 import { SMALL_BTN } from './fencerList.styles';
-import { Pencil, Trash2, TriangleAlert } from 'lucide-react';
+import { Lock, Pencil, Trash2, TriangleAlert } from 'lucide-react';
 import { Icon } from './common/Icon';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
+import {
+  autoAssignReferees,
+  AutoAssignShortage,
+  SlotRef,
+} from '../../shared/utils/refereeAutoAssign';
+import { NeutralityRules } from '../../shared/utils/refereeMatching';
 import { parseEngardeRefereeFile } from '../../shared/utils/fileParser';
 import {
   computeRefereeMatchStats,
@@ -81,6 +87,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     balanceAssignment: true,
   });
   const [assignments, setAssignments] = useState<Map<string, Referee>>(new Map());
+  // Affectation optimale (#1959) : neutralité réglable, verrous manuels, diagnostic
+  const [neutrality, setNeutrality] = useState<NeutralityRules>({
+    club: true,
+    nationality: false,
+    region: false,
+  });
+  const [lockedMatchIds, setLockedMatchIds] = useState<Set<string>>(new Set());
+  const [shortages, setShortages] = useState<AutoAssignShortage[] | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [activeTab, setActiveTab] = useState<'referees' | 'assignments' | 'history' | 'stats'>(
     'referees'
@@ -170,11 +184,35 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       referees.map(r => ({ ...r })),
       config
     );
-    const newAssignments = fresh.assignRefereesToMatches(pendingMatches, pools);
+    // Matchs déjà arbitrés : rotation équitable
+    const matchesToday = new Map<string, number>();
+    for (const m of statsPoolMatches ?? matches) {
+      if (m.status === MatchStatus.FINISHED && m.referee?.id) {
+        matchesToday.set(m.referee.id, (matchesToday.get(m.referee.id) ?? 0) + 1);
+      }
+    }
+    const result = autoAssignReferees(pendingMatches, pools, referees, {
+      neutrality: { ...neutrality, club: config.avoidSameClub },
+      balance: config.balanceAssignment,
+      lockedMatchIds,
+      current: assignments,
+      busyElsewhere: new Set(Object.keys(busyElsewhere)),
+      matchesToday,
+    });
+    // Matchs en attente non couverts : sans arbitre (signalés dans le diagnostic)
+    const newAssignments = new Map(assignments);
+    for (const m of pendingMatches) newAssignments.delete(m.id);
+    for (const m of pendingMatches) {
+      const ref = result.assignments.get(m.id);
+      if (!ref) continue;
+      newAssignments.set(m.id, ref);
+      fresh.recordExternalAssignment(ref.id, m);
+    }
+    setShortages(result.shortages);
     setManager(fresh);
     setAssignments(newAssignments);
     onAssignmentsChange(newAssignments);
-    persistAssignments(newAssignments);
+    persistAssignments(result.assignments);
   };
 
   const handleManualAssign = (matchId: string, refereeId: string) => {
@@ -182,6 +220,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     if (referee) {
       const newAssignments = new Map(assignments);
       newAssignments.set(matchId, referee);
+      setLockedMatchIds(prev => new Set(prev).add(matchId));
       setAssignments(newAssignments);
       onAssignmentsChange(newAssignments);
       if (isUuid(matchId)) {
@@ -189,6 +228,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       }
     }
   };
+
+  const refName = (r: Referee) => `${r.firstName} ${r.lastName}`.trim();
+  const slotLabel = (s: SlotRef) =>
+    s.kind === 'pool'
+      ? t('refereeManager.pool_n', { n: s.number })
+      : t('refereeManager.match_n', { n: s.number });
 
   const getRefereeStats = (refereeId: string) => {
     return manager.getRefereeStats(refereeId);
@@ -768,6 +813,22 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               <label style={FLEX_GAP}>
                 <input
                   type="checkbox"
+                  checked={neutrality.nationality}
+                  onChange={e => setNeutrality({ ...neutrality, nationality: e.target.checked })}
+                />
+                {t('refereeManager.neutral_nationality')}
+              </label>
+              <label style={FLEX_GAP}>
+                <input
+                  type="checkbox"
+                  checked={neutrality.region}
+                  onChange={e => setNeutrality({ ...neutrality, region: e.target.checked })}
+                />
+                {t('refereeManager.neutral_region')}
+              </label>
+              <label style={FLEX_GAP}>
+                <input
+                  type="checkbox"
                   checked={config.balanceAssignment}
                   onChange={e => setConfig({ ...config, balanceAssignment: e.target.checked })}
                 />
@@ -811,6 +872,47 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               {showReport ? t('refereeManager.hide_report') : t('refereeManager.show_report')}
             </button>
           </div>
+
+          {/* Diagnostic des manques (#1959) */}
+          {shortages && shortages.length > 0 && (
+            <div role="alert" className="referee-manager-shortages">
+              {shortages.map((sh, i) => (
+                <div key={i} className="referee-manager-shortage">
+                  <strong>
+                    <Icon icon={TriangleAlert} />{' '}
+                    {t('refereeManager.shortage_title', {
+                      slots: sh.slots.map(slotLabel).join(', '),
+                      n: sh.missing,
+                    })}
+                  </strong>
+                  <div>
+                    {sh.compatible.length > 0
+                      ? t('refereeManager.shortage_compatible', {
+                          names: sh.compatible.map(refName).join(', '),
+                        })
+                      : t('refereeManager.shortage_no_compatible')}
+                  </div>
+                  {sh.conflicts.length > 0 && (
+                    <div>
+                      {t('refereeManager.shortage_conflicts', {
+                        list: sh.conflicts
+                          .map(
+                            c =>
+                              `${refName(c.referee)} (${slotLabel(c.slot)} : ${c.reasons
+                                .map(r => t(`refereeManager.reason_${r}`))
+                                .join(', ')})`
+                          )
+                          .join(' · '),
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {shortages && shortages.length === 0 && pendingMatches.length > 0 && (
+            <p style={SUB_TEXT}>{t('refereeManager.all_covered')}</p>
+          )}
 
           {/* Rotation Report */}
           {showReport && (
@@ -1017,6 +1119,23 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <div className="referee-manager-8">
                       {conflictWarning && (
                         <span className="referee-manager-9">{conflictWarning}</span>
+                      )}
+                      {lockedMatchIds.has(match.id) && (
+                        <button
+                          type="button"
+                          style={SMALL_BTN}
+                          title={t('refereeManager.unlock')}
+                          aria-label={t('refereeManager.unlock')}
+                          onClick={() =>
+                            setLockedMatchIds(prev => {
+                              const next = new Set(prev);
+                              next.delete(match.id);
+                              return next;
+                            })
+                          }
+                        >
+                          <Icon icon={Lock} /> {t('refereeManager.locked')}
+                        </button>
                       )}
                       <select
                         value={assignedReferee?.id || ''}

@@ -1886,7 +1886,20 @@
     "h_match": "Combate",
     "h_fencer_a": "Tirador A",
     "h_fencer_b": "Tirador B",
-    "h_score": "Resultado"
+    "h_score": "Resultado",
+    "neutral_nationality": "Neutralidad de nacionalidad (prueba internacional)",
+    "neutral_region": "Neutralidad de liga",
+    "shortage_title": "{{slots}}: faltan {{n}} árbitro(s).",
+    "shortage_compatible": "Árbitros neutrales posibles: {{names}}.",
+    "shortage_no_compatible": "Ningún árbitro neutral disponible.",
+    "shortage_conflicts": "Libres pero en conflicto: {{list}}. Añada un árbitro neutral o asigne uno manualmente.",
+    "reason_club": "club",
+    "reason_nationality": "nacionalidad",
+    "reason_region": "liga",
+    "all_covered": "Todos los asaltos pendientes tienen un árbitro neutral.",
+    "match_n": "Asalto {{n}}",
+    "locked": "manual",
+    "unlock": "Asignación manual conservada por la asignación automática. Clic para desbloquear."
   },
   "season": {
     "title": "Clasificación de temporada Quest",

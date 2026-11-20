@@ -1886,7 +1886,20 @@
     "h_match": "Incontro",
     "h_fencer_a": "Schermidore A",
     "h_fencer_b": "Schermidore B",
-    "h_score": "Punteggio"
+    "h_score": "Punteggio",
+    "neutral_nationality": "Neutralità di nazionalità (gara internazionale)",
+    "neutral_region": "Neutralità di comitato regionale",
+    "shortage_title": "{{slots}}: mancano {{n}} arbitro/i.",
+    "shortage_compatible": "Arbitri neutrali possibili: {{names}}.",
+    "shortage_no_compatible": "Nessun arbitro neutrale disponibile.",
+    "shortage_conflicts": "Liberi ma in conflitto: {{list}}. Aggiungere un arbitro neutrale o assegnarne uno a mano.",
+    "reason_club": "club",
+    "reason_nationality": "nazionalità",
+    "reason_region": "comitato",
+    "all_covered": "Tutti gli assalti in attesa hanno un arbitro neutrale.",
+    "match_n": "Assalto {{n}}",
+    "locked": "manuale",
+    "unlock": "Assegnazione manuale mantenuta dall’assegnazione automatica. Clic per sbloccare."
   },
   "season": {
     "title": "Classifica stagionale Quest",

@@ -1886,7 +1886,20 @@
     "h_match": "比賽",
     "h_fencer_a": "劍手 A",
     "h_fencer_b": "劍手 B",
-    "h_score": "比分"
+    "h_score": "比分",
+    "neutral_nationality": "國籍中立（國際賽事）",
+    "neutral_region": "地區中立",
+    "shortage_title": "{{slots}}：欠缺 {{n}} 名裁判。",
+    "shortage_compatible": "可用中立裁判：{{names}}。",
+    "shortage_no_compatible": "沒有可用的中立裁判。",
+    "shortage_conflicts": "空閒但有利益衝突：{{list}}。請新增中立裁判或手動指派。",
+    "reason_club": "會籍",
+    "reason_nationality": "國籍",
+    "reason_region": "地區",
+    "all_covered": "所有待進行比賽均有中立裁判。",
+    "match_n": "比賽 {{n}}",
+    "locked": "手動",
+    "unlock": "自動指派會保留手動指派。按此解鎖。"
   },
   "season": {
     "title": "Quest 賽季排名",
