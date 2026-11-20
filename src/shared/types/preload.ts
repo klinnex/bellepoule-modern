@@ -1395,6 +1395,41 @@ export interface CyranoAPI {
   getRoutes: () => Promise<Record<string, string | null>>;
 }
 
+/** Piste OPP2 (#1960) : identifiant de piste des sujets MQTT, arène, mode */
+export interface Opp2PisteConfigDTO {
+  piste: string;
+  arena?: number;
+  mode?: 'master' | 'display' | 'manual';
+}
+
+export interface Opp2StatusDTO {
+  running: boolean;
+  port: number;
+  /** Clients MQTT connectés au broker intégré */
+  clients: number;
+  /** Pistes vues sur le broker sans être déclarées */
+  unknownPistes: string[];
+  pistes: (Opp2PisteConfigDTO & {
+    mode: 'master' | 'display' | 'manual';
+    status: 'online' | 'stale' | 'offline' | 'never';
+    device?: string;
+    firmware?: string;
+    lastSeen: number | null;
+    alert: unknown;
+  })[];
+}
+
+/** Appareils de piste OPP2 (JSON sur MQTT), broker intégré (#1960) */
+export interface Opp2API {
+  start: (options?: {
+    port?: number;
+  }) => Promise<{ success: boolean; port?: number; error?: string }>;
+  stop: () => Promise<void>;
+  isRunning: () => Promise<boolean>;
+  setPistes: (pistes: Opp2PisteConfigDTO[]) => Promise<void>;
+  getStatus: () => Promise<Opp2StatusDTO>;
+}
+
 /** Trame du journal Cyrano (#1829) */
 export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; port: number } & {
   piste: string | null;
@@ -1425,6 +1460,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   settings: SettingsAPI;
   club: ClubAPI;
   cyrano: CyranoAPI;
+  opp2: Opp2API;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;

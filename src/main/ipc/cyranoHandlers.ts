@@ -16,6 +16,8 @@ import { PISTE_ACTIONS, PisteHub, type PisteAction, type PisteHubOptions } from 
 export interface CyranoHandlersContext {
   cyranoServer: CyranoServer;
   pisteHub: PisteHub;
+  /** Un autre protocole (OPP2, #1960) utilise encore le PisteHub */
+  keepHubAttached?: () => boolean;
   db: Pick<DatabaseManager, 'getCyranoPistes' | 'replaceCyranoPistes'> & {
     eventDays?: Pick<DatabaseManager['eventDays'], 'getCompetitionDayId' | 'getDay'>;
     settings?: Pick<DatabaseManager['settings'], 'getDefaultVenue'>;
@@ -65,7 +67,8 @@ export function registerCyranoHandlers(ctx: CyranoHandlersContext): void {
   );
 
   ipcMain.handle('cyrano:stop', async (): Promise<void> => {
-    pisteHub.detach();
+    // Pistes OPP2 en service (#1960) : le PisteHub reste branché
+    if (!ctx.keepHubAttached?.()) pisteHub.detach();
     await cyranoServer.stop();
   });
 

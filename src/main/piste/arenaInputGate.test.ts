@@ -72,6 +72,17 @@ describe('ArenaInputGate', () => {
     expect(gate.admit('arena3', dev('1', 1))).toBe(true);
   });
 
+  it('forgetPiste : la piste repart à zéro quel que soit son pilote (#1960)', () => {
+    const gate = new ArenaInputGate();
+    const opp2 = (seq: number) =>
+      ({ origin: 'device', source: { driver: 'opp2', piste: '3' }, seq, kind: 'state' }) as const;
+    gate.admit('arena3', opp2(5));
+    gate.admit('arena1', dev('1', 5));
+    gate.forgetPiste('3');
+    expect(gate.admit('arena3', opp2(1))).toBe(true);
+    expect(gate.admit('arena1', dev('1', 1))).toBe(false);
+  });
+
   it('journal des rejets borné', () => {
     const gate = new ArenaInputGate({ logSize: 2 });
     gate.admit('arena1', dev('1', 9));

@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - PisteHub : raccordement appareils de piste ↔ arènes (#1720, #1829)
- * Indépendant du protocole : consomme les `PisteInput` d'un `PisteDriver` (Cyrano aujourd'hui)
+ * Indépendant du protocole : consomme les `PisteInput` d'un `PisteDriver` (Cyrano, OPP2 — #1960)
  * et lui envoie des `PisteCommand`. Chaque entrée d'appareil passe d'abord l'`ArenaInputGate`
  * (n° de séquence par source) avant d'atteindre l'arène.
  * Mode appareil maître : score, cartons et chrono viennent de l'appareil ; les tablettes
@@ -303,8 +303,9 @@ export class PisteHub {
     return piste.mode;
   }
 
-  /** Branche les écouteurs sur le pilote. */
+  /** Branche les écouteurs sur le pilote (sans doublon si déjà branchés). */
   attach(): void {
+    this.detach();
     this.driver.on('input', this.handleInput);
     this.driver.on('status', this.handleStatus);
   }
@@ -341,7 +342,7 @@ export class PisteHub {
     if (piste.status === 'offline') {
       this.offline.add(piste.piste);
       // Appareil redémarré : il peut reprendre sa numérotation à zéro
-      this.gate.forget({ driver: this.driver.id, piste: piste.piste });
+      this.gate.forgetPiste(piste.piste);
       logger.warn(
         LogCategory.NETWORK,
         `Cyrano: piste ${piste.piste} hors ligne — bascule en manuel`
@@ -579,7 +580,7 @@ export class PisteHub {
     const match = arena?.currentMatch;
     if (!arena || !match) return;
 
-    const sides = mapPisteSides(state, match, id => this.driver.fencerId(id));
+    const sides = mapPisteSides(state, match, id => this.driver.fencerId(id, piste.piste));
 
     if (state.state === 'ending') {
       if (mode === 'display') {

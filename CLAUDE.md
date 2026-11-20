@@ -107,7 +107,7 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
-├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), dayStripHandlers (pistes libérées et réservation, #1878), cyranoHandlers (cyrano:*, #1720), clubHandlers (club:*, Mode Club #1872), privacyHandlers (privacy:*, RGPD #1882) — registerXxxHandlers(ctx)
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*), eventDayHandlers (eventDay:*, journée multi-épreuves #1714), dayStripHandlers (pistes libérées et réservation, #1878), cyranoHandlers (cyrano:*, #1720), opp2Handlers (opp2:*, #1960), clubHandlers (club:*, Mode Club #1872), privacyHandlers (privacy:*, RGPD #1882) — registerXxxHandlers(ctx)
 ├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
 ├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
@@ -116,7 +116,8 @@ Main Process (src/main/)
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, clubArena (combats du Mode Club sur les tablettes, cartes scannées : routes/clubRoutes, #1872 — docs/MODE_CLUB.md), dashboard (contexte typé S['membre']), teamArena + teamRelayDevice (arène équipe, relais FIE piloté par l'appareil de piste, #1829), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, deviceState (Id, chrono, carton P), server (UDP, HELLO 15 s, supervision, journal), driver (CyranoPisteDriver : pilote du modèle commun, #1829)
-├── piste/                   # Appareils de piste, hors protocole (#1829) — docs/CYRANO.md : types (PisteState/PisteInput/PisteCommand/PisteDriver), pisteState (côtés par Id, cartons, fin ACK/NAK), arenaInputGate (séquence par source), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch), matchDisplay, teamRelayPiste (relais FIE /equipe{N}, Type=T)
+├── opp2/                    # Protocole OPP2 (JSON sur MQTT, #1960) : mqttPacket/mqttBroker (broker MQTT 3.1.1 intégré), mqttClient, codec (sujets openpiste/{piste}/{rôle}/{message}), driver (Opp2PisteDriver) — docs/OPP2.md
+├── piste/                   # Appareils de piste, hors protocole (#1829) — docs/CYRANO.md : types (PisteState/PisteInput/PisteCommand/PisteDriver), pisteState (côtés par Id, cartons, fin ACK/NAK), arenaInputGate (séquence par source), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch), matchDisplay, teamRelayPiste (relais FIE /equipe{N}, Type=T), multiDriver (Cyrano + OPP2 dans le même PisteHub, #1960)
 ├── api/                     # Contrat d'API unique (#1981) : engine (validation zod, ApiError, handlers), ipcAdapter (api:invoke/api:subscribe), mcpAdapter (outils MCP générés), events — docs/API_CONTRACT.md
 ├── mcp/                     # Serveur MCP intégré (#1880) : mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings, mcpTools (lecture), mcpWriteTools / mcpAdminTools / mcpSportTools (écriture sur autorisation) — docs/MCP.md
 ├── domain/                  # Couche domaine (#1880) : sport (poules, scores, tableau hors écran), exportResults, settings (resolveSetting), files (dossiers de l'agent)
@@ -240,6 +241,7 @@ Database (src/database/)
    - `crypto.*` – safeStorage protect/unprotect
    - `themes.*` – Screen themes
    - `cyrano.*` – Appareils de piste Cyrano : start/stop UDP, pistes, statuts, log (#1720)
+   - `opp2.*` – Appareils de piste OPP2 : broker MQTT intégré start/stop, pistes, statuts (#1960, docs/OPP2.md)
    - `club.*` – Mode Club : membres, séances, pointage, combats libres, stats par période (#1872)
    - `mcp.*` – Serveur MCP intégré (agent IA, 127.0.0.1 + jeton, désactivé par défaut) : statut, réglages, jeton, journal (#1880, docs/MCP.md)
    - `settings.*` – Paramétrage du poste (table app_settings), salles (venues, venue_strips), dossiers accessibles à l'agent (#1880)

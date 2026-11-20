@@ -103,11 +103,11 @@ export class TeamRelayPiste {
     });
   }
 
-  private sides(state: PisteState, bout: TeamArenaBout): PisteSides | null {
+  private sides(state: PisteState, bout: TeamArenaBout, piste: string): PisteSides | null {
     return mapPisteSides(
       state,
       { fencerA: { id: bout.fencerAId }, fencerB: { id: bout.fencerBId } },
-      id => this.host.driver.fencerId(id)
+      id => this.host.driver.fencerId(id, piste)
     );
   }
 
@@ -239,7 +239,7 @@ export class TeamRelayPiste {
     }
     const { bout } = view;
     if (!bout) return; // rencontre terminée
-    const sides = this.sides(state, bout);
+    const sides = this.sides(state, bout, piste);
     if (!isActiveState(state.state)) {
       // Appareil au repos sans le relais en cours (redémarrage, ACK reçu) → affichage
       if (!sides) this.display(link, remote, view);
@@ -325,7 +325,7 @@ export class TeamRelayPiste {
     const repeated =
       !!previous &&
       acked === relayKey(view.state.matchId, previous) &&
-      !!this.sides(state, previous);
+      !!this.sides(state, previous, piste);
     // Rencontre terminée : toujours une réponse, sinon l'appareil reste bloqué en E
     if (!bout || !ctx) {
       this.send(piste, repeated ? 'ack' : 'nak');
@@ -333,7 +333,7 @@ export class TeamRelayPiste {
         logger.info(LogCategory.NETWORK, `Cyrano: NAK → ${piste} (rencontre par équipes terminée)`);
       return;
     }
-    const sides = this.sides(state, bout);
+    const sides = this.sides(state, bout, piste);
     if (!sides) {
       if (repeated) {
         this.send(piste, 'ack');

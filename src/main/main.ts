@@ -56,6 +56,10 @@ import { logger, LogCategory, toError } from '../shared/services/logger';
 import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 import { CyranoServer } from './cyrano/server';
 import { CyranoPisteDriver } from './cyrano/driver';
+import { MqttBroker } from './opp2/mqttBroker';
+import { Opp2PisteDriver } from './opp2/driver';
+import { MultiPisteDriver } from './piste/multiDriver';
+import { registerOpp2Handlers } from './ipc/opp2Handlers';
 import { PisteHub } from './piste/pisteHub';
 import { registerCyranoHandlers } from './ipc/cyranoHandlers';
 import { registerApiHandlers } from './api/ipcAdapter';
@@ -164,9 +168,14 @@ registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 
 // Cyrano scoring machine integration (#1720)
 const cyranoServer = new CyranoServer();
+// Appareils OPP2 (JSON sur MQTT) : broker intégré, démarré à la demande (#1960)
+const opp2Broker = new MqttBroker();
+const opp2Driver = new Opp2PisteDriver(opp2Broker, {
+  software: { name: 'BellePoule Modern', version: app.getVersion() },
+});
 const pisteHub = new PisteHub(
-  // Pilote Cyrano du modèle commun des appareils de piste (#1829)
-  new CyranoPisteDriver(cyranoServer),
+  // Pilotes Cyrano (#1829) et OPP2 (#1960) du modèle commun des appareils de piste
+  new MultiPisteDriver([new CyranoPisteDriver(cyranoServer), opp2Driver]),
   // Toutes les épreuves : chaque piste suit celle de son affectation en cours (#1878)
   () => [...remoteServers.values()].map(entry => entry.server),
   {
@@ -215,7 +224,18 @@ const remoteServerContext = {
 };
 registerRemoteServerHandlers(remoteServerContext);
 
-registerCyranoHandlers({ cyranoServer, pisteHub, db });
+registerCyranoHandlers({
+  cyranoServer,
+  pisteHub,
+  db,
+  keepHubAttached: () => opp2Broker.running,
+});
+registerOpp2Handlers({
+  broker: opp2Broker,
+  driver: opp2Driver,
+  pisteHub,
+  cyranoRunning: () => cyranoServer.running,
+});
 
 // Dossiers accessibles à l'agent tant que l'opérateur n'en a pas choisi (Paramètres → Agent IA)
 const defaultAgentFolders = (['documents', 'downloads', 'desktop'] as const).flatMap(name => {

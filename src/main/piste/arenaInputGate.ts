@@ -73,6 +73,12 @@ export class ArenaInputGate {
     for (const perArena of this.last.values()) perArena.delete(key);
   }
 
+  /** Oublie une piste quel que soit son pilote (plusieurs protocoles, #1960). */
+  forgetPiste(piste: string): void {
+    for (const perArena of this.last.values())
+      for (const key of [...perArena.keys()]) if (key.endsWith(`:${piste}`)) perArena.delete(key);
+  }
+
   /** Rejets récents (journal borné), du plus ancien au plus récent. */
   getRejections(): GateRejection[] {
     return [...this.rejections];
