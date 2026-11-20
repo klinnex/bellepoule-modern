@@ -53,19 +53,21 @@ npx vitest run src/shared/utils/poolCalculations.test.ts   # un fichier
 
 ## Tests E2E — Playwright
 
-- Config : `playwright.config.ts` — `testDir: ./e2e`, projets chromium, firefox,
-  webkit, Mobile Chrome, Mobile Safari ; 2 retries et 1 worker en CI.
-- `webServer` : `npm run dev`, attendu sur `baseURL` `http://localhost:3000`.
-  ⚠️ Le dev server Webpack écoute sur le port **8066** : aligner `baseURL`/`url`
-  avant de lancer la suite.
-- **Non exécutés en CI.**
+- Config : `playwright.config.ts` — `testDir: ./e2e`, Chromium par défaut
+  (`E2E_ALL_BROWSERS=1` : + Firefox, WebKit, Mobile Chrome, Mobile Safari) ; 2 retries et
+  1 worker en CI.
+- `webServer` : `npm run dev:renderer` (Webpack, port **8066**), `baseURL`
+  `http://localhost:8066` ; l'interface tourne dans le navigateur, sans `window.electronAPI`.
+- Navigateur : `npx playwright install chromium` (version attendue par Playwright).
+- **Non exécutés en CI** ; 14 tests en échec connus, antérieurs à #1979 (#2045).
 - Beaucoup de scénarios appellent `test.skip()` à l'exécution si l'état requis
   (compétition existante, poule, tableau…) est absent.
 
 ```bash
-npm run test:e2e         # tous navigateurs
-npm run e2e:debug        # mode debug
-npx playwright test --project=chromium e2e/pools.spec.ts
+npm run test:e2e                      # Chromium
+E2E_ALL_BROWSERS=1 npm run test:e2e   # tous navigateurs
+npm run e2e:debug                     # mode debug
+npx playwright test e2e/pools.spec.ts
 ```
 
 ## Simulateur et benchmarks
