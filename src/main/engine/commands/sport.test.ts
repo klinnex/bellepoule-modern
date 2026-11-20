@@ -124,7 +124,8 @@ describe('validation des scores de poule (identique à l’écran)', () => {
 d('déroulé complet piloté hors écran', () => {
   it('poules → arbitres → scores → tableau → classement final → exports', async () => {
     const comp = await setup(14);
-    db.createReferee(comp.id, { name: 'Anne ARBITRE', club: 'Paris' });
+    // Club absent des poules : arbitre neutre (moteur unique, docs/adr/0014)
+    db.createReferee(comp.id, { name: 'Anne ARBITRE', club: 'Marseille' });
     const refs = db.getRefereesByCompetition(comp.id);
     db.updateReferee(refs[0].id, { status: 'available' } as never);
 
@@ -143,8 +144,10 @@ d('déroulé complet piloté hors écran', () => {
     const phase = db.getPhasesByCompetition(comp.id).find(p => p.type === 'pool')!;
     expect(db.getPoolsByPhase(phase.id)).toHaveLength(2);
 
+    // Un seul arbitre : il enchaîne les deux poules
     const assigned = assignPoolReferees(ctx, comp.id);
     expect(assigned.assignments).toHaveLength(2);
+    expect(assigned.unassigned).toEqual([]);
 
     // Bracket refusé tant que les poules ne sont pas finies
     expect(() => buildBracket(ctx, comp.id)).toThrow(/poules/);

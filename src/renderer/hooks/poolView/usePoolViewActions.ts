@@ -11,7 +11,7 @@ import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents'
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
 import { logger, LogCategory } from '@shared/services/logger';
 import { type SpecialStatus as PoolSpecialStatus } from '../../components/common/SpecialStatusPanel';
-import { autoAssignReferees } from '../../../shared/utils/refereeStats';
+import { autoFillRefereeAssignments } from '../../services/autoFillReferees';
 import { specialStatusOutcome } from '../../components/pool/poolSpecialStatus';
 import type { PoolViewProps } from '../../components/pool/poolViewTypes';
 import { usePoolViewInput } from './usePoolViewInput';
@@ -360,8 +360,13 @@ export function usePoolViewActions(ctx: Ctx) {
       for (const m of pool.matches) {
         if (m.referee) load.set(m.referee.id, (load.get(m.referee.id) ?? 0) + 1);
       }
-      const assignments = autoAssignReferees(
-        pendingMatches.map(({ match }) => match).filter(m => !m.referee),
+      // Moteur d'affectation unique (docs/adr/0014) : un arbitre pour la poule
+      const assignments = autoFillRefereeAssignments(
+        pendingMatches
+          .map(({ match }) => match)
+          .filter(m => !m.referee)
+          .map(m => ({ ...m, poolId: pool.id })),
+        [pool],
         refereeCandidates,
         load
       );

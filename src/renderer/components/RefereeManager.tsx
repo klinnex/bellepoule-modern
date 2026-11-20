@@ -14,8 +14,8 @@ import {
   autoAssignReferees,
   AutoAssignShortage,
   SlotRef,
-} from '../../shared/utils/refereeAutoAssign';
-import { NeutralityRules } from '../../shared/utils/refereeMatching';
+} from '../../shared/domain/referees/refereeAutoAssign';
+import { NeutralityRules, neutralityConflicts } from '../../shared/domain/referees/refereeMatching';
 import { parseEngardeRefereeFile } from '../../shared/utils/fileParser';
 import {
   computeRefereeMatchStats,
@@ -243,14 +243,22 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     return manager.generateRotationReportDetailed();
   }, [manager, assignments]);
 
+  // Conflit de neutralité : même règle que le moteur d'affectation (docs/adr/0014)
   const getConflictWarning = (match: Match, referee: Referee): string | null => {
-    const fencerAClub = match.fencerA?.club;
-    const fencerBClub = match.fencerB?.club;
-
-    if (referee.club && (fencerAClub === referee.club || fencerBClub === referee.club)) {
-      return `Conflit : Arbitre du club ${referee.club}`;
-    }
-    return null;
+    const reasons = neutralityConflicts(
+      referee,
+      {
+        id: match.id,
+        clubs: [match.fencerA?.club, match.fencerB?.club],
+        nationalities: [match.fencerA?.nationality, match.fencerB?.nationality],
+        regions: [match.fencerA?.region, match.fencerB?.region],
+      },
+      { ...neutrality, club: config.avoidSameClub }
+    );
+    if (reasons.length === 0) return null;
+    return t('refereeManager.conflict_warning', {
+      reasons: reasons.map(r => t(`refereeManager.reason_${r}`)).join(', '),
+    });
   };
 
   const handleExportFile = useCallback(() => {

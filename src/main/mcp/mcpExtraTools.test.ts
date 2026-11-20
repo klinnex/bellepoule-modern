@@ -333,7 +333,7 @@ d('arbitres, serveur distant, suppression', () => {
     expect(await ko('stop_remote_server', { competitionId: id })).toContain('Aucun serveur');
   });
 
-  it('assign_referees : arbitre du club d’un tireur signalé faute d’arbitre neutre', async () => {
+  it('assign_referees : pas d’arbitre du club d’un tireur, poule signalée sans arbitre (ADR-0014)', async () => {
     const id = await competition();
     const [first] = db.getFencersByCompetition(id);
     db.updateFencer(first.id, { club: 'NEC' });
@@ -343,9 +343,13 @@ d('arbitres, serveur distant, suppression', () => {
     });
     await ok('generate_pools', { competitionId: id });
     const result = await ok('assign_referees', { competitionId: id, includeUnchecked: true });
-    expect(result.assignments[0]).toMatchObject({ referee: 'Anne ARBITRE', clubConflict: 'NEC' });
+    expect(result.assignments).toEqual([]);
+    expect(result.unassigned[0].conflicts[0]).toMatchObject({
+      referee: 'Anne ARBITRE',
+      reasons: ['club'],
+    });
     expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0]).toContain('NEC');
+    expect(result.warnings[0]).toContain('aucun arbitre neutre');
   });
 
   it('arènes du serveur distant sans écran : poules, sinon pistes de la salle, sinon 1', async () => {

@@ -1896,6 +1896,7 @@
     "reason_club": "club",
     "reason_nationality": "nacionalitat",
     "reason_region": "lliga",
+    "conflict_warning": "Conflicte de neutralitat amb un tirador: {{reasons}}",
     "all_covered": "Tots els assalts pendents tenen un àrbitre neutral.",
     "match_n": "Assalt {{n}}",
     "locked": "manual",

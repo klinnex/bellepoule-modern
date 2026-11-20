@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { autoAssignReferees } from './refereeAutoAssign';
-import type { Fencer, Match, Pool, Referee } from '../types';
-import { MatchStatus } from '../types';
+import type { Fencer, Match, Pool, Referee } from '../../types';
+import { MatchStatus } from '../../types';
 
 const fencer = (id: string, club: string, extra: Partial<Fencer> = {}): Fencer =>
   ({ id, firstName: id, lastName: id, club, nationality: 'FRA', ...extra }) as Fencer;
@@ -89,5 +89,59 @@ describe('autoAssignReferees', () => {
     expect(res.assignments.get(m1.id)?.id).toBe('RA');
     expect(res.assignments.get(m2.id)?.id).toBe('RC');
     expect(res.shortages).toEqual([]);
+  });
+});
+
+describe('autoAssignReferees — réutilisation et matchs de tableau (#1979, ADR-0014)', () => {
+  it('sans reuseReferees : un arbitre pour deux poules simultanées → une poule en manque', () => {
+    const p1 = pool('q1', 1, [fencer('x1', 'A'), fencer('y1', 'B')]);
+    const p2 = pool('q2', 2, [fencer('x2', 'A'), fencer('y2', 'B')]);
+    const res = autoAssignReferees([...p1.matches, ...p2.matches], [p1, p2], [referee('R', 'Z')], {
+      neutrality: { club: true, nationality: false, region: false },
+    });
+    expect(res.assignments.size).toBe(1);
+    expect(res.shortages.length).toBeGreaterThan(0);
+  });
+
+  it('avec reuseReferees : le même arbitre enchaîne les deux poules', () => {
+    const p1 = pool('r1', 1, [fencer('x1', 'A'), fencer('y1', 'B')]);
+    const p2 = pool('r2', 2, [fencer('x2', 'A'), fencer('y2', 'B')]);
+    const res = autoAssignReferees([...p1.matches, ...p2.matches], [p1, p2], [referee('R', 'Z')], {
+      neutrality: { club: true, nationality: false, region: false },
+      reuseReferees: true,
+    });
+    expect(res.assignments.size).toBe(2);
+    expect(res.shortages).toEqual([]);
+  });
+
+  it('réutilisation sans lever la neutralité : arbitre du club de la poule jamais choisi', () => {
+    const p1 = pool('s1', 1, [fencer('x1', 'A'), fencer('y1', 'B')]);
+    const res = autoAssignReferees(p1.matches, [p1], [referee('R', 'A')], {
+      neutrality: { club: true, nationality: false, region: false },
+      reuseReferees: true,
+    });
+    expect(res.assignments.size).toBe(0);
+    expect(res.shortages[0].conflicts[0].reasons).toEqual(['club']);
+  });
+
+  it('accepte des matchs de tableau réduits (TableauMatch : round, position, arena)', () => {
+    const tm = (id: string, position: number) => ({
+      id,
+      round: 8,
+      position,
+      arena: position + 1,
+      fencerA: { club: 'A' },
+      fencerB: { club: 'B' },
+    });
+    const res = autoAssignReferees(
+      [tm('t1', 0), tm('t2', 1)],
+      [],
+      [referee('R1', 'Z'), referee('R2', 'Y')],
+      {
+        neutrality: { club: true, nationality: false, region: false },
+      }
+    );
+    expect(res.assignments.size).toBe(2);
+    expect(new Set([...res.assignments.values()].map(r => r.id)).size).toBe(2);
   });
 });

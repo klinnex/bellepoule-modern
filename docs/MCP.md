@@ -444,7 +444,7 @@ Aucun argument.
 
 ### `assign_referees` — Arbitres des poules
 
-*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. Sans arbitre neutre, l’affectation est signalée (« clubConflict », « warnings »). « replace: true » réaffecte toutes les poules.
+*écriture, idempotent.* Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité club et, selon l’épreuve, nation et ligue ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|

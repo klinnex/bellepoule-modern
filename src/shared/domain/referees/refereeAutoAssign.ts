@@ -7,7 +7,7 @@
  * Licensed under GPL-3.0
  */
 
-import type { Match, Pool, Referee } from '../types';
+import type { Pool, Referee } from '../../types';
 import {
   MatchingReferee,
   MatchingSlot,
@@ -17,6 +17,30 @@ import {
   refereeLevelFromCategory,
   solveRefereeMatching,
 } from './refereeMatching';
+
+/** Tireur vu par l'affectation : seuls club, nation et ligue comptent */
+export interface AssignableFencer {
+  club?: string | null;
+  nationality?: string | null;
+  region?: string | null;
+}
+
+/**
+ * Match à arbitrer : match de poule (poolId) ou de tableau (round = taille du tour).
+ * Couvre Match (base) et TableauMatch (écran du tableau, remplissage automatique).
+ */
+export interface AssignableMatch {
+  id: string;
+  poolId?: string | null;
+  round?: number | null;
+  /** Numéro du match (diagnostic) ; à défaut position + 1 */
+  number?: number;
+  position?: number;
+  strip?: number | null;
+  arena?: number | null;
+  fencerA?: AssignableFencer | null;
+  fencerB?: AssignableFencer | null;
+}
 
 export interface AutoAssignOptions {
   neutrality: NeutralityRules;
@@ -31,6 +55,12 @@ export interface AutoAssignOptions {
   matchesToday?: ReadonlyMap<string, number>;
   /** Équilibrer la charge (poids rotation) */
   balance?: boolean;
+  /**
+   * Créneaux restés sans arbitre faute d'arbitres en nombre (pas de neutralité) : nouvelles
+   * passes avec les mêmes arbitres, le moins chargé d'abord (un arbitre enchaîne plusieurs
+   * poules). Faux par défaut : une passe, créneaux simultanés.
+   */
+  reuseReferees?: boolean;
 }
 
 /** Créneau décrit pour l'affichage du diagnostic */
@@ -80,8 +110,8 @@ function tableauStrength(round: number | undefined): number {
   return 0;
 }
 
-export function autoAssignReferees(
-  pendingMatches: Match[],
+export function autoAssignReferees<M extends AssignableMatch>(
+  pendingMatches: M[],
   pools: Pool[],
   referees: Referee[],
   options: AutoAssignOptions
@@ -107,20 +137,31 @@ export function autoAssignReferees(
   const assignments = new Map<string, Referee>();
   const shortages: AutoAssignShortage[] = [];
 
+  const refOf = new Map(matchingRefs.map(r => [r.id, r]));
   const solve = (
-    slots: MatchingSlot[],
-    slotMatches: Map<string, Match[]>,
+    allSlots: MatchingSlot[],
+    slotMatches: Map<string, M[]>,
     slotRefs: Map<string, SlotRef>
   ) => {
-    if (slots.length === 0) return;
-    const res = solveRefereeMatching(slots, matchingRefs, {
-      neutrality: options.neutrality,
-      weights,
-    });
-    for (const [slotId, refId] of res.assignments) {
-      const ref = refById.get(refId);
-      if (!ref) continue;
-      for (const m of slotMatches.get(slotId) ?? []) assignments.set(m.id, ref);
+    let slots = allSlots;
+    let res: ReturnType<typeof solveRefereeMatching> | null = null;
+    for (;;) {
+      if (slots.length === 0) return;
+      res = solveRefereeMatching(slots, matchingRefs, {
+        neutrality: options.neutrality,
+        weights,
+      });
+      for (const [slotId, refId] of res.assignments) {
+        const ref = refById.get(refId);
+        if (!ref) continue;
+        for (const m of slotMatches.get(slotId) ?? []) assignments.set(m.id, ref);
+        // Charge à jour pour la passe suivante (réutilisation seulement)
+        const mr = options.reuseReferees ? refOf.get(refId) : undefined;
+        if (mr) mr.matchesToday = (mr.matchesToday ?? 0) + 1;
+      }
+      const left = slots.filter(sl => !res!.assignments.has(sl.id));
+      if (!options.reuseReferees || left.length === 0 || left.length === slots.length) break;
+      slots = left;
     }
     for (const sh of res.shortages) {
       shortages.push({
@@ -136,7 +177,7 @@ export function autoAssignReferees(
     }
   };
 
-  const lockOf = (ms: Match[]): string | null => {
+  const lockOf = (ms: M[]): string | null => {
     for (const m of ms) {
       if (locked.has(m.id)) {
         const r = current.get(m.id);
@@ -147,8 +188,8 @@ export function autoAssignReferees(
   };
 
   // Poules : un créneau par poule, une seule résolution
-  const byPool = new Map<string, Match[]>();
-  const tableau = new Map<number, Match[]>();
+  const byPool = new Map<string, M[]>();
+  const tableau = new Map<number, M[]>();
   for (const m of pendingMatches) {
     if (m.poolId && pools.some(p => p.id === m.poolId)) {
       const list = byPool.get(m.poolId) ?? [];
@@ -164,7 +205,7 @@ export function autoAssignReferees(
 
   const strengths = poolStrengths(pools.filter(p => byPool.has(p.id)));
   const poolSlots: MatchingSlot[] = [];
-  const poolSlotMatches = new Map<string, Match[]>();
+  const poolSlotMatches = new Map<string, M[]>();
   const poolSlotRefs = new Map<string, SlotRef>();
   for (const pool of [...pools].sort((a, b) => a.number - b.number)) {
     const ms = byPool.get(pool.id);
@@ -187,7 +228,7 @@ export function autoAssignReferees(
   // Tableau : tour par tour, neutralité sur les deux tireurs du match
   for (const [round, ms] of [...tableau.entries()].sort((a, b) => b[0] - a[0])) {
     const slots: MatchingSlot[] = [];
-    const slotMatches = new Map<string, Match[]>();
+    const slotMatches = new Map<string, M[]>();
     const slotRefs = new Map<string, SlotRef>();
     for (const m of ms) {
       const id = `match:${m.id}`;
@@ -198,11 +239,15 @@ export function autoAssignReferees(
         nationalities: fencers.map(f => f?.nationality),
         regions: fencers.map(f => f?.region),
         strength: tableauStrength(round),
-        strip: m.strip ?? null,
+        strip: m.strip ?? m.arena ?? null,
         lockedRefereeId: lockOf([m]),
       });
       slotMatches.set(id, [m]);
-      slotRefs.set(id, { kind: 'tableau', number: m.number, round: round || undefined });
+      slotRefs.set(id, {
+        kind: 'tableau',
+        number: m.number ?? (m.position ?? 0) + 1,
+        round: round || undefined,
+      });
     }
     solve(slots, slotMatches, slotRefs);
   }

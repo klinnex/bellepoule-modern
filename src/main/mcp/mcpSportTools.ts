@@ -98,7 +98,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
     name: 'assign_referees',
     title: 'Arbitres des poules',
     description:
-      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, hors club des tireurs de la poule, charge équilibrée. Sans arbitre neutre, l’affectation est signalée (« clubConflict », « warnings »). « replace: true » réaffecte toutes les poules.',
+      'Un arbitre principal par poule sans arbitre, parmi les arbitres pointés, par le même moteur que l’écran (affectation optimale, neutralité club et, selon l’épreuve, nation et ligue ; un arbitre peut enchaîner plusieurs poules). Une poule sans arbitre neutre reste sans arbitre : « unassigned » donne les arbitres écartés et leurs raisons, « warnings » le résumé. « replace: true » réaffecte toutes les poules.',
     inputSchema: {
       type: 'object',
       properties: {

@@ -1896,6 +1896,7 @@
     "reason_club": "club",
     "reason_nationality": "nacionalidad",
     "reason_region": "liga",
+    "conflict_warning": "Conflicto de neutralidad con un tirador: {{reasons}}",
     "all_covered": "Todos los asaltos pendientes tienen un árbitro neutral.",
     "match_n": "Asalto {{n}}",
     "locked": "manual",
