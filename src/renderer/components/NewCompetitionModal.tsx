@@ -237,8 +237,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
               />
 
               <div className="form-group">
-                <label className="form-label">{t('competition.title')}</label>
+                <label className="form-label" htmlFor="new-competition-title">
+                  {t('competition.title')}
+                </label>
                 <input
+                  id="new-competition-title"
                   type="text"
                   className="form-input"
                   placeholder={t('newCompetition.title_ph')}
@@ -248,8 +251,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
               </div>
 
               <div className="form-group">
-                <label className="form-label">{t('competition.date')}</label>
+                <label className="form-label" htmlFor="new-competition-date">
+                  {t('competition.date')}
+                </label>
                 <input
+                  id="new-competition-date"
                   type="date"
                   className="form-input"
                   value={date}
@@ -284,8 +290,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
 
               <div className="new-competition-modal-1">
                 <div className="form-group">
-                  <label className="form-label">{t('competition.weapon')}</label>
+                  <label className="form-label" htmlFor="new-competition-weapon">
+                    {t('competition.weapon')}
+                  </label>
                   <select
+                    id="new-competition-weapon"
                     className="form-input form-select"
                     value={weapon}
                     onChange={e => handleWeaponChange(e.target.value as Weapon)}
@@ -300,8 +309,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{t('competition.gender')}</label>
+                  <label className="form-label" htmlFor="new-competition-gender">
+                    {t('competition.gender')}
+                  </label>
                   <select
+                    id="new-competition-gender"
                     className="form-input form-select"
                     value={gender}
                     onChange={e => setGender(e.target.value as Gender)}
@@ -314,8 +326,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{t('competition.category')}</label>
+                  <label className="form-label" htmlFor="new-competition-category">
+                    {t('competition.category')}
+                  </label>
                   <select
+                    id="new-competition-category"
                     className="form-input form-select"
                     value={category}
                     onChange={e => setCategory(e.target.value as Category)}
@@ -362,8 +377,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   }}
                 >
                   <div className="form-group">
-                    <label className="form-label">{t('newCompetition.starters')}</label>
+                    <label className="form-label" htmlFor="new-competition-starters">
+                      {t('newCompetition.starters')}
+                    </label>
                     <input
+                      id="new-competition-starters"
                       type="number"
                       className="form-input"
                       min={1}
@@ -373,8 +391,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">{t('newCompetition.reserves')}</label>
+                    <label className="form-label" htmlFor="new-competition-reserves">
+                      {t('newCompetition.reserves')}
+                    </label>
                     <input
+                      id="new-competition-reserves"
                       type="number"
                       className="form-input"
                       min={0}
@@ -385,8 +406,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   </div>
                   {weapon === Weapon.LASER && (
                     <div className="form-group">
-                      <label className="form-label">{t('newCompetition.laser_target')}</label>
+                      <label className="form-label" htmlFor="new-competition-laser-target">
+                        {t('newCompetition.laser_target')}
+                      </label>
                       <select
+                        id="new-competition-laser-target"
                         className="form-input form-select"
                         value={laserTeamMode}
                         onChange={e => setLaserTeamMode(e.target.value as 'touches' | 'points')}
@@ -398,8 +422,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   )}
                   {weapon === Weapon.LASER && (
                     <div className="form-group">
-                      <label className="form-label">{t('newCompetition.format')}</label>
+                      <label className="form-label" htmlFor="new-competition-format">
+                        {t('newCompetition.format')}
+                      </label>
                       <select
+                        id="new-competition-format"
                         className="form-input form-select"
                         value={teamFormat}
                         onChange={e => setTeamFormat(e.target.value as 'fie-relay' | 'laser-arena')}
@@ -413,10 +440,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
               )}
 
               <div className="form-group">
-                <label className="form-label">
+                <label className="form-label" htmlFor="new-competition-location">
                   {t('competition.location')} ({t('actions.default')})
                 </label>
                 <input
+                  id="new-competition-location"
                   type="text"
                   className="form-input"
                   placeholder={t('newCompetition.location_ph')}

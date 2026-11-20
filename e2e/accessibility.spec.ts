@@ -30,6 +30,8 @@ test.describe('Accessibility', () => {
 
   test('should be keyboard navigable', async ({ page }) => {
     await page.goto('/');
+    // Interface rendue avant la tabulation (sinon le focus reste sur le document)
+    await expect(page.getByRole('button', { name: /nouvelle comp/i }).first()).toBeVisible();
 
     // Press Tab to navigate
     await page.keyboard.press('Tab');

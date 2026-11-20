@@ -2,7 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * E2E de l'interface servie par le serveur de dev (webpack serve, port 8066, #2045).
- * Chromium par défaut ; E2E_ALL_BROWSERS=1 ajoute Firefox, WebKit et les mobiles.
+ * Projets : chromium (interface dans le navigateur) et electron (application réelle,
+ * e2e/electron, après npm run build ; sous Linux sans écran : xvfb-run -a).
+ * E2E_ALL_BROWSERS=1 ajoute Firefox, WebKit et les mobiles.
  * Navigateur requis : npx playwright install chromium
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -51,14 +53,20 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: 'electron/**',
       use: { ...devices['Desktop Chrome'] },
+    },
+    /* Application Electron réelle (écriture en base) : e2e/electron, build requis (#2045) */
+    {
+      name: 'electron',
+      testMatch: 'electron/**/*.spec.ts',
     },
     ...(process.env.E2E_ALL_BROWSERS
       ? [
-          { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-          { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-          { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
-          { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
+          { name: 'firefox', testIgnore: 'electron/**', use: { ...devices['Desktop Firefox'] } },
+          { name: 'webkit', testIgnore: 'electron/**', use: { ...devices['Desktop Safari'] } },
+          { name: 'Mobile Chrome', testIgnore: 'electron/**', use: { ...devices['Pixel 5'] } },
+          { name: 'Mobile Safari', testIgnore: 'electron/**', use: { ...devices['iPhone 12'] } },
         ]
       : []),
   ],

@@ -24,6 +24,8 @@
   border: 1px dashed var(--color-border-dark);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
+  /* Libellés longs (allemand, pseudo-localisation) : le bouton passe dessous (#2045) */
+  flex-wrap: wrap;
 }
 
 .federal-import-drop.is-over {
@@ -34,13 +36,20 @@
 .federal-import-text {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 16rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: 0.125rem;
   font-size: 0.875rem;
 }
 
 .federal-import-text strong {
   color: var(--color-text);
+}
+
+/* Consigne lisible (AA) : texte secondaire, pas le gris décoratif hérité (#2045) */
+.federal-import-text > span:not(.federal-import-error) {
+  color: var(--color-text-light);
 }
 
 .federal-import-error {
