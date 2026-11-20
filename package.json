@@ -25,6 +25,7 @@
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
     "lint": "eslint .",
+    "lint:errors": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",

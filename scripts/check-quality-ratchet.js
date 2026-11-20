@@ -39,6 +39,14 @@
  *                  dans src/ (ts, tsx, js, html, hors tests) → logger.debug (#1773)
  *   - rawBtn     : `className` JSX contenant la classe `btn` écrite à la main dans le renderer
  *                  → primitive `<Button variant=… size=…>` (common/Button.tsx, #1529)
+ *   - rendererImports : fichiers de src/main, src/shared ou src/database qui importent
+ *                  src/renderer (import, export from, import(), require) → règle dans
+ *                  src/shared/domain (#1979, docs/adr/0002)
+ *   - featuresImports : fichiers de src/main, src/shared ou src/database qui importent
+ *                  src/features, couche d'interface (#1979, docs/adr/0004)
+ *   - electronApiCalls : fichiers de l'interface (src/renderer hors src/renderer/api,
+ *                  src/features) qui appellent `window.electronAPI` directement → client
+ *                  d'API du contrat (#1981, docs/adr/0008)
  *
  * Plafond de longueur (#1155) : aucun fichier source de src/ (hors tests) ne dépasse
  * MAX_LINES lignes. Les fichiers déjà au-dessus sont listés dans `lineExceptions`
@@ -72,6 +80,9 @@ const COUNTERS = [
   'rawBtn',
   'emojiUi',
   'unnamedButton',
+  'rendererImports',
+  'featuresImports',
+  'electronApiCalls',
 ];
 /**
  * Un bouton a un nom accessible s'il a du texte visible (directement ou dans un élément
@@ -159,6 +170,42 @@ function isRenderer(file) {
   );
 }
 
+const inDir = (file, ...parts) => file.startsWith(path.join(SRC, ...parts) + path.sep);
+
+/** Couche visée par un chemin importé depuis `file` : 'renderer', 'features' ou null (#1979) */
+function importedLayer(file, spec) {
+  if (/^@renderer\//.test(spec)) return 'renderer';
+  if (!spec.startsWith('.')) return null;
+  const target = path.resolve(path.dirname(file), spec);
+  if (inDir(target, 'renderer') || target === path.join(SRC, 'renderer')) return 'renderer';
+  if (inDir(target, 'features') || target === path.join(SRC, 'features')) return 'features';
+  return null;
+}
+
+/** Chemin de module d'un import, export from, import() ou require() littéral, sinon null */
+function moduleSpecifier(node) {
+  if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
+    return ts.isStringLiteral(node.moduleSpecifier) ? node.moduleSpecifier.text : null;
+  }
+  if (
+    ts.isCallExpression(node) &&
+    (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+      (ts.isIdentifier(node.expression) && node.expression.text === 'require')) &&
+    node.arguments.length === 1 &&
+    ts.isStringLiteralLike(node.arguments[0])
+  ) {
+    return node.arguments[0].text;
+  }
+  return null;
+}
+
+/** `window.electronAPI` (ou `window?.electronAPI`) */
+const isWindowElectronApi = node =>
+  ts.isPropertyAccessExpression(node) &&
+  node.name.text === 'electronAPI' &&
+  ts.isIdentifier(node.expression) &&
+  node.expression.text === 'window';
+
 function analyze(file) {
   const text = fs.readFileSync(file, 'utf8');
   const kind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
@@ -167,10 +214,23 @@ function analyze(file) {
   for (const key of COUNTERS) hits[key] = [];
   const renderer = isRenderer(file);
   const main = file.startsWith(path.join(SRC, 'main') + path.sep);
+  // Couches (#1979) : un fichier compte une fois par compteur
+  const lowerLayer = inDir(file, 'main') || inDir(file, 'shared') || inDir(file, 'database');
+  const interfaceLayer = renderer && !inDir(file, 'renderer', 'api');
+  const once = (key, line) => {
+    if (hits[key].length === 0) hits[key].push(line);
+  };
   const isFrLiteral = n => n && ts.isStringLiteralLike(n) && /^fr\b/i.test(n.text);
   const at = node => sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
 
   function visit(node) {
+    if (lowerLayer) {
+      const spec = moduleSpecifier(node);
+      const layer = spec && importedLayer(file, spec);
+      if (layer === 'renderer') once('rendererImports', at(node));
+      if (layer === 'features') once('featuresImports', at(node));
+    }
+    if (interfaceLayer && isWindowElectronApi(node)) once('electronApiCalls', at(node));
     if (node.kind === ts.SyntaxKind.AnyKeyword) hits.any.push(at(node));
     if (
       ts.isCallExpression(node) &&
