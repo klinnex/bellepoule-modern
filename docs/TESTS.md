@@ -103,7 +103,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 1 | 7 |
 | `src/database/` | 21 | 266 |
-| `src/main/` | 118 | 966 |
+| `src/main/` | 119 | 972 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 119 | 626 |
@@ -113,10 +113,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 12 | 111 |
-| **Total** | **516** | **3990** |
+| `src/shared/domain/` | 13 | 114 |
+| **Total** | **518** | **3999** |
 
-Unitaires : 506 fichiers, 3951 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3495,6 +3495,18 @@ Unitaires : 506 fichiers, 3951 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - dryRun ou rien à faire : ni événement ni révision
   - révision attendue périmée : refus revision\_conflict avec les événements manquants
   - getCompetitionEvents / getMatchHistory : lecture du journal
+
+</details>
+
+<details>
+<summary><code>src/main/engine/commands/refereeing.test.ts</code> — 6 tests</summary>
+
+- fusionne côté moteur sans toucher aux autres réglages de l’épreuve
+- dryRun : rien d’écrit
+- neutralité de nation lue dans les réglages : arbitre français écarté
+- par le contrat : sortie validée, outil MCP « assign\_referees »
+- arbitre non neutre accepté et signalé ; null retire l’arbitre
+- poule ou arbitre inconnus : erreurs codées
 
 </details>
 
@@ -8238,6 +8250,16 @@ Unitaires : 506 fichiers, 3951 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - plus de poules que d’arbitres
 - **refereeLevelFromCategory**
   - ordonne international \> national \> régional \> autre
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/referees/refereeingSettings.test.ts</code> — 3 tests</summary>
+
+- **réglages d’affectation des arbitres (ADR-0014)**
+  - sans réglage : neutralité de club seule, charge équilibrée
+  - réglage partiel : complété par les défauts
+  - fusion : la neutralité se modifie champ par champ, le reste est conservé
 
 </details>
 
