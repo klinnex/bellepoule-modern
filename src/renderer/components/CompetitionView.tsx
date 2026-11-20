@@ -21,20 +21,20 @@ import PoolPrepView from './PoolPrepView';
 import { TEAM_PHASE_VIEWS, isTeamPhase } from './competition/teamPhases';
 import type { TeamPhase } from './competition/teamPhases';
 import { CV_STYLES } from './competition/competitionViewStyles';
-import { emptyRapieresTeamInfo } from '../../features/rapieres/rapieres.types';
+import { emptyRapieresTeamInfo } from '../../shared/domain/rapieres/rapieres.types';
 import {
   rapieresSemifinalists,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
   applyClassicOrder,
-} from '../../features/rapieres/rapieresCalculations';
+} from '../../shared/domain/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
 import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
 import RapieresMatchOrderDialog from '../../features/rapieres/RapieresMatchOrderDialog';
 import {
   hasClassicOrder,
   type RapieresMatchOrder,
-} from '../../features/rapieres/rapieresClassicOrder';
+} from '../../shared/domain/rapieres/rapieresClassicOrder';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
 import { checkInStatusUpdate } from '../../shared/utils/forfeit';

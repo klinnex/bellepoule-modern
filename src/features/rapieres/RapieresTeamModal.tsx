@@ -11,7 +11,7 @@ import {
   rapieresBirthYear,
   rapieresCategoryFromBirthYear,
   rapieresTeamCategory,
-} from './rapieresAge';
+} from '../../shared/domain/rapieres/rapieresAge';
 import {
   RAPIERES_AGE_CATEGORIES,
   RAPIERES_GENDERS,
@@ -21,7 +21,7 @@ import {
   RapieresGender,
   RapieresLevel,
   RapieresTeamInfo,
-} from './rapieres.types';
+} from '../../shared/domain/rapieres/rapieres.types';
 import { Button } from '../../renderer/components/common/Button';
 
 export interface RapieresTeamDraft {
@@ -64,11 +64,11 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
     const year = rapieresBirthYear({ birthDate });
     setFencer(i, {
       birthDate: birthDate || undefined,
-      ...(year !== undefined ? { category: rapieresCategoryFromBirthYear(year) } : {}),
+      ...(year !== undefined ? { category: rapieresCategoryFromBirthYear(year, new Date()) } : {}),
     });
   };
   const teamCategory = fencers.some(f => f.birthDate)
-    ? rapieresTeamCategory({ level, fencers })
+    ? rapieresTeamCategory({ level, fencers }, new Date())
     : null;
 
   const build = (): RapieresTeamDraft | null => {

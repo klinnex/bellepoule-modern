@@ -15,7 +15,7 @@ import {
   initialRankOf,
   rankingProgression,
   type KpiMatch,
-} from '../../../features/analytics/services/competitionKpis';
+} from '../../../shared/domain/analytics/competitionKpis';
 
 const Card: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-white rounded-lg border border-gray-100 p-4">

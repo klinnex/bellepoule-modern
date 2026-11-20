@@ -6,10 +6,10 @@
 
 import { useState } from 'react';
 import { Fencer, FencerStatus, Gender } from '../../shared/types';
-import { useToast } from '../../renderer/components/Toast';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
-import { RapieresTeamInfo } from './rapieres.types';
-import { teamMembersLabel } from './rapieresCalculations';
+import { RapieresTeamInfo } from '../../shared/domain/rapieres/rapieres.types';
+import type { RapieresNotify } from './rapieresNotify';
+import { teamMembersLabel } from '../../shared/domain/rapieres/rapieresCalculations';
 import { buildRapieresImportTemplate, parseRapieresTeams } from './rapieresImport';
 import { RapieresTeamDraft } from './RapieresTeamModal';
 
@@ -22,6 +22,8 @@ interface UseRapieresTeamsOptions {
   bulkAddFencers: (fencers: NewFencer[]) => Promise<Fencer[]>;
   updateFencer: (id: string, updates: Partial<Fencer>) => Promise<void>;
   setRapieresTeam: (id: string, info: RapieresTeamInfo) => void;
+  /** Notification de l'écran (toast) */
+  notify: RapieresNotify;
 }
 
 export function useRapieresTeams({
@@ -30,9 +32,9 @@ export function useRapieresTeams({
   bulkAddFencers,
   updateFencer,
   setRapieresTeam,
+  notify,
 }: UseRapieresTeamsOptions) {
   const { t } = useTranslation();
-  const { showToast } = useToast();
   // Fichier lu, en attente de sélection des équipes (fenêtre d'import)
   const [rapieresImport, setRapieresImport] = useState<{
     filename: string;
@@ -80,7 +82,7 @@ export function useRapieresTeams({
     const refDate = competitionDate ? new Date(competitionDate) : new Date();
     const { teams, skipped } = parseRapieresTeams(result.content || '', refDate);
     if (teams.length === 0) {
-      showToast(t('rapieres.import_empty'), 'error');
+      notify(t('rapieres.import_empty'), 'error');
       return;
     }
     const filename = result.filePath.split(/[/\\]/).pop() || result.filePath;
@@ -107,7 +109,7 @@ export function useRapieresTeams({
     if (teams.length === 0) return;
     const added = await bulkAddFencers(teams.map(newTeamFencer));
     added.forEach((fencer, i) => setRapieresTeam(fencer.id, teams[i].info));
-    showToast(t('rapieres.import_done', { n: String(added.length) }), 'success');
+    notify(t('rapieres.import_done', { n: String(added.length) }), 'success');
   };
 
   return {

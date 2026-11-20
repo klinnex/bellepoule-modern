@@ -18,8 +18,11 @@ import {
   RapieresLevel,
   RapieresTeamGender,
   RapieresTeamInfo,
-} from './rapieres.types';
-import { filterRanking, RapieresRankingFilter } from './rapieresCalculations';
+} from '../../shared/domain/rapieres/rapieres.types';
+import {
+  filterRanking,
+  RapieresRankingFilter,
+} from '../../shared/domain/rapieres/rapieresCalculations';
 import {
   exportRapieresRankingToPDF,
   printRapieresRanking,
@@ -127,7 +130,7 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
     activeLabels.length > 0 ? activeLabels.join(' · ') : t('rapieres.ranking_teams');
 
   const byId = new Map(fencers.map(f => [f.id, f]));
-  const rows = filterRanking(ranked, teams, filter);
+  const rows = filterRanking(ranked, teams, filter, new Date());
   const showPool = !!poolOf;
 
   const allHeaders: Record<string, string> = {

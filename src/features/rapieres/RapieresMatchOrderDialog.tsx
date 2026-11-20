@@ -7,7 +7,7 @@
 import React from 'react';
 import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
-import type { RapieresMatchOrder } from './rapieresClassicOrder';
+import type { RapieresMatchOrder } from '../../shared/domain/rapieres/rapieresClassicOrder';
 import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresMatchOrderDialogProps {

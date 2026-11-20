@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../shared/types';
+import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../types';
 import {
   canLaunchNextWave,
   distributeByLevel,
@@ -17,8 +17,11 @@ import {
   waveMatchOrder,
   waveSheetMatches,
 } from './rapieresCalculations';
-import { calculateOverallRanking } from '../../shared/utils/poolCalculations';
+import { calculateOverallRanking } from '../../utils/poolCalculations';
 import { RapieresLevel, RapieresTeamInfo } from './rapieres.types';
+
+/** Date de référence fixe des catégories d'âge (domaine pur : date injectée) */
+const REF = new Date('2026-11-20');
 
 const fencer = (id: string, status = FencerStatus.CHECKED_IN): Fencer =>
   ({
@@ -314,10 +317,10 @@ describe('Tournoi des rapières (#1118)', () => {
     ];
 
     it('filtre par niveau : équipes seules, rangs conservés (#1441)', () => {
-      expect(filterRanking(ranked, teams, { level: 'beginner' })).toEqual([
+      expect(filterRanking(ranked, teams, { level: 'beginner' }, REF)).toEqual([
         { teamId: 'y', rank: 1 },
       ]);
-      expect(filterRanking(ranked, teams, {})).toEqual([
+      expect(filterRanking(ranked, teams, {}, REF)).toEqual([
         { teamId: 'x', rank: 1 },
         { teamId: 'y', rank: 2 },
       ]);
@@ -325,7 +328,7 @@ describe('Tournoi des rapières (#1118)', () => {
 
     it('filtre par catégorie d’équipe (moyenne des années de naissance, #1441)', () => {
       // Années relatives à l'année courante : âges moyens ≈ 33 ans (x) et ≈ 17 ans (y)
-      const Y = new Date().getFullYear();
+      const Y = REF.getFullYear();
       const withDates: Record<string, RapieresTeamInfo> = {
         x: {
           level: 'beginner',
@@ -343,10 +346,10 @@ describe('Tournoi des rapières (#1118)', () => {
         },
       };
       // x : moyenne Y-33 → Seniors ; y : moyenne Y-17.5 → M20
-      expect(filterRanking(ranked, withDates, { category: 'SENIOR' })).toEqual([
+      expect(filterRanking(ranked, withDates, { category: 'SENIOR' }, REF)).toEqual([
         { teamId: 'x', rank: 1 },
       ]);
-      expect(filterRanking(ranked, withDates, { category: 'M20' })).toEqual([
+      expect(filterRanking(ranked, withDates, { category: 'M20' }, REF)).toEqual([
         { teamId: 'y', rank: 1 },
       ]);
     });
@@ -368,9 +371,11 @@ describe('Tournoi des rapières (#1118)', () => {
           ],
         },
       };
-      expect(filterRanking(ranked, g, { gender: 'MIXED' })).toEqual([{ teamId: 'x', rank: 1 }]);
-      expect(filterRanking(ranked, g, { gender: 'F' })).toEqual([]);
-      expect(filterRanking(ranked, g, { gender: 'M' })).toEqual([]);
+      expect(filterRanking(ranked, g, { gender: 'MIXED' }, REF)).toEqual([
+        { teamId: 'x', rank: 1 },
+      ]);
+      expect(filterRanking(ranked, g, { gender: 'F' }, REF)).toEqual([]);
+      expect(filterRanking(ranked, g, { gender: 'M' }, REF)).toEqual([]);
     });
 
     it('filtres cumulables (niveau + sexe)', () => {
@@ -390,11 +395,11 @@ describe('Tournoi des rapières (#1118)', () => {
           ],
         },
       };
-      expect(filterRanking(ranked, g, { level: 'expert', gender: 'M' })).toEqual([
+      expect(filterRanking(ranked, g, { level: 'expert', gender: 'M' }, REF)).toEqual([
         { teamId: 'x', rank: 1 },
         { teamId: 'y', rank: 2 },
       ]);
-      expect(filterRanking(ranked, g, { level: 'beginner', gender: 'M' })).toEqual([]);
+      expect(filterRanking(ranked, g, { level: 'beginner', gender: 'M' }, REF)).toEqual([]);
     });
 
     it('rapieresPoolNumbers : numéro de poule par équipe', () => {

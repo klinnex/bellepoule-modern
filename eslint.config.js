@@ -151,6 +151,15 @@ module.exports = [
     ignores: LAYER_TESTS,
     rules: {
       ...restrict(NO_APP_IN_DOMAIN),
+      // Ni navigateur ni pont Electron : le domaine tourne aussi dans le main et le MCP
+      'no-restricted-globals': [
+        'error',
+        ...['window', 'document', 'localStorage', 'sessionStorage', 'navigator'].map(name => ({
+          name,
+          message:
+            'Domaine pur : pas d’accès au navigateur ni à window.electronAPI (docs/adr/0002).',
+        })),
+      ],
       // Ni heure système ni hasard : injectés par l'appelant (docs/adr/0002)
       'no-restricted-properties': [
         'error',

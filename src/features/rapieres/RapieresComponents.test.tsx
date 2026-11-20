@@ -7,8 +7,8 @@ import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../sh
 import RapieresTeamModal from './RapieresTeamModal';
 import RapieresWaveBar from './RapieresWaveBar';
 import RapieresImportModal from './RapieresImportModal';
-import { waveMatchOrder } from './rapieresCalculations';
-import { RapieresFencer } from './rapieres.types';
+import { waveMatchOrder } from '../../shared/domain/rapieres/rapieresCalculations';
+import { RapieresFencer } from '../../shared/domain/rapieres/rapieres.types';
 
 vi.mock('../../renderer/hooks/useTranslation', () => ({
   useTranslation: () => ({

@@ -5,8 +5,8 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, FencerStatus, MatchStatus, Pool, PoolRanking } from '../../shared/types';
-import type { TableauMatchForPDF } from '../../shared/utils/pdfExport/tableauPdf';
+import { Fencer, FencerStatus, MatchStatus, Pool, PoolRanking } from '../../types';
+import type { TableauMatchForPDF } from '../../utils/pdfExport/tableauPdf';
 import {
   RAPIERES_LEVELS,
   RapieresAgeCategory,
@@ -17,7 +17,7 @@ import {
 } from './rapieres.types';
 import { rapieresTeamCategory, rapieresTeamGender } from './rapieresAge';
 import { classicMatchOrder, classicWaves } from './rapieresClassicOrder';
-import { isWithdrawn } from '../../shared/domain/rapieres/tableauQualifiers';
+import { isWithdrawn } from './tableauQualifiers';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
 
@@ -297,7 +297,7 @@ export {
   rapieresSemifinalists,
   rapieresTableauQualifiers,
   rapieresTableauSettings,
-} from '../../shared/domain/rapieres/tableauQualifiers';
+} from './tableauQualifiers';
 
 // ─── Filtres de classement ───────────────────────────────────────────────────
 
@@ -324,13 +324,15 @@ export interface RapieresDisplayRow {
 export function filterRanking(
   ranked: { teamId: string; rank: number }[],
   teams: Record<string, RapieresTeamInfo>,
-  filter: RapieresRankingFilter = {}
+  filter: RapieresRankingFilter,
+  /** Date de référence de la catégorie d'âge (saison) */
+  refDate: Date
 ): RapieresDisplayRow[] {
   const active = !!(filter.category || filter.level || filter.gender);
   const kept = ranked.filter(r => {
     const team = teams[r.teamId];
     if (!team) return !active;
-    if (filter.category && rapieresTeamCategory(team) !== filter.category) return false;
+    if (filter.category && rapieresTeamCategory(team, refDate) !== filter.category) return false;
     if (filter.level && team.level !== filter.level) return false;
     if (filter.gender && rapieresTeamGender(team) !== filter.gender) return false;
     return true;

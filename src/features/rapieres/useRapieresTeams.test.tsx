@@ -7,9 +7,6 @@ import { useRapieresTeams } from './useRapieresTeams';
 vi.mock('../../renderer/hooks/useTranslation', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
-vi.mock('../../renderer/components/Toast', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-}));
 
 const CSV = [
   ';;;Nom participant',
@@ -28,6 +25,7 @@ describe('useRapieresTeams : import des équipes (#1211)', () => {
       list.map((_, i) => ({ id: `f${i}` }) as Fencer)
     );
     const setRapieresTeam = vi.fn();
+    const notify = vi.fn();
     const { result } = renderHook(() =>
       useRapieresTeams({
         competitionDate: '2026-10-26',
@@ -35,6 +33,7 @@ describe('useRapieresTeams : import des équipes (#1211)', () => {
         bulkAddFencers,
         updateFencer: vi.fn(),
         setRapieresTeam,
+        notify,
       })
     );
     await act(() => result.current.handleImportRapieresTeams());
@@ -52,5 +51,7 @@ describe('useRapieresTeams : import des équipes (#1211)', () => {
     ]);
     expect(setRapieresTeam).toHaveBeenCalledWith('f0', pending!.teams[0].info);
     expect(setRapieresTeam).toHaveBeenCalledWith('f1', pending!.teams[1].info);
+    // Notification injectée par l'écran (lot 5 de #1979)
+    expect(notify).toHaveBeenCalledWith('rapieres.import_done', 'success');
   });
 });

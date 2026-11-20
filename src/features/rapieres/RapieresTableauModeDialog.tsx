@@ -8,7 +8,7 @@
 import React from 'react';
 import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
-import type { RapieresTableauMode } from './rapieres.types';
+import type { RapieresTableauMode } from '../../shared/domain/rapieres/rapieres.types';
 import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresTableauModeDialogProps {

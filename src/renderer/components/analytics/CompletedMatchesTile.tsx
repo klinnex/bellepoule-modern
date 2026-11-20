@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import type { OrganisationKpis } from '../../../features/analytics/services/competitionKpis';
+import type { OrganisationKpis } from '../../../shared/domain/analytics/competitionKpis';
 
 export const CompletedMatchesTile: React.FC<{
   poolDone: number;

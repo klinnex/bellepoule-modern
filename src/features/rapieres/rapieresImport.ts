@@ -7,8 +7,12 @@
  * Licensed under GPL-3.0
  */
 
-import { RapieresAgeCategory, RapieresFencer, RapieresGender } from './rapieres.types';
-import { rapieresCategoryFromBirthYear } from './rapieresAge';
+import {
+  RapieresAgeCategory,
+  RapieresFencer,
+  RapieresGender,
+} from '../../shared/domain/rapieres/rapieres.types';
+import { rapieresCategoryFromBirthYear } from '../../shared/domain/rapieres/rapieresAge';
 import { RapieresTeamDraft } from './RapieresTeamModal';
 
 /** Colonnes (index base 0) : D=3, E=4, Q=16, R=17, S=18 (club), T=19, U=20, V=21, W=22, X=23 (club 2nd), Y=24 */

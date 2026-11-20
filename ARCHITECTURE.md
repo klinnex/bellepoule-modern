@@ -77,7 +77,7 @@ bellepoule-modern/
 │   │   └── sw.js                 # Service worker
 │   │
 │   ├── features/                 # Couche d'interface : stores Zustand + services (ADR-0004)
-│   │   ├── analytics/            # analyticsService, useAnalyticsStore, FencerDetailModal
+│   │   ├── analytics/            # analyticsService, useAnalyticsStore, FencerDetailModal (KPI : shared/domain/analytics)
 │   │   ├── bracket/              # bracketGenerator, bracketService
 │   │   ├── competition/          # competitionService, useCompetitionStore (immer)
 │   │   ├── doubleelimination/    # useDEBracketStore
@@ -304,6 +304,8 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 | `hooks/useCompetitionSession.ts`, `hooks/competitionView/useCompetitionCore.ts` | État + règle | Numéros de phase, réglages effectifs (scores max, départage) | `shared/domain/formula` | `sport.ts` (`PHASE`, effectiveSettings « comme l'écran ») | MCP | XS | 3 |
 | `components/remote/sessionMatches.ts` | Règle | Matchs jouables d'une session | `shared/domain/pools` | — | tablettes | XS | 3 |
 | `components/NewCompetitionModal.tsx`, `CompetitionPropertiesModal.tsx`, `CompetitionView.tsx`, `SeasonRankingView.tsx` | Vue + règle | Genre imposé par l'arme, assemblage des réglages, changement de statut, ajout au classement saisonnier | `shared/domain/formula`, commande `setFencerStatus` | `formulaDraft.draftToSettings`, `usePoolManagement` | MCP, #1948 | XS à S | 3–4 |
+
+**Lot 5 ✅** : `features/rapieres` et `features/analytics` ne gardent que l'interface (composants, hooks, stores). Règles des rapières (vagues, ordre classique, catégories d’âge à date injectée, filtres de classement) → `shared/domain/rapieres` ; KPI d’épreuve purs (`competitionKpis`) → `shared/domain/analytics` ; `analyticsService` (lit la base par `window.electronAPI`) et `scheduleBaseline` (`localStorage`) restent dans `features` — ESLint interdit désormais `window`, `document`, `localStorage` dans le domaine ; hooks des rapières sans import du `Toast` (notification `notify` injectée).
 
 ### 9.4 Règles recodées à plusieurs endroits
 

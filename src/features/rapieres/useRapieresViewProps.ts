@@ -7,9 +7,9 @@
 
 import { useMemo } from 'react';
 import { Fencer } from '../../shared/types';
-import { RAPIERES_LEVELS, RapieresTeamInfo } from './rapieres.types';
-import { rapieresTeamCategory } from './rapieresAge';
-import { waveMatchOrder } from './rapieresCalculations';
+import { RAPIERES_LEVELS, RapieresTeamInfo } from '../../shared/domain/rapieres/rapieres.types';
+import { rapieresTeamCategory } from '../../shared/domain/rapieres/rapieresAge';
+import { waveMatchOrder } from '../../shared/domain/rapieres/rapieresCalculations';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
@@ -33,7 +33,7 @@ export function useRapieresViewProps(teams: Record<string, RapieresTeamInfo>, t:
           club: levelLabel,
           birthDate: (f: Fencer) => {
             const info = teams[f.id];
-            return info ? t(`rapieres.cat_${rapieresTeamCategory(info)}`) : '';
+            return info ? t(`rapieres.cat_${rapieresTeamCategory(info, new Date())}`) : '';
           },
         },
       },

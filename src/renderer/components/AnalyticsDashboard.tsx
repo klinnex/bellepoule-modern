@@ -31,7 +31,7 @@ import {
   kpiCompetitionOptions,
   type KpiTableauMatch,
   type LiveArena,
-} from '../../features/analytics/services/competitionKpis';
+} from '../../shared/domain/analytics/competitionKpis';
 import { exportPostTournamentPDF } from '../../shared/utils/postTournamentReport';
 import { FileText, Hourglass, Square } from 'lucide-react';
 import { Icon } from './common/Icon';

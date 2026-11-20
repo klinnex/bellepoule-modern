@@ -5,7 +5,10 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Fencer } from '../../../shared/types';
-import { rapieresCategoryAbbr, rapieresTeamCategory } from '../../../features/rapieres/rapieresAge';
+import {
+  rapieresCategoryAbbr,
+  rapieresTeamCategory,
+} from '../../../shared/domain/rapieres/rapieresAge';
 import type { PoolPrepLaunchAction } from '../../components/PoolPrepView';
 import { buildStripQrs } from '../useExport';
 import { usePoolStripChange } from '../usePoolStripChange';
@@ -271,7 +274,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
       isRapieres
         ? (f: Fencer) => {
             const info = rapieresTeams[f.id];
-            return info ? rapieresCategoryAbbr(rapieresTeamCategory(info)) : '';
+            return info ? rapieresCategoryAbbr(rapieresTeamCategory(info, new Date())) : '';
           }
         : undefined,
     [isRapieres, rapieresTeams]

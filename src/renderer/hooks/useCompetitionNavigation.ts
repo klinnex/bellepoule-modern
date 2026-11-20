@@ -17,8 +17,11 @@ import type { getActiveFormula } from '../../shared/utils/customFormulaSettings'
 import {
   rapieresSemifinalists,
   rapieresTableauSettings,
-} from '../../features/rapieres/rapieresCalculations';
-import type { RapieresTableauMode, RapieresSession } from '../../features/rapieres/rapieres.types';
+} from '../../shared/domain/rapieres/rapieresCalculations';
+import type {
+  RapieresTableauMode,
+  RapieresSession,
+} from '../../shared/domain/rapieres/rapieres.types';
 import type {
   ConsolationBracket,
   FinalResult,

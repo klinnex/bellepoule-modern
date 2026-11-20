@@ -8,7 +8,11 @@
 import React, { useState } from 'react';
 import type { Pool } from '../../shared/types';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
-import { canLaunchNextWave, isWaveComplete, waveCount } from './rapieresCalculations';
+import {
+  canLaunchNextWave,
+  isWaveComplete,
+  waveCount,
+} from '../../shared/domain/rapieres/rapieresCalculations';
 import RapieresWavePrintDialog from './RapieresWavePrintDialog';
 import { Button } from '../../renderer/components/common/Button';
 

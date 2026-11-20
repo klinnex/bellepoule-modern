@@ -15,7 +15,7 @@ import {
   tableauWaves,
   type KpiMatch,
 } from './competitionKpis';
-import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../../shared/types';
+import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../types';
 
 const f = (id: string, ranking?: number, status = FencerStatus.CHECKED_IN) =>
   ({ id, ranking, status, lastName: id, firstName: id }) as unknown as Fencer;

@@ -62,7 +62,7 @@ export interface RapieresSession {
 }
 
 /** Mode de tableau (#1441) : règle du domaine (src/shared/domain/rapieres, #1979) */
-import type { RapieresTableauMode } from '../../shared/domain/rapieres/tableauQualifiers';
+import type { RapieresTableauMode } from './tableauQualifiers';
 export type { RapieresTableauMode };
 
 /** État de la première version (vue dédiée), migré à l'ouverture */
