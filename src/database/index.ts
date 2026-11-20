@@ -27,6 +27,7 @@ import { ClubInventoryRepo } from './repos/clubInventoryRepo';
 import { ClubBackupRepo } from './repos/clubBackupRepo';
 import { PrivacyRepo } from './repos/privacyRepo';
 import { SettingsRepo } from './repos/settingsRepo';
+import { EventLogRepo } from './repos/eventLogRepo';
 import type { SqlExecutor } from './repos/sqlExecutor';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
@@ -77,6 +78,8 @@ export class DatabaseManager {
   public readonly privacy = new PrivacyRepo(this.sql);
   /** Paramétrage global du poste et salles (#1880) */
   public readonly settings = new SettingsRepo(this.sql);
+  /** Journal des événements par épreuve, en ajout seul (#1980) */
+  public readonly eventLog = new EventLogRepo(this.sql);
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');

@@ -59,7 +59,35 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `recordScore` | commande | `record_score` |
 | `getMatchCards` | requête | — |
 | `getCardsByMatchIds` | requête | — |
+| `getCompetitionEvents` | requête | `get_competition_events` |
+| `getMatchHistory` | requête | — |
 | `onCompetitionEvents` | abonnement | — |
 
 Lots suivants : migration de l'écran par domaine (2), `WsClient` + adaptateur WebSocket (3),
 `PlatformServices` (4), pages distantes (5).
+
+## Journal des événements par épreuve (#1980, étape 1)
+
+Table `competition_events` (migration 45) : `competition_id`, `revision` (croissante par
+épreuve), `type`, `payload` (JSON, identifiants seulement), `author`, `source`
+(`screen`, `mcp`, `tablet`, `cyrano`, `engine`), `at`. Ajout seul
+(`src/database/repos/eventLogRepo.ts`). Les tables actuelles et `session_state` restent la
+lecture : le journal s'écrit **en plus**, dans la même transaction (`src/main/domain/eventLog.ts`).
+
+| Commande | Événements |
+|---|---|
+| `checkIn` | `FencerCheckedIn` / `FencerCheckedOut` (un par tireur modifié) |
+| `recordScore` (poule) | `ScoreRecorded`, puis `PoolCompleted` si la poule se termine |
+| `recordScore` (tableau) | `ScoreRecorded`, `TableauMatchDecided`, `TableauCompleted` en fin de tableau |
+
+- Source : `DomainContext.actor` (IPC : `screen` ; MCP : `mcp`, auteur `agent` ; défaut `engine`).
+- Une commande qui écrit rend `revision` et diffuse `{ type: 'journal:appended', competitionId, revision }`
+  aux abonnés `onCompetitionEvents`. `dryRun` n'écrit rien.
+- `expectedRevision` (optionnel) : révision périmée → `ApiError` `revision_conflict`,
+  `data: { revision, missing }` (200 événements manquants au plus ; au-delà, `getCompetitionEvents`).
+- Resynchronisation : `getCompetitionEvents { competitionId, since }`. Audit d'un match :
+  `getMatchHistory { competitionId, matchId }`.
+- Purge RGPD et archive `.bpm` : suivent `competition_id` comme les autres tables.
+
+Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
+mise à jour par diffusion (4), `session_state` en cache reconstruit (5).

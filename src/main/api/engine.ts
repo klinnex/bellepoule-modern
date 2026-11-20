@@ -16,8 +16,16 @@ import { ApiError } from '../../shared/api/client';
 import { DomainError, type DomainContext } from '../domain/context';
 import { recordScore } from '../domain/sport';
 import { checkInFencers } from '../domain/checkIn';
-import { onCompetitionEvent } from './events';
+import { getCompetitionOrThrow } from '../domain/competitions';
+import type { CompetitionEvent } from '../../database/repos/eventLogRepo';
+import { onCompetitionEvent, publishCompetitionEvent } from './events';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+
+/** Événement du journal tel que le contrat l'expose (sans l'épreuve, déjà connue) */
+const publicEvent = ({ competitionId: _c, ...e }: CompetitionEvent) => e;
+
+/** Événements manquants joints au refus revision_conflict (borne : le client relit au-delà) */
+const CONFLICT_EVENTS = 200;
 
 type Handler<N extends OperationName> = Contract[N]['kind'] extends 'subscription'
   ? (ctx: DomainContext, input: ParsedInput<N>, emit: (event: Output<N>) => void) => () => void
@@ -28,6 +36,17 @@ export const handlers: { [N in OperationName]: Handler<N> } = {
   recordScore: (ctx, { competitionId, ...rest }) => recordScore(ctx, competitionId, rest),
   getMatchCards: (ctx, { matchId }) => ctx.db.getCards(matchId),
   getCardsByMatchIds: (ctx, { matchIds }) => ctx.db.getCardsByMatchIds(matchIds),
+  getCompetitionEvents: (ctx, { competitionId, since, limit }) => {
+    getCompetitionOrThrow(ctx, competitionId);
+    return {
+      revision: ctx.db.eventLog.getRevision(competitionId),
+      events: ctx.db.eventLog.getSince(competitionId, since ?? 0, limit ?? 1000).map(publicEvent),
+    };
+  },
+  getMatchHistory: (ctx, { competitionId, matchId }) => {
+    getCompetitionOrThrow(ctx, competitionId);
+    return ctx.db.eventLog.getMatchHistory(competitionId, matchId).map(publicEvent);
+  },
   onCompetitionEvents: (_ctx, { competitionId }, emit) =>
     onCompetitionEvent(e => {
       if (!competitionId || !e.competitionId || e.competitionId === competitionId) emit(e);
@@ -74,11 +93,57 @@ export async function invoke(ctx: DomainContext, name: unknown, raw: unknown): P
     throw new ApiError('unknown_operation', `« ${op} » est un abonnement`);
   }
   const input = parseInput(op, raw);
+  const log = contract[op].kind === 'command' ? journalOf(ctx, input) : null;
+  const before = log ? checkRevision(ctx, log.competitionId, log.expected) : 0;
+  let result: unknown;
   try {
-    return await (handlers[op] as (c: DomainContext, i: unknown) => unknown)(ctx, input);
+    result = await (handlers[op] as (c: DomainContext, i: unknown) => unknown)(ctx, input);
   } catch (e) {
     throw toApiError(e);
   }
+  if (!log) return result;
+  const after = ctx.db.eventLog.getRevision(log.competitionId);
+  if (after === before) return result;
+  // Diffusion à tous les abonnés de l'épreuve (#1980)
+  publishCompetitionEvent({
+    type: 'journal:appended',
+    competitionId: log.competitionId,
+    revision: after,
+  });
+  return result && typeof result === 'object' && !Array.isArray(result)
+    ? { ...result, revision: after }
+    : result;
+}
+
+/** Commande portant sur une épreuve dont le journal est disponible */
+function journalOf(ctx: DomainContext, input: unknown) {
+  const { competitionId, expectedRevision } = (input ?? {}) as {
+    competitionId?: unknown;
+    expectedRevision?: unknown;
+  };
+  if (typeof competitionId !== 'string' || !ctx.db.eventLog) return null;
+  return {
+    competitionId,
+    expected: typeof expectedRevision === 'number' ? expectedRevision : undefined,
+  };
+}
+
+/**
+ * Révision attendue périmée : refus explicite, avec les événements manquants.
+ * Les handlers sont synchrones côté base : pas d'écriture entre ce contrôle et la commande.
+ */
+function checkRevision(ctx: DomainContext, competitionId: string, expected?: number): number {
+  const current = ctx.db.eventLog.getRevision(competitionId);
+  if (expected === undefined || expected === current) return current;
+  const missing =
+    expected < current
+      ? ctx.db.eventLog.getSince(competitionId, expected, CONFLICT_EVENTS).map(publicEvent)
+      : [];
+  throw new ApiError(
+    'revision_conflict',
+    `Révision attendue ${expected}, actuelle ${current} : relire le journal (getCompetitionEvents) puis renvoyer`,
+    { revision: current, missing }
+  );
 }
 
 /** Abonnement : validation puis inscription ; retourne la fonction de désabonnement */

@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { DatabaseManager } from '../../database';
+import type { EventAuthor } from '../../database/repos/eventLogRepo';
 
 /** Écriture faite hors de l'écran : l'écran ouvert recharge les données concernées */
 export interface DomainChange {
@@ -22,6 +23,8 @@ export interface DomainContext {
    * (tests, opérateur en ligne de commande).
    */
   allowedRoots?: () => string[];
+  /** Auteur et source des écritures, inscrits au journal de l'épreuve (#1980) ; défaut : moteur */
+  actor?: EventAuthor;
 }
 
 /** Erreur métier : message destiné à l'opérateur (ou à l'agent), code stable */

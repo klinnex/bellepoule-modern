@@ -138,3 +138,140 @@ describe('contrat d’API (#1981)', () => {
     expect(() => subscribe(ctx, 'checkIn', {}, () => {})).toThrow(ApiError);
   });
 });
+
+describe('journal par épreuve (#1980)', () => {
+  /** Journal en mémoire, même contrat que EventLogRepo */
+  function withLog() {
+    const base = setup();
+    type Ev = {
+      competitionId: string;
+      revision: number;
+      type: string;
+      payload: Record<string, unknown>;
+      author: string | null;
+      source: string;
+      at: string;
+    };
+    const rows: Ev[] = [];
+    const eventLog = {
+      getRevision: (c: string) => rows.filter(r => r.competitionId === c).length,
+      append: (
+        c: string,
+        evs: Array<{ type: string; payload: Record<string, unknown> }>,
+        by: { source: string; author?: string }
+      ) => {
+        for (const e of evs) {
+          rows.push({
+            competitionId: c,
+            revision: eventLog.getRevision(c) + 1,
+            ...e,
+            author: by.author ?? null,
+            source: by.source,
+            at: 'now',
+          });
+        }
+        return eventLog.getRevision(c);
+      },
+      getSince: (c: string, since = 0, limit = 1000) =>
+        rows.filter(r => r.competitionId === c && r.revision > since).slice(0, limit),
+      getMatchHistory: (c: string, m: string) =>
+        rows.filter(r => r.competitionId === c && r.payload.matchId === m),
+    };
+    const fencers = base.db.getFencersByCompetition();
+    const updateFencer = vi.fn((id: string, patch: Partial<Fencer>) => {
+      Object.assign(
+        fencers.find(f => f.id === id)!,
+        patch
+      );
+    });
+    Object.assign(base.db, { eventLog, updateFencer });
+    const ctx = { ...base.ctx, actor: { source: 'screen' } } as DomainContext;
+    return { ...base, ctx, rows };
+  }
+
+  it('commande : événements au journal (identifiants, source), révision rendue et diffusée', async () => {
+    const { ctx, rows } = withLog();
+    const seen: unknown[] = [];
+    const off = subscribe(ctx, 'onCompetitionEvents', { competitionId: 'c1' }, e => seen.push(e));
+    const r = await invoke(ctx, 'checkIn', { competitionId: 'c1', fencers: [1], present: true });
+    off();
+    expect(r).toMatchObject({ updated: 1, revision: 1 });
+    expect(rows).toEqual([
+      expect.objectContaining({
+        revision: 1,
+        type: 'FencerCheckedIn',
+        payload: { fencerId: 'f1' },
+        source: 'screen',
+      }),
+    ]);
+    expect(seen).toContainEqual({ type: 'journal:appended', competitionId: 'c1', revision: 1 });
+  });
+
+  it('dryRun ou rien à faire : ni événement ni révision', async () => {
+    const { ctx, rows } = withLog();
+    const r = await invoke(ctx, 'checkIn', {
+      competitionId: 'c1',
+      fencers: [1],
+      present: true,
+      dryRun: true,
+    });
+    expect(r).not.toHaveProperty('revision');
+    expect(rows).toHaveLength(0);
+  });
+
+  it('révision attendue périmée : refus revision_conflict avec les événements manquants', async () => {
+    const { ctx, db, rows } = withLog();
+    await invoke(ctx, 'checkIn', { competitionId: 'c1', fencers: [1], present: true });
+    await invoke(ctx, 'checkIn', { competitionId: 'c1', fencers: [1], present: false });
+    expect(rows).toHaveLength(2);
+    db.updateFencer.mockClear();
+    const env = await invokeEnvelope(ctx, 'checkIn', {
+      competitionId: 'c1',
+      fencers: [1],
+      present: true,
+      expectedRevision: 1,
+    });
+    expect(env.ok).toBe(false);
+    if (env.ok) return;
+    expect(env.error.code).toBe('revision_conflict');
+    expect(env.error.data).toMatchObject({
+      revision: 2,
+      missing: [{ revision: 2, type: 'FencerCheckedOut' }],
+    });
+    expect(db.updateFencer).not.toHaveBeenCalled();
+    const ok = await invoke(ctx, 'checkIn', {
+      competitionId: 'c1',
+      fencers: [1],
+      present: true,
+      expectedRevision: 2,
+    });
+    expect(ok).toMatchObject({ revision: 3 });
+  });
+
+  it('getCompetitionEvents / getMatchHistory : lecture du journal', async () => {
+    const { ctx } = withLog();
+    await invoke(ctx, 'checkIn', { competitionId: 'c1', fencers: [1], present: true });
+    expect(await invoke(ctx, 'getCompetitionEvents', { competitionId: 'c1', since: 0 })).toEqual({
+      revision: 1,
+      events: [
+        {
+          revision: 1,
+          type: 'FencerCheckedIn',
+          payload: { fencerId: 'f1' },
+          author: null,
+          source: 'screen',
+          at: 'now',
+        },
+      ],
+    });
+    expect(
+      await invoke(ctx, 'getCompetitionEvents', { competitionId: 'c1', since: 1 })
+    ).toMatchObject({ events: [] });
+    expect(await invoke(ctx, 'getMatchHistory', { competitionId: 'c1', matchId: 'm1' })).toEqual(
+      []
+    );
+    await expect(
+      invoke(ctx, 'getCompetitionEvents', { competitionId: 'zz' })
+    ).rejects.toMatchObject({ code: 'competition_not_found' });
+  });
+});

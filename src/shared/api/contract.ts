@@ -62,6 +62,25 @@ const CompetitionId = Id.describe('Identifiant de la compétition (list_competit
 const DryRun = z.boolean().optional().describe('Décrit le résultat sans rien écrire');
 const Side = z.enum(['A', 'B']);
 const FencerKey = z.union([Id, z.number().int().min(0)]);
+const ExpectedRevision = z
+  .number()
+  .int()
+  .min(0)
+  .optional()
+  .describe(
+    'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps'
+  );
+/** Révision du journal après la commande (absente si rien n'a été écrit) */
+const Revision = z.number().int().optional();
+
+const CompetitionEvent = z.object({
+  revision: z.number(),
+  type: z.string(),
+  payload: z.record(z.string(), z.unknown()),
+  author: z.string().nullable(),
+  source: z.string(),
+  at: z.string(),
+});
 
 const MatchCard = z.object({
   id: z.string(),
@@ -85,6 +104,7 @@ export const contract = {
       fencers: z.array(FencerKey).min(1).max(1000).describe('Identifiants ou numéros (ref)'),
       present: z.boolean().describe('true : présent ; false : absent'),
       dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -93,6 +113,7 @@ export const contract = {
       updated: z.number(),
       skipped: z.number(),
       unknown: z.array(z.union([z.string(), z.number()])),
+      revision: Revision,
     }),
     permission: 'fencers:write',
     mcp: { name: 'check_in', title: 'Pointer des tireurs', idempotent: true },
@@ -114,8 +135,13 @@ export const contract = {
         .describe('Statut du perdant'),
       priority: Side.optional().describe('Égalité en poule : prioritaire'),
       dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
     }),
-    output: z.looseObject({ dryRun: z.boolean(), kind: z.enum(['pool', 'bracket']) }),
+    output: z.looseObject({
+      dryRun: z.boolean(),
+      kind: z.enum(['pool', 'bracket']),
+      revision: Revision,
+    }),
     permission: 'score:write',
     mcp: { name: 'record_score', title: 'Saisir un score', idempotent: true },
   }),
@@ -134,10 +160,36 @@ export const contract = {
     permission: 'cards:read',
   }),
 
+  getCompetitionEvents: query({
+    description:
+      'Journal d’une épreuve (#1980) : événements postérieurs à la révision « since » (resynchronisation, audit), auteur, source et heure. Identifiants seulement, pas de noms.',
+    input: z.object({
+      competitionId: CompetitionId,
+      since: z.number().int().min(0).optional().describe('Dernière révision connue (0 : tout)'),
+      limit: z.number().int().min(1).max(5000).optional().describe('Nombre maximum (1000)'),
+    }),
+    output: z.object({ revision: z.number(), events: z.array(CompetitionEvent) }),
+    permission: 'competition:read',
+    mcp: { name: 'get_competition_events', title: 'Journal d’une épreuve' },
+  }),
+
+  getMatchHistory: query({
+    description:
+      'Historique d’un match dans le journal de l’épreuve : chaque modification, auteur, source, heure.',
+    input: z.object({ competitionId: CompetitionId, matchId: Id }),
+    output: z.array(CompetitionEvent),
+    permission: 'competition:read',
+  }),
+
   onCompetitionEvents: subscription({
     description: 'Événements de données (tireurs, matchs, session…) d’une épreuve ou de toutes.',
     input: z.object({ competitionId: Id.optional() }),
-    output: z.object({ type: z.string(), competitionId: z.string().optional() }),
+    output: z.object({
+      type: z.string(),
+      competitionId: z.string().optional(),
+      /** journal:appended : nouvelle révision du journal (#1980) */
+      revision: z.number().optional(),
+    }),
     permission: 'competition:read',
   }),
 } satisfies ApiContract;
