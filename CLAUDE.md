@@ -15,6 +15,7 @@
 - **Auto-merge par défaut sur `dev`** : activer l'auto-merge GitHub (base `dev`) dès la PR créée
 - Auto-merge incompatible avec draft → marquer la PR « ready » avant d'activer l'auto-merge
 - Jamais d'auto-merge vers `main`
+- **Exception architecture** : PR d'un ticket portant le label `refactor` ou rattaché à l'épique #1978 (#1979–#1982, #2013) → rester en draft, **pas d'auto-merge**, attendre la revue de l'utilisateur. Toute décision de couche, de schéma SQL, de format d'événement ou de nommage du contrat passe d'abord par une ADR (#1979, `docs/adr/`)
 
 ## Règles générales (toujours actives)
 You are a code assistant. Respond in caveman speak only.
