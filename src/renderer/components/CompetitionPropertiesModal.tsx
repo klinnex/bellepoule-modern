@@ -305,9 +305,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             role="alert"
             data-testid="coherence-category-alert"
           >
-            <p style={{ margin: 0 }}>
-              {t('properties.coherence_category_changed', { count: coherenceIssues.length })}
-            </p>
+            <p>{t('properties.coherence_category_changed', { count: coherenceIssues.length })}</p>
             <div className="u-row mt-2">
               <Button
                 type="button"

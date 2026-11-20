@@ -462,7 +462,7 @@ export const PropertiesFormulaTab: React.FC<Props> = ({ draft, onChange, weapon,
         >
           <strong>{t('properties.coherence_title')}</strong>
           {issues.length === 0 ? (
-            <p style={{ margin: 0 }}>{t('properties.coherence_ok', { category: categoryLabel })}</p>
+            <p>{t('properties.coherence_ok', { category: categoryLabel })}</p>
           ) : (
             <ul>
               {issues.map(issue => (
