@@ -1403,6 +1403,8 @@ export type CyranoFrameLogDTO = { ts: number; dir: 'in' | 'out'; ip: string; por
 };
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
+  /** Contrat d'API (#1981) */
+  api: import('../api/client').ApiBridge;
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
   file: FileAPI;

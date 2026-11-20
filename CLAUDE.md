@@ -116,6 +116,7 @@ Main Process (src/main/)
 ├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, clubArena (combats du Mode Club sur les tablettes, cartes scannées : routes/clubRoutes, #1872 — docs/MODE_CLUB.md), dashboard (contexte typé S['membre']), teamArena + teamRelayDevice (arène équipe, relais FIE piloté par l'appareil de piste, #1829), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── cyrano/                  # Protocole Cyrano EFP1/EFP1.1 (#1720) : codec, names, disp, deviceState (Id, chrono, carton P), server (UDP, HELLO 15 s, supervision, journal), driver (CyranoPisteDriver : pilote du modèle commun, #1829)
 ├── piste/                   # Appareils de piste, hors protocole (#1829) — docs/CYRANO.md : types (PisteState/PisteInput/PisteCommand/PisteDriver), pisteState (côtés par Id, cartons, fin ACK/NAK), arenaInputGate (séquence par source), pisteHub (raccordement arènes : DISP, INFO→score, END→ACK/NAK, NEXT→loadNextMatch), matchDisplay, teamRelayPiste (relais FIE /equipe{N}, Type=T)
+├── api/                     # Contrat d'API unique (#1981) : engine (validation zod, ApiError, handlers), ipcAdapter (api:invoke/api:subscribe), mcpAdapter (outils MCP générés), events — docs/API_CONTRACT.md
 ├── mcp/                     # Serveur MCP intégré (#1880) : mcpServer (HTTP JSON-RPC, jeton, loopback), mcpSettings, mcpTools (lecture), mcpWriteTools / mcpAdminTools / mcpSportTools (écriture sur autorisation) — docs/MCP.md
 ├── domain/                  # Couche domaine (#1880) : sport (poules, scores, tableau hors écran), exportResults, settings (resolveSetting), files (dossiers de l'agent)
 ├── cliArgs.ts / batchImport.ts  # --headless, --batch-import manifeste.json [--dry-run], --mcp / --mcp-port=N / --mcp-write, --mcp-print-config, --mcp-new-token
@@ -160,6 +161,7 @@ Shared (src/shared/)
 │   ├── pdfTemplate.types.ts
 │   ├── preload.ts            # IPC API types
 │   └── remote.ts             # Remote server types
+├── api/                      # contract.ts (opérations zod : commandes, requêtes, abonnements), client.ts (BpmClient, ApiError) — #1981
 ├── services/
 │   ├── cloudSyncService.ts    # Dropbox/Google Drive/OneDrive (AES-GCM encrypted)
 │   ├── errorService.ts

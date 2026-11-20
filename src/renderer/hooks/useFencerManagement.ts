@@ -6,11 +6,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Competition, Fencer, FencerStatus } from '../../shared/types';
-import { logger, LogCategory } from '@shared/services/logger';
+import { logger, LogCategory, toError } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fileParser';
 import { useTranslation } from './useTranslation';
 import { useCompetitionEvent } from './useCompetitionEvent';
+import { useBpmClient } from '../api/BpmClientContext';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -202,6 +203,23 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     }
   }, [competition, onUpdate, showToast]);
 
+  // Pointage en base par lots de 1000 (limite du contrat) ; erreur journalisée
+  const client = useBpmClient();
+  const setPresence = useCallback(
+    async (ids: string[], present: boolean) => {
+      for (let i = 0; i < ids.length; i += 1000) {
+        await client
+          .call('checkIn', {
+            competitionId: competition.id,
+            fencers: ids.slice(i, i + 1000),
+            present,
+          })
+          .catch(err => logger.error(LogCategory.UI, 'Failed to update check-in', toError(err)));
+      }
+    },
+    [client, competition.id]
+  );
+
   // Pointer tous les tireurs
   const checkInAll = useCallback(async () => {
     const notCheckedIn = fencers.filter(f => f.status === FencerStatus.NOT_CHECKED_IN);
@@ -217,18 +235,13 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     setFencers(updatedFencers);
     onUpdate({ ...competition, fencers: updatedFencers });
 
-    // Update database en arrière-plan
-    const promises = notCheckedIn.map(f =>
-      window.electronAPI?.db
-        ?.updateFencer?.(f.id, { status: FencerStatus.CHECKED_IN })
-        .catch(err =>
-          logger.error(LogCategory.UI, `Failed to check in fencer ${f.id}`, err as Error)
-        )
+    // Base mise à jour par le contrat d'API (#1981, opération checkIn)
+    await setPresence(
+      notCheckedIn.map(f => f.id),
+      true
     );
-
-    await Promise.allSettled(promises);
     showToast(t('plural.fencers_checked_in', { count: notCheckedIn.length }), 'success');
-  }, [fencers, competition, onUpdate, showToast, t]);
+  }, [fencers, competition, onUpdate, showToast, t, setPresence]);
 
   // Dépointer tous les tireurs
   const uncheckAll = useCallback(async () => {
@@ -245,18 +258,12 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     setFencers(updatedFencers);
     onUpdate({ ...competition, fencers: updatedFencers });
 
-    // Update database en arrière-plan
-    const promises = checkedIn.map(f =>
-      window.electronAPI?.db
-        ?.updateFencer?.(f.id, { status: FencerStatus.NOT_CHECKED_IN })
-        .catch(err =>
-          logger.error(LogCategory.UI, `Failed to uncheck fencer ${f.id}`, err as Error)
-        )
+    await setPresence(
+      checkedIn.map(f => f.id),
+      false
     );
-
-    await Promise.allSettled(promises);
     showToast(t('plural.fencers_checked_out', { count: checkedIn.length }), 'success');
-  }, [fencers, competition, onUpdate, showToast, t]);
+  }, [fencers, competition, onUpdate, showToast, t, setPresence]);
 
   // Obtenir les tireurs pointés
   const getCheckedInFencers = useCallback(() => {

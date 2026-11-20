@@ -7,13 +7,7 @@
  * Licensed under GPL-3.0
  */
 
-import {
-  assignPoolReferees,
-  buildBracket,
-  generatePools,
-  listMatches,
-  recordScore,
-} from '../domain/sport';
+import { assignPoolReferees, buildBracket, generatePools, listMatches } from '../domain/sport';
 import { exportResults, type ResultsFormat } from '../domain/exportResults';
 import type { McpTool } from './mcpTools';
 import type { McpWriteTool } from './mcpWriteTools';
@@ -24,7 +18,6 @@ import {
   optInt,
   optPick,
   readDomain,
-  reqInt,
   reqPick,
   reqStr,
   writeDomain,
@@ -37,8 +30,6 @@ const competitionId = {
   },
 };
 const dryRun = { dryRun: { type: 'boolean', description: 'Décrit le résultat sans rien écrire' } };
-const SIDES = ['A', 'B'] as const;
-const SPECIAL = ['abandon', 'forfait', 'exclusion'] as const;
 const FORMATS = ['xml', 'fff', 'csv', 'html', 'pdf'] as const;
 
 export const MCP_SPORT_READ_TOOLS: McpTool[] = [
@@ -123,44 +114,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
         })
       ),
   },
-  {
-    name: 'record_score',
-    title: 'Saisir un score',
-    description:
-      'Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. ' +
-      'Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        ...competitionId,
-        matchId: { type: 'string', description: 'Identifiant du match (list_matches)' },
-        scoreA: { type: 'number', description: 'Touches du tireur A' },
-        scoreB: { type: 'number', description: 'Touches du tireur B' },
-        winner: { type: 'string', enum: [...SIDES], description: 'Vainqueur imposé' },
-        specialStatus: { type: 'string', enum: [...SPECIAL], description: 'Statut du perdant' },
-        priority: {
-          type: 'string',
-          enum: [...SIDES],
-          description: 'Égalité en poule : prioritaire',
-        },
-        ...dryRun,
-      },
-      required: ['competitionId', 'matchId', 'scoreA', 'scoreB'],
-    },
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    run: (deps, args) =>
-      guard(() =>
-        recordScore(writeDomain(deps), reqStr(args, 'competitionId'), {
-          matchId: reqStr(args, 'matchId'),
-          scoreA: reqInt(args, 'scoreA', 0, 99),
-          scoreB: reqInt(args, 'scoreB', 0, 99),
-          winner: optPick(args, 'winner', SIDES),
-          specialStatus: optPick(args, 'specialStatus', SPECIAL),
-          priority: optPick(args, 'priority', SIDES),
-          dryRun: optBool(args, 'dryRun'),
-        })
-      ),
-  },
+  // record_score : généré depuis le contrat d'API (src/shared/api/contract.ts, #1981)
   {
     name: 'build_bracket',
     title: 'Construire le tableau',

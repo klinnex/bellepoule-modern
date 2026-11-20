@@ -348,17 +348,6 @@ Aucun argument.
 | `refereesFile` | string |  | Fichier d’arbitres Engarde (.txt / .csv) |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
-### `check_in` — Pointer des tireurs
-
-*écriture, idempotent.* Pointe (présent) ou dépointe des tireurs d’une épreuve, par identifiant ou numéro de dossard (ref).
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui |  |
-| `fencers` | string / number[] | oui | Identifiants ou numéros (ref) |
-| `present` | boolean | oui | true : présent ; false : absent |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
 ### `update_settings` — Modifier les paramètres du poste
 
 *écriture, idempotent.* Modifie des paramètres globaux validés par schéma. Les réglages du serveur MCP et les dossiers accessibles à l’agent ne se changent que dans l’application.
@@ -454,21 +443,6 @@ Aucun argument.
 | `includeUnchecked` | boolean |  | Accepter les arbitres non pointés |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
-### `record_score` — Saisir un score
-
-*écriture, idempotent.* Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
-| `matchId` | string | oui | Identifiant du match (list_matches) |
-| `scoreA` | number | oui | Touches du tireur A |
-| `scoreB` | number | oui | Touches du tireur B |
-| `winner` | `A`, `B` |  | Vainqueur imposé |
-| `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
-| `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
 ### `build_bracket` — Construire le tableau
 
 *⚠️ écriture, destructif.* Tableau d’élimination directe depuis le classement après poules (poules terminées ; abandons, forfaits, exclus et éliminés écartés). Petite finale selon l’épreuve, ou « thirdPlaceMatch ». « replace: true » efface un tableau déjà joué : accord du DT indispensable.
@@ -562,6 +536,32 @@ Aucun argument.
 | `sessionId` | string | oui | Identifiant de la séance (list_club_sessions) |
 | `memberIds` | string[] | oui | Identifiants des membres (200 au plus) |
 | `present` | boolean | oui | true : pointer ; false : dépointer |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `check_in` — Pointer des tireurs
+
+*écriture, idempotent.* Pointe (présent) ou dépointe des tireurs d’une épreuve, par identifiant ou numéro de dossard (ref).
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `fencers` | string / integer[] | oui | Identifiants ou numéros (ref) |
+| `present` | boolean | oui | true : présent ; false : absent |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+
+### `record_score` — Saisir un score
+
+*écriture, idempotent.* Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `matchId` | string | oui | Identifiant du match (list_matches) |
+| `scoreA` | integer | oui | Touches du tireur A |
+| `scoreB` | integer | oui | Touches du tireur B |
+| `winner` | `A`, `B` |  | Vainqueur imposé |
+| `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
+| `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
 <!-- outils-mcp:fin -->

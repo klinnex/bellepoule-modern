@@ -6,10 +6,15 @@
  */
 
 import { MatchStatus, type Card, type Pool } from '../../shared/types';
+import type { BpmClient } from '../../shared/api/client';
+import { defaultBpmClient } from '../api/IpcClient';
 
-export async function withMatchCards(pools: Pool[]): Promise<Pool[]> {
-  const getCards = window.electronAPI?.db?.getCards;
-  if (!getCards) return pools;
+export async function withMatchCards(
+  pools: Pool[],
+  client: BpmClient = defaultBpmClient
+): Promise<Pool[]> {
+  // Contrat d'API (#1981) : requête getMatchCards ; hors Electron, feuille sans cartons
+  const getCards = (matchId: string) => client.query('getMatchCards', { matchId });
   return Promise.all(
     pools.map(async pool => ({
       ...pool,

@@ -434,56 +434,5 @@ export const MCP_WRITE_TOOLS: McpWriteTool[] = [
       return report;
     },
   },
-  {
-    name: 'check_in',
-    title: 'Pointer des tireurs',
-    description:
-      'Pointe (présent) ou dépointe des tireurs d’une épreuve, par identifiant ou numéro de dossard (ref).',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        competitionId: { type: 'string' },
-        fencers: {
-          type: 'array',
-          items: { type: ['string', 'number'] },
-          description: 'Identifiants ou numéros (ref)',
-        },
-        present: { type: 'boolean', description: 'true : présent ; false : absent' },
-        ...dryRunProp,
-      },
-      required: ['competitionId', 'fencers', 'present'],
-    },
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    run: (deps, args) => {
-      const competition = competitionOrThrow(deps, args.competitionId);
-      if (!Array.isArray(args.fencers) || args.fencers.length === 0) {
-        throw new McpToolError('« fencers » : liste non vide requise');
-      }
-      if (typeof args.present !== 'boolean') throw new McpToolError('« present » requis');
-      const status = args.present ? FencerStatus.CHECKED_IN : FencerStatus.NOT_CHECKED_IN;
-      const all = deps.db.getFencersByCompetition(competition.id);
-      const found: Fencer[] = [];
-      const unknown: unknown[] = [];
-      for (const ref of args.fencers.slice(0, 1000)) {
-        const f = all.find(x => x.id === ref || (typeof ref === 'number' && x.ref === ref));
-        if (f) found.push(f);
-        else unknown.push(ref);
-      }
-      // Statuts de résultat (abandon, exclusion, forfait…) laissés tels quels
-      const changeable = found.filter(f =>
-        [FencerStatus.CHECKED_IN, FencerStatus.NOT_CHECKED_IN].includes(f.status)
-      );
-      const report = {
-        status,
-        matched: found.length,
-        updated: changeable.filter(f => f.status !== status).length,
-        skipped: found.length - changeable.length,
-        unknown,
-      };
-      if (dryRunOf(args)) return { dryRun: true, ...report };
-      for (const f of changeable) if (f.status !== status) deps.db.updateFencer(f.id, { status });
-      if (report.updated > 0) deps.notify('fencers:changed', competition.id);
-      return { dryRun: false, ...report };
-    },
-  },
+  // check_in : généré depuis le contrat d'API (src/shared/api/contract.ts, #1981)
 ];

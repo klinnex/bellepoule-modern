@@ -14,6 +14,8 @@ interface PropSchema {
   description?: string;
   enum?: readonly unknown[];
   items?: PropSchema;
+  /** Union (schémas générés depuis le contrat d'API, #1981) */
+  anyOf?: PropSchema[];
 }
 
 interface DocTool {
@@ -31,6 +33,7 @@ function typeLabel(p: PropSchema): string {
   if (p.enum) return p.enum.map(v => `\`${String(v)}\``).join(', ');
   if (p.type === 'array') return `${p.items ? typeLabel(p.items) : 'valeur'}[]`;
   if (Array.isArray(p.type)) return p.type.join(' / ');
+  if (p.anyOf) return p.anyOf.map(typeLabel).join(' / ');
   return p.type ?? 'valeur';
 }
 

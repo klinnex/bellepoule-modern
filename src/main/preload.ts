@@ -23,11 +23,15 @@ import { fileApi } from './preloadApi/fileApi';
 import { dialogApi } from './preloadApi/dialogApi';
 import { remoteApi } from './preloadApi/remoteApi';
 import { subscribe } from './preloadApi/subscribe';
+import { apiBridge } from './preloadApi/apiBridge';
 
 // Expose protected methods that allow the renderer process
 // to use the ipcRenderer without exposing the entire object
 
 const electronApi = {
+  // Contrat d'API unique (#1981) : préférer BpmClient (src/renderer/api) à cet accès direct
+  api: apiBridge,
+
   // Database operations with validation
   db: dbApi,
 

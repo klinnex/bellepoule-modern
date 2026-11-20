@@ -8,6 +8,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
 import type { CompetitionEventType } from '../../shared/types/preload';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { publishCompetitionEvent } from '../api/events';
 
 export interface DbHandlersContext {
   db: DatabaseManager;
@@ -17,6 +18,7 @@ export interface DbHandlersContext {
 
 /** Diffuse un événement de données aux fenêtres du renderer (bus main → renderer, #1298). */
 export function emitCompetitionEvent(type: CompetitionEventType, competitionId?: string): void {
+  publishCompetitionEvent({ type, competitionId });
   for (const win of BrowserWindow.getAllWindows()) {
     if (!win.isDestroyed()) win.webContents.send('competition:event', { type, competitionId });
   }
