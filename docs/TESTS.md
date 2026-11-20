@@ -105,15 +105,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 113 | 921 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 121 | 644 |
+| `src/renderer/components/` | 121 | 648 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **503** | **3888** |
+| **Total** | **503** | **3892** |
 
-Unitaires : 493 fichiers, 3849 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 493 fichiers, 3853 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -6497,7 +6497,7 @@ Unitaires : 493 fichiers, 3849 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 8 tests</summary>
+<summary><code>src/renderer/components/competition/competitionDerived.test.ts</code> — 12 tests</summary>
 
 - **computeMatchProgress**
   - renvoie null sans poule ni tableau
@@ -6509,6 +6509,11 @@ Unitaires : 493 fichiers, 3849 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
   - exclut les groupes déjà extraits dans une compétition séparée
+- **rankingTableauNavAction (#2008)**
+  - libellé « Voir le tableau » quand le classement est figé
+  - libellé « Passer au tableau » sinon
+  - déclenche le passage au tableau
+  - aucun bouton : %s _(each)_
 
 </details>
 
