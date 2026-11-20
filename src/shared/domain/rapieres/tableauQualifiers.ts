@@ -3,7 +3,7 @@
  * Règles pures (#1979, docs/adr/0002) : lues par l'écran (src/features/rapieres) et le moteur.
  * Licensed under GPL-3.0
  */
-import { Fencer, FencerStatus, Pool, PoolRanking } from '../../types';
+import { Fencer, Pool, PoolRanking } from '../../types';
 import { calculatePoolRanking } from '../../utils/poolCalculations';
 
 /**
@@ -12,11 +12,9 @@ import { calculatePoolRanking } from '../../utils/poolCalculations';
  */
 export type RapieresTableauMode = 'normal' | 'third' | 'all' | 'semis';
 
-/** Équipe retirée (abandon, forfait, exclusion) */
-export const isWithdrawn = (f: Fencer | null | undefined): boolean =>
-  f?.status === FencerStatus.ABANDONED ||
-  f?.status === FencerStatus.FORFAIT ||
-  f?.status === FencerStatus.EXCLUDED;
+/** Équipe retirée (abandon, forfait, exclusion) : règle commune aux tireurs */
+import { isWithdrawn } from '../fencers/fencerStatus';
+export { isWithdrawn };
 
 /**
  * Qualifiés pour le tableau selon le mode choisi (#1441) : demi-finales → les 4 équipes

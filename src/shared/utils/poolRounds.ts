@@ -5,12 +5,10 @@
  */
 
 import { Fencer, FencerStatus, PoolRanking } from '../types';
+import { WITHDRAWN_STATUSES } from '../domain/fencers/fencerStatus';
 
-const INACTIVE_STATUSES = new Set<FencerStatus>([
-  FencerStatus.ABANDONED,
-  FencerStatus.FORFAIT,
-  FencerStatus.EXCLUDED,
-]);
+/** Abandon, forfait, exclusion (#1979, lot 4 : définition unique) */
+const INACTIVE_STATUSES = WITHDRAWN_STATUSES;
 
 /**
  * Nombre de qualifiés pour le tour `nextRound` (≥ 2).

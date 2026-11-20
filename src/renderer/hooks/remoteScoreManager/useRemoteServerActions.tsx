@@ -7,7 +7,7 @@ import React, { useEffect, useCallback, useRef } from 'react';
 import { useStateGroup } from '../useStateGroup';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
-import { FencerStatus } from '../../../shared/types';
+
 import type { CustomTheme, ThemeTargetType } from '../../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import ArenaQrCodesModal from '../../components/ArenaQrCodesModal';
@@ -21,6 +21,7 @@ import { Button } from '../../components/common/Button';
 import { RemoteScoreManagerProps } from '../../components/remote/remoteScoreManagerShared';
 import { resolveAllSourcesTheme, resolveBuiltinTheme } from '../../components/remote/builtinThemes';
 import { useRemoteServerState } from './useRemoteServerState';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 
 type Ctx = RemoteScoreManagerProps & ReturnType<typeof useRemoteServerState>;
 
@@ -423,12 +424,7 @@ export function useRemoteServerActions(ctx: Ctx) {
 
   // QR personnels des tireurs engagés (#1078)
   const fencerQrTargets = (competition.fencers ?? [])
-    .filter(
-      f =>
-        f.status !== FencerStatus.ABANDONED &&
-        f.status !== FencerStatus.EXCLUDED &&
-        f.status !== FencerStatus.FORFAIT
-    )
+    .filter(f => !isWithdrawn(f))
     .map(f => ({
       name: `${f.lastName.toUpperCase()} ${f.firstName}`.trim(),
       club: f.club,

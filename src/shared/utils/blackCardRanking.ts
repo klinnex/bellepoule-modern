@@ -9,7 +9,8 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, FencerStatus } from '../types';
+import { Fencer } from '../types';
+import { isBlackCardExcluded } from '../domain/fencers/fencerStatus';
 
 type RankedFencer = Pick<Fencer, 'id' | 'status' | 'exclusionReason'>;
 
@@ -20,7 +21,7 @@ export interface RankedResult {
 
 /** Tireur exclu avec carton noir confirmé (motif `black_card`) */
 export const isBlackCarded = (f: Pick<Fencer, 'status' | 'exclusionReason'>): boolean =>
-  f.status === FencerStatus.EXCLUDED && f.exclusionReason === 'black_card';
+  isBlackCardExcluded(f);
 
 /**
  * Recalcule le classement final. Idempotent : une liste déjà recalculée (carton noir à rang null)

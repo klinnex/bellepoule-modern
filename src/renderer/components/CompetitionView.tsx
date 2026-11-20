@@ -53,6 +53,7 @@ import QuestSection from './competition/QuestSection';
 import PoolsPhase from './competition/PoolsPhase';
 import RankingPhase from './competition/RankingPhase';
 import { rankingTableauNavAction } from './competition/competitionDerived';
+import { isWithdrawn } from '../../shared/domain/fencers/fencerStatus';
 
 const RemoteScoreManager = React.lazy(() => import('./RemoteScoreManager'));
 const MatchAuditLog = React.lazy(() =>
@@ -384,10 +385,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
               } else if (status === FencerStatus.CHECKED_IN) {
                 // Si réactivation depuis un statut spécial, restaurer les matchs affectés
                 const currentFencer = fencers.find(f => f.id === id);
-                const wasInSpecialStatus =
-                  currentFencer?.status === FencerStatus.ABANDONED ||
-                  currentFencer?.status === FencerStatus.FORFAIT ||
-                  currentFencer?.status === FencerStatus.EXCLUDED;
+                const wasInSpecialStatus = isWithdrawn(currentFencer);
                 if (wasInSpecialStatus) handleUndoAbandon(id);
               }
               updateFencer(id, update);

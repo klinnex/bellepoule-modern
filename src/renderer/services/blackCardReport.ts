@@ -5,9 +5,10 @@
  * Licensed under GPL-3.0
  */
 
-import { FencerStatus, MatchStatus, type Fencer, type Pool } from '../../shared/types';
+import { MatchStatus, type Fencer, type Pool } from '../../shared/types';
 import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import type { BlackCardReportEntry } from '../../shared/utils/pdfExport/blackCardReportPdf';
+import { isBlackCardExcluded } from '../../shared/domain/fencers/fencerStatus';
 
 interface Candidate {
   id: string;
@@ -24,9 +25,8 @@ interface Candidate {
 const fullName = (f?: Fencer | null): string =>
   f ? `${f.lastName.toUpperCase()} ${f.firstName ?? ''}`.trim() : '';
 
-export function isBlackCardExclusion(f: Fencer): boolean {
-  return f.status === FencerStatus.EXCLUDED && f.exclusionReason === 'black_card';
-}
+/** Règle unique : shared/domain/fencers/fencerStatus (#1979, lot 4) */
+export const isBlackCardExclusion = (f: Fencer): boolean => isBlackCardExcluded(f);
 
 export async function buildBlackCardEntries(
   fencers: Fencer[],

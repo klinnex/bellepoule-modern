@@ -313,8 +313,8 @@ planning, #1959 arbitres, #1964 ordre des matchs, #1966 tableau préparé). Chem
 
 | Règle | Endroits | Risque |
 |---|---|---|
-| Tireur inactif (abandon, forfait, exclusion) | `PoolView.tsx`, `pool/PoolMatchList.tsx`, `pool/PoolScoreMatrix.tsx`, `CompetitionView.tsx`, `usePoolManagement.ts`, `useTableauViewScoring.ts`, `main/engine/commands/sport.ts` | « Poules terminées » diverge : l'écran compte un match d'un tireur inactif comme joué, le MCP exige `FINISHED` |
-| Exclusion par carton noir | `PoolRankingView.tsx`, `ResultsView.tsx`, `services/blackCardReport.ts`, `shared/utils/pdfExport/resultsPdf.ts` (canonique : `shared/utils/blackCardRanking.ts`) | Classement différent entre écran et PDF |
+| ✅ Tireur inactif (abandon, forfait, exclusion) → `shared/domain/fencers/fencerStatus` (`isWithdrawn`, `isTableauEligible`) ; « poule terminée » → `shared/domain/pools/poolCompletion` (lot 4a) | `PoolView.tsx`, `pool/PoolMatchList.tsx`, `pool/PoolScoreMatrix.tsx`, `CompetitionView.tsx`, `usePoolManagement.ts`, `useTableauViewScoring.ts`, `main/engine/commands/sport.ts` | « Poules terminées » diverge : l'écran compte un match d'un tireur inactif comme joué, le MCP exige `FINISHED` |
+| ✅ Exclusion par carton noir → `isBlackCardExcluded` (lot 4a ; reste le gabarit HTML de `resultsPdf.ts`) | `PoolRankingView.tsx`, `ResultsView.tsx`, `services/blackCardReport.ts`, `shared/utils/pdfExport/resultsPdf.ts` (canonique : `shared/utils/blackCardRanking.ts`) | Classement différent entre écran et PDF |
 | ✅ Validation d'un score de poule → `validatePoolScore` pour l'écran (fenêtre et saisie simplifiée) et le MCP (lot 4b ; les tablettes passent par #1980) | `usePoolViewActions.ts` (écran), `poolOrchestration.validatePoolScore` (MCP) | Un score refusé à l'écran peut être accepté par le MCP |
 | Vainqueur d'un match de tableau | `tableauTypes.ts` (écran, MCP), `main/remote/routes/matchRoutes.ts` (tablettes), `useRemoteScoreSync.ts`, `usePoolManagement.ts` | Vainqueur différent selon la source du score |
 | Objets score d'un match de poule | `poolOrchestration.buildMatchScores`, `usePoolManagement.ts`, `main/remote/poolScore.ts` | — |
