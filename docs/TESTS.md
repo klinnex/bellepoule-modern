@@ -88,7 +88,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 85 | 961 |
+| `src/shared/utils/` | 86 | 967 |
 | `src/shared/services/` | 8 | 95 |
 | Feature `analytics` (`src/features/analytics/`) | 4 | 40 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -105,16 +105,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 114 | 929 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 121 | 648 |
+| `src/renderer/components/` | 122 | 661 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **506** | **3918** |
+| **Total** | **508** | **3937** |
 
-Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -862,6 +862,20 @@ Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - exclusion : carton noir seulement si confirmé
 - **finalRankLabel carton noir (#1418)**
   - rang null : « - »
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/formulaCoherence.test.ts</code> — 6 tests</summary>
+
+- **getCoherenceIssues**
+  - épée seniors 5 / 15 : conforme
+  - M13 en 5 / 15 : deux écarts, valeurs attendues 4 / 8
+  - phase absente : pas de relevé sur elle
+  - pas de référentiel pour le laser et « À la carte »
+- **getFallbackCompetitionSettings (défauts unifiés)**
+  - arme olympique : touches de la catégorie, pas de petite finale
+  - autres armes : 5 / 21 (comportement existant)
 
 </details>
 
@@ -5280,7 +5294,7 @@ Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 
 - **handleGoToTableau (#1996)**
   - tableau déjà tiré : retour au tableau, rien n’est effacé
-  - pas encore de tableau : choix de la petite finale avant le tirage
+  - pas encore de tableau : petite finale reprise de la formule, sans question (#2013) — %s _(each)_
 
 </details>
 
@@ -5714,12 +5728,18 @@ Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionPropertiesModal.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/CompetitionPropertiesModal.test.tsx</code> — 10 tests</summary>
 
 - **CompetitionPropertiesModal**
-  - affiche 4 onglets verticaux et seulement le contenu de l'onglet actif
-  - range scores, temps et cases à cocher dans des champs distincts de la formule
-  - place tours de poules et élimination directe dans Configuration
+  - affiche 3 onglets verticaux, sans « Configuration » (#2013)
+  - frise Appel → Poules → Tableau → Classement ; réglages de la phase sélectionnée
+  - ajoute un tour de poules : qualifiés du tour 2 sur le tour 1, enregistrés
+  - retire le tableau : classement final sur les poules
+  - taille de poule cible enregistrée dans la formule
+  - relevé de cohérence : écart signalé, « Appliquer » rétablit la valeur attendue
+  - passer de seniors à M13 ouvre le relevé : « Mettre à jour » applique 4 / 8
+  - « Garder » conserve les touches et masque l’alerte
+  - signature des matchs de tableau dans Arbitrage
   - enregistre les valeurs saisies dans les autres onglets
 
 </details>
@@ -6623,6 +6643,20 @@ Unitaires : 496 fichiers, 3879 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - cherche dans le lieu
   - cherche dans la date (année)
   - toutes les parties de la requête doivent correspondre
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/formula/formulaDraft.test.ts</code> — 7 tests</summary>
+
+- **formulaDraft**
+  - sans réglages : repli unifié (5 / 15, poules 5 à 7, pas de 3e place)
+  - aller-retour réglages → brouillon → réglages
+  - plafond de ${MAX\_POOL\_ROUNDS} tours, aligné sur la validation
+  - retirer le tour 2 sur 3 : les qualifiés du tour 3 remontent
+  - dernier tour non retirable
+  - laser : Tour Quest sans poules → 0 tour, poules ajoutées → 1 tour
+  - scission vide : clé retirée
 
 </details>
 
