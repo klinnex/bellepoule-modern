@@ -98,7 +98,7 @@ npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run cyrano:sim      # Simulateur d'appareil de piste Cyrano (docs/CYRANO.md)
 npm run cyrano:remote   # Télécommande web des appareils Cyrano simulés, plusieurs pistes (http://127.0.0.1:5099)
-npm run test:e2e        # Playwright E2E (Chromium, serveur de dev 8066 ; E2E_ALL_BROWSERS=1 pour tous ; #2045)
+npm run test:e2e        # Playwright E2E : build, puis navigateur (dev 8066) + Electron réel (e2e/electron) ; Linux sans écran : xvfb-run -a ; #2045
 npm run e2e:debug       # Playwright debug mode
 ```
 
@@ -262,7 +262,7 @@ Database (src/database/)
 ## Testing
 
 - **Unit tests**: Vitest (`npm test`) – test files co-located: `src/shared/utils/*.test.ts`, `src/shared/services/*.test.ts`, `src/main/*.test.ts`, `src/database/*.test.ts`, `src/features/penalties/penalties.test.ts`
-- **E2E tests**: Playwright (`playwright.config.ts`) – `e2e/` (app, competition, competition-full, pools, tableau, import-export, remote-scoring, accessibility)
+- **E2E tests**: Playwright (`playwright.config.ts`) – `e2e/` dans le navigateur (app, competition-full, tableau, import-export, remote-scoring, accessibility, i18n-overflow, visual) et `e2e/electron/` sur l'application réelle (competition, pools ; profil vierge, `app.ts`)
 - Coverage: `@vitest/coverage-v8`
 - Inventaire complet + contrôles CI : `docs/TESTS.md` (généré, `npm run docs:tests`)
 

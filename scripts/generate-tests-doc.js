@@ -194,21 +194,23 @@ npx vitest run src/shared/utils/poolCalculations.test.ts   # un fichier
 
 ## Tests E2E — Playwright
 
-- Config : \`playwright.config.ts\` — \`testDir: ./e2e\`, Chromium par défaut
-  (\`E2E_ALL_BROWSERS=1\` : + Firefox, WebKit, Mobile Chrome, Mobile Safari) ; 2 retries et
-  1 worker en CI.
-- \`webServer\` : \`npm run dev:renderer\` (Webpack, port **8066**), \`baseURL\`
-  \`http://localhost:8066\` ; l'interface tourne dans le navigateur, sans \`window.electronAPI\`.
+- Config : \`playwright.config.ts\` — \`testDir: ./e2e\`, deux projets (#2045) :
+  - \`chromium\` : l'interface servie par \`npm run dev:renderer\` (Webpack, port **8066**), dans le
+    navigateur, sans \`window.electronAPI\` (accueil, fenêtres, accessibilité axe, débordements i18n) ;
+  - \`electron\` : l'application construite (\`dist/\`), lancée par \`_electron.launch\` avec un profil
+    vierge (\`e2e/electron/app.ts\`) — parcours qui écrivent en base : créer, rouvrir, supprimer une
+    épreuve ; tireurs, pointage, poules, saisie d'un score. Ignorés sans build ou sans écran.
+- \`pretest:e2e\` construit l'application (\`npm run build\`) ; sous Linux sans écran : \`xvfb-run -a\`.
+- \`E2E_ALL_BROWSERS=1\` ajoute Firefox, WebKit, Mobile Chrome, Mobile Safari ; 2 retries et 1 worker en CI.
 - Navigateur : \`npx playwright install chromium\` (version attendue par Playwright).
-- **Non exécutés en CI** ; 14 tests en échec connus, antérieurs à #1979 (#2045).
-- Beaucoup de scénarios appellent \`test.skip()\` à l'exécution si l'état requis
-  (compétition existante, poule, tableau…) est absent.
+- **Non exécutés en CI** (#2045).
+- Quelques scénarios appellent \`test.skip()\` si l'état requis (compétition existante, tableau…) est absent.
 
 \`\`\`bash
-npm run test:e2e                      # Chromium
-E2E_ALL_BROWSERS=1 npm run test:e2e   # tous navigateurs
-npm run e2e:debug                     # mode debug
-npx playwright test e2e/pools.spec.ts
+xvfb-run -a npm run test:e2e                      # navigateur + Electron (Linux sans écran)
+npm run test:e2e -- --project=chromium            # interface seule
+E2E_ALL_BROWSERS=1 npm run test:e2e               # tous navigateurs
+npm run e2e:debug                                 # mode debug
 \`\`\`
 
 ## Simulateur et benchmarks

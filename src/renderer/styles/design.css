@@ -41,7 +41,7 @@
 
   /* Text */
   --color-text: #1a1916;
-  --color-text-light: #7c7163;
+  --color-text-light: #766b5d; /* AA : 4,7:1 sur --color-bg, 5,2:1 sur blanc (#2045) */
   --color-text-muted: #a89f91;
 
   /* Brand */
