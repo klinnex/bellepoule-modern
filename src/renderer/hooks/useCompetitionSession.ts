@@ -5,6 +5,10 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  DEFAULT_POOL_SIZE_MAX,
+  DEFAULT_POOL_SIZE_MIN,
+} from '../../shared/domain/formula/formulaDraft';
 import { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import {
@@ -149,8 +153,8 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       ...(p.rapieres ? { rapieres: p.rapieres } : {}),
       poolPrepParams: {
         poolCount: p.poolPrepParams?.poolCount || 0,
-        minFencersPerPool: p.poolPrepParams?.minFencersPerPool || 5,
-        maxFencersPerPool: p.poolPrepParams?.maxFencersPerPool || 7,
+        minFencersPerPool: p.poolPrepParams?.minFencersPerPool || DEFAULT_POOL_SIZE_MIN,
+        maxFencersPerPool: p.poolPrepParams?.maxFencersPerPool || DEFAULT_POOL_SIZE_MAX,
       },
       uiState: {
         currentPhase: p.currentPhase,

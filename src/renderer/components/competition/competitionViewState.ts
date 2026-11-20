@@ -2,6 +2,10 @@
  * BellePoule Modern - États initiaux regroupés de CompetitionView (#1241)
  * Licensed under GPL-3.0
  */
+import {
+  DEFAULT_POOL_SIZE_MAX,
+  DEFAULT_POOL_SIZE_MIN,
+} from '../../../shared/domain/formula/formulaDraft';
 import type { Arena } from '../../../shared/types/remote';
 import type { Fencer, Referee } from '../../../shared/types';
 import type {
@@ -19,8 +23,8 @@ export const CV_REMOTE_INIT = {
 };
 
 export const CV_PLANNING_INIT = {
-  minFencersPerPool: 5,
-  maxFencersPerPool: 7,
+  minFencersPerPool: DEFAULT_POOL_SIZE_MIN,
+  maxFencersPerPool: DEFAULT_POOL_SIZE_MAX,
   rankingChanged: false,
   rankingValidated: false,
   skipPoolPhase: false,

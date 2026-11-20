@@ -24,7 +24,7 @@ import {
   effectivePoolRounds,
   removePoolRound,
   setQuest,
-} from './formulaDraft';
+} from '../../../shared/domain/formula/formulaDraft';
 
 interface Props {
   draft: FormulaDraft;

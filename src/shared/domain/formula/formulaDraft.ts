@@ -1,5 +1,6 @@
 /**
- * BellePoule Modern - Brouillon de formule de la fenêtre de propriétés (#2013, étape A)
+ * BellePoule Modern - Modèle d'édition de la formule (#2013, étape A ; domaine pur depuis #1979, ADR-0012)
+ * Utilisé par la fenêtre de propriétés ; utilisable par le moteur (MCP) sans l'écran.
  * Réglages de structure et de match regroupés par phase : tours de poules, Tour Quest, tableau.
  * Lecture depuis les réglages enregistrés (repli unifié) et réécriture en réglages plats,
  * lus par le moteur.
@@ -12,9 +13,9 @@ import {
   PostPoolSplitCriteria,
   QuestPhaseConfig,
   Weapon,
-} from '../../../shared/types';
-import { getFallbackCompetitionSettings } from '../../../shared/utils/defaultCompetitionSettings';
-import { getCoherenceIssues, CoherenceIssue } from '../../../shared/utils/formulaCoherence';
+} from '../../types';
+import { getFallbackCompetitionSettings } from '../../utils/defaultCompetitionSettings';
+import { getCoherenceIssues, CoherenceIssue } from '../../utils/formulaCoherence';
 
 /** Plafond de tours de poules, aligné sur la validation base (database/validation.ts) */
 export const MAX_POOL_ROUNDS = 5;
