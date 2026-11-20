@@ -11,7 +11,7 @@ import {
   crossedSabreBreak,
   crossedScoreLimit,
   resolveScoreLimit,
-} from '../../shared/utils/matchEndValidation';
+} from '../../shared/domain/match/matchEndValidation';
 
 type S = RemoteScoreServer;
 

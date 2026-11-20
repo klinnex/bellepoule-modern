@@ -13,7 +13,7 @@ import {
   validateMatchEnd,
   type FencerEndStatus,
   type MatchEndRejection,
-} from '../../shared/utils/matchEndValidation';
+} from '../../shared/domain/match/matchEndValidation';
 import type { PisteFencingState, PisteSideState, PisteState } from './types';
 
 export type ArenaSide = 'A' | 'B';

@@ -24,7 +24,7 @@ import {
 } from './poolCalculations';
 import { planPoolBouts, type PoolBoutOrderMode } from './poolBoutOrder';
 import { mergeRoundRankings } from './poolRounds';
-import { isTieAtScoreLimit } from './matchEndValidation';
+import { isTieAtScoreLimit } from '../domain/match/matchEndValidation';
 
 export const MIN_FENCERS_FOR_POOLS = 4;
 

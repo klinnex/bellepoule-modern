@@ -17,7 +17,7 @@ import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 import { recordRemoteEvent } from '../remoteEvents';
-import { decideMatchWinner, isAcceptableScore } from '../../../shared/utils/matchEndValidation';
+import { decideMatchWinner, isAcceptableScore } from '../../../shared/domain/match/matchEndValidation';
 import { isCyranoMasterOnline } from '../cyranoLock';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */

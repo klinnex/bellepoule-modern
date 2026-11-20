@@ -8,7 +8,7 @@
 > PREV (touche PREVIOUS de l'appareil ou secours du poste, fenêtre de 3 min), bandeau appareil
 > dans la vue arbitre, pistes en base par compétition, profils constructeur, ajout en lot,
 > import / export de la liste.
-> Validation de fin unifiée : règles uniques dans `src/shared/utils/matchEndValidation.ts`,
+> Validation de fin unifiée : règles uniques dans `src/shared/domain/match/matchEndValidation.ts`,
 > partagées par l'appareil, la tablette et la fin de match d'arène.
 > Cartons P (EFP1.1) lus sur l'appareil et repris dans le `DISP` ; test de bout en bout
 > (`e2e.test.ts`, UDP réel, lancé avec les tests unitaires en CI).
@@ -57,7 +57,7 @@ Hors protocole (`src/main/piste/`) :
 | Fichier | Rôle |
 |---|---|
 | `types.ts` | Modèle commun : `PisteState`, `PisteInput`, `PisteCommand`, `PisteDisplay`, `PisteLink`, interface `PisteDriver` (§ 2 septies). |
-| `pisteState.ts` | État d'appareil rapporté au match : côtés A / B par **Id** (`mapPisteSides`, troncature fournie par le pilote), cartons au format des arènes (`sideCards`, `cardCounts`), validation de fin (`validatePisteEnd`, `pisteEndOutcome`) sur les règles de `shared/utils/matchEndValidation.ts`. |
+| `pisteState.ts` | État d'appareil rapporté au match : côtés A / B par **Id** (`mapPisteSides`, troncature fournie par le pilote), cartons au format des arènes (`sideCards`, `cardCounts`), validation de fin (`validatePisteEnd`, `pisteEndOutcome`) sur les règles de `shared/domain/match/matchEndValidation.ts`. |
 | `arenaInputGate.ts` | `ArenaInputGate` : barrière d'entrée des arènes (séquence par source). |
 | `pisteHub.ts` | `PisteHub` : raccordement aux arènes (voir § 2 bis). |
 | `teamRelayPiste.ts` | Relais par équipes sur l'appareil (§ 2 octies). |
@@ -511,7 +511,7 @@ journaux joints.
      (`PisteState`, `PisteInput`, `PisteCommand`) et pilotes déclarant leurs capacités
      (noms, télécommande, ACK, chrono, cartons P, équipes). `CyranoPisteDriver` est le premier
      pilote ; RS422-FPA, Favero série (lecture seule) et OPP2/MQTT suivront sans toucher aux arènes.
-   - **Une seule validation de fin** (fait, #1829) : `shared/utils/matchEndValidation.ts`
+   - **Une seule validation de fin** (fait, #1829) : `shared/domain/match/matchEndValidation.ts`
      (`validateMatchEnd`, `decideMatchWinner`, `resolveScoreLimit`, `passivityWinner`,
      `crossedSabreBreak`) utilisé par `piste/pisteState.ts` (fin d'appareil), `matchRoutes.ts`, `matchFinish.ts` et
      `arenaOps.ts` ; `scoreValidation.ts` (jamais appelé) supprimé.

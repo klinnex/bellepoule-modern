@@ -5,6 +5,8 @@ import {
   resolveTableauWinner,
   TableauMatch,
 } from './tableauTypes';
+import type { Fencer } from '../../types';
+import { decideMatchWinner } from '../match/matchEndValidation';
 
 const F = (id: string) => ({ id, firstName: id, lastName: id }) as any;
 
@@ -195,5 +197,21 @@ describe('resolveTableauWinner', () => {
 
   it('en égalité sans vainqueur désigné, pas de vainqueur', () => {
     expect(resolveTableauWinner(a, b, 10, 10, null)).toBeNull();
+  });
+});
+
+describe('vainqueur au tableau = règle commune de fin de match (#1979, lot 4c)', () => {
+  const A = { id: 'a' } as Fencer;
+  const B = { id: 'b' } as Fencer;
+  it.each([
+    [5, 3, null, 'a'],
+    [3, 5, 'A', 'b'], // le score prime sur le vainqueur désigné
+    [4, 4, 'A', 'a'],
+    [4, 4, 'B', 'b'],
+    [4, 4, null, null],
+  ] as const)('%i-%i, désigné %s → %s', (a, b, tie, expected) => {
+    expect(resolveTableauWinner(A, B, a, b, tie)?.id ?? null).toBe(expected);
+    const side = decideMatchWinner({ scoreA: a, scoreB: b, override: tie }).winner;
+    expect(side === 'A' ? 'a' : side === 'B' ? 'b' : null).toBe(expected);
   });
 });

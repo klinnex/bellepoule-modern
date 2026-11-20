@@ -161,7 +161,7 @@ Feature Modules (src/features/)
 └── teams/               # useTeamStore + baril index.ts ; règles → shared/domain/teams (#1979)
 
 Shared (src/shared/)
-├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), fencers/ (statuts : retiré, éligible au tableau, carton noir), pools/ (poule terminée), rapieres/ (vagues, ordre classique, âges, qualification), analytics/ (KPI d’épreuve), teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base, ni window / localStorage ; heure et hasard injectés (ESLint)
+├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), fencers/ (statuts : retiré, éligible au tableau, carton noir), match/ (fin de match et vainqueur : écran, MCP, tablettes, appareils de piste), pools/ (poule terminée), rapieres/ (vagues, ordre classique, âges, qualification), analytics/ (KPI d’épreuve), teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base, ni window / localStorage ; heure et hasard injectés (ESLint)
 ├── types/
 │   ├── index.ts              # All TypeScript definitions (enums, interfaces)
 │   ├── pdfTemplate.types.ts
@@ -185,7 +185,7 @@ Shared (src/shared/)
     ├── fencerDetailPdfExport.ts  # Per-fencer PDF export
     ├── tableCalculations.ts      # Direct elimination bracket logic
     ├── cardSystem.ts             # Yellow/red/black card rules
-    ├── matchEndValidation.ts     # Fin de match unifiée (#1829) : fin valide, vainqueur, score limite, P-noir, pause sabre
+    ├── (matchEndValidation → shared/domain/match, #1979) Fin de match unifiée (#1829) : fin valide, vainqueur, score limite, P-noir, pause sabre
     ├── suddenDeath.ts            # Overtime / sudden death logic
     ├── touchSystem.ts            # Sabre Laser touch zones (A=1pt, B=3pt, C=5pt)
     ├── customTouchSystem.ts      # Custom touch zone configuration

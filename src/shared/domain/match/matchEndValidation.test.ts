@@ -16,8 +16,8 @@ import {
   type MatchWinner,
   type MatchWinnerInput,
 } from './matchEndValidation';
-import { getDefaultMaxScores } from './defaultMaxScores';
-import { Category, Weapon } from '../types';
+import { getDefaultMaxScores } from '../../utils/defaultMaxScores';
+import { Category, Weapon } from '../../types';
 
 describe('validateMatchEnd (spécification Cyrano §4)', () => {
   const cases: Array<[string, MatchEndInput, MatchEndVerdict]> = [
