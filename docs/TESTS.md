@@ -21,7 +21,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
 | Doc MCP | dans `npm run test:run` (`src/main/mcp/mcpDoc.test.ts`) ; seul : `npm run check:mcp-doc` | référence des outils de `docs/MCP.md` pas à jour vs leurs schémas (`npm run docs:mcp` pour régénérer, #1880) |
 | Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes `src/remote` (#1532), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), sonde de débogage `DIAGNOSTIC` / `remote:diag` restée dans `src` (#1773), fichiers de `src/main`, `src/shared` ou `src/database` qui importent `src/renderer` (`rendererImports`) ou `src/features` (`featuresImports`), fichiers de l'interface qui appellent `window.electronAPI` directement (`electronApiCalls`, #1979), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` ; en CI, une baisse non verrouillée échoue aussi (`--update` pour verrouiller, #1895) |
-| Lint (erreurs) | `npm run lint:errors` (`eslint . --quiet`) | erreur ESLint : import d'une couche interdite (`src/main`, `src/shared`, `src/database` → `src/renderer` ou `src/features` ; `src/shared/domain` → React, Electron, Node, base ; exceptions nommées jusqu'au lot 3, #1979, `docs/adr/0002`), `alert`/`confirm`, E/S fs synchrone dans le serveur distant (#1776). Les avertissements n'échouent pas |
+| Lint (erreurs) | `npm run lint:errors` (`eslint . --quiet`) | erreur ESLint : import d'une couche interdite (`src/main`, `src/shared`, `src/database` → `src/renderer` ou `src/features` ; `src/shared/domain` → React, Electron, Node, base ; dans le domaine, `Date.now`, `new Date()`, `Math.random`, `window`, `document`, `localStorage` interdits ; #1979, `docs/adr/0002`), `alert`/`confirm`, E/S fs synchrone dans le serveur distant (#1776). Les avertissements n'échouent pas |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
@@ -91,7 +91,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 |---|---:|---:|
 | `src/shared/utils/` | 86 | 963 |
 | `src/shared/services/` | 8 | 87 |
-| Feature `analytics` (`src/features/analytics/`) | 4 | 40 |
+| Feature `analytics` (`src/features/analytics/`) | 3 | 16 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
 | Feature `competition` (`src/features/competition/`) | 3 | 20 |
 | Feature `doubleelimination` (`src/features/doubleelimination/`) | 1 | 13 |
@@ -100,7 +100,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
+| Feature `rapieres` (`src/features/rapieres/`) | 4 | 17 |
 | Feature `teams` (`src/features/teams/`) | 1 | 7 |
 | `src/database/` | 21 | 266 |
 | `src/main/` | 119 | 972 |
@@ -113,7 +113,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 13 | 114 |
+| `src/shared/domain/` | 18 | 179 |
 | **Total** | **518** | **3999** |
 
 Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
@@ -2076,46 +2076,6 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/analytics/services/competitionKpis.test.ts</code> — 24 tests</summary>
-
-- **normalizeFinishedMatches**
-  - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
-- **fencerIndexRanking**
-  - classe par TD − TR moyen
-- **fencerMatchKpis**
-  - écarts moyens, victoires serrées/dominantes et séries
-  - aucun match → zéros
-- **classement**
-  - rang d’entrée parmi les présents, non classés en fin
-  - progression : delta positif = places gagnées
-- **organisationKpis**
-  - avancement, poules en retard, anneau, débit, attente, pistes actives
-  - tout terminé → pas d’estimation
-- **averageMatchSeconds**
-  - temps de combat si connu, sinon début → fin
-- **weaponKpis (#1817)**
-  - écart moyen, cartons par match, temps limite, statuts
-  - aucun match : zéros
-- **organisationKpis.lastEndAt (#1817)**
-  - fin du dernier match horodaté
-- **bandeau Organisation poules / compétition (#1817)**
-  - tableauWaves : exempts déduits, tours successifs
-  - cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)
-  - pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)
-  - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
-  - poules en cours : fin des poules + tableau projeté
-  - poules finies : fin réelle des poules, tableau généré = ETA globale
-  - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
-  - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
-  - tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)
-  - toutes les places : total de la compétition et deux décomptes (#1817)
-- **organisationKpis : durées de référence (#1965)**
-  - tableau d’épée sans mesure : 12 min + changement de piste
-  - sans clé : anciennes valeurs par défaut
-
-</details>
-
-<details>
 <summary><code>src/features/analytics/services/scheduleBaseline.test.ts</code> — 4 tests</summary>
 
 - **scheduleBaseline**
@@ -2466,67 +2426,6 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresAge.test.ts</code> — 8 tests</summary>
-
-- **rapieresAge**
-  - lit l’année de naissance depuis AAAA-MM-JJ
-  - applique les tranches d’âge de la saison (1er septembre)
-  - catégorie d’équipe = moyenne des années de naissance des deux tireurs
-  - âge moyen décimal arrondi au-dessus (#1864)
-  - année de naissance seule compte, pas la date (#1864)
-  - une seule date connue : elle sert ; aucune : catégorie saisie
-  - sexe d’équipe : M, F, mixte ; indéterminé si un sexe manque
-  - abréviation de catégorie pour la colonne « Cat. » des poules (#1864)
-
-</details>
-
-<details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 21 tests</summary>
-
-- **Tournoi des rapières (#1118)**
-  - libellé des tireurs de l’équipe
-  - **répartition**
-    - regroupe par niveau, tailles équilibrées
-  - **vagues**
-    - ${n} équipes (impair) : une équipe au repos par vague, la dernière d'abord
-    - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
-    - ordre des matchs de la poule suivant les vagues
-    - vague suivante lancée seulement quand la précédente est saisie
-    - équipe retirée : ses matchs ne bloquent pas la vague
-  - **feuilles de la vague active**
-    - ne contient que les matchs de la vague, triés par poule
-    - vague 0 ou inexistante : aucune feuille
-    - exclut les matchs annulés et ceux d’une équipe retirée
-    - reprend la piste de la poule
-  - **qualification**
-    - mode %s : toutes les équipes au tableau _(each)_
-    - mode semis : 4 équipes
-    - équipe retirée exclue
-    - réglages : petite finale sauf en normal, toutes places en « all »
-  - **classements**
-    - filtre par niveau : équipes seules, rangs conservés (#1441)
-    - filtre par catégorie d’équipe (moyenne des années de naissance, #1441)
-    - filtre par sexe d’équipe : M, F, mixte ; sexe incomplet exclu (#1441)
-    - filtres cumulables (niveau + sexe)
-    - rapieresPoolNumbers : numéro de poule par équipe
-    - final : tableau, puis non qualifiées, exclues en dernier
-
-</details>
-
-<details>
-<summary><code>src/features/rapieres/rapieresClassicOrder.test.ts</code> — 6 tests</summary>
-
-- **ordre classique des rapières (#1816)**
-  - poule de %i : chaque paire une seule fois _(each)_
-  - nombre de tours par taille
-  - pas de table hors 10 à 15
-  - applyClassicOrder renumérote, garde les ids et donne les vagues des tours
-  - ordre standard conservé si la poule ne suit pas la table
-  - poule sans table inchangée
-
-</details>
-
-<details>
 <summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 10 tests</summary>
 
 - **rapieresImport (#1211)**
@@ -2552,19 +2451,6 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - aligne les colonnes selon leur nature quand des colonnes sont masquées (#1279)
   - garde la mise en page par défaut sans kinds
   - reprend le style du classement après poules et colore l'indice (#1279)
-
-</details>
-
-<details>
-<summary><code>src/features/rapieres/rapieresSemifinals.test.ts</code> — 6 tests</summary>
-
-- **rapieresSemifinalists**
-  - 2 poules : croisement A1–B2 et B1–A2, ordre de tête de série
-  - 3 poules : 1res + meilleure 2e du général, ordre du général
-  - 4 poules : les 4 premiers de poule
-  - 1 poule : les 4 premières de la poule
-  - plus de 4 poules : pas de scénario
-  - équipe retirée : écartée, rangs de poule renumérotés
 
 </details>
 
@@ -8182,6 +8068,46 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/shared/domain/`
 
 <details>
+<summary><code>src/shared/domain/analytics/competitionKpis.test.ts</code> — 24 tests</summary>
+
+- **normalizeFinishedMatches**
+  - ordonne les poules par fin puis ajoute le tableau du plus grand tour au plus petit
+- **fencerIndexRanking**
+  - classe par TD − TR moyen
+- **fencerMatchKpis**
+  - écarts moyens, victoires serrées/dominantes et séries
+  - aucun match → zéros
+- **classement**
+  - rang d’entrée parmi les présents, non classés en fin
+  - progression : delta positif = places gagnées
+- **organisationKpis**
+  - avancement, poules en retard, anneau, débit, attente, pistes actives
+  - tout terminé → pas d’estimation
+- **averageMatchSeconds**
+  - temps de combat si connu, sinon début → fin
+- **weaponKpis (#1817)**
+  - écart moyen, cartons par match, temps limite, statuts
+  - aucun match : zéros
+- **organisationKpis.lastEndAt (#1817)**
+  - fin du dernier match horodaté
+- **bandeau Organisation poules / compétition (#1817)**
+  - tableauWaves : exempts déduits, tours successifs
+  - cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)
+  - pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)
+  - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
+  - poules en cours : fin des poules + tableau projeté
+  - poules finies : fin réelle des poules, tableau généré = ETA globale
+  - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
+  - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
+  - tableau de 64 sur 10 pistes : vagues par tour × 7 min 30 (#1817)
+  - toutes les places : total de la compétition et deux décomptes (#1817)
+- **organisationKpis : durées de référence (#1965)**
+  - tableau d’épée sans mesure : 12 min + changement de piste
+  - sans clé : anciennes valeurs par défaut
+
+</details>
+
+<details>
 <summary><code>src/shared/domain/formula/formulaDraft.test.ts</code> — 7 tests</summary>
 
 - **formulaDraft**
@@ -8208,6 +8134,80 @@ Unitaires : 508 fichiers, 3960 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - garde le classement tel quel sans option
   - ne garde que le groupe actif et renumérote
   - exclut les groupes déjà extraits dans une compétition séparée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/rapieres/rapieresAge.test.ts</code> — 8 tests</summary>
+
+- **rapieresAge**
+  - lit l’année de naissance depuis AAAA-MM-JJ
+  - applique les tranches d’âge de la saison (1er septembre)
+  - catégorie d’équipe = moyenne des années de naissance des deux tireurs
+  - âge moyen décimal arrondi au-dessus (#1864)
+  - année de naissance seule compte, pas la date (#1864)
+  - une seule date connue : elle sert ; aucune : catégorie saisie
+  - sexe d’équipe : M, F, mixte ; indéterminé si un sexe manque
+  - abréviation de catégorie pour la colonne « Cat. » des poules (#1864)
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/rapieres/rapieresCalculations.test.ts</code> — 21 tests</summary>
+
+- **Tournoi des rapières (#1118)**
+  - libellé des tireurs de l’équipe
+  - **répartition**
+    - regroupe par niveau, tailles équilibrées
+  - **vagues**
+    - ${n} équipes (impair) : une équipe au repos par vague, la dernière d'abord
+    - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
+    - ordre des matchs de la poule suivant les vagues
+    - vague suivante lancée seulement quand la précédente est saisie
+    - équipe retirée : ses matchs ne bloquent pas la vague
+  - **feuilles de la vague active**
+    - ne contient que les matchs de la vague, triés par poule
+    - vague 0 ou inexistante : aucune feuille
+    - exclut les matchs annulés et ceux d’une équipe retirée
+    - reprend la piste de la poule
+  - **qualification**
+    - mode %s : toutes les équipes au tableau _(each)_
+    - mode semis : 4 équipes
+    - équipe retirée exclue
+    - réglages : petite finale sauf en normal, toutes places en « all »
+  - **classements**
+    - filtre par niveau : équipes seules, rangs conservés (#1441)
+    - filtre par catégorie d’équipe (moyenne des années de naissance, #1441)
+    - filtre par sexe d’équipe : M, F, mixte ; sexe incomplet exclu (#1441)
+    - filtres cumulables (niveau + sexe)
+    - rapieresPoolNumbers : numéro de poule par équipe
+    - final : tableau, puis non qualifiées, exclues en dernier
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/rapieres/rapieresClassicOrder.test.ts</code> — 6 tests</summary>
+
+- **ordre classique des rapières (#1816)**
+  - poule de %i : chaque paire une seule fois _(each)_
+  - nombre de tours par taille
+  - pas de table hors 10 à 15
+  - applyClassicOrder renumérote, garde les ids et donne les vagues des tours
+  - ordre standard conservé si la poule ne suit pas la table
+  - poule sans table inchangée
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/rapieres/rapieresSemifinals.test.ts</code> — 6 tests</summary>
+
+- **rapieresSemifinalists**
+  - 2 poules : croisement A1–B2 et B1–A2, ordre de tête de série
+  - 3 poules : 1res + meilleure 2e du général, ordre du général
+  - 4 poules : les 4 premiers de poule
+  - 1 poule : les 4 premières de la poule
+  - plus de 4 poules : pas de scénario
+  - équipe retirée : écartée, rangs de poule renumérotés
 
 </details>
 
