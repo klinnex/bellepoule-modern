@@ -16,3 +16,7 @@ concurrency:
 jobs:
   quality:
     uses: ./.github/workflows/quality.yml
+
+  # Tests E2E Playwright (#2045) : navigateur + application Electron réelle
+  e2e:
+    uses: ./.github/workflows/e2e.yml

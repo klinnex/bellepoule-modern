@@ -163,12 +163,12 @@ Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 | Doc MCP | dans \`npm run test:run\` (\`src/main/mcp/mcpDoc.test.ts\`) ; seul : \`npm run check:mcp-doc\` | référence des outils de \`docs/MCP.md\` pas à jour vs leurs schémas (\`npm run docs:mcp\` pour régénérer, #1880) |
 | Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\`, \`console.*\`, \`style={{…}}\` (#1157), \`fontSize\` en px (#1156), locale \`'fr'\` en dur (#1160), messages d'erreur serveur en clair (#1159), emoji en tête de texte d’interface ou de libellé de locale, ou emoji dans les pages distantes \`src/remote\` (#1532), ou couleur hexadécimale en dur dans les pages distantes \`src/remote\` (hors \`tokens.css\`, #1538), sonde de débogage \`DIAGNOSTIC\` / \`remote:diag\` restée dans \`src\` (#1773), fichiers de \`src/main\`, \`src/shared\` ou \`src/database\` qui importent \`src/renderer\` (\`rendererImports\`) ou \`src/features\` (\`featuresImports\`), fichiers de l'interface qui appellent \`window.electronAPI\` directement (\`electronApiCalls\`, #1979), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs \`scripts/quality-baseline.json\` ; en CI, une baisse non verrouillée échoue aussi (\`--update\` pour verrouiller, #1895) |
 | Lint (erreurs) | \`npm run lint:errors\` (\`eslint . --quiet\`) | erreur ESLint : import d'une couche interdite (\`src/main\`, \`src/shared\`, \`src/database\` → \`src/renderer\` ou \`src/features\` ; \`src/shared/domain\` → React, Electron, Node, base ; dans le domaine, \`Date.now\`, \`new Date()\`, \`Math.random\`, \`window\`, \`document\`, \`localStorage\` interdits ; #1979, \`docs/adr/0002\`), \`alert\`/\`confirm\`, E/S fs synchrone dans le serveur distant (#1776). Les avertissements n'échouent pas |
+| E2E (PR) | job \`e2e\` : \`npx playwright install --with-deps chromium\` puis \`xvfb-run -a npm run test:e2e\` (build compris) | un test Playwright échoue : interface dans le navigateur (\`chromium\`) ou application Electron réelle (\`electron\`) ; rapport \`playwright-report\` en artefact (#2045) |
 | Build Nix | \`nix build .#default\` (job \`nix-build\`) | le paquet \`flake.nix\` ne build pas : \`npmDepsHash\` périmé vs \`package-lock.json\`, dépendance native cassée, etc. |
 | Tests unitaires | \`npm run test:run\` | un test Vitest échoue |
 | Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6.5 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
-Hors CI (manuel) : \`npm run lint\` (avertissements compris), \`npm run format:check\`, \`npm run test:coverage\`,
-\`npm run test:e2e\`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
+Hors CI (manuel) : \`npm run lint\` (avertissements compris), \`npm run format:check\`, \`npm run test:coverage\`. Débordements de libellés dans les dix langues à 1024×768 (#1543) :
 \`npm run check:i18n-visual\` (\`scripts/capture-i18n.js\`, Electron, après \`npm run build\` ;
 \`xvfb-run -a\` sous Linux ; \`-- --pseudo\` pour la pseudo-localisation) : échoue si un écran clé
 défile horizontalement, rogne un libellé sans ellipse ni infobulle, coupe un mot sur deux lignes
@@ -203,7 +203,7 @@ npx vitest run src/shared/utils/poolCalculations.test.ts   # un fichier
 - \`pretest:e2e\` construit l'application (\`npm run build\`) ; sous Linux sans écran : \`xvfb-run -a\`.
 - \`E2E_ALL_BROWSERS=1\` ajoute Firefox, WebKit, Mobile Chrome, Mobile Safari ; 2 retries et 1 worker en CI.
 - Navigateur : \`npx playwright install chromium\` (version attendue par Playwright).
-- **Non exécutés en CI** (#2045).
+- **CI** : job \`e2e\` des PR (\`.github/workflows/e2e.yml\`, appelé par \`pr-quality.yml\`) : Chromium installé, build, \`xvfb-run -a\` ; rapport HTML en artefact si échec (#2045).
 - Quelques scénarios appellent \`test.skip()\` si l'état requis (compétition existante, tableau…) est absent.
 
 \`\`\`bash
