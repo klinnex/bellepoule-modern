@@ -44,6 +44,7 @@ import {
 } from './common/CollapseToggle';
 import { Button } from './common/Button';
 import { genderLabel } from './common/GenderLabel';
+import { isBlackCardExcluded as isBlackCardFencer } from '../../shared/domain/fencers/fencerStatus';
 
 interface PoolRankingViewProps {
   pools: Pool[];
@@ -333,8 +334,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   };
 
   /** Exclusion par carton noir (rang affiché « - » + icône carton noir) (#1440) */
-  const isBlackCardExcluded = (r: PoolRanking) =>
-    r.fencer.status === FencerStatus.EXCLUDED && r.fencer.exclusionReason === 'black_card';
+  const isBlackCardExcluded = (r: PoolRanking) => isBlackCardFencer(r.fencer);
 
   /** Rang affiché : DNS / DNF (forfait, abandon, exclusion simple) / « - » (carton noir) */
   const displayRank = (r: PoolRanking): string | number => {

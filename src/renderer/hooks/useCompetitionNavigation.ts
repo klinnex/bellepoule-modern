@@ -33,6 +33,7 @@ import type { Phase } from './useCompetitionSession';
 import type { useFencerManagement } from './useFencerManagement';
 import type { usePoolManagement } from './usePoolManagement';
 import { useTranslation } from './useTranslation';
+import { isTableauEligible } from '../../shared/domain/fencers/fencerStatus';
 
 type PoolManagement = ReturnType<typeof usePoolManagement>;
 type Setter<T> = Dispatch<SetStateAction<T>>;
@@ -263,13 +264,7 @@ export function useCompetitionNavigation({
     }
     const toEliminate = eliminated.filter(f => {
       const status = fencers.find(x => x.id === f.id)?.status;
-      return (
-        status !== undefined &&
-        status !== FencerStatus.ELIMINATED &&
-        status !== FencerStatus.ABANDONED &&
-        status !== FencerStatus.FORFAIT &&
-        status !== FencerStatus.EXCLUDED
-      );
+      return status !== undefined && isTableauEligible({ status });
     });
     const ok = await confirm(
       t('pools.next_round_confirm', {
