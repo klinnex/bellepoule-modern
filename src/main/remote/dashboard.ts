@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { SessionMatch } from './types';
+import { referenceDuration, weaponCode } from '../../shared/utils/matchDurations';
 import { estimatePhaseEta } from '../../shared/utils/phaseEta';
 import type { PhaseEtaSummary } from './routes/context';
 import { visibleArenas } from './stripPlan';
@@ -172,6 +173,14 @@ export function computePhaseEta(ctx: DashboardContext): PhaseEtaSummary {
     sequentialGroups,
     activeArenas: ctx.session?.strips?.length || ctx.arenas.size,
     now: Date.now(),
+    // Même référence que la simulation et les indicateurs (#1965), si l'arme est connue
+    reference: ctx.session?.weapon
+      ? referenceDuration({
+          weapon: weaponCode(ctx.session.weapon),
+          phase: phase === 'pools' ? 'pool' : 'tableau',
+          maxScore: phase === 'pools' ? 5 : 15,
+        })
+      : undefined,
   });
   return {
     finishAt: new Date(estimate.finishAt).toISOString(),

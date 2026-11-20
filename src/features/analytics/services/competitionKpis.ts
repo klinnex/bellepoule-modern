@@ -14,6 +14,7 @@ import {
   Pool,
   RemoteEvent,
 } from '../../../shared/types';
+import { referenceDuration, weaponCode } from '../../../shared/utils/matchDurations';
 import { estimatePhaseEta, median as medianOf } from '../../../shared/utils/phaseEta';
 import {
   allPlacesCompetitionBouts,
@@ -29,6 +30,45 @@ const DEFAULT_TABLEAU_MATCH_MS = 4.5 * 60_000;
 const DEFAULT_CHANGEOVER_MS = 3 * 60_000;
 /** Au-delà, l'écart entre deux matchs d'une piste est une pause, pas un enchaînement */
 const MAX_CHANGEOVER_MS = 20 * 60_000;
+
+/** Clé de durée de la compétition (#1965) */
+export interface KpiDurationKey {
+  weapon: string;
+  gender?: string;
+  category?: string;
+  poolMaxScore?: number;
+  tableauMaxScore?: number;
+}
+
+/** Options d'indicateurs d'une compétition : toutes les places, clé de durée (#1965) */
+export function kpiCompetitionOptions(c: {
+  weapon: unknown;
+  gender?: unknown;
+  category?: unknown;
+  settings?: {
+    playAllPositions?: boolean;
+    defaultPoolMaxScore?: number;
+    defaultTableMaxScore?: number;
+  };
+}): { playAllPositions: boolean; durationKey: KpiDurationKey } {
+  return { playAllPositions: !!c.settings?.playAllPositions, durationKey: kpiDurationKey(c) };
+}
+
+/** Clé de durée d'une compétition : arme, sexe, catégorie, scores max (#1965) */
+export function kpiDurationKey(c: {
+  weapon: unknown;
+  gender?: unknown;
+  category?: unknown;
+  settings?: { defaultPoolMaxScore?: number; defaultTableMaxScore?: number };
+}): KpiDurationKey {
+  return {
+    weapon: String(c.weapon),
+    gender: c.gender != null ? String(c.gender) : undefined,
+    category: c.category != null ? String(c.category) : undefined,
+    poolMaxScore: c.settings?.defaultPoolMaxScore,
+    tableauMaxScore: c.settings?.defaultTableMaxScore,
+  };
+}
 
 /** Match terminé ramené à une forme commune (poule ou tableau). */
 export interface KpiMatch {
@@ -346,6 +386,8 @@ export function organisationKpis(input: {
   events?: RemoteEvent[];
   /** Pistes du serveur distant (match en cours = status in_progress) */
   arenas?: LiveArena[];
+  /** Clé des durées de référence (#1965) : absente → anciennes valeurs par défaut */
+  durationKey?: KpiDurationKey;
   now: number;
 }): OrganisationKpis {
   const {
@@ -356,8 +398,21 @@ export function organisationKpis(input: {
     timings = [],
     events = [],
     arenas = [],
+    durationKey,
     now,
   } = input;
+  const reference = (phase: 'pool' | 'tableau') =>
+    durationKey
+      ? referenceDuration({
+          weapon: weaponCode(durationKey.weapon),
+          gender: durationKey.gender,
+          category: durationKey.category,
+          phase,
+          maxScore:
+            (phase === 'pool' ? durationKey.poolMaxScore : durationKey.tableauMaxScore) ||
+            (phase === 'pool' ? 5 : 15),
+        })
+      : undefined;
   const live = arenas.filter(a => a.status === 'in_progress' && a.matchId);
   const liveIds = new Set(live.map(a => a.matchId as string));
 
@@ -444,6 +499,7 @@ export function organisationKpis(input: {
     now,
     fallbackMatchMs: DEFAULT_MATCH_MS,
     changeoverMs,
+    reference: reference('pool'),
   };
 
   const remaining = total - done;
@@ -489,6 +545,7 @@ export function organisationKpis(input: {
     ...etaCommon,
     durationsMs: wallMs.filter(x => !poolMatchIds.has(x.id)).map(x => x.ms),
     fallbackMatchMs: DEFAULT_TABLEAU_MATCH_MS,
+    reference: reference('tableau'),
     remainingMatches: 0,
   });
   const tableauPerMatchMs = tableauEta.perMatchMs;

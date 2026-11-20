@@ -7,7 +7,12 @@
  *   - avec groupes (poules) : les matchs d'une poule s'enchaînent sur une seule
  *     piste → vagues = charge de la piste la plus chargée (répartition LPT)
  * La médiane résiste aux matchs anormaux (blessure, appel DT, pause).
+ *
+ * Avec une `reference` (#1965) : durée = mélange référence / matchs mesurés
+ * (adjustedDuration), matchs aberrants exclus, sans bascule brutale.
  */
+
+import { adjustedDuration, type DurationEstimate } from './matchDurations';
 
 export interface PhaseEtaInput {
   /** Durées réelles (début → fin, en ms) des matchs terminés, les plus récentes en dernier. */
@@ -27,6 +32,8 @@ export interface PhaseEtaInput {
   window?: number;
   /** Temps entre deux matchs sur une piste (appel, installation). */
   changeoverMs?: number;
+  /** Durée de référence de la clé (arme, phase, score) : active le mélange (#1965). */
+  reference?: DurationEstimate;
 }
 
 export interface PhaseEta {
@@ -72,11 +79,20 @@ export function estimatePhaseEta(input: PhaseEtaInput): PhaseEta {
     now,
     fallbackMatchMs = 4 * 60_000,
     window = 20,
-    changeoverMs = 60_000,
+    reference,
   } = input;
-  const samples = durationsMs.filter(d => Number.isFinite(d) && d > 0).slice(-window);
-  const basis = samples.length >= MIN_SAMPLES ? 'measured' : 'default';
-  const perMatchMs = (basis === 'measured' ? median(samples) : fallbackMatchMs) + changeoverMs;
+  let basis: PhaseEta['basis'];
+  let perMatchMs: number;
+  if (reference) {
+    const adjusted = adjustedDuration(reference, durationsMs, { window });
+    basis = adjusted.samples >= MIN_SAMPLES ? 'measured' : 'default';
+    perMatchMs = adjusted.medianMs + (input.changeoverMs ?? reference.changeoverMs);
+  } else {
+    const changeoverMs = input.changeoverMs ?? 60_000;
+    const samples = durationsMs.filter(d => Number.isFinite(d) && d > 0).slice(-window);
+    basis = samples.length >= MIN_SAMPLES ? 'measured' : 'default';
+    perMatchMs = (basis === 'measured' ? median(samples) : fallbackMatchMs) + changeoverMs;
+  }
   const remaining = Math.max(0, Math.floor(remainingMatches));
   const arenas = Math.max(1, Math.floor(activeArenas));
   const waves = sequentialGroups
