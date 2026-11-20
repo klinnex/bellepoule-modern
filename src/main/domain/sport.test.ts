@@ -284,13 +284,13 @@ d('déroulé complet piloté hors écran', () => {
     playAll(comp.id, 'pool');
     const types = db.eventLog.getSince(comp.id).map(e => e.type);
     expect(types.filter(t => t === 'PoolCompleted')).toHaveLength(1);
-    expect(types.at(-1)).toBe('PoolCompleted');
+    expect(types[types.length - 1]).toBe('PoolCompleted');
     buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
     playAll(comp.id, 'bracket');
     const all = db.eventLog.getSince(comp.id);
     expect(all.map(e => e.revision)).toEqual(all.map((_, i) => i + 1));
     expect(all.filter(e => e.type === 'TableauMatchDecided')).toHaveLength(3);
-    expect(all.at(-1)?.type).toBe('TableauCompleted');
+    expect(all[all.length - 1]?.type).toBe('TableauCompleted');
     // RGPD : identifiants seulement
     expect(JSON.stringify(all)).not.toContain('NOM');
   });
