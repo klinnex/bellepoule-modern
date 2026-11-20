@@ -113,10 +113,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 20 | 194 |
-| **Total** | **519** | **4011** |
+| `src/shared/domain/` | 21 | 198 |
+| **Total** | **520** | **4015** |
 
-Unitaires : 509 fichiers, 3972 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 510 fichiers, 3976 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -8138,6 +8138,17 @@ Unitaires : 509 fichiers, 3972 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **poule terminée (#1979, lot 4)**
   - match terminé ou tireur retiré : réglé
   - toutes les poules
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/pools/poolDraw.test.ts</code> — 4 tests</summary>
+
+- **tirage des poules : fonction unique (#1979, lot 4)**
+  - défaut : classement puis club et région dans le chapeau
+  - buildPools (MCP) et drawPools (écran) donnent le même tirage par défaut
+  - critères de l’écran transmis au MCP : même résultat
+  - ni tireur ni poule : aucun tirage
 
 </details>
 
