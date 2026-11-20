@@ -6,9 +6,12 @@ let available = true;
 vi.mock('electron', () => ({
   ipcMain: { handle: (ch: string, fn: (...args: any[]) => any) => handlers.set(ch, fn) },
   safeStorage: {
-    isEncryptionAvailable: () => available,
-    encryptString: (s: string) => Buffer.from(`enc:${s}`),
-    decryptString: (b: Buffer) => b.toString().replace(/^enc:/, ''),
+    isAsyncEncryptionAvailable: async () => available,
+    encryptStringAsync: async (s: string) => Buffer.from(`enc:${s}`),
+    decryptStringAsync: async (b: Buffer) => ({
+      result: b.toString().replace(/^enc:/, ''),
+      shouldReEncrypt: false,
+    }),
   },
 }));
 

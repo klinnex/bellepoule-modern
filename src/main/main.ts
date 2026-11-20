@@ -355,7 +355,7 @@ async function openDatabase(): Promise<void> {
 
   // RGPD (#1882) : base chiffrée au repos (SQLCipher), clé dans le trousseau système
   try {
-    const dbKey = loadOrCreateDatabaseKey(userDataPath, safeStorage, dbPath);
+    const dbKey = await loadOrCreateDatabaseKey(userDataPath, safeStorage, dbPath);
     if (!dbKey) {
       logger.warn(
         LogCategory.SYSTEM,
@@ -419,8 +419,8 @@ app.whenReady().then(async () => {
       // Configuration du client (URL, jeton) sur la sortie standard : à la demande de l'opérateur
       let exitCode = 0;
       try {
-        if (cli.mcpNewToken) mcp.regenerateToken();
-        process.stdout.write(`${JSON.stringify(mcp.clientConfig(), null, 2)}\n`);
+        if (cli.mcpNewToken) await mcp.regenerateToken();
+        process.stdout.write(`${JSON.stringify(await mcp.clientConfig(), null, 2)}\n`);
       } catch (e) {
         process.stderr.write(`${toError(e).message}\n`);
         exitCode = 1;

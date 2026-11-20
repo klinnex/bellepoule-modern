@@ -16,9 +16,12 @@ import type { McpWriteDeps } from '../mcp/mcpWriteTools';
 import { getMcpToken, readMcpSettings, type SecretBox } from '../mcp/mcpSettings';
 
 const box = (available: boolean): SecretBox => ({
-  isEncryptionAvailable: () => available,
-  encryptString: s => Buffer.from(s.split('').reverse().join('')),
-  decryptString: b => b.toString().split('').reverse().join(''),
+  isAsyncEncryptionAvailable: async () => available,
+  encryptStringAsync: async s => Buffer.from(s.split('').reverse().join('')),
+  decryptStringAsync: async b => ({
+    result: b.toString().split('').reverse().join(''),
+    shouldReEncrypt: false,
+  }),
 });
 const deps = {
   db: {},
@@ -52,12 +55,12 @@ describe('contrôleur MCP', () => {
     const status = await mcp.apply();
     expect(status).toMatchObject({ enabled: true, allowWrite: true, running: true, port });
     expect(readMcpSettings(dir)).toEqual({ enabled: false, port: 8067, allowWrite: false });
-    expect(mcp.clientConfig()).toEqual({
+    expect(await mcp.clientConfig()).toEqual({
       mcpServers: {
         bellepoule: {
           type: 'http',
           url: `http://127.0.0.1:${port}/mcp`,
-          headers: { Authorization: `Bearer ${getMcpToken(dir, box(true))}` },
+          headers: { Authorization: `Bearer ${await getMcpToken(dir, box(true))}` },
         },
       },
     });
@@ -66,7 +69,7 @@ describe('contrôleur MCP', () => {
 
   it('jeton illisible : serveur non démarré, erreur token_unreadable, puis régénération', async () => {
     const dir = tmp();
-    getMcpToken(dir, box(true)); // jeton chiffré par le trousseau de la session
+    await getMcpToken(dir, box(true)); // jeton chiffré par le trousseau de la session
     const port = await freePort();
     // Autre contexte : trousseau indisponible
     const mcp = createMcpController({
@@ -81,8 +84,8 @@ describe('contrôleur MCP', () => {
       token: '',
       error: 'token_unreadable',
     });
-    expect(() => mcp.clientConfig()).toThrow(/illisible/);
-    mcp.regenerateToken();
+    await expect(mcp.clientConfig()).rejects.toThrow(/illisible/);
+    await mcp.regenerateToken();
     const status = await mcp.apply();
     expect(status.running).toBe(true);
     expect(status.error).toBeUndefined();
