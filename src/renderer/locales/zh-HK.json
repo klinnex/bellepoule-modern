@@ -1896,6 +1896,7 @@
     "reason_club": "會籍",
     "reason_nationality": "國籍",
     "reason_region": "地區",
+    "conflict_warning": "與劍手存在中立衝突：{{reasons}}",
     "all_covered": "所有待進行比賽均有中立裁判。",
     "match_n": "比賽 {{n}}",
     "locked": "手動",

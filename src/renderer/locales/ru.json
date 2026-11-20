@@ -1896,6 +1896,7 @@
     "reason_club": "клуб",
     "reason_nationality": "гражданство",
     "reason_region": "регион",
+    "conflict_warning": "Конфликт нейтральности с фехтовальщиком: {{reasons}}",
     "all_covered": "У всех ожидающих боёв есть нейтральный судья.",
     "match_n": "Бой {{n}}",
     "locked": "вручную",

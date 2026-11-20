@@ -33,7 +33,7 @@ import {
   isTableauDone,
   buildCombinedResults,
 } from '../../../shared/domain/tableau/tableauCalculations';
-import { autoAssignReferees } from '../../../shared/utils/refereeStats';
+import { autoFillRefereeAssignments } from '../../services/autoFillReferees';
 import { simulateMatchEvents } from '../../../shared/utils/simulatedMatchEvents';
 import { persistSimulatedEvents } from '../../services/simulatedEventsPersistence';
 import { TableauViewProps } from '../../components/tableau/tableauViewShared';
@@ -255,7 +255,7 @@ export function useTableauViewScoring(ctx: Ctx) {
       const targets = list.filter(
         m => m.winner && !m.isBye && m.fencerA && m.fencerB && !m.referee && !alreadyDone.has(m.id)
       );
-      const assignments = autoAssignReferees(targets, autoFillReferees, refereeLoad);
+      const assignments = autoFillRefereeAssignments(targets, [], autoFillReferees, refereeLoad);
       if (assignments.size === 0) return list;
       return list.map(m => {
         const r = assignments.get(m.id);

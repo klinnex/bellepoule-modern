@@ -682,6 +682,11 @@ export interface CompetitionSettings {
   poolRoundQualifiers?: number[]; // Qualifiés pour le tour i+2 (0/absent = tous) (#1051)
   poolSizeMin?: number; // Taille de poule cible, minimum (formule, #2013) ; défaut 5
   poolSizeMax?: number; // Taille de poule cible, maximum (formule, #2013) ; défaut 7
+  /** Affectation des arbitres (docs/adr/0014) : lue par le moteur ; défaut : neutralité de club seule */
+  refereeing?: {
+    neutrality?: { club?: boolean; nationality?: boolean; region?: boolean };
+    balance?: boolean;
+  };
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)
   thirdPlaceMatch: boolean; // Match pour la 3ème place activé (défaut: false)
   signTableauMatches?: boolean; // Signature des combattants sur tablette après chaque match du tableau (défaut: true)

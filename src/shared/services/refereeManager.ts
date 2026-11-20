@@ -26,7 +26,6 @@ export class RefereeManager {
   private referees: Referee[];
   private assignments: Map<string, RefereeAssignment[]> = new Map();
   private config: RefereeRotationConfig;
-  private currentMatches: Match[] = [];
   // Matchs consécutifs en cours (sans pause entre deux) par arbitre
   private consecutiveCount: Map<string, number> = new Map();
 
@@ -39,108 +38,6 @@ export class RefereeManager {
       balanceAssignment: true,
       ...config,
     };
-  }
-
-  /**
-   * Assigne automatiquement les arbitres aux matchs
-   * Évite les conflits d'intérêts et optimise la rotation
-   */
-  assignRefereesToMatches(matches: Match[], pools: Pool[]): Map<string, Referee> {
-    const assignments = new Map<string, Referee>();
-    this.currentMatches = matches;
-    const matchQueue = [...matches].sort(
-      (a, b) => this.getMatchPriority(a) - this.getMatchPriority(b)
-    );
-
-    for (const match of matchQueue) {
-      const bestReferee = this.findBestRefereeForMatch(match, pools, assignments);
-      if (bestReferee) {
-        assignments.set(match.id, bestReferee);
-        this.recordAssignment(bestReferee, match);
-      }
-    }
-
-    return assignments;
-  }
-
-  /**
-   * Trouve le meilleur arbitre pour un match donné
-   */
-  private findBestRefereeForMatch(
-    match: Match,
-    pools: Pool[],
-    currentAssignments: Map<string, Referee>
-  ): Referee | null {
-    let availableReferees = this.referees.filter(referee =>
-      this.isRefereeAvailable(referee, match, currentAssignments)
-    );
-
-    // Respecte maxRefereesPerPool : si la poule a déjà atteint la limite,
-    // seuls les arbitres déjà assignés à cette poule peuvent être utilisés.
-    const maxPerPool = this.config.maxRefereesPerPool;
-    if (maxPerPool && match.poolId) {
-      const pool = pools.find(p => p.id === match.poolId);
-      if (pool) {
-        const poolMatchIds = pool.matches.map(m => m.id);
-        const assignedInPool = new Set(
-          poolMatchIds
-            .map(id => currentAssignments.get(id))
-            .filter((r): r is Referee => r !== undefined)
-            .map(r => r.id)
-        );
-        if (assignedInPool.size >= maxPerPool) {
-          availableReferees = availableReferees.filter(r => assignedInPool.has(r.id));
-        }
-      }
-    }
-
-    if (availableReferees.length === 0) return null;
-
-    // Score each referee
-    const scoredReferees = availableReferees.map(referee => ({
-      referee,
-      score: this.calculateRefereeScore(referee, match, pools),
-    }));
-
-    // Sort by score (highest is best)
-    scoredReferees.sort((a, b) => b.score - a.score);
-
-    return scoredReferees[0]?.referee || null;
-  }
-
-  /**
-   * Calcule un score pour un arbitre (plus haut = meilleur)
-   */
-  private calculateRefereeScore(referee: Referee, match: Match, pools: Pool[]): number {
-    let score = 100;
-
-    // Check for club conflict
-    if (this.config.avoidSameClub && this.hasClubConflict(referee, match, pools)) {
-      score -= 1000; // Heavy penalty
-    }
-
-    // Prefer referees with fewer assignments (balance)
-    if (this.config.balanceAssignment) {
-      const assignmentCount = referee.assignedMatches || 0;
-      score -= assignmentCount * 5;
-    }
-
-    // Check rest time
-    if (referee.lastAssignmentTime) {
-      const minutesSinceLast = (Date.now() - referee.lastAssignmentTime.getTime()) / (1000 * 60);
-      if (minutesSinceLast < this.config.minRestTimeMinutes) {
-        score -= 50;
-      }
-    }
-
-    // Prefer referees with appropriate category for match importance
-    if (match.round && match.round <= 4) {
-      // Quarter-finals and beyond
-      if (referee.category === 'International') score += 20;
-      if (referee.category === 'National') score += 10;
-    }
-
-    return score;
   }
 
   /**
@@ -165,50 +62,6 @@ export class RefereeManager {
     }
 
     return false;
-  }
-
-  /**
-   * Vérifie si un arbitre est disponible
-   */
-  private isRefereeAvailable(
-    referee: Referee,
-    match: Match,
-    currentAssignments: Map<string, Referee>
-  ): boolean {
-    if (referee.status === 'unavailable') return false;
-
-    // Check if already assigned to a match at the same time
-    const isBusy = Array.from(currentAssignments.entries()).some(
-      ([matchId, assignedReferee]) =>
-        assignedReferee.id === referee.id && this.isTimeConflict(match, this.findMatchById(matchId))
-    );
-
-    if (isBusy) return false;
-
-    // Check max matches per day
-    if (referee.maxMatchesPerDay && referee.assignedMatches) {
-      if (referee.assignedMatches >= referee.maxMatchesPerDay) return false;
-    }
-
-    // Enforce maxConsecutiveMatches
-    const consecutive = this.consecutiveCount.get(referee.id) ?? 0;
-    if (consecutive >= this.config.maxConsecutiveMatches) return false;
-
-    return true;
-  }
-
-  /**
-   * Vérifie s'il y a un conflit de temps entre deux matchs
-   */
-  private isTimeConflict(match1: Match, match2: Match | undefined): boolean {
-    if (!match2 || !match1.startTime || !match2.startTime) return false;
-
-    const start1 = new Date(match1.startTime).getTime();
-    const end1 = start1 + (match1.duration || 180) * 1000; // Default 3 minutes
-    const start2 = new Date(match2.startTime).getTime();
-    const end2 = start2 + (match2.duration || 180) * 1000;
-
-    return start1 < end2 && end1 > start2;
   }
 
   /**
@@ -371,18 +224,6 @@ export class RefereeManager {
         conflicts,
       };
     });
-  }
-
-  private findMatchById(matchId: string): Match | undefined {
-    return this.currentMatches.find(m => m.id === matchId);
-  }
-
-  private getMatchPriority(match: Match): number {
-    if (match.round) {
-      // Later rounds have higher priority (lower round number)
-      return match.round;
-    }
-    return 999;
   }
 }
 
