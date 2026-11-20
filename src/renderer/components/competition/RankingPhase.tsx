@@ -34,6 +34,8 @@ interface RankingPhaseProps {
   onRankingChange: (ranking: PoolRanking[]) => void;
   onSplitOff: RankingViewProps['onSplitOff'];
   nextRoundAction: RankingViewProps['nextRoundAction'];
+  /** Bouton tableau déplacé dans la barre du haut (#2008) */
+  tableauActionInNav?: boolean;
   /** Tableau tiré : classement figé (#1996) */
   rankingFrozen?: boolean;
   // Rapières
@@ -64,6 +66,7 @@ const RankingPhase: React.FC<RankingPhaseProps> = ({
   onRankingChange,
   onSplitOff,
   nextRoundAction,
+  tableauActionInNav,
   rankingFrozen,
   isRapieres,
   launchedWave,
@@ -99,6 +102,7 @@ const RankingPhase: React.FC<RankingPhaseProps> = ({
         splitOffGroups={splitOffCompetitionIds}
         onSplitOff={onSplitOff}
         nextRoundAction={nextRoundAction}
+        tableauActionInNav={tableauActionInNav}
         rankingFrozen={rankingFrozen}
       />
     )}

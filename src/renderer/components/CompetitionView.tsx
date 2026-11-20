@@ -53,6 +53,7 @@ import { useCompetitionCore } from '../hooks/competitionView/useCompetitionCore'
 import QuestSection from './competition/QuestSection';
 import PoolsPhase from './competition/PoolsPhase';
 import RankingPhase from './competition/RankingPhase';
+import { rankingTableauNavAction } from './competition/competitionDerived';
 
 const RemoteScoreManager = React.lazy(() => import('./RemoteScoreManager'));
 const MatchAuditLog = React.lazy(() =>
@@ -244,6 +245,26 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handleGoToRanking,
   } = { ...props, ...competitionCore, ...competitionSessionSync, ...competitionPhaseFlow };
 
+  const rankingNextRound =
+    !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
+      ? {
+          label: t('pools.next_round_n', { n: currentPoolRound + 1 }),
+          onClick: handleNextPoolRound,
+        }
+      : undefined;
+  // « Voir le tableau » dans la barre du haut, entre « Retour » et « Journal » (#2008)
+  const rankingTableauAction = rankingTableauNavAction({
+    t,
+    hasDirectElimination,
+    hasNextRound: rankingNextRound != null,
+    viewingPastRound: viewedRoundPools != null,
+    splitByGender: postPoolSplitCriteria === 'gender',
+    frozen: poolsFrozen,
+    poolWinnersOnly,
+    pools,
+    onGoToTableau: () => handleGoToTableau(),
+  });
+
   // Publication GREG auto : minuteur au niveau de la compétition, actif quel que soit
   // l'onglet ouvert ; le bouton ON/OFF reste dans « Saisie distante » (#1328)
   const [gregAutoOn, setGregAutoOn] = useGregAutoPublish(
@@ -289,6 +310,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
         handleGeneratePools={handleGeneratePools}
         checkinUnchanged={checkinUnchanged}
         poolsNextAction={poolsNextAction}
+        rankingTableauAction={currentPhase === 'ranking' ? rankingTableauAction : null}
         poolPrepLaunch={currentPhase === 'poolprep' ? poolPrepLaunch : null}
         questEnabled={questEnabled}
         questConfig={questConfig}
@@ -510,14 +532,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             onRankingChange={setOverallRanking}
             rankingFrozen={poolsFrozen}
             onSplitOff={handleSplitOff}
-            nextRoundAction={
-              !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
-                ? {
-                    label: t('pools.next_round_n', { n: currentPoolRound + 1 }),
-                    onClick: handleNextPoolRound,
-                  }
-                : undefined
-            }
+            nextRoundAction={rankingNextRound}
+            tableauActionInNav={rankingTableauAction != null}
             isRapieres={isRapieres}
             launchedWave={rapieres.launchedWave}
             rapieresTeams={rapieres.teams}

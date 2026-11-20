@@ -68,6 +68,8 @@ interface PoolRankingViewProps {
   rapieres?: boolean;
   /** Tableau tiré : classement figé, ni recalcul ni modification manuelle (#1996) */
   rankingFrozen?: boolean;
+  /** Bouton « tableau » affiché dans la barre du haut : retiré du bas de page (#2008) */
+  tableauActionInNav?: boolean;
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -88,6 +90,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   onSplitOff,
   nextRoundAction,
   rapieres = false,
+  tableauActionInNav = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -806,7 +809,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                   </Button>
                 )
               )
-            ) : (
+            ) : tableauActionInNav ? null : (
               <Button variant="primary" data-tour="go-tableau" onClick={() => onGoToTableau?.()}>
                 {rankingFrozen
                   ? t('poolRanking.see_tableau')
