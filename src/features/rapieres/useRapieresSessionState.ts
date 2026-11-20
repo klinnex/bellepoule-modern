@@ -11,7 +11,7 @@ import {
   RapieresLegacyState,
   RapieresSession,
   RapieresTeamInfo,
-} from './rapieres.types';
+} from '../../shared/domain/rapieres/rapieres.types';
 
 export function useRapieresSessionState() {
   // Tournoi des rapières : composition des équipes et vagues (état de session)

@@ -14,7 +14,7 @@ import {
   TABLE,
   STICKY_HEAD,
 } from '../../renderer/components/importModal.styles';
-import { RapieresFencer } from './rapieres.types';
+import { RapieresFencer } from '../../shared/domain/rapieres/rapieres.types';
 import { RapieresTeamDraft } from './RapieresTeamModal';
 import { Button } from '../../renderer/components/common/Button';
 

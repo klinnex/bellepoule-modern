@@ -3,9 +3,9 @@
  * Licensed under GPL-3.0
  */
 import { describe, it, expect } from 'vitest';
-import { FencerStatus } from '../../shared/types';
-import type { Fencer, Pool, PoolRanking } from '../../shared/types';
-import { rapieresSemifinalists } from './rapieresCalculations';
+import { FencerStatus } from '../../types';
+import type { Fencer, Pool, PoolRanking } from '../../types';
+import { rapieresSemifinalists } from './tableauQualifiers';
 
 const team = (id: string): Fencer => ({ id, lastName: id, firstName: '' }) as unknown as Fencer;
 

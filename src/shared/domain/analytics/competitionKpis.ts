@@ -13,14 +13,14 @@ import {
   MatchTiming,
   Pool,
   RemoteEvent,
-} from '../../../shared/types';
-import { referenceDuration, weaponCode } from '../../../shared/utils/matchDurations';
-import { estimatePhaseEta, median as medianOf } from '../../../shared/utils/phaseEta';
+} from '../../types';
+import { referenceDuration, weaponCode } from '../../utils/matchDurations';
+import { estimatePhaseEta, median as medianOf } from '../../utils/phaseEta';
 import {
   allPlacesCompetitionBouts,
   countCompetitionBouts,
   tableauRemainingWaves,
-} from '../../../shared/utils/tableauBouts';
+} from '../../utils/tableauBouts';
 
 /** Durée d'un match supposée tant que moins de 3 matchs sont chronométrés (#1817) */
 const DEFAULT_MATCH_MS = 3 * 60_000;

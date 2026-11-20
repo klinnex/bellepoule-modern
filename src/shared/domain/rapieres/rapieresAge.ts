@@ -29,7 +29,8 @@ export function rapieresBirthYear(fencer: Pick<RapieresFencer, 'birthDate'>): nu
  */
 export function rapieresCategoryFromBirthYear(
   birthYear: number,
-  refDate: Date = new Date()
+  /** Date de référence (saison) : fournie par l'appelant, domaine pur (docs/adr/0002) */
+  refDate: Date
 ): RapieresAgeCategory {
   const seasonStart = refDate.getMonth() >= 8 ? refDate.getFullYear() : refDate.getFullYear() - 1;
   const age = Math.ceil(seasonStart - birthYear);
@@ -47,7 +48,8 @@ export function rapieresCategoryFromBirthYear(
  */
 export function rapieresTeamCategory(
   info: RapieresTeamInfo,
-  refDate: Date = new Date()
+  /** Date de référence (saison) : fournie par l'appelant, domaine pur (docs/adr/0002) */
+  refDate: Date
 ): RapieresAgeCategory {
   const years = info.fencers
     .map(rapieresBirthYear)

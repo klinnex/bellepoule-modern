@@ -285,6 +285,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     bulkAddFencers,
     updateFencer,
     setRapieresTeam,
+    notify: ctx.showToast,
   });
   const { rapieresFencerFields, handleSaveRapieresTeam } = rapieresTeams;
 
@@ -309,6 +310,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     updateRapieres,
     bulkAddFencers,
     rapieresFencerFields,
+    notify: ctx.showToast,
   });
 
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)

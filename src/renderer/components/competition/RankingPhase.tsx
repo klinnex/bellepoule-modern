@@ -6,8 +6,8 @@ import React from 'react';
 import type { Fencer, Pool, PoolRanking, Weapon } from '../../../shared/types';
 import RapieresRankingPanel from '../../../features/rapieres/RapieresRankingPanel';
 import type { RapieresTeamStats } from '../../../features/rapieres/RapieresRankingPanel';
-import type { RapieresTeamInfo } from '../../../features/rapieres/rapieres.types';
-import { rapieresPoolNumbers } from '../../../features/rapieres/rapieresCalculations';
+import type { RapieresTeamInfo } from '../../../shared/domain/rapieres/rapieres.types';
+import { rapieresPoolNumbers } from '../../../shared/domain/rapieres/rapieresCalculations';
 import PoolRankingView from '../PoolRankingView';
 
 type RankingViewProps = React.ComponentProps<typeof PoolRankingView>;

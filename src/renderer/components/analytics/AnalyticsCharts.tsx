@@ -22,7 +22,7 @@ import {
   normalizeFinishedMatches,
   type KpiMatch,
   type KpiTableauMatch,
-} from '../../../features/analytics/services/competitionKpis';
+} from '../../../shared/domain/analytics/competitionKpis';
 import { FencerKpiPanel } from './FencerKpiPanel';
 
 type TFn = ReturnType<typeof useTranslation>['t'];

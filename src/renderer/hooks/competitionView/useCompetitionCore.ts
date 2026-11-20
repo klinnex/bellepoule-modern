@@ -307,6 +307,7 @@ export function useCompetitionCore(ctx: Ctx) {
 
   return {
     confirm,
+    showToast,
     t,
     language,
     customFormula,

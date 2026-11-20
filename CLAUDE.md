@@ -148,7 +148,7 @@ Renderer Process (src/renderer/)
 └── sw.js                    # Service worker (offline support)
 
 Feature Modules (src/features/)
-├── analytics/           # analyticsService + useAnalyticsStore + FencerDetailModal, FencerStatsTable
+├── analytics/           # analyticsService (lecture base) + useAnalyticsStore + FencerDetailModal, FencerStatsTable ; KPI : shared/domain/analytics
 ├── bracket/             # BracketGenerator + BracketService + useBracketStore
 ├── competition/         # CompetitionService + useCompetitionStore + competition.types + competitionUtils
 ├── doubleelimination/   # useDEBracketStore
@@ -157,11 +157,11 @@ Feature Modules (src/features/)
 ├── pdfTemplates/        # usePdfTemplateStore
 ├── penalties/           # penaltyUtils (libellés, couleurs) + usePenaltyStore ; types → shared/domain/penalties
 ├── pools/               # PoolCalculator + PoolService + usePoolStore + pool.types
-├── rapieres/            # Tournoi des rapières (mode spécial arme CUSTOM) dans CompetitionView : équipe = tireur (club = niveau), composition + vagues dans session_state (clé rapieres)
+├── rapieres/            # Tournoi des rapières (mode spécial arme CUSTOM) dans CompetitionView : équipe = tireur (club = niveau), composition + vagues dans session_state (clé rapieres) ; interface seulement (règles : shared/domain/rapieres, notifications injectées — lot 5 de #1979)
 └── teams/               # useTeamStore + baril index.ts ; règles → shared/domain/teams (#1979)
 
 Shared (src/shared/)
-├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), rapieres/, teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base ; heure et hasard injectés (ESLint)
+├── domain/                   # Règles métier pures (#1979, docs/adr/0002) : tableau/ (construction, propagation, classement final), ranking/ (qualifiés du tableau), rapieres/ (vagues, ordre classique, âges, qualification), analytics/ (KPI d’épreuve), teams/ (relais, poules et tableau d'équipes, arène Sabre Laser), penalties/ (types), referees/ (affectation des arbitres : couplage optimal, neutralité, seul moteur — ADR-0014) — ni React, ni Electron, ni Node, ni base, ni window / localStorage ; heure et hasard injectés (ESLint)
 ├── types/
 │   ├── index.ts              # All TypeScript definitions (enums, interfaces)
 │   ├── pdfTemplate.types.ts

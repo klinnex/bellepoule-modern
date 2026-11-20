@@ -9,10 +9,7 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Competition, Fencer, FencerCompetitionStats, Match, Weapon } from '../../../shared/types';
-import {
-  weaponKpis,
-  type KpiTableauMatch,
-} from '../../../features/analytics/services/competitionKpis';
+import { weaponKpis, type KpiTableauMatch } from '../../../shared/domain/analytics/competitionKpis';
 import { isRapieresMode } from '../../../shared/utils/customFormulaSettings';
 
 const OLYMPIC: string[] = [Weapon.EPEE, Weapon.FOIL, Weapon.SABRE];

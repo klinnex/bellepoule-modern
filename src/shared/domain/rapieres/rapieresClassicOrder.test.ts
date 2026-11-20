@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../shared/types';
+import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../types';
 import { classicMatchOrder, classicWaves, hasClassicOrder } from './rapieresClassicOrder';
 import {
   applyClassicOrder,

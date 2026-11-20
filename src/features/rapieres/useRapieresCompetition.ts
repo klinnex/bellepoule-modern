@@ -7,13 +7,16 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { FencerStatus, Gender, MatchStatus } from '../../shared/types';
 import type { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
-import { useToast } from '../../renderer/components/Toast';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import type { useFencerManagement } from '../../renderer/hooks/useFencerManagement';
 import { usePdfTemplateStore } from '../pdfTemplates/hooks/usePdfTemplateStore';
-import { createRapieresSession } from './rapieres.types';
-import type { RapieresSession, RapieresTeamInfo } from './rapieres.types';
-import { waveMatchIds, waveSheetMatches } from './rapieresCalculations';
+import { createRapieresSession } from '../../shared/domain/rapieres/rapieres.types';
+import type {
+  RapieresSession,
+  RapieresTeamInfo,
+} from '../../shared/domain/rapieres/rapieres.types';
+import type { RapieresNotify } from './rapieresNotify';
+import { waveMatchIds, waveSheetMatches } from '../../shared/domain/rapieres/rapieresCalculations';
 import type { RapieresTeamStats } from './RapieresRankingPanel';
 import type { useRapieresSessionState } from './useRapieresSessionState';
 import type { useRapieresTeams } from './useRapieresTeams';
@@ -35,6 +38,8 @@ interface UseRapieresCompetitionParams {
   updateRapieres: SessionState['updateRapieres'];
   bulkAddFencers: ReturnType<typeof useFencerManagement>['bulkAddFencers'];
   rapieresFencerFields: ReturnType<typeof useRapieresTeams>['rapieresFencerFields'];
+  /** Notification de l'écran (toast) */
+  notify: RapieresNotify;
 }
 
 /** Vagues, statistiques d'équipe, migration v1 et impression des feuilles du tournoi des rapières. */
@@ -53,8 +58,8 @@ export function useRapieresCompetition({
   updateRapieres,
   bulkAddFencers,
   rapieresFencerFields,
+  notify,
 }: UseRapieresCompetitionParams) {
-  const { showToast } = useToast();
   const { t } = useTranslation();
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
@@ -144,7 +149,7 @@ export function useRapieresCompetition({
       const sheets = [];
       for (let wave = from; wave <= to; wave++) sheets.push(...waveSheetMatches(pools, wave));
       if (sheets.length === 0) {
-        showToast(t('rapieres.print_wave_sheets_empty'), 'error');
+        notify(t('rapieres.print_wave_sheets_empty'), 'error');
         return;
       }
       const label = from === to ? `Vague ${from}` : `Vagues ${from} à ${to}`;
@@ -166,10 +171,10 @@ export function useRapieresCompetition({
           }
         );
       } catch (e) {
-        showToast((e as Error).message, 'error');
+        notify((e as Error).message, 'error');
       }
     },
-    [pools, competitionTitle, showToast, t]
+    [pools, competitionTitle, notify, t]
   );
 
   // Impression des feuilles de match de la vague active (même rendu que les feuilles du tableau) (#1118)

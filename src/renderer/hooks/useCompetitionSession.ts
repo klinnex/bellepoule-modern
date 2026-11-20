@@ -16,7 +16,10 @@ import {
   FinalResult,
   ConsolationBracket,
 } from '../../shared/domain/tableau/tableauTypes';
-import type { RapieresLegacyState, RapieresSession } from '../../features/rapieres/rapieres.types';
+import type {
+  RapieresLegacyState,
+  RapieresSession,
+} from '../../shared/domain/rapieres/rapieres.types';
 
 export type Phase =
   | 'checkin'

@@ -10,7 +10,7 @@ import { RotateCcw, TriangleAlert } from 'lucide-react';
 import { Icon } from '../common/Icon';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Donut } from './AnalyticsCharts';
-import type { OrganisationKpis } from '../../../features/analytics/services/competitionKpis';
+import type { OrganisationKpis } from '../../../shared/domain/analytics/competitionKpis';
 import {
   getFinalDeviation,
   getPlannedEnd,
