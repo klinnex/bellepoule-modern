@@ -6,7 +6,7 @@
  * Règlement (o.17) : pas d'égalité au score max (5-5) hors Sabre Laser ; au Sabre Laser
  * (match au temps), pas de « V » et un vainqueur obligatoire en cas d'égalité.
  */
-import { isTieAtScoreLimit } from './matchEndValidation';
+import { validatePoolScore } from './poolOrchestration';
 
 export type InlineScoreParse =
   | { kind: 'empty' }
@@ -80,13 +80,6 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
 
   const scoreA = p.inverted ? mirrorScore : score;
   const scoreB = p.inverted ? score : mirrorScore;
-  if (p.maxScore > 0 && (scoreA > p.maxScore || scoreB > p.maxScore)) {
-    return { action: 'error', msgKey: 'poolView.max_score', max: p.maxScore };
-  }
-  if (!p.isLaserSabre && isTieAtScoreLimit(scoreA, scoreB, p.maxScore)) {
-    p.winnerCells.delete(p.key);
-    return { action: 'error', msgKey: 'poolView.tie_at_max', max: p.maxScore };
-  }
   const tie = scoreA === scoreB;
   if (!tie && (parsed.kind === 'tieWin' || p.winnerCells.has(mirrorKey))) {
     p.winnerCells.delete(p.key);
@@ -97,7 +90,23 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
     if (p.winnerCells.has(p.key)) winner = p.inverted ? 'B' : 'A';
     else if (p.winnerCells.has(mirrorKey)) winner = p.inverted ? 'A' : 'B';
   }
-  if (tie && !winner) {
+  // Règle unique écran / moteur / MCP (#1979, lot 4) : validatePoolScore
+  const error = validatePoolScore({
+    scoreA,
+    scoreB,
+    maxScore: p.maxScore,
+    winner,
+    isLaserSabre: p.isLaserSabre,
+    tieByVictory: p.tieByVictory,
+  });
+  if (error === 'score_above_max') {
+    return { action: 'error', msgKey: 'poolView.max_score', max: p.maxScore };
+  }
+  if (error === 'tie_at_max') {
+    p.winnerCells.delete(p.key);
+    return { action: 'error', msgKey: 'poolView.tie_at_max', max: p.maxScore };
+  }
+  if (error === 'draw_needs_winner' || error === 'draw_not_allowed') {
     // L'égalité se tranche dans la fenêtre de saisie (V ou prioritaire) ; jamais de match nul
     if (p.tieByVictory) return { action: 'modal' };
     return {
@@ -105,6 +114,7 @@ export function resolveInlineSubmit(p: InlineSubmitInput): InlineSubmitResult {
       msgKey: p.isLaserSabre ? 'poolView.draw_laser' : 'poolView.draw_impossible',
     };
   }
+  if (error) return { action: 'error', msgKey: 'poolView.inline_invalid' };
   p.winnerCells.delete(p.key);
   p.winnerCells.delete(mirrorKey);
   const { [p.key]: _a, [mirrorKey]: _b, ...restBuffer } = buffer;
