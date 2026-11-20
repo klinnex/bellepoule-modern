@@ -101,8 +101,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 8 | 58 |
 | Feature `teams` (`src/features/teams/`) | 7 | 59 |
-| `src/database/` | 20 | 262 |
-| `src/main/` | 114 | 929 |
+| `src/database/` | 21 | 266 |
+| `src/main/` | 114 | 934 |
 | `src/renderer/services/` | 11 | 57 |
 | `src/renderer/hooks/` | 35 | 172 |
 | `src/renderer/components/` | 122 | 661 |
@@ -112,9 +112,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **508** | **3937** |
+| **Total** | **509** | **3946** |
 
-Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 499 fichiers, 3907 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2970,6 +2970,17 @@ Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/database/repos/eventLogRepo.test.ts</code> — 4 tests</summary>
+
+- **EventLogRepo (#1980)**
+  - révision par épreuve, croissante, en ajout seul
+  - resynchronisation : seulement les événements après la révision connue
+  - historique d’un match : chaque modification, auteur, source
+  - même révision deux fois : refusée par la clé primaire
+
+</details>
+
+<details>
 <summary><code>src/database/repos/organisationRepo.test.ts</code> — 3 tests</summary>
 
 - **OrganisationRepo (#1817)**
@@ -3173,7 +3184,7 @@ Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/main/`
 
 <details>
-<summary><code>src/main/api/contractApi.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/api/contractApi.test.ts</code> — 11 tests</summary>
 
 - **contrat d’API (#1981)**
   - entrée invalide : même erreur en IPC et en MCP
@@ -3183,6 +3194,11 @@ Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - requête de cartons : servie en IPC, pas exposée en MCP
   - outils MCP générés pour chaque opération marquée mcp, sans doublon
   - abonnement : événements filtrés par épreuve, désabonnement
+- **journal par épreuve (#1980)**
+  - commande : événements au journal (identifiants, source), révision rendue et diffusée
+  - dryRun ou rien à faire : ni événement ni révision
+  - révision attendue périmée : refus revision\_conflict avec les événements manquants
+  - getCompetitionEvents / getMatchHistory : lecture du journal
 
 </details>
 
@@ -3622,7 +3638,7 @@ Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/domain/sport.test.ts</code> — 12 tests</summary>
+<summary><code>src/main/domain/sport.test.ts</code> — 13 tests</summary>
 
 - poules → arbitres → scores → tableau → classement final → exports
 - régénérer des poules jouées exige replace
@@ -3632,6 +3648,7 @@ Unitaires : 498 fichiers, 3898 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - abandon en poule : statut du tireur, ses autres matchs perdus, écarté du tableau
 - Sabre Laser : scores max effectifs de l’écran (21 en poule)
 - tableau terminé : phase Résultats
+- journal de l’épreuve (#1980) : scores, poule terminée, tableau, auteur et source
 - révision : une sauvegarde de l’écran sur un état périmé est refusée
 - export : dossier hors périmètre refusé, pas d’écrasement par défaut
 - **validation des scores de poule (identique à l’écran)**
