@@ -155,7 +155,23 @@ export function useCompetitionCore(ctx: Ctx) {
     setRankingValidated,
     skipPoolPhase,
     setSkipPoolPhase,
-  } = useStateGroup(CV_PLANNING_INIT);
+  } = useStateGroup({
+    ...CV_PLANNING_INIT,
+    // Taille de poule cible portée par la formule (#2013) ; l'écran de préparation garde la main
+    minFencersPerPool: competition.settings?.poolSizeMin ?? CV_PLANNING_INIT.minFencersPerPool,
+    maxFencersPerPool: competition.settings?.poolSizeMax ?? CV_PLANNING_INIT.maxFencersPerPool,
+  });
+  // Formule modifiée dans les propriétés : la nouvelle cible remplace la valeur de préparation
+  const formulaPoolSize = `${competition.settings?.poolSizeMin ?? ''}-${competition.settings?.poolSizeMax ?? ''}`;
+  const formulaPoolSizeRef = useRef(formulaPoolSize);
+  useEffect(() => {
+    if (formulaPoolSizeRef.current === formulaPoolSize) return;
+    formulaPoolSizeRef.current = formulaPoolSize;
+    const { poolSizeMin, poolSizeMax } = competition.settings ?? {};
+    if (poolSizeMin) setMinFencersPerPool(poolSizeMin);
+    if (poolSizeMax) setMaxFencersPerPool(poolSizeMax);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formulaPoolSize]);
 
   // Compétition couplée (#1241)
   const {

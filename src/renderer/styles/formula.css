@@ -701,3 +701,77 @@
   border-color: #16a34a;
   color: #86efac;
 }
+
+/* Frise des phases de la formule (#2013) */
+.formula-frieze {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+}
+.formula-frieze__arrow {
+  align-self: center;
+  color: var(--color-text-muted);
+}
+.formula-frieze__step {
+  border: 1px solid var(--color-border-dark);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  background: var(--color-surface-2);
+  font-size: 0.8rem;
+  text-align: left;
+  min-width: 0;
+  max-width: 11rem;
+  color: var(--color-text);
+}
+.formula-frieze__step--fixed {
+  border-style: dashed;
+  border-radius: 999px;
+  align-self: center;
+}
+button.formula-frieze__step {
+  cursor: pointer;
+}
+.formula-frieze__step.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow);
+}
+.formula-frieze__title {
+  display: block;
+  font-weight: 600;
+}
+.formula-frieze__summary {
+  display: block;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.formula-frieze__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+.formula-coherence {
+  border-left: 3px solid var(--color-success);
+  padding: 0.5rem 0.75rem;
+  margin: 0 0 1rem;
+  background: var(--color-surface-2);
+  font-size: 0.85rem;
+}
+.formula-coherence.has-issues {
+  border-left-color: var(--color-warning);
+}
+.formula-coherence ul {
+  margin: 0.25rem 0;
+  padding-left: 1.1rem;
+}
+.formula-coherence li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.formula-coherence p {
+  margin: 0;
+}

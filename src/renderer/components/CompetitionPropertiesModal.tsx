@@ -8,14 +8,10 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   HINT,
   HINT_INDENT,
-  CHECK_LABEL,
   CHECK_LABEL_SM,
-  FIELD_LABEL,
   MR,
-  MB1,
   SM,
   GRID2,
-  FLEX1,
 } from './competitionPropertiesModal.styles';
 import {
   Competition,
@@ -24,8 +20,6 @@ import {
   Gender,
   Category,
   CompetitionSettings,
-  QuestPhaseConfig,
-  PostPoolSplitCriteria,
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { GREG_DEFAULT_LEVEL, GREG_LEVELS, GregLevel } from '../../shared/utils/gregPublication';
@@ -36,7 +30,14 @@ import {
 } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 import { Button } from './common/Button';
-import { getDefaultMaxScores } from '../../shared/utils/defaultMaxScores';
+import { PropertiesFormulaTab } from './formula/PropertiesFormulaTab';
+import {
+  FormulaDraft,
+  applyCoherence,
+  draftCoherenceIssues,
+  draftFromSettings,
+  draftToSettings,
+} from './formula/formulaDraft';
 
 interface CompetitionPropertiesModalProps {
   competition: Competition;
@@ -59,44 +60,18 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [gender, setGender] = useState<Gender>(competition.gender);
   const [category, setCategory] = useState<Category>(competition.category);
 
-  // Paramètres de compétition
-  const [poolRounds, setPoolRounds] = useState(competition.settings?.poolRounds ?? 1);
-  // Qualifiés pour le tour i+2 (0 = tous) (#1051)
-  const [poolRoundQualifiers, setPoolRoundQualifiers] = useState<number[]>(
-    competition.settings?.poolRoundQualifiers ?? []
+  // Formule : structure et réglages par phase (#2013), repli unifié
+  const [formula, setFormula] = useState<FormulaDraft>(() =>
+    draftFromSettings(competition.weapon, competition.category, competition.settings)
   );
-  const [hasDirectElimination, setHasDirectElimination] = useState(
-    competition.settings?.hasDirectElimination ?? true
-  );
-  const defaultScores = getDefaultMaxScores(competition.weapon, competition.category);
-  const [poolMaxScore, setPoolMaxScore] = useState(
-    competition.settings?.defaultPoolMaxScore ?? defaultScores.pool
-  );
-  const [tableMaxScore, setTableMaxScore] = useState(
-    competition.settings?.defaultTableMaxScore ?? (defaultScores.table || 21)
-  );
-  const [thirdPlaceMatch, setThirdPlaceMatch] = useState(
-    competition.settings?.thirdPlaceMatch ?? false
-  );
+  const patchFormula = (patch: Partial<FormulaDraft>) =>
+    setFormula(prev => ({ ...prev, ...patch }));
+  // Signature des matchs de tableau : onglet Arbitrage (#2013, Q10)
   const [signTableauMatches, setSignTableauMatches] = useState(
     competition.settings?.signTableauMatches ?? false
   );
-  const [poolBoutOrder, setPoolBoutOrder] = useState<'fie' | 'free'>(
-    competition.settings?.poolBoutOrder ?? 'fie'
-  );
-  const [playAllPositions, setPlayAllPositions] = useState(
-    competition.settings?.playAllPositions ?? false
-  );
-
-  const [poolTimerSeconds, setPoolTimerSeconds] = useState(
-    competition.settings?.defaultPoolTimerSeconds ?? 180
-  );
-  const [tableTimerSeconds, setTableTimerSeconds] = useState(
-    competition.settings?.defaultTableTimerSeconds ?? 180
-  );
-  const [restTimeSeconds, setRestTimeSeconds] = useState(
-    competition.settings?.restTimeSeconds ?? 60
-  );
+  // Relevé après changement de catégorie / arme : « Garder » masque l'alerte
+  const [coherenceKept, setCoherenceKept] = useState(false);
 
   const [refereeFeatureEnabled, setRefereeFeatureEnabled] = useState(
     competition.settings?.refereeFeatureEnabled ?? false
@@ -119,12 +94,6 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       if (dir) setBackupDir(dir);
     });
   };
-  const [poolWinnersOnly, setPoolWinnersOnly] = useState(
-    competition.settings?.poolWinnersOnly ?? false
-  );
-  const [postPoolSplitCriteria, setPostPoolSplitCriteria] = useState<PostPoolSplitCriteria | ''>(
-    competition.settings?.postPoolSplitCriteria ?? ''
-  );
   const [maxRefereesPerPool, setMaxRefereesPerPool] = useState(
     competition.settings?.maxRefereesPerPool ?? 1
   );
@@ -137,28 +106,6 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
     competition.settings?.customFormula ?? createDefaultCustomFormula()
   );
 
-  // Tour Quest (Sabre Laser)
-  const existingQuest = competition.settings?.questConfig;
-  const [questEnabled, setQuestEnabled] = useState(existingQuest?.enabled ?? false);
-  const [questHasPools, setQuestHasPools] = useState(existingQuest?.hasPreliminaryPools ?? false);
-  const [questQualifiers, setQuestQualifiers] = useState(existingQuest?.qualifiersCount ?? 8);
-
-  const handleQuestEnabledChange = (enabled: boolean) => {
-    setQuestEnabled(enabled);
-    if (enabled && !questHasPools) {
-      setPoolRounds(0);
-    } else if (!enabled) {
-      if (poolRounds === 0) setPoolRounds(1);
-    }
-  };
-
-  const handleQuestHasPoolsChange = (hasPools: boolean) => {
-    setQuestHasPools(hasPools);
-    if (questEnabled) {
-      setPoolRounds(hasPools ? 1 : 0);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -166,43 +113,14 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       return;
     }
 
-    const questConfig: QuestPhaseConfig | undefined =
-      weapon === Weapon.LASER && questEnabled
-        ? {
-            enabled: true,
-            hasPreliminaryPools: questHasPools,
-            qualifiersCount: questHasPools ? questQualifiers : undefined,
-            opponentConstraint: existingQuest?.opponentConstraint ?? 'none',
-            availableTimeMinutes: existingQuest?.availableTimeMinutes,
-            numberOfArenas: existingQuest?.numberOfArenas,
-            fightsPerFencer: existingQuest?.fightsPerFencer,
-          }
-        : weapon === Weapon.LASER
-          ? { enabled: false, hasPreliminaryPools: false, opponentConstraint: 'none' }
-          : undefined;
-
     const settings: CompetitionSettings = {
       ...(competition.settings || {}),
-      poolRounds,
-      poolRoundQualifiers: Array.from(
-        { length: Math.max(0, poolRounds - 1) },
-        (_, i) => poolRoundQualifiers[i] ?? 0
-      ),
-      hasDirectElimination,
-      thirdPlaceMatch,
+      ...draftToSettings(formula, weapon, competition.settings?.questConfig),
       signTableauMatches,
-      poolBoutOrder,
-      playAllPositions,
-      defaultPoolMaxScore: poolMaxScore,
-      defaultTableMaxScore: tableMaxScore,
-      defaultPoolTimerSeconds: poolTimerSeconds,
-      defaultTableTimerSeconds: tableTimerSeconds,
-      restTimeSeconds,
       manualRanking: competition.settings?.manualRanking ?? false,
       defaultRanking: competition.settings?.defaultRanking ?? 9999,
       randomScore: competition.settings?.randomScore ?? false,
       minTeamSize: competition.settings?.minTeamSize ?? 3,
-      questConfig,
       refereeFeatureEnabled,
       blackCardEnabled,
       trainerCommentsEnabled,
@@ -212,8 +130,6 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       gregLevel,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
-      poolWinnersOnly,
-      ...(postPoolSplitCriteria ? { postPoolSplitCriteria } : { postPoolSplitCriteria: undefined }),
       // Formule personnalisée : ses réglages priment (#1125)
       ...(weapon === Weapon.CUSTOM ? deriveSettingsFromFormula(customFormula) : {}),
     };
@@ -232,13 +148,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   };
 
   const isCustomWeapon = weapon === Weapon.CUSTOM;
-  const isOlympicWeapon =
-    weapon === Weapon.EPEE || weapon === Weapon.FOIL || weapon === Weapon.SABRE;
+  const coherenceIssues = isCustomWeapon ? [] : draftCoherenceIssues(formula, weapon, category);
+  const contextChanged = category !== competition.category || weapon !== competition.weapon;
 
-  type TabId = 'general' | 'config' | 'formula' | 'refereeing';
+  type TabId = 'general' | 'formula' | 'refereeing';
   const TABS: { id: TabId; label: string }[] = [
     { id: 'general', label: t('properties.general_info') },
-    { id: 'config', label: t('properties.configuration') },
     { id: 'formula', label: t('properties.formula') },
     { id: 'refereeing', label: t('properties.refereeing') },
   ];
@@ -384,193 +299,29 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             </select>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  function renderConfig() {
-    return (
-      <div>
-        {!isCustomWeapon && (
-          <>
-            <div style={GRID2}>
-              {(!questEnabled || questHasPools) && (
-                <div className="form-group">
-                  <label htmlFor="poolRounds">{t('settings.pool_rounds')}</label>
-                  <select
-                    id="poolRounds"
-                    className="form-input form-select"
-                    value={questEnabled && questHasPools ? 1 : poolRounds}
-                    onChange={e => setPoolRounds(parseInt(e.target.value))}
-                    disabled={questEnabled && questHasPools}
-                  >
-                    <option value="1">{t('properties.one_round')}</option>
-                    <option value="2">{t('properties.two_rounds')}</option>
-                    <option value="3">{t('properties.three_rounds')}</option>
-                  </select>
-                  <small style={HINT}>
-                    {questEnabled && questHasPools
-                      ? '1 tour imposé avant le Tour Quest'
-                      : 'Nombre de phases de poules avant le tableau'}
-                  </small>
-                  {!questEnabled &&
-                    Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
-                      <div key={i} className="is-0dc8cc">
-                        <label htmlFor={`poolRoundQualifiers-${i}`}>
-                          {t('properties.qualified_round')} {i + 2}
-                        </label>
-                        <input
-                          id={`poolRoundQualifiers-${i}`}
-                          type="number"
-                          min={0}
-                          className="form-input"
-                          value={poolRoundQualifiers[i] ?? 0}
-                          onChange={e => {
-                            const n = Math.max(0, parseInt(e.target.value) || 0);
-                            setPoolRoundQualifiers(prev => {
-                              const next = [...prev];
-                              next[i] = n;
-                              return next;
-                            });
-                          }}
-                        />
-                        <small style={HINT}>{t('properties.qualified_round_hint')}</small>
-                      </div>
-                    ))}
-                </div>
-              )}
-              <div className="form-group">
-                <label htmlFor="hasDirectElimination">{t('properties.direct_elimination')}</label>
-                <select
-                  id="hasDirectElimination"
-                  className="form-input form-select"
-                  value={hasDirectElimination ? 'true' : 'false'}
-                  onChange={e => setHasDirectElimination(e.target.value === 'true')}
-                >
-                  <option value="true">{t('properties.enabled')}</option>
-                  <option value="false">{t('properties.disabled')}</option>
-                </select>
-                <small style={HINT}>
-                  {hasDirectElimination
-                    ? 'Tableau après les poules'
-                    : 'Classement final sur les poules'}
-                </small>
-              </div>
+        {contextChanged && !coherenceKept && coherenceIssues.length > 0 && (
+          <div
+            className="formula-coherence has-issues"
+            role="alert"
+            data-testid="coherence-category-alert"
+          >
+            <p>{t('properties.coherence_category_changed', { count: coherenceIssues.length })}</p>
+            <div className="u-row mt-2">
+              <Button
+                type="button"
+                variant="primary"
+                style={SM}
+                onClick={() => patchFormula(applyCoherence(coherenceIssues))}
+              >
+                {t('properties.coherence_apply_all')}
+              </Button>
+              <Button type="button" style={SM} onClick={() => setCoherenceKept(true)}>
+                {t('properties.coherence_keep')}
+              </Button>
+              <Button type="button" style={SM} onClick={() => setActiveTab('formula')}>
+                {t('properties.coherence_show')}
+              </Button>
             </div>
-            {!questEnabled && (
-              <div className="mt-4">
-                <div className="form-group">
-                  <label htmlFor="postPoolSplitCriteria">{t('properties.coupled')}</label>
-                  <select
-                    id="postPoolSplitCriteria"
-                    className="form-input form-select"
-                    value={postPoolSplitCriteria}
-                    onChange={e =>
-                      setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')
-                    }
-                  >
-                    <option value="">{t('properties.coupled_none')}</option>
-                    <option value="gender">{t('properties.coupled_gender')}</option>
-                  </select>
-                  <small style={HINT}>{t('properties.coupled_hint')}</small>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="poolBoutOrder">{t('properties.bout_order')}</label>
-                  <select
-                    id="poolBoutOrder"
-                    className="form-input form-select"
-                    value={poolBoutOrder}
-                    onChange={e => setPoolBoutOrder(e.target.value as 'fie' | 'free')}
-                  >
-                    <option value="fie">{t('properties.bout_order_fie')}</option>
-                    <option value="free">{t('properties.bout_order_free')}</option>
-                  </select>
-                  <small style={HINT}>{t('properties.bout_order_hint')}</small>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        {weapon === Weapon.LASER && (
-          <div style={MB1}>
-            <h3 className="is-18e387">{t('properties.quest_round')}</h3>
-
-            {/* Oui / Non */}
-            <div className="form-group is-b57afc">
-              <label style={FIELD_LABEL}>{t('properties.quest_enabled')}</label>
-              <div style={FLEX1}>
-                <label style={CHECK_LABEL}>
-                  <input
-                    type="radio"
-                    name="questEnabled"
-                    checked={!questEnabled}
-                    onChange={() => handleQuestEnabledChange(false)}
-                  />
-                  {t('actions.no')}
-                </label>
-                <label style={CHECK_LABEL}>
-                  <input
-                    type="radio"
-                    name="questEnabled"
-                    checked={questEnabled}
-                    onChange={() => handleQuestEnabledChange(true)}
-                  />
-                  {t('actions.yes')}
-                </label>
-              </div>
-            </div>
-
-            {questEnabled && (
-              <div className="is-3aae76">
-                {/* Sans / Avec poules préliminaires */}
-                <div className="form-group">
-                  <label style={FIELD_LABEL}>{t('properties.preliminary_pools')}</label>
-                  <div style={FLEX1}>
-                    <label style={CHECK_LABEL}>
-                      <input
-                        type="radio"
-                        name="questHasPools"
-                        checked={!questHasPools}
-                        onChange={() => handleQuestHasPoolsChange(false)}
-                      />
-                      {t('properties.quest_without_pools')}
-                    </label>
-                    <label style={CHECK_LABEL}>
-                      <input
-                        type="radio"
-                        name="questHasPools"
-                        checked={questHasPools}
-                        onChange={() => handleQuestHasPoolsChange(true)}
-                      />
-                      {t('properties.quest_with_pools')}
-                    </label>
-                  </div>
-                </div>
-
-                {/* Nombre de qualifiés */}
-                {questHasPools && (
-                  <div className="form-group">
-                    <label htmlFor="questQualifiers" style={SM}>
-                      {t('properties.quest_qualified')}
-                    </label>
-                    <input
-                      type="number"
-                      id="questQualifiers"
-                      className="form-input is-9829e6"
-                      value={questQualifiers}
-                      min={2}
-                      onChange={e => setQuestQualifiers(Math.max(2, parseInt(e.target.value) || 2))}
-                    />
-                  </div>
-                )}
-
-                <small className="is-f233f0">
-                  {questHasPools
-                    ? `Formule : 1 tour de poules → Top ${questQualifiers} qualifiés → Tour Quest → Tableau`
-                    : 'Formule : Tour Quest direct → Tableau'}
-                </small>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -592,164 +343,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           />
         )}
         {!isCustomWeapon && (
-          <>
-            <fieldset className="properties-group">
-              <legend>{t('properties.group_scores')}</legend>
-              <div style={GRID2}>
-                <div className="form-group">
-                  <label htmlFor="poolMaxScore">{t('properties.pool_max_score')}</label>
-                  <input
-                    type="number"
-                    id="poolMaxScore"
-                    className="form-input"
-                    value={poolMaxScore}
-                    onChange={e => setPoolMaxScore(Math.max(1, parseInt(e.target.value) || 1))}
-                    min="1"
-                    placeholder="21"
-                  />
-                  <small style={HINT}>{t('properties.pool_max_score_hint')}</small>
-                </div>
-                {hasDirectElimination && (
-                  <div className="form-group">
-                    <label htmlFor="tableMaxScore">{t('properties.table_max_score')}</label>
-                    <input
-                      type="number"
-                      id="tableMaxScore"
-                      className="form-input"
-                      value={tableMaxScore}
-                      onChange={e => setTableMaxScore(parseInt(e.target.value) || 0)}
-                      min="0"
-                      placeholder="21"
-                    />
-                    <small style={HINT}>
-                      {tableMaxScore === 0
-                        ? '0 = illimité (pas de limite)'
-                        : `${tableMaxScore} touches pour gagner`}
-                    </small>
-                  </div>
-                )}
-              </div>
-            </fieldset>
-            <fieldset className="properties-group">
-              <legend>{t('properties.group_timing')}</legend>
-              <div style={GRID2}>
-                <div className="form-group">
-                  <label htmlFor="poolTimerSeconds">{t('properties.pool_timer')}</label>
-                  <input
-                    type="number"
-                    id="poolTimerSeconds"
-                    className="form-input"
-                    value={poolTimerSeconds}
-                    onChange={e =>
-                      setPoolTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))
-                    }
-                    min="1"
-                    placeholder="180"
-                  />
-                  <small style={HINT}>
-                    {`${Math.floor(poolTimerSeconds / 60)}min ${poolTimerSeconds % 60}s par match de poule`}
-                  </small>
-                </div>
-                {isOlympicWeapon && (
-                  <div className="form-group">
-                    <label htmlFor="restTimeSeconds">{t('properties.rest_time')}</label>
-                    <input
-                      type="number"
-                      id="restTimeSeconds"
-                      className="form-input"
-                      value={restTimeSeconds}
-                      onChange={e => setRestTimeSeconds(Math.max(0, parseInt(e.target.value) || 0))}
-                      min="0"
-                      placeholder="60"
-                    />
-                    <small style={HINT}>
-                      {restTimeSeconds === 0
-                        ? '0 = bouton « Repos » désactivé'
-                        : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
-                    </small>
-                  </div>
-                )}
-                {hasDirectElimination && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="tableTimerSeconds">{t('properties.table_timer')}</label>
-                      <input
-                        type="number"
-                        id="tableTimerSeconds"
-                        className="form-input"
-                        value={tableTimerSeconds}
-                        onChange={e =>
-                          setTableTimerSeconds(Math.max(1, parseInt(e.target.value) || 180))
-                        }
-                        min="1"
-                        placeholder="180"
-                      />
-                      <small style={HINT}>
-                        {`${Math.floor(tableTimerSeconds / 60)}min ${tableTimerSeconds % 60}s par match tableau`}
-                      </small>
-                    </div>
-                  </>
-                )}
-              </div>
-            </fieldset>
-            {hasDirectElimination && (
-              <fieldset className="properties-group">
-                <legend>{t('properties.group_options')}</legend>
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={thirdPlaceMatch}
-                      onChange={e => setThirdPlaceMatch(e.target.checked)}
-                      style={MR}
-                    />
-                    {t('competition.third_place_match_label')}
-                  </label>
-                  <small style={HINT_INDENT}>
-                    {t('competition.third_place_match_description')}
-                  </small>
-                </div>
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={signTableauMatches}
-                      onChange={e => setSignTableauMatches(e.target.checked)}
-                      style={MR}
-                    />
-                    {t('competition.sign_tableau_matches_label')}
-                  </label>
-                  <small style={HINT_INDENT}>
-                    {t('competition.sign_tableau_matches_description')}
-                  </small>
-                </div>
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={playAllPositions}
-                      onChange={e => setPlayAllPositions(e.target.checked)}
-                      style={MR}
-                    />
-                    {t('properties.all_places')}
-                  </label>
-                  <small style={HINT_INDENT}>{t('properties.all_places_hint')}</small>
-                </div>
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={poolWinnersOnly}
-                      onChange={e => setPoolWinnersOnly(e.target.checked)}
-                      style={MR}
-                    />
-                    {t('properties.pool_winners_only')}
-                  </label>
-                  <small style={HINT_INDENT}>{t('properties.pool_winners_only_hint')}</small>
-                </div>
-              </fieldset>
-            )}
-          </>
+          <PropertiesFormulaTab
+            draft={formula}
+            onChange={patchFormula}
+            weapon={weapon}
+            category={category}
+          />
         )}
       </div>
     );
@@ -758,6 +357,18 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   function renderRefereeing() {
     return (
       <div>
+        <div className="form-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={signTableauMatches}
+              onChange={e => setSignTableauMatches(e.target.checked)}
+              style={MR}
+            />
+            {t('competition.sign_tableau_matches_label')}
+          </label>
+          <small style={HINT_INDENT}>{t('competition.sign_tableau_matches_description')}</small>
+        </div>
         <div className="form-group">
           <label style={CHECK_LABEL_SM}>
             <input
@@ -885,7 +496,6 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               aria-labelledby={`properties-tab-${activeTab}`}
             >
               {activeTab === 'general' && renderGeneral()}
-              {activeTab === 'config' && renderConfig()}
               {activeTab === 'formula' && renderFormula()}
               {activeTab === 'refereeing' && renderRefereeing()}
             </div>

@@ -13,36 +13,6 @@ export const CV_STYLES = {
     // (cellule de saisie) → la barre de phases remontait hors écran
     overflow: 'clip',
   } satisfies React.CSSProperties,
-  thirdPlaceOverlay: {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  } satisfies React.CSSProperties,
-  thirdPlaceModal: {
-    backgroundColor: 'var(--color-raised)',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '500px',
-    width: '90%',
-  } satisfies React.CSSProperties,
-  thirdPlaceTitle: {
-    margin: '0 0 1rem 0',
-    color: 'var(--color-text)',
-  } satisfies React.CSSProperties,
-  thirdPlaceBtnRow: {
-    display: 'flex',
-    gap: '1rem',
-    justifyContent: 'flex-end' as const,
-    marginTop: '1.5rem',
-  } satisfies React.CSSProperties,
   poolsExportRow: {
     textAlign: 'center' as const,
     marginBottom: '2rem',

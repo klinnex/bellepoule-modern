@@ -359,7 +359,6 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     isRapieres,
     updateRapieres,
     setShowRapieresTableauDialog,
-    setShowThirdPlaceDialog: modals.setShowThirdPlaceDialog,
     setPoolsLaunched,
     setViewedPoolRound,
     setRankingValidated,

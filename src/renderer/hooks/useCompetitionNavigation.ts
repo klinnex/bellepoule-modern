@@ -61,7 +61,6 @@ interface UseCompetitionNavigationParams {
   isRapieres: boolean;
   updateRapieres: (patch: Partial<RapieresSession>) => void;
   setShowRapieresTableauDialog: Setter<boolean>;
-  setShowThirdPlaceDialog: Setter<boolean>;
   setPoolsLaunched: Setter<boolean>;
   setViewedPoolRound: Setter<number | null>;
   setRankingValidated: Setter<boolean>;
@@ -98,13 +97,11 @@ export function useCompetitionNavigation({
   currentAppelFencers,
   poolRoundQualifiers,
   customFormula,
-  hasDirectElimination,
   thirdPlaceMatch,
   playAllPositions,
   isRapieres,
   updateRapieres,
   setShowRapieresTableauDialog,
-  setShowThirdPlaceDialog,
   setPoolsLaunched,
   setViewedPoolRound,
   setRankingValidated,
@@ -213,12 +210,8 @@ export function useCompetitionNavigation({
       handleThirdPlaceDecision(true);
       return;
     }
-    // Formule personnalisée : 3ème place déjà choisie dans la formule (#1125)
-    if (customFormula && hasDirectElimination) {
-      handleThirdPlaceDecision(thirdPlaceMatch);
-      return;
-    }
-    setShowThirdPlaceDialog(true);
+    // 3ème place décidée dans la formule (#1125, #2013) : plus de question au lancement
+    handleThirdPlaceDecision(thirdPlaceMatch);
   };
 
   /** Rapières : mode de tableau choisi dans la popup (#1441) */
@@ -245,7 +238,6 @@ export function useCompetitionNavigation({
     setTableauMatches([]);
     setConsolationBrackets([]);
     setCurrentPhase('tableau');
-    setShowThirdPlaceDialog(false);
   };
 
   // Tour suivant (#1051) : qualifiés selon le classement du tour terminé, non-qualifiés

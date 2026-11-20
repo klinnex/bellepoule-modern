@@ -97,3 +97,27 @@ export function buildDefaultCompetitionSettings(
 
   return undefined;
 }
+
+/**
+ * Réglages de repli d'une épreuve sans réglages enregistrés (#2013, étape A).
+ * Source unique pour le repli base (rowMappers) et la fenêtre de propriétés :
+ * armes olympiques → touches selon la catégorie ; autres armes → 5 / 21 (comportement existant).
+ * Pas de petite finale par défaut, comme à la création.
+ */
+export function getFallbackCompetitionSettings(
+  weapon: Weapon | string | undefined,
+  category: Category | string | undefined
+): CompetitionSettings {
+  const scores = isOlympicWeapon(weapon)
+    ? getDefaultMaxScores(weapon, category)
+    : { pool: 5, table: 21 };
+  return {
+    ...BASE,
+    defaultPoolMaxScore: scores.pool,
+    defaultTableMaxScore: scores.table,
+    thirdPlaceMatch: false,
+    signTableauMatches: false,
+    blackCardEnabled: false,
+    minTeamSize: 3,
+  };
+}
