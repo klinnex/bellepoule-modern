@@ -1,9 +1,10 @@
 name: PR quality
 
-# Mêmes contrôles que le job quality de build-dev.yml, avant merge vers dev
+# Mêmes contrôles que le job quality de build-dev.yml, avant merge vers dev,
+# vers une branche de maintenance hotfix/* ou vers main
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, main, 'hotfix/**']
 
 permissions:
   contents: read

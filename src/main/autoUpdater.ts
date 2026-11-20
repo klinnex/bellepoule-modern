@@ -17,7 +17,12 @@ import {
   writePendingUpdate,
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
-import { parseReleaseBuild, pickLatestRelease, type ReleaseLike } from './updateReleases';
+import {
+  isNewerRelease,
+  parseReleaseBuild,
+  pickLatestRelease,
+  type ReleaseLike,
+} from './updateReleases';
 import { downloadToFile, getJson } from './updateHttp';
 import {
   cleanupReplacedExecutable,
@@ -231,7 +236,7 @@ export class AutoUpdater {
   /**
    * Canal de mise à jour choisi par l'utilisateur (persisté).
    * stable → releases `main` uniquement ; dev → pré-releases `dev` incluses.
-   * Pas de retour en arrière : seul un build plus récent que l'installé est proposé.
+   * Pas de retour en arrière : seule une version plus récente (X.Y.Z puis build) est proposée.
    */
   setChannel(channel: UpdateChannel): void {
     const userData = app.getPath('userData');
@@ -275,8 +280,9 @@ export class AutoUpdater {
         latestVersion = versionMatch[1];
       }
 
-      // Comparer les builds uniquement (betaChannel ne sert qu'à filtrer les releases)
-      const hasUpdate = latestBuild > currentInfo.build;
+      // Version X.Y.Z puis build : un correctif de maintenance 2.0.1 au build plus
+      // élevé n'est pas proposé à un 3.0.0-dev (betaChannel ne filtre que les releases)
+      const hasUpdate = isNewerRelease(release, currentInfo);
 
       this.updateInfo = {
         hasUpdate,

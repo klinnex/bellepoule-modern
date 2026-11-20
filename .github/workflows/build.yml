@@ -48,7 +48,7 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           if gh api "repos/${{ github.repository }}/git/ref/tags/$TAG" >/dev/null 2>&1; then
-            echo "::error::Le tag $TAG existe déjà. Bumper la version sur dev (npm run version:bump -- patch|minor|major) avant de promouvoir vers main."
+            echo "::error::Le tag $TAG existe déjà. Bumper la version sur dev ou sur la branche hotfix/* (npm run version:bump -- patch|minor|major) avant de promouvoir vers main."
             exit 1
           fi
   build-windows:
@@ -393,7 +393,7 @@ jobs:
 
             **Version** : `${{ needs.version.outputs.version }}` • **Build** : `#${{ needs.version.outputs.build }}`
 
-            Version stable, promue depuis le build dev `v${{ needs.version.outputs.version }}-dev.${{ needs.version.outputs.build }}`.
+            Version stable, promue depuis le build `#${{ needs.version.outputs.build }}` (`-dev` depuis `dev`, `-rc` depuis une branche de maintenance `hotfix/*`).
 
             ### 📥 Téléchargements
 
@@ -440,7 +440,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Après une release stable vX.Y.Z, dev passe automatiquement en X.Y.(Z+1).
+  # Après une release stable vX.Y.Z, dev passe automatiquement en X.Y.(Z+1)
+  # (sans effet si dev vise déjà une autre version, ex. 3.0.0 pendant un correctif 2.0.1).
   # Build non remis à zéro : le compteur reste global (cf. docs/VERSIONING.md).
   bump-dev:
     needs: [version, create-release]

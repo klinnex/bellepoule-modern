@@ -8,13 +8,15 @@
  *   node scripts/version.js show
  *   node scripts/version.js bump <major|minor|patch|X.Y.Z>
  *       → change la version SemVer (version.json + package.json + package-lock.json)
- *   node scripts/version.js next-build
- *       → CI dev uniquement : incrémente le compteur de build dans version.json
- *   node scripts/version.js apply <dev|stable> [--build N]
+ *   node scripts/version.js next-build [--min N]
+ *       → CI dev / hotfix : incrémente le compteur de build dans version.json.
+ *         --min N : build publié le plus élevé (toutes branches) ; le nouveau build
+ *         le dépasse, pour rester unique entre dev et les branches de maintenance.
+ *   node scripts/version.js apply <dev|rc|stable> [--build N]
  *       → CI : écrit le canal dans version.json et la version complète dans
  *         package.json (utilisée par electron-builder pour nommer les fichiers).
  *         Ne pas committer le résultat.
- *   node scripts/version.js meta <dev|stable> [--github-output]
+ *   node scripts/version.js meta <dev|rc|stable> [--github-output]
  *       → affiche (ou écrit dans $GITHUB_OUTPUT) version, build, tag, titre…
  */
 const fs = require('fs');
@@ -26,7 +28,8 @@ const PACKAGE_PATH = path.join(ROOT, 'package.json');
 const LOCK_PATH = path.join(ROOT, 'package-lock.json');
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
-const CHANNELS = ['dev', 'stable'];
+const CHANNELS = ['dev', 'rc', 'stable'];
+const TITLE_ICONS = { dev: '🧪', rc: '🩹', stable: '🚀' };
 
 function parseSemver(v) {
   const m = SEMVER.exec(v);
@@ -52,12 +55,10 @@ function bumpVersion(current, kind) {
 /** Nommage des versions, tags et releases pour un canal donné. */
 function releaseMeta({ version, build }, channel) {
   parseSemver(version);
-  if (!CHANNELS.includes(channel)) throw new Error(`Canal inconnu "${channel}" (dev|stable)`);
-  const fullVersion = channel === 'dev' ? `${version}-dev.${build}` : version;
-  const title =
-    channel === 'dev'
-      ? `🧪 BellePoule Modern ${fullVersion} (Build #${build})`
-      : `🚀 BellePoule Modern ${fullVersion} (Build #${build})`;
+  if (!CHANNELS.includes(channel)) throw new Error(`Canal inconnu "${channel}" (dev|rc|stable)`);
+  // rc = pré-release d'une branche de maintenance hotfix/* (docs/VERSIONING.md)
+  const fullVersion = channel === 'stable' ? version : `${version}-${channel}.${build}`;
+  const title = `${TITLE_ICONS[channel]} BellePoule Modern ${fullVersion} (Build #${build})`;
   return { version, build, channel, fullVersion, tag: `v${fullVersion}`, title };
 }
 
@@ -129,7 +130,8 @@ function main(argv) {
     }
 
     case 'next-build': {
-      const build = current.build + 1;
+      const min = Number(argValue(args, '--min')) || 0;
+      const build = Math.max(current.build, min) + 1;
       writeVersion({ ...current, build, channel: 'dev', date: new Date().toISOString() });
       console.log(`Build #${build}`);
       return;
