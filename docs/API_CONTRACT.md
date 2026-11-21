@@ -63,6 +63,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `generateTableau` | commande — tableau planifié par le moteur, ou placement calculé par l'écran (`composition`) ; `TableauGenerated` | `build_bracket` (nom 2.0 conservé) |
 | `launchRapieresWave` / `endRapieresWaves` | commandes — vagues des rapières lancées, arrêtées ou reprises | `launch_rapieres_wave` / `end_rapieres_waves` |
 | `clearScore` | commande — score annulé : match de poule remis à jouer, match de tableau rouvert ; `ScoreCleared` | `clear_score` |
+| `assignMatches` | commande — arbitres et pistes des poules et des matchs (hors journal tant que les tablettes ont leur chemin) | `assign_matches` |
 | `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
 | `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
@@ -189,5 +190,9 @@ Palier « état d'interface » commencé : une relecture après une commande ne 
 affiché (seul le chargement de l'épreuve le reprend de l'état). Palier « rapières » fait : vagues
 lancées, arrêtées ou reprises par `launchRapieresWave` / `endRapieresWaves` ; mode de tableau joint
 à `generateTableau` (`rapieresTableauMode`, dans `TableauGenerated`). Annulation d'un score (poule
-et tableau) par `clearScore` (`ScoreCleared`). Restent : reste de l'état d'interface (onglet et
-tour consulté en préférences du poste, phase déduite des faits) ; 4c ; 5.
+et tableau) par `clearScore` (`ScoreCleared`). Arbitres et pistes par `assignMatches`
+(arbitres d'une poule, affectations de l'onglet Arbitres, piste d'une poule, pistes et arbitres
+des matchs de tableau dont l'affectation automatique des pistes) ; pas encore d'événement : le
+changement d'arbitre depuis une tablette a son propre chemin. Restent avant 4c : remplissage
+automatique (épreuves de test), retour arrière du tableau, poules passées, classement ajusté,
+petite finale, résultats déverrouillés, tableaux séparés, Quest ; état d'interface ; puis 4c ; 5.

@@ -196,3 +196,61 @@ export function useScoreClear(
     [client, competitionId, flushSession, showToast, t]
   );
 }
+
+export interface AssignmentsInput {
+  pools?: Array<{ poolId: string; strip?: number | null; refereeIds?: string[] }>;
+  matches?: Array<{ matchId: string; strip?: number | null; refereeId?: string | null }>;
+}
+
+/** Arbitres et pistes écrits par le moteur (assignMatches, docs/adr/0017) */
+export function useAssignMatches(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  return useCallback(
+    async (input: AssignmentsInput): Promise<RecordScoreOutcome> => {
+      if (!competitionId) return 'local';
+      if (!input.pools?.length && !input.matches?.length) return 'recorded';
+      try {
+        await flushSession();
+        await client.call('assignMatches', { competitionId, ...input });
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast((e as Error).message ?? code, 'error');
+        return 'refused';
+      }
+    },
+    [client, competitionId, flushSession, showToast]
+  );
+}
+
+/**
+ * Changement d'organisation seulement (piste, arbitres) entre deux états du tableau : les
+ * affectations à envoyer au moteur ; null si autre chose change (score, tireurs…).
+ */
+export function tableauAssignmentsDiff(
+  before: TableauMatch[],
+  after: TableauMatch[]
+): AssignmentsInput['matches'] | null {
+  if (before.length !== after.length) return null;
+  const strip = (m: TableauMatch) => {
+    const { arena: _a, referee: _r, referees: _rs, ...rest } = m;
+    return JSON.stringify(rest);
+  };
+  const byId = new Map(before.map(m => [m.id, m]));
+  const out: NonNullable<AssignmentsInput['matches']> = [];
+  for (const m of after) {
+    const old = byId.get(m.id);
+    if (!old || strip(old) !== strip(m)) return null;
+    const entry: NonNullable<AssignmentsInput['matches']>[number] = { matchId: m.id };
+    if ((old.arena ?? null) !== (m.arena ?? null)) entry.strip = m.arena ?? null;
+    if ((old.referee?.id ?? null) !== (m.referee?.id ?? null))
+      entry.refereeId = m.referee?.id ?? null;
+    if (entry.strip !== undefined || entry.refereeId !== undefined) out.push(entry);
+  }
+  return out;
+}

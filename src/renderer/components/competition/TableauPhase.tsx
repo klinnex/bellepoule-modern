@@ -2,6 +2,7 @@
  * BellePoule Modern - Phase « Tableau » de la compétition (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
+import { tableauAssignmentsDiff, type AssignmentsInput } from '../../hooks/usePoolsLaunch';
 import type { TableauViewProps } from '../tableau/tableauViewShared';
 import React, { Suspense } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -62,6 +63,8 @@ interface TableauPhaseProps {
   onGenerateTableau?: TableauViewProps['onGenerateTableau'];
   /** Score annulé par le moteur (docs/adr/0017) */
   onClearScore?: TableauViewProps['onClearScore'];
+  /** Pistes et arbitres des matchs écrits par le moteur (assignMatches, docs/adr/0017) */
+  onAssign?: (input: AssignmentsInput) => Promise<'recorded' | 'local' | 'refused'>;
 }
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
@@ -96,7 +99,20 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   onWithdraw,
   onGenerateTableau,
   onClearScore,
+  onAssign,
 }) => {
+  // Changement d'organisation seul (pistes, arbitres) : par le moteur ; le reste, à l'écran
+  const handleMatchesChange = (next: TableauMatch[]) => {
+    const diff = onAssign ? tableauAssignmentsDiff(tableauMatches, next) : null;
+    if (onAssign && diff) {
+      if (diff.length === 0) return;
+      void onAssign({ matches: diff }).then(outcome => {
+        if (outcome === 'local') setTableauMatches(next);
+      });
+      return;
+    }
+    setTableauMatches(next);
+  };
   const { t } = useTranslation();
   const { confirm } = useConfirm();
   return (
@@ -130,7 +146,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
       <TableauView
         ranking={ranking}
         matches={tableauMatches}
-        onMatchesChange={setTableauMatches}
+        onMatchesChange={handleMatchesChange}
         consolationBrackets={consolationBrackets}
         onConsolationBracketsChange={setConsolationBrackets}
         maxScore={tableMaxScore === 0 ? 999 : tableMaxScore}

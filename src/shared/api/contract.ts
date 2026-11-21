@@ -470,6 +470,49 @@ export const contract = {
     mcp: { name: 'clear_score', title: 'Annuler un score', destructive: true },
   }),
 
+  assignMatches: command({
+    description:
+      'Arbitres et pistes : d’une poule (« pools » : piste, arbitres principal en tête, l’arbitre principal passant sur les matchs de la poule) ou d’un match (« matches » : arbitre principal ; piste pour un match de tableau). Seuls les champs fournis changent.',
+    input: z.object({
+      competitionId: CompetitionId,
+      pools: z
+        .array(
+          z.object({
+            poolId: Id,
+            strip: z.number().int().min(1).max(999).nullable().optional(),
+            refereeIds: z.array(Id).max(10).optional(),
+          })
+        )
+        .max(200)
+        .optional(),
+      matches: z
+        .array(
+          z.object({
+            matchId: Id,
+            strip: z.number().int().min(1).max(999).nullable().optional(),
+            refereeId: Id.nullable().optional(),
+          })
+        )
+        .max(2000)
+        .optional(),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      pools: z.number().int(),
+      matches: z.number().int(),
+      revision: Revision,
+    }),
+    permission: 'referees:write',
+    mcp: {
+      name: 'assign_matches',
+      title: 'Arbitres et pistes des poules et des matchs',
+      idempotent: true,
+    },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +

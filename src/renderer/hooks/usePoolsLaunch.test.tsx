@@ -5,7 +5,13 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { poolComposition, usePoolsLaunch, useRapieresWaves, useScoreClear } from './usePoolsLaunch';
+import {
+  poolComposition,
+  tableauAssignmentsDiff,
+  usePoolsLaunch,
+  useRapieresWaves,
+  useScoreClear,
+} from './usePoolsLaunch';
 import { BpmClientProvider } from '../api/BpmClientContext';
 import { ApiError, type BpmClient } from '../../shared/api/client';
 import type { Pool } from '../../shared/types';
@@ -105,5 +111,36 @@ describe('useScoreClear', () => {
     call.mockRejectedValueOnce(new ApiError('next_match_played', 'x'));
     expect(await clear().current('m1')).toBe('refused');
     expect(showToast).toHaveBeenCalledWith('tableauView.next_played', 'error');
+  });
+});
+
+describe('tableauAssignmentsDiff', () => {
+  const m = (over: Record<string, unknown> = {}) =>
+    ({
+      id: '8-0',
+      round: 8,
+      position: 0,
+      fencerA: { id: 'a' },
+      fencerB: { id: 'b' },
+      scoreA: null,
+      scoreB: null,
+      winner: null,
+      isBye: false,
+      ...over,
+    }) as never;
+
+  it('piste ou arbitre changés seuls : affectations', () => {
+    expect(tableauAssignmentsDiff([m()], [m({ arena: 4 })])).toEqual([
+      { matchId: '8-0', strip: 4 },
+    ]);
+    expect(tableauAssignmentsDiff([m()], [m({ referee: { id: 'r1' } })])).toEqual([
+      { matchId: '8-0', refereeId: 'r1' },
+    ]);
+    expect(tableauAssignmentsDiff([m()], [m()])).toEqual([]);
+  });
+
+  it('autre changement (score, tireur) : null, écriture de l’écran', () => {
+    expect(tableauAssignmentsDiff([m()], [m({ scoreA: 15, arena: 2 })])).toBeNull();
+    expect(tableauAssignmentsDiff([m()], [])).toBeNull();
   });
 });

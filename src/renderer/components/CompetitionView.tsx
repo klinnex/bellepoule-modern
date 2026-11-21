@@ -243,6 +243,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     generateTableau,
     rapieresWaves,
     clearScore,
+    assignMatches,
     handleSetFencerStatus,
     handleEditFencer,
     handleGoToRanking,
@@ -594,6 +595,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             onWithdraw={handleWithdrawFencer}
             onGenerateTableau={generateTableau}
             onClearScore={clearScore}
+            onAssign={assignMatches}
           />
         )}
 
@@ -674,6 +676,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             consolationBrackets={consolationBrackets}
             setConsolationBrackets={setConsolationBrackets}
             applyPoolRefereeAssignments={applyPoolRefereeAssignments}
+            assign={assignMatches}
           />
         )}
       </div>
