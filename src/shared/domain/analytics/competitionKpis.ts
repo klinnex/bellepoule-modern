@@ -28,6 +28,8 @@ const DEFAULT_MATCH_MS = 3 * 60_000;
 const DEFAULT_TABLEAU_MATCH_MS = 4.5 * 60_000;
 /** Délai entre deux matchs sur une piste tant qu'il n'est pas mesuré (#1817) */
 const DEFAULT_CHANGEOVER_MS = 3 * 60_000;
+/** Pause entre la fin des poules et le début du tableau (#1817) */
+export const PHASE_BREAK_MS = 30 * 60_000;
 /** Au-delà, l'écart entre deux matchs d'une piste est une pause, pas un enchaînement */
 const MAX_CHANGEOVER_MS = 20 * 60_000;
 
@@ -329,6 +331,8 @@ export interface OrganisationKpis {
   competitionEtaAt: number | null;
   /** Durée projetée du tableau (ms) tant qu'il n'est pas généré ; null sinon */
   tableauProjectionMs: number | null;
+  /** Pause poules → tableau comptée dans la fin estimée (ms) ; 0 une fois le tableau lancé (#1817) */
+  phaseBreakMs: number;
   /** Tableau généré */
   hasTableau: boolean;
   /** Cadence du tableau (#1817) : match de 15 touches (4 min 30 par défaut) + délai entre deux matchs */
@@ -571,12 +575,15 @@ export function organisationKpis(input: {
     tableauRemainingWaves(tableauBouts, parallel),
     Math.ceil(tableauRemaining / parallel)
   );
+  // Pause d'environ 30 min entre la fin des poules et le premier tour du tableau (#1817)
+  const phaseBreakMs = !hasTableau || poolsEtaAt != null ? PHASE_BREAK_MS : 0;
   const competitionEtaAt = hasTableau
     ? tableauWavesLeft > 0
-      ? (poolsEtaAt ?? now) + tableauWavesLeft * tableauPerMatchMs
+      ? (poolsEtaAt != null ? poolsEtaAt + phaseBreakMs : now) +
+        tableauWavesLeft * tableauPerMatchMs
       : etaAt
     : tableauProjectionMs != null
-      ? (poolsEtaAt ?? poolsEndAt ?? now) + tableauProjectionMs
+      ? (poolsEtaAt ?? poolsEndAt ?? now) + phaseBreakMs + tableauProjectionMs
       : etaAt;
 
   const ends = finishedTimed.map(t => time(t.endTime)).filter(Boolean);
@@ -626,6 +633,7 @@ export function organisationKpis(input: {
     poolsEndAt,
     competitionEtaAt,
     tableauProjectionMs,
+    phaseBreakMs,
     hasTableau,
     tableauCadence: { perMatchMs: tableauPerMatchMs, strips: parallel, basis: tableauEta.basis },
     tableauRemaining,

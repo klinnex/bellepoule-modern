@@ -3429,6 +3429,7 @@
     "deviation_pools": "Desviació de les poules respecte a la planificació",
     "eta_competition": "Final estimat de la competició",
     "eta_projected": "Quadre projectat (no generat)",
+    "eta_phase_break": "Inclou {{pause}} de pausa entre poules i quadre",
     "planned_projected": "Previst (poules + quadre projectat): {{time}}",
     "planned_estimate": "Referència (1a estimació): {{time}}",
     "eta_cadence_tableau": "Quadre: {{match}} per assalt + {{gap}} entre dos assalts · {{strips}} pista(es) en paral·lel",

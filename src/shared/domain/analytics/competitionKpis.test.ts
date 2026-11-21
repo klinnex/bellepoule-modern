@@ -13,6 +13,7 @@ import {
   averageMatchSeconds,
   weaponKpis,
   tableauWaves,
+  PHASE_BREAK_MS,
   type KpiMatch,
 } from './competitionKpis';
 import { Fencer, FencerStatus, Match, MatchStatus, MatchTiming, Pool } from '../../types';
@@ -439,7 +440,7 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     expect(k.cadence.perMatchMs).toBe(7 * 60_000);
   });
 
-  it('poules en cours : fin des poules + tableau projeté', () => {
+  it('poules en cours : fin des poules + pause de 30 min + tableau projeté', () => {
     const k = organisationKpis({
       pools: [
         pool('A', 1, [
@@ -453,7 +454,9 @@ describe('bandeau Organisation poules / compétition (#1817)', () => {
     expect(k.poolsEtaAt).not.toBeNull();
     expect(k.poolsEndAt).toBeNull();
     expect(k.tableauProjectionMs).toBeGreaterThan(0);
-    expect(k.competitionEtaAt).toBe(k.poolsEtaAt! + k.tableauProjectionMs!);
+    expect(k.phaseBreakMs).toBe(PHASE_BREAK_MS);
+    expect(PHASE_BREAK_MS).toBe(30 * 60_000);
+    expect(k.competitionEtaAt).toBe(k.poolsEtaAt! + PHASE_BREAK_MS + k.tableauProjectionMs!);
   });
 
   it('poules finies : fin réelle des poules, tableau généré = ETA globale', () => {

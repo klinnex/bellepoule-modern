@@ -3429,6 +3429,7 @@
     "deviation_pools": "Scostamento dei gironi dal programma",
     "eta_competition": "Fine stimata della gara",
     "eta_projected": "Tabellone stimato (non generato)",
+    "eta_phase_break": "Include {{pause}} di pausa tra gironi e tabellone",
     "planned_projected": "Previsto (gironi + tabellone stimato): {{time}}",
     "planned_estimate": "Riferimento (1ª stima): {{time}}",
     "eta_cadence_tableau": "Tabellone: {{match}} per assalto + {{gap}} tra due assalti · {{strips}} pedana/e in parallelo",

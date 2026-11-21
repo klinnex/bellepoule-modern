@@ -3429,6 +3429,7 @@
     "deviation_pools": "Pool schedule deviation",
     "eta_competition": "Estimated competition end",
     "eta_projected": "Projected table (not generated)",
+    "eta_phase_break": "Includes a {{pause}} break between pools and table",
     "planned_projected": "Planned (pools + projected table): {{time}}",
     "planned_estimate": "Reference (first estimate): {{time}}",
     "eta_cadence_tableau": "Table: {{match}} per bout + {{gap}} between bouts · {{strips}} strip(s) in parallel",

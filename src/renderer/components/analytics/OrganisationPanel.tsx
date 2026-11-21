@@ -161,7 +161,7 @@ export const OrganisationPanel: React.FC<{
   const tableauFromPlanning = hasPlannedEnd(competitionId, 'tableau');
   const projectedNow =
     !kpis.hasTableau && poolsBaseline != null && kpis.tableauProjectionMs != null
-      ? poolsBaseline + kpis.tableauProjectionMs
+      ? poolsBaseline + kpis.phaseBreakMs + kpis.tableauProjectionMs
       : null;
   const storedProjected = getProjectedEnd(competitionId);
   useEffect(() => {
@@ -274,6 +274,11 @@ export const OrganisationPanel: React.FC<{
                     strips: kpis.tableauCadence.strips,
                   })}
                 </div>
+                {kpis.phaseBreakMs > 0 && (
+                  <div>
+                    {t('organisation.eta_phase_break', { pause: fmtMinutes(kpis.phaseBreakMs) })}
+                  </div>
+                )}
                 {!kpis.hasTableau && kpis.tableauProjectionMs != null ? (
                   <div>{t('organisation.eta_projected')}</div>
                 ) : (
