@@ -28,6 +28,7 @@ import {
   usePoolsLaunch,
   useRapieresWaves,
   useAssignMatches,
+  useCompetitionCommand,
   useScoreClear,
   useTableauGenerate,
 } from '../usePoolsLaunch';
@@ -220,6 +221,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const rapieresWaves = useRapieresWaves(competition.id, flushPendingSave);
   const clearScore = useScoreClear(competition.id, flushPendingSave);
   const assignMatches = useAssignMatches(competition.id, flushPendingSave);
+  const runCompetitionCommand = useCompetitionCommand(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>): Promise<RecordScoreOutcome> => {
@@ -593,6 +595,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     rapieresWaves,
     clearScore,
     assignMatches,
+    runCompetitionCommand,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

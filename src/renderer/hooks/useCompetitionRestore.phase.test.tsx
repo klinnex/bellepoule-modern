@@ -11,6 +11,7 @@ const { state } = vi.hoisted(() => ({ state: { restored: null as unknown } }));
 vi.mock('./useCompetitionSession', () => ({
   useCompetitionSession: () => ({ isLoaded: true, restoredState: state.restored }),
   phaseFromNumber: (n: number) => (n === 5 ? 'tableau' : n === 2 ? 'pools' : undefined),
+  phaseNumber: (p: string) => ({ checkin: 0, pools: 2, ranking: 3, tableau: 5 })[p] ?? 0,
 }));
 
 function run(restored: Record<string, unknown>) {
@@ -66,5 +67,13 @@ describe('onglet restauré (docs/adr/0017)', () => {
 
   it('relecture après une commande : onglet du poste conservé', () => {
     expect(run({ currentPhase: 2, reloaded: true })).not.toHaveBeenCalled();
+  });
+
+  it('chargement : onglet du poste s’il ne devance pas la phase de l’épreuve', () => {
+    localStorage.setItem('bellepoule-ui-c1', JSON.stringify({ tab: 'checkin' }));
+    expect(run({ currentPhase: 5 })).toHaveBeenCalledWith('checkin');
+    localStorage.setItem('bellepoule-ui-c1', JSON.stringify({ tab: 'tableau' }));
+    expect(run({ currentPhase: 2 })).toHaveBeenCalledWith('pools');
+    localStorage.clear();
   });
 });

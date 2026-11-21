@@ -879,3 +879,48 @@ d('assignMatches (docs/adr/0017, arbitres et pistes)', () => {
     ).rejects.toMatchObject({ code: 'match_not_found' });
   });
 });
+
+d('classement ajusté, poules passées, tableau retiré (docs/adr/0017)', () => {
+  it('adjustRanking : ordre du DT, classements de poule alignés, RankingAdjusted', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    const ranking = (db.getSessionState(comp.id) as any).overallRanking;
+    const reversed = [...ranking]
+      .reverse()
+      .map((r: any, i: number) => ({ fencerId: r.fencer.id, rank: i + 1 }));
+    await invoke(ctx, 'adjustRanking', { competitionId: comp.id, ranking: reversed });
+    const session = db.getSessionState(comp.id) as any;
+    expect(session.overallRanking.map((r: any) => r.fencer.id)).toEqual(
+      reversed.map(r => r.fencerId)
+    );
+    const poolRank = session.pools[0].ranking.find(
+      (r: any) => r.fencer.id === reversed[0].fencerId
+    );
+    expect(poolRank.rank).toBe(1);
+    const all = db.eventLog.getSince(comp.id);
+    expect(all[all.length - 1].type).toBe('RankingAdjusted');
+  });
+
+  it('skipPools puis tableau ; clearTableau retire le tableau', async () => {
+    const comp = await setup(6);
+    const ids = db.getFencersByCompetition(comp.id).map(f => f.id);
+    await invoke(ctx, 'skipPools', { competitionId: comp.id, fencerIds: ids });
+    const session = db.getSessionState(comp.id) as any;
+    expect(session).toMatchObject({ skipPoolPhase: true, currentPhase: 3, pools: [] });
+    expect(session.overallRanking.map((r: any) => r.fencer.id)).toEqual(ids);
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    expect((db.getSessionState(comp.id) as any).tableauMatches.length).toBeGreaterThan(0);
+    const res = (await invoke(ctx, 'clearTableau', { competitionId: comp.id })) as any;
+    expect(res.cleared).toBeGreaterThan(0);
+    expect((db.getSessionState(comp.id) as any).tableauMatches).toEqual([]);
+    const types = db.eventLog.getSince(comp.id).map(e => e.type);
+    expect(types).toContain('PoolsSkipped');
+    expect(types[types.length - 1]).toBe('TableauCleared');
+    await expect(
+      invoke(ctx, 'skipPools', { competitionId: comp.id, fencerIds: ['x', 'y'] })
+    ).rejects.toMatchObject({
+      code: 'fencer_not_found',
+    });
+  });
+});

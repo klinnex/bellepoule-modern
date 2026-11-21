@@ -14,7 +14,8 @@ import type {
 } from '../../shared/domain/tableau/tableauTypes';
 import { inferPoolsLaunched } from '../components/poolLaunchState';
 import type { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
-import { useCompetitionSession, phaseFromNumber } from './useCompetitionSession';
+import { useCompetitionSession, phaseFromNumber, phaseNumber } from './useCompetitionSession';
+import { readPosteUiState, tabToRestore, writePosteUiState } from './posteUiState';
 import type { Phase } from './useCompetitionSession';
 import type { usePoolManagement } from './usePoolManagement';
 
@@ -148,9 +149,13 @@ export function useCompetitionRestore({
   useEffect(() => {
     if (restoredState && isLoaded) {
       const restoredPhase = phaseFromNumber(restoredState.currentPhase);
-      // Onglet : seulement au chargement ; une relecture après une commande garde l'onglet du
-      // poste (correction refaisant le tableau, fin des vagues…), docs/adr/0017
-      if (restoredPhase && !restoredState.reloaded) setCurrentPhase(restoredPhase);
+      // Onglet : seulement au chargement, celui du poste s'il ne devance pas la phase de
+      // l'épreuve ; une relecture après une commande garde l'onglet affiché (docs/adr/0017)
+      const poste = readPosteUiState(competitionId);
+      if (!restoredState.reloaded) {
+        const tab = tabToRestore(poste.tab, restoredPhase, phaseNumber);
+        if (tab) setCurrentPhase(tab);
+      }
       if (
         ['tableau', 'results', 'remote', 'ranking'].includes(restoredPhase ?? '') ||
         (restoredState.tableauMatches && restoredState.tableauMatches.length > 0)
@@ -166,21 +171,46 @@ export function useCompetitionRestore({
       if (restoredState.finalResults) setFinalResults(restoredState.finalResults);
       if (restoredState.consolationBrackets?.length)
         setConsolationBrackets(restoredState.consolationBrackets);
-      if (restoredState.poolPrepParams) {
-        setMinFencersPerPool(restoredState.poolPrepParams.minFencersPerPool);
-        setMaxFencersPerPool(restoredState.poolPrepParams.maxFencersPerPool);
+      // Préparation des poules et pistes : réglages du poste d'abord (docs/adr/0017)
+      if (!restoredState.reloaded) {
+        const min = poste.minFencersPerPool ?? restoredState.poolPrepParams?.minFencersPerPool;
+        const max = poste.maxFencersPerPool ?? restoredState.poolPrepParams?.maxFencersPerPool;
+        if (min !== undefined) setMinFencersPerPool(min);
+        if (max !== undefined) setMaxFencersPerPool(max);
       }
       if (restoredState.skipPoolPhase) setSkipPoolPhase(restoredState.skipPoolPhase);
       setPoolsLaunched(
         restoredState.poolsLaunched ??
           inferPoolsLaunched(restoredPhase, restoredState.pools, restoredState.poolHistory)
       );
-      if (restoredState.remoteArenaCount != null)
-        setRemoteArenaCount(restoredState.remoteArenaCount);
-      setRemoteStripStart(restoredState.remoteStripStart ?? 1);
+      if (!restoredState.reloaded) {
+        const arenas = poste.remoteArenaCount ?? restoredState.remoteArenaCount;
+        if (arenas != null) setRemoteArenaCount(arenas);
+        setRemoteStripStart(poste.remoteStripStart ?? restoredState.remoteStripStart ?? 1);
+      }
       if (restoredState.rapieres) setRapieresState(restoredState.rapieres);
     }
   }, [restoredState, isLoaded]);
+
+  // État d'interface du poste gardé dans le navigateur à chaque changement (docs/adr/0017)
+  useEffect(() => {
+    if (!isLoaded) return;
+    writePosteUiState(competitionId, {
+      tab: currentPhase,
+      minFencersPerPool,
+      maxFencersPerPool,
+      remoteArenaCount,
+      remoteStripStart,
+    });
+  }, [
+    isLoaded,
+    competitionId,
+    currentPhase,
+    minFencersPerPool,
+    maxFencersPerPool,
+    remoteArenaCount,
+    remoteStripStart,
+  ]);
 
   // Fallback DB : si session state n'a pas de poules, essayer de les charger depuis la DB.
   // Guard: ne pas déclencher si restoredState a déjà des poules (elles seront appliquées par
