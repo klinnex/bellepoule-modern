@@ -8084,7 +8084,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - cadence par défaut : 3 min de match + 3 min entre deux matchs (#1817)
   - pistes : 3 poules sur 2 pistes → la piste la plus chargée fixe la fin (#1817)
   - délai entre deux matchs mesuré sur les enchaînements d’une piste (#1817)
-  - poules en cours : fin des poules + tableau projeté
+  - poules en cours : fin des poules + pause de 30 min + tableau projeté
   - poules finies : fin réelle des poules, tableau généré = ETA globale
   - tableau en cours : total et fin estimée incluent les tours aux tireurs inconnus (#1817)
   - tableau : match de 15 touches à 4 min 30 par défaut + 3 min entre deux matchs (#1817)
