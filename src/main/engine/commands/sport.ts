@@ -6,7 +6,10 @@
  *
  * Formats pris en charge : épreuve individuelle, un tour de poules, tableau simple
  * (avec ou sans petite finale). Équipes, rapières, tours multiples et « toutes les
- * places » restent pilotés à l'écran (erreur explicite).
+ * places » restent pilotés à l'écran (erreur explicite), sauf pour la saisie des scores
+ * (recordScore, #1980) : tours multiples, rapières et « toutes les places » y sont admis ;
+ * seules les épreuves par équipes (modèle de relais distinct) et les tableaux séparés
+ * après les poules restent refusés.
  * Licensed under GPL-3.0
  */
 import { v4 as uuidv4 } from 'uuid';
@@ -41,14 +44,20 @@ import {
   planTableau,
   calculateFinalResults,
   isTableauDone,
+  placeBarrageWinners,
+  syncConsolationBrackets,
+  buildCombinedResults,
 } from '../../../shared/domain/tableau/tableauCalculations';
 import {
   deriveFirstRound,
+  isBracketComplete,
   propagateWinners,
   resetTableauMatch,
   resolveTableauWinner,
+  type ConsolationBracket,
   type TableauMatch,
 } from '../../../shared/domain/tableau/tableauTypes';
+import type { RapieresSession } from '../../../shared/domain/rapieres/rapieres.types';
 import { computeEffectiveTableauRanking } from '../../../shared/domain/ranking/tableauRanking';
 import { CommandError, type CommandContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
@@ -113,6 +122,19 @@ export function assertSupported(comp: Competition, session: Record<string, unkno
   }
 }
 
+/**
+ * Formats admis pour la saisie d'un score (#1980, ADR-0005) : tous sauf les épreuves par
+ * équipes, dont les matchs sont des relais portés par leur propre modèle (teamArena).
+ */
+export function assertScoreSupported(comp: Competition): void {
+  if (comp.isTeamEvent) {
+    throw new CommandError(
+      'unsupported_format',
+      'Épreuve par équipes : scores par l’arène d’équipe ou l’écran'
+    );
+  }
+}
+
 /** Écrit l'état de session (fusion) et prévient l'écran, qui le relit */
 export function writeSession(
   ctx: CommandContext,
@@ -141,6 +163,13 @@ export const sessionPools = (session: Record<string, unknown>): Pool[] =>
   Array.isArray(session.pools) ? (session.pools as Pool[]) : [];
 const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
   Array.isArray(session.tableauMatches) ? (session.tableauMatches as TableauMatch[]) : [];
+const sessionConsolation = (session: Record<string, unknown>): ConsolationBracket[] =>
+  Array.isArray(session.consolationBrackets)
+    ? (session.consolationBrackets as ConsolationBracket[])
+    : [];
+const sessionPoolHistory = (session: Record<string, unknown>): Pool[][] =>
+  Array.isArray(session.poolHistory) ? (session.poolHistory as Pool[][]) : [];
+const isRapieres = (comp: Competition) => comp.settings?.specialMode === 'rapieres';
 
 // ─── Poules ──────────────────────────────────────────────────────────────────
 
@@ -273,6 +302,8 @@ export interface MatchListItem {
   scoreB: number | null;
   state: 'pending' | 'ready' | 'done';
   strip: number | null;
+  /** Tableau de classement (« toutes les places ») : nom ; null pour le tableau principal */
+  bracket?: string | null;
 }
 
 const scoreNum = (s: unknown): number | null =>
@@ -319,7 +350,27 @@ export function listMatches(
         scoreB: v.scoreB,
         state: v.state,
         strip: v.strip,
+        bracket: null,
       });
+    }
+    for (const b of sessionConsolation(session)) {
+      for (const m of b.matches) {
+        if (m.isBye) continue;
+        const v = bracketMatchView(m);
+        out.push({
+          matchId: m.id,
+          kind: 'bracket',
+          poolNumber: null,
+          round: m.round,
+          fencerA: v.fencerA,
+          fencerB: v.fencerB,
+          scoreA: v.scoreA,
+          scoreB: v.scoreB,
+          state: v.state,
+          strip: v.strip,
+          bracket: b.name,
+        });
+      }
     }
   }
   return out.filter(m => !filter.state || m.state === filter.state);
@@ -343,12 +394,20 @@ export interface RecordScoreInput {
 export function recordScore(ctx: CommandContext, competitionId: string, input: RecordScoreInput) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
+  assertScoreSupported(comp);
   const pools = sessionPools(session);
   const poolIndex = pools.findIndex(p => p.matches?.some(m => m.id === input.matchId));
   if (poolIndex >= 0) return recordPoolScore(ctx, comp, session, pools, poolIndex, input);
-  if (sessionTableau(session).some(m => m.id === input.matchId)) {
+  if (
+    sessionTableau(session).some(m => m.id === input.matchId) ||
+    sessionConsolation(session).some(b => b.matches.some(m => m.id === input.matchId))
+  ) {
     return recordBracketScore(ctx, comp, session, input);
+  }
+  if (
+    sessionPoolHistory(session).some(r => r.some(p => p.matches?.some(m => m.id === input.matchId)))
+  ) {
+    throw new CommandError('round_closed', 'Match d’un tour de poules terminé : score figé');
   }
   throw new CommandError('match_not_found', `Match introuvable : ${input.matchId} (list_matches)`);
 }
@@ -398,7 +457,12 @@ function recordPoolScore(
     nextPools = applyFencerForfeit(nextPools, loser.id, input.specialStatus, isLaser(comp)).pools;
   }
   const updatedPool = nextPools[poolIndex];
-  const overallRanking = computeOverallRankingAllRoundsFor(nextPools, [], isLaser(comp));
+  // Tours multiples (#1051) : classement du tour courant, puis éliminés des tours précédents
+  const overallRanking = computeOverallRankingAllRoundsFor(
+    nextPools,
+    sessionPoolHistory(session),
+    isLaser(comp)
+  );
   if (!input.dryRun)
     ctx.db.transaction(() => {
       ctx.db.updateMatch(match.id, {
@@ -495,9 +559,10 @@ function tableauRanking(comp: Competition, session: Record<string, unknown>): Po
   const overall = Array.isArray(session.overallRanking)
     ? (session.overallRanking as PoolRanking[])
     : [];
+  const rapieres = session.rapieres as Partial<RapieresSession> | undefined;
   return computeEffectiveTableauRanking(overall, sessionPools(session), {
-    isRapieres: false,
-    rapieresTableauMode: undefined,
+    isRapieres: isRapieres(comp),
+    rapieresTableauMode: isRapieres(comp) ? rapieres?.tableauMode : undefined,
     poolWinnersOnly: effectiveSettings(comp).poolWinnersOnly,
     customFormula: getActiveFormula(comp.weapon, comp.settings),
     postPoolSplitCriteria: undefined,
@@ -605,28 +670,66 @@ export function buildBracket(
   return summary;
 }
 
+/** Tableau principal ou tableau de classement (« toutes les places ») contenant le match */
+function locateBracketMatch(
+  main: TableauMatch[],
+  brackets: ConsolationBracket[],
+  matchId: string
+): { list: TableauMatch[]; bracket: ConsolationBracket | null } {
+  if (main.some(m => m.id === matchId)) return { list: main, bracket: null };
+  const bracket = brackets.find(b => b.matches.some(m => m.id === matchId))!;
+  return { list: bracket.matches, bracket };
+}
+
 function recordBracketScore(
   ctx: CommandContext,
   comp: Competition,
   session: Record<string, unknown>,
   input: RecordScoreInput
 ) {
-  if (comp.settings?.playAllPositions) {
+  if (comp.settings?.postPoolSplitCriteria) {
     throw new CommandError(
       'unsupported_format',
-      '« Tirer toutes les places » : à piloter à l’écran'
+      'Tableaux séparés après les poules : à piloter à l’écran'
     );
   }
+  const playAll = !!comp.settings?.playAllPositions;
   let matches = sessionTableau(session).map(m => ({ ...m }));
-  const target = matches.find(m => m.id === input.matchId)!;
+  let brackets = sessionConsolation(session).map(b => ({
+    ...b,
+    matches: b.matches.map(m => ({ ...m })),
+  }));
+  const size = deriveFirstRound(matches);
+  let { list, bracket } = locateBracketMatch(matches, brackets, input.matchId);
+  const target = list.find(m => m.id === input.matchId)!;
   if (target.isBye || !target.fencerA || !target.fencerB) {
     throw new CommandError('match_not_ready', 'Match incomplet (tireur attendu) ou exempt');
   }
   if (target.winner) {
+    // « Toutes les places » : perdants déjà versés dans un tableau de classement, ou
+    // vainqueur de barrage déjà placé au premier tour : correction à l'écran
+    const parentId = bracket?.id ?? 'main';
+    const isBarrage = !bracket && target.round === size * 2;
+    if (
+      playAll &&
+      (isBarrage ||
+        brackets.some(b => b.parentBracketId === parentId && b.sourceRound === target.round))
+    ) {
+      throw new CommandError(
+        'next_match_played',
+        'Tableau de classement déjà construit depuis ce tour : correction à l’écran'
+      );
+    }
     // Correction : possible tant que le vainqueur n'a pas tiré le tour suivant
-    const reset = resetTableauMatch(matches, target.id);
+    const reset = resetTableauMatch(list, target.id);
     if (!reset) throw new CommandError('next_match_played', 'Le tour suivant est déjà joué');
-    matches = reset;
+    if (bracket) {
+      brackets = brackets.map(b => (b.id === bracket!.id ? { ...b, matches: reset } : b));
+      ({ list, bracket } = locateBracketMatch(matches, brackets, input.matchId));
+    } else {
+      matches = reset;
+      list = matches;
+    }
   }
   const { scoreA, scoreB } = input;
   if (![scoreA, scoreB].every(s => Number.isInteger(s) && s >= 0)) {
@@ -648,7 +751,7 @@ function recordBracketScore(
   if (input.specialStatus && !input.winner) {
     throw new CommandError('winner_required', 'Abandon, forfait ou exclusion : préciser winner');
   }
-  const m = matches.find(x => x.id === input.matchId)!;
+  const m = list.find(x => x.id === input.matchId)!;
   const tieWinner = input.winner ?? null;
   const winner = input.specialStatus
     ? input.winner === 'A'
@@ -669,21 +772,42 @@ function recordBracketScore(
     winner,
     specialStatus: input.specialStatus ? { fencerId: loser.id, status: input.specialStatus } : null,
   });
-  const size = deriveFirstRound(matches);
-  propagateWinners(matches, size);
-  const done = isTableauDone(matches);
+  const ranking = tableauRanking(comp, session);
+  if (bracket) {
+    // Tableau de classement : propagation interne, comme updateConsolationMatch à l'écran
+    propagateWinners(bracket.matches, bracket.size);
+    bracket.isComplete = isBracketComplete(bracket.matches);
+  } else {
+    propagateWinners(matches, size);
+    if (playAll) placeBarrageWinners(matches, size);
+  }
+  if (playAll) {
+    // Perdants des tours terminés versés dans les tableaux de classement (useTableauViewScoring)
+    brackets = syncConsolationBrackets(matches, brackets, size, ranking, Date.now()).brackets;
+  }
+  const mainDone = isTableauDone(matches);
+  const hasBarrages = matches.some(x => x.round === size * 2);
+  const done = playAll
+    ? mainDone &&
+      !((size >= 8 || hasBarrages) && brackets.length === 0) &&
+      brackets.every(b => b.isComplete)
+    : mainDone;
   const finalResults = done
-    ? calculateFinalResults(matches, tableauRanking(comp, session), size)
+    ? playAll
+      ? buildCombinedResults(matches, brackets, ranking)
+      : calculateFinalResults(matches, ranking, size)
     : [];
   if (!input.dryRun)
     ctx.db.transaction(() => {
-      // Journal des scores : écrit par l'upsert (auteur « mcp »)
+      // Journal des scores : écrit par l'upsert (auteur « mcp ») ; les tableaux de
+      // classement ne vivent que dans l'état de session, comme à l'écran
       persistTableau(ctx, comp, matches);
       if (input.specialStatus)
         ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
       // Tableau terminé : phase Résultats, comme onComplete à l'écran
       writeSession(ctx, comp.id, {
         tableauMatches: matches,
+        ...(playAll ? { consolationBrackets: brackets } : {}),
         finalResults,
         ...(done ? { currentPhase: PHASE.results } : {}),
       });
@@ -712,6 +836,7 @@ function recordBracketScore(
     dryRun: !!input.dryRun,
     kind: 'bracket' as const,
     match: bracketMatchView(m),
+    bracket: bracket?.name ?? null,
     bracketComplete: done,
     podium: finalResults.slice(0, 4).map(r => ({ rank: r.rank, fencer: fencerRef(r.fencer) })),
   };

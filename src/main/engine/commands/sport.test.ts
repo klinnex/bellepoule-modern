@@ -16,6 +16,8 @@ import { buildBracket, generatePools, listMatches, recordScore } from './sport';
 import { assignPoolReferees } from './refereeing';
 import { getBracket, getPoolRanking } from './sessionView';
 import { exportResults } from './exportResults';
+import { planTableau } from '../../../shared/domain/tableau/tableauCalculations';
+import type { Pool, PoolRanking } from '../../../shared/types';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -328,5 +330,81 @@ d('déroulé complet piloté hors écran', () => {
       exportResults(restricted, comp.id, { format: 'csv', outputPath: out })
     ).rejects.toThrow(/existe déjà/);
     await exportResults(restricted, comp.id, { format: 'csv', outputPath: out, overwrite: true });
+  });
+});
+
+d('saisie des scores : formats élargis (#1980, ADR-0005)', () => {
+  const session = (id: string) => db.getSessionState(id) as Record<string, unknown>;
+
+  it('tours multiples : score du tour courant, tour terminé figé', async () => {
+    const comp = await setup(8);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    const round1 = session(comp.id).pools as Pool[];
+    generatePools(ctx, comp.id, { poolCount: 1, replace: true });
+    db.saveSessionState(comp.id, {
+      ...session(comp.id),
+      poolHistory: [round1],
+      currentPoolRound: 2,
+    });
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    const res = recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 2 });
+    expect(res.kind).toBe('pool');
+    expect((session(comp.id).overallRanking as PoolRanking[]).length).toBe(8);
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: round1[0].matches[0].id, scoreA: 5, scoreB: 1 })
+    ).toThrow(/tour de poules terminé/);
+  });
+
+  it('rapières : score de poule admis', async () => {
+    const comp = await setup(6);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    db.updateCompetition(comp.id, {
+      settings: { ...comp.settings, specialMode: 'rapieres' },
+    } as never);
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    expect(recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 3 }).kind).toBe(
+      'pool'
+    );
+  });
+
+  it('équipes : refusé', async () => {
+    const comp = await setup(6);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    db.updateCompetition(comp.id, { isTeamEvent: true } as never);
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    expect(() => recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 3 })).toThrow(
+      /équipes/
+    );
+  });
+
+  it('toutes les places : barrages, tableaux de classement, classement complet', async () => {
+    const comp = await setup(10);
+    generatePools(ctx, comp.id, { poolCount: 2 });
+    playAll(comp.id, 'pool');
+    db.updateCompetition(comp.id, {
+      settings: { ...comp.settings, playAllPositions: true, thirdPlaceMatch: true },
+    } as never);
+    const ranking = session(comp.id).overallRanking as PoolRanking[];
+    const { matches } = planTableau(ranking, { playAllPositions: true, thirdPlaceMatch: true });
+    db.saveSessionState(comp.id, {
+      ...session(comp.id),
+      currentPhase: 5,
+      tableauMatches: matches,
+      consolationBrackets: [],
+    });
+    playAll(comp.id, 'bracket');
+    const after = session(comp.id);
+    expect(after.currentPhase).toBe(6);
+    expect((after.consolationBrackets as unknown[]).length).toBeGreaterThan(0);
+    const ranks = (after.finalResults as Array<{ rank: number }>).map(r => r.rank);
+    expect(ranks).toHaveLength(10);
+    expect(new Set(ranks).size).toBe(10);
+    expect(listMatches(ctx, comp.id).some(m => m.bracket)).toBe(true);
+    // Perdants déjà versés dans un tableau de classement : correction refusée
+    const qf = listMatches(ctx, comp.id).find(m => m.round === 8 && !m.bracket)!;
+    expect(() =>
+      recordScore(ctx, comp.id, { matchId: qf.matchId, scoreA: 15, scoreB: 14 })
+    ).toThrow(/classement/);
   });
 });

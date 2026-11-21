@@ -131,17 +131,6 @@ export class MatchRepo {
         const scoreChanged =
           storedValue(prev?.a) !== storedValue(m.scoreA) ||
           storedValue(prev?.b) !== storedValue(m.scoreB);
-        if (!m.isBye && m.scoreA != null && m.scoreB != null && scoreChanged) {
-          this.logScoreChange({
-            matchId: dbId,
-            previousScoreA: prev?.a ?? undefined,
-            previousScoreB: prev?.b ?? undefined,
-            newScoreA: m.scoreA,
-            newScoreB: m.scoreB,
-            changedBy: audit.changedBy,
-            reason: audit.reason,
-          });
-        }
         const scoreA = keepScoreMarks(prev?.a, m.scoreA);
         const scoreB = keepScoreMarks(prev?.b, m.scoreB);
         stmt.run(
@@ -159,6 +148,18 @@ export class MatchRepo {
           now,
           now
         );
+        // Après l'insertion : l'historique référence le match (clé étrangère)
+        if (!m.isBye && m.scoreA != null && m.scoreB != null && scoreChanged) {
+          this.logScoreChange({
+            matchId: dbId,
+            previousScoreA: prev?.a ?? undefined,
+            previousScoreB: prev?.b ?? undefined,
+            newScoreA: m.scoreA,
+            newScoreB: m.scoreB,
+            changedBy: audit.changedBy,
+            reason: audit.reason,
+          });
+        }
       }
     });
     insertMany(matches);

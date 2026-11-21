@@ -117,7 +117,10 @@ session porte une révision : une sauvegarde de l'écran faite sur un état pér
 
 Formats pilotables : épreuve individuelle, un tour de poules, tableau simple avec ou sans petite
 finale. Équipes, rapières, tours de poules multiples et « tirer toutes les places » restent à
-l'écran (erreur `unsupported_format`).
+l'écran (erreur `unsupported_format`) pour `generate_pools`, `assign_referees` et `build_bracket`.
+`record_score` accepte aussi les tours multiples (tour courant ; tour terminé figé : `round_closed`),
+les rapières et « toutes les places » (barrages, tableaux de classement listés par `list_matches`
+avec leur nom dans `bracket`). Refusés : épreuves par équipes, tableaux séparés après les poules.
 
 ## Paramétrage du poste et salles
 
@@ -553,7 +556,7 @@ Aucun argument.
 
 ### `record_score` — Saisir un score
 
-*écriture, idempotent.* Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
+*écriture, idempotent.* Score d’un match de poule (tour courant) ou de tableau, tableaux de classement compris (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|

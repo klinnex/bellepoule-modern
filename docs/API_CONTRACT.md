@@ -114,6 +114,8 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 (bouton « Pointer », tout pointer / dépointer) passe uniquement par `checkIn` ; règle unique des statuts
 spéciaux (`canToggleCheckIn`, `shared/domain/fencers`) ; succès affiché après la réponse. Les cartons
 se lisent par `getMatchCards` / `getCardsByMatchIds`. Reste : les scores (écran, tablettes, appareils).
+Préalable fait : `recordScore` couvre tous les formats individuels (tours multiples, rapières,
+« toutes les places ») ; les équipes gardent leur modèle de relais.
 
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).
