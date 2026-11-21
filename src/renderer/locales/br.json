@@ -3435,6 +3435,7 @@
     "deviation_pools": "Diforc'h ar poulennoù gant ar steuñv",
     "eta_competition": "Fin diouzh ar jedadenn ar genstrivadeg",
     "eta_projected": "Taolenn rakwelet (n'eo ket bet krouet)",
+    "eta_phase_break": "Gant {{pause}} a ehan etre ar poulennoù hag an daolenn",
     "planned_projected": "Raktreset (poulennoù + taolenn rakwelet) : {{time}}",
     "planned_estimate": "Dave (priziadur kentañ) : {{time}}",
     "eta_cadence_tableau": "Taolenn : {{match}} dre emgann + {{gap}} etre daou emgann · {{strips}} roudenn(où) asambles",

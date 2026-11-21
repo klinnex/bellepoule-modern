@@ -3435,6 +3435,7 @@
     "deviation_pools": "Desviación del planning de las poules",
     "eta_competition": "Fin estimada de la competición",
     "eta_projected": "Cuadro proyectado (no generado)",
+    "eta_phase_break": "Incluye {{pause}} de pausa entre poules y cuadro",
     "planned_projected": "Previsto (poules + cuadro proyectado): {{time}}",
     "planned_estimate": "Referencia (1.ª estimación): {{time}}",
     "eta_cadence_tableau": "Cuadro: {{match}} por asalto + {{gap}} entre dos asaltos · {{strips}} pista(s) en paralelo",

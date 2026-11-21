@@ -3435,6 +3435,7 @@
     "deviation_pools": "Écart au planning des poules",
     "eta_competition": "Fin estimée de la compétition",
     "eta_projected": "Tableau projeté (non généré)",
+    "eta_phase_break": "Dont {{pause}} de pause entre poules et tableau",
     "planned_projected": "Prévu (poules + tableau projeté) : {{time}}",
     "planned_estimate": "Référence (1re estimation) : {{time}}",
     "eta_cadence_tableau": "Tableau : {{match}} par match + {{gap}} entre deux matchs · {{strips}} piste(s) en parallèle",
