@@ -20,6 +20,7 @@ import { useCompetitionBootstrap } from '../useCompetitionBootstrap';
 import { useCompetitionRestore } from '../useCompetitionRestore';
 import { useRemoteScoreSync } from '../useRemoteScoreSync';
 import { useRecordScore } from '../useRecordScore';
+import type { RecordScoreOutcome } from '../../components/tableau/tableauViewShared';
 import { useFencerWithdrawal, type WithdrawInput } from '../useFencerWithdrawal';
 import { usePoolFencerAdd, usePoolsLaunch, useTableauGenerate } from '../usePoolsLaunch';
 import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
@@ -210,7 +211,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const generateTableau = useTableauGenerate(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
-    (...args: Parameters<typeof localUpdateScore>) => {
+    (...args: Parameters<typeof localUpdateScore>): Promise<RecordScoreOutcome> => {
       const [
         poolIndex,
         matchIndex,
@@ -221,15 +222,16 @@ export function useCompetitionSessionSync(ctx: Ctx) {
         priority,
         correction,
         blackCard,
+        rebuildTableau,
       ] = args;
       const match = pools[poolIndex]?.matches[matchIndex];
-      // Correction après tirage du tableau (#1996) : saisie locale historique ; un statut
-      // spécial passe par recordScore (retrait du perdant par le moteur, docs/adr/0016)
-      if (!match || correction) {
+      if (!match) {
         localUpdateScore(...args);
-        return;
+        return Promise.resolve('local');
       }
-      void recordScreenScore({
+      // Statut spécial : retrait du perdant par le moteur (docs/adr/0016) ; correction après
+      // tirage du tableau (#1996) : motif, tableau gardé ou retiré par le moteur (docs/adr/0017)
+      return recordScreenScore({
         matchId: match.id,
         scoreA,
         scoreB,
@@ -237,12 +239,16 @@ export function useCompetitionSessionSync(ctx: Ctx) {
         ...(priority ? { priority } : {}),
         ...(specialStatus ? { specialStatus } : {}),
         ...(specialStatus === 'exclusion' && blackCard ? { blackCard: true } : {}),
+        ...(correction
+          ? { correction: { reason: correction, rebuildTableau: !!rebuildTableau } }
+          : {}),
       }).then(outcome => {
-        if (outcome !== 'local') return;
+        if (outcome !== 'local') return outcome;
         localUpdateScore(...args);
         // Repli local : retrait du perdant à l'écran, comme avant le moteur
         const loser = winner === 'A' ? match.fencerB : winner === 'B' ? match.fencerA : null;
         if (specialStatus && loser) localWithdraw(loser.id, specialStatus, blackCard);
+        return outcome;
       });
     },
     [pools, localUpdateScore, recordScreenScore, localWithdraw]

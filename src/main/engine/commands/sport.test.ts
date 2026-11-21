@@ -684,3 +684,67 @@ d('generateTableau avec placement de l’écran (docs/adr/0017, palier tableau)'
     ).rejects.toMatchObject({ code: 'unsupported_format' });
   });
 });
+
+d('correction de poule après tirage du tableau (#1996, docs/adr/0017)', () => {
+  async function drawn() {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    const m = listMatches(ctx, comp.id).find(x => x.kind === 'pool')!;
+    return { comp, m };
+  }
+
+  it('sans correction : refusée ; avec motif : tableau gardé, journal des scores et du journal', async () => {
+    const { comp, m } = await drawn();
+    expect(() => recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 2, scoreB: 5 })).toThrow(
+      /figé/
+    );
+    await invoke(ctx, 'recordScore', {
+      competitionId: comp.id,
+      matchId: m.matchId,
+      scoreA: 2,
+      scoreB: 5,
+      correction: { reason: 'Erreur de feuille' },
+    });
+    const session = db.getSessionState(comp.id) as any;
+    expect(session.tableauMatches.length).toBeGreaterThan(0);
+    const match = session.pools[0].matches.find((x: any) => x.id === m.matchId);
+    expect(match.correction.reason).toBe('Erreur de feuille');
+    const audit = db.getScoreAuditLog(m.matchId);
+    expect(audit[audit.length - 1]).toMatchObject({
+      changedBy: 'correction',
+      reason: 'Erreur de feuille',
+    });
+    const all = db.eventLog.getSince(comp.id);
+    expect(all[all.length - 1]).toMatchObject({
+      type: 'ScoreRecorded',
+      payload: { correction: { reason: 'Erreur de feuille', rebuildTableau: false } },
+    });
+  });
+
+  it('tableau à refaire : retiré avec la correction ; statut spécial refusé', async () => {
+    const { comp, m } = await drawn();
+    await expect(
+      invoke(ctx, 'recordScore', {
+        competitionId: comp.id,
+        matchId: m.matchId,
+        scoreA: 2,
+        scoreB: 5,
+        winner: 'B',
+        specialStatus: 'abandon',
+        correction: { reason: 'x' },
+      })
+    ).rejects.toMatchObject({ code: 'correction_special_refused' });
+    await invoke(ctx, 'recordScore', {
+      competitionId: comp.id,
+      matchId: m.matchId,
+      scoreA: 2,
+      scoreB: 5,
+      correction: { reason: 'Tableau refait', rebuildTableau: true },
+    });
+    const session = db.getSessionState(comp.id) as any;
+    expect(session.tableauMatches).toEqual([]);
+    expect(session.finalResults).toEqual([]);
+  });
+});

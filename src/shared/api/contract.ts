@@ -193,6 +193,21 @@ export const contract = {
         .boolean()
         .optional()
         .describe('Exclusion sur carton noir (motif du rapport fédéral)'),
+      correction: z
+        .object({
+          reason: z
+            .string()
+            .trim()
+            .min(1)
+            .max(300)
+            .describe('Motif, inscrit au journal des scores'),
+          rebuildTableau: z
+            .boolean()
+            .optional()
+            .describe('Retirer le tableau pour le refaire sur le classement corrigé'),
+        })
+        .optional()
+        .describe('Correction d’un score de poule après le tirage du tableau (#1996)'),
       priority: Side.optional().describe('Égalité en poule : prioritaire'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
@@ -571,7 +586,7 @@ export const contract = {
   getMatchHistory: query({
     description:
       'Historique d’un match dans le journal de l’épreuve : auteur, source, heure de chaque score passé par recordScore (écran, tablettes, appareils de piste, agent). ' +
-      'Retraits et réintégrations de tireurs (abandon, forfait, exclusion, carton noir) compris. Pas encore journalisés (ADR-0005) : correction d’une poule après tirage du tableau, épreuves par équipes, tableaux séparés.',
+      'Retraits et réintégrations de tireurs (abandon, forfait, exclusion, carton noir) compris. Corrections de poule après tirage du tableau comprises. Pas encore journalisés (ADR-0005) : épreuves par équipes, tableaux séparés.',
     input: z.object({ competitionId: CompetitionId, matchId: Id }),
     output: z.array(JournalEventSchema),
     permission: 'competition:read',

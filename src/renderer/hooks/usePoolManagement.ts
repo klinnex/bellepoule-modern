@@ -118,7 +118,9 @@ export const usePoolManagement = ({
       /** Correction après tirage du tableau : motif pour le journal des scores (#1996) */
       correction?: string,
       /** Exclusion sur carton noir : motif posé par le moteur (recordScore, docs/adr/0016) */
-      _blackCard?: boolean
+      _blackCard?: boolean,
+      /** Correction : tableau retiré par le moteur (recordScore, docs/adr/0017) */
+      _rebuildTableau?: boolean
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];

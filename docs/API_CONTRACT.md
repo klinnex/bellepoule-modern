@@ -147,8 +147,7 @@ l'adresse de la tablette, `device`, `mcp`. Le journal d'épreuve ne porte que l'
 l'arbitre (RGPD).
 
 Restent sur le chemin historique (saisie locale de l'écran, ou écriture directe du serveur) : épreuves
-par équipes, tableaux séparés après les poules, correction d'une poule après tirage du tableau,
-égalité sans vainqueur sur la feuille de poule, scores en cours et synchronisation hors ligne des
+par équipes, tableaux séparés après les poules, égalité sans vainqueur sur la feuille de poule, scores en cours et synchronisation hors ligne des
 tablettes (`updateMatchScore`).
 
 Retrait d'un tireur ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) : étape 1 faite, règle
@@ -179,5 +178,7 @@ passe par `addPoolFencer` (`PoolFencerAdded`). Palier « clôture de tour » fai
 passe par `closePoolRound` (simulation pour la confirmation, puis commande ; `PoolRoundClosed`).
 Palier « tableau » fait : le tableau calculé à l'écran (`planTableau`, classement d'entrée de la
 vue) part au moteur avec son placement complet (`generateTableau`, `TableauGenerated`) ; tableaux
-séparés après les poules : tableau local. Restent : correction, rapières ; état d'interface hors
-du bloc ; 4c ; 5.
+séparés après les poules : tableau local. Palier « correction » fait : un score de poule corrigé
+après le tirage passe par `recordScore` avec `correction { reason, rebuildTableau }` (motif au
+journal des scores, `ScoreRecorded.correction`, tableau gardé ou retiré dans la même commande).
+Restent : rapières ; état d'interface hors du bloc ; 4c ; 5.

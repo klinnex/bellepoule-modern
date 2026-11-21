@@ -46,7 +46,8 @@ interface Pending {
     matchIndex: number;
     input: PoolScoreInput;
     winner: 'A' | 'B' | null;
-    apply: (reason?: string) => void;
+    /** Rend l'issue de la commande (recordScore avec correction, docs/adr/0017) */
+    apply: (reason?: string, rebuildTableau?: boolean) => unknown;
   };
   impact: PoolCorrectionImpact;
 }
@@ -140,7 +141,7 @@ export function usePoolCorrection({
       poolIndex: number,
       matchIndex: number,
       input: PoolScoreInput,
-      apply: (reason?: string) => void
+      apply: (reason?: string, rebuildTableau?: boolean) => unknown
     ) => {
       if (!frozen) {
         apply();
@@ -187,11 +188,12 @@ export function usePoolCorrection({
     ]
   );
 
-  const keepTableau = () => {
+  const keepTableau = async () => {
     if (!pending?.score) return;
-    pending.score.apply(
+    const outcome = await pending.score.apply(
       t(pending.impact.tableauOutdated ? 'poolCorrection.reason_keep' : 'poolCorrection.reason_ok')
     );
+    if (outcome === 'refused') return;
     showToast(
       t(
         pending.impact.tableauOutdated ? 'poolCorrection.applied_keep' : 'poolCorrection.applied_ok'
@@ -206,18 +208,26 @@ export function usePoolCorrection({
     if (tableauDrift) setPending({ impact: tableauDrift });
   }, [tableauDrift]);
 
-  const rebuildTableau = () => {
+  const rebuildTableau = async () => {
     if (!pending) return;
-    if (pending.score) pending.score.apply(t('poolCorrection.reason_rebuild'));
-    else
+    let engineCleared = false;
+    if (pending.score) {
+      // Correction et tableau retiré en une commande (recordScore, docs/adr/0017)
+      const outcome = await pending.score.apply(t('poolCorrection.reason_rebuild'), true);
+      if (outcome === 'refused') return;
+      engineCleared = outcome === 'recorded';
+    } else
       logger.info(
         LogCategory.BUSINESS,
         'Tableau refait après corrections de poule cumulées (#1996)'
       );
-    // Tableau retiré sur le classement corrigé à l'ouverture de l'onglet Tableau
-    setTableauMatches([]);
-    setConsolationBrackets([]);
-    setFinalResults([]);
+    // Tableau retiré sur le classement corrigé à l'ouverture de l'onglet Tableau (par le
+    // moteur avec la correction, sinon à l'écran)
+    if (!engineCleared) {
+      setTableauMatches([]);
+      setConsolationBrackets([]);
+      setFinalResults([]);
+    }
     setCorrectingPoolId(null);
     setPending(null);
     showToast(

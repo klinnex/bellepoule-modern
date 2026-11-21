@@ -26,7 +26,8 @@ export interface CompetitionPoolCardProps {
   tieBreakByVictory: boolean;
   poolMaxScore: number;
   maxRefereesPerPool: number;
-  updateScore: PoolManagement['updateScore'];
+  /** Rend l'issue de la commande (écran par recordScore, docs/adr/0017) */
+  updateScore: (...args: Parameters<PoolManagement['updateScore']>) => unknown;
   resetMatch: PoolManagement['resetMatch'];
   cancelMatch: PoolManagement['cancelMatch'];
   computePoolRanking: PoolManagement['computePoolRanking'];
@@ -98,9 +99,10 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
     specialStatus?: 'abandon' | 'forfait' | 'exclusion',
     priority?: 'A' | 'B',
     correction?: string,
-    blackCard?: boolean
+    blackCard?: boolean,
+    rebuildTableau?: boolean
   ) => {
-    updateScore(
+    const outcome = updateScore(
       poolIndex,
       matchIndex,
       scoreA,
@@ -109,7 +111,8 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
       specialStatus,
       priority,
       correction,
-      blackCard
+      blackCard,
+      rebuildTableau
     );
     if (winner) {
       const m = pool.matches[matchIndex];
@@ -128,6 +131,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
           .catch(() => {});
       }
     }
+    return outcome;
   };
 
   return (
@@ -142,7 +146,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         maxRefereesPerPool={maxRefereesPerPool}
         tableauFreeze={tableauFreeze}
         onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus, priority, blackCard) => {
-          const apply = (correction?: string) =>
+          const apply = (correction?: string, rebuildTableau?: boolean) =>
             applyScore(
               matchIndex,
               scoreA,
@@ -151,7 +155,8 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
               specialStatus,
               priority,
               correction,
-              blackCard
+              blackCard,
+              rebuildTableau
             );
           if (requestScore) {
             requestScore(

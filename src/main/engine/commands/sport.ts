@@ -470,6 +470,12 @@ export interface RecordScoreInput {
   specialStatus?: PoolSpecialStatus;
   /** Exclusion sur carton noir (motif black_card, docs/adr/0016) */
   blackCard?: boolean;
+  /**
+   * Correction d'un score de poule après le tirage du tableau (#1996, docs/adr/0017) : motif
+   * inscrit au journal des scores ; `rebuildTableau` retire le tableau, à refaire sur le
+   * classement corrigé (sinon il est gardé tel quel)
+   */
+  correction?: { reason: string; rebuildTableau?: boolean };
   /** Égalité : tireur prioritaire (minute supplémentaire) */
   priority?: 'A' | 'B';
   /** Simulation : contrôles et résultat (classement, vainqueur) sans rien écrire */
@@ -506,9 +512,17 @@ function recordPoolScore(
   poolIndex: number,
   input: RecordScoreInput
 ) {
-  if (sessionTableau(session).length > 0) {
+  const tableauDrawn = sessionTableau(session).length > 0;
+  if (tableauDrawn && !input.correction) {
     throw new CommandError('bracket_exists', 'Tableau déjà construit : score de poule figé');
   }
+  if (tableauDrawn && input.specialStatus) {
+    throw new CommandError(
+      'correction_special_refused',
+      'Correction après tirage : pas de statut spécial (retrait du tireur à part)'
+    );
+  }
+  const correction = tableauDrawn ? input.correction : undefined;
   const pool = pools[poolIndex];
   const matchIndex = pool.matches.findIndex(m => m.id === input.matchId);
   const match = pool.matches[matchIndex];
@@ -530,7 +544,18 @@ function recordPoolScore(
     input.specialStatus,
     input.priority
   );
-  const scoredPool = applyScoreToPool(pool, matchIndex, scores, isLaser(comp));
+  const applied = applyScoreToPool(pool, matchIndex, scores, isLaser(comp));
+  // Match corrigé : motif et heure affichés à l'écran, comme une correction locale (#1996)
+  const scoredPool = correction
+    ? {
+        ...applied,
+        matches: applied.matches.map((m, i) =>
+          i === matchIndex
+            ? { ...m, correction: { reason: correction.reason, at: new Date().toISOString() } }
+            : m
+        ),
+      }
+    : applied;
   let nextPools = pools.map((p, i) => (i === poolIndex ? scoredPool : p));
   // Abandon, forfait, exclusion : comme l'écran, statut du perdant propagé et ses autres
   // matchs perdus (handleFencerForfeit), liste d'appel alignée (specialStatusPatch)
@@ -613,6 +638,7 @@ function recordPoolScore(
         newScoreA: scores.scoreA,
         newScoreB: scores.scoreB,
         ...scoreAudit(ctx),
+        ...(correction ? { changedBy: 'correction', reason: correction.reason } : {}),
         poolId: pool.id,
       });
       const completed: string[] = [];
@@ -623,7 +649,14 @@ function recordPoolScore(
         const wasComplete = !!old && isPoolComplete(old);
         if (complete && !wasComplete) completed.push(p.id);
       }
-      writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
+      writeSession(ctx, comp.id, {
+        pools: nextPools,
+        overallRanking,
+        // Tableau retiré : refait sur le classement corrigé à l'ouverture de l'onglet Tableau
+        ...(correction?.rebuildTableau
+          ? { tableauMatches: [], consolationBrackets: [], finalResults: [] }
+          : {}),
+      });
       recordEvents(ctx, comp.id, [
         {
           type: EVENT.scoreRecorded,
@@ -633,6 +666,14 @@ function recordPoolScore(
             scoreA: input.scoreA,
             scoreB: input.scoreB,
             winnerId: (scores.scoreA.isVictory ? match.fencerA : match.fencerB)?.id ?? null,
+            ...(correction
+              ? {
+                  correction: {
+                    reason: correction.reason,
+                    rebuildTableau: !!correction.rebuildTableau,
+                  },
+                }
+              : {}),
             ...(input.specialStatus
               ? { specialStatus: input.specialStatus, fencerId: loser?.id ?? null }
               : {}),

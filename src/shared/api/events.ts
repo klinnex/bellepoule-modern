@@ -47,6 +47,8 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       specialStatus: SpecialStatus.optional(),
       /** Tireur sanctionné par le statut spécial */
       fencerId: Id.nullable().optional(),
+      /** Correction après tirage du tableau (#1996) : motif, tableau retiré ou gardé */
+      correction: z.object({ reason: z.string(), rebuildTableau: z.boolean() }).optional(),
     })
   ),
   member(JOURNAL_EVENT.poolCompleted, z.object({ poolId: Id })),

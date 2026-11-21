@@ -31,6 +31,8 @@ export interface ScreenScoreInput {
   priority?: 'A' | 'B';
   specialStatus?: 'abandon' | 'forfait' | 'exclusion';
   blackCard?: boolean;
+  /** Correction après tirage du tableau (#1996) */
+  correction?: { reason: string; rebuildTableau?: boolean };
 }
 
 export function useRecordScore(

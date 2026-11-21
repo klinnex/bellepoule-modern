@@ -131,7 +131,7 @@ describe('usePoolCorrection (#1996)', () => {
     expect(fns.setTableauMatches).not.toHaveBeenCalled();
   });
 
-  it('refaire le tableau : matchs joués → mot de confirmation exigé', () => {
+  it('refaire le tableau : matchs joués → mot de confirmation exigé', async () => {
     const { hook, fns, matchIndex, flip } = setup({ withTableau: true, played: true });
     const apply = vi.fn();
     act(() => hook.result.current.requestScore(0, matchIndex, flip, apply));
@@ -142,9 +142,24 @@ describe('usePoolCorrection (#1996)', () => {
       target: { value: 'poolCorrection.rebuild_word' },
     });
     expect(rebuild).toBeEnabled();
-    act(() => fireEvent.click(rebuild));
-    expect(apply).toHaveBeenCalledWith('poolCorrection.reason_rebuild');
+    await act(async () => fireEvent.click(rebuild));
+    expect(apply).toHaveBeenCalledWith('poolCorrection.reason_rebuild', true);
+    // Repli local (apply ne rend pas « recorded ») : tableau retiré par l'écran
     expect(fns.setTableauMatches).toHaveBeenCalledWith([]);
+    expect(fns.setCurrentPhase).toHaveBeenCalledWith('tableau');
+  });
+
+  it('refaire le tableau par le moteur : tableau retiré avec la correction, pas par l’écran', async () => {
+    const { hook, fns, matchIndex, flip } = setup({ withTableau: true, played: true });
+    const apply = vi.fn(async () => 'recorded');
+    act(() => hook.result.current.requestScore(0, matchIndex, flip, apply));
+    render(<>{hook.result.current.poolCorrectionDialog}</>);
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'poolCorrection.rebuild_word' },
+    });
+    await act(async () => fireEvent.click(screen.getByTestId('pool-correction-rebuild')));
+    expect(apply).toHaveBeenCalledWith('poolCorrection.reason_rebuild', true);
+    expect(fns.setTableauMatches).not.toHaveBeenCalled();
     expect(fns.setCurrentPhase).toHaveBeenCalledWith('tableau');
   });
 
