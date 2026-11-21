@@ -9,6 +9,7 @@ import { useCallback } from 'react';
 import type { Pool } from '../../shared/types';
 import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import { tableauComposition } from '../../shared/domain/tableau/tableauComposition';
+import type { RapieresTableauMode } from '../../shared/domain/rapieres/rapieres.types';
 import { useBpmClient } from '../api/BpmClientContext';
 import { useToast } from '../components/Toast';
 import { useTranslation } from './useTranslation';
@@ -99,7 +100,11 @@ export function useTableauGenerate(
   const { showToast } = useToast();
   const { t } = useTranslation();
   return useCallback(
-    async (matches: TableauMatch[], thirdPlaceMatch: boolean): Promise<RecordScoreOutcome> => {
+    async (
+      matches: TableauMatch[],
+      thirdPlaceMatch: boolean,
+      rapieresTableauMode?: RapieresTableauMode
+    ): Promise<RecordScoreOutcome> => {
       if (!competitionId || matches.length === 0) return 'local';
       try {
         await flushSession();
@@ -108,6 +113,7 @@ export function useTableauGenerate(
           composition: tableauComposition(matches),
           thirdPlaceMatch,
           replace: true,
+          ...(rapieresTableauMode ? { rapieresTableauMode } : {}),
         });
         return 'recorded';
       } catch (e) {
@@ -119,4 +125,43 @@ export function useTableauGenerate(
     },
     [client, competitionId, flushSession, showToast, t]
   );
+}
+
+/**
+ * Vagues du tournoi des rapières par le moteur (launchRapieresWave, endRapieresWaves,
+ * docs/adr/0017) ; « local » : moteur absent, l'écran garde l'état lui-même.
+ */
+export function useRapieresWaves(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  const run = useCallback(
+    async (send: () => Promise<unknown>): Promise<RecordScoreOutcome> => {
+      if (!competitionId) return 'local';
+      try {
+        await flushSession();
+        await send();
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast((e as Error).message ?? code, 'error');
+        return 'refused';
+      }
+    },
+    [competitionId, flushSession, showToast]
+  );
+  const launchWave = useCallback(
+    (wave: number) =>
+      run(() => client.call('launchRapieresWave', { competitionId: competitionId!, wave })),
+    [client, competitionId, run]
+  );
+  const endWaves = useCallback(
+    (ended: boolean) =>
+      run(() => client.call('endRapieresWaves', { competitionId: competitionId!, ended })),
+    [client, competitionId, run]
+  );
+  return { launchWave, endWaves };
 }

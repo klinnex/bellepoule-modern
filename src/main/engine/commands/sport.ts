@@ -812,6 +812,8 @@ export function buildBracket(
      * tableaux séparés après les poules.
      */
     composition?: TableauMatchInput[];
+    /** Tournoi des rapières : mode de tableau choisi au passage au tableau (#1441) */
+    rapieresTableauMode?: 'normal' | 'third' | 'all' | 'semis';
   } = {}
 ) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
@@ -899,11 +901,15 @@ export function buildBracket(
       });
     }
     persistTableau(ctx, comp, matches);
+    const rapieres = session.rapieres as Record<string, unknown> | undefined;
     writeSession(ctx, competitionId, {
       currentPhase: PHASE.tableau,
       tableauMatches: matches,
       finalResults: [],
       consolationBrackets: [],
+      ...(options.rapieresTableauMode && isRapieres(comp)
+        ? { rapieres: { ...(rapieres ?? {}), tableauMode: options.rapieresTableauMode } }
+        : {}),
     });
     recordEvents(ctx, competitionId, [
       {
@@ -912,6 +918,9 @@ export function buildBracket(
           size,
           thirdPlaceMatch: thirdPlace,
           playAllPositions: !!comp.settings?.playAllPositions,
+          ...(options.rapieresTableauMode
+            ? { rapieresTableauMode: options.rapieresTableauMode }
+            : {}),
           matches: tableauComposition(matches).map(m => ({
             ...m,
             seedA: m.seedA ?? null,

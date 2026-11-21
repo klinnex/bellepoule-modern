@@ -241,6 +241,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handleWithdrawFencer,
     launchPools,
     generateTableau,
+    rapieresWaves,
     handleSetFencerStatus,
     handleEditFencer,
     handleGoToRanking,
@@ -474,14 +475,27 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             isRapieres={isRapieres}
             launchedWave={rapieres.launchedWave}
             wavesEnded={rapieres.wavesEnded}
-            onLaunchWave={wave => updateRapieres({ launchedWave: wave })}
+            // Vagues par le moteur (docs/adr/0017) ; repli local hors moteur
+            onLaunchWave={async wave => {
+              if ((await rapieresWaves.launchWave(wave)) === 'local') {
+                updateRapieres({ launchedWave: wave });
+              }
+            }}
             onEndWaves={async () => {
               if (!(await confirm(t('rapieres.confirm_end_waves')))) return;
-              updateRapieres({ wavesEnded: true });
-              setOverallRanking(computeOverallRanking(pools));
+              const outcome = await rapieresWaves.endWaves(true);
+              if (outcome === 'refused') return;
+              if (outcome === 'local') {
+                updateRapieres({ wavesEnded: true });
+                setOverallRanking(computeOverallRanking(pools));
+              }
               setCurrentPhase('ranking');
             }}
-            onResumeWaves={() => updateRapieres({ wavesEnded: false })}
+            onResumeWaves={async () => {
+              if ((await rapieresWaves.endWaves(false)) === 'local') {
+                updateRapieres({ wavesEnded: false });
+              }
+            }}
             onPrintWaveSheets={handlePrintWaveSheets}
             onPrintWaveRange={printWaves}
             poolCardSize={poolCardSize}

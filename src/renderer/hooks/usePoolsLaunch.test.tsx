@@ -5,7 +5,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { poolComposition, usePoolsLaunch } from './usePoolsLaunch';
+import { poolComposition, usePoolsLaunch, useRapieresWaves } from './usePoolsLaunch';
 import { BpmClientProvider } from '../api/BpmClientContext';
 import { ApiError, type BpmClient } from '../../shared/api/client';
 import type { Pool } from '../../shared/types';
@@ -67,5 +67,26 @@ describe('usePoolsLaunch', () => {
     call.mockRejectedValueOnce(new ApiError('invalid_composition', 'Composition refusée'));
     expect(await setup().current(pools)).toBe('refused');
     expect(showToast).toHaveBeenCalledWith('pools.launch_failed', 'error');
+  });
+});
+
+describe('useRapieresWaves', () => {
+  const waves = () =>
+    renderHook(() => useRapieresWaves('c1', flush), {
+      wrapper: ({ children }) => (
+        <BpmClientProvider client={{ call } as unknown as BpmClient}>{children}</BpmClientProvider>
+      ),
+    }).result;
+
+  it('vague lancée et vagues arrêtées par le moteur', async () => {
+    expect(await waves().current.launchWave(2)).toBe('recorded');
+    expect(call).toHaveBeenCalledWith('launchRapieresWave', { competitionId: 'c1', wave: 2 });
+    expect(await waves().current.endWaves(true)).toBe('recorded');
+    expect(call).toHaveBeenCalledWith('endRapieresWaves', { competitionId: 'c1', ended: true });
+  });
+
+  it('hors moteur : local', async () => {
+    call.mockRejectedValueOnce(new ApiError('unavailable', 'x'));
+    expect(await waves().current.launchWave(1)).toBe('local');
   });
 });

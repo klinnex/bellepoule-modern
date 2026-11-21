@@ -6,6 +6,7 @@
 import { usePrintShortcut } from '../usePrintShortcut';
 import { useState, useCallback } from 'react';
 import { FencerStatus, type Fencer, type Pool } from '../../../shared/types';
+import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import {
   poolsHaveScores,
   poolsMatchFencers,
@@ -22,7 +23,12 @@ import { useRemoteScoreSync } from '../useRemoteScoreSync';
 import { useRecordScore } from '../useRecordScore';
 import type { RecordScoreOutcome } from '../../components/tableau/tableauViewShared';
 import { useFencerWithdrawal, type WithdrawInput } from '../useFencerWithdrawal';
-import { usePoolFencerAdd, usePoolsLaunch, useTableauGenerate } from '../usePoolsLaunch';
+import {
+  usePoolFencerAdd,
+  usePoolsLaunch,
+  useRapieresWaves,
+  useTableauGenerate,
+} from '../usePoolsLaunch';
 import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
 import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 import {
@@ -208,7 +214,8 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const fencerWithdrawal = useFencerWithdrawal(competition.id, flushPendingSave);
   const launchPools = usePoolsLaunch(competition.id, flushPendingSave);
   const addPoolFencer = usePoolFencerAdd(competition.id, flushPendingSave);
-  const generateTableau = useTableauGenerate(competition.id, flushPendingSave);
+  const generateTableauCommand = useTableauGenerate(competition.id, flushPendingSave);
+  const rapieresWaves = useRapieresWaves(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>): Promise<RecordScoreOutcome> => {
@@ -321,6 +328,17 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const handleCheckInFencer = (id: string) => {
     void ctx.toggleCheckIn(id);
   };
+
+  // Tableau écrit par le moteur ; rapières : mode de tableau joint (journal, #1441)
+  const generateTableau = useCallback(
+    (matches: TableauMatch[], thirdPlaceMatch: boolean) =>
+      generateTableauCommand(
+        matches,
+        thirdPlaceMatch,
+        isRapieres ? rapieres.tableauMode : undefined
+      ),
+    [generateTableauCommand, isRapieres, rapieres.tableauMode]
+  );
 
   // ─── Retrait et réintégration d'un tireur (docs/adr/0016) ─────────────────
   /** Retrait (appel, poule, tableau) par withdrawFencer ; repli local si le moteur ne pilote pas */
@@ -567,6 +585,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     launchPools,
     addPoolFencer,
     generateTableau,
+    rapieresWaves,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

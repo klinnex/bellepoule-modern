@@ -183,7 +183,7 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (45)
+## Référence des outils (47)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
@@ -321,7 +321,7 @@ Aucun argument.
 | `since` | integer |  | Dernière révision connue (0 : tout) |
 | `limit` | integer |  | Nombre maximum (1000) |
 
-### En écriture, sur autorisation (28)
+### En écriture, sur autorisation (30)
 
 ### `create_competition` — Créer une épreuve
 
@@ -599,7 +599,32 @@ Aucun argument.
 | `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
 | `thirdPlaceMatch` | boolean |  | Match pour la 3e place |
 | `composition` | object[] |  | Placement calculé par l’écran : pas de planification |
+| `rapieresTableauMode` | `normal`, `third`, `all`, `semis` |  | Tournoi des rapières : mode de tableau choisi |
 | `replace` | boolean |  | Remplacer un tableau existant |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `launch_rapieres_wave` — Lancer une vague (rapières)
+
+*écriture.* Tournoi des rapières : lance la vague « wave » (ses matchs deviennent ceux à tirer ; 0 = aucune vague lancée).
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `wave` | integer | oui | Vague à lancer (0 : aucune) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `end_rapieres_waves` — Arrêter ou reprendre les vagues (rapières)
+
+*écriture.* Tournoi des rapières : arrête les vagues avant leur terme (« ended: true », passage au classement sur les matchs joués) ou les reprend (« ended: false »).
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `ended` | boolean | oui | true : vagues arrêtées ; false : reprises |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 | `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |

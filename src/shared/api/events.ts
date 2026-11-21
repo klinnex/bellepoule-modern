@@ -26,6 +26,8 @@ export const JOURNAL_EVENT = {
   poolFencerAdded: 'PoolFencerAdded',
   poolRoundClosed: 'PoolRoundClosed',
   tableauGenerated: 'TableauGenerated',
+  rapieresWaveLaunched: 'RapieresWaveLaunched',
+  rapieresWavesEnded: 'RapieresWavesEnded',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -111,6 +113,8 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       size: z.number().int(),
       thirdPlaceMatch: z.boolean(),
       playAllPositions: z.boolean(),
+      /** Tournoi des rapières : mode de tableau (#1441) */
+      rapieresTableauMode: z.enum(['normal', 'third', 'all', 'semis']).optional(),
       matches: z.array(
         z.object({
           matchId: Id,
@@ -125,6 +129,12 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       ),
     })
   ),
+  // Tournoi des rapières : vague lancée (0 = aucune), vagues arrêtées ou reprises
+  member(
+    JOURNAL_EVENT.rapieresWaveLaunched,
+    z.object({ wave: z.number().int(), matchIds: z.array(Id) })
+  ),
+  member(JOURNAL_EVENT.rapieresWavesEnded, z.object({ ended: z.boolean() })),
   member(
     JOURNAL_EVENT.fencerReinstated,
     z.object({ fencerId: Id, restoredStatus: z.string(), restoredMatchIds: z.array(Id) })
