@@ -379,6 +379,10 @@ export const contract = {
         .max(2048)
         .optional()
         .describe('Placement calculé par l’écran : pas de planification'),
+      rapieresTableauMode: z
+        .enum(['normal', 'third', 'all', 'semis'])
+        .optional()
+        .describe('Tournoi des rapières : mode de tableau choisi'),
       replace: z.boolean().optional().describe('Remplacer un tableau existant'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
@@ -409,6 +413,41 @@ export const contract = {
     permission: 'score:write',
     // Nom de l'outil publié en 2.0 conservé (docs/adr/0008)
     mcp: { name: 'build_bracket', title: 'Construire le tableau', destructive: true },
+  }),
+
+  launchRapieresWave: command({
+    description:
+      'Tournoi des rapières : lance la vague « wave » (ses matchs deviennent ceux à tirer ; 0 = aucune vague lancée).',
+    input: z.object({
+      competitionId: CompetitionId,
+      wave: z.number().int().min(0).max(200).describe('Vague à lancer (0 : aucune)'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      wave: z.number().int(),
+      matchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'launch_rapieres_wave', title: 'Lancer une vague (rapières)' },
+  }),
+
+  endRapieresWaves: command({
+    description:
+      'Tournoi des rapières : arrête les vagues avant leur terme (« ended: true », passage au classement sur les matchs joués) ou les reprend (« ended: false »).',
+    input: z.object({
+      competitionId: CompetitionId,
+      ended: z.boolean().describe('true : vagues arrêtées ; false : reprises'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({ dryRun: z.boolean(), ended: z.boolean(), revision: Revision }),
+    permission: 'score:write',
+    mcp: { name: 'end_rapieres_waves', title: 'Arrêter ou reprendre les vagues (rapières)' },
   }),
 
   withdrawFencer: command({

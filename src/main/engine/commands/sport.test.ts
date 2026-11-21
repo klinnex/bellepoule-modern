@@ -748,3 +748,56 @@ d('correction de poule après tirage du tableau (#1996, docs/adr/0017)', () => {
     expect(session.finalResults).toEqual([]);
   });
 });
+
+d('vagues des rapières (docs/adr/0017, palier rapières)', () => {
+  it('vague lancée, vagues arrêtées puis reprises, mode de tableau au journal', async () => {
+    const comp = await setup(6);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    await expect(
+      invoke(ctx, 'launchRapieresWave', { competitionId: comp.id, wave: 1 })
+    ).rejects.toMatchObject({ code: 'unsupported_format' });
+    db.updateCompetition(comp.id, {
+      settings: { ...comp.settings, specialMode: 'rapieres' },
+    } as never);
+    const res = (await invoke(ctx, 'launchRapieresWave', {
+      competitionId: comp.id,
+      wave: 1,
+    })) as any;
+    expect(res.matchIds.length).toBeGreaterThan(0);
+    expect((db.getSessionState(comp.id) as any).rapieres).toMatchObject({
+      version: 2,
+      launchedWave: 1,
+      wavesEnded: false,
+    });
+    await expect(
+      invoke(ctx, 'launchRapieresWave', { competitionId: comp.id, wave: 99 })
+    ).rejects.toMatchObject({ code: 'invalid_wave' });
+    await invoke(ctx, 'endRapieresWaves', { competitionId: comp.id, ended: true });
+    expect((db.getSessionState(comp.id) as any).rapieres.wavesEnded).toBe(true);
+    await invoke(ctx, 'endRapieresWaves', { competitionId: comp.id, ended: false });
+    const types = db.eventLog.getSince(comp.id).map(e => e.type);
+    expect(types.slice(-3)).toEqual([
+      'RapieresWaveLaunched',
+      'RapieresWavesEnded',
+      'RapieresWavesEnded',
+    ]);
+
+    playAll(comp.id, 'pool');
+    const ranking = (db.getSessionState(comp.id) as any).overallRanking;
+    const { matches } = planTableau(ranking, { playAllPositions: false, thirdPlaceMatch: true });
+    const { tableauComposition } =
+      await import('../../../shared/domain/tableau/tableauComposition');
+    await invoke(ctx, 'generateTableau', {
+      competitionId: comp.id,
+      composition: tableauComposition(matches),
+      thirdPlaceMatch: true,
+      rapieresTableauMode: 'third',
+    });
+    expect((db.getSessionState(comp.id) as any).rapieres.tableauMode).toBe('third');
+    const all = db.eventLog.getSince(comp.id);
+    expect(all[all.length - 1]).toMatchObject({
+      type: 'TableauGenerated',
+      payload: { rapieresTableauMode: 'third' },
+    });
+  });
+});

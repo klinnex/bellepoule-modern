@@ -61,6 +61,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `addPoolFencer` | commande — tireur ajouté à une poule lancée, un match contre chacun ; `PoolFencerAdded` | `add_pool_fencer` |
 | `closePoolRound` | commande — clôture du tour : qualifiés, éliminés, tour archivé avec son appel ; `PoolRoundClosed` | `close_pool_round` |
 | `generateTableau` | commande — tableau planifié par le moteur, ou placement calculé par l'écran (`composition`) ; `TableauGenerated` | `build_bracket` (nom 2.0 conservé) |
+| `launchRapieresWave` / `endRapieresWaves` | commandes — vagues des rapières lancées, arrêtées ou reprises | `launch_rapieres_wave` / `end_rapieres_waves` |
 | `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
 | `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
@@ -107,6 +108,7 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 | `addPoolFencer` | `PoolFencerAdded` (poule, tireur, matchs ajoutés dans l'ordre) |
 | `closePoolRound` | `PoolRoundClosed` (tour, qualifiés dans l'ordre, éliminés, nombre de qualifiés) |
 | `generateTableau` | `TableauGenerated` (taille, petite finale, « toutes les places », placement complet) |
+| `launchRapieresWave` / `endRapieresWaves` | `RapieresWaveLaunched` (vague, matchs) / `RapieresWavesEnded` |
 | `withdrawFencer` | `FencerWithdrawn` ; au tableau, `TableauMatchDecided` (et `TableauCompleted`) |
 | `reinstateFencer` | `FencerReinstated` |
 
@@ -184,4 +186,6 @@ journal des scores, `ScoreRecorded.correction`, tableau gardé ou retiré dans l
 Palier « état d'interface » commencé : une relecture après une commande ne change plus l'onglet
 affiché (seul le chargement de l'épreuve le reprend de l'état). Restent : rapières ; reste de
 l'état d'interface (onglet et tour consulté en préférences du poste, phase déduite des faits) ;
-4c ; 5.
+4c ; 5. Palier « rapières » fait : vagues lancées, arrêtées ou reprises par
+`launchRapieresWave` / `endRapieresWaves` ; mode de tableau joint à `generateTableau`
+(`rapieresTableauMode`, dans `TableauGenerated`).
