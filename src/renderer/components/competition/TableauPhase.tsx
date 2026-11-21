@@ -2,7 +2,12 @@
  * BellePoule Modern - Phase « Tableau » de la compétition (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
-import { tableauAssignmentsDiff, type AssignmentsInput } from '../../hooks/usePoolsLaunch';
+import {
+  tableauAssignmentsDiff,
+  tableauScoreOps,
+  type AssignmentsInput,
+  type TableauScoreOps,
+} from '../../hooks/usePoolsLaunch';
 import type { TableauViewProps } from '../tableau/tableauViewShared';
 import React, { Suspense } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -114,7 +119,29 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
       });
       return;
     }
+    // Scores changés en bloc (retour arrière, remplissage automatique) : une commande par
+    // match, dans l'ordre des tours ; l'écran relit l'état (docs/adr/0017)
+    const ops = onRecordScore && onClearScore ? tableauScoreOps(tableauMatches, next) : null;
+    if (ops && (ops.clears.length || ops.records.length)) {
+      void applyScoreOps(ops).then(outcome => {
+        if (outcome === 'local') setTableauMatches(next);
+      });
+      return;
+    }
     setTableauMatches(next);
+  };
+
+  const applyScoreOps = async (ops: TableauScoreOps): Promise<'recorded' | 'local' | 'refused'> => {
+    for (const matchId of ops.clears) {
+      const outcome = await onClearScore!(matchId);
+      if (outcome !== 'recorded') return outcome;
+    }
+    for (const r of ops.records) {
+      const outcome = await onRecordScore!(r);
+      if (outcome !== 'recorded') return outcome;
+    }
+    if (ops.assignments.length && onAssign) await onAssign({ matches: ops.assignments });
+    return 'recorded';
   };
   const { t } = useTranslation();
   const { confirm } = useConfirm();

@@ -296,3 +296,70 @@ export function useCompetitionCommand(
     [client, competitionId, flushSession, showToast]
   );
 }
+
+export interface TableauScoreOps {
+  /** Scores à annuler, du dernier tour vers le premier */
+  clears: string[];
+  /** Scores à enregistrer, du premier tour vers la finale */
+  records: Array<{ matchId: string; scoreA: number; scoreB: number; winner?: 'A' | 'B' }>;
+  /** Pistes et arbitres changés en même temps (remplissage automatique) */
+  assignments: NonNullable<AssignmentsInput['matches']>;
+}
+
+/** Ordre des tours : premier tour d'abord, petite finale entre demi-finales et finale */
+const roundKey = (round: number) => (round === 3 ? 2.5 : round);
+
+/**
+ * Écart de scores entre deux états du tableau (retour arrière, remplissage automatique),
+ * traduit en commandes (clearScore, recordScore, assignMatches). null : écart d'une autre
+ * nature (matchs ajoutés, statut spécial…), laissé à l'écran.
+ */
+export function tableauScoreOps(
+  before: TableauMatch[],
+  after: TableauMatch[]
+): TableauScoreOps | null {
+  if (before.length !== after.length) return null;
+  const byId = new Map(before.map(m => [m.id, m]));
+  const ops: TableauScoreOps = { clears: [], records: [], assignments: [] };
+  const roundOf = new Map<string, number>();
+  for (const m of after) {
+    const old = byId.get(m.id);
+    if (!old || old.round !== m.round || old.position !== m.position) return null;
+    roundOf.set(m.id, m.round);
+    if (
+      (old.arena ?? null) !== (m.arena ?? null) ||
+      (old.referee?.id ?? null) !== (m.referee?.id ?? null)
+    ) {
+      ops.assignments.push({
+        matchId: m.id,
+        ...((old.arena ?? null) !== (m.arena ?? null) ? { strip: m.arena ?? null } : {}),
+        ...((old.referee?.id ?? null) !== (m.referee?.id ?? null)
+          ? { refereeId: m.referee?.id ?? null }
+          : {}),
+      });
+    }
+    if (m.isBye) continue;
+    const scoreChanged =
+      old.scoreA !== m.scoreA ||
+      old.scoreB !== m.scoreB ||
+      (old.winner?.id ?? null) !== (m.winner?.id ?? null);
+    if (!scoreChanged) continue;
+    if (m.specialStatus || old.specialStatus) return null;
+    if (!m.winner) {
+      if (old.winner) ops.clears.push(m.id);
+      continue;
+    }
+    if (!m.fencerA || !m.fencerB || m.scoreA == null || m.scoreB == null) return null;
+    const side: 'A' | 'B' = m.winner.id === m.fencerA.id ? 'A' : 'B';
+    // Score déjà décidé : recordScore corrige (tour suivant non joué)
+    ops.records.push({
+      matchId: m.id,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+      ...(m.scoreA === m.scoreB ? { winner: side } : {}),
+    });
+  }
+  ops.clears.sort((a, b) => roundKey(roundOf.get(a)!) - roundKey(roundOf.get(b)!));
+  ops.records.sort((a, b) => roundKey(roundOf.get(b.matchId)!) - roundKey(roundOf.get(a.matchId)!));
+  return ops;
+}

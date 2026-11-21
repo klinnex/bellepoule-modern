@@ -575,6 +575,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             getCheckedInFencers={getCheckedInFencers}
             overallRanking={overallRanking}
             setOverallRanking={setOverallRanking}
+            onRankingAdjust={ranking =>
+              runCompetitionCommand('adjustRanking', {
+                ranking: ranking.map(r => ({
+                  fencerId: r.fencer.id,
+                  rank: r.rank,
+                  ...(r.questPoints !== undefined ? { questPoints: r.questPoints } : {}),
+                })),
+              })
+            }
             setRankingValidated={setRankingValidated}
             setCurrentPhase={setCurrentPhase}
             handleQuestConfigUpdate={handleQuestConfigUpdate}

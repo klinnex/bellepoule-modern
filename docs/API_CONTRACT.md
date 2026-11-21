@@ -198,6 +198,9 @@ des matchs de tableau dont l'affectation automatique des pistes) ; pas encore d'
 changement d'arbitre depuis une tablette a son propre chemin. Classement ajusté ou recalculé
 (`adjustRanking`), poules passées (`skipPools`), tableau retiré quand le classement ou la petite
 finale change et pour « Refaire le tableau » sans correction (`clearTableau`) ; résultats
-déverrouillés : état d'interface du poste (le classement final reste celui du moteur). Restent
-avant 4c : remplissage automatique (épreuves de test), retour arrière du tableau, tableaux
-séparés, Quest ; état d'interface ; puis 4c ; 5.
+déverrouillés : état d'interface du poste (le classement final reste celui du moteur). Retour arrière
+et remplissage automatique du tableau traduits en commandes (`clearScore`, `recordScore`,
+`assignMatches`, dans l'ordre des tours) ; arbitres du remplissage des poules par
+`assignMatches` ; classement final de la Quest par `adjustRanking`. Restent avant 4c : tableaux
+séparés après les poules, tableaux de classement du remplissage « toutes les places », état
+d'interface ; puis 4c ; 5.

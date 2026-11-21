@@ -59,7 +59,14 @@ export function useCompetitionReferees({
 
   // Remplissage automatique des poules : assignation persistée en DB
   const handlePoolAutoFillReferees = useCallback(
-    (assignments: Map<string, Referee>) => {
+    async (assignments: Map<string, Referee>) => {
+      // Par le moteur (assignMatches) ; repli local hors moteur
+      const outcome = assign
+        ? await assign({
+            matches: [...assignments].map(([matchId, ref]) => ({ matchId, refereeId: ref.id })),
+          })
+        : 'local';
+      if (outcome !== 'local') return;
       applyPoolRefereeAssignments(assignments);
       for (const [matchId, ref] of assignments) {
         // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID
@@ -74,7 +81,7 @@ export function useCompetitionReferees({
           );
       }
     },
-    [applyPoolRefereeAssignments]
+    [applyPoolRefereeAssignments, assign]
   );
 
   // Arbitre(s) assigné(s) à une poule entière : l'arbitre principal est répercuté
