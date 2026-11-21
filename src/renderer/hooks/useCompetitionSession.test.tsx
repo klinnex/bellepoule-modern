@@ -134,6 +134,7 @@ describe('projection du moteur (docs/adr/0017, étape 4a)', () => {
     const { query, result } = await setup({ value: 1 });
     expect(query).toHaveBeenCalledWith('getCompetitionState', { competitionId: 'c1' });
     expect(result.current.restoredState!.pools).toHaveLength(1);
+    expect(result.current.restoredState!.reloaded).toBe(false);
   });
 
   it('relit sur journal:appended plus récent, ignore une révision déjà lue', async () => {
@@ -146,6 +147,8 @@ describe('projection du moteur (docs/adr/0017, étape 4a)', () => {
     act(() => emit({ type: 'journal:appended', competitionId: 'c1', revision: 3 }));
     await waitFor(() => expect(result.current.restoredState!.pools).toHaveLength(3));
     expect(query).toHaveBeenCalledTimes(2);
+    // Relecture : l'onglet du poste n'est pas repris de l'état (docs/adr/0017)
+    expect(result.current.restoredState!.reloaded).toBe(true);
     // Autre épreuve : ignoré
     act(() => emit({ type: 'journal:appended', competitionId: 'c2', revision: 9 }));
     expect(query).toHaveBeenCalledTimes(2);

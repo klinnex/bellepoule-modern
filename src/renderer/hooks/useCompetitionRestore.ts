@@ -148,7 +148,9 @@ export function useCompetitionRestore({
   useEffect(() => {
     if (restoredState && isLoaded) {
       const restoredPhase = phaseFromNumber(restoredState.currentPhase);
-      if (restoredPhase) setCurrentPhase(restoredPhase);
+      // Onglet : seulement au chargement ; une relecture après une commande garde l'onglet du
+      // poste (correction refaisant le tableau, fin des vagues…), docs/adr/0017
+      if (restoredPhase && !restoredState.reloaded) setCurrentPhase(restoredPhase);
       if (
         ['tableau', 'results', 'remote', 'ranking'].includes(restoredPhase ?? '') ||
         (restoredState.tableauMatches && restoredState.tableauMatches.length > 0)
