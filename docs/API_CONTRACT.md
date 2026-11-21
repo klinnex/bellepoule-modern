@@ -201,6 +201,11 @@ finale change et pour « Refaire le tableau » sans correction (`clearTableau`) 
 déverrouillés : état d'interface du poste (le classement final reste celui du moteur). Retour arrière
 et remplissage automatique du tableau traduits en commandes (`clearScore`, `recordScore`,
 `assignMatches`, dans l'ordre des tours) ; arbitres du remplissage des poules par
-`assignMatches` ; classement final de la Quest par `adjustRanking`. Restent avant 4c : tableaux
-séparés après les poules, tableaux de classement du remplissage « toutes les places », état
-d'interface ; puis 4c ; 5.
+`assignMatches` ; classement final de la Quest par `adjustRanking`. État d'interface du poste
+(onglet affiché, bornes de taille de la préparation des poules, pistes de la saisie distante) :
+gardé dans le navigateur par épreuve (`posteUiState`), plus dans l'état partagé ; au chargement,
+l'onglet du poste est rouvert s'il ne devance pas la phase de l'épreuve. **Exception documentée**
+(décision du mainteneur, 2026-11-21, révisable) : les tableaux séparés après les poules restent
+écrits par l'écran, comme les épreuves par équipes ; l'étape 4c ne les couvre pas. Restent avant
+4c : composition des équipes des rapières, tableaux de classement du remplissage « toutes les
+places » (test) ; puis 4c ; 5.

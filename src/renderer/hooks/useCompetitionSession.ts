@@ -62,6 +62,9 @@ const PHASES_BY_NUMBER: Record<number, Phase> = Object.fromEntries(
 );
 
 /** Phase correspondant au numéro sauvegardé (undefined si inconnu) */
+/** Numéro d'ordre d'une phase (onglet) */
+export const phaseNumber = (phase: Phase): number => PHASE_NUMBERS[phase];
+
 export const phaseFromNumber = (n: number | undefined): Phase | undefined =>
   PHASES_BY_NUMBER[n ?? 0];
 
