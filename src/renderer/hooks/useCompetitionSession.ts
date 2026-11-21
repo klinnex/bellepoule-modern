@@ -11,6 +11,8 @@ import {
 } from '../../shared/domain/formula/formulaDraft';
 import { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
+import type { CompetitionStateDTO } from '../../shared/api/contract';
+import { useBpmClient } from '../api/BpmClientContext';
 import {
   TableauMatch,
   FinalResult,
@@ -119,6 +121,13 @@ interface UseCompetitionSessionProps {
   };
 }
 
+/** État lu : projection du moteur et ses révisions */
+interface FetchedState {
+  state: (Partial<CompetitionStateDTO> & Pick<CompetitionStateDTO, 'currentPoolRound'>) | null;
+  sessionRevision: number;
+  revision: number;
+}
+
 export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [restoredState, setRestoredState] = useState<Partial<SessionState> | null>(null);
@@ -128,6 +137,11 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
   const reloadingRef = useRef(false);
   // Révision chargée : une sauvegarde sur un état réécrit depuis par le MCP est refusée
   const revisionRef = useRef(0);
+  // Révision du journal de l'état chargé (getCompetitionState, docs/adr/0017)
+  const journalRevisionRef = useRef(0);
+  const reloadInFlightRef = useRef<Promise<void> | null>(null);
+  const reloadPendingRef = useRef(0);
+  const client = useBpmClient();
   const restoreRef = useRef<() => Promise<void>>(async () => undefined);
   propsRef.current = props;
   isLoadedRef.current = isLoaded;
@@ -183,46 +197,84 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
   }, []); // stable - lit les props depuis propsRef
 
   // Restaurer l'état
-  const restoreState = useCallback(async () => {
-    if (!window.electronAPI?.db?.getSessionState) {
-      setIsLoaded(true);
-      return;
-    }
-
+  /**
+   * État de l'épreuve tenu par le moteur (getCompetitionState, docs/adr/0017) avec sa révision
+   * de journal ; hors moteur (navigateur, tests sans pont), lecture directe du bloc.
+   */
+  const fetchState = useCallback(async (): Promise<FetchedState | null> => {
     try {
-      const state = await window.electronAPI.db.getSessionState(props.competitionId);
-      if (state) {
-        const typedState = state as SessionState;
-        revisionRef.current = typeof typedState.revision === 'number' ? typedState.revision : 0;
-        setRestoredState({
-          currentPhase: typedState.currentPhase,
-          pools: typedState.pools || [],
-          poolHistory: typedState.poolHistory || [],
-          appelHistory: typedState.appelHistory || [],
-          overallRanking: typedState.overallRanking || [],
-          tableauMatches: typedState.tableauMatches || [],
-          finalResults: typedState.finalResults || [],
-          consolationBrackets: typedState.consolationBrackets || [],
-          currentPoolRound: typedState.uiState?.currentPoolRound || 1,
-          skipPoolPhase: typedState.skipPoolPhase ?? false,
-          poolsLaunched: typedState.poolsLaunched,
-          remoteArenaCount: typedState.remoteArenaCount,
-          remoteStripStart: typedState.remoteStripStart,
-          rapieres: typedState.rapieres,
-          poolPrepParams: typedState.poolPrepParams || {
-            poolCount: 0,
-            minFencersPerPool: 5,
-            maxFencersPerPool: 7,
-          },
-        });
-
-        logger.debug(LogCategory.UI, 'Session state restored');
+      const r = await client.query('getCompetitionState', { competitionId: props.competitionId });
+      // Pont sans moteur (bouchon de test) : réponse vide, lecture directe ci-dessous
+      if (r && typeof r === 'object' && typeof r.revision === 'number') {
+        return { state: r.state, sessionRevision: r.sessionRevision, revision: r.revision };
       }
     } catch (e) {
-      logger.error(LogCategory.UI, 'Failed to restore session state', e as Error);
+      const code = (e as { code?: string }).code;
+      if (code !== 'unavailable' && code !== 'unknown_operation') throw e;
     }
-    setIsLoaded(true);
-  }, [props.competitionId]);
+    if (!window.electronAPI?.db?.getSessionState) return null;
+    const raw = (await window.electronAPI.db.getSessionState(props.competitionId)) as
+      (SessionState & { uiState?: { currentPoolRound?: number } }) | null;
+    if (!raw) return { state: null, sessionRevision: 0, revision: 0 };
+    return {
+      state: { ...raw, currentPoolRound: raw.uiState?.currentPoolRound || 1 },
+      sessionRevision: typeof raw.revision === 'number' ? raw.revision : 0,
+      revision: 0,
+    };
+  }, [client, props.competitionId]);
+
+  // Restaurer l'état
+  // `onlyIfChanged` (relecture sur signal) : l'état n'est appliqué que si le moteur a réécrit le
+  // bloc (révision de session changée) ; sinon la saisie locale en attente est conservée
+  // (un pointage avance le journal sans toucher au bloc).
+  const restoreState = useCallback(
+    async (onlyIfChanged = false) => {
+      try {
+        const fetched = await fetchState();
+        if (fetched) {
+          journalRevisionRef.current = Math.max(journalRevisionRef.current, fetched.revision);
+          if (onlyIfChanged && fetched.sessionRevision === revisionRef.current) return;
+          revisionRef.current = fetched.sessionRevision;
+        }
+        const state = fetched?.state;
+        if (state && onlyIfChanged && saveTimerRef.current) {
+          // Bloc réécrit par le moteur : la sauvegarde en attente, faite sur l'ancien, est annulée
+          clearTimeout(saveTimerRef.current);
+          saveTimerRef.current = null;
+        }
+        if (state) {
+          setRestoredState({
+            currentPhase: state.currentPhase,
+            pools: state.pools || [],
+            poolHistory: state.poolHistory || [],
+            appelHistory: state.appelHistory || [],
+            overallRanking: state.overallRanking || [],
+            tableauMatches: state.tableauMatches || [],
+            finalResults: state.finalResults || [],
+            consolationBrackets: state.consolationBrackets || [],
+            currentPoolRound: state.currentPoolRound || 1,
+            skipPoolPhase: state.skipPoolPhase ?? false,
+            poolsLaunched: state.poolsLaunched,
+            remoteArenaCount: state.remoteArenaCount,
+            remoteStripStart: state.remoteStripStart,
+            rapieres: state.rapieres,
+            poolPrepParams: state.poolPrepParams || {
+              poolCount: 0,
+              minFencersPerPool: 5,
+              maxFencersPerPool: 7,
+            },
+          });
+
+          logger.debug(LogCategory.UI, 'Session state restored');
+        }
+      } catch (e) {
+        logger.error(LogCategory.UI, 'Failed to restore session state', e as Error);
+      } finally {
+        setIsLoaded(true);
+      }
+    },
+    [fetchState]
+  );
 
   restoreRef.current = restoreState;
 
@@ -268,24 +320,57 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // État de session réécrit hors écran (MCP : poules, scores, tableau, #1880) : la sauvegarde
-  // en attente est annulée et l'état est relu en base, sans écraser l'écriture du domaine.
-  useEffect(() => {
-    const subscribe = window.electronAPI?.onCompetitionEvent;
-    if (!subscribe) return;
-    return subscribe(event => {
-      if (event.type !== 'session:changed') return;
-      if (event.competitionId !== propsRef.current.competitionId) return;
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = null;
+  /**
+   * Relecture coalescée (docs/adr/0017, étape 4a) : une relecture à la fois ; un signal reçu
+   * pendant une relecture en déclenche une seule autre. `minRevision` (signal de journal) :
+   * rien à faire si l'état lu est déjà à cette révision. L'état relu n'est appliqué que si le
+   * moteur a réécrit le bloc ; il fait alors foi.
+   */
+  const requestReload = useCallback(
+    (minRevision?: number) => {
+      if (minRevision !== undefined && journalRevisionRef.current >= minRevision) return;
+      if (reloadInFlightRef.current) {
+        reloadPendingRef.current = Math.max(reloadPendingRef.current, minRevision ?? Infinity);
+        return;
       }
-      reloadingRef.current = true;
-      void restoreState().finally(() => {
-        reloadingRef.current = false;
+      reloadInFlightRef.current = (async () => {
+        try {
+          do {
+            reloadPendingRef.current = 0;
+            await restoreState(true);
+          } while (
+            reloadPendingRef.current > 0 &&
+            journalRevisionRef.current < reloadPendingRef.current
+          );
+        } finally {
+          reloadInFlightRef.current = null;
+        }
+      })();
+    },
+    [restoreState]
+  );
+
+  // Signaux de l'épreuve par le contrat : journal:appended (révision du journal) et
+  // session:changed (écritures du moteur pas encore journalisées, jusqu'à l'étape 4b).
+  // Hors moteur : signal session:changed de l'ancien canal.
+  useEffect(() => {
+    const competitionId = props.competitionId;
+    try {
+      return client.subscribe('onCompetitionEvents', { competitionId }, event => {
+        if (event.competitionId && event.competitionId !== competitionId) return;
+        if (event.type === 'journal:appended') requestReload(event.revision ?? Infinity);
+        else if (event.type === 'session:changed') requestReload();
       });
-    });
-  }, [restoreState]);
+    } catch {
+      const subscribe = window.electronAPI?.onCompetitionEvent;
+      if (!subscribe) return;
+      return subscribe(event => {
+        if (event.type !== 'session:changed') return;
+        if (event.competitionId !== competitionId) return;
+        requestReload();
+      });
+    }
+  }, [client, props.competitionId, requestReload]);
 
   // Sauvegarder à chaque changement - debounced 500ms pour éviter les écritures en rafale
   useEffect(() => {

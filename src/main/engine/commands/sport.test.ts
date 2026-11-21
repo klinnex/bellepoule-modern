@@ -17,6 +17,7 @@ import { assignPoolReferees } from './refereeing';
 import { getBracket, getPoolRanking } from './sessionView';
 import { exportResults } from './exportResults';
 import { planTableau } from '../../../shared/domain/tableau/tableauCalculations';
+import { invoke } from '../api/engine';
 import type { Pool, PoolRanking } from '../../../shared/types';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
@@ -406,5 +407,26 @@ d('saisie des scores : formats élargis (#1980, ADR-0005)', () => {
     expect(() =>
       recordScore(ctx, comp.id, { matchId: qf.matchId, scoreA: 15, scoreB: 14 })
     ).toThrow(/classement/);
+  });
+});
+
+d('getCompetitionState (docs/adr/0017, étape 4a)', () => {
+  it('projection du moteur avec la révision du journal ; null avant ouverture', async () => {
+    const comp = await setup(4);
+    const empty = (await invoke(ctx, 'getCompetitionState', { competitionId: comp.id })) as any;
+    expect(empty).toEqual({ revision: 0, sessionRevision: 0, state: null });
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 1 });
+    const res = (await invoke(ctx, 'getCompetitionState', { competitionId: comp.id })) as any;
+    expect(res.revision).toBe(db.eventLog.getRevision(comp.id));
+    expect(res.revision).toBeGreaterThan(0);
+    expect(res.state.pools).toHaveLength(1);
+    expect(res.state.currentPhase).toBe(2);
+    expect(res.state.currentPoolRound).toBe(1);
+    expect(res.sessionRevision).toBeGreaterThan(0);
+    await expect(invoke(ctx, 'getCompetitionState', { competitionId: 'x' })).rejects.toMatchObject({
+      code: 'competition_not_found',
+    });
   });
 });

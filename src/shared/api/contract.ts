@@ -9,6 +9,9 @@
  */
 import { z } from 'zod';
 import { JournalEventSchema } from './events';
+import type { Fencer, Pool, PoolRanking } from '../types';
+import type { ConsolationBracket, FinalResult, TableauMatch } from '../domain/tableau/tableauTypes';
+import type { RapieresLegacyState, RapieresSession } from '../domain/rapieres/rapieres.types';
 
 /** Droits (utilisés par le sous-ticket 4, rôles et permissions) */
 export type Permission =
@@ -96,6 +99,36 @@ const ResolvedRefereeing = z.object({
   maxConsecutiveMatches: z.number(),
   minRestTimeMinutes: z.number(),
 });
+
+/**
+ * État de l'épreuve (projection du moteur, docs/adr/0017). Les objets du domaine (poules,
+ * matchs de tableau…) sont typés par leurs interfaces : z.custom, sans contrôle à l'exécution.
+ * Les champs d'interface (phase affichée, paramètres de préparation, pistes) sortent à l'étape 4b.
+ */
+const CompetitionStateSchema = z.object({
+  currentPhase: z.number().int(),
+  pools: z.array(z.custom<Pool>()),
+  poolHistory: z.array(z.array(z.custom<Pool>())),
+  appelHistory: z.array(z.array(z.custom<Fencer>())),
+  overallRanking: z.array(z.custom<PoolRanking>()),
+  tableauMatches: z.array(z.custom<TableauMatch>()),
+  finalResults: z.array(z.custom<FinalResult>()),
+  consolationBrackets: z.array(z.custom<ConsolationBracket>()),
+  currentPoolRound: z.number().int(),
+  skipPoolPhase: z.boolean(),
+  poolsLaunched: z.boolean().optional(),
+  remoteArenaCount: z.number().int().optional(),
+  remoteStripStart: z.number().int().optional(),
+  rapieres: z.custom<RapieresSession | RapieresLegacyState>().optional(),
+  poolPrepParams: z
+    .object({
+      poolCount: z.number(),
+      minFencersPerPool: z.number(),
+      maxFencersPerPool: z.number(),
+    })
+    .optional(),
+});
+export type CompetitionStateDTO = z.infer<typeof CompetitionStateSchema>;
 
 const MatchCard = z.object({
   id: z.string(),
@@ -323,6 +356,20 @@ export const contract = {
     output: z.object({ revision: z.number(), events: z.array(JournalEventSchema) }),
     permission: 'competition:read',
     mcp: { name: 'get_competition_events', title: 'Journal d’une épreuve' },
+  }),
+
+  getCompetitionState: query({
+    description:
+      'État de l’épreuve tenu par le moteur (docs/adr/0017) : poules, tours, tableau, tableaux de classement, classements, phase. ' +
+      '« revision » : révision du journal, à comparer au signal journal:appended pour savoir s’il faut relire.',
+    input: z.object({ competitionId: CompetitionId }),
+    output: z.object({
+      revision: z.number().int(),
+      /** Compteur de l'état de session (sauvegarde de l'écran, jusqu'à l'étape 4c de l'ADR-0017) */
+      sessionRevision: z.number().int(),
+      state: CompetitionStateSchema.nullable(),
+    }),
+    permission: 'competition:read',
   }),
 
   getMatchHistory: query({

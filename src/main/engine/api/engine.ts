@@ -23,6 +23,8 @@ import {
 import { checkInFencers } from '../commands/checkIn';
 import { reinstateFencer, withdrawFencer } from '../commands/withdrawal';
 import { getCompetitionOrThrow } from '../commands/competitions';
+import { readSession } from '../commands/sessionView';
+import { competitionState } from '../commands/competitionState';
 import { v4 as uuidv4 } from 'uuid';
 import type { StoredJournalEvent } from '../../../database/repos/eventLogRepo';
 import { onCompetitionEvent, publishCompetitionEvent } from './events';
@@ -58,6 +60,15 @@ export const handlers: { [N in OperationName]: Handler<N> } = {
     return {
       revision: ctx.db.eventLog.getRevision(competitionId),
       events: ctx.db.eventLog.getSince(competitionId, since ?? 0, limit ?? 1000).map(publicEvent),
+    };
+  },
+  getCompetitionState: (ctx, { competitionId }) => {
+    getCompetitionOrThrow(ctx, competitionId);
+    const session = readSession(ctx, competitionId);
+    return {
+      revision: ctx.db.eventLog.getRevision(competitionId),
+      sessionRevision: typeof session.revision === 'number' ? session.revision : 0,
+      state: competitionState(session),
     };
   },
   getMatchHistory: (ctx, { competitionId, matchId }) => {

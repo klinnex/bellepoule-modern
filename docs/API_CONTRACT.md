@@ -65,6 +65,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `getMatchCards` | requête | — |
 | `getCardsByMatchIds` | requête | — |
 | `getCompetitionEvents` | requête | `get_competition_events` |
+| `getCompetitionState` | requête — état de l'épreuve tenu par le moteur, révision du journal ([ADR-0017](adr/0017-projections-etat-epreuve.md)) | — |
 | `getMatchHistory` | requête | — |
 | `onCompetitionEvents` | abonnement | — |
 
@@ -158,5 +159,9 @@ de poule par `recordScore` ; annulation du carton noir par `reinstateFencer`
 `remote:fencer_reinstated` portent `recorded` : l'écran relit au lieu d'appliquer. Les trois PR
 se mergent ensemble.
 
-Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
-mise à jour par diffusion (4), `session_state` en cache reconstruit (5).
+Projections ([ADR-0017](adr/0017-projections-etat-epreuve.md)) : étape 4a faite. L'écran lit
+l'état par `getCompetitionState` et le relit quand `journal:appended` annonce une révision plus
+récente que la sienne (ou sur `session:changed`, pour les écritures du moteur pas encore
+journalisées) ; relectures coalescées, une seule par rafale. Restent 4b (un fait par PR :
+tirage, composition, clôture de tour, tableau, correction, rapières ; état d'interface hors du
+bloc), 4c (l'écran n'écrit plus `session_state`) et 5 (`rebuildCompetitionState`, rejeu).
