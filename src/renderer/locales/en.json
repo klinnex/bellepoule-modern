@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} entry",
     "entries_other": "{{count}} entries",
     "total": " ({{n}} in total)",
-    "author_device": "Scoring machine"
+    "author_device": "Scoring machine",
+    "record_failed": "Score not saved: {{message}}"
   },
   "errorBoundary": {
     "title": "An error occurred",

@@ -81,6 +81,7 @@ export function useTableauViewScoring(ctx: Ctx) {
     undo,
     competitionId,
     weapon,
+    onRecordScore,
   } = ctx;
 
   useEffect(() => {
@@ -359,6 +360,28 @@ export function useTableauViewScoring(ctx: Ctx) {
       }
     }
 
+    // Un fait, un chemin (#1980, ADR-0005) : le score passe par la commande recordScore ;
+    // l'écran relit la session. Format non piloté par le moteur : saisie locale historique.
+    if (onRecordScore) {
+      const tieWinner = victoryA ? 'A' : victoryB ? 'B' : undefined;
+      const matchId = editingMatch;
+      void onRecordScore({
+        matchId,
+        scoreA,
+        scoreB,
+        ...(scoreA === scoreB && tieWinner ? { winner: tieWinner } : {}),
+      }).then(outcome => {
+        if (outcome === 'recorded') closeScoreModal();
+        else if (outcome === 'local') applyScoreLocally(scoreA, scoreB);
+      });
+      return;
+    }
+    applyScoreLocally(scoreA, scoreB);
+  };
+
+  /** Saisie locale (formats hors moteur, ou hors Electron) : état de l'écran puis sauvegarde */
+  const applyScoreLocally = (scoreA: number, scoreB: number) => {
+    if (!editingMatch) return;
     // Si c'est un match de bracket de consolation
     if (editingConsolationId) {
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);

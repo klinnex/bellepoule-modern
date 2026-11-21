@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} voce",
     "entries_other": "{{count}} voci",
     "total": " ({{n}} in totale)",
-    "author_device": "Apparecchio di segnalazione"
+    "author_device": "Apparecchio di segnalazione",
+    "record_failed": "Punteggio non salvato: {{message}}"
   },
   "errorBoundary": {
     "title": "Si è verificato un errore",

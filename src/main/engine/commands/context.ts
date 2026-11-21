@@ -27,6 +27,11 @@ export interface CommandContext {
   actor?: EventAuthor;
   /** Commande en cours (runCommand) : commune à ses événements du journal (ADR-0007) */
   commandId?: string;
+  /**
+   * Détails du journal des scores (score_audit_log) connus de l'appelant : arbitre, adresse
+   * de la tablette (détection de conflit), motif (#1980)
+   */
+  scoreAudit?: { refereeId?: string; refereeName?: string; ipAddress?: string; reason?: string };
 }
 
 /** Erreur métier : message destiné à l'opérateur (ou à l'agent), code stable */

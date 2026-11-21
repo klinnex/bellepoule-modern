@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { recordFinishedScore } from '../scoreCommand';
 import { FencerStatus, MatchStatus, type Match } from '../../../shared/types';
 import type {
   Arena,
@@ -17,7 +18,10 @@ import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 import { recordRemoteEvent } from '../remoteEvents';
-import { decideMatchWinner, isAcceptableScore } from '../../../shared/domain/match/matchEndValidation';
+import {
+  decideMatchWinner,
+  isAcceptableScore,
+} from '../../../shared/domain/match/matchEndValidation';
 import { isCyranoMasterOnline } from '../cyranoLock';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
@@ -394,6 +398,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             arena.currentMatch.scoreB = scoreB;
             if (Number.isFinite(fightSeconds) && fightSeconds > 0 && fightSeconds < 6 * 3600)
               arena.currentMatch.fightSeconds = Math.round(fightSeconds);
+            if (blackCarded) arena.currentMatch.blackCardFencer = blackCarded;
             arenaToFinish = arenaId;
             break;
           }
@@ -403,6 +408,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         } else {
           // Match non trouvé dans une arène active : notifier quand même le renderer
           // (cas où l'arbitre soumet depuis referee.html mais l'arène a déjà changé)
+          // Score par la commande recordScore (#1980) ; carton noir : chemin historique
+          const recorded =
+            !blackCarded &&
+            recordFinishedScore(ctx.db, {
+              competitionId: ctx.session?.competitionId,
+              matchId,
+              scoreA,
+              scoreB,
+              winner: winner as 'A' | 'B' | null,
+              source: 'tablet',
+            });
           const mainWin = getSharedMainWindow();
           if (mainWin) {
             const isTableauMatch = !dbMatch.poolId;
@@ -413,6 +429,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               winner: winner as 'A' | 'B' | null,
               poolId: dbMatch.poolId ?? null,
               isTableau: isTableauMatch,
+              recorded,
             });
             logger.info(
               LogCategory.NETWORK,
@@ -434,6 +451,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           if (arena.currentMatch && arena.currentMatch.id === matchId) {
             arena.currentMatch.scoreA = scoreA;
             arena.currentMatch.scoreB = scoreB;
+            if (blackCarded) arena.currentMatch.blackCardFencer = blackCarded;
             ctx.finishArenaMatch(arenaId);
             arenaFoundForInMemory = true;
             break;
@@ -444,6 +462,16 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           const mainWin = getSharedMainWindow();
           if (mainWin) {
             const sm = ctx.sessionMatches.find(m => m.id === matchId);
+            const recorded =
+              !blackCarded &&
+              recordFinishedScore(ctx.db, {
+                competitionId: ctx.session?.competitionId,
+                matchId,
+                scoreA,
+                scoreB,
+                winner: winner as 'A' | 'B' | null,
+                source: 'tablet',
+              });
             mainWin.webContents.send('match:finished', {
               matchId,
               scoreA,
@@ -451,6 +479,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               winner: winner as 'A' | 'B' | null,
               poolId: sm?.poolId ?? null,
               isTableau: sm?.isTableau ?? false,
+              recorded,
             });
             logger.info(
               LogCategory.NETWORK,

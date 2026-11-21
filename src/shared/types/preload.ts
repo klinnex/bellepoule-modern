@@ -243,6 +243,8 @@ export interface RemoteMatchFinishedEvent {
   isTableau?: boolean;
   /** Motif de fin signalé par l'appareil de piste : le perdant porte l'abandon / l'exclusion (#1829) */
   deviceReason?: 'priority' | 'abandon' | 'exclusion';
+  /** Score déjà écrit par la commande recordScore (#1980) : l'écran relit la session */
+  recorded?: boolean;
 }
 
 export interface SessionState {

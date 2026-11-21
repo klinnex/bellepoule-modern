@@ -511,8 +511,7 @@ function recordPoolScore(
         previousScoreB: match.scoreB ?? undefined,
         newScoreA: scores.scoreA,
         newScoreB: scores.scoreB,
-        changedBy: 'mcp',
-        reason: 'mcp_entry',
+        ...scoreAudit(ctx),
         poolId: pool.id,
       });
       const completed: string[] = [];
@@ -554,6 +553,44 @@ function recordPoolScore(
   };
 }
 
+/**
+ * Auteur au journal des scores (score_audit_log), selon l'origine de la commande : mêmes
+ * valeurs qu'avant le passage par recordScore (écran « ui », tablette « referee » ou nom de
+ * l'arbitre, appareil de piste « device », agent « mcp »).
+ */
+function scoreAudit(ctx: CommandContext): {
+  changedBy: string;
+  reason?: string;
+  refereeId?: string;
+  refereeName?: string;
+  ipAddress?: string;
+} {
+  const base = scoreAuditBase(ctx);
+  const extra = ctx.scoreAudit;
+  return {
+    ...base,
+    ...extra,
+    // Nom de l'arbitre au journal des scores comme avant ; le journal d'épreuve n'a que l'id
+    changedBy: extra?.refereeName || base.changedBy,
+    reason: extra?.reason ?? base.reason,
+  };
+}
+
+function scoreAuditBase(ctx: CommandContext): { changedBy: string; reason?: string } {
+  const by = ctx.actor;
+  switch (by?.source) {
+    case 'screen':
+      return { changedBy: 'ui' };
+    case 'tablet':
+      return { changedBy: 'referee', reason: 'arena_finish' };
+    case 'cyrano':
+    case 'opp2':
+      return { changedBy: 'device', reason: 'arena_finish' };
+    default:
+      return { changedBy: 'mcp', reason: 'mcp_entry' };
+  }
+}
+
 /** Classement d'entrée du tableau, comme l'écran (vainqueurs de poule, formule) */
 function tableauRanking(comp: Competition, session: Record<string, unknown>): PoolRanking[] {
   const overall = Array.isArray(session.overallRanking)
@@ -572,7 +609,8 @@ function tableauRanking(comp: Competition, session: Record<string, unknown>): Po
 }
 
 function persistTableau(ctx: CommandContext, comp: Competition, matches: TableauMatch[]): void {
-  const audit = { changedBy: 'mcp', reason: 'mcp_entry' };
+  const { changedBy, reason } = scoreAudit(ctx);
+  const audit = { changedBy, reason: reason ?? 'tableau_entry' };
   const maxScore = effectiveSettings(comp).tableMaxScore;
   ctx.db.upsertMultipleTableauMatches(
     comp.id,

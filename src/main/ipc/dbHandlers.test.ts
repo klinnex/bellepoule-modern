@@ -68,6 +68,23 @@ describe('bus d’événements db (#1298)', () => {
     expect(db.logScoreChange.mock.calls[0][0]).not.toHaveProperty('reason');
   });
 
+  it('db:updateMatch : score déjà en base (écrit par recordScore) ni réécrit ni journalisé (#1980)', async () => {
+    db.updateMatch.mockClear();
+    db.logScoreChange.mockClear();
+    db.getMatch.mockReturnValueOnce({
+      id: 'm1',
+      poolId: 'p1',
+      scoreA: { value: 5, isVictory: true },
+      scoreB: { value: 4 },
+    } as never);
+    await handlers.get('db:updateMatch')!({}, 'm1', {
+      scoreA: { isVictory: true, value: 5 },
+      scoreB: { value: 4 },
+    });
+    expect(db.updateMatch).not.toHaveBeenCalled();
+    expect(db.logScoreChange).not.toHaveBeenCalled();
+  });
+
   it('db:addFencer émet fencers:changed pour la compétition', async () => {
     await handlers.get('db:addFencer')!({}, 'c1', {});
     expect(send).toHaveBeenCalledWith('competition:event', {

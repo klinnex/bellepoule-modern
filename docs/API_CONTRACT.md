@@ -113,9 +113,26 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 **Un fait, un chemin** ([ADR-0005](adr/0005-journal-un-fait-un-chemin.md)) : le pointage de l'écran
 (bouton « Pointer », tout pointer / dépointer) passe uniquement par `checkIn` ; règle unique des statuts
 spéciaux (`canToggleCheckIn`, `shared/domain/fencers`) ; succès affiché après la réponse. Les cartons
-se lisent par `getMatchCards` / `getCardsByMatchIds`. Reste : les scores (écran, tablettes, appareils).
-Préalable fait : `recordScore` couvre tous les formats individuels (tours multiples, rapières,
-« toutes les places ») ; les équipes gardent leur modèle de relais.
+se lisent par `getMatchCards` / `getCardsByMatchIds`.
+
+Scores : `recordScore` couvre tous les formats individuels (tours multiples, rapières, « toutes les
+places ») ; les équipes gardent leur modèle de relais. Une seule écriture pour :
+
+- l'écran : saisie en poule et au tableau (tableaux de classement compris) par `useRecordScore`,
+  après écriture de la sauvegarde en attente ; l'écran relit la session (`session:changed`) ;
+- les tablettes : fin de match (`finishArenaMatch`, fin hors arène) et feuille de poule, par
+  `recordFinishedScore` (`src/main/remote/scoreCommand.ts`, `invokeCommandSync`) ; l'événement
+  `match:finished` porte `recorded: true` et l'écran n'applique plus le score lui-même ;
+- les appareils de piste (Cyrano, OPP2), par la même fin de match (source `cyrano`).
+
+Journal des scores (`score_audit_log`) inchangé pour l'utilisateur : `ui`, nom de l'arbitre avec
+l'adresse de la tablette, `device`, `mcp`. Le journal d'épreuve ne porte que l'identifiant de
+l'arbitre (RGPD).
+
+Restent sur le chemin historique (saisie locale de l'écran, ou écriture directe du serveur) : épreuves
+par équipes, tableaux séparés après les poules, statuts spéciaux (abandon, forfait, exclusion,
+carton noir), correction d'une poule après tirage du tableau, égalité sans vainqueur sur la feuille
+de poule, scores en cours et synchronisation hors ligne des tablettes (`updateMatchScore`).
 
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).

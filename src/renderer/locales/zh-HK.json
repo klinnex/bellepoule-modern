@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} 項紀錄",
     "entries_other": "{{count}} 項紀錄",
     "total": "（合共 {{n}}）",
-    "author_device": "計分器"
+    "author_device": "計分器",
+    "record_failed": "比分未儲存：{{message}}"
   },
   "errorBoundary": {
     "title": "發生錯誤",

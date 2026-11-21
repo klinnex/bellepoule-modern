@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entrades",
     "total": " ({{n}} en total)",
-    "author_device": "Aparell de senyalització"
+    "author_device": "Aparell de senyalització",
+    "record_failed": "Puntuació no desada: {{message}}"
   },
   "errorBoundary": {
     "title": "S'ha produït un error",

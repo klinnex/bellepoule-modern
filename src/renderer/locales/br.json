@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} enankadur",
     "entries_other": "{{count}} enankadur",
     "total": " ({{n}} en holl)",
-    "author_device": "Ardivink ar bistenn"
+    "author_device": "Ardivink ar bistenn",
+    "record_failed": "N’eo ket bet enrollet ar skor : {{message}}"
   },
   "errorBoundary": {
     "title": "Ur fazi a zo c'hoarvezet",

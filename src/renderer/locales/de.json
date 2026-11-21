@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} Eintrag",
     "entries_other": "{{count}} Einträge",
     "total": " ({{n}} insgesamt)",
-    "author_device": "Trefferanzeige"
+    "author_device": "Trefferanzeige",
+    "record_failed": "Ergebnis nicht gespeichert: {{message}}"
   },
   "errorBoundary": {
     "title": "Ein Fehler ist aufgetreten",

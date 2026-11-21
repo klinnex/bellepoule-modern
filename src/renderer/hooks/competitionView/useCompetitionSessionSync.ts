@@ -19,6 +19,7 @@ import { useCompetitionMenu } from '../useCompetitionMenu';
 import { useCompetitionBootstrap } from '../useCompetitionBootstrap';
 import { useCompetitionRestore } from '../useCompetitionRestore';
 import { useRemoteScoreSync } from '../useRemoteScoreSync';
+import { useRecordScore } from '../useRecordScore';
 import { useCompetitionReferees } from '../useCompetitionReferees';
 import { useRapieresCompetition } from '../../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../useMatchDbSync';
@@ -131,7 +132,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   // Modifications de préparation gardées au retour vers l'appel (#1649)
   const [poolPrepDraft, setPoolPrepDraft] = useState<PoolPrepDraft | null>(null);
 
-  const { isLoaded } = useCompetitionRestore({
+  const { isLoaded, flushPendingSave } = useCompetitionRestore({
     competitionId: competition.id,
     currentPhase,
     setCurrentPhase,
@@ -168,6 +169,33 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     poolsLaunched,
     setPoolsLaunched,
   });
+
+  // Un fait, un chemin (#1980, ADR-0005) : scores saisis à l'écran par recordScore
+  const recordScreenScore = useRecordScore(competition.id, flushPendingSave);
+  const localUpdateScore = ctx.updateScore;
+  const updateScore = useCallback(
+    (...args: Parameters<typeof localUpdateScore>) => {
+      const [poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus, priority, correction] =
+        args;
+      const match = pools[poolIndex]?.matches[matchIndex];
+      // Correction après tirage du tableau (#1996) et statut spécial (forfait propagé par
+      // l'écran) : saisie locale historique
+      if (!match || correction || specialStatus) {
+        localUpdateScore(...args);
+        return;
+      }
+      void recordScreenScore({
+        matchId: match.id,
+        scoreA,
+        scoreB,
+        ...(winner ? { winner } : {}),
+        ...(priority ? { priority } : {}),
+      }).then(outcome => {
+        if (outcome === 'local') localUpdateScore(...args);
+      });
+    },
+    [pools, localUpdateScore, recordScreenScore]
+  );
 
   useCompetitionBootstrap({
     competitionId: competition.id,
@@ -420,6 +448,8 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   });
 
   return {
+    updateScore,
+    recordScreenScore,
     poolsLaunched,
     setPoolsLaunched,
     relaunchPending,

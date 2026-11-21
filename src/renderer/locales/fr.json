@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} entrée",
     "entries_other": "{{count}} entrées",
     "total": " ({{n}} au total)",
-    "author_device": "Appareil de piste"
+    "author_device": "Appareil de piste",
+    "record_failed": "Score non enregistré : {{message}}"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

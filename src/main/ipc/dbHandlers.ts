@@ -121,6 +121,23 @@ export function registerDbHandlers({
     if (hasScore) {
       try {
         const prev = db.getMatch(id);
+        // Score déjà en base (écrit par recordScore, l'écran ne fait que relire) : rien à
+        // réécrire ni à journaliser (#1980)
+        const canon = (v: unknown) =>
+          v && typeof v === 'object'
+            ? JSON.stringify(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
+            : JSON.stringify(v ?? null);
+        const same = (x: unknown, y: unknown) => canon(x) === canon(y);
+        if (
+          prev &&
+          !reason &&
+          same(prev.scoreA, updates.scoreA ?? prev.scoreA) &&
+          same(prev.scoreB, updates.scoreB ?? prev.scoreB) &&
+          (updates.status === undefined || updates.status === prev.status) &&
+          Object.keys(updates).every(k => ['scoreA', 'scoreB', 'status'].includes(k))
+        ) {
+          return;
+        }
         db.updateMatch(id, updates);
         if (prev) {
           db.logScoreChange({

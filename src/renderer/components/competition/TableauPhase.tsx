@@ -2,6 +2,7 @@
  * BellePoule Modern - Phase « Tableau » de la compétition (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
+import type { TableauViewProps } from '../tableau/tableauViewShared';
 import React, { Suspense } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Referee } from '../../../shared/types';
@@ -53,6 +54,8 @@ interface TableauPhaseProps {
   /** Écart cumulé entre le tableau tiré et le classement corrigé (#1996) */
   tableauDrift?: PoolCorrectionImpact | null;
   onRebuildTableau?: () => void;
+  /** Score par la commande recordScore (#1980) */
+  onRecordScore?: TableauViewProps['onRecordScore'];
 }
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
@@ -83,6 +86,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   updateFencer,
   tableauDrift,
   onRebuildTableau,
+  onRecordScore,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -131,6 +135,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         maxRefereesPerMatch={maxRefereesPerMatch}
         autoFillReferees={autoFillReferees}
         tieBreakByVictory={tieBreakByVictory}
+        onRecordScore={onRecordScore}
         onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
         onComplete={results => {
           setFinalResults(results);

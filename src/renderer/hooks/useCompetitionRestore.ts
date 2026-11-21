@@ -107,7 +107,7 @@ export function useCompetitionRestore({
   );
 
   // Session state persistence
-  const { isLoaded, restoredState } = useCompetitionSession({
+  const { isLoaded, restoredState, flushPendingSave } = useCompetitionSession({
     competitionId: competitionId,
     currentPhase,
     currentPoolRound,
@@ -210,5 +210,5 @@ export function useCompetitionRestore({
     };
   }, [isLoaded, pools.length, competitionId, restoredState]);
 
-  return { isLoaded, restoredState };
+  return { isLoaded, restoredState, flushPendingSave };
 }

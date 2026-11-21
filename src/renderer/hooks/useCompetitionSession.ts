@@ -322,11 +322,20 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     saveState,
   ]);
 
+  /** Écrit tout de suite une sauvegarde en attente (avant une commande du moteur, #1980) */
+  const flushPendingSave = useCallback(async () => {
+    if (!saveTimerRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = null;
+    await saveState();
+  }, [saveState]);
+
   return {
     isLoaded,
     restoredState,
     restoreState,
     saveState,
+    flushPendingSave,
   };
 };
 

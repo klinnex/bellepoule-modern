@@ -241,6 +241,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     setShowRapieresTableauDialog,
     areAllPoolsComplete,
     updateScore,
+    recordScreenScore,
     handleGoToRanking,
   } = { ...props, ...competitionCore, ...competitionSessionSync, ...competitionPhaseFlow };
 
@@ -581,6 +582,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             updateFencer={updateFencer}
             tableauDrift={tableauDrift}
             onRebuildTableau={requestRebuild}
+            onRecordScore={recordScreenScore}
           />
         )}
 

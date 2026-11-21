@@ -2333,7 +2333,8 @@
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entradas",
     "total": " ({{n}} en total)",
-    "author_device": "Aparato de señalización"
+    "author_device": "Aparato de señalización",
+    "record_failed": "Puntuación no guardada: {{message}}"
   },
   "errorBoundary": {
     "title": "Se ha producido un error",

@@ -114,6 +114,16 @@ export async function invoke(ctx: CommandContext, name: unknown, raw: unknown): 
       throw toApiError(e);
     }
   }
+  return runJournaled(ctx, handler, input, log);
+}
+
+/** Commande d'épreuve journalisée : transaction, révision, diffusion aux abonnés */
+function runJournaled(
+  ctx: CommandContext,
+  handler: (c: CommandContext, i: unknown) => unknown,
+  input: unknown,
+  log: { competitionId: string; expected?: number; commandId?: string }
+): unknown {
   let run: CommandRun<unknown>;
   try {
     run = runCommand(
@@ -136,6 +146,25 @@ export async function invoke(ctx: CommandContext, name: unknown, raw: unknown): 
   return result && typeof result === 'object' && !Array.isArray(result)
     ? { ...result, revision: after }
     : result;
+}
+
+/**
+ * Commande d'épreuve appelée de façon synchrone dans le main (serveur distant, appareils
+ * de piste, #1980) : mêmes validation, transaction, journal et diffusion que `invoke`.
+ */
+export function invokeCommandSync<N extends OperationName>(
+  ctx: CommandContext,
+  name: N,
+  raw: unknown
+): Output<N> {
+  if (contract[name].kind !== 'command') {
+    throw new ApiError('unknown_operation', `« ${name} » n’est pas une commande`);
+  }
+  const input = parseInput(name, raw);
+  const handler = handlers[name] as (c: CommandContext, i: unknown) => unknown;
+  const log = journalOf(ctx, input);
+  if (!log) throw new ApiError('internal', `« ${name} » : journal de l’épreuve indisponible`);
+  return runJournaled(ctx, handler, input, log) as Output<N>;
 }
 
 /** Commande portant sur une épreuve dont le journal est disponible */

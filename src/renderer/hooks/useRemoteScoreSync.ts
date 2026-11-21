@@ -249,6 +249,7 @@ export function useRemoteScoreSync({
       winner?: 'A' | 'B';
       isTableau?: boolean;
       deviceReason?: 'priority' | 'abandon' | 'exclusion';
+      recorded?: boolean;
     }) => {
       const { matchId, scoreA, scoreB, winner: winnerOverride, isTableau, deviceReason } = data;
       logger.warn(
@@ -257,7 +258,11 @@ export function useRemoteScoreSync({
       );
       const loserMark =
         deviceReason === 'abandon' || deviceReason === 'exclusion' ? deviceReason : undefined;
-      applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride, loserMark);
+      // Score écrit par le moteur (recordScore, #1980) : la session est relue (session:changed),
+      // l'appliquer ici le doublerait
+      if (!data.recorded) {
+        applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride, loserMark);
+      }
       fireWebhookNotif(
         `Match terminé — ${competitionTitle}`,
         `Score : ${scoreA} – ${scoreB}${isTableau ? ' (tableau)' : ''}`

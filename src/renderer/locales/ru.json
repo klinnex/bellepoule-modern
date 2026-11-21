@@ -2333,7 +2333,8 @@
     "entries_one": "Записей: {{count}}",
     "entries_other": "Записей: {{count}}",
     "total": " (всего {{n}})",
-    "author_device": "Аппарат фиксации уколов"
+    "author_device": "Аппарат фиксации уколов",
+    "record_failed": "Счёт не сохранён: {{message}}"
   },
   "errorBoundary": {
     "title": "Произошла ошибка",
