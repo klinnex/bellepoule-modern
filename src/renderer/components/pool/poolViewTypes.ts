@@ -29,7 +29,9 @@ export interface PoolViewProps {
     scoreB: number,
     winnerOverride?: 'A' | 'B',
     specialStatus?: 'abandon' | 'forfait' | 'exclusion',
-    priority?: 'A' | 'B'
+    priority?: 'A' | 'B',
+    /** Exclusion sur carton noir (motif du rapport fédéral) */
+    blackCard?: boolean
   ) => void;
   onMatchReset?: (matchIndex: number) => void;
   onMatchCancel?: (matchIndex: number) => void;
@@ -40,6 +42,8 @@ export interface PoolViewProps {
     blackCard?: boolean
   ) => void;
   onFencerAdded?: (updatedPool: Pool) => void;
+  /** Ajout d'un tireur par la commande addPoolFencer (docs/adr/0017) */
+  onAddFencerByCommand?: (fencerId: string) => Promise<'recorded' | 'local' | 'refused'>;
   assignedFencerIds?: ReadonlySet<string>;
   stripRange?: { start: number; end: number };
   onStripChange?: (poolId: string, strip: number | undefined) => void;

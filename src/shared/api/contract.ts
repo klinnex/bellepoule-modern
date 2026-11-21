@@ -8,6 +8,10 @@
  * Licensed under GPL-3.0
  */
 import { z } from 'zod';
+import { JournalEventSchema } from './events';
+import type { Fencer, Pool, PoolRanking } from '../types';
+import type { ConsolationBracket, FinalResult, TableauMatch } from '../domain/tableau/tableauTypes';
+import type { RapieresLegacyState, RapieresSession } from '../domain/rapieres/rapieres.types';
 
 /** Droits (utilisés par le sous-ticket 4, rôles et permissions) */
 export type Permission =
@@ -69,19 +73,19 @@ const ExpectedRevision = z
   .min(0)
   .optional()
   .describe(
-    'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps'
+    'Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées.'
+  );
+const CommandId = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .optional()
+  .describe(
+    'Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau)'
   );
 /** Révision du journal après la commande (absente si rien n'a été écrit) */
 const Revision = z.number().int().optional();
-
-const CompetitionEvent = z.object({
-  revision: z.number(),
-  type: z.string(),
-  payload: z.record(z.string(), z.unknown()),
-  author: z.string().nullable(),
-  source: z.string(),
-  at: z.string(),
-});
 
 const NeutralityCriterion = z.enum(['club', 'nationality', 'region']);
 const Neutrality = z.object({
@@ -94,6 +98,43 @@ const ResolvedRefereeing = z.object({
   balance: z.boolean(),
   maxConsecutiveMatches: z.number(),
   minRestTimeMinutes: z.number(),
+});
+
+/**
+ * État de l'épreuve (projection du moteur, docs/adr/0017). Les objets du domaine (poules,
+ * matchs de tableau…) sont typés par leurs interfaces : z.custom, sans contrôle à l'exécution.
+ * Les champs d'interface (phase affichée, paramètres de préparation, pistes) sortent à l'étape 4b.
+ */
+const CompetitionStateSchema = z.object({
+  currentPhase: z.number().int(),
+  pools: z.array(z.custom<Pool>()),
+  poolHistory: z.array(z.array(z.custom<Pool>())),
+  appelHistory: z.array(z.array(z.custom<Fencer>())),
+  overallRanking: z.array(z.custom<PoolRanking>()),
+  tableauMatches: z.array(z.custom<TableauMatch>()),
+  finalResults: z.array(z.custom<FinalResult>()),
+  consolationBrackets: z.array(z.custom<ConsolationBracket>()),
+  currentPoolRound: z.number().int(),
+  skipPoolPhase: z.boolean(),
+  poolsLaunched: z.boolean().optional(),
+  remoteArenaCount: z.number().int().optional(),
+  remoteStripStart: z.number().int().optional(),
+  rapieres: z.custom<RapieresSession | RapieresLegacyState>().optional(),
+  poolPrepParams: z
+    .object({
+      poolCount: z.number(),
+      minFencersPerPool: z.number(),
+      maxFencersPerPool: z.number(),
+    })
+    .optional(),
+});
+export type CompetitionStateDTO = z.infer<typeof CompetitionStateSchema>;
+
+const FencerRefSchema = z.object({
+  id: z.string(),
+  lastName: z.string(),
+  firstName: z.string(),
+  club: z.string().nullable(),
 });
 
 const MatchCard = z.object({
@@ -119,6 +160,7 @@ export const contract = {
       present: z.boolean().describe('true : présent ; false : absent'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -135,7 +177,7 @@ export const contract = {
 
   recordScore: command({
     description:
-      'Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. ' +
+      'Score d’un match de poule (tour courant) ou de tableau, tableaux de classement compris (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. ' +
       'Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.',
     input: z.object({
       competitionId: CompetitionId,
@@ -147,9 +189,29 @@ export const contract = {
         .enum(['abandon', 'forfait', 'exclusion'])
         .optional()
         .describe('Statut du perdant'),
+      blackCard: z
+        .boolean()
+        .optional()
+        .describe('Exclusion sur carton noir (motif du rapport fédéral)'),
+      correction: z
+        .object({
+          reason: z
+            .string()
+            .trim()
+            .min(1)
+            .max(300)
+            .describe('Motif, inscrit au journal des scores'),
+          rebuildTableau: z
+            .boolean()
+            .optional()
+            .describe('Retirer le tableau pour le refaire sur le classement corrigé'),
+        })
+        .optional()
+        .describe('Correction d’un score de poule après le tirage du tableau (#1996)'),
       priority: Side.optional().describe('Égalité en poule : prioritaire'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.looseObject({
       dryRun: z.boolean(),
@@ -158,6 +220,246 @@ export const contract = {
     }),
     permission: 'score:write',
     mcp: { name: 'record_score', title: 'Saisir un score', idempotent: true },
+  }),
+
+  generatePools: command({
+    description:
+      'Poules du tour courant, lancées (phase Poules). Sans « composition » : tirage sur les tireurs pointés par la même fonction que l’écran (serpentin sur le classement, puis clubs et régions séparés, ou les critères de « separation »), poule n sur la piste n ; épreuve individuelle, un tour de poules. ' +
+      'Avec « composition » : poules et ordre des matchs retenus par le DT à la préparation, tels quels (tous formats individuels, tours multiples compris). ' +
+      '« replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.',
+    input: z.object({
+      competitionId: CompetitionId,
+      poolCount: z
+        .number()
+        .int()
+        .min(1)
+        .max(200)
+        .optional()
+        .describe('Nombre de poules (défaut : optimal)'),
+      minPerPool: z
+        .number()
+        .int()
+        .min(3)
+        .max(12)
+        .optional()
+        .describe('Tireurs par poule, minimum (défaut 5)'),
+      maxPerPool: z
+        .number()
+        .int()
+        .min(3)
+        .max(12)
+        .optional()
+        .describe('Tireurs par poule, maximum (défaut 7)'),
+      separation: z
+        .array(z.enum(['byRanking', 'byClub', 'byRegion', 'byNation']))
+        .optional()
+        .describe(
+          'Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"]'
+        ),
+      composition: z
+        .array(
+          z.object({
+            poolId: Id,
+            number: z.number().int().min(1),
+            strip: z.number().int().min(1).nullable().optional(),
+            fencerIds: z.array(Id).min(2).max(30),
+            matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })).max(500),
+          })
+        )
+        .min(1)
+        .max(200)
+        .optional()
+        .describe('Poules préparées par le DT (écran) : pas de tirage'),
+      replace: z.boolean().optional().describe('Remplacer des poules ou un tableau existants'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      round: z.number().int(),
+      fencerCount: z.number().int(),
+      poolCount: z.number().int(),
+      pools: z.array(
+        z.object({
+          number: z.number().int(),
+          strip: z.number().int().nullable(),
+          fencers: z.array(
+            z.object({
+              id: z.string(),
+              lastName: z.string(),
+              firstName: z.string(),
+              club: z.string().nullable(),
+              ranking: z.number().nullable(),
+            })
+          ),
+          matchCount: z.number().int(),
+        })
+      ),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'generate_pools', title: 'Générer les poules', destructive: true },
+  }),
+
+  addPoolFencer: command({
+    description:
+      'Ajoute un tireur à une poule lancée (tireur arrivé en retard) : un match contre chaque tireur de la poule, à la suite des matchs existants. Refus si le tableau est tiré ou si le tireur est déjà placé.',
+    input: z.object({
+      competitionId: CompetitionId,
+      poolId: Id.describe('Identifiant de la poule'),
+      fencerId: Id.describe('Identifiant du tireur'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      poolId: z.string(),
+      poolNumber: z.number().int(),
+      fencerId: z.string(),
+      matchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'add_pool_fencer', title: 'Ajouter un tireur à une poule' },
+  }),
+
+  closePoolRound: command({
+    description:
+      'Clôt le tour de poules courant (toutes les poules terminées) : qualifiés selon le classement du tour (formule, puis réglage du nombre de qualifiés, ou « qualifierCount »), non-qualifiés éliminés, tour archivé ; le tour suivant se pointe puis se tire. ' +
+      '« dryRun: true » donne le nombre de qualifiés et d’éliminés sans rien écrire. Refus sous 4 qualifiés.',
+    input: z.object({
+      competitionId: CompetitionId,
+      qualifierCount: z
+        .number()
+        .int()
+        .min(1)
+        .max(1000)
+        .optional()
+        .describe('Nombre de qualifiés imposé'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      round: z.number().int(),
+      nextRound: z.number().int(),
+      qualifierCount: z.number().int().nullable(),
+      qualified: z.number().int(),
+      eliminated: z.number().int(),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'close_pool_round', title: 'Clore le tour de poules', destructive: true },
+  }),
+
+  generateTableau: command({
+    description:
+      'Tableau d’élimination directe. Sans « composition » : construit depuis le classement après poules (tireurs éliminés, abandons, forfaits et exclus écartés), avec ou sans petite finale (épreuve individuelle, un tour, tableau simple). ' +
+      'Avec « composition » : placement calculé par l’écran (barrages, exemptions, rangs de sortie de poules), tel quel. « replace: true » efface un tableau déjà joué : accord du DT indispensable.',
+    input: z.object({
+      competitionId: CompetitionId,
+      thirdPlaceMatch: z.boolean().optional().describe('Match pour la 3e place'),
+      composition: z
+        .array(
+          z.object({
+            matchId: Id,
+            round: z.number().int().min(2).max(1024),
+            position: z.number().int().min(0).max(1024),
+            fencerAId: Id.nullable(),
+            fencerBId: Id.nullable(),
+            isBye: z.boolean(),
+            seedA: z.number().int().nullable().optional(),
+            seedB: z.number().int().nullable().optional(),
+          })
+        )
+        .min(1)
+        .max(2048)
+        .optional()
+        .describe('Placement calculé par l’écran : pas de planification'),
+      replace: z.boolean().optional().describe('Remplacer un tableau existant'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      size: z.number().int(),
+      qualified: z.number().int(),
+      thirdPlaceMatch: z.boolean(),
+      firstRound: z.array(
+        z.object({
+          id: z.string(),
+          round: z.number().int(),
+          position: z.number().int(),
+          fencerA: FencerRefSchema.nullable(),
+          fencerB: FencerRefSchema.nullable(),
+          scoreA: z.number().nullable(),
+          scoreB: z.number().nullable(),
+          winner: FencerRefSchema.nullable(),
+          isBye: z.boolean(),
+          state: z.enum(['pending', 'ready', 'done']),
+          strip: z.number().nullable(),
+        })
+      ),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    // Nom de l'outil publié en 2.0 conservé (docs/adr/0008)
+    mcp: { name: 'build_bracket', title: 'Construire le tableau', destructive: true },
+  }),
+
+  withdrawFencer: command({
+    description:
+      'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +
+      'À l’appel : statut seul. En poules : ses matchs non disputés sont perdus (DNS s’il n’a commencé aucun match). ' +
+      'Au tableau : son match en cours est perdu, l’adversaire passe. Refus si le tableau est terminé ou si l’adversaire n’est pas encore connu. ' +
+      '« dryRun: true » donne les matchs perdus sans rien écrire. Annulation : reinstate_fencer.',
+    input: z.object({
+      competitionId: CompetitionId,
+      fencerId: Id.describe('Identifiant du tireur'),
+      reason: z.enum(['abandon', 'forfait', 'exclusion']).describe('Motif du retrait'),
+      blackCard: z.boolean().optional().describe('Exclusion sur carton noir (rapport fédéral)'),
+      matchId: Id.optional().describe('Match où le retrait a lieu (carton, abandon sur la piste)'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      fencerId: z.string(),
+      status: z.string(),
+      exclusionReason: z.enum(['black_card', 'dns']).nullable(),
+      phase: z.enum(['checkin', 'pools', 'tableau']),
+      forfeitedMatchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'fencers:write',
+    mcp: { name: 'withdraw_fencer', title: 'Retirer un tireur', destructive: true },
+  }),
+
+  reinstateFencer: command({
+    description:
+      'Annule le retrait d’un tireur (abandon, forfait, exclusion) : statut et matchs d’avant le retrait. ' +
+      'Refus si un match qui suit a été joué depuis, ou si le tableau a été tiré après un retrait en poules.',
+    input: z.object({
+      competitionId: CompetitionId,
+      fencerId: Id.describe('Identifiant du tireur'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      fencerId: z.string(),
+      status: z.string(),
+      restoredMatchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'fencers:write',
+    mcp: { name: 'reinstate_fencer', title: 'Réintégrer un tireur' },
   }),
 
   setRefereeingSettings: command({
@@ -171,6 +473,7 @@ export const contract = {
       minRestTimeMinutes: z.number().int().min(0).max(240).optional(),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({ dryRun: z.boolean(), refereeing: ResolvedRefereeing, revision: Revision }),
     permission: 'referees:write',
@@ -190,6 +493,7 @@ export const contract = {
       includeUnchecked: z.boolean().optional().describe('Accepter les arbitres non pointés'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -224,6 +528,7 @@ export const contract = {
       refereeId: Id.nullable().describe('Identifiant de l’arbitre (list_referees), ou null'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,
+      commandId: CommandId,
     }),
     output: z.object({
       dryRun: z.boolean(),
@@ -259,16 +564,31 @@ export const contract = {
       since: z.number().int().min(0).optional().describe('Dernière révision connue (0 : tout)'),
       limit: z.number().int().min(1).max(5000).optional().describe('Nombre maximum (1000)'),
     }),
-    output: z.object({ revision: z.number(), events: z.array(CompetitionEvent) }),
+    output: z.object({ revision: z.number(), events: z.array(JournalEventSchema) }),
     permission: 'competition:read',
     mcp: { name: 'get_competition_events', title: 'Journal d’une épreuve' },
   }),
 
+  getCompetitionState: query({
+    description:
+      'État de l’épreuve tenu par le moteur (docs/adr/0017) : poules, tours, tableau, tableaux de classement, classements, phase. ' +
+      '« revision » : révision du journal, à comparer au signal journal:appended pour savoir s’il faut relire.',
+    input: z.object({ competitionId: CompetitionId }),
+    output: z.object({
+      revision: z.number().int(),
+      /** Compteur de l'état de session (sauvegarde de l'écran, jusqu'à l'étape 4c de l'ADR-0017) */
+      sessionRevision: z.number().int(),
+      state: CompetitionStateSchema.nullable(),
+    }),
+    permission: 'competition:read',
+  }),
+
   getMatchHistory: query({
     description:
-      'Historique d’un match dans le journal de l’épreuve : chaque modification, auteur, source, heure.',
+      'Historique d’un match dans le journal de l’épreuve : auteur, source, heure de chaque score passé par recordScore (écran, tablettes, appareils de piste, agent). ' +
+      'Retraits et réintégrations de tireurs (abandon, forfait, exclusion, carton noir) compris. Corrections de poule après tirage du tableau comprises. Pas encore journalisés (ADR-0005) : épreuves par équipes, tableaux séparés.',
     input: z.object({ competitionId: CompetitionId, matchId: Id }),
-    output: z.array(CompetitionEvent),
+    output: z.array(JournalEventSchema),
     permission: 'competition:read',
   }),
 

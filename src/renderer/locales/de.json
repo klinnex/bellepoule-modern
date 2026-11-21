@@ -364,7 +364,8 @@
     "prep_discard_title": "Zu den gestarteten Pools zurückkehren (Ergebnisse bleiben erhalten)",
     "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
     "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?",
-    "prep_moved": "Fechter verschoben"
+    "prep_moved": "Fechter verschoben",
+    "launch_failed": "Pools nicht gestartet: {{message}}"
   },
   "ranking": {
     "club": "Verein",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Doppelklicken zum Bearbeiten",
     "check": "Einchecken",
     "uncheck": "Rückgängig",
+    "checkin_failed": "Anwesenheit nicht gespeichert: {{message}}",
+    "checkin_special_status": "Aufgabe, Forfait oder Ausschluss: Fechter wiederherstellen statt einchecken",
     "all_files": "Alle Dateien",
     "photos_exported_one": "{{count}} Foto exportiert",
     "photos_exported_other": "{{count}} Fotos exportiert",
@@ -1747,7 +1750,9 @@
     "col_region": "Region",
     "col_department": "Departement",
     "deleted": "{{name}} gelöscht",
-    "col_handedness": "Händigkeit"
+    "col_handedness": "Händigkeit",
+    "withdraw_failed": "Rückzug nicht gespeichert: {{message}}",
+    "reinstate_failed": "Wiederaufnahme nicht gespeichert: {{message}}"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} Eintrag",
     "entries_other": "{{count}} Einträge",
     "total": " ({{n}} insgesamt)",
-    "author_device": "Trefferanzeige"
+    "author_device": "Trefferanzeige",
+    "record_failed": "Ergebnis nicht gespeichert: {{message}}"
   },
   "errorBoundary": {
     "title": "Ein Fehler ist aufgetreten",

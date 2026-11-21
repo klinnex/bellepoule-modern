@@ -87,6 +87,27 @@ describe('AddFencerToPoolModal', () => {
     );
   });
 
+  it('ajout par la commande addPoolFencer : rien d’écrit localement, fenêtre fermée', async () => {
+    const onConfirm = vi.fn();
+    const onClose = vi.fn();
+    const onAddByCommand = vi.fn(async () => 'recorded' as const);
+    render(
+      <AddFencerToPoolModal
+        pool={pool}
+        competitionId="c1"
+        onConfirm={onConfirm}
+        onClose={onClose}
+        onAddByCommand={onAddByCommand}
+      />
+    );
+    fireEvent.click(await screen.findByText(/Martin/));
+    fireEvent.click(screen.getByText('Ajouter le tireur'));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onAddByCommand).toHaveBeenCalledWith('2');
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect((window as any).electronAPI.db.syncPoolSnapshot).not.toHaveBeenCalled();
+  });
+
   it('ajoute quand même le tireur si la poule est absente de la base (#905)', async () => {
     (window as any).electronAPI.db.syncPoolSnapshot = vi.fn(async () => {
       throw new Error('Pool p1 introuvable');

@@ -22,6 +22,8 @@ export interface BracketMatch {
   isBye?: boolean;
 }
 
+export type RecordScoreOutcome = 'recorded' | 'local' | 'refused';
+
 export interface TableauViewProps {
   ranking: PoolRanking[];
   matches: TableauMatch[];
@@ -43,6 +45,28 @@ export interface TableauViewProps {
     fencerB?: any
   ) => void;
   onMatchRefereeChange?: (matchId: string, refereeId: string | null) => void;
+  /**
+   * Score par la commande recordScore (#1980, ADR-0005) : « recorded » (écrit, session relue),
+   * « local » (format hors moteur : saisie locale), « refused » (refus affiché)
+   */
+  onRecordScore?: (input: {
+    matchId: string;
+    scoreA: number;
+    scoreB: number;
+    winner?: 'A' | 'B';
+  }) => Promise<RecordScoreOutcome>;
+  /** Tableau généré écrit par le moteur (generateTableau, docs/adr/0017) */
+  onGenerateTableau?: (
+    matches: TableauMatch[],
+    thirdPlaceMatch: boolean
+  ) => Promise<RecordScoreOutcome>;
+  /** Retrait d'un tireur par withdrawFencer (docs/adr/0016) : même issue que onRecordScore */
+  onWithdraw?: (input: {
+    fencerId: string;
+    reason: 'abandon' | 'forfait' | 'exclusion';
+    blackCard?: boolean;
+    matchId?: string;
+  }) => Promise<RecordScoreOutcome>;
   competitionId?: string;
   /** Arme : zones de touches simulées (Sabre Laser) au remplissage automatique */
   weapon?: Weapon;

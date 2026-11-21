@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildBlackCardEntries } from './blackCardReport';
 import { FencerStatus, MatchStatus, type Fencer, type Pool } from '../../shared/types';
+import type { BpmClient } from '../../shared/api/client';
 
 const f = (id: string, last: string, excluded = false) =>
   ({
@@ -30,16 +31,18 @@ describe('buildBlackCardEntries (#1829)', () => {
       strip: 7,
       matches: [match('m1', a, b, 5, 2), match('m2', c, a, 4, 1)],
     } as unknown as Pool;
-    (window as unknown as { electronAPI: unknown }).electronAPI = {
-      db: {
-        getCards: vi.fn(async (id: string) =>
-          id === 'm2'
-            ? [{ fencerId: 'a', cardType: 'black', timestamp: '2026-11-15T10:00:00Z' }]
-            : []
-        ),
-      },
-    };
-    const [entry] = await buildBlackCardEntries([a, b, c], [pool]);
+    // Contrat d'API (#1981) : requête getMatchCards simulée
+    const client = {
+      query: vi.fn(async (_name: string, { matchId }: { matchId: string }) =>
+        matchId === 'm2'
+          ? [{ fencerId: 'a', cardType: 'black', timestamp: '2026-11-15T10:00:00Z' }]
+          : []
+      ),
+      call: vi.fn(),
+      subscribe: vi.fn(),
+    } as unknown as BpmClient;
+    const [entry] = await buildBlackCardEntries([a, b, c], [pool], [], client);
+    expect(client.query).toHaveBeenCalledWith('getMatchCards', { matchId: 'm1' });
     expect(entry).toMatchObject({
       fencer: { lastName: 'Alpha' },
       phase: 'Poule 3',

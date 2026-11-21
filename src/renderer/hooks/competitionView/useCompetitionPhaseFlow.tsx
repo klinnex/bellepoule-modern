@@ -82,9 +82,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
     updateScore,
     resetMatch,
     cancelMatch,
-    handleFencerForfeit,
     computePoolRanking,
-    updateFencer,
     fireWebhookNotif,
     remoteStripStart,
     remoteArenaCount,
@@ -293,10 +291,9 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
       updateScore={updateScore}
       resetMatch={resetMatch}
       cancelMatch={cancelMatch}
-      handleFencerForfeit={handleFencerForfeit}
       computePoolRanking={computePoolRanking}
       setPools={setPools}
-      updateFencer={updateFencer}
+      addPoolFencer={ctx.addPoolFencer}
       fireWebhookNotif={fireWebhookNotif}
       assignedPoolFencerIds={assignedPoolFencerIds}
       remoteStripStart={remoteStripStart}

@@ -220,7 +220,8 @@
     "prep_discard_title": "返回已開始的分組（保留比分）",
     "prep_unplaced": "有 {{count}} 名由點名新增的劍手尚未編入：按「重新準備小組」以加入。",
     "relaunch_confirm": "已輸入小組賽比分，重新開始會遺失比分。是否繼續？",
-    "prep_moved": "已移動劍手"
+    "prep_moved": "已移動劍手",
+    "launch_failed": "分組未開始：{{message}}"
   },
   "ranking": {
     "rank": "排名",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "按兩下以編輯",
     "check": "報到",
     "uncheck": "取消",
+    "checkin_failed": "簽到未儲存：{{message}}",
+    "checkin_special_status": "退賽、棄權或取消資格：請先恢復劍手，而非簽到",
     "all_files": "所有檔案",
     "photos_exported_one": "已匯出 {{count}} 張相片",
     "photos_exported_other": "已匯出 {{count}} 張相片",
@@ -1747,7 +1750,9 @@
     "col_region": "地區",
     "col_department": "省份",
     "deleted": "已刪除 {{name}}",
-    "col_handedness": "慣用手"
+    "col_handedness": "慣用手",
+    "withdraw_failed": "退出未儲存：{{message}}",
+    "reinstate_failed": "恢復未儲存：{{message}}"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} 項紀錄",
     "entries_other": "{{count}} 項紀錄",
     "total": "（合共 {{n}}）",
-    "author_device": "計分器"
+    "author_device": "計分器",
+    "record_failed": "比分未儲存：{{message}}"
   },
   "errorBoundary": {
     "title": "發生錯誤",

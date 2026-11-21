@@ -116,7 +116,11 @@ export const usePoolManagement = ({
       /** Égalité sans V : le tireur prioritaire (tirage avant la minute supplémentaire) gagne (#1442) */
       priority?: 'A' | 'B',
       /** Correction après tirage du tableau : motif pour le journal des scores (#1996) */
-      correction?: string
+      correction?: string,
+      /** Exclusion sur carton noir : motif posé par le moteur (recordScore, docs/adr/0016) */
+      _blackCard?: boolean,
+      /** Correction : tableau retiré par le moteur (recordScore, docs/adr/0017) */
+      _rebuildTableau?: boolean
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];

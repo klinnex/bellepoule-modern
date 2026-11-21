@@ -5,7 +5,9 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Fencer, Match, MatchStatus, Pool, PoolSnapshot } from '../../shared/types';
+import { Fencer, Pool, PoolSnapshot } from '../../shared/types';
+import { addFencerToPool } from '../../shared/domain/pools/poolComposition';
+import type { RecordScoreOutcome } from './tableau/tableauViewShared';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
 import { useDebounce } from '../hooks/useDebounce';
@@ -23,35 +25,21 @@ interface AddFencerToPoolModalProps {
   assignedFencerIds?: ReadonlySet<string>;
   onConfirm: (updatedPool: Pool) => void;
   onClose: () => void;
+  /** Ajout par la commande addPoolFencer (docs/adr/0017) ; « local » : ajout historique */
+  onAddByCommand?: (fencerId: string) => Promise<RecordScoreOutcome>;
 }
 
 /**
  * Ajoute un tireur à la poule affichée (source de vérité = état de la session).
  * Crée un match contre chaque tireur déjà présent, à la suite des matchs existants.
+ * Règle partagée avec le moteur (addPoolFencer) : shared/domain/pools/poolComposition.
  */
 export function buildPoolWithAddedFencer(pool: Pool, fencer: Fencer, maxScore: number): Pool {
-  const now = new Date();
-  let nextNumber = pool.matches.reduce((max, m) => Math.max(max, m.number || 0), 0);
-  const newMatches: Match[] = pool.fencers.map(existing => ({
-    id: crypto.randomUUID(),
-    poolId: pool.id,
-    number: ++nextNumber,
-    fencerA: fencer,
-    fencerB: existing,
-    scoreA: null,
-    scoreB: null,
+  return addFencerToPool(pool, fencer, {
     maxScore,
-    status: MatchStatus.NOT_STARTED,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  return {
-    ...pool,
-    fencers: [...pool.fencers, fencer],
-    matches: [...pool.matches, ...newMatches],
-    isComplete: false,
-    updatedAt: now,
-  };
+    newId: () => crypto.randomUUID(),
+    now: new Date(),
+  });
 }
 
 function toSnapshot(pool: Pool): PoolSnapshot {
@@ -76,6 +64,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
   assignedFencerIds,
   onConfirm,
   onClose,
+  onAddByCommand,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -114,6 +103,12 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
     if (!selectedFencer) return;
     setIsLoading(true);
     try {
+      // Fait de l'épreuve écrit par le moteur, PoolFencerAdded au journal ; l'écran relit l'état
+      if (onAddByCommand) {
+        const outcome = await onAddByCommand(selectedFencer.id);
+        if (outcome === 'recorded') return onClose();
+        if (outcome === 'refused') return;
+      }
       const updatedPool = buildPoolWithAddedFencer(pool, selectedFencer, maxScore);
       // Synchro DB auto-réparante (crée poule/lignes manquantes) : non bloquante
       try {

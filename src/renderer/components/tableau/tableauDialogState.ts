@@ -4,6 +4,8 @@
  */
 import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
+import type { BpmClient } from '../../../shared/api/client';
+import { defaultBpmClient } from '../../api/IpcClient';
 
 export const SCORE_EDIT_INIT = {
   editingMatch: null as string | null,
@@ -64,7 +66,8 @@ export type DECards = Record<string, { A?: string[]; B?: string[] }>;
  */
 export async function loadDECards(
   matches: TableauMatch[],
-  competitionId?: string
+  competitionId?: string,
+  client: BpmClient = defaultBpmClient
 ): Promise<DECards | undefined> {
   try {
     const dbIdToMatch = new Map<string, TableauMatch>();
@@ -74,8 +77,8 @@ export async function loadDECards(
       if (competitionId) dbIdToMatch.set(`${competitionId}-${m.id}`, m);
     }
     if (dbIdToMatch.size === 0) return undefined;
-    const rows =
-      (await window.electronAPI?.db?.getCardsByMatchIds?.([...dbIdToMatch.keys()])) ?? [];
+    // Contrat d'API (#1981) : requête getCardsByMatchIds ; hors Electron, échec silencieux
+    const rows = await client.query('getCardsByMatchIds', { matchIds: [...dbIdToMatch.keys()] });
     // Match saisi à distance : seules ses lignes sous l'id composite comptent (pas de doublon
     // avec d'éventuelles lignes sous l'id simple)
     const remoteIds = new Set(

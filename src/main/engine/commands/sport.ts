@@ -6,7 +6,10 @@
  *
  * Formats pris en charge : épreuve individuelle, un tour de poules, tableau simple
  * (avec ou sans petite finale). Équipes, rapières, tours multiples et « toutes les
- * places » restent pilotés à l'écran (erreur explicite).
+ * places » restent pilotés à l'écran (erreur explicite), sauf pour la saisie des scores
+ * (recordScore, #1980) : tours multiples, rapières et « toutes les places » y sont admis ;
+ * seules les épreuves par équipes (modèle de relais distinct) et les tableaux séparés
+ * après les poules restent refusés.
  * Licensed under GPL-3.0
  */
 import { v4 as uuidv4 } from 'uuid';
@@ -20,35 +23,40 @@ import {
   type PoolRanking,
 } from '../../../shared/types';
 import {
-  applyFencerForfeit,
   applyScoreToPool,
   buildMatchScores,
   buildPools,
   computeOverallRankingAllRoundsFor,
-  computeOverallRankingFor,
   validatePoolScore,
   type PoolSpecialStatus,
 } from '../../../shared/utils/poolOrchestration';
 import { allowsVictoryTieBreak } from '../../../shared/utils/tieBreak';
+import { planWithdrawal, WITHDRAWAL_STATUS } from '../../../shared/domain/fencers/withdrawal';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 import { isTieAtScoreLimit } from '../../../shared/domain/match/matchEndValidation';
 import {
   getActiveFormula,
   resolveCompetitionSettings,
 } from '../../../shared/utils/customFormulaSettings';
 import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
-import { specialStatusPatch } from '../../../shared/utils/forfeit';
 import {
   planTableau,
   calculateFinalResults,
   isTableauDone,
+  placeBarrageWinners,
+  syncConsolationBrackets,
+  buildCombinedResults,
 } from '../../../shared/domain/tableau/tableauCalculations';
 import {
   deriveFirstRound,
+  isBracketComplete,
   propagateWinners,
   resetTableauMatch,
   resolveTableauWinner,
+  type ConsolationBracket,
   type TableauMatch,
 } from '../../../shared/domain/tableau/tableauTypes';
+import type { RapieresSession } from '../../../shared/domain/rapieres/rapieres.types';
 import { computeEffectiveTableauRanking } from '../../../shared/domain/ranking/tableauRanking';
 import { CommandError, type CommandContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
@@ -57,6 +65,15 @@ import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
 import { areAllPoolsComplete, isPoolComplete } from '../../../shared/domain/pools/poolCompletion';
 import type { PoolSeparation } from '../../../shared/domain/pools/poolDraw';
+import {
+  composePools,
+  type PoolCompositionInput,
+} from '../../../shared/domain/pools/poolComposition';
+import {
+  composeTableau,
+  tableauComposition,
+  type TableauMatchInput,
+} from '../../../shared/domain/tableau/tableauComposition';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
 export const PHASE = {
@@ -76,7 +93,7 @@ const PHASE_LABEL: Record<number, string> = {
   6: 'results',
 };
 
-const isLaser = (c: Competition) => c.weapon === Weapon.LASER;
+export const isLaser = (c: Competition) => c.weapon === Weapon.LASER;
 
 /**
  * Réglages effectifs, comme l'écran (useCompetitionCore) : formule personnalisée prioritaire,
@@ -113,6 +130,19 @@ export function assertSupported(comp: Competition, session: Record<string, unkno
   }
 }
 
+/**
+ * Formats admis pour la saisie d'un score (#1980, ADR-0005) : tous sauf les épreuves par
+ * équipes, dont les matchs sont des relais portés par leur propre modèle (teamArena).
+ */
+export function assertScoreSupported(comp: Competition): void {
+  if (comp.isTeamEvent) {
+    throw new CommandError(
+      'unsupported_format',
+      'Épreuve par équipes : scores par l’arène d’équipe ou l’écran'
+    );
+  }
+}
+
 /** Écrit l'état de session (fusion) et prévient l'écran, qui le relit */
 export function writeSession(
   ctx: CommandContext,
@@ -139,8 +169,15 @@ export const emitSession = (ctx: CommandContext, competitionId: string) =>
 
 export const sessionPools = (session: Record<string, unknown>): Pool[] =>
   Array.isArray(session.pools) ? (session.pools as Pool[]) : [];
-const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
+export const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
   Array.isArray(session.tableauMatches) ? (session.tableauMatches as TableauMatch[]) : [];
+export const sessionConsolation = (session: Record<string, unknown>): ConsolationBracket[] =>
+  Array.isArray(session.consolationBrackets)
+    ? (session.consolationBrackets as ConsolationBracket[])
+    : [];
+export const sessionPoolHistory = (session: Record<string, unknown>): Pool[][] =>
+  Array.isArray(session.poolHistory) ? (session.poolHistory as Pool[][]) : [];
+const isRapieres = (comp: Competition) => comp.settings?.specialMode === 'rapieres';
 
 // ─── Poules ──────────────────────────────────────────────────────────────────
 
@@ -153,6 +190,27 @@ export interface GeneratePoolsOptions {
   dryRun?: boolean;
   /** Critères de séparation ordonnés, comme la préparation des poules de l'écran */
   separation?: PoolSeparation[];
+  /**
+   * Composition retenue par le DT à la préparation (écran, docs/adr/0017) : pas de tirage,
+   * poules et ordre des matchs tels quels. Admise pour tous les formats individuels, tour
+   * courant compris (tours multiples, rapières).
+   */
+  composition?: PoolCompositionInput[];
+}
+
+const SEPARATION_KEYS = ['byRanking', 'byClub', 'byRegion', 'byNation'] as const;
+
+/** Critères ordonnés (contrat, MCP) → séparation du tirage ; classement toujours actif, en tête par défaut */
+export function separationFromKeys(
+  raw: Array<(typeof SEPARATION_KEYS)[number]> | undefined
+): PoolSeparation[] | undefined {
+  if (raw === undefined) return undefined;
+  const keys = [...new Set(raw)];
+  const ordered = keys.includes('byRanking') ? keys : (['byRanking', ...keys] as typeof keys);
+  return [
+    ...ordered.map(key => ({ key, enabled: true })),
+    ...SEPARATION_KEYS.filter(k => !ordered.includes(k)).map(key => ({ key, enabled: false })),
+  ];
 }
 
 /**
@@ -166,7 +224,8 @@ export function generatePools(
 ) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
+  if (options.composition) assertScoreSupported(comp);
+  else assertSupported(comp, session);
   const existing = sessionPools(session);
   const played = existing.some(p => p.matches?.some(m => m.status === MatchStatus.FINISHED));
   if (played && !options.replace) {
@@ -178,37 +237,59 @@ export function generatePools(
   if (sessionTableau(session).length > 0 && !options.replace) {
     throw new CommandError('bracket_exists', 'Le tableau est déjà construit : replace=true requis');
   }
-  const fencers = ctx.db
-    .getFencersByCompetition(competitionId)
-    .filter(f => f.status === FencerStatus.CHECKED_IN);
+  const round = Math.max(1, Number(session.currentPoolRound ?? 1) || 1);
+  const poolHistory = sessionPoolHistory(session);
   const min = options.minPerPool ?? 5;
   const max = options.maxPerPool ?? 7;
-  if (min > max) throw new CommandError('invalid_pool_size', 'minPerPool > maxPerPool');
-  if (options.poolCount !== undefined && options.poolCount > Math.floor(fencers.length / 3)) {
-    throw new CommandError(
-      'invalid_pool_count',
-      'Trop de poules pour le nombre de tireurs pointés'
-    );
-  }
   let pools: Pool[];
-  try {
-    pools = buildPools(fencers, {
+  let fencers: Fencer[];
+  if (options.composition) {
+    const all = ctx.db.getFencersByCompetition(competitionId);
+    const composed = composePools(options.composition, new Map(all.map(f => [f.id, f])), {
       poolMaxScore: effectiveSettings(comp).poolMaxScore,
-      poolCount: options.poolCount,
-      minPerPool: min,
-      maxPerPool: max,
-      boutOrder: comp.settings?.poolBoutOrder,
-      separation: options.separation,
-      newId: uuidv4,
+      round,
+      now: new Date(),
     });
-  } catch (e) {
-    throw new CommandError('not_enough_fencers', (e as Error).message);
+    if (!composed.ok) {
+      throw new CommandError(
+        'invalid_composition',
+        `Composition refusée : ${composed.code} (${composed.detail})`
+      );
+    }
+    pools = composed.pools;
+    fencers = pools.flatMap(p => p.fencers);
+  } else {
+    fencers = ctx.db
+      .getFencersByCompetition(competitionId)
+      .filter(f => f.status === FencerStatus.CHECKED_IN);
+    if (min > max) throw new CommandError('invalid_pool_size', 'minPerPool > maxPerPool');
+    if (options.poolCount !== undefined && options.poolCount > Math.floor(fencers.length / 3)) {
+      throw new CommandError(
+        'invalid_pool_count',
+        'Trop de poules pour le nombre de tireurs pointés'
+      );
+    }
+    try {
+      pools = buildPools(fencers, {
+        poolMaxScore: effectiveSettings(comp).poolMaxScore,
+        poolCount: options.poolCount,
+        minPerPool: min,
+        maxPerPool: max,
+        boutOrder: comp.settings?.poolBoutOrder,
+        separation: options.separation,
+        newId: uuidv4,
+      });
+    } catch (e) {
+      throw new CommandError('not_enough_fencers', (e as Error).message);
+    }
+    const strips = resolveSetting(ctx, 'stripCount', { competitionId });
+    if (strips > 0) pools.forEach((p, i) => (p.strip = (i % strips) + 1));
   }
-  const strips = resolveSetting(ctx, 'stripCount', { competitionId });
-  if (strips > 0) pools.forEach((p, i) => (p.strip = (i % strips) + 1));
-  const overallRanking = computeOverallRankingFor(pools, isLaser(comp));
+  // Tours multiples (#1051) : classement du tour tiré, puis éliminés des tours précédents
+  const overallRanking = computeOverallRankingAllRoundsFor(pools, poolHistory, isLaser(comp));
   const summary = {
     dryRun: !!options.dryRun,
+    round,
     fencerCount: fencers.length,
     poolCount: pools.length,
     pools: pools.map(p => ({
@@ -242,19 +323,51 @@ export function generatePools(
       }
       if (pool.strip) ctx.db.updatePool(pool);
     }
+    // Rapières : vagues remises à zéro par un nouveau tirage (resetRapieresWaves de l'écran)
+    const rapieres = session.rapieres as Record<string, unknown> | undefined;
     writeSession(ctx, competitionId, {
       currentPhase: PHASE.pools,
-      currentPoolRound: 1,
+      currentPoolRound: round,
       pools,
-      poolHistory: [],
+      poolHistory,
       overallRanking,
+      ...(isRapieres(comp) && rapieres
+        ? { rapieres: { ...rapieres, launchedWave: 0, wavesEnded: false } }
+        : {}),
       tableauMatches: [],
       finalResults: [],
       consolationBrackets: [],
       skipPoolPhase: false,
       poolsLaunched: true,
-      poolPrepParams: { poolCount: pools.length, minFencersPerPool: min, maxFencersPerPool: max },
+      // Composition de l'écran : bornes de taille choisies à la préparation conservées
+      poolPrepParams: {
+        minFencersPerPool: min,
+        maxFencersPerPool: max,
+        ...(options.composition
+          ? (session.poolPrepParams as Record<string, number> | undefined)
+          : {}),
+        poolCount: pools.length,
+      },
     });
+    recordEvents(ctx, competitionId, [
+      {
+        type: EVENT.poolsGenerated,
+        payload: {
+          round,
+          pools: pools.map(p => ({
+            poolId: p.id,
+            number: p.number,
+            strip: p.strip ?? null,
+            fencerIds: p.fencers.map(f => f.id),
+            matches: p.matches.map(m => ({
+              matchId: m.id,
+              fencerAId: m.fencerA!.id,
+              fencerBId: m.fencerB!.id,
+            })),
+          })),
+        },
+      },
+    ]);
   });
   emitSession(ctx, competitionId);
   return summary;
@@ -273,6 +386,8 @@ export interface MatchListItem {
   scoreB: number | null;
   state: 'pending' | 'ready' | 'done';
   strip: number | null;
+  /** Tableau de classement (« toutes les places ») : nom ; null pour le tableau principal */
+  bracket?: string | null;
 }
 
 const scoreNum = (s: unknown): number | null =>
@@ -319,7 +434,27 @@ export function listMatches(
         scoreB: v.scoreB,
         state: v.state,
         strip: v.strip,
+        bracket: null,
       });
+    }
+    for (const b of sessionConsolation(session)) {
+      for (const m of b.matches) {
+        if (m.isBye) continue;
+        const v = bracketMatchView(m);
+        out.push({
+          matchId: m.id,
+          kind: 'bracket',
+          poolNumber: null,
+          round: m.round,
+          fencerA: v.fencerA,
+          fencerB: v.fencerB,
+          scoreA: v.scoreA,
+          scoreB: v.scoreB,
+          state: v.state,
+          strip: v.strip,
+          bracket: b.name,
+        });
+      }
     }
   }
   return out.filter(m => !filter.state || m.state === filter.state);
@@ -333,6 +468,14 @@ export interface RecordScoreInput {
   winner?: 'A' | 'B';
   /** Statut du perdant */
   specialStatus?: PoolSpecialStatus;
+  /** Exclusion sur carton noir (motif black_card, docs/adr/0016) */
+  blackCard?: boolean;
+  /**
+   * Correction d'un score de poule après le tirage du tableau (#1996, docs/adr/0017) : motif
+   * inscrit au journal des scores ; `rebuildTableau` retire le tableau, à refaire sur le
+   * classement corrigé (sinon il est gardé tel quel)
+   */
+  correction?: { reason: string; rebuildTableau?: boolean };
   /** Égalité : tireur prioritaire (minute supplémentaire) */
   priority?: 'A' | 'B';
   /** Simulation : contrôles et résultat (classement, vainqueur) sans rien écrire */
@@ -343,12 +486,20 @@ export interface RecordScoreInput {
 export function recordScore(ctx: CommandContext, competitionId: string, input: RecordScoreInput) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
+  assertScoreSupported(comp);
   const pools = sessionPools(session);
   const poolIndex = pools.findIndex(p => p.matches?.some(m => m.id === input.matchId));
   if (poolIndex >= 0) return recordPoolScore(ctx, comp, session, pools, poolIndex, input);
-  if (sessionTableau(session).some(m => m.id === input.matchId)) {
+  if (
+    sessionTableau(session).some(m => m.id === input.matchId) ||
+    sessionConsolation(session).some(b => b.matches.some(m => m.id === input.matchId))
+  ) {
     return recordBracketScore(ctx, comp, session, input);
+  }
+  if (
+    sessionPoolHistory(session).some(r => r.some(p => p.matches?.some(m => m.id === input.matchId)))
+  ) {
+    throw new CommandError('round_closed', 'Match d’un tour de poules terminé : score figé');
   }
   throw new CommandError('match_not_found', `Match introuvable : ${input.matchId} (list_matches)`);
 }
@@ -361,9 +512,17 @@ function recordPoolScore(
   poolIndex: number,
   input: RecordScoreInput
 ) {
-  if (sessionTableau(session).length > 0) {
+  const tableauDrawn = sessionTableau(session).length > 0;
+  if (tableauDrawn && !input.correction) {
     throw new CommandError('bracket_exists', 'Tableau déjà construit : score de poule figé');
   }
+  if (tableauDrawn && input.specialStatus) {
+    throw new CommandError(
+      'correction_special_refused',
+      'Correction après tirage : pas de statut spécial (retrait du tireur à part)'
+    );
+  }
+  const correction = tableauDrawn ? input.correction : undefined;
   const pool = pools[poolIndex];
   const matchIndex = pool.matches.findIndex(m => m.id === input.matchId);
   const match = pool.matches[matchIndex];
@@ -385,7 +544,18 @@ function recordPoolScore(
     input.specialStatus,
     input.priority
   );
-  const scoredPool = applyScoreToPool(pool, matchIndex, scores, isLaser(comp));
+  const applied = applyScoreToPool(pool, matchIndex, scores, isLaser(comp));
+  // Match corrigé : motif et heure affichés à l'écran, comme une correction locale (#1996)
+  const scoredPool = correction
+    ? {
+        ...applied,
+        matches: applied.matches.map((m, i) =>
+          i === matchIndex
+            ? { ...m, correction: { reason: correction.reason, at: new Date().toISOString() } }
+            : m
+        ),
+      }
+    : applied;
   let nextPools = pools.map((p, i) => (i === poolIndex ? scoredPool : p));
   // Abandon, forfait, exclusion : comme l'écran, statut du perdant propagé et ses autres
   // matchs perdus (handleFencerForfeit), liste d'appel alignée (specialStatusPatch)
@@ -394,11 +564,28 @@ function recordPoolScore(
       ? match.fencerB
       : match.fencerA
     : null;
-  if (loser && input.specialStatus) {
-    nextPools = applyFencerForfeit(nextPools, loser.id, input.specialStatus, isLaser(comp)).pools;
-  }
+  // Retrait du perdant : même règle que withdrawFencer (docs/adr/0016), même transaction
+  const withdrawal =
+    loser && input.specialStatus
+      ? planWithdrawal(
+          { pools: nextPools, tableau: [], consolation: [], isLaserSabre: isLaser(comp) },
+          {
+            fencerId: loser.id,
+            currentStatus: ctx.db.getFencer(loser.id)?.status,
+            reason: input.specialStatus,
+            blackCard: input.blackCard,
+            now: new Date(),
+          }
+        )
+      : null;
+  if (withdrawal?.ok) nextPools = withdrawal.pools;
   const updatedPool = nextPools[poolIndex];
-  const overallRanking = computeOverallRankingAllRoundsFor(nextPools, [], isLaser(comp));
+  // Tours multiples (#1051) : classement du tour courant, puis éliminés des tours précédents
+  const overallRanking = computeOverallRankingAllRoundsFor(
+    nextPools,
+    sessionPoolHistory(session),
+    isLaser(comp)
+  );
   if (!input.dryRun)
     ctx.db.transaction(() => {
       ctx.db.updateMatch(match.id, {
@@ -406,7 +593,7 @@ function recordPoolScore(
         scoreB: scores.scoreB,
         status: MatchStatus.FINISHED,
       });
-      if (loser && input.specialStatus) {
+      if (loser && input.specialStatus && withdrawal?.ok) {
         const previous = pools.flatMap(p => p.matches);
         ctx.db.saveAbandonSnapshot(
           loser.id,
@@ -423,7 +610,10 @@ function recordPoolScore(
               scoreB: m.scoreB ? { ...m.scoreB } : null,
             }))
         );
-        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+        ctx.db.updateFencer(loser.id, {
+          status: withdrawal.status,
+          exclusionReason: withdrawal.exclusionReason,
+        });
         // Matchs du perdant modifiés (dont ce match, remis à 0 pour un forfait) : miroir en base
         const before = new Map(previous.map(m => [m.id, m]));
         const same = (a: unknown, b: unknown) =>
@@ -447,8 +637,8 @@ function recordPoolScore(
         previousScoreB: match.scoreB ?? undefined,
         newScoreA: scores.scoreA,
         newScoreB: scores.scoreB,
-        changedBy: 'mcp',
-        reason: 'mcp_entry',
+        ...scoreAudit(ctx),
+        ...(correction ? { changedBy: 'correction', reason: correction.reason } : {}),
         poolId: pool.id,
       });
       const completed: string[] = [];
@@ -459,7 +649,14 @@ function recordPoolScore(
         const wasComplete = !!old && isPoolComplete(old);
         if (complete && !wasComplete) completed.push(p.id);
       }
-      writeSession(ctx, comp.id, { pools: nextPools, overallRanking });
+      writeSession(ctx, comp.id, {
+        pools: nextPools,
+        overallRanking,
+        // Tableau retiré : refait sur le classement corrigé à l'ouverture de l'onglet Tableau
+        ...(correction?.rebuildTableau
+          ? { tableauMatches: [], consolationBrackets: [], finalResults: [] }
+          : {}),
+      });
       recordEvents(ctx, comp.id, [
         {
           type: EVENT.scoreRecorded,
@@ -469,11 +666,36 @@ function recordPoolScore(
             scoreA: input.scoreA,
             scoreB: input.scoreB,
             winnerId: (scores.scoreA.isVictory ? match.fencerA : match.fencerB)?.id ?? null,
+            ...(correction
+              ? {
+                  correction: {
+                    reason: correction.reason,
+                    rebuildTableau: !!correction.rebuildTableau,
+                  },
+                }
+              : {}),
             ...(input.specialStatus
               ? { specialStatus: input.specialStatus, fencerId: loser?.id ?? null }
               : {}),
           },
         },
+        ...(loser && input.specialStatus && withdrawal?.ok
+          ? [
+              {
+                type: EVENT.fencerWithdrawn,
+                payload: {
+                  fencerId: loser.id,
+                  reason: input.specialStatus,
+                  blackCard: input.specialStatus === 'exclusion' && !!input.blackCard,
+                  matchId: match.id,
+                  forfeitedMatchIds: [
+                    match.id,
+                    ...withdrawal.forfeitedMatchIds.filter(id => id !== match.id),
+                  ],
+                },
+              },
+            ]
+          : []),
         ...completed.map(poolId => ({ type: EVENT.poolCompleted, payload: { poolId } })),
       ]);
     });
@@ -490,14 +712,53 @@ function recordPoolScore(
   };
 }
 
+/**
+ * Auteur au journal des scores (score_audit_log), selon l'origine de la commande : mêmes
+ * valeurs qu'avant le passage par recordScore (écran « ui », tablette « referee » ou nom de
+ * l'arbitre, appareil de piste « device », agent « mcp »).
+ */
+function scoreAudit(ctx: CommandContext): {
+  changedBy: string;
+  reason?: string;
+  refereeId?: string;
+  refereeName?: string;
+  ipAddress?: string;
+} {
+  const base = scoreAuditBase(ctx);
+  const extra = ctx.scoreAudit;
+  return {
+    ...base,
+    ...extra,
+    // Nom de l'arbitre au journal des scores comme avant ; le journal d'épreuve n'a que l'id
+    changedBy: extra?.refereeName || base.changedBy,
+    reason: extra?.reason ?? base.reason,
+  };
+}
+
+function scoreAuditBase(ctx: CommandContext): { changedBy: string; reason?: string } {
+  const by = ctx.actor;
+  switch (by?.source) {
+    case 'screen':
+      return { changedBy: 'ui' };
+    case 'tablet':
+      return { changedBy: 'referee', reason: 'arena_finish' };
+    case 'cyrano':
+    case 'opp2':
+      return { changedBy: 'device', reason: 'arena_finish' };
+    default:
+      return { changedBy: 'mcp', reason: 'mcp_entry' };
+  }
+}
+
 /** Classement d'entrée du tableau, comme l'écran (vainqueurs de poule, formule) */
-function tableauRanking(comp: Competition, session: Record<string, unknown>): PoolRanking[] {
+export function tableauRanking(comp: Competition, session: Record<string, unknown>): PoolRanking[] {
   const overall = Array.isArray(session.overallRanking)
     ? (session.overallRanking as PoolRanking[])
     : [];
+  const rapieres = session.rapieres as Partial<RapieresSession> | undefined;
   return computeEffectiveTableauRanking(overall, sessionPools(session), {
-    isRapieres: false,
-    rapieresTableauMode: undefined,
+    isRapieres: isRapieres(comp),
+    rapieresTableauMode: isRapieres(comp) ? rapieres?.tableauMode : undefined,
     poolWinnersOnly: effectiveSettings(comp).poolWinnersOnly,
     customFormula: getActiveFormula(comp.weapon, comp.settings),
     postPoolSplitCriteria: undefined,
@@ -506,8 +767,13 @@ function tableauRanking(comp: Competition, session: Record<string, unknown>): Po
   });
 }
 
-function persistTableau(ctx: CommandContext, comp: Competition, matches: TableauMatch[]): void {
-  const audit = { changedBy: 'mcp', reason: 'mcp_entry' };
+export function persistTableau(
+  ctx: CommandContext,
+  comp: Competition,
+  matches: TableauMatch[]
+): void {
+  const { changedBy, reason } = scoreAudit(ctx);
+  const audit = { changedBy, reason: reason ?? 'tableau_entry' };
   const maxScore = effectiveSettings(comp).tableMaxScore;
   ctx.db.upsertMultipleTableauMatches(
     comp.id,
@@ -536,12 +802,27 @@ function persistTableau(ctx: CommandContext, comp: Competition, matches: Tableau
 export function buildBracket(
   ctx: CommandContext,
   competitionId: string,
-  options: { thirdPlaceMatch?: boolean; replace?: boolean; dryRun?: boolean } = {}
+  options: {
+    thirdPlaceMatch?: boolean;
+    replace?: boolean;
+    dryRun?: boolean;
+    /**
+     * Placement calculé par l'écran (docs/adr/0017) : pas de planification ; admis pour tous
+     * les formats individuels (rapières, tours multiples, « toutes les places »), hors
+     * tableaux séparés après les poules.
+     */
+    composition?: TableauMatchInput[];
+  } = {}
 ) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
-  if (comp.settings?.playAllPositions) {
+  if (options.composition) {
+    assertScoreSupported(comp);
+    if (comp.settings?.postPoolSplitCriteria) {
+      throw new CommandError('unsupported_format', 'Tableaux séparés après les poules : à l’écran');
+    }
+  } else assertSupported(comp, session);
+  if (!options.composition && comp.settings?.playAllPositions) {
     throw new CommandError(
       'unsupported_format',
       '« Tirer toutes les places » : à piloter à l’écran'
@@ -552,7 +833,11 @@ export function buildBracket(
     throw new CommandError('no_direct_elimination', 'Épreuve sans élimination directe');
   }
   const pools = sessionPools(session);
-  if (!session.skipPoolPhase && (pools.length === 0 || !areAllPoolsComplete(pools))) {
+  if (
+    !options.composition &&
+    !session.skipPoolPhase &&
+    (pools.length === 0 || !areAllPoolsComplete(pools))
+  ) {
     throw new CommandError('pools_not_complete', 'Toutes les poules doivent être terminées');
   }
   const existing = sessionTableau(session);
@@ -565,11 +850,34 @@ export function buildBracket(
   // Statuts à jour (abandon, exclusion après les poules)
   // Statuts du classement (comme l'écran) : un décompte différent ferait régénérer le tableau
   const thirdPlace = options.thirdPlaceMatch ?? eff.thirdPlaceMatch;
-  // Génération unique écran / moteur (#1979, lot 4)
-  const { qualified, size, matches } = planTableau(tableauRanking(comp, session), {
-    playAllPositions: false,
-    thirdPlaceMatch: thirdPlace,
-  });
+  // Génération unique écran / moteur (#1979, lot 4) ; ou placement de l'écran, contrôlé
+  let qualified: { length: number };
+  let size: number;
+  let matches: TableauMatch[];
+  if (options.composition) {
+    const all = ctx.db.getFencersByCompetition(competitionId);
+    const composed = composeTableau(options.composition, new Map(all.map(f => [f.id, f])));
+    if (!composed.ok) {
+      throw new CommandError(
+        'invalid_composition',
+        `Tableau refusé : ${composed.code} (${composed.detail})`
+      );
+    }
+    matches = composed.matches;
+    size = deriveFirstRound(matches);
+    const placed = new Set(
+      matches
+        .filter(m => m.round === size || m.round === size * 2)
+        .flatMap(m => [m.fencerA?.id, m.fencerB?.id])
+        .filter(Boolean)
+    );
+    qualified = { length: placed.size };
+  } else {
+    ({ qualified, size, matches } = planTableau(tableauRanking(comp, session), {
+      playAllPositions: false,
+      thirdPlaceMatch: thirdPlace,
+    }));
+  }
   if (qualified.length < 2) {
     throw new CommandError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');
   }
@@ -597,6 +905,21 @@ export function buildBracket(
       finalResults: [],
       consolationBrackets: [],
     });
+    recordEvents(ctx, competitionId, [
+      {
+        type: EVENT.tableauGenerated,
+        payload: {
+          size,
+          thirdPlaceMatch: thirdPlace,
+          playAllPositions: !!comp.settings?.playAllPositions,
+          matches: tableauComposition(matches).map(m => ({
+            ...m,
+            seedA: m.seedA ?? null,
+            seedB: m.seedB ?? null,
+          })),
+        },
+      },
+    ]);
   });
   emitSession(ctx, competitionId);
   if (thirdPlace !== eff.thirdPlaceMatch) {
@@ -605,28 +928,108 @@ export function buildBracket(
   return summary;
 }
 
+/**
+ * Tableau après une décision (score, retrait) : propagation du tableau principal (et
+ * barrages), tableaux de classement créés au fil des tours, achèvement et classement final.
+ * Les tableaux de classement modifiés ont déjà propagé leurs vainqueurs.
+ */
+export function settleBracket(
+  comp: Competition,
+  session: Record<string, unknown>,
+  matches: TableauMatch[],
+  brackets: ConsolationBracket[],
+  mainChanged: boolean
+): {
+  brackets: ConsolationBracket[];
+  done: boolean;
+  finalResults: ReturnType<typeof calculateFinalResults>;
+} {
+  const playAll = !!comp.settings?.playAllPositions;
+  const size = deriveFirstRound(matches);
+  const ranking = tableauRanking(comp, session);
+  if (mainChanged) {
+    propagateWinners(matches, size);
+    if (playAll) placeBarrageWinners(matches, size);
+  }
+  if (playAll) {
+    // Perdants des tours terminés versés dans les tableaux de classement (useTableauViewScoring)
+    brackets = syncConsolationBrackets(matches, brackets, size, ranking, Date.now()).brackets;
+  }
+  const mainDone = isTableauDone(matches);
+  const hasBarrages = matches.some(x => x.round === size * 2);
+  const done = playAll
+    ? mainDone &&
+      !((size >= 8 || hasBarrages) && brackets.length === 0) &&
+      brackets.every(b => b.isComplete)
+    : mainDone;
+  const finalResults = done
+    ? playAll
+      ? buildCombinedResults(matches, brackets, ranking)
+      : calculateFinalResults(matches, ranking, size)
+    : [];
+  return { brackets, done, finalResults };
+}
+
+/** Tableau principal ou tableau de classement (« toutes les places ») contenant le match */
+function locateBracketMatch(
+  main: TableauMatch[],
+  brackets: ConsolationBracket[],
+  matchId: string
+): { list: TableauMatch[]; bracket: ConsolationBracket | null } {
+  if (main.some(m => m.id === matchId)) return { list: main, bracket: null };
+  const bracket = brackets.find(b => b.matches.some(m => m.id === matchId))!;
+  return { list: bracket.matches, bracket };
+}
+
 function recordBracketScore(
   ctx: CommandContext,
   comp: Competition,
   session: Record<string, unknown>,
   input: RecordScoreInput
 ) {
-  if (comp.settings?.playAllPositions) {
+  if (comp.settings?.postPoolSplitCriteria) {
     throw new CommandError(
       'unsupported_format',
-      '« Tirer toutes les places » : à piloter à l’écran'
+      'Tableaux séparés après les poules : à piloter à l’écran'
     );
   }
+  const playAll = !!comp.settings?.playAllPositions;
   let matches = sessionTableau(session).map(m => ({ ...m }));
-  const target = matches.find(m => m.id === input.matchId)!;
+  let brackets = sessionConsolation(session).map(b => ({
+    ...b,
+    matches: b.matches.map(m => ({ ...m })),
+  }));
+  const size = deriveFirstRound(matches);
+  let { list, bracket } = locateBracketMatch(matches, brackets, input.matchId);
+  const target = list.find(m => m.id === input.matchId)!;
   if (target.isBye || !target.fencerA || !target.fencerB) {
     throw new CommandError('match_not_ready', 'Match incomplet (tireur attendu) ou exempt');
   }
   if (target.winner) {
+    // « Toutes les places » : perdants déjà versés dans un tableau de classement, ou
+    // vainqueur de barrage déjà placé au premier tour : correction à l'écran
+    const parentId = bracket?.id ?? 'main';
+    const isBarrage = !bracket && target.round === size * 2;
+    if (
+      playAll &&
+      (isBarrage ||
+        brackets.some(b => b.parentBracketId === parentId && b.sourceRound === target.round))
+    ) {
+      throw new CommandError(
+        'next_match_played',
+        'Tableau de classement déjà construit depuis ce tour : correction à l’écran'
+      );
+    }
     // Correction : possible tant que le vainqueur n'a pas tiré le tour suivant
-    const reset = resetTableauMatch(matches, target.id);
+    const reset = resetTableauMatch(list, target.id);
     if (!reset) throw new CommandError('next_match_played', 'Le tour suivant est déjà joué');
-    matches = reset;
+    if (bracket) {
+      brackets = brackets.map(b => (b.id === bracket!.id ? { ...b, matches: reset } : b));
+      ({ list, bracket } = locateBracketMatch(matches, brackets, input.matchId));
+    } else {
+      matches = reset;
+      list = matches;
+    }
   }
   const { scoreA, scoreB } = input;
   if (![scoreA, scoreB].every(s => Number.isInteger(s) && s >= 0)) {
@@ -648,7 +1051,7 @@ function recordBracketScore(
   if (input.specialStatus && !input.winner) {
     throw new CommandError('winner_required', 'Abandon, forfait ou exclusion : préciser winner');
   }
-  const m = matches.find(x => x.id === input.matchId)!;
+  const m = list.find(x => x.id === input.matchId)!;
   const tieWinner = input.winner ?? null;
   const winner = input.specialStatus
     ? input.winner === 'A'
@@ -669,21 +1072,39 @@ function recordBracketScore(
     winner,
     specialStatus: input.specialStatus ? { fencerId: loser.id, status: input.specialStatus } : null,
   });
-  const size = deriveFirstRound(matches);
-  propagateWinners(matches, size);
-  const done = isTableauDone(matches);
-  const finalResults = done
-    ? calculateFinalResults(matches, tableauRanking(comp, session), size)
-    : [];
+  if (bracket) {
+    // Tableau de classement : propagation interne, comme updateConsolationMatch à l'écran
+    propagateWinners(bracket.matches, bracket.size);
+    bracket.isComplete = isBracketComplete(bracket.matches);
+  }
+  const settled = settleBracket(comp, session, matches, brackets, !bracket);
+  brackets = settled.brackets;
+  const { done, finalResults } = settled;
   if (!input.dryRun)
     ctx.db.transaction(() => {
-      // Journal des scores : écrit par l'upsert (auteur « mcp »)
+      // Journal des scores : écrit par l'upsert (auteur « mcp ») ; les tableaux de
+      // classement ne vivent que dans l'état de session, comme à l'écran
       persistTableau(ctx, comp, matches);
-      if (input.specialStatus)
-        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+      // Retrait du perdant : même règle que withdrawFencer (docs/adr/0016)
+      const withdrawn = input.specialStatus && !isWithdrawn(ctx.db.getFencer(loser.id));
+      if (input.specialStatus && withdrawn) {
+        ctx.db.saveAbandonSnapshot(
+          loser.id,
+          comp.id,
+          ctx.db.getFencer(loser.id)?.status ?? FencerStatus.QUALIFIED,
+          input.specialStatus,
+          [{ matchId: m.id, status: 'tableau', scoreA: null, scoreB: null }]
+        );
+        ctx.db.updateFencer(loser.id, {
+          status: WITHDRAWAL_STATUS[input.specialStatus],
+          exclusionReason:
+            input.specialStatus === 'exclusion' && input.blackCard ? 'black_card' : null,
+        });
+      }
       // Tableau terminé : phase Résultats, comme onComplete à l'écran
       writeSession(ctx, comp.id, {
         tableauMatches: matches,
+        ...(playAll ? { consolationBrackets: brackets } : {}),
         finalResults,
         ...(done ? { currentPhase: PHASE.results } : {}),
       });
@@ -701,6 +1122,20 @@ function recordBracketScore(
           },
         },
         { type: EVENT.tableauMatchDecided, payload: { matchId: m.id, winnerId: winner.id } },
+        ...(input.specialStatus && withdrawn
+          ? [
+              {
+                type: EVENT.fencerWithdrawn,
+                payload: {
+                  fencerId: loser.id,
+                  reason: input.specialStatus,
+                  blackCard: input.specialStatus === 'exclusion' && !!input.blackCard,
+                  matchId: m.id,
+                  forfeitedMatchIds: [m.id],
+                },
+              },
+            ]
+          : []),
         ...(done ? [{ type: EVENT.tableauCompleted, payload: {} }] : []),
       ]);
     });
@@ -712,6 +1147,7 @@ function recordBracketScore(
     dryRun: !!input.dryRun,
     kind: 'bracket' as const,
     match: bracketMatchView(m),
+    bracket: bracket?.name ?? null,
     bracketComplete: done,
     podium: finalResults.slice(0, 4).map(r => ({ rank: r.rank, fencer: fencerRef(r.fencer) })),
   };

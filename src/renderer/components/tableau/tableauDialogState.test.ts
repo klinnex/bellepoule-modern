@@ -7,6 +7,7 @@ import {
   SCORE_EDIT_INIT,
 } from './tableauDialogState';
 import type { TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
+import type { BpmClient } from '../../../shared/api/client';
 
 const m = (id: string, a: string, b: string) =>
   ({ id, fencerA: { id: a }, fencerB: { id: b } }) as unknown as TableauMatch;
@@ -14,6 +15,16 @@ const m = (id: string, a: string, b: string) =>
 afterEach(() => {
   delete (window as any).electronAPI;
 });
+
+/** Client du contrat (#1981) : requête getCardsByMatchIds simulée */
+const cardsClient = (getCardsByMatchIds: (ids: string[]) => Promise<unknown>) =>
+  ({
+    query: vi.fn((_name: string, input: { matchIds: string[] }) =>
+      getCardsByMatchIds(input.matchIds)
+    ),
+    call: vi.fn(),
+    subscribe: vi.fn(),
+  }) as unknown as BpmClient;
 
 describe('tableauDialogState', () => {
   it('états initiaux', () => {
@@ -43,8 +54,13 @@ describe('tableauDialogState', () => {
       { matchId: 'm2', fencerId: 'zz', cardType: 'red' },
       { matchId: 'nope', fencerId: 'a', cardType: 'black' },
     ]);
-    (window as unknown as { electronAPI: unknown }).electronAPI = { db: { getCardsByMatchIds } };
-    expect(await loadDECards([m('m1', 'a', 'b'), m('m2', 'c', 'd')], 'comp')).toEqual({
+    expect(
+      await loadDECards(
+        [m('m1', 'a', 'b'), m('m2', 'c', 'd')],
+        'comp',
+        cardsClient(getCardsByMatchIds)
+      )
+    ).toEqual({
       m1: { A: ['yellow', 'p-red'] },
       m2: { B: ['red'] },
     });
@@ -56,16 +72,22 @@ describe('tableauDialogState', () => {
       { matchId: 'comp-m1', fencerId: 'a', cardType: 'yellow' },
       { matchId: 'm1', fencerId: 'a', cardType: 'yellow' },
     ]);
-    (window as unknown as { electronAPI: unknown }).electronAPI = { db: { getCardsByMatchIds } };
-    expect(await loadDECards([m('m1', 'a', 'b')], 'comp')).toEqual({ m1: { A: ['yellow'] } });
+    expect(await loadDECards([m('m1', 'a', 'b')], 'comp', cardsClient(getCardsByMatchIds))).toEqual(
+      {
+        m1: { A: ['yellow'] },
+      }
+    );
   });
 
   it('loadDECards : undefined sans carton ou en cas d erreur', async () => {
     expect(await loadDECards([m('m1', 'a', 'b')], 'comp')).toBeUndefined();
-    (window as unknown as { electronAPI: unknown }).electronAPI = {
-      db: { getCardsByMatchIds: vi.fn().mockRejectedValue(new Error('x')) },
-    };
-    expect(await loadDECards([m('m1', 'a', 'b')], 'comp')).toBeUndefined();
+    expect(
+      await loadDECards(
+        [m('m1', 'a', 'b')],
+        'comp',
+        cardsClient(vi.fn().mockRejectedValue(new Error('x')))
+      )
+    ).toBeUndefined();
   });
 
   it('retourne undefined sans lignes ou en cas d erreur', async () => {

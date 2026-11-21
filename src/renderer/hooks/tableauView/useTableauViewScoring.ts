@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Fencer } from '../../../shared/types';
 export {
   TableauMatch,
@@ -81,7 +81,11 @@ export function useTableauViewScoring(ctx: Ctx) {
     undo,
     competitionId,
     weapon,
+    onRecordScore,
+    onGenerateTableau,
   } = ctx;
+  // Génération en cours par le moteur : l'effet de montage ne la relance pas
+  const generatingRef = useRef(false);
 
   useEffect(() => {
     if (readOnly) {
@@ -199,6 +203,20 @@ export function useTableauViewScoring(ctx: Ctx) {
     });
     setTableauSize(size);
     setConsolationBrackets([]); // réinitialiser les brackets de consolation
+    // Placement écrit par le moteur (TableauGenerated) ; l'écran relit l'état. Hors moteur
+    // ou tableaux séparés : tableau local, comme avant
+    if (onGenerateTableau) {
+      if (generatingRef.current) return;
+      generatingRef.current = true;
+      void onGenerateTableau(newMatches, thirdPlaceMatch)
+        .then(outcome => {
+          if (outcome === 'local') onMatchesChange(newMatches);
+        })
+        .finally(() => {
+          generatingRef.current = false;
+        });
+      return;
+    }
     onMatchesChange(newMatches);
   };
 
@@ -359,6 +377,28 @@ export function useTableauViewScoring(ctx: Ctx) {
       }
     }
 
+    // Un fait, un chemin (#1980, ADR-0005) : le score passe par la commande recordScore ;
+    // l'écran relit la session. Format non piloté par le moteur : saisie locale historique.
+    if (onRecordScore) {
+      const tieWinner = victoryA ? 'A' : victoryB ? 'B' : undefined;
+      const matchId = editingMatch;
+      void onRecordScore({
+        matchId,
+        scoreA,
+        scoreB,
+        ...(scoreA === scoreB && tieWinner ? { winner: tieWinner } : {}),
+      }).then(outcome => {
+        if (outcome === 'recorded') closeScoreModal();
+        else if (outcome === 'local') applyScoreLocally(scoreA, scoreB);
+      });
+      return;
+    }
+    applyScoreLocally(scoreA, scoreB);
+  };
+
+  /** Saisie locale (formats hors moteur, ou hors Electron) : état de l'écran puis sauvegarde */
+  const applyScoreLocally = (scoreA: number, scoreB: number) => {
+    if (!editingMatch) return;
     // Si c'est un match de bracket de consolation
     if (editingConsolationId) {
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);

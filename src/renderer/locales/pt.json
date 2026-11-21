@@ -220,7 +220,8 @@
     "prep_discard_title": "Voltar às poules lançadas (resultados mantidos)",
     "prep_unplaced": "{{count}} esgrimista(s) adicionado(s) pela chamada ainda não colocado(s): clique em «Repreparar poules» para os incluir.",
     "relaunch_confirm": "Já existem resultados de poules registados: serão perdidos. Continuar?",
-    "prep_moved": "Esgrimista movido"
+    "prep_moved": "Esgrimista movido",
+    "launch_failed": "Poules não lançadas: {{message}}"
   },
   "ranking": {
     "rank": "Lugar",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Clique duas vezes para editar",
     "check": "Registar presença",
     "uncheck": "Anular",
+    "checkin_failed": "Presença não registada: {{message}}",
+    "checkin_special_status": "Abandono, falta de comparência ou exclusão: restaure o atirador em vez de o registar",
     "all_files": "Todos os ficheiros",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportadas",
@@ -1747,7 +1750,9 @@
     "col_region": "Região",
     "col_department": "Departamento",
     "deleted": "{{name}} eliminado",
-    "col_handedness": "Lateralidade"
+    "col_handedness": "Lateralidade",
+    "withdraw_failed": "Retirada não registada: {{message}}",
+    "reinstate_failed": "Reintegração não registada: {{message}}"
   },
   "questPhase": {
     "running_title": "Ronda Quest em curso",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entradas",
     "total": " ({{n}} no total)",
-    "author_device": "Aparelho de sinalização"
+    "author_device": "Aparelho de sinalização",
+    "record_failed": "Pontuação não registada: {{message}}"
   },
   "errorBoundary": {
     "title": "Ocorreu um erro",

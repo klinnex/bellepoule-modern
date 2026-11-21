@@ -139,6 +139,7 @@ import {
 import type { DemoPlayer } from './remote/demoMode';
 import {
   finishArenaMatch,
+  checkArenaFinish,
   recallPrevMatch,
   recallPrevMatchResult,
   type MatchFinishContext,
@@ -1033,6 +1034,11 @@ export class RemoteScoreServer {
 
   public finishArenaMatch(arenaId: string): void {
     return finishArenaMatch(this.matchFinishCtx, arenaId);
+  }
+
+  /** Score de fin demandé par l'appareil de piste refusé par recordScore : motif (NAK), sinon null */
+  public checkArenaFinish(arenaId: string): string | null {
+    return checkArenaFinish(this.matchFinishCtx, arenaId);
   }
 
   /** Arbitres de la compétition au format session (lus en base). */

@@ -220,7 +220,8 @@
     "prep_discard_title": "Volver a las poules lanzadas (resultados conservados)",
     "prep_unplaced": "{{count}} tirador(es) añadido(s) desde la lista de llamada sin ubicar: haga clic en «Reprepar las poules» para incluirlos.",
     "relaunch_confirm": "Ya hay marcadores de poules introducidos: se perderán. ¿Continuar?",
-    "prep_moved": "Tirador movido"
+    "prep_moved": "Tirador movido",
+    "launch_failed": "Poules no lanzadas: {{message}}"
   },
   "ranking": {
     "rank": "Pos",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Doble clic para editar",
     "check": "Marcar",
     "uncheck": "Anular",
+    "checkin_failed": "Registro de presencia no guardado: {{message}}",
+    "checkin_special_status": "Abandono, forfait o exclusión: restaure al tirador en lugar de registrarlo",
     "all_files": "Todos los archivos",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportadas",
@@ -1747,7 +1750,9 @@
     "col_region": "Región",
     "col_department": "Departamento",
     "deleted": "{{name}} eliminado",
-    "col_handedness": "Lateralidad"
+    "col_handedness": "Lateralidad",
+    "withdraw_failed": "Retirada no guardada: {{message}}",
+    "reinstate_failed": "Reincorporación no guardada: {{message}}"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curso",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entradas",
     "total": " ({{n}} en total)",
-    "author_device": "Aparato de señalización"
+    "author_device": "Aparato de señalización",
+    "record_failed": "Puntuación no guardada: {{message}}"
   },
   "errorBoundary": {
     "title": "Se ha producido un error",

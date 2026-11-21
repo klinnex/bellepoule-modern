@@ -220,7 +220,8 @@
     "prep_discard_title": "Revenir aux poules lancées (scores conservés)",
     "prep_unplaced": "{{count}} tireur(s) ajouté(s) depuis l'appel, non placé(s) : cliquez sur « Repréparer les poules » pour les intégrer.",
     "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?",
-    "prep_moved": "Tireur déplacé"
+    "prep_moved": "Tireur déplacé",
+    "launch_failed": "Poules non lancées : {{message}}"
   },
   "ranking": {
     "rank": "Rg",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Double-cliquer pour modifier",
     "check": "Pointer",
     "uncheck": "Annuler",
+    "checkin_failed": "Pointage non enregistré : {{message}}",
+    "checkin_special_status": "Abandon, forfait ou exclusion : restaurez le tireur au lieu de le pointer",
     "all_files": "Tous les fichiers",
     "photos_exported_one": "{{count}} photo exportée",
     "photos_exported_other": "{{count}} photos exportées",
@@ -1747,7 +1750,9 @@
     "col_region": "Région",
     "col_department": "Département",
     "deleted": "{{name}} supprimé",
-    "col_handedness": "Latéralité"
+    "col_handedness": "Latéralité",
+    "withdraw_failed": "Retrait non enregistré : {{message}}",
+    "reinstate_failed": "Réintégration non enregistrée : {{message}}"
   },
   "questPhase": {
     "running_title": "Tour Quest en cours",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} entrée",
     "entries_other": "{{count}} entrées",
     "total": " ({{n}} au total)",
-    "author_device": "Appareil de piste"
+    "author_device": "Appareil de piste",
+    "record_failed": "Score non enregistré : {{message}}"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

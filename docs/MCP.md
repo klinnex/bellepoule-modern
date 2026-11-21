@@ -109,15 +109,18 @@ session porte une révision : une sauvegarde de l'écran faite sur un état pér
 
 | Outil | Arguments | Effet |
 |---|---|---|
-| `generate_pools` | `competitionId`, `poolCount?`, `minPerPool?`, `maxPerPool?`, `replace?` | Tirage sur les tireurs pointés (serpentin, clubs et régions séparés), poules lancées, poule n sur la piste n. ⚠️ `replace` efface des poules jouées ou un tableau |
+| `generate_pools` | `competitionId`, `poolCount?`, `minPerPool?`, `maxPerPool?`, `separation?`, `composition?`, `replace?`, `dryRun?` | Tirage sur les tireurs pointés (serpentin, clubs et régions séparés), ou composition préparée (`composition`) ; poules lancées, poule n sur la piste n ; `PoolsGenerated` au journal. ⚠️ `replace` efface des poules jouées ou un tableau |
 | `assign_referees` | `competitionId`, `replace?`, `includeUnchecked?` | Un arbitre principal par poule, pointé, hors club des tireurs, charge équilibrée |
 | `record_score` | `competitionId`, `matchId`, `scoreA`, `scoreB`, `winner?`, `specialStatus?`, `priority?`, `dryRun?` | Score de poule ou de tableau, contrôles de l'écran (score max, égalité, abandon / forfait / exclusion propagés) ; `dryRun` contrôle sans écrire |
-| `build_bracket` | `competitionId`, `thirdPlaceMatch?`, `replace?` | Tableau depuis le classement après poules. ⚠️ `replace` efface un tableau joué |
+| `build_bracket` | `competitionId`, `thirdPlaceMatch?`, `composition?`, `replace?`, `dryRun?` | Tableau depuis le classement après poules, ou placement donné (`composition`) ; `TableauGenerated` au journal. ⚠️ `replace` efface un tableau joué |
 | `export_results` | `competitionId`, `format` (`xml` / `fff` / `csv` / `html` / `pdf`), `path`, `overwrite?` | Fichier de résultats dans un dossier accessible à l'agent |
 
 Formats pilotables : épreuve individuelle, un tour de poules, tableau simple avec ou sans petite
 finale. Équipes, rapières, tours de poules multiples et « tirer toutes les places » restent à
-l'écran (erreur `unsupported_format`).
+l'écran (erreur `unsupported_format`) pour `generate_pools` et `build_bracket` sans `composition`, et pour `assign_referees`.
+`record_score` accepte aussi les tours multiples (tour courant ; tour terminé figé : `round_closed`),
+les rapières et « toutes les places » (barrages, tableaux de classement listés par `list_matches`
+avec leur nom dans `bracket`). Refusés : épreuves par équipes, tableaux séparés après les poules.
 
 ## Paramétrage du poste et salles
 
@@ -180,7 +183,7 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (41)
+## Référence des outils (45)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
@@ -318,7 +321,7 @@ Aucun argument.
 | `since` | integer |  | Dernière révision connue (0 : tout) |
 | `limit` | integer |  | Nombre maximum (1000) |
 
-### En écriture, sur autorisation (24)
+### En écriture, sur autorisation (28)
 
 ### `create_competition` — Créer une épreuve
 
@@ -429,31 +432,6 @@ Aucun argument.
 | `confirmTitle` | string | oui |  |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
-### `generate_pools` — Générer les poules
-
-*⚠️ écriture, destructif.* Tirage des poules sur les tireurs pointés, par la même fonction que l’écran : serpentin sur le classement, puis clubs et régions séparés (défaut), ou les critères de « separation ». Poules lancées, poule n sur la piste n. Épreuve individuelle, un tour de poules. « replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
-| `poolCount` | number |  | Nombre de poules (défaut : optimal) |
-| `minPerPool` | number |  | Tireurs par poule, minimum (défaut 5) |
-| `maxPerPool` | number |  | Tireurs par poule, maximum (défaut 7) |
-| `replace` | boolean |  | Remplacer des poules ou un tableau existants |
-| `separation` | `byRanking`, `byClub`, `byRegion`, `byNation`[] |  | Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"] |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
-### `build_bracket` — Construire le tableau
-
-*⚠️ écriture, destructif.* Tableau d’élimination directe depuis le classement après poules (poules terminées ; abandons, forfaits, exclus et éliminés écartés). Petite finale selon l’épreuve, ou « thirdPlaceMatch ». « replace: true » efface un tableau déjà joué : accord du DT indispensable.
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
-| `thirdPlaceMatch` | boolean |  | Match pour la 3e place |
-| `replace` | boolean |  | Remplacer un tableau existant |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
 ### `export_results` — Exporter les résultats
 
 *écriture, idempotent.* Écrit les résultats dans un fichier d’un dossier accessible à l’agent : xml (BellePoule / FFE), fff (classement FFE), csv (classement après poules), html ou pdf (classement final). « overwrite: true » pour remplacer un fichier existant.
@@ -548,11 +526,12 @@ Aucun argument.
 | `fencers` | string / integer[] | oui | Identifiants ou numéros (ref) |
 | `present` | boolean | oui | true : présent ; false : absent |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
 
 ### `record_score` — Saisir un score
 
-*écriture, idempotent.* Score d’un match de poule ou de tableau (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
+*écriture, idempotent.* Score d’un match de poule (tour courant) ou de tableau, tableaux de classement compris (matchId : list_matches), mêmes contrôles que l’écran : score maximum, égalité tranchée par « winner » (ou « priority » en poule), statut spécial du perdant. Classements recalculés ; au tableau, le vainqueur passe au tour suivant. Ne saisir que des scores donnés par le DT ; « dryRun: true » contrôle le score sans l’écrire.
 
 | Argument | Type | Requis | Description |
 |---|---|---|---|
@@ -562,9 +541,95 @@ Aucun argument.
 | `scoreB` | integer | oui | Touches du tireur B |
 | `winner` | `A`, `B` |  | Vainqueur imposé |
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
+| `blackCard` | boolean |  | Exclusion sur carton noir (motif du rapport fédéral) |
+| `correction` | object |  | Correction d’un score de poule après le tirage du tableau (#1996) |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `generate_pools` — Générer les poules
+
+*⚠️ écriture, destructif.* Poules du tour courant, lancées (phase Poules). Sans « composition » : tirage sur les tireurs pointés par la même fonction que l’écran (serpentin sur le classement, puis clubs et régions séparés, ou les critères de « separation »), poule n sur la piste n ; épreuve individuelle, un tour de poules. Avec « composition » : poules et ordre des matchs retenus par le DT à la préparation, tels quels (tous formats individuels, tours multiples compris). « replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `poolCount` | integer |  | Nombre de poules (défaut : optimal) |
+| `minPerPool` | integer |  | Tireurs par poule, minimum (défaut 5) |
+| `maxPerPool` | integer |  | Tireurs par poule, maximum (défaut 7) |
+| `separation` | `byRanking`, `byClub`, `byRegion`, `byNation`[] |  | Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"] |
+| `composition` | object[] |  | Poules préparées par le DT (écran) : pas de tirage |
+| `replace` | boolean |  | Remplacer des poules ou un tableau existants |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `add_pool_fencer` — Ajouter un tireur à une poule
+
+*écriture.* Ajoute un tireur à une poule lancée (tireur arrivé en retard) : un match contre chaque tireur de la poule, à la suite des matchs existants. Refus si le tableau est tiré ou si le tireur est déjà placé.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `poolId` | string | oui | Identifiant de la poule |
+| `fencerId` | string | oui | Identifiant du tireur |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `close_pool_round` — Clore le tour de poules
+
+*⚠️ écriture, destructif.* Clôt le tour de poules courant (toutes les poules terminées) : qualifiés selon le classement du tour (formule, puis réglage du nombre de qualifiés, ou « qualifierCount »), non-qualifiés éliminés, tour archivé ; le tour suivant se pointe puis se tire. « dryRun: true » donne le nombre de qualifiés et d’éliminés sans rien écrire. Refus sous 4 qualifiés.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `qualifierCount` | integer |  | Nombre de qualifiés imposé |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `build_bracket` — Construire le tableau
+
+*⚠️ écriture, destructif.* Tableau d’élimination directe. Sans « composition » : construit depuis le classement après poules (tireurs éliminés, abandons, forfaits et exclus écartés), avec ou sans petite finale (épreuve individuelle, un tour, tableau simple). Avec « composition » : placement calculé par l’écran (barrages, exemptions, rangs de sortie de poules), tel quel. « replace: true » efface un tableau déjà joué : accord du DT indispensable.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `thirdPlaceMatch` | boolean |  | Match pour la 3e place |
+| `composition` | object[] |  | Placement calculé par l’écran : pas de planification |
+| `replace` | boolean |  | Remplacer un tableau existant |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `withdraw_fencer` — Retirer un tireur
+
+*⚠️ écriture, destructif.* Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). À l’appel : statut seul. En poules : ses matchs non disputés sont perdus (DNS s’il n’a commencé aucun match). Au tableau : son match en cours est perdu, l’adversaire passe. Refus si le tableau est terminé ou si l’adversaire n’est pas encore connu. « dryRun: true » donne les matchs perdus sans rien écrire. Annulation : reinstate_fencer.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `fencerId` | string | oui | Identifiant du tireur |
+| `reason` | `abandon`, `forfait`, `exclusion` | oui | Motif du retrait |
+| `blackCard` | boolean |  | Exclusion sur carton noir (rapport fédéral) |
+| `matchId` | string |  | Match où le retrait a lieu (carton, abandon sur la piste) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `reinstate_fencer` — Réintégrer un tireur
+
+*écriture.* Annule le retrait d’un tireur (abandon, forfait, exclusion) : statut et matchs d’avant le retrait. Refus si un match qui suit a été joué depuis, ou si le tableau a été tiré après un retrait en poules.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `fencerId` | string | oui | Identifiant du tireur |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
 
 ### `set_refereeing_settings` — Réglages d’affectation des arbitres
 
@@ -578,7 +643,8 @@ Aucun argument.
 | `maxConsecutiveMatches` | integer |  |  |
 | `minRestTimeMinutes` | integer |  |  |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
 
 ### `assign_referees` — Arbitres des poules
 
@@ -590,7 +656,8 @@ Aucun argument.
 | `replace` | boolean |  | Réaffecter toutes les poules |
 | `includeUnchecked` | boolean |  | Accepter les arbitres non pointés |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
 
 ### `assign_referee` — Arbitre d’une poule (à la main)
 
@@ -602,6 +669,7 @@ Aucun argument.
 | `poolNumber` | integer | oui | Numéro de la poule |
 | `refereeId` | string / null | oui | Identifiant de l’arbitre (list_referees), ou null |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre écriture est passée entre-temps |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
 
 <!-- outils-mcp:fin -->

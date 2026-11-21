@@ -9,6 +9,7 @@ import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
+import { reinstateByCommand } from './scoreCommand';
 
 type S = RemoteScoreServer;
 
@@ -24,6 +25,7 @@ export interface BlackCardsContext {
   readonly sessionBlackCards: S['sessionBlackCards'];
   readonly sessionMatchScores: S['sessionMatchScores'];
   sessionMatches: S['sessionMatches'];
+  readonly session: S['session'];
 }
 
 /**
@@ -100,8 +102,10 @@ export function cancelBlackCard(
   }
 
   const status = record.previousStatus;
+  // Réintégration par le moteur (docs/adr/0016) : statut et matchs d'avant l'exclusion, journal
+  const recorded = reinstateByCommand(ctx.db, ctx.session?.competitionId, fencerId);
   try {
-    ctx.db.updateFencer(fencerId, { status, exclusionReason: null });
+    if (!recorded) ctx.db.updateFencer(fencerId, { status, exclusionReason: null });
   } catch (e) {
     logger.error(
       LogCategory.NETWORK,
@@ -126,7 +130,8 @@ export function cancelBlackCard(
     isExclusion: false,
     isForfait: false,
   });
-  if (dbMatch) {
+  // Base : remise par le moteur à l'état d'avant le carton ; le score atteint reste celui de l'arène
+  if (dbMatch && !recorded) {
     ctx.db.updateMatch(matchId, {
       scoreA: reopened(scoreA),
       scoreB: reopened(scoreB),
@@ -180,6 +185,8 @@ export function cancelBlackCard(
       status,
       scoreA,
       scoreB,
+      // Réintégration écrite par le moteur : l'écran relit tireurs et session
+      recorded,
     });
   }
   return { success: true, matchId };
@@ -195,6 +202,7 @@ export const BLACK_CARDS_CONTEXT_KEYS = {
     'sessionBlackCards',
     'sessionMatchScores',
     'sessionMatches',
+    'session',
   ],
   methods: ['formatFencerName', 'getArenaBlackCards', 'matchPoolId'],
 } as const;

@@ -220,7 +220,8 @@
     "prep_discard_title": "Torna ai gironi avviati (punteggi conservati)",
     "prep_unplaced": "{{count}} schermidore/i aggiunto/i dall'appello non ancora assegnato/i: clicca su «Riprepara i gironi» per includerli.",
     "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?",
-    "prep_moved": "Schermidore spostato"
+    "prep_moved": "Schermidore spostato",
+    "launch_failed": "Gironi non avviati: {{message}}"
   },
   "ranking": {
     "rank": "Pos",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Doppio clic per modificare",
     "check": "Conferma presenza",
     "uncheck": "Annulla",
+    "checkin_failed": "Appello non salvato: {{message}}",
+    "checkin_special_status": "Abbandono, forfait o esclusione: ripristina lo schermidore invece di registrarlo",
     "all_files": "Tutti i file",
     "photos_exported_one": "{{count}} foto esportata",
     "photos_exported_other": "{{count}} foto esportate",
@@ -1747,7 +1750,9 @@
     "col_region": "Regione",
     "col_department": "Dipartimento",
     "deleted": "{{name}} eliminato",
-    "col_handedness": "Lateralità"
+    "col_handedness": "Lateralità",
+    "withdraw_failed": "Ritiro non salvato: {{message}}",
+    "reinstate_failed": "Reintegro non salvato: {{message}}"
   },
   "questPhase": {
     "running_title": "Turno Quest in corso",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} voce",
     "entries_other": "{{count}} voci",
     "total": " ({{n}} in totale)",
-    "author_device": "Apparecchio di segnalazione"
+    "author_device": "Apparecchio di segnalazione",
+    "record_failed": "Punteggio non salvato: {{message}}"
   },
   "errorBoundary": {
     "title": "Si è verificato un errore",

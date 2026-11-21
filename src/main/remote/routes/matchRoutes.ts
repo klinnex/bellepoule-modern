@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { recordFinishedScore } from '../scoreCommand';
 import { FencerStatus, MatchStatus, type Match } from '../../../shared/types';
 import type {
   Arena,
@@ -17,7 +18,10 @@ import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
 import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 import { recordRemoteEvent } from '../remoteEvents';
-import { decideMatchWinner, isAcceptableScore } from '../../../shared/domain/match/matchEndValidation';
+import {
+  decideMatchWinner,
+  isAcceptableScore,
+} from '../../../shared/domain/match/matchEndValidation';
 import { isCyranoMasterOnline } from '../cyranoLock';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
@@ -346,6 +350,18 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         priority: priorityWinner,
       });
 
+      // Exclu sur carton noir : statut d'avant la fin (annulation du carton), pour savoir ensuite
+      // si le moteur l'a exclu (recordScore avec statut, docs/adr/0016)
+      const culpritRef: FinishedMatchView | undefined = dbMatch || inMemoryMatch || undefined;
+      const culpritIdBefore = blackCarded
+        ? blackCarded === 'A'
+          ? (culpritRef?.fencerA?.id ?? culpritRef?.fencerAId)
+          : (culpritRef?.fencerB?.id ?? culpritRef?.fencerBId)
+        : undefined;
+      const culpritStatusBefore = culpritIdBefore
+        ? ctx.db.getFencer(culpritIdBefore)?.status
+        : undefined;
+
       // Arène du match (capturée avant que finishArenaMatch ne charge le match suivant)
       const blackCardArenaId = blackCarded
         ? (Array.from(ctx.arenas.entries()).find(([, a]) => a.currentMatch?.id === matchId)?.[0] ??
@@ -394,6 +410,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             arena.currentMatch.scoreB = scoreB;
             if (Number.isFinite(fightSeconds) && fightSeconds > 0 && fightSeconds < 6 * 3600)
               arena.currentMatch.fightSeconds = Math.round(fightSeconds);
+            if (blackCarded) arena.currentMatch.blackCardFencer = blackCarded;
             arenaToFinish = arenaId;
             break;
           }
@@ -403,6 +420,16 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         } else {
           // Match non trouvé dans une arène active : notifier quand même le renderer
           // (cas où l'arbitre soumet depuis referee.html mais l'arène a déjà changé)
+          // Score par la commande recordScore (#1980) ; carton noir : score et exclusion ensemble
+          const recorded = recordFinishedScore(ctx.db, {
+            competitionId: ctx.session?.competitionId,
+            matchId,
+            scoreA,
+            scoreB,
+            winner: winner as 'A' | 'B' | null,
+            source: 'tablet',
+            ...(blackCarded ? { specialStatus: 'exclusion' as const, blackCard: true } : {}),
+          });
           const mainWin = getSharedMainWindow();
           if (mainWin) {
             const isTableauMatch = !dbMatch.poolId;
@@ -413,6 +440,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               winner: winner as 'A' | 'B' | null,
               poolId: dbMatch.poolId ?? null,
               isTableau: isTableauMatch,
+              recorded,
             });
             logger.info(
               LogCategory.NETWORK,
@@ -434,6 +462,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           if (arena.currentMatch && arena.currentMatch.id === matchId) {
             arena.currentMatch.scoreA = scoreA;
             arena.currentMatch.scoreB = scoreB;
+            if (blackCarded) arena.currentMatch.blackCardFencer = blackCarded;
             ctx.finishArenaMatch(arenaId);
             arenaFoundForInMemory = true;
             break;
@@ -444,6 +473,15 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           const mainWin = getSharedMainWindow();
           if (mainWin) {
             const sm = ctx.sessionMatches.find(m => m.id === matchId);
+            const recorded = recordFinishedScore(ctx.db, {
+              competitionId: ctx.session?.competitionId,
+              matchId,
+              scoreA,
+              scoreB,
+              winner: winner as 'A' | 'B' | null,
+              source: 'tablet',
+              ...(blackCarded ? { specialStatus: 'exclusion' as const, blackCard: true } : {}),
+            });
             mainWin.webContents.send('match:finished', {
               matchId,
               scoreA,
@@ -451,6 +489,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               winner: winner as 'A' | 'B' | null,
               poolId: sm?.poolId ?? null,
               isTableau: sm?.isTableau ?? false,
+              recorded,
             });
             logger.info(
               LogCategory.NETWORK,
@@ -469,11 +508,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             : (matchObj?.fencerB?.id ?? matchObj?.fencerBId);
         if (culpritId) {
           try {
-            const previousStatus = ctx.db.getFencer(culpritId)?.status;
-            ctx.db.updateFencer(culpritId, {
-              status: FencerStatus.EXCLUDED,
-              exclusionReason: 'black_card',
-            });
+            const previousStatus = culpritStatusBefore ?? ctx.db.getFencer(culpritId)?.status;
+            // Exclusion déjà écrite par le moteur avec le score (docs/adr/0016) ?
+            const engineExcluded =
+              previousStatus !== FencerStatus.EXCLUDED &&
+              ctx.db.getFencer(culpritId)?.status === FencerStatus.EXCLUDED;
+            if (!engineExcluded) {
+              ctx.db.updateFencer(culpritId, {
+                status: FencerStatus.EXCLUDED,
+                exclusionReason: 'black_card',
+              });
+            }
             // Mémoriser le carton noir pour permettre son annulation depuis la tablette
             const culpritObj = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;
             const opponentObj = blackCarded === 'A' ? matchObj?.fencerB : matchObj?.fencerA;
@@ -498,6 +543,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
                 fencerId: culpritId,
                 matchId,
                 reason: 'black_card',
+                // Retrait écrit par le moteur : l'écran relit, sans rien appliquer
+                recorded: engineExcluded,
               });
               // Carton noir → appel DT automatique (rapport fédéral)
               const culprit = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;

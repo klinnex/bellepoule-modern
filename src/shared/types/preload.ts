@@ -243,6 +243,7 @@ export interface RemoteMatchFinishedEvent {
   isTableau?: boolean;
   /** Motif de fin signalé par l'appareil de piste : le perdant porte l'abandon / l'exclusion (#1829) */
   deviceReason?: 'priority' | 'abandon' | 'exclusion';
+  recorded?: boolean; // score écrit par recordScore (#1980) : l'écran relit la session
 }
 
 export interface SessionState {
@@ -1445,7 +1446,12 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
     callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (
-    callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
+    callback: (data: {
+      fencerId: string;
+      matchId: string;
+      reason?: 'black_card';
+      recorded?: boolean; // écrit par le moteur (docs/adr/0016) : l'écran relit
+    }) => void
   ) => () => void;
   /** Carton noir annulé depuis une tablette : combattant réintégré, match rouvert */
   onRemoteFencerReinstated?: (
@@ -1455,6 +1461,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
       status: string;
       scoreA: number;
       scoreB: number;
+      recorded?: boolean; // réintégration écrite par le moteur (docs/adr/0016)
     }) => void
   ) => () => void;
   onKioskNoteUpdate: (

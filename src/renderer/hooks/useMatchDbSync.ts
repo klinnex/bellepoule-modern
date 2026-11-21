@@ -35,10 +35,12 @@ export function useMatchDbSync({
       pool.matches.forEach((match, mIdx) => {
         const prevMatch = prev[pIdx]?.matches[mIdx];
         if (!prevMatch) return;
+        // Comparaison par valeur : une session relue après une écriture du moteur (#1980)
+        // recrée tous les objets, sans changement réel à réécrire
         if (
           match.status !== prevMatch.status ||
-          match.scoreA !== prevMatch.scoreA ||
-          match.scoreB !== prevMatch.scoreB
+          JSON.stringify(match.scoreA ?? null) !== JSON.stringify(prevMatch.scoreA ?? null) ||
+          JSON.stringify(match.scoreB ?? null) !== JSON.stringify(prevMatch.scoreB ?? null)
         ) {
           // Correction après tirage du tableau : motif inscrit au journal des scores (#1996)
           const updates: MatchUpdateData & { auditReason?: string } = {

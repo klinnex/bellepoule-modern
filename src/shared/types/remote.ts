@@ -173,6 +173,11 @@ export interface ArenaMatch {
    */
   deviceEnd?: { winner?: 'A' | 'B'; reason?: 'priority' | 'abandon' | 'exclusion' };
   /**
+   * Carton noir donné par la tablette à la fin du match : l'exclusion suit le chemin
+   * historique (remote:fencer_excluded), le score n'est pas écrit par recordScore (#1980).
+   */
+  blackCardFencer?: 'A' | 'B';
+  /**
    * Match rappelé (PREV) qui s'était terminé par un abandon ou une exclusion signalé par
    * l'appareil : tireur concerné, pour renvoyer son statut à l'appareil (#1829).
    */

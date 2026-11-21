@@ -6,6 +6,7 @@
 import { FencerStatus, MatchStatus } from '../../shared/types';
 import { recordRemoteEvent } from './remoteEvents';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
+import { checkFinishedScore, recordFinishedScore } from './scoreCommand';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
@@ -140,15 +141,19 @@ function applyDeviceExclusion(
   ctx: MatchFinishContext,
   arenaId: string,
   match: ArenaMatch,
-  side: 'A' | 'B'
+  side: 'A' | 'B',
+  /** Exclusion déjà écrite par recordScore (docs/adr/0016) : rien à réécrire */
+  recorded = false
 ): void {
   const culprit = side === 'A' ? match.fencerA : match.fencerB;
   if (!culprit?.id) return;
   try {
-    ctx.db.updateFencer(culprit.id, {
-      status: FencerStatus.EXCLUDED,
-      exclusionReason: 'black_card',
-    });
+    if (!recorded) {
+      ctx.db.updateFencer(culprit.id, {
+        status: FencerStatus.EXCLUDED,
+        exclusionReason: 'black_card',
+      });
+    }
   } catch (e) {
     logger.warn(
       LogCategory.NETWORK,
@@ -162,6 +167,8 @@ function applyDeviceExclusion(
     fencerId: culprit.id,
     matchId: match.id,
     reason: 'black_card',
+    // Retrait écrit par le moteur : l'écran relit tireurs et session, sans rien appliquer
+    recorded,
   });
   recordRemoteEvent(ctx, {
     type: 'dt_call',
@@ -443,8 +450,38 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     text: `${competitionName ? `${competitionName} — ` : ''}Match terminé — Piste ${arenaRef.number} — ${finishedMatch.fencerA ? `${finishedMatch.fencerA.lastName} ${finishedMatch.fencerA.firstName}` : '?'} ${finishedMatch.scoreA} – ${finishedMatch.scoreB} ${finishedMatch.fencerB ? `${finishedMatch.fencerB.lastName} ${finishedMatch.fencerB.firstName}` : '?'}`,
   });
 
+  // Score par la commande recordScore (#1980, ADR-0005) : session, base, journal et audit
+  // en une transaction. Abandon / exclusion signalés par l'appareil, carton noir de la
+  // tablette : chemin historique (statuts posés par applyDeviceExclusion, confirmation du
+  // DT ou remote:fencer_excluded, appliqués par l'écran).
+  const deviceReason = finishedMatch.deviceEnd?.reason;
+  const finishWinner = resolveFinishWinner(ctx, finishedMatch);
+  // Exclu : carton noir de la tablette, ou statut E de l'appareil (le perdant)
+  const culpritSide: 'A' | 'B' | null =
+    finishedMatch.blackCardFencer ??
+    (deviceReason === 'exclusion' && finishWinner ? (finishWinner === 'A' ? 'B' : 'A') : null);
+  const recorded =
+    !ctx.isTrainingMode &&
+    recordFinishedScore(ctx.db, {
+      competitionId: ctx.session?.competitionId,
+      matchId: finishedMatch.id,
+      scoreA: finishedMatch.scoreA,
+      scoreB: finishedMatch.scoreB,
+      winner: culpritSide ? (culpritSide === 'A' ? 'B' : 'A') : finishWinner,
+      source: finishedMatch.deviceEnd ? 'cyrano' : 'tablet',
+      // Exclusion (carton noir) : score et retrait en une commande (docs/adr/0016). Abandon
+      // signalé par l'appareil : score seul, le DT décide du retrait (t.45.1)
+      ...(culpritSide ? { specialStatus: 'exclusion' as const, blackCard: true } : {}),
+    });
+  // Score et exclusion écrits par le moteur : appel DT et notification seulement
+  if (recorded && deviceReason === 'exclusion' && culpritSide) {
+    applyDeviceExclusion(ctx, arenaId, finishedMatch, culpritSide, true);
+  } else if (recorded && deviceReason === 'abandon' && finishWinner) {
+    proposeAbandonToDT(ctx, arenaId, finishedMatch, finishWinner === 'A' ? 'B' : 'A');
+  }
+
   // Persister le score final dans la DB et dans l'audit log (pas en mode entraînement)
-  if (!ctx.isTrainingMode)
+  if (!ctx.isTrainingMode && !recorded)
     try {
       const finalMatchId = finishedMatch.id;
       const dbMatch = ctx.db.getMatch(finalMatchId);
@@ -548,6 +585,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       poolId: finishedMatch.poolId,
       isTableau: finishedMatch.isTableau ?? false,
       deviceReason: finishedMatch.deviceEnd?.reason,
+      // Déjà écrit par le moteur : l'écran relit la session au lieu d'appliquer le score
+      recorded,
     });
     logger.info(
       LogCategory.NETWORK,
@@ -571,6 +610,44 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       ctx.loadNextMatch(arenaId);
     }
   }, 3000);
+}
+
+/**
+ * Fin de match demandée par l'appareil de piste : score contrôlé par recordScore sans rien
+ * écrire. Refus (score maximal dépassé, égalité impossible…) : motif, l'appareil reçoit NAK ;
+ * null sinon (accepté, ou chemin historique).
+ */
+export function checkArenaFinish(ctx: MatchFinishContext, arenaId: string): string | null {
+  const match = ctx.arenas.get(arenaId)?.currentMatch;
+  if (!match || ctx.isTrainingMode) return null;
+  const reason = match.deviceEnd?.reason;
+  const winner = resolveFinishWinner(ctx, match);
+  // Exclusion (statut E) : contrôlée avec le retrait, comme elle sera écrite (docs/adr/0016)
+  const outcome = checkFinishedScore(ctx.db, {
+    competitionId: ctx.session?.competitionId,
+    matchId: match.id,
+    scoreA: match.scoreA,
+    scoreB: match.scoreB,
+    winner,
+    source: 'cyrano',
+    ...(reason === 'exclusion' && winner
+      ? { specialStatus: 'exclusion' as const, blackCard: true }
+      : {}),
+  });
+  return outcome.kind === 'refused' ? outcome.code : null;
+}
+
+/** Vainqueur d'une fin de match : appareil, score, puis marque de victoire en mémoire */
+function resolveFinishWinner(
+  ctx: MatchFinishContext,
+  m: { id: string; scoreA: number; scoreB: number; deviceEnd?: { winner?: 'A' | 'B' } }
+): 'A' | 'B' | null {
+  const byScore = m.deviceEnd?.winner ?? winnerByScore(m.scoreA, m.scoreB);
+  if (byScore) return byScore;
+  const mem = ctx.sessionMatchScores.get(m.id);
+  if (isVictory(mem?.scoreA)) return 'A';
+  if (isVictory(mem?.scoreB)) return 'B';
+  return null;
 }
 
 /** Champs et méthodes du serveur exposés à ce contexte via liveContext (#1896) */

@@ -82,7 +82,7 @@ describe('FencerList', () => {
     expect(onAddFencer).toHaveBeenCalled();
   });
 
-  it('abandon : sans modale, toast Annuler qui restaure le statut', () => {
+  it('abandon : sans modale, toast Annuler qui restaure le statut', async () => {
     const onSetFencerStatus = vi.fn();
     const f = { ...fencer('1', 'Dupont'), status: FencerStatus.CHECKED_IN };
     render(
@@ -97,7 +97,7 @@ describe('FencerList', () => {
     );
     fireEvent.click(screen.getByTitle('fencerList.abandon'));
     expect(onSetFencerStatus).toHaveBeenCalledWith('1', FencerStatus.ABANDONED);
-    fireEvent.click(screen.getByRole('button', { name: 'fencerList.undo' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'fencerList.undo' }));
     expect(onSetFencerStatus).toHaveBeenLastCalledWith('1', FencerStatus.CHECKED_IN);
   });
 });

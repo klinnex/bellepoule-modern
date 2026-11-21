@@ -401,12 +401,14 @@ export function useFencerListState(ctx: Ctx) {
   const handleSetFencerStatus = (id: string, status: FencerStatus, name?: string) => {
     if (!onSetFencerStatus) return;
     const previous = fencers.find(f => f.id === id)?.status;
-    onSetFencerStatus(id, status);
-    if (previous === undefined || !name) return;
-    showToast(t('fencerList.status_changed', { name }), 'info', {
-      duration: 5000,
-      action: { label: t('fencerList.undo'), onClick: () => onSetFencerStatus(id, previous) },
-      undo: true, // Ctrl+Z (#1535)
+    // Succès annoncé après la réponse de la commande (ADR-0005) ; refus : message du moteur
+    void Promise.resolve(onSetFencerStatus(id, status)).then(outcome => {
+      if (outcome === 'refused' || previous === undefined || !name) return;
+      showToast(t('fencerList.status_changed', { name }), 'info', {
+        duration: 5000,
+        action: { label: t('fencerList.undo'), onClick: () => onSetFencerStatus(id, previous) },
+        undo: true, // Ctrl+Z (#1535)
+      });
     });
   };
 

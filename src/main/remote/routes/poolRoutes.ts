@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { recordFinishedScore } from '../scoreCommand';
 import path from 'path';
 import os from 'os';
 import type { Server as SocketIOServer } from 'socket.io';
@@ -255,30 +256,58 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         /* non bloquant */
       }
 
-      ctx.db.updateMatch(matchId, {
-        scoreA: scoreAObj,
-        scoreB: scoreBObj,
-        status: MatchStatus.FINISHED,
-      });
-      emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
-
-      try {
-        ctx.db.logScoreChange({
+      // Score par la commande recordScore (#1980, ADR-0005) ; statut spécial du tireur
+      // concerné (abandon_A, forfait_B…) : score et retrait ensemble (docs/adr/0016).
+      // Égalité sans vainqueur : chemin historique
+      const special = /^(abandon|forfait|exclusion)_(A|B)$/.exec(specialStatus ?? '');
+      const specialKind = special?.[1] as 'abandon' | 'forfait' | 'exclusion' | undefined;
+      const specialWinner: 'A' | 'B' | null = special ? (special[2] === 'A' ? 'B' : 'A') : null;
+      const recorded =
+        (!specialStatus || !!special) &&
+        !!(specialWinner ?? winner) &&
+        recordFinishedScore(ctx.db, {
+          competitionId: ctx.session?.competitionId,
           matchId,
-          poolId,
-          previousScoreA: previousMatch?.scoreA ?? null,
-          previousScoreB: previousMatch?.scoreB ?? null,
-          newScoreA: scoreAObj,
-          newScoreB: scoreBObj,
-          changedBy: resolvedRef?.name ?? bodyRefereeId ?? 'referee',
-          reason: 'pool_remote_entry',
-          refereeId: resolvedRef?.id ?? bodyRefereeId,
-          refereeName: resolvedRef?.name,
-          ipAddress: clientIp,
+          scoreA: sA,
+          scoreB: sB,
+          winner: specialWinner ?? winner,
+          ...(specialKind ? { specialStatus: specialKind } : {}),
+          source: 'tablet',
+          author: resolvedRef?.id ?? bodyRefereeId,
+          audit: {
+            reason: 'pool_remote_entry',
+            refereeId: resolvedRef?.id ?? bodyRefereeId,
+            refereeName: resolvedRef?.name,
+            ipAddress: clientIp,
+          },
         });
-      } catch {
-        /* non bloquant */
+      if (!recorded) {
+        ctx.db.updateMatch(matchId, {
+          scoreA: scoreAObj,
+          scoreB: scoreBObj,
+          status: MatchStatus.FINISHED,
+        });
+        emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
       }
+
+      if (!recorded)
+        try {
+          ctx.db.logScoreChange({
+            matchId,
+            poolId,
+            previousScoreA: previousMatch?.scoreA ?? null,
+            previousScoreB: previousMatch?.scoreB ?? null,
+            newScoreA: scoreAObj,
+            newScoreB: scoreBObj,
+            changedBy: resolvedRef?.name ?? bodyRefereeId ?? 'referee',
+            reason: 'pool_remote_entry',
+            refereeId: resolvedRef?.id ?? bodyRefereeId,
+            refereeName: resolvedRef?.name,
+            ipAddress: clientIp,
+          });
+        } catch {
+          /* non bloquant */
+        }
 
       // Mettre à jour le score en mémoire (pour les matchs du renderer non persistés en DB)
       ctx.sessionMatchScores.set(matchId, {
@@ -321,6 +350,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
           scoreB: scoreBObj.value,
           poolId,
           isTableau: false,
+          recorded,
         });
       }
 

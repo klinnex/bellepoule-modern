@@ -220,7 +220,8 @@
     "prep_discard_title": "Distreiñ d'ar poulloù loc'het (skorioù miret)",
     "prep_unplaced": "{{count}} kleizeur(ez) ouzhpennet adalek ar c'halv n'eo ket lakaet c'hoazh: klikit war « Adprientiñ ar poulennoù » evit o lakaat.",
     "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?",
-    "prep_moved": "Ergerzher dilec'het"
+    "prep_moved": "Ergerzher dilec'het",
+    "launch_failed": "N’eo ket bet lañset ar poulloù : {{message}}"
   },
   "ranking": {
     "rank": "Renk",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Daouglikañ evit kemmañ",
     "check": "Merkañ",
     "uncheck": "Nullañ",
+    "checkin_failed": "N’eo ket bet enrollet ar merkañ : {{message}}",
+    "checkin_special_status": "Dilezel, fourfed pe skarzhadur : adlakait ar skrimer e-lec’h e verkañ",
     "all_files": "An holl restroù",
     "photos_exported_one": "{{count}} poltred ezporzhiet",
     "photos_exported_other": "{{count}} poltred ezporzhiet",
@@ -1747,7 +1750,9 @@
     "col_region": "Rannvro",
     "col_department": "Departamant",
     "deleted": "{{name}} dilamet",
-    "col_handedness": "Dorn"
+    "col_handedness": "Dorn",
+    "withdraw_failed": "N’eo ket bet enrollet an dilez : {{message}}",
+    "reinstate_failed": "N’eo ket bet enrollet an adlakaat : {{message}}"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} enankadur",
     "entries_other": "{{count}} enankadur",
     "total": " ({{n}} en holl)",
-    "author_device": "Ardivink ar bistenn"
+    "author_device": "Ardivink ar bistenn",
+    "record_failed": "N’eo ket bet enrollet ar skor : {{message}}"
   },
   "errorBoundary": {
     "title": "Ur fazi a zo c'hoarvezet",

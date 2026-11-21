@@ -220,7 +220,8 @@
     "prep_discard_title": "Torna a les poules llançades (resultats conservats)",
     "prep_unplaced": "{{count}} tirador(s) afegit(s) des de la llista de crida sense ubicar: feu clic a «Repreparar les poules» per incloure'ls.",
     "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?",
-    "prep_moved": "Tirador mogut"
+    "prep_moved": "Tirador mogut",
+    "launch_failed": "Poules no llançades: {{message}}"
   },
   "ranking": {
     "rank": "Pos",
@@ -1732,6 +1733,8 @@
     "double_click_edit": "Feu doble clic per editar",
     "check": "Marcar",
     "uncheck": "Anul·lar",
+    "checkin_failed": "Registre de presència no desat: {{message}}",
+    "checkin_special_status": "Abandonament, forfet o exclusió: restaureu el tirador en lloc de registrar-lo",
     "all_files": "Tots els fitxers",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportades",
@@ -1747,7 +1750,9 @@
     "col_region": "Regió",
     "col_department": "Departament",
     "deleted": "{{name}} eliminat",
-    "col_handedness": "Lateralitat"
+    "col_handedness": "Lateralitat",
+    "withdraw_failed": "Retirada no desada: {{message}}",
+    "reinstate_failed": "Reincorporació no desada: {{message}}"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
@@ -2331,7 +2336,8 @@
     "entries_one": "{{count}} entrada",
     "entries_other": "{{count}} entrades",
     "total": " ({{n}} en total)",
-    "author_device": "Aparell de senyalització"
+    "author_device": "Aparell de senyalització",
+    "record_failed": "Puntuació no desada: {{message}}"
   },
   "errorBoundary": {
     "title": "S'ha produït un error",

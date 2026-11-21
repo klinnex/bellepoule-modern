@@ -15,6 +15,24 @@ test.describe('Poules (application Electron)', () => {
     await expect(win.getByLabel(/contre .*, saisir le score/)).toHaveCount(30);
   });
 
+  test('lancement par le moteur : PoolsGenerated au journal, source écran (#1980)', async ({
+    win,
+  }) => {
+    await expect(win.getByLabel(/contre .*, saisir le score/)).toHaveCount(30);
+    const events = await win.evaluate(async () => {
+      const comps = await window.electronAPI.db.getAllCompetitions();
+      const id = comps.find(c => c.title === 'E2E Poules')!.id;
+      const env = await window.electronAPI.api.invoke('getCompetitionEvents', {
+        competitionId: id,
+        since: 0,
+      });
+      return (env as { data: { events: Array<{ type: string; source: string }> } }).data.events;
+    });
+    expect(events.filter(e => e.type === 'PoolsGenerated')).toEqual([
+      expect.objectContaining({ source: 'screen' }),
+    ]);
+  });
+
   test('saisir un score de poule l’inscrit dans la matrice', async ({ win }) => {
     const cell = win.getByLabel(/contre .*, saisir le score/).first();
     const match = (await cell.getAttribute('aria-label'))!.split(',')[0];

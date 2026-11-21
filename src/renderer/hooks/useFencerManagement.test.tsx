@@ -200,3 +200,72 @@ describe('bus fencers:changed (#1298)', () => {
     vi.useRealTimers();
   });
 });
+
+describe('pointage : un seul chemin, la commande checkIn (#1980, ADR-0005)', () => {
+  const withApi = (invoke: (name: string, input: unknown) => Promise<unknown>) => {
+    (window as any).electronAPI = {
+      db,
+      api: { invoke, subscribe: vi.fn(), unsubscribe: vi.fn(), onEvent: () => () => {} },
+    };
+  };
+  const ok = (data: unknown) => Promise.resolve({ ok: true, data });
+  const setupWith = (fencers: Fencer[]) =>
+    renderHook(() =>
+      useFencerManagement({
+        competition: { ...competition, fencers } as Competition,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    ).result;
+
+  beforeEach(() => showToast.mockClear());
+
+  it('pointer un tireur : commande checkIn, puis état local ; jamais updateFencer', async () => {
+    const invoke = vi.fn(() => ok({ updated: 1 }));
+    withApi(invoke);
+    const r = setupWith([fencer('1')]);
+    await act(async () => {
+      await r.current.toggleCheckIn('1');
+    });
+    expect(invoke).toHaveBeenCalledWith('checkIn', {
+      competitionId: 'c1',
+      fencers: ['1'],
+      present: true,
+    });
+    expect(db.updateFencer).not.toHaveBeenCalled();
+    expect(r.current.fencers[0].status).toBe(FencerStatus.CHECKED_IN);
+  });
+
+  it('échec de la commande : pas de changement local, erreur affichée', async () => {
+    withApi(() =>
+      Promise.resolve({ ok: false, error: { code: 'internal', message: 'base verrouillée' } })
+    );
+    const r = setupWith([fencer('1')]);
+    await act(async () => {
+      await r.current.toggleCheckIn('1');
+    });
+    expect(r.current.fencers[0].status).toBe(FencerStatus.NOT_CHECKED_IN);
+    expect(showToast).toHaveBeenCalledWith('fencerList.checkin_failed', 'error');
+  });
+
+  it('tireur en abandon : pas de commande, invité à le restaurer', async () => {
+    const invoke = vi.fn(() => ok({ updated: 0 }));
+    withApi(invoke);
+    const r = setupWith([{ ...fencer('1'), status: FencerStatus.ABANDONED }]);
+    await act(async () => {
+      await r.current.toggleCheckIn('1');
+    });
+    expect(invoke).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith('fencerList.checkin_special_status', 'warning');
+    expect(r.current.fencers[0].status).toBe(FencerStatus.ABANDONED);
+  });
+
+  it('tout pointer : succès affiché seulement après la commande', async () => {
+    withApi(() => Promise.resolve({ ok: false, error: { code: 'internal', message: 'panne' } }));
+    const r = setupWith([fencer('1'), fencer('2')]);
+    await act(async () => {
+      await r.current.checkInAll();
+    });
+    expect(showToast).not.toHaveBeenCalledWith('plural.fencers_checked_in', 'success');
+    expect(r.current.fencers.every(f => f.status === FencerStatus.NOT_CHECKED_IN)).toBe(true);
+  });
+});
