@@ -184,8 +184,7 @@ séparés après les poules : tableau local. Palier « correction » fait : un s
 après le tirage passe par `recordScore` avec `correction { reason, rebuildTableau }` (motif au
 journal des scores, `ScoreRecorded.correction`, tableau gardé ou retiré dans la même commande).
 Palier « état d'interface » commencé : une relecture après une commande ne change plus l'onglet
-affiché (seul le chargement de l'épreuve le reprend de l'état). Restent : rapières ; reste de
-l'état d'interface (onglet et tour consulté en préférences du poste, phase déduite des faits) ;
-4c ; 5. Palier « rapières » fait : vagues lancées, arrêtées ou reprises par
-`launchRapieresWave` / `endRapieresWaves` ; mode de tableau joint à `generateTableau`
-(`rapieresTableauMode`, dans `TableauGenerated`).
+affiché (seul le chargement de l'épreuve le reprend de l'état). Palier « rapières » fait : vagues
+lancées, arrêtées ou reprises par `launchRapieresWave` / `endRapieresWaves` ; mode de tableau joint
+à `generateTableau` (`rapieresTableauMode`, dans `TableauGenerated`). Restent : reste de l'état
+d'interface (onglet et tour consulté en préférences du poste, phase déduite des faits) ; 4c ; 5.
