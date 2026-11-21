@@ -6,7 +6,7 @@
 import GregAutoPublishToggle from './remote/GregAutoPublishToggle';
 import { useGregAutoPublish } from '../hooks/useGregAutoPublish';
 import React, { Suspense } from 'react';
-import { Fencer, Gender } from '../../shared/types';
+import { Fencer, Gender, type Pool } from '../../shared/types';
 import FencerList from './FencerList';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -72,6 +72,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     ...competitionCore,
     ...competitionSessionSync,
   });
+  // Poules du classement ajusté, en attente de la réponse du moteur (repli local)
+  const pendingRankingPoolsRef = React.useRef<Pool[] | null>(null);
   // Rapières : choix de l'ordre des combats au lancement des poules (#1816)
   const [matchOrderPrompt, setMatchOrderPrompt] = React.useState<
     ((order: RapieresMatchOrder | null) => void) | null
@@ -196,6 +198,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     setConsolationBrackets,
     finalResults,
     setFinalResults,
+    tableauEditUnlocked,
     setTableauEditUnlocked,
     tableMaxScore,
     thirdPlaceMatch,
@@ -242,6 +245,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     launchPools,
     generateTableau,
     rapieresWaves,
+    runCompetitionCommand,
     clearScore,
     assignMatches,
     handleSetFencerStatus,
@@ -530,12 +534,27 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             onGoToTableau={handleGoToTableau}
             onGoToResults={() => setCurrentPhase('results')}
             onPoolsChange={(updatedPools, hasRankingChanged) => {
-              setPools(updatedPools);
+              // Écrit avec le classement (adjustRanking) ; gardé pour le repli local
+              pendingRankingPoolsRef.current = updatedPools;
               if (hasRankingChanged) {
                 setRankingChanged(true);
               }
             }}
-            onRankingChange={setOverallRanking}
+            onRankingChange={async ranking => {
+              // Classement ajusté ou recalculé par le moteur (RankingAdjusted, docs/adr/0017)
+              const outcome = await runCompetitionCommand('adjustRanking', {
+                ranking: ranking.map(r => ({
+                  fencerId: r.fencer.id,
+                  rank: r.rank,
+                  ...(r.questPoints !== undefined ? { questPoints: r.questPoints } : {}),
+                })),
+              });
+              const pendingPools = pendingRankingPoolsRef.current;
+              pendingRankingPoolsRef.current = null;
+              if (outcome !== 'local') return;
+              if (pendingPools) setPools(pendingPools);
+              setOverallRanking(ranking);
+            }}
             rankingFrozen={poolsFrozen}
             onSplitOff={handleSplitOff}
             nextRoundAction={rankingNextRound}
@@ -577,6 +596,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             setConsolationBrackets={setConsolationBrackets}
             finalResults={finalResults}
             setFinalResults={setFinalResults}
+            tableauEditUnlocked={tableauEditUnlocked}
             setTableauEditUnlocked={setTableauEditUnlocked}
             setCurrentPhase={setCurrentPhase}
             tableMaxScore={tableMaxScore}

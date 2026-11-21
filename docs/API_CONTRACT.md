@@ -64,6 +64,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `launchRapieresWave` / `endRapieresWaves` | commandes — vagues des rapières lancées, arrêtées ou reprises | `launch_rapieres_wave` / `end_rapieres_waves` |
 | `clearScore` | commande — score annulé : match de poule remis à jouer, match de tableau rouvert ; `ScoreCleared` | `clear_score` |
 | `assignMatches` | commande — arbitres et pistes des poules et des matchs (hors journal tant que les tablettes ont leur chemin) | `assign_matches` |
+| `adjustRanking` / `skipPools` / `clearTableau` | commandes — classement ajusté (ou recalculé), épreuve sans poules, tableau retiré | `adjust_ranking` / `skip_pools` / `clear_tableau` |
 | `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
 | `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
@@ -112,6 +113,7 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 | `generateTableau` | `TableauGenerated` (taille, petite finale, « toutes les places », placement complet) |
 | `launchRapieresWave` / `endRapieresWaves` | `RapieresWaveLaunched` (vague, matchs) / `RapieresWavesEnded` |
 | `clearScore` | `ScoreCleared` (match, poule) |
+| `adjustRanking` / `skipPools` / `clearTableau` | `RankingAdjusted` / `PoolsSkipped` / `TableauCleared` |
 | `withdrawFencer` | `FencerWithdrawn` ; au tableau, `TableauMatchDecided` (et `TableauCompleted`) |
 | `reinstateFencer` | `FencerReinstated` |
 
@@ -193,6 +195,9 @@ lancées, arrêtées ou reprises par `launchRapieresWave` / `endRapieresWaves` ;
 et tableau) par `clearScore` (`ScoreCleared`). Arbitres et pistes par `assignMatches`
 (arbitres d'une poule, affectations de l'onglet Arbitres, piste d'une poule, pistes et arbitres
 des matchs de tableau dont l'affectation automatique des pistes) ; pas encore d'événement : le
-changement d'arbitre depuis une tablette a son propre chemin. Restent avant 4c : remplissage
-automatique (épreuves de test), retour arrière du tableau, poules passées, classement ajusté,
-petite finale, résultats déverrouillés, tableaux séparés, Quest ; état d'interface ; puis 4c ; 5.
+changement d'arbitre depuis une tablette a son propre chemin. Classement ajusté ou recalculé
+(`adjustRanking`), poules passées (`skipPools`), tableau retiré quand le classement ou la petite
+finale change et pour « Refaire le tableau » sans correction (`clearTableau`) ; résultats
+déverrouillés : état d'interface du poste (le classement final reste celui du moteur). Restent
+avant 4c : remplissage automatique (épreuves de test), retour arrière du tableau, tableaux
+séparés, Quest ; état d'interface ; puis 4c ; 5.

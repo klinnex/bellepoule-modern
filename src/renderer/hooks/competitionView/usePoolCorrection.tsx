@@ -67,6 +67,8 @@ interface UsePoolCorrectionParams {
   setCurrentPhase: (phase: Phase) => void;
   showToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   t: (key: string, params?: Record<string, string | number>) => string;
+  /** Tableau retiré par le moteur (clearTableau, docs/adr/0017) ; absent : écran seul */
+  clearTableau?: () => Promise<'recorded' | 'local' | 'refused'>;
 }
 
 export function usePoolCorrection({
@@ -83,6 +85,7 @@ export function usePoolCorrection({
   setCurrentPhase,
   showToast,
   t,
+  clearTableau,
 }: UsePoolCorrectionParams) {
   const consolationMatches = useMemo(
     () => consolationBrackets.flatMap(b => b.matches),
@@ -210,17 +213,21 @@ export function usePoolCorrection({
 
   const rebuildTableau = async () => {
     if (!pending) return;
-    let engineCleared = false;
+    let engineCleared: boolean;
     if (pending.score) {
       // Correction et tableau retiré en une commande (recordScore, docs/adr/0017)
       const outcome = await pending.score.apply(t('poolCorrection.reason_rebuild'), true);
       if (outcome === 'refused') return;
       engineCleared = outcome === 'recorded';
-    } else
+    } else {
       logger.info(
         LogCategory.BUSINESS,
         'Tableau refait après corrections de poule cumulées (#1996)'
       );
+      const outcome = clearTableau ? await clearTableau() : 'local';
+      if (outcome === 'refused') return;
+      engineCleared = outcome === 'recorded';
+    }
     // Tableau retiré sur le classement corrigé à l'ouverture de l'onglet Tableau (par le
     // moteur avec la correction, sinon à l'écran)
     if (!engineCleared) {
