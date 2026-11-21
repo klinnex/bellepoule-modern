@@ -120,11 +120,11 @@ describe('projection du moteur (docs/adr/0017, étape 4a)', () => {
 
   async function setup(revision: { value: number }) {
     const { BpmClientProvider } = await import('../api/BpmClientContext');
-    const React = await import('react');
     const fake = fakeClient(revision);
     const view = renderHook(() => useCompetitionSession(baseProps()), {
-      wrapper: ({ children }) =>
-        React.createElement(BpmClientProvider, { client: fake.client as never, children }),
+      wrapper: ({ children }) => (
+        <BpmClientProvider client={fake.client as never}>{children}</BpmClientProvider>
+      ),
     });
     await waitFor(() => expect(view.result.current.restoredState).not.toBeNull());
     return { ...fake, result: view.result };

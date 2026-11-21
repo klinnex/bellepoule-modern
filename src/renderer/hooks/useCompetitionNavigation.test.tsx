@@ -70,8 +70,9 @@ const setup = (
       useCompetitionNavigation(params as unknown as Parameters<typeof useCompetitionNavigation>[0]),
     client
       ? {
-          wrapper: ({ children }: { children: React.ReactNode }) =>
-            React.createElement(BpmClientProvider, { client, children }),
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <BpmClientProvider client={client}>{children}</BpmClientProvider>
+          ),
         }
       : undefined
   );
