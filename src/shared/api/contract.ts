@@ -149,6 +149,10 @@ export const contract = {
         .enum(['abandon', 'forfait', 'exclusion'])
         .optional()
         .describe('Statut du perdant'),
+      blackCard: z
+        .boolean()
+        .optional()
+        .describe('Exclusion sur carton noir (motif du rapport fédéral)'),
       priority: Side.optional().describe('Égalité en poule : prioritaire'),
       dryRun: DryRun,
       expectedRevision: ExpectedRevision,

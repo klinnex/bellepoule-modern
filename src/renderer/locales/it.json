@@ -1749,7 +1749,9 @@
     "col_region": "Regione",
     "col_department": "Dipartimento",
     "deleted": "{{name}} eliminato",
-    "col_handedness": "Lateralità"
+    "col_handedness": "Lateralità",
+    "withdraw_failed": "Ritiro non salvato: {{message}}",
+    "reinstate_failed": "Reintegro non salvato: {{message}}"
   },
   "questPhase": {
     "running_title": "Turno Quest in corso",

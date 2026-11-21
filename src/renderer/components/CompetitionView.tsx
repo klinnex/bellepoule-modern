@@ -6,7 +6,7 @@
 import GregAutoPublishToggle from './remote/GregAutoPublishToggle';
 import { useGregAutoPublish } from '../hooks/useGregAutoPublish';
 import React, { Suspense } from 'react';
-import { Fencer, FencerStatus, Gender } from '../../shared/types';
+import { Fencer, Gender } from '../../shared/types';
 import FencerList from './FencerList';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -37,7 +37,6 @@ import {
 } from '../../shared/domain/rapieres/rapieresClassicOrder';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import RapieresRankingPanel from '../../features/rapieres/RapieresRankingPanel';
-import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
@@ -53,7 +52,6 @@ import QuestSection from './competition/QuestSection';
 import PoolsPhase from './competition/PoolsPhase';
 import RankingPhase from './competition/RankingPhase';
 import { rankingTableauNavAction } from './competition/competitionDerived';
-import { isWithdrawn } from '../../shared/domain/fencers/fencerStatus';
 
 const RemoteScoreManager = React.lazy(() => import('./RemoteScoreManager'));
 const MatchAuditLog = React.lazy(() =>
@@ -128,8 +126,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     handleOpenImportDialog,
     loadFencers,
     handleAppelStateChange,
-    handleFencerForfeit,
-    handleUndoAbandon,
     getSeededCheckedInFencers,
     poolMaxScore,
     minFencersPerPool,
@@ -242,6 +238,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     areAllPoolsComplete,
     updateScore,
     recordScreenScore,
+    handleWithdrawFencer,
+    handleSetFencerStatus,
+    handleEditFencer,
     handleGoToRanking,
   } = { ...props, ...competitionCore, ...competitionSessionSync, ...competitionPhaseFlow };
 
@@ -365,7 +364,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             registerUrl={
               isRemoteActive && remoteServerUrl ? `${remoteServerUrl}/register` : undefined
             }
-            onEditFencer={updateFencer}
+            onEditFencer={handleEditFencer}
             onDeleteFencer={deleteFencer}
             onDeleteAllFencers={deleteAllFencers}
             onCheckInAll={checkInAll}
@@ -374,23 +373,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             onImportFFEConnect={isRapieres ? undefined : () => modals.setShowFFEConnect(true)}
             onFencersImported={loadFencers}
             onAppelStateChange={handleAppelStateChange}
-            onSetFencerStatus={(id, status) => {
-              const update = checkInStatusUpdate(pools, id, status); // DNS (#1256), avant annulation
-              // Si forfait, abandon ou exclusion, mettre à jour tous les matchs du tireur
-              if (status === FencerStatus.FORFAIT) {
-                handleFencerForfeit(id, 'forfait');
-              } else if (status === FencerStatus.ABANDONED) {
-                handleFencerForfeit(id, 'abandon');
-              } else if (status === FencerStatus.EXCLUDED) {
-                handleFencerForfeit(id, 'exclusion');
-              } else if (status === FencerStatus.CHECKED_IN) {
-                // Si réactivation depuis un statut spécial, restaurer les matchs affectés
-                const currentFencer = fencers.find(f => f.id === id);
-                const wasInSpecialStatus = isWithdrawn(currentFencer);
-                if (wasInSpecialStatus) handleUndoAbandon(id);
-              }
-              updateFencer(id, update);
-            }}
+            onSetFencerStatus={handleSetFencerStatus}
           />
         )}
 
@@ -583,6 +566,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             tableauDrift={tableauDrift}
             onRebuildTableau={requestRebuild}
             onRecordScore={recordScreenScore}
+            onWithdraw={handleWithdrawFencer}
           />
         )}
 

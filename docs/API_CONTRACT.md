@@ -144,8 +144,12 @@ de poule, scores en cours et synchronisation hors ligne des tablettes (`updateMa
 
 Retrait d'un tireur ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) : étape 1 faite, règle
 unique `planWithdrawal` / `planReinstatement` (`shared/domain/fencers/withdrawal.ts`), commandes
-`withdrawFencer` / `reinstateFencer`, instantané `fencer_abandons` tenu par le moteur. Restent :
-l'écran (étape 2), puis tablettes et appareils (étape 3) ; les trois PR se mergent ensemble.
+`withdrawFencer` / `reinstateFencer`, instantané `fencer_abandons` tenu par le moteur.
+Étape 2 faite : à l'écran, sortie médicale, forfait et réactivation depuis l'appel, statut changé
+dans la fiche du tireur, abandon / forfait / exclusion (carton noir) d'un match de poule (par
+`recordScore`, `blackCard` compris) et retrait au tableau passent par les commandes
+(`useFencerWithdrawal`) ; repli local seulement hors moteur (`unsupported_format`, `unavailable`).
+Reste l'étape 3 (tablettes et appareils) ; les trois PR se mergent ensemble.
 
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).

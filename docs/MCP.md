@@ -566,6 +566,7 @@ Aucun argument.
 | `scoreB` | integer | oui | Touches du tireur B |
 | `winner` | `A`, `B` |  | Vainqueur imposé |
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
+| `blackCard` | boolean |  | Exclusion sur carton noir (motif du rapport fédéral) |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |

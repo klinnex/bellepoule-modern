@@ -1749,7 +1749,9 @@
     "col_region": "Rannvro",
     "col_department": "Departamant",
     "deleted": "{{name}} dilamet",
-    "col_handedness": "Dorn"
+    "col_handedness": "Dorn",
+    "withdraw_failed": "N’eo ket bet enrollet an dilez : {{message}}",
+    "reinstate_failed": "N’eo ket bet enrollet an adlakaat : {{message}}"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",

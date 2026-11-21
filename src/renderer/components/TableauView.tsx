@@ -136,6 +136,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = (props: TableauViewProp
     tableauTemplate,
     showToast,
     onBlackCard,
+    onWithdraw,
     updateConsolationMatch,
     setEditingMatch,
     setEditingConsolationId,
@@ -232,6 +233,29 @@ const TableauViewComponent: React.FC<TableauViewProps> = (props: TableauViewProp
     blackCard = false
   ) => {
     if (!editingMatch) return;
+    // Un fait, un chemin (docs/adr/0016) : le moteur décide le match, qualifie l'adversaire et
+    // pose le statut ; l'écran relit la session. Format hors moteur : saisie locale ci-dessous
+    if (onWithdraw) {
+      const matchId = editingMatch;
+      void onWithdraw({ fencerId, reason: status, blackCard, matchId }).then(outcome => {
+        if (outcome === 'local') applySpecialStatusLocally(status, fencerId, blackCard, matchId);
+        else if (outcome === 'recorded') {
+          setShowScoreModal(false);
+          setEditingMatch(null);
+          setEditingConsolationId(null);
+        }
+      });
+      return;
+    }
+    applySpecialStatusLocally(status, fencerId, blackCard, editingMatch);
+  };
+
+  const applySpecialStatusLocally = (
+    status: 'abandon' | 'forfait' | 'exclusion',
+    fencerId: string,
+    blackCard: boolean,
+    editingMatch: string
+  ) => {
     if (status === 'exclusion' && blackCard) onBlackCard?.(fencerId);
 
     // L'adversaire du tireur sélectionné (qui abandonne / forfait / est exclu) gagne

@@ -242,7 +242,7 @@ export function usePoolViewActions(ctx: Ctx) {
       scoreB: match.scoreB?.value,
       maxScore,
     });
-    onScoreUpdate(editingMatch, out.scoreA, out.scoreB, out.winner, status);
+    onScoreUpdate(editingMatch, out.scoreA, out.scoreB, out.winner, status, undefined, blackCard);
     const loserFencer = out.loser === 'A' ? match.fencerA : match.fencerB;
     if (onFencerStatusChange && loserFencer) {
       onFencerStatusChange(loserFencer.id, status, blackCard);

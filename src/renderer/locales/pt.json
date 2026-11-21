@@ -1749,7 +1749,9 @@
     "col_region": "Região",
     "col_department": "Departamento",
     "deleted": "{{name}} eliminado",
-    "col_handedness": "Lateralidade"
+    "col_handedness": "Lateralidade",
+    "withdraw_failed": "Retirada não registada: {{message}}",
+    "reinstate_failed": "Reintegração não registada: {{message}}"
   },
   "questPhase": {
     "running_title": "Ronda Quest em curso",

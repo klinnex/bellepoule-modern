@@ -1749,7 +1749,9 @@
     "col_region": "Регион",
     "col_department": "Департамент",
     "deleted": "{{name}} удалён",
-    "col_handedness": "Ведущая рука"
+    "col_handedness": "Ведущая рука",
+    "withdraw_failed": "Снятие не сохранено: {{message}}",
+    "reinstate_failed": "Восстановление не сохранено: {{message}}"
   },
   "questPhase": {
     "running_title": "Раунд Quest идёт",

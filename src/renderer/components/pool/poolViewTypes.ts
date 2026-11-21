@@ -29,7 +29,9 @@ export interface PoolViewProps {
     scoreB: number,
     winnerOverride?: 'A' | 'B',
     specialStatus?: 'abandon' | 'forfait' | 'exclusion',
-    priority?: 'A' | 'B'
+    priority?: 'A' | 'B',
+    /** Exclusion sur carton noir (motif du rapport fédéral) */
+    blackCard?: boolean
   ) => void;
   onMatchReset?: (matchIndex: number) => void;
   onMatchCancel?: (matchIndex: number) => void;

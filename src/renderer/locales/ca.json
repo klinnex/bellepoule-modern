@@ -1749,7 +1749,9 @@
     "col_region": "Regió",
     "col_department": "Departament",
     "deleted": "{{name}} eliminat",
-    "col_handedness": "Lateralitat"
+    "col_handedness": "Lateralitat",
+    "withdraw_failed": "Retirada no desada: {{message}}",
+    "reinstate_failed": "Reincorporació no desada: {{message}}"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",

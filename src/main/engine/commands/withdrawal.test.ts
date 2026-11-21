@@ -225,6 +225,29 @@ d('withdrawFencer / reinstateFencer (ADR-0016)', () => {
     expect(listMatches(ctx, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('ready');
   });
 
+  it('recordScore : exclusion sur carton noir, motif black_card', async () => {
+    const comp = setup(5);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    await call('recordScore', {
+      competitionId: comp.id,
+      matchId: m.matchId,
+      scoreA: 2,
+      scoreB: 3,
+      winner: 'A',
+      specialStatus: 'exclusion',
+      blackCard: true,
+    });
+    expect(db.getFencer(m.fencerB!.id)).toMatchObject({
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card',
+    });
+    expect(lastEvent(comp.id)).toMatchObject({
+      type: 'FencerWithdrawn',
+      payload: { reason: 'exclusion', blackCard: true },
+    });
+  });
+
   it('épreuve par équipes, tireur inconnu : refus', async () => {
     const comp = setup(4);
     await expect(

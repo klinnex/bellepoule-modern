@@ -1749,7 +1749,9 @@
     "col_region": "Region",
     "col_department": "Departement",
     "deleted": "{{name}} gelöscht",
-    "col_handedness": "Händigkeit"
+    "col_handedness": "Händigkeit",
+    "withdraw_failed": "Rückzug nicht gespeichert: {{message}}",
+    "reinstate_failed": "Wiederaufnahme nicht gespeichert: {{message}}"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",

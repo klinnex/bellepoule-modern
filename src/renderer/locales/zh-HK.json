@@ -1749,7 +1749,9 @@
     "col_region": "地區",
     "col_department": "省份",
     "deleted": "已刪除 {{name}}",
-    "col_handedness": "慣用手"
+    "col_handedness": "慣用手",
+    "withdraw_failed": "退出未儲存：{{message}}",
+    "reinstate_failed": "恢復未儲存：{{message}}"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",

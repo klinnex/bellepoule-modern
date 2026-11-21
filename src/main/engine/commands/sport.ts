@@ -384,6 +384,8 @@ export interface RecordScoreInput {
   winner?: 'A' | 'B';
   /** Statut du perdant */
   specialStatus?: PoolSpecialStatus;
+  /** Exclusion sur carton noir (motif black_card, docs/adr/0016) */
+  blackCard?: boolean;
   /** Égalité : tireur prioritaire (minute supplémentaire) */
   priority?: 'A' | 'B';
   /** Simulation : contrôles et résultat (classement, vainqueur) sans rien écrire */
@@ -462,6 +464,7 @@ function recordPoolScore(
             fencerId: loser.id,
             currentStatus: ctx.db.getFencer(loser.id)?.status,
             reason: input.specialStatus,
+            blackCard: input.blackCard,
             now: new Date(),
           }
         )
@@ -558,7 +561,7 @@ function recordPoolScore(
                 payload: {
                   fencerId: loser.id,
                   reason: input.specialStatus,
-                  blackCard: false,
+                  blackCard: input.specialStatus === 'exclusion' && !!input.blackCard,
                   matchId: match.id,
                   forfeitedMatchIds: [
                     match.id,
@@ -912,7 +915,8 @@ function recordBracketScore(
         );
         ctx.db.updateFencer(loser.id, {
           status: WITHDRAWAL_STATUS[input.specialStatus],
-          exclusionReason: null,
+          exclusionReason:
+            input.specialStatus === 'exclusion' && input.blackCard ? 'black_card' : null,
         });
       }
       // Tableau terminé : phase Résultats, comme onComplete à l'écran
@@ -943,7 +947,7 @@ function recordBracketScore(
                 payload: {
                   fencerId: loser.id,
                   reason: input.specialStatus,
-                  blackCard: false,
+                  blackCard: input.specialStatus === 'exclusion' && !!input.blackCard,
                   matchId: m.id,
                   forfeitedMatchIds: [m.id],
                 },

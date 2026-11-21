@@ -6,8 +6,6 @@ import React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Fencer, Pool, Referee, Weapon } from '../../../shared/types';
 import type { Arena } from '../../../shared/types/remote';
-import { specialStatusPatch } from '../../../shared/utils/forfeit';
-import type { useFencerManagement } from '../../hooks/useFencerManagement';
 import type { usePoolManagement } from '../../hooks/usePoolManagement';
 import type { usePoolStripChange } from '../../hooks/usePoolStripChange';
 import type { buildStripQrs } from '../../hooks/useExport';
@@ -31,10 +29,8 @@ export interface CompetitionPoolCardProps {
   updateScore: PoolManagement['updateScore'];
   resetMatch: PoolManagement['resetMatch'];
   cancelMatch: PoolManagement['cancelMatch'];
-  handleFencerForfeit: PoolManagement['handleFencerForfeit'];
   computePoolRanking: PoolManagement['computePoolRanking'];
   setPools: Dispatch<SetStateAction<Pool[]>>;
-  updateFencer: ReturnType<typeof useFencerManagement>['updateFencer'];
   fireWebhookNotif: (title: string, body: string) => void;
   assignedPoolFencerIds: Set<string>;
   remoteStripStart: number;
@@ -68,10 +64,8 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
   updateScore,
   resetMatch,
   cancelMatch,
-  handleFencerForfeit,
   computePoolRanking,
   setPools,
-  updateFencer,
   fireWebhookNotif,
   assignedPoolFencerIds,
   remoteStripStart,
@@ -100,9 +94,20 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
     winner?: 'A' | 'B',
     specialStatus?: 'abandon' | 'forfait' | 'exclusion',
     priority?: 'A' | 'B',
-    correction?: string
+    correction?: string,
+    blackCard?: boolean
   ) => {
-    updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus, priority, correction);
+    updateScore(
+      poolIndex,
+      matchIndex,
+      scoreA,
+      scoreB,
+      winner,
+      specialStatus,
+      priority,
+      correction,
+      blackCard
+    );
     if (winner) {
       const m = pool.matches[matchIndex];
       const nameA = m?.fencerA ? `${m.fencerA.lastName}` : 'A';
@@ -133,9 +138,18 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         competitionId={competitionId}
         maxRefereesPerPool={maxRefereesPerPool}
         tableauFreeze={tableauFreeze}
-        onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus, priority) => {
+        onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus, priority, blackCard) => {
           const apply = (correction?: string) =>
-            applyScore(matchIndex, scoreA, scoreB, winner, specialStatus, priority, correction);
+            applyScore(
+              matchIndex,
+              scoreA,
+              scoreB,
+              winner,
+              specialStatus,
+              priority,
+              correction,
+              blackCard
+            );
           if (requestScore) {
             requestScore(
               poolIndex,
@@ -171,17 +185,8 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
                 }
               }
         }
-        onFencerStatusChange={
-          frozen
-            ? undefined
-            : (fencerId, status, blackCard) => {
-                if (status === 'abandon' || status === 'forfait' || status === 'exclusion') {
-                  handleFencerForfeit(fencerId, status);
-                  // Liste d'appel : statut aligné avec la saisie manuelle du score
-                  updateFencer(fencerId, specialStatusPatch(status, blackCard));
-                }
-              }
-        }
+        // Retrait du perdant d'un match à statut spécial : porté par le score (recordScore,
+        // docs/adr/0016), repli local dans updateScore ; plus d'écriture séparée ici
         assignedFencerIds={assignedPoolFencerIds}
         onFencerAdded={
           frozen

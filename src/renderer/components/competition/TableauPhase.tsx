@@ -56,6 +56,8 @@ interface TableauPhaseProps {
   onRebuildTableau?: () => void;
   /** Score par la commande recordScore (#1980) */
   onRecordScore?: TableauViewProps['onRecordScore'];
+  /** Retrait d'un tireur par withdrawFencer (docs/adr/0016) */
+  onWithdraw?: TableauViewProps['onWithdraw'];
 }
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
@@ -87,6 +89,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   tableauDrift,
   onRebuildTableau,
   onRecordScore,
+  onWithdraw,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -136,6 +139,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         autoFillReferees={autoFillReferees}
         tieBreakByVictory={tieBreakByVictory}
         onRecordScore={onRecordScore}
+        onWithdraw={onWithdraw}
         onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
         onComplete={results => {
           setFinalResults(results);

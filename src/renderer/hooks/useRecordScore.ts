@@ -29,6 +29,8 @@ export interface ScreenScoreInput {
   scoreB: number;
   winner?: 'A' | 'B';
   priority?: 'A' | 'B';
+  specialStatus?: 'abandon' | 'forfait' | 'exclusion';
+  blackCard?: boolean;
 }
 
 export function useRecordScore(

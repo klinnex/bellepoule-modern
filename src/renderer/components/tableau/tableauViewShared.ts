@@ -55,6 +55,13 @@ export interface TableauViewProps {
     scoreB: number;
     winner?: 'A' | 'B';
   }) => Promise<RecordScoreOutcome>;
+  /** Retrait d'un tireur par withdrawFencer (docs/adr/0016) : même issue que onRecordScore */
+  onWithdraw?: (input: {
+    fencerId: string;
+    reason: 'abandon' | 'forfait' | 'exclusion';
+    blackCard?: boolean;
+    matchId?: string;
+  }) => Promise<RecordScoreOutcome>;
   competitionId?: string;
   /** Arme : zones de touches simulées (Sabre Laser) au remplissage automatique */
   weapon?: Weapon;

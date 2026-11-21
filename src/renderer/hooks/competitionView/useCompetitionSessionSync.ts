@@ -5,7 +5,7 @@
 
 import { usePrintShortcut } from '../usePrintShortcut';
 import { useState, useCallback } from 'react';
-import { Pool } from '../../../shared/types';
+import { FencerStatus, type Fencer, type Pool } from '../../../shared/types';
 import {
   poolsHaveScores,
   poolsMatchFencers,
@@ -20,6 +20,13 @@ import { useCompetitionBootstrap } from '../useCompetitionBootstrap';
 import { useCompetitionRestore } from '../useCompetitionRestore';
 import { useRemoteScoreSync } from '../useRemoteScoreSync';
 import { useRecordScore } from '../useRecordScore';
+import { useFencerWithdrawal, type WithdrawInput } from '../useFencerWithdrawal';
+import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
+import {
+  WITHDRAWAL_STATUS,
+  type WithdrawalReason,
+} from '../../../shared/domain/fencers/withdrawal';
 import { useCompetitionReferees } from '../useCompetitionReferees';
 import { useRapieresCompetition } from '../../../features/rapieres/useRapieresCompetition';
 import { useMatchDbSync } from '../useMatchDbSync';
@@ -29,6 +36,13 @@ import type { CompetitionViewProps } from '../../components/competition/competit
 import { useCompetitionCore } from './useCompetitionCore';
 
 type Ctx = CompetitionViewProps & ReturnType<typeof useCompetitionCore>;
+
+/** Statut de la liste d'appel → motif de retrait (docs/adr/0016) */
+const REASON_BY_STATUS: Partial<Record<FencerStatus, WithdrawalReason>> = {
+  [FencerStatus.ABANDONED]: 'abandon',
+  [FencerStatus.FORFAIT]: 'forfait',
+  [FencerStatus.EXCLUDED]: 'exclusion',
+};
 
 /** Session, synchronisation distante, menu natif et rapières de la compétition (extrait de CompetitionView, #1599) */
 export function useCompetitionSessionSync(ctx: Ctx) {
@@ -170,17 +184,44 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     setPoolsLaunched,
   });
 
+  // Saisie locale historique : format que le moteur ne pilote pas, ou hors Electron
+  const { handleFencerForfeit: localForfeit } = ctx;
+  const localWithdraw = useCallback(
+    (fencerId: string, reason: WithdrawalReason, blackCard = false) => {
+      void localForfeit(fencerId, reason);
+      updateFencer(fencerId, {
+        ...checkInStatusUpdate(pools, fencerId, WITHDRAWAL_STATUS[reason]),
+        ...(reason === 'exclusion' ? { exclusionReason: blackCard ? 'black_card' : null } : {}),
+      });
+    },
+    [localForfeit, updateFencer, pools]
+  );
+  const localReinstate = (fencerId: string) => {
+    void ctx.handleUndoAbandon(fencerId);
+    updateFencer(fencerId, { status: FencerStatus.CHECKED_IN, exclusionReason: null });
+  };
+
   // Un fait, un chemin (#1980, ADR-0005) : scores saisis à l'écran par recordScore
   const recordScreenScore = useRecordScore(competition.id, flushPendingSave);
+  const fencerWithdrawal = useFencerWithdrawal(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>) => {
-      const [poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus, priority, correction] =
-        args;
+      const [
+        poolIndex,
+        matchIndex,
+        scoreA,
+        scoreB,
+        winner,
+        specialStatus,
+        priority,
+        correction,
+        blackCard,
+      ] = args;
       const match = pools[poolIndex]?.matches[matchIndex];
-      // Correction après tirage du tableau (#1996) et statut spécial (forfait propagé par
-      // l'écran) : saisie locale historique
-      if (!match || correction || specialStatus) {
+      // Correction après tirage du tableau (#1996) : saisie locale historique ; un statut
+      // spécial passe par recordScore (retrait du perdant par le moteur, docs/adr/0016)
+      if (!match || correction) {
         localUpdateScore(...args);
         return;
       }
@@ -190,11 +231,17 @@ export function useCompetitionSessionSync(ctx: Ctx) {
         scoreB,
         ...(winner ? { winner } : {}),
         ...(priority ? { priority } : {}),
+        ...(specialStatus ? { specialStatus } : {}),
+        ...(specialStatus === 'exclusion' && blackCard ? { blackCard: true } : {}),
       }).then(outcome => {
-        if (outcome === 'local') localUpdateScore(...args);
+        if (outcome !== 'local') return;
+        localUpdateScore(...args);
+        // Repli local : retrait du perdant à l'écran, comme avant le moteur
+        const loser = winner === 'A' ? match.fencerB : winner === 'B' ? match.fencerA : null;
+        if (specialStatus && loser) localWithdraw(loser.id, specialStatus, blackCard);
       });
     },
-    [pools, localUpdateScore, recordScreenScore]
+    [pools, localUpdateScore, recordScreenScore, localWithdraw]
   );
 
   useCompetitionBootstrap({
@@ -262,6 +309,60 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   // Pointage : commande checkIn du contrat, seul chemin d'écriture (#1980, ADR-0005)
   const handleCheckInFencer = (id: string) => {
     void ctx.toggleCheckIn(id);
+  };
+
+  // ─── Retrait et réintégration d'un tireur (docs/adr/0016) ─────────────────
+  /** Retrait (appel, poule, tableau) par withdrawFencer ; repli local si le moteur ne pilote pas */
+  const handleWithdrawFencer = useCallback(
+    async (input: WithdrawInput) => {
+      const outcome = await fencerWithdrawal.withdraw(input);
+      if (outcome === 'local') localWithdraw(input.fencerId, input.reason, input.blackCard);
+      return outcome;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fencerWithdrawal, pools]
+  );
+
+  const handleReinstateFencer = useCallback(
+    async (fencerId: string) => {
+      const outcome = await fencerWithdrawal.reinstate(fencerId);
+      if (outcome === 'local') localReinstate(fencerId);
+      return outcome;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fencerWithdrawal]
+  );
+
+  /** Statut posé depuis la liste d'appel : abandon, forfait, ou réactivation d'un tireur retiré */
+  const handleSetFencerStatus = (id: string, status: FencerStatus) => {
+    const reason = REASON_BY_STATUS[status];
+    if (reason) {
+      void handleWithdrawFencer({ fencerId: id, reason });
+      return;
+    }
+    const current = fencers.find(f => f.id === id);
+    if (isWithdrawn(current)) {
+      void handleReinstateFencer(id).then(outcome => {
+        if (outcome === 'recorded' && status === FencerStatus.NOT_CHECKED_IN) {
+          void ctx.toggleCheckIn(id);
+        }
+      });
+      return;
+    }
+    if (current && current.status !== status) void ctx.toggleCheckIn(id);
+  };
+
+  /**
+   * Fiche du tireur : les champs descriptifs s'enregistrent tels quels ; un changement de
+   * statut passe par la commande qui porte sa règle (ADR-0008 : pas de patch sur le statut)
+   */
+  const handleEditFencer = async (id: string, updates: Partial<Fencer>) => {
+    const current = fencers.find(f => f.id === id);
+    const { status, exclusionReason: _reason, ...details } = updates;
+    const statusChange = status !== undefined && !!current && status !== current.status;
+    if (!statusChange) return updateFencer(id, updates);
+    if (Object.keys(details).length > 0) await updateFencer(id, details);
+    handleSetFencerStatus(id, status);
   };
 
   /**
@@ -450,6 +551,10 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   return {
     updateScore,
     recordScreenScore,
+    handleWithdrawFencer,
+    handleReinstateFencer,
+    handleSetFencerStatus,
+    handleEditFencer,
     poolsLaunched,
     setPoolsLaunched,
     relaunchPending,

@@ -1749,7 +1749,9 @@
     "col_region": "Région",
     "col_department": "Département",
     "deleted": "{{name}} supprimé",
-    "col_handedness": "Latéralité"
+    "col_handedness": "Latéralité",
+    "withdraw_failed": "Retrait non enregistré : {{message}}",
+    "reinstate_failed": "Réintégration non enregistrée : {{message}}"
   },
   "questPhase": {
     "running_title": "Tour Quest en cours",

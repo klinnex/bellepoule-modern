@@ -1749,7 +1749,9 @@
     "col_region": "Region",
     "col_department": "Department",
     "deleted": "{{name}} deleted",
-    "col_handedness": "Handedness"
+    "col_handedness": "Handedness",
+    "withdraw_failed": "Withdrawal not saved: {{message}}",
+    "reinstate_failed": "Reinstatement not saved: {{message}}"
   },
   "questPhase": {
     "running_title": "Quest round in progress",
