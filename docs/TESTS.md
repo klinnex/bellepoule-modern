@@ -107,9 +107,9 @@ npm run e2e:debug                                 # mode debug
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 17 |
 | Feature `teams` (`src/features/teams/`) | 1 | 7 |
 | `src/database/` | 21 | 269 |
-| `src/main/` | 122 | 1009 |
+| `src/main/` | 122 | 1013 |
 | `src/renderer/services/` | 11 | 57 |
-| `src/renderer/hooks/` | 39 | 196 |
+| `src/renderer/hooks/` | 39 | 201 |
 | `src/renderer/components/` | 119 | 633 |
 | E2E Playwright (`e2e/`) | 12 | 41 |
 | `src/remote/` | 60 | 414 |
@@ -118,9 +118,9 @@ npm run e2e:debug                                 # mode debug
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
 | `src/shared/domain/` | 24 | 212 |
-| **Total** | **532** | **4096** |
+| **Total** | **532** | **4105** |
 
-Unitaires : 520 fichiers, 4055 tests. E2E : 12 fichiers, 41 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 520 fichiers, 4064 tests. E2E : 12 fichiers, 41 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3414,7 +3414,7 @@ Unitaires : 520 fichiers, 4055 tests. E2E : 12 fichiers, 41 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/engine/commands/sport.test.ts</code> — 27 tests</summary>
+<summary><code>src/main/engine/commands/sport.test.ts</code> — 31 tests</summary>
 
 - poules → arbitres → scores → tableau → classement final → exports
 - régénérer des poules jouées exige replace
@@ -3441,6 +3441,10 @@ Unitaires : 520 fichiers, 4055 tests. E2E : 12 fichiers, 41 tests (comptage stat
 - placement invalide ou tableaux séparés : refus
 - sans correction : refusée ; avec motif : tableau gardé, journal des scores et du journal
 - tableau à refaire : retiré avec la correction ; statut spécial refusé
+- vague lancée, vagues arrêtées puis reprises, mode de tableau au journal
+- poule : match remis à jouer, classement recalculé, ScoreCleared
+- tableau : match rouvert tant que le tour suivant n’est pas joué ; poules figées
+- poule : piste et arbitres (principal propagé aux matchs) ; match de tableau : piste et arbitre
 - **validation des scores de poule (identique à l’écran)**
   - score max, égalité, vainqueur contraire
   - statut spécial au perdant, priorité marquée
@@ -5452,12 +5456,20 @@ Unitaires : 520 fichiers, 4055 tests. E2E : 12 fichiers, 41 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/usePoolsLaunch.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/hooks/usePoolsLaunch.test.tsx</code> — 8 tests</summary>
 
 - **usePoolsLaunch**
   - composition : identifiants, piste, ordre des matchs
   - generatePools avec la composition, remplacement admis
   - hors moteur : local ; refus : message
+- **useRapieresWaves**
+  - vague lancée et vagues arrêtées par le moteur
+  - hors moteur : local
+- **useScoreClear**
+  - annulation par le moteur ; tour suivant joué : message traduit
+- **tableauAssignmentsDiff**
+  - piste ou arbitre changés seuls : affectations
+  - autre changement (score, tireur) : null, écriture de l’écran
 
 </details>
 
