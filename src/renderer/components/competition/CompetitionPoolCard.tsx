@@ -32,6 +32,8 @@ export interface CompetitionPoolCardProps {
   cancelMatch: PoolManagement['cancelMatch'];
   computePoolRanking: PoolManagement['computePoolRanking'];
   setPools: Dispatch<SetStateAction<Pool[]>>;
+  /** Score annulé par la commande clearScore (docs/adr/0017) */
+  clearScore?: (matchId: string) => Promise<'recorded' | 'local' | 'refused'>;
   /** Tireur ajouté à une poule par la commande addPoolFencer (docs/adr/0017) */
   addPoolFencer?: (poolId: string, fencerId: string) => Promise<'recorded' | 'local' | 'refused'>;
   fireWebhookNotif: (title: string, body: string) => void;
@@ -70,6 +72,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
   computePoolRanking,
   setPools,
   addPoolFencer,
+  clearScore,
   fireWebhookNotif,
   assignedPoolFencerIds,
   remoteStripStart,
@@ -172,10 +175,13 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         onMatchReset={
           frozen
             ? undefined
-            : matchIndex => {
+            : async matchIndex => {
                 const match = pool.matches[matchIndex];
                 if (!match) return;
-                resetMatch(poolIndex, matchIndex);
+                // Annulation par le moteur (ScoreCleared) ; repli local hors moteur
+                const outcome = clearScore ? await clearScore(match.id) : 'local';
+                if (outcome === 'refused') return;
+                if (outcome === 'local') resetMatch(poolIndex, matchIndex);
                 if (competitionId) {
                   window.electronAPI.remote.resetPoolMatch(competitionId, match.id).catch(() => {});
                 }
@@ -184,10 +190,13 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         onMatchCancel={
           frozen
             ? undefined
-            : matchIndex => {
+            : async matchIndex => {
                 const match = pool.matches[matchIndex];
                 if (!match) return;
-                cancelMatch(poolIndex, matchIndex);
+                // Annulation par le moteur (ScoreCleared) ; repli local hors moteur
+                const outcome = clearScore ? await clearScore(match.id) : 'local';
+                if (outcome === 'refused') return;
+                if (outcome === 'local') cancelMatch(poolIndex, matchIndex);
                 if (competitionId) {
                   window.electronAPI.remote.resetPoolMatch(competitionId, match.id).catch(() => {});
                 }

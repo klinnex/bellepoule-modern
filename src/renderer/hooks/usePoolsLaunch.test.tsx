@@ -5,7 +5,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { poolComposition, usePoolsLaunch, useRapieresWaves } from './usePoolsLaunch';
+import { poolComposition, usePoolsLaunch, useRapieresWaves, useScoreClear } from './usePoolsLaunch';
 import { BpmClientProvider } from '../api/BpmClientContext';
 import { ApiError, type BpmClient } from '../../shared/api/client';
 import type { Pool } from '../../shared/types';
@@ -88,5 +88,22 @@ describe('useRapieresWaves', () => {
   it('hors moteur : local', async () => {
     call.mockRejectedValueOnce(new ApiError('unavailable', 'x'));
     expect(await waves().current.launchWave(1)).toBe('local');
+  });
+});
+
+describe('useScoreClear', () => {
+  const clear = () =>
+    renderHook(() => useScoreClear('c1', flush), {
+      wrapper: ({ children }) => (
+        <BpmClientProvider client={{ call } as unknown as BpmClient}>{children}</BpmClientProvider>
+      ),
+    }).result;
+
+  it('annulation par le moteur ; tour suivant joué : message traduit', async () => {
+    expect(await clear().current('m1')).toBe('recorded');
+    expect(call).toHaveBeenCalledWith('clearScore', { competitionId: 'c1', matchId: 'm1' });
+    call.mockRejectedValueOnce(new ApiError('next_match_played', 'x'));
+    expect(await clear().current('m1')).toBe('refused');
+    expect(showToast).toHaveBeenCalledWith('tableauView.next_played', 'error');
   });
 });

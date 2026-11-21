@@ -801,3 +801,43 @@ d('vagues des rapières (docs/adr/0017, palier rapières)', () => {
     });
   });
 });
+
+d('clearScore (docs/adr/0017, annulation d’un score)', () => {
+  it('poule : match remis à jouer, classement recalculé, ScoreCleared', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const m = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    recordScore(ctx, comp.id, { matchId: m.matchId, scoreA: 5, scoreB: 1 });
+    await invoke(ctx, 'clearScore', { competitionId: comp.id, matchId: m.matchId });
+    expect(listMatches(ctx, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('ready');
+    expect(db.getMatch(m.matchId)?.status).toBe('not_started');
+    const all = db.eventLog.getSince(comp.id);
+    expect(all[all.length - 1]).toMatchObject({
+      type: 'ScoreCleared',
+      payload: { matchId: m.matchId },
+    });
+    const audit = db.getScoreAuditLog(m.matchId);
+    expect(audit[audit.length - 1]).toMatchObject({ reason: 'score_cleared' });
+  });
+
+  it('tableau : match rouvert tant que le tour suivant n’est pas joué ; poules figées', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    const poolMatch = listMatches(ctx, comp.id).find(x => x.kind === 'pool')!;
+    await expect(
+      invoke(ctx, 'clearScore', { competitionId: comp.id, matchId: poolMatch.matchId })
+    ).rejects.toMatchObject({ code: 'bracket_exists' });
+    const [semi, other] = listMatches(ctx, comp.id, { state: 'ready' });
+    recordScore(ctx, comp.id, { matchId: semi.matchId, scoreA: 15, scoreB: 3 });
+    await invoke(ctx, 'clearScore', { competitionId: comp.id, matchId: semi.matchId });
+    expect(listMatches(ctx, comp.id).find(x => x.matchId === semi.matchId)?.state).toBe('ready');
+    recordScore(ctx, comp.id, { matchId: semi.matchId, scoreA: 15, scoreB: 3 });
+    recordScore(ctx, comp.id, { matchId: other.matchId, scoreA: 15, scoreB: 3 });
+    playAll(comp.id, 'bracket');
+    await expect(
+      invoke(ctx, 'clearScore', { competitionId: comp.id, matchId: semi.matchId })
+    ).rejects.toMatchObject({ code: 'next_match_played' });
+  });
+});

@@ -25,6 +25,7 @@ import { reinstateFencer, withdrawFencer } from '../commands/withdrawal';
 import { addPoolFencer } from '../commands/poolComposition';
 import { closePoolRound } from '../commands/poolRound';
 import { endRapieresWaves, launchRapieresWave } from '../commands/rapieres';
+import { clearScore } from '../commands/scoreClear';
 import { getCompetitionOrThrow } from '../commands/competitions';
 import { readSession } from '../commands/sessionView';
 import { competitionState } from '../commands/competitionState';
@@ -61,6 +62,7 @@ export const handlers: { [N in OperationName]: Handler<N> } = {
     launchRapieresWave(ctx, input),
   endRapieresWaves: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     endRapieresWaves(ctx, input),
+  clearScore: (ctx, { expectedRevision: _r, commandId: _c, ...input }) => clearScore(ctx, input),
   withdrawFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     withdrawFencer(ctx, input),
   reinstateFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>

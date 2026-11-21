@@ -60,6 +60,8 @@ interface TableauPhaseProps {
   onWithdraw?: TableauViewProps['onWithdraw'];
   /** Tableau généré écrit par le moteur (docs/adr/0017) */
   onGenerateTableau?: TableauViewProps['onGenerateTableau'];
+  /** Score annulé par le moteur (docs/adr/0017) */
+  onClearScore?: TableauViewProps['onClearScore'];
 }
 
 const TableauPhase: React.FC<TableauPhaseProps> = ({
@@ -93,6 +95,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   onRecordScore,
   onWithdraw,
   onGenerateTableau,
+  onClearScore,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -144,6 +147,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         onRecordScore={onRecordScore}
         onWithdraw={onWithdraw}
         onGenerateTableau={onGenerateTableau}
+        onClearScore={onClearScore}
         onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
         onComplete={results => {
           setFinalResults(results);

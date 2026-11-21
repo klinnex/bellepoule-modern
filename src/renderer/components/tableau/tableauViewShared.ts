@@ -60,6 +60,8 @@ export interface TableauViewProps {
     matches: TableauMatch[],
     thirdPlaceMatch: boolean
   ) => Promise<RecordScoreOutcome>;
+  /** Score annulé par clearScore (docs/adr/0017) */
+  onClearScore?: (matchId: string) => Promise<RecordScoreOutcome>;
   /** Retrait d'un tireur par withdrawFencer (docs/adr/0016) : même issue que onRecordScore */
   onWithdraw?: (input: {
     fencerId: string;

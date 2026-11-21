@@ -27,6 +27,7 @@ import {
   usePoolFencerAdd,
   usePoolsLaunch,
   useRapieresWaves,
+  useScoreClear,
   useTableauGenerate,
 } from '../usePoolsLaunch';
 import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
@@ -216,6 +217,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const addPoolFencer = usePoolFencerAdd(competition.id, flushPendingSave);
   const generateTableauCommand = useTableauGenerate(competition.id, flushPendingSave);
   const rapieresWaves = useRapieresWaves(competition.id, flushPendingSave);
+  const clearScore = useScoreClear(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>): Promise<RecordScoreOutcome> => {
@@ -586,6 +588,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     addPoolFencer,
     generateTableau,
     rapieresWaves,
+    clearScore,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

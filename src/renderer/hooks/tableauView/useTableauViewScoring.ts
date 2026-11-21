@@ -83,6 +83,7 @@ export function useTableauViewScoring(ctx: Ctx) {
     weapon,
     onRecordScore,
     onGenerateTableau,
+    onClearScore,
   } = ctx;
   // Génération en cours par le moteur : l'effet de montage ne la relance pas
   const generatingRef = useRef(false);
@@ -446,6 +447,19 @@ export function useTableauViewScoring(ctx: Ctx) {
 
   // Annulation d'un match (#1115) : score effacé, vainqueur retiré du tour suivant
   const handleMatchCancel = () => {
+    if (!editingMatch) return;
+    // Annulation par le moteur (ScoreCleared) ; repli local hors moteur
+    if (onClearScore) {
+      void onClearScore(editingMatch).then(outcome => {
+        if (outcome === 'recorded') closeScoreModal();
+        else if (outcome === 'local') cancelMatchLocally();
+      });
+      return;
+    }
+    cancelMatchLocally();
+  };
+
+  const cancelMatchLocally = () => {
     if (!editingMatch) return;
     if (editingConsolationId) {
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);

@@ -28,6 +28,7 @@ export const JOURNAL_EVENT = {
   tableauGenerated: 'TableauGenerated',
   rapieresWaveLaunched: 'RapieresWaveLaunched',
   rapieresWavesEnded: 'RapieresWavesEnded',
+  scoreCleared: 'ScoreCleared',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -135,6 +136,8 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
     z.object({ wave: z.number().int(), matchIds: z.array(Id) })
   ),
   member(JOURNAL_EVENT.rapieresWavesEnded, z.object({ ended: z.boolean() })),
+  // Score annulé : match de poule remis à jouer, ou match de tableau rouvert
+  member(JOURNAL_EVENT.scoreCleared, z.object({ matchId: Id, poolId: Id.optional() })),
   member(
     JOURNAL_EVENT.fencerReinstated,
     z.object({ fencerId: Id, restoredStatus: z.string(), restoredMatchIds: z.array(Id) })
