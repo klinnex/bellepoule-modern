@@ -57,6 +57,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 |---|---|---|
 | `checkIn` | commande | `check_in` |
 | `recordScore` | commande | `record_score` |
+| `generatePools` | commande — tirage par le moteur, ou composition préparée par le DT (`composition`), tour courant ; `PoolsGenerated` ([ADR-0017](adr/0017-projections-etat-epreuve.md)) | `generate_pools` |
 | `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
 | `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
@@ -99,6 +100,7 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 | `recordScore` (poule) | `ScoreRecorded`, puis `PoolCompleted` si la poule se termine |
 | `recordScore` (tableau) | `ScoreRecorded`, `TableauMatchDecided`, `TableauCompleted` en fin de tableau |
 | `recordScore` avec `specialStatus` | en plus `FencerWithdrawn` (même `commandId`) |
+| `generatePools` | `PoolsGenerated` (tour, poules, tireurs, pistes, ordre des matchs : rejouable sans graine) |
 | `withdrawFencer` | `FencerWithdrawn` ; au tableau, `TableauMatchDecided` (et `TableauCompleted`) |
 | `reinstateFencer` | `FencerReinstated` |
 
@@ -162,6 +164,9 @@ se mergent ensemble.
 Projections ([ADR-0017](adr/0017-projections-etat-epreuve.md)) : étape 4a faite. L'écran lit
 l'état par `getCompetitionState` et le relit quand `journal:appended` annonce une révision plus
 récente que la sienne (ou sur `session:changed`, pour les écritures du moteur pas encore
-journalisées) ; relectures coalescées, une seule par rafale. Restent 4b (un fait par PR :
-tirage, composition, clôture de tour, tableau, correction, rapières ; état d'interface hors du
-bloc), 4c (l'écran n'écrit plus `session_state`) et 5 (`rebuildCompetitionState`, rejeu).
+journalisées) ; relectures coalescées, une seule par rafale. Étape 4b, palier « tirage » fait :
+« Lancer les poules » envoie la composition préparée à `generatePools` (identifiants, pistes et
+ordre des matchs conservés, tours multiples et rapières compris, vagues remises à zéro) ; le
+moteur écrit tables, état et `PoolsGenerated`. La préparation (tirages, ajustements, annulation)
+reste un brouillon de l'écran. Restent : composition en cours d'épreuve, clôture de tour,
+tableau, correction, rapières ; état d'interface hors du bloc ; 4c ; 5.

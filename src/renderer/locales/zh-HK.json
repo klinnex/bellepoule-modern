@@ -220,7 +220,8 @@
     "prep_discard_title": "返回已開始的分組（保留比分）",
     "prep_unplaced": "有 {{count}} 名由點名新增的劍手尚未編入：按「重新準備小組」以加入。",
     "relaunch_confirm": "已輸入小組賽比分，重新開始會遺失比分。是否繼續？",
-    "prep_moved": "已移動劍手"
+    "prep_moved": "已移動劍手",
+    "launch_failed": "分組未開始：{{message}}"
   },
   "ranking": {
     "rank": "排名",

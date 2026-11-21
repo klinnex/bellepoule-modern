@@ -87,6 +87,13 @@ function mockElectronAPI(fencers: Fencer[], session: unknown = null) {
     api: {
       invoke: (name: string, input: unknown) => {
         (calls[`api:${name}`] ??= []).push([input]);
+        // Pas de moteur derrière le bouchon : le lancement des poules retombe sur l'écran
+        if (name === 'generatePools') {
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'unavailable', message: 'moteur absent (test)' },
+          });
+        }
         return Promise.resolve({
           ok: true,
           data:
@@ -195,7 +202,7 @@ describe('CompetitionView', () => {
     const steps = () => Array.from(document.querySelectorAll('.phase-step'));
 
     it('Préparation grisée avant « Préparer », Poules grisée avant « Lancer »', async () => {
-      mockElectronAPI(Array.from({ length: 10 }, (_, i) => fencer(i + 1)));
+      const calls = mockElectronAPI(Array.from({ length: 10 }, (_, i) => fencer(i + 1)));
       renderView();
       await screen.findByText('Nom1');
       expect(steps()[1]).toHaveClass('phase-step-disabled');
@@ -211,6 +218,8 @@ describe('CompetitionView', () => {
 
       fireEvent.click(await screen.findByRole('button', { name: /^Lancer les poules/ }));
       await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
+      // Composition préparée envoyée au moteur (docs/adr/0017)
+      expect(calls['api:generatePools'][0][0]).toMatchObject({ replace: true });
       // Déplacement libre ensuite
       fireEvent.click(steps()[0]);
       await waitFor(() => expect(steps()[0]).toHaveClass('phase-step-active'));

@@ -220,7 +220,8 @@
     "prep_discard_title": "Return to the launched pools (scores kept)",
     "prep_unplaced": "{{count}} fencer(s) added from check-in are not placed yet: click \"Re-prepare pools\" to include them.",
     "relaunch_confirm": "Pool scores have already been entered: they will be lost. Continue?",
-    "prep_moved": "Fencer moved"
+    "prep_moved": "Fencer moved",
+    "launch_failed": "Pools not started: {{message}}"
   },
   "ranking": {
     "rank": "Rank",

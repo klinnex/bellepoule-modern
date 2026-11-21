@@ -364,7 +364,8 @@
     "prep_discard_title": "Zu den gestarteten Pools zurückkehren (Ergebnisse bleiben erhalten)",
     "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
     "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?",
-    "prep_moved": "Fechter verschoben"
+    "prep_moved": "Fechter verschoben",
+    "launch_failed": "Pools nicht gestartet: {{message}}"
   },
   "ranking": {
     "club": "Verein",

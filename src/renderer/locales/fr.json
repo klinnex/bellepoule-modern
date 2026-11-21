@@ -220,7 +220,8 @@
     "prep_discard_title": "Revenir aux poules lancées (scores conservés)",
     "prep_unplaced": "{{count}} tireur(s) ajouté(s) depuis l'appel, non placé(s) : cliquez sur « Repréparer les poules » pour les intégrer.",
     "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?",
-    "prep_moved": "Tireur déplacé"
+    "prep_moved": "Tireur déplacé",
+    "launch_failed": "Poules non lancées : {{message}}"
   },
   "ranking": {
     "rank": "Rg",

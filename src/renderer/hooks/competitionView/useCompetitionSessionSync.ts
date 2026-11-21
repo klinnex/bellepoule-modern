@@ -21,6 +21,7 @@ import { useCompetitionRestore } from '../useCompetitionRestore';
 import { useRemoteScoreSync } from '../useRemoteScoreSync';
 import { useRecordScore } from '../useRecordScore';
 import { useFencerWithdrawal, type WithdrawInput } from '../useFencerWithdrawal';
+import { usePoolsLaunch } from '../usePoolsLaunch';
 import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
 import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 import {
@@ -204,6 +205,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   // Un fait, un chemin (#1980, ADR-0005) : scores saisis à l'écran par recordScore
   const recordScreenScore = useRecordScore(competition.id, flushPendingSave);
   const fencerWithdrawal = useFencerWithdrawal(competition.id, flushPendingSave);
+  const launchPools = usePoolsLaunch(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>) => {
@@ -553,6 +555,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     updateScore,
     recordScreenScore,
     handleWithdrawFencer,
+    launchPools,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

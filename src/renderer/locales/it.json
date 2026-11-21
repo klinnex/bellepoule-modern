@@ -220,7 +220,8 @@
     "prep_discard_title": "Torna ai gironi avviati (punteggi conservati)",
     "prep_unplaced": "{{count}} schermidore/i aggiunto/i dall'appello non ancora assegnato/i: clicca su «Riprepara i gironi» per includerli.",
     "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?",
-    "prep_moved": "Schermidore spostato"
+    "prep_moved": "Schermidore spostato",
+    "launch_failed": "Gironi non avviati: {{message}}"
   },
   "ranking": {
     "rank": "Pos",

@@ -22,6 +22,7 @@ export const JOURNAL_EVENT = {
   tableauCompleted: 'TableauCompleted',
   fencerWithdrawn: 'FencerWithdrawn',
   fencerReinstated: 'FencerReinstated',
+  poolsGenerated: 'PoolsGenerated',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -60,6 +61,23 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       matchId: Id.nullable(),
       /** Matchs perdus par le retrait */
       forfeitedMatchIds: z.array(Id),
+    })
+  ),
+  // Tirage des poules (docs/adr/0017) : composition complète, rejouable sans graine
+  member(
+    JOURNAL_EVENT.poolsGenerated,
+    z.object({
+      round: z.number().int(),
+      pools: z.array(
+        z.object({
+          poolId: Id,
+          number: z.number().int(),
+          strip: z.number().int().nullable(),
+          fencerIds: z.array(Id),
+          /** Ordre des matchs */
+          matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })),
+        })
+      ),
     })
   ),
   member(

@@ -14,7 +14,7 @@ import {
 } from '../../../shared/api/contract';
 import { ApiError } from '../../../shared/api/client';
 import { CommandError, type CommandContext } from '../commands/context';
-import { recordScore } from '../commands/sport';
+import { generatePools, recordScore, separationFromKeys } from '../commands/sport';
 import {
   assignPoolReferee,
   assignPoolReferees,
@@ -43,6 +43,11 @@ type Handler<N extends OperationName> = Contract[N]['kind'] extends 'subscriptio
 export const handlers: { [N in OperationName]: Handler<N> } = {
   checkIn: (ctx, input) => checkInFencers(ctx, input),
   recordScore: (ctx, { competitionId, ...rest }) => recordScore(ctx, competitionId, rest),
+  generatePools: (
+    ctx,
+    { competitionId, expectedRevision: _r, commandId: _c, separation, ...options }
+  ) =>
+    generatePools(ctx, competitionId, { ...options, separation: separationFromKeys(separation) }),
   withdrawFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     withdrawFencer(ctx, input),
   reinstateFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>

@@ -220,7 +220,8 @@
     "prep_discard_title": "Torna a les poules llançades (resultats conservats)",
     "prep_unplaced": "{{count}} tirador(s) afegit(s) des de la llista de crida sense ubicar: feu clic a «Repreparar les poules» per incloure'ls.",
     "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?",
-    "prep_moved": "Tirador mogut"
+    "prep_moved": "Tirador mogut",
+    "launch_failed": "Poules no llançades: {{message}}"
   },
   "ranking": {
     "rank": "Pos",

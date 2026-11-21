@@ -220,7 +220,8 @@
     "prep_discard_title": "Voltar às poules lançadas (resultados mantidos)",
     "prep_unplaced": "{{count}} esgrimista(s) adicionado(s) pela chamada ainda não colocado(s): clique em «Repreparar poules» para os incluir.",
     "relaunch_confirm": "Já existem resultados de poules registados: serão perdidos. Continuar?",
-    "prep_moved": "Esgrimista movido"
+    "prep_moved": "Esgrimista movido",
+    "launch_failed": "Poules não lançadas: {{message}}"
   },
   "ranking": {
     "rank": "Lugar",

@@ -220,7 +220,8 @@
     "prep_discard_title": "Distreiñ d'ar poulloù loc'het (skorioù miret)",
     "prep_unplaced": "{{count}} kleizeur(ez) ouzhpennet adalek ar c'halv n'eo ket lakaet c'hoazh: klikit war « Adprientiñ ar poulennoù » evit o lakaat.",
     "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?",
-    "prep_moved": "Ergerzher dilec'het"
+    "prep_moved": "Ergerzher dilec'het",
+    "launch_failed": "N’eo ket bet lañset ar poulloù : {{message}}"
   },
   "ranking": {
     "rank": "Renk",

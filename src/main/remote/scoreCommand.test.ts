@@ -81,7 +81,7 @@ d('recordFinishedScore', () => {
       })
     ).toBe(true);
     expect(listMatches(ctx, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('done');
-    const [event] = db.eventLog.getSince(comp.id, 0);
+    const event = db.eventLog.getSince(comp.id, 0).find(e => e.type === 'ScoreRecorded');
     expect(event).toMatchObject({ type: 'ScoreRecorded', source: 'tablet', author: 'ref-1' });
     const audit = last(db.getScoreAuditLog(m.matchId))!;
     expect(audit).toMatchObject({ changedBy: 'Anne ARBITRE', ipAddress: '10.0.0.7' });
@@ -131,7 +131,7 @@ d('recordFinishedScore', () => {
     expect(recordFinishedScore(db, { ...base, competitionId: comp.id, source: 'tablet' })).toBe(
       false
     );
-    expect(db.eventLog.getRevision(comp.id)).toBe(0);
+    expect(db.eventLog.getRevision(comp.id)).toBe(1); // PoolsGenerated seul
   });
 
   it('contrôle sans écriture (appareil de piste) : refus motivé, rien au journal', () => {
@@ -146,7 +146,7 @@ d('recordFinishedScore', () => {
     expect(checkFinishedScore(db, { ...base, scoreA: 5, scoreB: 2, winner: 'A' })).toEqual({
       kind: 'accepted',
     });
-    expect(db.eventLog.getRevision(comp.id)).toBe(0);
+    expect(db.eventLog.getRevision(comp.id)).toBe(1); // PoolsGenerated seul
     expect(listMatches({ db }, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('ready');
   });
 
@@ -168,7 +168,7 @@ d('recordFinishedScore', () => {
       })
     ).toBe(true);
     expect(db.getFencer(culprit)).toMatchObject({ status: 'X', exclusionReason: 'black_card' });
-    const types = db.eventLog.getSince(comp.id, 0).map(e => e.type);
+    const types = db.eventLog.getSince(comp.id, 1).map(e => e.type);
     expect(types).toEqual(['ScoreRecorded', 'FencerWithdrawn']);
     const lost = () =>
       listMatches({ db }, comp.id).filter(

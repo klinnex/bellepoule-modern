@@ -200,6 +200,86 @@ export const contract = {
     mcp: { name: 'record_score', title: 'Saisir un score', idempotent: true },
   }),
 
+  generatePools: command({
+    description:
+      'Poules du tour courant, lancées (phase Poules). Sans « composition » : tirage sur les tireurs pointés par la même fonction que l’écran (serpentin sur le classement, puis clubs et régions séparés, ou les critères de « separation »), poule n sur la piste n ; épreuve individuelle, un tour de poules. ' +
+      'Avec « composition » : poules et ordre des matchs retenus par le DT à la préparation, tels quels (tous formats individuels, tours multiples compris). ' +
+      '« replace: true » efface des poules déjà jouées ou un tableau : accord du DT indispensable.',
+    input: z.object({
+      competitionId: CompetitionId,
+      poolCount: z
+        .number()
+        .int()
+        .min(1)
+        .max(200)
+        .optional()
+        .describe('Nombre de poules (défaut : optimal)'),
+      minPerPool: z
+        .number()
+        .int()
+        .min(3)
+        .max(12)
+        .optional()
+        .describe('Tireurs par poule, minimum (défaut 5)'),
+      maxPerPool: z
+        .number()
+        .int()
+        .min(3)
+        .max(12)
+        .optional()
+        .describe('Tireurs par poule, maximum (défaut 7)'),
+      separation: z
+        .array(z.enum(['byRanking', 'byClub', 'byRegion', 'byNation']))
+        .optional()
+        .describe(
+          'Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"]'
+        ),
+      composition: z
+        .array(
+          z.object({
+            poolId: Id,
+            number: z.number().int().min(1),
+            strip: z.number().int().min(1).nullable().optional(),
+            fencerIds: z.array(Id).min(2).max(30),
+            matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })).max(500),
+          })
+        )
+        .min(1)
+        .max(200)
+        .optional()
+        .describe('Poules préparées par le DT (écran) : pas de tirage'),
+      replace: z.boolean().optional().describe('Remplacer des poules ou un tableau existants'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      round: z.number().int(),
+      fencerCount: z.number().int(),
+      poolCount: z.number().int(),
+      pools: z.array(
+        z.object({
+          number: z.number().int(),
+          strip: z.number().int().nullable(),
+          fencers: z.array(
+            z.object({
+              id: z.string(),
+              lastName: z.string(),
+              firstName: z.string(),
+              club: z.string().nullable(),
+              ranking: z.number().nullable(),
+            })
+          ),
+          matchCount: z.number().int(),
+        })
+      ),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'generate_pools', title: 'Générer les poules', destructive: true },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +

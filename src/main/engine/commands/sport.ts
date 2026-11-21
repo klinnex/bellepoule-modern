@@ -27,7 +27,6 @@ import {
   buildMatchScores,
   buildPools,
   computeOverallRankingAllRoundsFor,
-  computeOverallRankingFor,
   validatePoolScore,
   type PoolSpecialStatus,
 } from '../../../shared/utils/poolOrchestration';
@@ -66,6 +65,10 @@ import { resolveSetting } from './settings';
 import { bracketMatchView, fencerRef, readSession, summarizePool } from './sessionView';
 import { areAllPoolsComplete, isPoolComplete } from '../../../shared/domain/pools/poolCompletion';
 import type { PoolSeparation } from '../../../shared/domain/pools/poolDraw';
+import {
+  composePools,
+  type PoolCompositionInput,
+} from '../../../shared/domain/pools/poolComposition';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
 export const PHASE = {
@@ -182,6 +185,27 @@ export interface GeneratePoolsOptions {
   dryRun?: boolean;
   /** Critères de séparation ordonnés, comme la préparation des poules de l'écran */
   separation?: PoolSeparation[];
+  /**
+   * Composition retenue par le DT à la préparation (écran, docs/adr/0017) : pas de tirage,
+   * poules et ordre des matchs tels quels. Admise pour tous les formats individuels, tour
+   * courant compris (tours multiples, rapières).
+   */
+  composition?: PoolCompositionInput[];
+}
+
+const SEPARATION_KEYS = ['byRanking', 'byClub', 'byRegion', 'byNation'] as const;
+
+/** Critères ordonnés (contrat, MCP) → séparation du tirage ; classement toujours actif, en tête par défaut */
+export function separationFromKeys(
+  raw: Array<(typeof SEPARATION_KEYS)[number]> | undefined
+): PoolSeparation[] | undefined {
+  if (raw === undefined) return undefined;
+  const keys = [...new Set(raw)];
+  const ordered = keys.includes('byRanking') ? keys : (['byRanking', ...keys] as typeof keys);
+  return [
+    ...ordered.map(key => ({ key, enabled: true })),
+    ...SEPARATION_KEYS.filter(k => !ordered.includes(k)).map(key => ({ key, enabled: false })),
+  ];
 }
 
 /**
@@ -195,7 +219,8 @@ export function generatePools(
 ) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
+  if (options.composition) assertScoreSupported(comp);
+  else assertSupported(comp, session);
   const existing = sessionPools(session);
   const played = existing.some(p => p.matches?.some(m => m.status === MatchStatus.FINISHED));
   if (played && !options.replace) {
@@ -207,37 +232,59 @@ export function generatePools(
   if (sessionTableau(session).length > 0 && !options.replace) {
     throw new CommandError('bracket_exists', 'Le tableau est déjà construit : replace=true requis');
   }
-  const fencers = ctx.db
-    .getFencersByCompetition(competitionId)
-    .filter(f => f.status === FencerStatus.CHECKED_IN);
+  const round = Math.max(1, Number(session.currentPoolRound ?? 1) || 1);
+  const poolHistory = sessionPoolHistory(session);
   const min = options.minPerPool ?? 5;
   const max = options.maxPerPool ?? 7;
-  if (min > max) throw new CommandError('invalid_pool_size', 'minPerPool > maxPerPool');
-  if (options.poolCount !== undefined && options.poolCount > Math.floor(fencers.length / 3)) {
-    throw new CommandError(
-      'invalid_pool_count',
-      'Trop de poules pour le nombre de tireurs pointés'
-    );
-  }
   let pools: Pool[];
-  try {
-    pools = buildPools(fencers, {
+  let fencers: Fencer[];
+  if (options.composition) {
+    const all = ctx.db.getFencersByCompetition(competitionId);
+    const composed = composePools(options.composition, new Map(all.map(f => [f.id, f])), {
       poolMaxScore: effectiveSettings(comp).poolMaxScore,
-      poolCount: options.poolCount,
-      minPerPool: min,
-      maxPerPool: max,
-      boutOrder: comp.settings?.poolBoutOrder,
-      separation: options.separation,
-      newId: uuidv4,
+      round,
+      now: new Date(),
     });
-  } catch (e) {
-    throw new CommandError('not_enough_fencers', (e as Error).message);
+    if (!composed.ok) {
+      throw new CommandError(
+        'invalid_composition',
+        `Composition refusée : ${composed.code} (${composed.detail})`
+      );
+    }
+    pools = composed.pools;
+    fencers = pools.flatMap(p => p.fencers);
+  } else {
+    fencers = ctx.db
+      .getFencersByCompetition(competitionId)
+      .filter(f => f.status === FencerStatus.CHECKED_IN);
+    if (min > max) throw new CommandError('invalid_pool_size', 'minPerPool > maxPerPool');
+    if (options.poolCount !== undefined && options.poolCount > Math.floor(fencers.length / 3)) {
+      throw new CommandError(
+        'invalid_pool_count',
+        'Trop de poules pour le nombre de tireurs pointés'
+      );
+    }
+    try {
+      pools = buildPools(fencers, {
+        poolMaxScore: effectiveSettings(comp).poolMaxScore,
+        poolCount: options.poolCount,
+        minPerPool: min,
+        maxPerPool: max,
+        boutOrder: comp.settings?.poolBoutOrder,
+        separation: options.separation,
+        newId: uuidv4,
+      });
+    } catch (e) {
+      throw new CommandError('not_enough_fencers', (e as Error).message);
+    }
+    const strips = resolveSetting(ctx, 'stripCount', { competitionId });
+    if (strips > 0) pools.forEach((p, i) => (p.strip = (i % strips) + 1));
   }
-  const strips = resolveSetting(ctx, 'stripCount', { competitionId });
-  if (strips > 0) pools.forEach((p, i) => (p.strip = (i % strips) + 1));
-  const overallRanking = computeOverallRankingFor(pools, isLaser(comp));
+  // Tours multiples (#1051) : classement du tour tiré, puis éliminés des tours précédents
+  const overallRanking = computeOverallRankingAllRoundsFor(pools, poolHistory, isLaser(comp));
   const summary = {
     dryRun: !!options.dryRun,
+    round,
     fencerCount: fencers.length,
     poolCount: pools.length,
     pools: pools.map(p => ({
@@ -271,19 +318,51 @@ export function generatePools(
       }
       if (pool.strip) ctx.db.updatePool(pool);
     }
+    // Rapières : vagues remises à zéro par un nouveau tirage (resetRapieresWaves de l'écran)
+    const rapieres = session.rapieres as Record<string, unknown> | undefined;
     writeSession(ctx, competitionId, {
       currentPhase: PHASE.pools,
-      currentPoolRound: 1,
+      currentPoolRound: round,
       pools,
-      poolHistory: [],
+      poolHistory,
       overallRanking,
+      ...(isRapieres(comp) && rapieres
+        ? { rapieres: { ...rapieres, launchedWave: 0, wavesEnded: false } }
+        : {}),
       tableauMatches: [],
       finalResults: [],
       consolationBrackets: [],
       skipPoolPhase: false,
       poolsLaunched: true,
-      poolPrepParams: { poolCount: pools.length, minFencersPerPool: min, maxFencersPerPool: max },
+      // Composition de l'écran : bornes de taille choisies à la préparation conservées
+      poolPrepParams: {
+        minFencersPerPool: min,
+        maxFencersPerPool: max,
+        ...(options.composition
+          ? (session.poolPrepParams as Record<string, number> | undefined)
+          : {}),
+        poolCount: pools.length,
+      },
     });
+    recordEvents(ctx, competitionId, [
+      {
+        type: EVENT.poolsGenerated,
+        payload: {
+          round,
+          pools: pools.map(p => ({
+            poolId: p.id,
+            number: p.number,
+            strip: p.strip ?? null,
+            fencerIds: p.fencers.map(f => f.id),
+            matches: p.matches.map(m => ({
+              matchId: m.id,
+              fencerAId: m.fencerA!.id,
+              fencerBId: m.fencerB!.id,
+            })),
+          })),
+        },
+      },
+    ]);
   });
   emitSession(ctx, competitionId);
   return summary;

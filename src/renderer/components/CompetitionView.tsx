@@ -239,6 +239,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     updateScore,
     recordScreenScore,
     handleWithdrawFencer,
+    launchPools,
     handleSetFencerStatus,
     handleEditFencer,
     handleGoToRanking,
@@ -425,9 +426,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
                 if (!order) return;
                 if (order === 'classic') confirmedPools = preparedPools.map(applyClassicOrder);
               }
-              setPoolsLaunched(true);
+              // Lancement par le moteur (generatePools, PoolsGenerated au journal, docs/adr/0017) :
+              // poules, vagues des rapières et phase relues dans l'état de l'épreuve
+              const outcome = await launchPools(confirmedPools);
+              if (outcome === 'refused') return;
               setRelaunchPending(false);
               setPoolPrepDraft(null);
+              if (outcome === 'recorded') {
+                setCurrentPhase('pools');
+                return;
+              }
+              setPoolsLaunched(true);
               resetRapieresWaves(confirmedPools);
               setPools(confirmedPools);
               setSkipPoolPhase(false);
