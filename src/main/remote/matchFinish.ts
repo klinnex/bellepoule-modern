@@ -6,7 +6,7 @@
 import { FencerStatus, MatchStatus } from '../../shared/types';
 import { recordRemoteEvent } from './remoteEvents';
 import { emitCompetitionEvent } from '../ipc/dbHandlers';
-import { recordFinishedScore } from './scoreCommand';
+import { checkFinishedScore, recordFinishedScore } from './scoreCommand';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
@@ -593,6 +593,27 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       ctx.loadNextMatch(arenaId);
     }
   }, 3000);
+}
+
+/**
+ * Fin de match demandée par l'appareil de piste : score contrôlé par recordScore sans rien
+ * écrire. Refus (score maximal dépassé, égalité impossible…) : motif, l'appareil reçoit NAK ;
+ * null sinon (accepté, ou chemin historique). Abandon / exclusion : chemin historique.
+ */
+export function checkArenaFinish(ctx: MatchFinishContext, arenaId: string): string | null {
+  const match = ctx.arenas.get(arenaId)?.currentMatch;
+  if (!match || ctx.isTrainingMode) return null;
+  const reason = match.deviceEnd?.reason;
+  if (reason === 'abandon' || reason === 'exclusion') return null;
+  const outcome = checkFinishedScore(ctx.db, {
+    competitionId: ctx.session?.competitionId,
+    matchId: match.id,
+    scoreA: match.scoreA,
+    scoreB: match.scoreB,
+    winner: resolveFinishWinner(ctx, match),
+    source: 'cyrano',
+  });
+  return outcome.kind === 'refused' ? outcome.code : null;
 }
 
 /** Vainqueur d'une fin de match : appareil, score, puis marque de victoire en mémoire */

@@ -123,7 +123,10 @@ places ») ; les équipes gardent leur modèle de relais. Une seule écriture po
 - les tablettes : fin de match (`finishArenaMatch`, fin hors arène) et feuille de poule, par
   `recordFinishedScore` (`src/main/remote/scoreCommand.ts`, `invokeCommandSync`) ; l'événement
   `match:finished` porte `recorded: true` et l'écran n'applique plus le score lui-même ;
-- les appareils de piste (Cyrano, OPP2), par la même fin de match (source `cyrano`).
+- les appareils de piste (Cyrano, OPP2), par la même fin de match (source `cyrano`). L'ACK
+  attend la commande : le score est contrôlé par `recordScore` en simulation (`checkArenaFinish`)
+  et un refus (score maximal dépassé, égalité impossible…) vaut NAK, l'arbitre corrige puis
+  valide à nouveau.
 
 Journal des scores (`score_audit_log`) inchangé pour l'utilisateur : `ui`, nom de l'arbitre avec
 l'adresse de la tablette, `device`, `mcp`. Le journal d'épreuve ne porte que l'identifiant de

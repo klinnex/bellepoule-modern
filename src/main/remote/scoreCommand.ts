@@ -34,13 +34,26 @@ export function sessionMatchId(competitionId: string, matchId: string): string {
   return matchId.startsWith(prefix) ? matchId.slice(prefix.length) : matchId;
 }
 
-/**
- * Enregistre le score par recordScore ; true si le moteur l'a écrit, false pour le
- * chemin historique (format non pris en charge, match hors session, score refusé).
- */
-export function recordFinishedScore(db: DatabaseManager, score: FinishedScore): boolean {
+/** Refus qui renvoient au chemin historique : format ou cas que le moteur ne pilote pas */
+const FALLBACK_CODES = new Set([
+  'unsupported_format',
+  'match_not_found',
+  'bracket_exists',
+  'round_closed',
+  'next_match_played',
+  'match_not_ready',
+  'competition_not_found',
+  'internal',
+]);
+
+export type FinishOutcome =
+  | { kind: 'accepted' }
+  | { kind: 'fallback'; code: string }
+  | { kind: 'refused'; code: string; message: string };
+
+function runFinished(db: DatabaseManager, score: FinishedScore, dryRun: boolean): FinishOutcome {
   const { competitionId } = score;
-  if (!competitionId || !db.eventLog) return false;
+  if (!competitionId || !db.eventLog) return { kind: 'fallback', code: 'no_competition' };
   try {
     invokeCommandSync(
       {
@@ -56,15 +69,38 @@ export function recordFinishedScore(db: DatabaseManager, score: FinishedScore): 
         scoreA: score.scoreA,
         scoreB: score.scoreB,
         ...(score.winner ? { winner: score.winner } : {}),
+        ...(dryRun ? { dryRun: true } : {}),
       }
     );
-    return true;
+    return { kind: 'accepted' };
   } catch (e) {
     const code = (e as { code?: string }).code ?? 'internal';
+    const message = (e as Error).message;
+    return FALLBACK_CODES.has(code)
+      ? { kind: 'fallback', code }
+      : { kind: 'refused', code, message };
+  }
+}
+
+/**
+ * Enregistre le score par recordScore ; true si le moteur l'a écrit, false pour le
+ * chemin historique (format non pris en charge, match hors session, score refusé).
+ */
+export function recordFinishedScore(db: DatabaseManager, score: FinishedScore): boolean {
+  const outcome = runFinished(db, score, false);
+  if (outcome.kind !== 'accepted') {
     logger.info(
       LogCategory.NETWORK,
-      `[recordFinishedScore] ${score.matchId} : chemin historique (${code}) ${(e as Error).message}`
+      `[recordFinishedScore] ${score.matchId} : chemin historique (${outcome.code})`
     );
-    return false;
   }
+  return outcome.kind === 'accepted';
+}
+
+/**
+ * Contrôle du score sans rien écrire (recordScore en simulation) : l'appareil de piste
+ * reçoit NAK si la commande refuse le score, avant tout ACK (ADR-0005).
+ */
+export function checkFinishedScore(db: DatabaseManager, score: FinishedScore): FinishOutcome {
+  return runFinished(db, score, true);
 }

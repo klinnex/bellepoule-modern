@@ -715,6 +715,14 @@ export class PisteHub {
     );
     // Vainqueur imposé par l'appareil (priorité, abandon, exclusion) ; marque la fin « appareil »
     match.deviceEnd = pisteEndOutcome(state, sides);
+    // Score contrôlé par la commande avant l'ACK (ADR-0005) : refus → NAK, l'arbitre corrige
+    const refused = remote.checkArenaFinish?.(arenaId) ?? null;
+    if (refused) {
+      match.deviceEnd = undefined;
+      this.driver.send(piste.piste, { kind: 'nak' });
+      logger.info(LogCategory.NETWORK, `Cyrano: NAK → ${piste.piste} (score refusé : ${refused})`);
+      return;
+    }
     this.driver.send(piste.piste, { kind: 'ack' });
     logger.info(LogCategory.NETWORK, `Cyrano: ACK → ${piste.piste}`);
     this.acked.set(piste.piste, match.id);

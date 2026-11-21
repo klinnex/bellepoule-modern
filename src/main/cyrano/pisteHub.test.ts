@@ -316,6 +316,17 @@ describe('PisteHub — mode appareil maître (#1720)', () => {
     expect(arena().status).not.toBe('finished');
   });
 
+  it('END dont le score est refusé par recordScore → NAK, match non clos (ADR-0005)', () => {
+    const check = vi.spyOn(remote, 'checkArenaFinish').mockReturnValue('score_above_max');
+    device(info('E', { id: short(ID.ef), score: 9 }, { id: short(ID.ab), score: 1 }));
+    expect(check).toHaveBeenCalledWith('arena1');
+    expect(naks).toBe(1);
+    expect(acks).toBe(0);
+    expect(arena().status).not.toBe('finished');
+    expect(arena().currentMatch?.deviceEnd).toBeUndefined();
+    check.mockRestore();
+  });
+
   it('END ou INFO d’un autre match (BAD MATCH) → NAK, arène inchangée', () => {
     device(info('H', { id: short(ID.de), score: 4 }, { id: short(ID.bc), score: 0 }));
     expect(arena().currentMatch).toMatchObject({ scoreA: 0, scoreB: 0 });

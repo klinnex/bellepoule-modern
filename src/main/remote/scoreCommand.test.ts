@@ -8,7 +8,7 @@ import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
 import { Category, FencerStatus, Gender, Weapon } from '../../shared/types';
 import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 import { buildBracket, generatePools, listMatches } from '../engine/commands/sport';
-import { recordFinishedScore, sessionMatchId } from './scoreCommand';
+import { checkFinishedScore, recordFinishedScore, sessionMatchId } from './scoreCommand';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -127,5 +127,21 @@ d('recordFinishedScore', () => {
       false
     );
     expect(db.eventLog.getRevision(comp.id)).toBe(0);
+  });
+
+  it('contrôle sans écriture (appareil de piste) : refus motivé, rien au journal', () => {
+    const comp = setup(4);
+    generatePools({ db }, comp.id, { poolCount: 1 });
+    const m = listMatches({ db }, comp.id, { state: 'ready' })[0];
+    const base = { competitionId: comp.id, matchId: m.matchId, source: 'cyrano' as const };
+    expect(checkFinishedScore(db, { ...base, scoreA: 9, scoreB: 2, winner: 'A' })).toMatchObject({
+      kind: 'refused',
+      code: 'score_above_max',
+    });
+    expect(checkFinishedScore(db, { ...base, scoreA: 5, scoreB: 2, winner: 'A' })).toEqual({
+      kind: 'accepted',
+    });
+    expect(db.eventLog.getRevision(comp.id)).toBe(0);
+    expect(listMatches({ db }, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('ready');
   });
 });
