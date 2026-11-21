@@ -23,7 +23,6 @@ import {
   type PoolRanking,
 } from '../../../shared/types';
 import {
-  applyFencerForfeit,
   applyScoreToPool,
   buildMatchScores,
   buildPools,
@@ -33,13 +32,14 @@ import {
   type PoolSpecialStatus,
 } from '../../../shared/utils/poolOrchestration';
 import { allowsVictoryTieBreak } from '../../../shared/utils/tieBreak';
+import { planWithdrawal, WITHDRAWAL_STATUS } from '../../../shared/domain/fencers/withdrawal';
+import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 import { isTieAtScoreLimit } from '../../../shared/domain/match/matchEndValidation';
 import {
   getActiveFormula,
   resolveCompetitionSettings,
 } from '../../../shared/utils/customFormulaSettings';
 import { getDefaultMaxScores } from '../../../shared/utils/defaultMaxScores';
-import { specialStatusPatch } from '../../../shared/utils/forfeit';
 import {
   planTableau,
   calculateFinalResults,
@@ -85,7 +85,7 @@ const PHASE_LABEL: Record<number, string> = {
   6: 'results',
 };
 
-const isLaser = (c: Competition) => c.weapon === Weapon.LASER;
+export const isLaser = (c: Competition) => c.weapon === Weapon.LASER;
 
 /**
  * Réglages effectifs, comme l'écran (useCompetitionCore) : formule personnalisée prioritaire,
@@ -161,13 +161,13 @@ export const emitSession = (ctx: CommandContext, competitionId: string) =>
 
 export const sessionPools = (session: Record<string, unknown>): Pool[] =>
   Array.isArray(session.pools) ? (session.pools as Pool[]) : [];
-const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
+export const sessionTableau = (session: Record<string, unknown>): TableauMatch[] =>
   Array.isArray(session.tableauMatches) ? (session.tableauMatches as TableauMatch[]) : [];
-const sessionConsolation = (session: Record<string, unknown>): ConsolationBracket[] =>
+export const sessionConsolation = (session: Record<string, unknown>): ConsolationBracket[] =>
   Array.isArray(session.consolationBrackets)
     ? (session.consolationBrackets as ConsolationBracket[])
     : [];
-const sessionPoolHistory = (session: Record<string, unknown>): Pool[][] =>
+export const sessionPoolHistory = (session: Record<string, unknown>): Pool[][] =>
   Array.isArray(session.poolHistory) ? (session.poolHistory as Pool[][]) : [];
 const isRapieres = (comp: Competition) => comp.settings?.specialMode === 'rapieres';
 
@@ -453,9 +453,20 @@ function recordPoolScore(
       ? match.fencerB
       : match.fencerA
     : null;
-  if (loser && input.specialStatus) {
-    nextPools = applyFencerForfeit(nextPools, loser.id, input.specialStatus, isLaser(comp)).pools;
-  }
+  // Retrait du perdant : même règle que withdrawFencer (docs/adr/0016), même transaction
+  const withdrawal =
+    loser && input.specialStatus
+      ? planWithdrawal(
+          { pools: nextPools, tableau: [], consolation: [], isLaserSabre: isLaser(comp) },
+          {
+            fencerId: loser.id,
+            currentStatus: ctx.db.getFencer(loser.id)?.status,
+            reason: input.specialStatus,
+            now: new Date(),
+          }
+        )
+      : null;
+  if (withdrawal?.ok) nextPools = withdrawal.pools;
   const updatedPool = nextPools[poolIndex];
   // Tours multiples (#1051) : classement du tour courant, puis éliminés des tours précédents
   const overallRanking = computeOverallRankingAllRoundsFor(
@@ -470,7 +481,7 @@ function recordPoolScore(
         scoreB: scores.scoreB,
         status: MatchStatus.FINISHED,
       });
-      if (loser && input.specialStatus) {
+      if (loser && input.specialStatus && withdrawal?.ok) {
         const previous = pools.flatMap(p => p.matches);
         ctx.db.saveAbandonSnapshot(
           loser.id,
@@ -487,7 +498,10 @@ function recordPoolScore(
               scoreB: m.scoreB ? { ...m.scoreB } : null,
             }))
         );
-        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+        ctx.db.updateFencer(loser.id, {
+          status: withdrawal.status,
+          exclusionReason: withdrawal.exclusionReason,
+        });
         // Matchs du perdant modifiés (dont ce match, remis à 0 pour un forfait) : miroir en base
         const before = new Map(previous.map(m => [m.id, m]));
         const same = (a: unknown, b: unknown) =>
@@ -537,6 +551,23 @@ function recordPoolScore(
               : {}),
           },
         },
+        ...(loser && input.specialStatus && withdrawal?.ok
+          ? [
+              {
+                type: EVENT.fencerWithdrawn,
+                payload: {
+                  fencerId: loser.id,
+                  reason: input.specialStatus,
+                  blackCard: false,
+                  matchId: match.id,
+                  forfeitedMatchIds: [
+                    match.id,
+                    ...withdrawal.forfeitedMatchIds.filter(id => id !== match.id),
+                  ],
+                },
+              },
+            ]
+          : []),
         ...completed.map(poolId => ({ type: EVENT.poolCompleted, payload: { poolId } })),
       ]);
     });
@@ -592,7 +623,7 @@ function scoreAuditBase(ctx: CommandContext): { changedBy: string; reason?: stri
 }
 
 /** Classement d'entrée du tableau, comme l'écran (vainqueurs de poule, formule) */
-function tableauRanking(comp: Competition, session: Record<string, unknown>): PoolRanking[] {
+export function tableauRanking(comp: Competition, session: Record<string, unknown>): PoolRanking[] {
   const overall = Array.isArray(session.overallRanking)
     ? (session.overallRanking as PoolRanking[])
     : [];
@@ -608,7 +639,11 @@ function tableauRanking(comp: Competition, session: Record<string, unknown>): Po
   });
 }
 
-function persistTableau(ctx: CommandContext, comp: Competition, matches: TableauMatch[]): void {
+export function persistTableau(
+  ctx: CommandContext,
+  comp: Competition,
+  matches: TableauMatch[]
+): void {
   const { changedBy, reason } = scoreAudit(ctx);
   const audit = { changedBy, reason: reason ?? 'tableau_entry' };
   const maxScore = effectiveSettings(comp).tableMaxScore;
@@ -706,6 +741,48 @@ export function buildBracket(
     ctx.emitChange?.({ scope: 'competitions', competitionIds: [comp.id] });
   }
   return summary;
+}
+
+/**
+ * Tableau après une décision (score, retrait) : propagation du tableau principal (et
+ * barrages), tableaux de classement créés au fil des tours, achèvement et classement final.
+ * Les tableaux de classement modifiés ont déjà propagé leurs vainqueurs.
+ */
+export function settleBracket(
+  comp: Competition,
+  session: Record<string, unknown>,
+  matches: TableauMatch[],
+  brackets: ConsolationBracket[],
+  mainChanged: boolean
+): {
+  brackets: ConsolationBracket[];
+  done: boolean;
+  finalResults: ReturnType<typeof calculateFinalResults>;
+} {
+  const playAll = !!comp.settings?.playAllPositions;
+  const size = deriveFirstRound(matches);
+  const ranking = tableauRanking(comp, session);
+  if (mainChanged) {
+    propagateWinners(matches, size);
+    if (playAll) placeBarrageWinners(matches, size);
+  }
+  if (playAll) {
+    // Perdants des tours terminés versés dans les tableaux de classement (useTableauViewScoring)
+    brackets = syncConsolationBrackets(matches, brackets, size, ranking, Date.now()).brackets;
+  }
+  const mainDone = isTableauDone(matches);
+  const hasBarrages = matches.some(x => x.round === size * 2);
+  const done = playAll
+    ? mainDone &&
+      !((size >= 8 || hasBarrages) && brackets.length === 0) &&
+      brackets.every(b => b.isComplete)
+    : mainDone;
+  const finalResults = done
+    ? playAll
+      ? buildCombinedResults(matches, brackets, ranking)
+      : calculateFinalResults(matches, ranking, size)
+    : [];
+  return { brackets, done, finalResults };
 }
 
 /** Tableau principal ou tableau de classement (« toutes les places ») contenant le match */
@@ -810,38 +887,34 @@ function recordBracketScore(
     winner,
     specialStatus: input.specialStatus ? { fencerId: loser.id, status: input.specialStatus } : null,
   });
-  const ranking = tableauRanking(comp, session);
   if (bracket) {
     // Tableau de classement : propagation interne, comme updateConsolationMatch à l'écran
     propagateWinners(bracket.matches, bracket.size);
     bracket.isComplete = isBracketComplete(bracket.matches);
-  } else {
-    propagateWinners(matches, size);
-    if (playAll) placeBarrageWinners(matches, size);
   }
-  if (playAll) {
-    // Perdants des tours terminés versés dans les tableaux de classement (useTableauViewScoring)
-    brackets = syncConsolationBrackets(matches, brackets, size, ranking, Date.now()).brackets;
-  }
-  const mainDone = isTableauDone(matches);
-  const hasBarrages = matches.some(x => x.round === size * 2);
-  const done = playAll
-    ? mainDone &&
-      !((size >= 8 || hasBarrages) && brackets.length === 0) &&
-      brackets.every(b => b.isComplete)
-    : mainDone;
-  const finalResults = done
-    ? playAll
-      ? buildCombinedResults(matches, brackets, ranking)
-      : calculateFinalResults(matches, ranking, size)
-    : [];
+  const settled = settleBracket(comp, session, matches, brackets, !bracket);
+  brackets = settled.brackets;
+  const { done, finalResults } = settled;
   if (!input.dryRun)
     ctx.db.transaction(() => {
       // Journal des scores : écrit par l'upsert (auteur « mcp ») ; les tableaux de
       // classement ne vivent que dans l'état de session, comme à l'écran
       persistTableau(ctx, comp, matches);
-      if (input.specialStatus)
-        ctx.db.updateFencer(loser.id, specialStatusPatch(input.specialStatus));
+      // Retrait du perdant : même règle que withdrawFencer (docs/adr/0016)
+      const withdrawn = input.specialStatus && !isWithdrawn(ctx.db.getFencer(loser.id));
+      if (input.specialStatus && withdrawn) {
+        ctx.db.saveAbandonSnapshot(
+          loser.id,
+          comp.id,
+          ctx.db.getFencer(loser.id)?.status ?? FencerStatus.QUALIFIED,
+          input.specialStatus,
+          [{ matchId: m.id, status: 'tableau', scoreA: null, scoreB: null }]
+        );
+        ctx.db.updateFencer(loser.id, {
+          status: WITHDRAWAL_STATUS[input.specialStatus],
+          exclusionReason: null,
+        });
+      }
       // Tableau terminé : phase Résultats, comme onComplete à l'écran
       writeSession(ctx, comp.id, {
         tableauMatches: matches,
@@ -863,6 +936,20 @@ function recordBracketScore(
           },
         },
         { type: EVENT.tableauMatchDecided, payload: { matchId: m.id, winnerId: winner.id } },
+        ...(input.specialStatus && withdrawn
+          ? [
+              {
+                type: EVENT.fencerWithdrawn,
+                payload: {
+                  fencerId: loser.id,
+                  reason: input.specialStatus,
+                  blackCard: false,
+                  matchId: m.id,
+                  forfeitedMatchIds: [m.id],
+                },
+              },
+            ]
+          : []),
         ...(done ? [{ type: EVENT.tableauCompleted, payload: {} }] : []),
       ]);
     });

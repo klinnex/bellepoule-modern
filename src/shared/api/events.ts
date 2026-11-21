@@ -20,6 +20,8 @@ export const JOURNAL_EVENT = {
   poolCompleted: 'PoolCompleted',
   tableauMatchDecided: 'TableauMatchDecided',
   tableauCompleted: 'TableauCompleted',
+  fencerWithdrawn: 'FencerWithdrawn',
+  fencerReinstated: 'FencerReinstated',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -46,6 +48,24 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
   member(JOURNAL_EVENT.poolCompleted, z.object({ poolId: Id })),
   member(JOURNAL_EVENT.tableauMatchDecided, z.object({ matchId: Id, winnerId: Id })),
   member(JOURNAL_EVENT.tableauCompleted, z.object({})),
+  // Retrait et réintégration d'un tireur (docs/adr/0016)
+  member(
+    JOURNAL_EVENT.fencerWithdrawn,
+    z.object({
+      fencerId: Id,
+      reason: SpecialStatus,
+      /** Exclusion sur carton noir (motif du rapport fédéral) */
+      blackCard: z.boolean(),
+      /** Match où le retrait a lieu ; null pour un retrait décidé à l'appel */
+      matchId: Id.nullable(),
+      /** Matchs perdus par le retrait */
+      forfeitedMatchIds: z.array(Id),
+    })
+  ),
+  member(
+    JOURNAL_EVENT.fencerReinstated,
+    z.object({ fencerId: Id, restoredStatus: z.string(), restoredMatchIds: z.array(Id) })
+  ),
 ]);
 export type JournalEventBody = z.infer<typeof JournalEventBodySchema>;
 export type JournalEventType = JournalEventBody['type'];

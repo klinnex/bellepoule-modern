@@ -183,7 +183,7 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (41)
+## Référence des outils (43)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
@@ -321,7 +321,7 @@ Aucun argument.
 | `since` | integer |  | Dernière révision connue (0 : tout) |
 | `limit` | integer |  | Nombre maximum (1000) |
 
-### En écriture, sur autorisation (24)
+### En écriture, sur autorisation (26)
 
 ### `create_competition` — Créer une épreuve
 
@@ -567,6 +567,33 @@ Aucun argument.
 | `winner` | `A`, `B` |  | Vainqueur imposé |
 | `specialStatus` | `abandon`, `forfait`, `exclusion` |  | Statut du perdant |
 | `priority` | `A`, `B` |  | Égalité en poule : prioritaire |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `withdraw_fencer` — Retirer un tireur
+
+*⚠️ écriture, destructif.* Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). À l’appel : statut seul. En poules : ses matchs non disputés sont perdus (DNS s’il n’a commencé aucun match). Au tableau : son match en cours est perdu, l’adversaire passe. Refus si le tableau est terminé ou si l’adversaire n’est pas encore connu. « dryRun: true » donne les matchs perdus sans rien écrire. Annulation : reinstate_fencer.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `fencerId` | string | oui | Identifiant du tireur |
+| `reason` | `abandon`, `forfait`, `exclusion` | oui | Motif du retrait |
+| `blackCard` | boolean |  | Exclusion sur carton noir (rapport fédéral) |
+| `matchId` | string |  | Match où le retrait a lieu (carton, abandon sur la piste) |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `reinstate_fencer` — Réintégrer un tireur
+
+*écriture.* Annule le retrait d’un tireur (abandon, forfait, exclusion) : statut et matchs d’avant le retrait. Refus si un match qui suit a été joué depuis, ou si le tableau a été tiré après un retrait en poules.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `fencerId` | string | oui | Identifiant du tireur |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 | `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |

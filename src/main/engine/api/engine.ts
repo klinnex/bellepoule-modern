@@ -21,6 +21,7 @@ import {
   setRefereeingSettings,
 } from '../commands/refereeing';
 import { checkInFencers } from '../commands/checkIn';
+import { reinstateFencer, withdrawFencer } from '../commands/withdrawal';
 import { getCompetitionOrThrow } from '../commands/competitions';
 import { v4 as uuidv4 } from 'uuid';
 import type { StoredJournalEvent } from '../../../database/repos/eventLogRepo';
@@ -40,6 +41,10 @@ type Handler<N extends OperationName> = Contract[N]['kind'] extends 'subscriptio
 export const handlers: { [N in OperationName]: Handler<N> } = {
   checkIn: (ctx, input) => checkInFencers(ctx, input),
   recordScore: (ctx, { competitionId, ...rest }) => recordScore(ctx, competitionId, rest),
+  withdrawFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
+    withdrawFencer(ctx, input),
+  reinstateFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
+    reinstateFencer(ctx, input),
   setRefereeingSettings: (ctx, { competitionId, expectedRevision: _r, ...patch }) =>
     setRefereeingSettings(ctx, competitionId, patch),
   assignReferees: (ctx, { competitionId, expectedRevision: _r, ...options }) =>

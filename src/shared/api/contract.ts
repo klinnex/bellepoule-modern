@@ -163,6 +163,57 @@ export const contract = {
     mcp: { name: 'record_score', title: 'Saisir un score', idempotent: true },
   }),
 
+  withdrawFencer: command({
+    description:
+      'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +
+      'À l’appel : statut seul. En poules : ses matchs non disputés sont perdus (DNS s’il n’a commencé aucun match). ' +
+      'Au tableau : son match en cours est perdu, l’adversaire passe. Refus si le tableau est terminé ou si l’adversaire n’est pas encore connu. ' +
+      '« dryRun: true » donne les matchs perdus sans rien écrire. Annulation : reinstate_fencer.',
+    input: z.object({
+      competitionId: CompetitionId,
+      fencerId: Id.describe('Identifiant du tireur'),
+      reason: z.enum(['abandon', 'forfait', 'exclusion']).describe('Motif du retrait'),
+      blackCard: z.boolean().optional().describe('Exclusion sur carton noir (rapport fédéral)'),
+      matchId: Id.optional().describe('Match où le retrait a lieu (carton, abandon sur la piste)'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      fencerId: z.string(),
+      status: z.string(),
+      exclusionReason: z.enum(['black_card', 'dns']).nullable(),
+      phase: z.enum(['checkin', 'pools', 'tableau']),
+      forfeitedMatchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'fencers:write',
+    mcp: { name: 'withdraw_fencer', title: 'Retirer un tireur', destructive: true },
+  }),
+
+  reinstateFencer: command({
+    description:
+      'Annule le retrait d’un tireur (abandon, forfait, exclusion) : statut et matchs d’avant le retrait. ' +
+      'Refus si un match qui suit a été joué depuis, ou si le tableau a été tiré après un retrait en poules.',
+    input: z.object({
+      competitionId: CompetitionId,
+      fencerId: Id.describe('Identifiant du tireur'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      fencerId: z.string(),
+      status: z.string(),
+      restoredMatchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'fencers:write',
+    mcp: { name: 'reinstate_fencer', title: 'Réintégrer un tireur' },
+  }),
+
   setRefereeingSettings: command({
     description:
       'Réglages d’affectation des arbitres de l’épreuve (neutralité club / nation / ligue, équilibrage de la charge, rotation). Seuls les champs fournis changent ; les autres réglages de l’épreuve sont conservés.',

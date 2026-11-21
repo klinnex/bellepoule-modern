@@ -57,6 +57,8 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 |---|---|---|
 | `checkIn` | commande | `check_in` |
 | `recordScore` | commande | `record_score` |
+| `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
+| `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
 | `assignReferees` | commande (`referees:write`) — arbitres des poules par le moteur unique | `assign_referees` |
 | `assignReferee` | commande (`referees:write`) — arbitre d'une poule à la main, neutralité signalée | `assign_referee` |
@@ -95,6 +97,9 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 | `checkIn` | `FencerCheckedIn` / `FencerCheckedOut` (un par tireur modifié) |
 | `recordScore` (poule) | `ScoreRecorded`, puis `PoolCompleted` si la poule se termine |
 | `recordScore` (tableau) | `ScoreRecorded`, `TableauMatchDecided`, `TableauCompleted` en fin de tableau |
+| `recordScore` avec `specialStatus` | en plus `FencerWithdrawn` (même `commandId`) |
+| `withdrawFencer` | `FencerWithdrawn` ; au tableau, `TableauMatchDecided` (et `TableauCompleted`) |
+| `reinstateFencer` | `FencerReinstated` |
 
 - Source : `CommandContext.actor` (IPC : `screen` ; MCP : `mcp`, auteur `agent` ; défaut `engine`).
 - Une commande qui écrit rend `revision` et diffuse `{ type: 'journal:appended', competitionId, revision }`
@@ -136,6 +141,11 @@ Restent sur le chemin historique (saisie locale de l'écran, ou écriture direct
 par équipes, tableaux séparés après les poules, statuts spéciaux (abandon, forfait, exclusion,
 carton noir), correction d'une poule après tirage du tableau, égalité sans vainqueur sur la feuille
 de poule, scores en cours et synchronisation hors ligne des tablettes (`updateMatchScore`).
+
+Retrait d'un tireur ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) : étape 1 faite, règle
+unique `planWithdrawal` / `planReinstatement` (`shared/domain/fencers/withdrawal.ts`), commandes
+`withdrawFencer` / `reinstateFencer`, instantané `fencer_abandons` tenu par le moteur. Restent :
+l'écran (étape 2), puis tablettes et appareils (étape 3) ; les trois PR se mergent ensemble.
 
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).
