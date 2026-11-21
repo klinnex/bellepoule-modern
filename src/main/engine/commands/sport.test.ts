@@ -841,3 +841,41 @@ d('clearScore (docs/adr/0017, annulation d’un score)', () => {
     ).rejects.toMatchObject({ code: 'next_match_played' });
   });
 });
+
+d('assignMatches (docs/adr/0017, arbitres et pistes)', () => {
+  it('poule : piste et arbitres (principal propagé aux matchs) ; match de tableau : piste et arbitre', async () => {
+    const comp = await setup(4);
+    db.createReferee(comp.id, { name: 'Anne ARBITRE', club: 'Marseille' } as never);
+    db.createReferee(comp.id, { name: 'Paul SECOND', club: 'Brest' } as never);
+    const [ref1, ref2] = db.getRefereesByCompetition(comp.id);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    const pool = (db.getSessionState(comp.id) as any).pools[0];
+    await invoke(ctx, 'assignMatches', {
+      competitionId: comp.id,
+      pools: [{ poolId: pool.id, strip: 7, refereeIds: [ref1.id, ref2.id] }],
+    });
+    const after = (db.getSessionState(comp.id) as any).pools[0];
+    expect(after.strip).toBe(7);
+    expect(after.referees.map((r: any) => r.id)).toEqual([ref1.id, ref2.id]);
+    expect(after.matches.every((m: any) => m.referee?.id === ref1.id)).toBe(true);
+    expect(db.getMatch(after.matches[0].id)?.referee?.id).toBe(ref1.id);
+
+    playAll(comp.id, 'pool');
+    buildBracket(ctx, comp.id, { thirdPlaceMatch: false });
+    const semi = listMatches(ctx, comp.id, { state: 'ready' })[0];
+    await invoke(ctx, 'assignMatches', {
+      competitionId: comp.id,
+      matches: [{ matchId: semi.matchId, strip: 3, refereeId: ref2.id }],
+    });
+    const m = (db.getSessionState(comp.id) as any).tableauMatches.find(
+      (x: any) => x.id === semi.matchId
+    );
+    expect(m).toMatchObject({ arena: 3, referee: { id: ref2.id } });
+    await expect(
+      invoke(ctx, 'assignMatches', {
+        competitionId: comp.id,
+        matches: [{ matchId: 'x', strip: 1 }],
+      })
+    ).rejects.toMatchObject({ code: 'match_not_found' });
+  });
+});

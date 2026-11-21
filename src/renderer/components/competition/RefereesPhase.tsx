@@ -8,6 +8,7 @@ import type { Competition, Match, Pool, Referee } from '../../../shared/types';
 import { poolMatchesWithReferee } from '../../../shared/utils/refereeStats';
 import type { ConsolationBracket, TableauMatch } from '../../../shared/domain/tableau/tableauTypes';
 import { RefereeManagerComponent } from '../RefereeManager';
+import type { AssignmentsInput } from '../../hooks/usePoolsLaunch';
 
 interface RefereesPhaseProps {
   competition: Competition;
@@ -21,6 +22,8 @@ interface RefereesPhaseProps {
   consolationBrackets: ConsolationBracket[];
   setConsolationBrackets: Dispatch<SetStateAction<ConsolationBracket[]>>;
   applyPoolRefereeAssignments: (assignments: Map<string, Referee>) => void;
+  /** Arbitres écrits par le moteur (assignMatches, docs/adr/0017) ; absent : écran seul */
+  assign?: (input: AssignmentsInput) => Promise<'recorded' | 'local' | 'refused'>;
 }
 
 const RefereesPhase: React.FC<RefereesPhaseProps> = ({
@@ -35,6 +38,7 @@ const RefereesPhase: React.FC<RefereesPhaseProps> = ({
   consolationBrackets,
   setConsolationBrackets,
   applyPoolRefereeAssignments,
+  assign,
 }) => {
   return (
     <RefereeManagerComponent
@@ -45,7 +49,14 @@ const RefereesPhase: React.FC<RefereesPhaseProps> = ({
       statsPoolMatches={[...poolHistory.flat(), ...pools].flatMap(poolMatchesWithReferee)}
       statsTableauMatches={[...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]}
       onRefereesChange={setReferees}
-      onAssignmentsChange={assignments => {
+      onAssignmentsChange={async assignments => {
+        // Par le moteur : poules, tableau et tableaux de classement ; l'écran relit l'état
+        const outcome = assign
+          ? await assign({
+              matches: [...assignments].map(([matchId, ref]) => ({ matchId, refereeId: ref.id })),
+            })
+          : 'local';
+        if (outcome !== 'local') return;
         applyPoolRefereeAssignments(assignments);
         // Matchs de tableau / consolation : referees[0] = arbitre principal
         const applyToTableau = (list: TableauMatch[]) =>

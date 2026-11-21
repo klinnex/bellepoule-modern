@@ -27,6 +27,7 @@ import {
   usePoolFencerAdd,
   usePoolsLaunch,
   useRapieresWaves,
+  useAssignMatches,
   useScoreClear,
   useTableauGenerate,
 } from '../usePoolsLaunch';
@@ -218,6 +219,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const generateTableauCommand = useTableauGenerate(competition.id, flushPendingSave);
   const rapieresWaves = useRapieresWaves(competition.id, flushPendingSave);
   const clearScore = useScoreClear(competition.id, flushPendingSave);
+  const assignMatches = useAssignMatches(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>): Promise<RecordScoreOutcome> => {
@@ -578,6 +580,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     consolationBrackets,
     setConsolationBrackets,
     tableMaxScore,
+    assign: assignMatches,
   });
 
   return {
@@ -589,6 +592,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     generateTableau,
     rapieresWaves,
     clearScore,
+    assignMatches,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

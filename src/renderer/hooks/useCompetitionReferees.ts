@@ -10,6 +10,7 @@ import type { Match, Pool, Referee } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { poolMatchesWithReferee, propagatePoolReferee } from '../../shared/utils/refereeStats';
 import type { ConsolationBracket, TableauMatch } from '../../shared/domain/tableau/tableauTypes';
+import type { AssignmentsInput } from './usePoolsLaunch';
 
 interface UseCompetitionRefereesParams {
   competitionId: string;
@@ -22,6 +23,8 @@ interface UseCompetitionRefereesParams {
   consolationBrackets: ConsolationBracket[];
   setConsolationBrackets: Dispatch<SetStateAction<ConsolationBracket[]>>;
   tableMaxScore: number;
+  /** Arbitres écrits par le moteur (assignMatches, docs/adr/0017) ; absent : écran seul */
+  assign?: (input: AssignmentsInput) => Promise<'recorded' | 'local' | 'refused'>;
 }
 
 /** Assignation d'arbitres : remplissage auto, arbitre de poule, changements depuis les tablettes. */
@@ -36,6 +39,7 @@ export function useCompetitionReferees({
   consolationBrackets,
   setConsolationBrackets,
   tableMaxScore,
+  assign,
 }: UseCompetitionRefereesParams) {
   // Applique des assignations d'arbitres (matchId → arbitre) aux matchs de poule
   const applyPoolRefereeAssignments = useCallback(
@@ -76,9 +80,14 @@ export function useCompetitionReferees({
   // Arbitre(s) assigné(s) à une poule entière : l'arbitre principal est répercuté
   // sur les matchs de la poule (onglet Assignations + statistiques) (#977)
   const handlePoolRefereeAssigned = useCallback(
-    (poolId: string, poolReferees: Referee[]) => {
+    async (poolId: string, poolReferees: Referee[]) => {
       const pool = pools.find(p => p.id === poolId);
       if (!pool) return;
+      // Par le moteur : arbitres de la poule, principal propagé aux matchs ; l'écran relit
+      const outcome = assign
+        ? await assign({ pools: [{ poolId, refereeIds: poolReferees.map(r => r.id) }] })
+        : 'local';
+      if (outcome !== 'local') return;
       const { matches, changes } = propagatePoolReferee(
         pool.matches ?? [],
         pool.referees?.[0]?.id,
@@ -99,7 +108,7 @@ export function useCompetitionReferees({
           );
       }
     },
-    [pools, setPools]
+    [pools, setPools, assign]
   );
 
   // Arbitre changé depuis une tablette : répercuté sur poules, tableau et consolantes (#977)
