@@ -87,8 +87,8 @@ function mockElectronAPI(fencers: Fencer[], session: unknown = null) {
     api: {
       invoke: (name: string, input: unknown) => {
         (calls[`api:${name}`] ??= []).push([input]);
-        // Pas de moteur derrière le bouchon : le lancement des poules retombe sur l'écran
-        if (name === 'generatePools') {
+        // Pas de moteur derrière le bouchon : poules et tableau retombent sur l'écran
+        if (name === 'generatePools' || name === 'generateTableau') {
           return Promise.resolve({
             ok: false,
             error: { code: 'unavailable', message: 'moteur absent (test)' },

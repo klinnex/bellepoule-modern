@@ -60,6 +60,7 @@ Ne plus ajouter d'appel direct à `window.electronAPI` pour une opération du co
 | `generatePools` | commande — tirage par le moteur, ou composition préparée par le DT (`composition`), tour courant ; `PoolsGenerated` ([ADR-0017](adr/0017-projections-etat-epreuve.md)) | `generate_pools` |
 | `addPoolFencer` | commande — tireur ajouté à une poule lancée, un match contre chacun ; `PoolFencerAdded` | `add_pool_fencer` |
 | `closePoolRound` | commande — clôture du tour : qualifiés, éliminés, tour archivé avec son appel ; `PoolRoundClosed` | `close_pool_round` |
+| `generateTableau` | commande — tableau planifié par le moteur, ou placement calculé par l'écran (`composition`) ; `TableauGenerated` | `build_bracket` (nom 2.0 conservé) |
 | `withdrawFencer` | commande — abandon, forfait, exclusion (carton noir) selon la phase ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) | `withdraw_fencer` |
 | `reinstateFencer` | commande — annule un retrait depuis l'instantané | `reinstate_fencer` |
 | `setRefereeingSettings` | commande (`referees:write`) — réglages d'affectation, fusion côté moteur ([ADR-0014](adr/0014-affectation-arbitres-moteur-unique.md)) | `set_refereeing_settings` |
@@ -105,6 +106,7 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
 | `generatePools` | `PoolsGenerated` (tour, poules, tireurs, pistes, ordre des matchs : rejouable sans graine) |
 | `addPoolFencer` | `PoolFencerAdded` (poule, tireur, matchs ajoutés dans l'ordre) |
 | `closePoolRound` | `PoolRoundClosed` (tour, qualifiés dans l'ordre, éliminés, nombre de qualifiés) |
+| `generateTableau` | `TableauGenerated` (taille, petite finale, « toutes les places », placement complet) |
 | `withdrawFencer` | `FencerWithdrawn` ; au tableau, `TableauMatchDecided` (et `TableauCompleted`) |
 | `reinstateFencer` | `FencerReinstated` |
 
@@ -175,4 +177,7 @@ moteur écrit tables, état et `PoolsGenerated`. La préparation (tirages, ajust
 reste un brouillon de l'écran. Palier « composition » fait : un tireur ajouté à une poule lancée
 passe par `addPoolFencer` (`PoolFencerAdded`). Palier « clôture de tour » fait : « Tour suivant »
 passe par `closePoolRound` (simulation pour la confirmation, puis commande ; `PoolRoundClosed`).
-Restent : tableau, correction, rapières ; état d'interface hors du bloc ; 4c ; 5.
+Palier « tableau » fait : le tableau calculé à l'écran (`planTableau`, classement d'entrée de la
+vue) part au moteur avec son placement complet (`generateTableau`, `TableauGenerated`) ; tableaux
+séparés après les poules : tableau local. Restent : correction, rapières ; état d'interface hors
+du bloc ; 4c ; 5.

@@ -7,6 +7,8 @@
  */
 import { useCallback } from 'react';
 import type { Pool } from '../../shared/types';
+import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
+import { tableauComposition } from '../../shared/domain/tableau/tableauComposition';
 import { useBpmClient } from '../api/BpmClientContext';
 import { useToast } from '../components/Toast';
 import { useTranslation } from './useTranslation';
@@ -77,6 +79,41 @@ export function usePoolFencerAdd(
         const code = (e as { code?: string }).code ?? 'internal';
         if (LOCAL_CODES.has(code)) return 'local';
         showToast(t('addFencerPool.add_error', { msg: (e as Error).message ?? code }), 'error');
+        return 'refused';
+      }
+    },
+    [client, competitionId, flushSession, showToast, t]
+  );
+}
+
+/**
+ * Tableau généré par l'écran (planTableau), écrit par le moteur : generateTableau avec le
+ * placement complet, TableauGenerated au journal (docs/adr/0017). Le tableau se régénère à
+ * l'écran quand le classement change : remplacement admis, comme avant.
+ */
+export function useTableauGenerate(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  const { t } = useTranslation();
+  return useCallback(
+    async (matches: TableauMatch[], thirdPlaceMatch: boolean): Promise<RecordScoreOutcome> => {
+      if (!competitionId || matches.length === 0) return 'local';
+      try {
+        await flushSession();
+        await client.call('generateTableau', {
+          competitionId,
+          composition: tableauComposition(matches),
+          thirdPlaceMatch,
+          replace: true,
+        });
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast(t('pools.launch_failed', { message: (e as Error).message ?? code }), 'error');
         return 'refused';
       }
     },

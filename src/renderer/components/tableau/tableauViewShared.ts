@@ -55,6 +55,11 @@ export interface TableauViewProps {
     scoreB: number;
     winner?: 'A' | 'B';
   }) => Promise<RecordScoreOutcome>;
+  /** Tableau généré écrit par le moteur (generateTableau, docs/adr/0017) */
+  onGenerateTableau?: (
+    matches: TableauMatch[],
+    thirdPlaceMatch: boolean
+  ) => Promise<RecordScoreOutcome>;
   /** Retrait d'un tireur par withdrawFencer (docs/adr/0016) : même issue que onRecordScore */
   onWithdraw?: (input: {
     fencerId: string;

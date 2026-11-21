@@ -69,6 +69,11 @@ import {
   composePools,
   type PoolCompositionInput,
 } from '../../../shared/domain/pools/poolComposition';
+import {
+  composeTableau,
+  tableauComposition,
+  type TableauMatchInput,
+} from '../../../shared/domain/tableau/tableauComposition';
 
 /** Numéros de phase de l'état de session (useCompetitionSession.PHASE_NUMBERS) */
 export const PHASE = {
@@ -756,12 +761,27 @@ export function persistTableau(
 export function buildBracket(
   ctx: CommandContext,
   competitionId: string,
-  options: { thirdPlaceMatch?: boolean; replace?: boolean; dryRun?: boolean } = {}
+  options: {
+    thirdPlaceMatch?: boolean;
+    replace?: boolean;
+    dryRun?: boolean;
+    /**
+     * Placement calculé par l'écran (docs/adr/0017) : pas de planification ; admis pour tous
+     * les formats individuels (rapières, tours multiples, « toutes les places »), hors
+     * tableaux séparés après les poules.
+     */
+    composition?: TableauMatchInput[];
+  } = {}
 ) {
   const comp = getCompetitionOrThrow(ctx, competitionId);
   const session = readSession(ctx, competitionId);
-  assertSupported(comp, session);
-  if (comp.settings?.playAllPositions) {
+  if (options.composition) {
+    assertScoreSupported(comp);
+    if (comp.settings?.postPoolSplitCriteria) {
+      throw new CommandError('unsupported_format', 'Tableaux séparés après les poules : à l’écran');
+    }
+  } else assertSupported(comp, session);
+  if (!options.composition && comp.settings?.playAllPositions) {
     throw new CommandError(
       'unsupported_format',
       '« Tirer toutes les places » : à piloter à l’écran'
@@ -772,7 +792,11 @@ export function buildBracket(
     throw new CommandError('no_direct_elimination', 'Épreuve sans élimination directe');
   }
   const pools = sessionPools(session);
-  if (!session.skipPoolPhase && (pools.length === 0 || !areAllPoolsComplete(pools))) {
+  if (
+    !options.composition &&
+    !session.skipPoolPhase &&
+    (pools.length === 0 || !areAllPoolsComplete(pools))
+  ) {
     throw new CommandError('pools_not_complete', 'Toutes les poules doivent être terminées');
   }
   const existing = sessionTableau(session);
@@ -785,11 +809,34 @@ export function buildBracket(
   // Statuts à jour (abandon, exclusion après les poules)
   // Statuts du classement (comme l'écran) : un décompte différent ferait régénérer le tableau
   const thirdPlace = options.thirdPlaceMatch ?? eff.thirdPlaceMatch;
-  // Génération unique écran / moteur (#1979, lot 4)
-  const { qualified, size, matches } = planTableau(tableauRanking(comp, session), {
-    playAllPositions: false,
-    thirdPlaceMatch: thirdPlace,
-  });
+  // Génération unique écran / moteur (#1979, lot 4) ; ou placement de l'écran, contrôlé
+  let qualified: { length: number };
+  let size: number;
+  let matches: TableauMatch[];
+  if (options.composition) {
+    const all = ctx.db.getFencersByCompetition(competitionId);
+    const composed = composeTableau(options.composition, new Map(all.map(f => [f.id, f])));
+    if (!composed.ok) {
+      throw new CommandError(
+        'invalid_composition',
+        `Tableau refusé : ${composed.code} (${composed.detail})`
+      );
+    }
+    matches = composed.matches;
+    size = deriveFirstRound(matches);
+    const placed = new Set(
+      matches
+        .filter(m => m.round === size || m.round === size * 2)
+        .flatMap(m => [m.fencerA?.id, m.fencerB?.id])
+        .filter(Boolean)
+    );
+    qualified = { length: placed.size };
+  } else {
+    ({ qualified, size, matches } = planTableau(tableauRanking(comp, session), {
+      playAllPositions: false,
+      thirdPlaceMatch: thirdPlace,
+    }));
+  }
   if (qualified.length < 2) {
     throw new CommandError('not_enough_fencers', 'Moins de 2 tireurs qualifiés pour le tableau');
   }
@@ -817,6 +864,21 @@ export function buildBracket(
       finalResults: [],
       consolationBrackets: [],
     });
+    recordEvents(ctx, competitionId, [
+      {
+        type: EVENT.tableauGenerated,
+        payload: {
+          size,
+          thirdPlaceMatch: thirdPlace,
+          playAllPositions: !!comp.settings?.playAllPositions,
+          matches: tableauComposition(matches).map(m => ({
+            ...m,
+            seedA: m.seedA ?? null,
+            seedB: m.seedB ?? null,
+          })),
+        },
+      },
+    ]);
   });
   emitSession(ctx, competitionId);
   if (thirdPlace !== eff.thirdPlaceMatch) {

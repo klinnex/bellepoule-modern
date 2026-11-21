@@ -112,12 +112,12 @@ session porte une révision : une sauvegarde de l'écran faite sur un état pér
 | `generate_pools` | `competitionId`, `poolCount?`, `minPerPool?`, `maxPerPool?`, `separation?`, `composition?`, `replace?`, `dryRun?` | Tirage sur les tireurs pointés (serpentin, clubs et régions séparés), ou composition préparée (`composition`) ; poules lancées, poule n sur la piste n ; `PoolsGenerated` au journal. ⚠️ `replace` efface des poules jouées ou un tableau |
 | `assign_referees` | `competitionId`, `replace?`, `includeUnchecked?` | Un arbitre principal par poule, pointé, hors club des tireurs, charge équilibrée |
 | `record_score` | `competitionId`, `matchId`, `scoreA`, `scoreB`, `winner?`, `specialStatus?`, `priority?`, `dryRun?` | Score de poule ou de tableau, contrôles de l'écran (score max, égalité, abandon / forfait / exclusion propagés) ; `dryRun` contrôle sans écrire |
-| `build_bracket` | `competitionId`, `thirdPlaceMatch?`, `replace?` | Tableau depuis le classement après poules. ⚠️ `replace` efface un tableau joué |
+| `build_bracket` | `competitionId`, `thirdPlaceMatch?`, `composition?`, `replace?`, `dryRun?` | Tableau depuis le classement après poules, ou placement donné (`composition`) ; `TableauGenerated` au journal. ⚠️ `replace` efface un tableau joué |
 | `export_results` | `competitionId`, `format` (`xml` / `fff` / `csv` / `html` / `pdf`), `path`, `overwrite?` | Fichier de résultats dans un dossier accessible à l'agent |
 
 Formats pilotables : épreuve individuelle, un tour de poules, tableau simple avec ou sans petite
 finale. Équipes, rapières, tours de poules multiples et « tirer toutes les places » restent à
-l'écran (erreur `unsupported_format`) pour `generate_pools` sans `composition`, `assign_referees` et `build_bracket`.
+l'écran (erreur `unsupported_format`) pour `generate_pools` et `build_bracket` sans `composition`, et pour `assign_referees`.
 `record_score` accepte aussi les tours multiples (tour courant ; tour terminé figé : `round_closed`),
 les rapières et « toutes les places » (barrages, tableaux de classement listés par `list_matches`
 avec leur nom dans `bracket`). Refusés : épreuves par équipes, tableaux séparés après les poules.
@@ -432,17 +432,6 @@ Aucun argument.
 | `confirmTitle` | string | oui |  |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 
-### `build_bracket` — Construire le tableau
-
-*⚠️ écriture, destructif.* Tableau d’élimination directe depuis le classement après poules (poules terminées ; abandons, forfaits, exclus et éliminés écartés). Petite finale selon l’épreuve, ou « thirdPlaceMatch ». « replace: true » efface un tableau déjà joué : accord du DT indispensable.
-
-| Argument | Type | Requis | Description |
-|---|---|---|---|
-| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
-| `thirdPlaceMatch` | boolean |  | Match pour la 3e place |
-| `replace` | boolean |  | Remplacer un tableau existant |
-| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
-
 ### `export_results` — Exporter les résultats
 
 *écriture, idempotent.* Écrit les résultats dans un fichier d’un dossier accessible à l’agent : xml (BellePoule / FFE), fff (classement FFE), csv (classement après poules), html ou pdf (classement final). « overwrite: true » pour remplacer un fichier existant.
@@ -596,6 +585,20 @@ Aucun argument.
 |---|---|---|---|
 | `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
 | `qualifierCount` | integer |  | Nombre de qualifiés imposé |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `build_bracket` — Construire le tableau
+
+*⚠️ écriture, destructif.* Tableau d’élimination directe. Sans « composition » : construit depuis le classement après poules (tireurs éliminés, abandons, forfaits et exclus écartés), avec ou sans petite finale (épreuve individuelle, un tour, tableau simple). Avec « composition » : placement calculé par l’écran (barrages, exemptions, rangs de sortie de poules), tel quel. « replace: true » efface un tableau déjà joué : accord du DT indispensable.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `thirdPlaceMatch` | boolean |  | Match pour la 3e place |
+| `composition` | object[] |  | Placement calculé par l’écran : pas de planification |
+| `replace` | boolean |  | Remplacer un tableau existant |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 | `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |

@@ -7,7 +7,7 @@
  * Licensed under GPL-3.0
  */
 
-import { buildBracket, listMatches } from '../engine/commands/sport';
+import { listMatches } from '../engine/commands/sport';
 import { exportResults, type ResultsFormat } from '../engine/commands/exportResults';
 import type { McpTool } from './mcpTools';
 import type { McpWriteTool } from './mcpWriteTools';
@@ -29,7 +29,6 @@ const competitionId = {
     description: 'Identifiant de la compétition (list_competitions)',
   },
 };
-const dryRun = { dryRun: { type: 'boolean', description: 'Décrit le résultat sans rien écrire' } };
 const FORMATS = ['xml', 'fff', 'csv', 'html', 'pdf'] as const;
 
 export const MCP_SPORT_READ_TOOLS: McpTool[] = [
@@ -63,32 +62,7 @@ export const MCP_SPORT_TOOLS: McpWriteTool[] = [
   // assign_referees, assign_referee, set_refereeing_settings : générés depuis le contrat d'API
   // (src/shared/api/contract.ts, docs/adr/0014)
   // record_score : généré depuis le contrat d'API (src/shared/api/contract.ts, #1981)
-  {
-    name: 'build_bracket',
-    title: 'Construire le tableau',
-    description:
-      'Tableau d’élimination directe depuis le classement après poules (poules terminées ; abandons, forfaits, exclus et éliminés écartés). Petite finale selon l’épreuve, ou « thirdPlaceMatch ». ' +
-      '« replace: true » efface un tableau déjà joué : accord du DT indispensable.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        ...competitionId,
-        thirdPlaceMatch: { type: 'boolean', description: 'Match pour la 3e place' },
-        replace: { type: 'boolean', description: 'Remplacer un tableau existant' },
-        ...dryRun,
-      },
-      required: ['competitionId'],
-    },
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
-    run: (deps, args) =>
-      guard(() =>
-        buildBracket(writeDomain(deps), reqStr(args, 'competitionId'), {
-          thirdPlaceMatch: optBool(args, 'thirdPlaceMatch'),
-          replace: optBool(args, 'replace'),
-          dryRun: optBool(args, 'dryRun'),
-        })
-      ),
-  },
+  // build_bracket : généré depuis le contrat d'API (generateTableau, TableauGenerated au journal)
   {
     name: 'export_results',
     title: 'Exporter les résultats',

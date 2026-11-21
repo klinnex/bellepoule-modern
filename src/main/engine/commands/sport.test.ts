@@ -633,3 +633,54 @@ d('closePoolRound (docs/adr/0017, palier clôture de tour)', () => {
     expect((db.getSessionState(comp.id) as any).poolHistory).toHaveLength(1);
   });
 });
+
+d('generateTableau avec placement de l’écran (docs/adr/0017, palier tableau)', () => {
+  it('« toutes les places » : placement tel quel, TableauGenerated, jouable jusqu’au bout', async () => {
+    const comp = await setup(10);
+    generatePools(ctx, comp.id, { poolCount: 2 });
+    playAll(comp.id, 'pool');
+    db.updateCompetition(comp.id, {
+      settings: { ...comp.settings, playAllPositions: true, thirdPlaceMatch: true },
+    } as never);
+    const ranking = (db.getSessionState(comp.id) as any).overallRanking;
+    const { matches } = planTableau(ranking, { playAllPositions: true, thirdPlaceMatch: true });
+    const { tableauComposition } =
+      await import('../../../shared/domain/tableau/tableauComposition');
+    const res = (await invoke(ctx, 'generateTableau', {
+      competitionId: comp.id,
+      composition: tableauComposition(matches),
+      thirdPlaceMatch: true,
+    })) as any;
+    expect(res).toMatchObject({ size: 8, qualified: 10, thirdPlaceMatch: true });
+    const session = db.getSessionState(comp.id) as any;
+    expect(session.currentPhase).toBe(5);
+    expect(session.tableauMatches.map((m: any) => m.id)).toEqual(matches.map(m => m.id));
+    const all = db.eventLog.getSince(comp.id);
+    expect(all[all.length - 1]).toMatchObject({
+      type: 'TableauGenerated',
+      payload: { size: 8, thirdPlaceMatch: true, playAllPositions: true },
+    });
+    playAll(comp.id, 'bracket');
+    expect((db.getSessionState(comp.id) as any).finalResults).toHaveLength(10);
+  });
+
+  it('placement invalide ou tableaux séparés : refus', async () => {
+    const comp = await setup(4);
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    const ids = db.getFencersByCompetition(comp.id).map(f => f.id);
+    const bad = [
+      { matchId: '4-0', round: 4, position: 0, fencerAId: ids[0], fencerBId: 'x', isBye: false },
+    ];
+    await expect(
+      invoke(ctx, 'generateTableau', { competitionId: comp.id, composition: bad })
+    ).rejects.toMatchObject({ code: 'invalid_composition' });
+    db.updateCompetition(comp.id, {
+      settings: { ...comp.settings, postPoolSplitCriteria: 'gender' },
+    } as never);
+    bad[0].fencerBId = ids[1];
+    await expect(
+      invoke(ctx, 'generateTableau', { competitionId: comp.id, composition: bad })
+    ).rejects.toMatchObject({ code: 'unsupported_format' });
+  });
+});

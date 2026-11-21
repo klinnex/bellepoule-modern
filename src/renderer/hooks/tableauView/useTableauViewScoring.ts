@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Fencer } from '../../../shared/types';
 export {
   TableauMatch,
@@ -82,7 +82,10 @@ export function useTableauViewScoring(ctx: Ctx) {
     competitionId,
     weapon,
     onRecordScore,
+    onGenerateTableau,
   } = ctx;
+  // Génération en cours par le moteur : l'effet de montage ne la relance pas
+  const generatingRef = useRef(false);
 
   useEffect(() => {
     if (readOnly) {
@@ -200,6 +203,20 @@ export function useTableauViewScoring(ctx: Ctx) {
     });
     setTableauSize(size);
     setConsolationBrackets([]); // réinitialiser les brackets de consolation
+    // Placement écrit par le moteur (TableauGenerated) ; l'écran relit l'état. Hors moteur
+    // ou tableaux séparés : tableau local, comme avant
+    if (onGenerateTableau) {
+      if (generatingRef.current) return;
+      generatingRef.current = true;
+      void onGenerateTableau(newMatches, thirdPlaceMatch)
+        .then(outcome => {
+          if (outcome === 'local') onMatchesChange(newMatches);
+        })
+        .finally(() => {
+          generatingRef.current = false;
+        });
+      return;
+    }
     onMatchesChange(newMatches);
   };
 

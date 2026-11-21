@@ -25,6 +25,7 @@ export const JOURNAL_EVENT = {
   poolsGenerated: 'PoolsGenerated',
   poolFencerAdded: 'PoolFencerAdded',
   poolRoundClosed: 'PoolRoundClosed',
+  tableauGenerated: 'TableauGenerated',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -99,6 +100,27 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       qualifierCount: z.number().int().nullable(),
       qualifiedIds: z.array(Id),
       eliminatedIds: z.array(Id),
+    })
+  ),
+  // Tableau généré : placement complet (barrages, exemptions, rangs de sortie de poules)
+  member(
+    JOURNAL_EVENT.tableauGenerated,
+    z.object({
+      size: z.number().int(),
+      thirdPlaceMatch: z.boolean(),
+      playAllPositions: z.boolean(),
+      matches: z.array(
+        z.object({
+          matchId: Id,
+          round: z.number().int(),
+          position: z.number().int(),
+          fencerAId: Id.nullable(),
+          fencerBId: Id.nullable(),
+          isBye: z.boolean(),
+          seedA: z.number().nullable(),
+          seedB: z.number().nullable(),
+        })
+      ),
     })
   ),
   member(

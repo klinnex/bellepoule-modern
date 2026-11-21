@@ -14,7 +14,7 @@ import {
 } from '../../../shared/api/contract';
 import { ApiError } from '../../../shared/api/client';
 import { CommandError, type CommandContext } from '../commands/context';
-import { generatePools, recordScore, separationFromKeys } from '../commands/sport';
+import { buildBracket, generatePools, recordScore, separationFromKeys } from '../commands/sport';
 import {
   assignPoolReferee,
   assignPoolReferees,
@@ -54,6 +54,8 @@ export const handlers: { [N in OperationName]: Handler<N> } = {
     addPoolFencer(ctx, input),
   closePoolRound: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     closePoolRound(ctx, input),
+  generateTableau: (ctx, { competitionId, expectedRevision: _r, commandId: _c, ...options }) =>
+    buildBracket(ctx, competitionId, options),
   withdrawFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     withdrawFencer(ctx, input),
   reinstateFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>

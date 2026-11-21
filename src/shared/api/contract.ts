@@ -130,6 +130,13 @@ const CompetitionStateSchema = z.object({
 });
 export type CompetitionStateDTO = z.infer<typeof CompetitionStateSchema>;
 
+const FencerRefSchema = z.object({
+  id: z.string(),
+  lastName: z.string(),
+  firstName: z.string(),
+  club: z.string().nullable(),
+});
+
 const MatchCard = z.object({
   id: z.string(),
   fencerId: z.string(),
@@ -331,6 +338,62 @@ export const contract = {
     }),
     permission: 'score:write',
     mcp: { name: 'close_pool_round', title: 'Clore le tour de poules', destructive: true },
+  }),
+
+  generateTableau: command({
+    description:
+      'Tableau d’élimination directe. Sans « composition » : construit depuis le classement après poules (tireurs éliminés, abandons, forfaits et exclus écartés), avec ou sans petite finale (épreuve individuelle, un tour, tableau simple). ' +
+      'Avec « composition » : placement calculé par l’écran (barrages, exemptions, rangs de sortie de poules), tel quel. « replace: true » efface un tableau déjà joué : accord du DT indispensable.',
+    input: z.object({
+      competitionId: CompetitionId,
+      thirdPlaceMatch: z.boolean().optional().describe('Match pour la 3e place'),
+      composition: z
+        .array(
+          z.object({
+            matchId: Id,
+            round: z.number().int().min(2).max(1024),
+            position: z.number().int().min(0).max(1024),
+            fencerAId: Id.nullable(),
+            fencerBId: Id.nullable(),
+            isBye: z.boolean(),
+            seedA: z.number().int().nullable().optional(),
+            seedB: z.number().int().nullable().optional(),
+          })
+        )
+        .min(1)
+        .max(2048)
+        .optional()
+        .describe('Placement calculé par l’écran : pas de planification'),
+      replace: z.boolean().optional().describe('Remplacer un tableau existant'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      size: z.number().int(),
+      qualified: z.number().int(),
+      thirdPlaceMatch: z.boolean(),
+      firstRound: z.array(
+        z.object({
+          id: z.string(),
+          round: z.number().int(),
+          position: z.number().int(),
+          fencerA: FencerRefSchema.nullable(),
+          fencerB: FencerRefSchema.nullable(),
+          scoreA: z.number().nullable(),
+          scoreB: z.number().nullable(),
+          winner: FencerRefSchema.nullable(),
+          isBye: z.boolean(),
+          state: z.enum(['pending', 'ready', 'done']),
+          strip: z.number().nullable(),
+        })
+      ),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    // Nom de l'outil publié en 2.0 conservé (docs/adr/0008)
+    mcp: { name: 'build_bracket', title: 'Construire le tableau', destructive: true },
   }),
 
   withdrawFencer: command({
