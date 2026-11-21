@@ -513,6 +513,59 @@ export const contract = {
     },
   }),
 
+  adjustRanking: command({
+    description:
+      'Classement après poules ajusté par le DT : rang (et points Quest) de chaque tireur, répercutés dans les classements de poule. Le classement complet est fourni, dans l’ordre.',
+    input: z.object({
+      competitionId: CompetitionId,
+      ranking: z
+        .array(
+          z.object({
+            fencerId: Id,
+            rank: z.number().int().min(1),
+            questPoints: z.number().optional(),
+          })
+        )
+        .min(1)
+        .max(2000),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({ dryRun: z.boolean(), fencers: z.number().int(), revision: Revision }),
+    permission: 'score:write',
+    mcp: { name: 'adjust_ranking', title: 'Ajuster le classement après poules', destructive: true },
+  }),
+
+  skipPools: command({
+    description:
+      'Épreuve sans poules : classement initial sur les tireurs pointés (ordre fourni, sinon classement d’entrée), puis tableau.',
+    input: z.object({
+      competitionId: CompetitionId,
+      fencerIds: z.array(Id).min(2).max(2000).optional().describe('Ordre du classement initial'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({ dryRun: z.boolean(), fencers: z.number().int(), revision: Revision }),
+    permission: 'score:write',
+    mcp: { name: 'skip_pools', title: 'Passer les poules', destructive: true },
+  }),
+
+  clearTableau: command({
+    description:
+      'Retire le tableau (et les tableaux de classement) : il est refait sur le classement courant à l’ouverture de l’onglet Tableau. Accord du DT indispensable si des matchs sont joués.',
+    input: z.object({
+      competitionId: CompetitionId,
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({ dryRun: z.boolean(), cleared: z.number().int(), revision: Revision }),
+    permission: 'score:write',
+    mcp: { name: 'clear_tableau', title: 'Retirer le tableau', destructive: true },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +

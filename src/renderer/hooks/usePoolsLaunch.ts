@@ -254,3 +254,45 @@ export function tableauAssignmentsDiff(
   }
   return out;
 }
+
+/**
+ * Commande d'épreuve générique de l'écran (docs/adr/0017) : sauvegarde en attente écrite
+ * d'abord, refus affiché, « local » quand le moteur est absent ou ne pilote pas le format.
+ */
+export interface CompetitionCommandInputs {
+  adjustRanking: {
+    ranking: Array<{ fencerId: string; rank: number; questPoints?: number }>;
+  };
+  skipPools: { fencerIds?: string[] };
+  clearTableau: Record<string, never>;
+}
+
+export function useCompetitionCommand(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  return useCallback(
+    async <K extends keyof CompetitionCommandInputs>(
+      name: K,
+      input: CompetitionCommandInputs[K]
+    ): Promise<RecordScoreOutcome> => {
+      if (!competitionId) return 'local';
+      try {
+        await flushSession();
+        await (client.call as (n: string, i: unknown) => Promise<unknown>)(name, {
+          competitionId,
+          ...input,
+        });
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast((e as Error).message ?? code, 'error');
+        return 'refused';
+      }
+    },
+    [client, competitionId, flushSession, showToast]
+  );
+}

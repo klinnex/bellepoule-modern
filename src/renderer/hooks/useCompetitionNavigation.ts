@@ -156,8 +156,41 @@ export function useCompetitionNavigation({
     setCurrentPhase('ranking');
   };
 
-  const handleSkipToRanking = () => {
+  /** Commande d'épreuve de l'écran (clearTableau, skipPools ; docs/adr/0017) */
+  const runCommand = async (
+    name: 'clearTableau' | 'skipPools',
+    input: { fencerIds?: string[] } = {}
+  ): Promise<'recorded' | 'local' | 'refused'> => {
+    try {
+      await flushSession?.();
+      await client.call(name, { competitionId: competition.id, ...input });
+      return 'recorded';
+    } catch (e) {
+      const code = (e as { code?: string }).code ?? 'internal';
+      if (code === 'unavailable' || code === 'unsupported_format') return 'local';
+      showToast((e as Error).message ?? code, 'error');
+      return 'refused';
+    }
+  };
+
+  /** Tableau retiré par le moteur (TableauCleared) ; repli local hors moteur */
+  const clearTableau = async () => {
+    if (tableauMatches.length === 0 && consolationBrackets.length === 0) return;
+    if ((await runCommand('clearTableau')) !== 'local') return;
+    setTableauMatches([]);
+    setConsolationBrackets([]);
+  };
+
+  const handleSkipToRanking = async () => {
     const checkedIn = getCheckedInFencers();
+    // Épreuve sans poules par le moteur (PoolsSkipped) ; l'écran relit l'état
+    const outcome = await runCommand('skipPools', { fencerIds: checkedIn.map(f => f.id) });
+    if (outcome === 'refused') return;
+    if (outcome === 'recorded') {
+      setRankingValidated(false);
+      setCurrentPhase('ranking');
+      return;
+    }
     const initialRanking = generateInitialRanking(checkedIn);
     setOverallRanking(initialRanking);
     setSkipPoolPhase(true);
@@ -203,8 +236,7 @@ export function useCompetitionNavigation({
 
     // Si le classement a changé, réinitialiser les matches du tableau
     if (rankingChanged) {
-      setTableauMatches([]);
-      setConsolationBrackets([]);
+      void clearTableau();
       setRankingChanged(false);
       showToast("Le classement a changé. Le tableau d'élimination va être régénéré.", 'warning');
     }
@@ -244,8 +276,7 @@ export function useCompetitionNavigation({
     }
 
     onUpdate(updatedCompetition);
-    setTableauMatches([]);
-    setConsolationBrackets([]);
+    void clearTableau();
     setCurrentPhase('tableau');
   };
 
