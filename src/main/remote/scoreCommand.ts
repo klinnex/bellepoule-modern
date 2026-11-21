@@ -26,6 +26,10 @@ export interface FinishedScore {
   author?: string;
   /** Détails du journal des scores : arbitre, adresse de la tablette, motif */
   audit?: CommandContext['scoreAudit'];
+  /** Statut du perdant (carton noir, exclusion ou abandon signalés) : retrait par le moteur */
+  specialStatus?: 'abandon' | 'forfait' | 'exclusion';
+  /** Exclusion sur carton noir (motif black_card) */
+  blackCard?: boolean;
 }
 
 /** Identifiant du match dans l'état de session (les matchs de tableau y sont bruts) */
@@ -69,6 +73,8 @@ function runFinished(db: DatabaseManager, score: FinishedScore, dryRun: boolean)
         scoreA: score.scoreA,
         scoreB: score.scoreB,
         ...(score.winner ? { winner: score.winner } : {}),
+        ...(score.specialStatus ? { specialStatus: score.specialStatus } : {}),
+        ...(score.blackCard ? { blackCard: true } : {}),
         ...(dryRun ? { dryRun: true } : {}),
       }
     );
@@ -103,4 +109,35 @@ export function recordFinishedScore(db: DatabaseManager, score: FinishedScore): 
  */
 export function checkFinishedScore(db: DatabaseManager, score: FinishedScore): FinishOutcome {
   return runFinished(db, score, true);
+}
+
+/**
+ * Réintégration par reinstateFencer (annulation d'un carton noir depuis la tablette,
+ * docs/adr/0016) : true si le moteur l'a écrite, false pour le chemin historique.
+ */
+export function reinstateByCommand(
+  db: DatabaseManager,
+  competitionId: string | null | undefined,
+  fencerId: string,
+  source: FinishedScore['source'] = 'tablet'
+): boolean {
+  if (!competitionId || !db.eventLog) return false;
+  try {
+    invokeCommandSync(
+      {
+        db,
+        actor: { source },
+        emitChange: emitChangeVia((type, id) => emitCompetitionEvent(type, id)),
+      },
+      'reinstateFencer',
+      { competitionId, fencerId }
+    );
+    return true;
+  } catch (e) {
+    logger.info(
+      LogCategory.NETWORK,
+      `[reinstateByCommand] ${fencerId} : chemin historique (${(e as { code?: string }).code ?? 'internal'})`
+    );
+    return false;
+  }
 }

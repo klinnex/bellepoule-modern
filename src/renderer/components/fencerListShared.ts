@@ -42,7 +42,8 @@ export interface FencerListProps {
   onDeleteAllFencers?: () => void;
   onCheckInAll?: () => void;
   onUncheckAll?: () => void;
-  onSetFencerStatus?: (id: string, status: FencerStatus) => void;
+  /** Rend l'issue de la commande (docs/adr/0016) : « refused » n'affiche pas « Statut modifié » */
+  onSetFencerStatus?: (id: string, status: FencerStatus) => void | Promise<unknown>;
   onImport?: (type: 'xml' | 'fff' | 'ranking') => void;
   onImportFFEConnect?: () => void;
   /** Import spécifique remplaçant le menu d'import (ex : équipes du tournoi des rapières) */

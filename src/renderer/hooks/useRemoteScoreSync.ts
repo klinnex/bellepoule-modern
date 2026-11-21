@@ -34,6 +34,12 @@ interface UseRemoteScoreSyncParams {
   updateMatchFromRemote: ReturnType<typeof usePoolManagement>['updateMatchFromRemote'];
   handleBlackCardCancelled: ReturnType<typeof usePoolManagement>['handleBlackCardCancelled'];
   updateFencer: ReturnType<typeof useFencerManagement>['updateFencer'];
+  /** Retrait par withdrawFencer (docs/adr/0016) : abandon signalé par l'appareil, confirmé par le DT */
+  withdraw?: (input: {
+    fencerId: string;
+    reason: 'abandon' | 'forfait' | 'exclusion';
+    matchId?: string;
+  }) => Promise<'recorded' | 'local' | 'refused'>;
 }
 
 /** Applique les scores / cartons / états de pistes remontés par le serveur de saisie distante. */
@@ -51,6 +57,7 @@ export function useRemoteScoreSync({
   updateMatchFromRemote,
   handleBlackCardCancelled,
   updateFencer,
+  withdraw,
 }: UseRemoteScoreSyncParams) {
   // Appliquer un score distant au bon conteneur : tableau DE, consolante, ou poule.
   // Évite le warning "Match non trouvé" côté poule pour les matchs du tableau.
@@ -272,23 +279,32 @@ export function useRemoteScoreSync({
     const offMatchFinished = window.electronAPI.onRemoteMatchFinished(handleMatchFinished);
 
     // Carton noir distant : exclure le combattant fautif dans le store
-    const offExcluded = window.electronAPI.onRemoteFencerExcluded?.(({ fencerId, reason }) => {
-      logger.debug(LogCategory.UI, `[CompetitionView] Combattant exclu (carton noir): ${fencerId}`);
-      updateFencer(fencerId, {
-        status: FencerStatus.EXCLUDED,
-        exclusionReason: reason ?? 'black_card',
-      });
-      // Poules : matchs restants marqués non disputés et résultats de l'exclu retirés
-      // du classement des adversaires, comme une exclusion saisie localement (#1011)
-      if (poolsRef.current.some(p => p.fencers.some(f => f.id === fencerId))) {
-        void handleFencerForfeitRef.current(fencerId, 'exclusion');
+    const offExcluded = window.electronAPI.onRemoteFencerExcluded?.(
+      ({ fencerId, reason, recorded }) => {
+        logger.debug(
+          LogCategory.UI,
+          `[CompetitionView] Combattant exclu (carton noir): ${fencerId}`
+        );
+        // Exclusion écrite par le moteur avec le score : tireurs et session relus
+        if (recorded) return;
+        updateFencer(fencerId, {
+          status: FencerStatus.EXCLUDED,
+          exclusionReason: reason ?? 'black_card',
+        });
+        // Poules : matchs restants marqués non disputés et résultats de l'exclu retirés
+        // du classement des adversaires, comme une exclusion saisie localement (#1011)
+        if (poolsRef.current.some(p => p.fencers.some(f => f.id === fencerId))) {
+          void handleFencerForfeitRef.current(fencerId, 'exclusion');
+        }
       }
-    });
+    );
 
     // Carton noir annulé depuis la tablette : réintégrer le combattant et rouvrir le match
     const offReinstated = window.electronAPI.onRemoteFencerReinstated?.(
-      ({ fencerId, matchId, status, scoreA, scoreB }) => {
+      ({ fencerId, matchId, status, scoreA, scoreB, recorded }) => {
         logger.debug(LogCategory.UI, `[CompetitionView] Carton noir annulé: ${fencerId}`);
+        // Réintégration écrite par le moteur : tireurs et session relus
+        if (recorded) return;
         const restored = status as FencerStatus;
         handleBlackCardCancelled(fencerId, matchId, restored, scoreA, scoreB);
         updateFencer(fencerId, { status: restored, exclusionReason: null });
@@ -315,13 +331,24 @@ export function useRemoteScoreSync({
       const detail = (e as CustomEvent<DtConfirmAbandonDetail>).detail;
       if (!detail || (detail.competitionId && detail.competitionId !== competitionId)) return;
       detail.handled = true;
-      const update = checkInStatusUpdate(poolsRef.current, detail.fencerId, FencerStatus.ABANDONED);
-      void handleFencerForfeitRef.current(detail.fencerId, 'abandon');
-      updateFencer(detail.fencerId, update);
+      const local = () => {
+        const update = checkInStatusUpdate(
+          poolsRef.current,
+          detail.fencerId,
+          FencerStatus.ABANDONED
+        );
+        void handleFencerForfeitRef.current(detail.fencerId, 'abandon');
+        updateFencer(detail.fencerId, update);
+      };
+      // Retrait par le moteur (docs/adr/0016) ; repli local hors moteur
+      if (!withdraw) return local();
+      void withdraw({ fencerId: detail.fencerId, reason: 'abandon' }).then(outcome => {
+        if (outcome === 'local') local();
+      });
     };
     window.addEventListener(DT_CONFIRM_ABANDON_EVENT, onConfirm);
     return () => window.removeEventListener(DT_CONFIRM_ABANDON_EVENT, onConfirm);
-  }, [competitionId, poolsRef, handleFencerForfeitRef, updateFencer]);
+  }, [competitionId, poolsRef, handleFencerForfeitRef, updateFencer, withdraw]);
 
   return { fireWebhookNotif };
 }

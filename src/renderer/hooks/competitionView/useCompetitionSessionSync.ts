@@ -271,6 +271,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     updateMatchFromRemote,
     handleBlackCardCancelled,
     updateFencer,
+    withdraw: fencerWithdrawal.withdraw,
   });
 
   // Sync scores/statuts de poule et matchs de tableau vers la DB (#1599)
@@ -334,22 +335,22 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   );
 
   /** Statut posé depuis la liste d'appel : abandon, forfait, ou réactivation d'un tireur retiré */
-  const handleSetFencerStatus = (id: string, status: FencerStatus) => {
+  const handleSetFencerStatus = async (
+    id: string,
+    status: FencerStatus
+  ): Promise<'recorded' | 'local' | 'refused'> => {
     const reason = REASON_BY_STATUS[status];
-    if (reason) {
-      void handleWithdrawFencer({ fencerId: id, reason });
-      return;
-    }
+    if (reason) return handleWithdrawFencer({ fencerId: id, reason });
     const current = fencers.find(f => f.id === id);
     if (isWithdrawn(current)) {
-      void handleReinstateFencer(id).then(outcome => {
-        if (outcome === 'recorded' && status === FencerStatus.NOT_CHECKED_IN) {
-          void ctx.toggleCheckIn(id);
-        }
-      });
-      return;
+      const outcome = await handleReinstateFencer(id);
+      if (outcome === 'recorded' && status === FencerStatus.NOT_CHECKED_IN) {
+        await ctx.toggleCheckIn(id);
+      }
+      return outcome;
     }
-    if (current && current.status !== status) void ctx.toggleCheckIn(id);
+    if (current && current.status !== status) await ctx.toggleCheckIn(id);
+    return 'recorded';
   };
 
   /**
@@ -362,7 +363,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     const statusChange = status !== undefined && !!current && status !== current.status;
     if (!statusChange) return updateFencer(id, updates);
     if (Object.keys(details).length > 0) await updateFencer(id, details);
-    handleSetFencerStatus(id, status);
+    await handleSetFencerStatus(id, status);
   };
 
   /**

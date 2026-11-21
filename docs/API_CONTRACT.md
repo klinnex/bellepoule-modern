@@ -138,9 +138,9 @@ l'adresse de la tablette, `device`, `mcp`. Le journal d'épreuve ne porte que l'
 l'arbitre (RGPD).
 
 Restent sur le chemin historique (saisie locale de l'écran, ou écriture directe du serveur) : épreuves
-par équipes, tableaux séparés après les poules, statuts spéciaux (abandon, forfait, exclusion,
-carton noir), correction d'une poule après tirage du tableau, égalité sans vainqueur sur la feuille
-de poule, scores en cours et synchronisation hors ligne des tablettes (`updateMatchScore`).
+par équipes, tableaux séparés après les poules, correction d'une poule après tirage du tableau,
+égalité sans vainqueur sur la feuille de poule, scores en cours et synchronisation hors ligne des
+tablettes (`updateMatchScore`).
 
 Retrait d'un tireur ([ADR-0016](adr/0016-retrait-reintegration-tireur.md)) : étape 1 faite, règle
 unique `planWithdrawal` / `planReinstatement` (`shared/domain/fencers/withdrawal.ts`), commandes
@@ -149,7 +149,14 @@ unique `planWithdrawal` / `planReinstatement` (`shared/domain/fencers/withdrawal
 dans la fiche du tireur, abandon / forfait / exclusion (carton noir) d'un match de poule (par
 `recordScore`, `blackCard` compris) et retrait au tableau passent par les commandes
 (`useFencerWithdrawal`) ; repli local seulement hors moteur (`unsupported_format`, `unavailable`).
-Reste l'étape 3 (tablettes et appareils) ; les trois PR se mergent ensemble.
+Étape 3 faite : carton noir de la tablette (fin de match, fin hors arène) et exclusion signalée
+par l'appareil (statut E) passent par `recordScore` avec `specialStatus: 'exclusion'` et
+`blackCard` (score et retrait sous une commande, contrôle avant l'ACK compris) ; abandon de
+l'appareil confirmé par le DT par `withdrawFencer` ; abandon / forfait / exclusion sur la feuille
+de poule par `recordScore` ; annulation du carton noir par `reinstateFencer`
+(`reinstateByCommand`), le match interrompu étant rouvert par l'arène. `remote:fencer_excluded` et
+`remote:fencer_reinstated` portent `recorded` : l'écran relit au lieu d'appliquer. Les trois PR
+se mergent ensemble.
 
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).

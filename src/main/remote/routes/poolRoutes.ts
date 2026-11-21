@@ -256,17 +256,22 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         /* non bloquant */
       }
 
-      // Score par la commande recordScore (#1980, ADR-0005) ; statut spécial ou égalité :
-      // chemin historique
+      // Score par la commande recordScore (#1980, ADR-0005) ; statut spécial du tireur
+      // concerné (abandon_A, forfait_B…) : score et retrait ensemble (docs/adr/0016).
+      // Égalité sans vainqueur : chemin historique
+      const special = /^(abandon|forfait|exclusion)_(A|B)$/.exec(specialStatus ?? '');
+      const specialKind = special?.[1] as 'abandon' | 'forfait' | 'exclusion' | undefined;
+      const specialWinner: 'A' | 'B' | null = special ? (special[2] === 'A' ? 'B' : 'A') : null;
       const recorded =
-        !specialStatus &&
-        !!winner &&
+        (!specialStatus || !!special) &&
+        !!(specialWinner ?? winner) &&
         recordFinishedScore(ctx.db, {
           competitionId: ctx.session?.competitionId,
           matchId,
           scoreA: sA,
           scoreB: sB,
-          winner,
+          winner: specialWinner ?? winner,
+          ...(specialKind ? { specialStatus: specialKind } : {}),
           source: 'tablet',
           author: resolvedRef?.id ?? bodyRefereeId,
           audit: {

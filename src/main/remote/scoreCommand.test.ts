@@ -8,7 +8,12 @@ import { hasNodeSqlite } from '../../database/testing/nodeSqliteDatabase';
 import { Category, FencerStatus, Gender, Weapon } from '../../shared/types';
 import { buildDefaultCompetitionSettings } from '../../shared/utils/defaultCompetitionSettings';
 import { buildBracket, generatePools, listMatches } from '../engine/commands/sport';
-import { checkFinishedScore, recordFinishedScore, sessionMatchId } from './scoreCommand';
+import {
+  checkFinishedScore,
+  recordFinishedScore,
+  reinstateByCommand,
+  sessionMatchId,
+} from './scoreCommand';
 
 vi.mock('better-sqlite3-multiple-ciphers', async () => ({
   default: (await import('../../database/testing/nodeSqliteDatabase')).NodeSqliteDatabase,
@@ -143,5 +148,42 @@ d('recordFinishedScore', () => {
     });
     expect(db.eventLog.getRevision(comp.id)).toBe(0);
     expect(listMatches({ db }, comp.id).find(x => x.matchId === m.matchId)?.state).toBe('ready');
+  });
+
+  it('carton noir de la tablette : score et exclusion en une commande, annulation par le moteur', () => {
+    const comp = setup(5);
+    generatePools({ db }, comp.id, { poolCount: 1 });
+    const m = listMatches({ db }, comp.id, { state: 'ready' })[0];
+    const culprit = m.fencerB!.id;
+    expect(
+      recordFinishedScore(db, {
+        competitionId: comp.id,
+        matchId: m.matchId,
+        scoreA: 2,
+        scoreB: 3,
+        winner: 'A',
+        source: 'tablet',
+        specialStatus: 'exclusion',
+        blackCard: true,
+      })
+    ).toBe(true);
+    expect(db.getFencer(culprit)).toMatchObject({ status: 'X', exclusionReason: 'black_card' });
+    const types = db.eventLog.getSince(comp.id, 0).map(e => e.type);
+    expect(types).toEqual(['ScoreRecorded', 'FencerWithdrawn']);
+    const lost = () =>
+      listMatches({ db }, comp.id).filter(
+        x => (x.fencerA?.id === culprit || x.fencerB?.id === culprit) && x.state === 'done'
+      ).length;
+    expect(lost()).toBe(4);
+
+    expect(reinstateByCommand(db, comp.id, culprit)).toBe(true);
+    expect(db.getFencer(culprit)?.status).toBe('P');
+    expect(lost()).toBe(0);
+    expect(last(db.eventLog.getSince(comp.id, 0))).toMatchObject({
+      type: 'FencerReinstated',
+      source: 'tablet',
+    });
+    // Rien à annuler : chemin historique
+    expect(reinstateByCommand(db, comp.id, culprit)).toBe(false);
   });
 });

@@ -328,7 +328,7 @@ export const contract = {
   getMatchHistory: query({
     description:
       'Historique d’un match dans le journal de l’épreuve : auteur, source, heure de chaque score passé par recordScore (écran, tablettes, appareils de piste, agent). ' +
-      'Pas encore journalisés (ADR-0005) : abandon, forfait, exclusion et carton noir, correction d’une poule après tirage du tableau, épreuves par équipes, tableaux séparés.',
+      'Retraits et réintégrations de tireurs (abandon, forfait, exclusion, carton noir) compris. Pas encore journalisés (ADR-0005) : correction d’une poule après tirage du tableau, épreuves par équipes, tableaux séparés.',
     input: z.object({ competitionId: CompetitionId, matchId: Id }),
     output: z.array(JournalEventSchema),
     permission: 'competition:read',
