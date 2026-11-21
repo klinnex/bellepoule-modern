@@ -20,6 +20,8 @@ interface QuestSectionProps {
   getCheckedInFencers: () => Fencer[];
   overallRanking: PoolRanking[];
   setOverallRanking: Dispatch<SetStateAction<PoolRanking[]>>;
+  /** Classement final de la Quest écrit par le moteur (adjustRanking, docs/adr/0017) */
+  onRankingAdjust?: (ranking: PoolRanking[]) => Promise<'recorded' | 'local' | 'refused'>;
   setRankingValidated: Dispatch<SetStateAction<boolean>>;
   setCurrentPhase: Dispatch<SetStateAction<Phase>>;
   handleQuestConfigUpdate: (updates: Partial<QuestPhaseConfig>) => void | Promise<void>;
@@ -33,6 +35,7 @@ const QuestSection: React.FC<QuestSectionProps> = ({
   getCheckedInFencers,
   overallRanking,
   setOverallRanking,
+  onRankingAdjust,
   setRankingValidated,
   setCurrentPhase,
   handleQuestConfigUpdate,
@@ -54,17 +57,19 @@ const QuestSection: React.FC<QuestSectionProps> = ({
           questConfig={questConfig}
           competitionWeapon={weapon}
           maxScore={poolMaxScore}
-          onQuestComplete={ranking => {
-            if (!questConfig.hasPreliminaryPools) {
-              setOverallRanking(ranking);
-            } else {
+          onQuestComplete={async ranking => {
+            let final = ranking;
+            if (questConfig.hasPreliminaryPools) {
               // Fusionner qualifiés re-classés par quest + non-qualifiés du classement poules
               const questFencerIds = new Set(ranking.map(r => r.fencer?.id).filter(Boolean));
               const nonQualifiers = overallRanking
                 .filter(r => !questFencerIds.has(r.fencer?.id))
                 .map((r, i) => ({ ...r, rank: ranking.length + i + 1 }));
-              setOverallRanking([...ranking, ...nonQualifiers]);
+              final = [...ranking, ...nonQualifiers];
             }
+            const outcome = onRankingAdjust ? await onRankingAdjust(final) : 'local';
+            if (outcome === 'refused') return;
+            if (outcome === 'local') setOverallRanking(final);
             setRankingValidated(true);
             setCurrentPhase('ranking');
           }}

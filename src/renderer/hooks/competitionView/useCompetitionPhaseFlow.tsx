@@ -122,6 +122,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
     setCurrentPhase,
     showToast,
     t,
+    clearTableau: () => ctx.runCompetitionCommand('clearTableau', {}),
   });
 
   const isTeamEvent = !!competition.isTeamEvent;

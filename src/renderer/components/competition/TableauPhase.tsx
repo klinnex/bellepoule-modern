@@ -2,7 +2,12 @@
  * BellePoule Modern - Phase « Tableau » de la compétition (extrait de CompetitionView, #1599)
  * Licensed under GPL-3.0
  */
-import { tableauAssignmentsDiff, type AssignmentsInput } from '../../hooks/usePoolsLaunch';
+import {
+  tableauAssignmentsDiff,
+  tableauScoreOps,
+  type AssignmentsInput,
+  type TableauScoreOps,
+} from '../../hooks/usePoolsLaunch';
 import type { TableauViewProps } from '../tableau/tableauViewShared';
 import React, { Suspense } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -40,6 +45,8 @@ interface TableauPhaseProps {
   setConsolationBrackets: Dispatch<SetStateAction<ConsolationBracket[]>>;
   finalResults: FinalResult[];
   setFinalResults: Dispatch<SetStateAction<FinalResult[]>>;
+  /** Résultats déverrouillés pour modifier le tableau : état d'interface du poste (docs/adr/0017) */
+  tableauEditUnlocked?: boolean;
   setTableauEditUnlocked: Dispatch<SetStateAction<boolean>>;
   setCurrentPhase: Dispatch<SetStateAction<Phase>>;
   tableMaxScore: number;
@@ -81,6 +88,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
   setConsolationBrackets,
   finalResults,
   setFinalResults,
+  tableauEditUnlocked = false,
   setTableauEditUnlocked,
   setCurrentPhase,
   tableMaxScore,
@@ -111,7 +119,29 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
       });
       return;
     }
+    // Scores changés en bloc (retour arrière, remplissage automatique) : une commande par
+    // match, dans l'ordre des tours ; l'écran relit l'état (docs/adr/0017)
+    const ops = onRecordScore && onClearScore ? tableauScoreOps(tableauMatches, next) : null;
+    if (ops && (ops.clears.length || ops.records.length)) {
+      void applyScoreOps(ops).then(outcome => {
+        if (outcome === 'local') setTableauMatches(next);
+      });
+      return;
+    }
     setTableauMatches(next);
+  };
+
+  const applyScoreOps = async (ops: TableauScoreOps): Promise<'recorded' | 'local' | 'refused'> => {
+    for (const matchId of ops.clears) {
+      const outcome = await onClearScore!(matchId);
+      if (outcome !== 'recorded') return outcome;
+    }
+    for (const r of ops.records) {
+      const outcome = await onRecordScore!(r);
+      if (outcome !== 'recorded') return outcome;
+    }
+    if (ops.assignments.length && onAssign) await onAssign({ matches: ops.assignments });
+    return 'recorded';
   };
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -128,13 +158,15 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
       {tableauDrift && onRebuildTableau && (
         <TableauDriftBanner drift={tableauDrift} onRebuild={onRebuildTableau} />
       )}
-      {finalResults.length > 0 && (
+      {finalResults.length > 0 && !tableauEditUnlocked && (
         <div className="tableau-phase-1">
           <span>{t('competitionView.readonly')}</span>
           <button
             onClick={async () => {
+              // Déverrouillage : état d'interface du poste ; le classement final, calculé par le
+              // moteur, est refait au prochain score (docs/adr/0017)
               if (await confirm(t('competitionView.edit_confirm'))) {
-                setFinalResults([]);
+                setTableauEditUnlocked(true);
               }
             }}
             className="tableau-phase-2"
@@ -154,7 +186,7 @@ const TableauPhase: React.FC<TableauPhaseProps> = ({
         playAllPositions={playAllPositions}
         arenaCount={remoteArenaCount}
         stripStart={remoteStripStart}
-        readOnly={finalResults.length > 0}
+        readOnly={finalResults.length > 0 && !tableauEditUnlocked}
         competitionId={competitionId}
         weapon={weapon}
         maxRefereesPerMatch={maxRefereesPerMatch}

@@ -88,7 +88,17 @@ function mockElectronAPI(fencers: Fencer[], session: unknown = null) {
       invoke: (name: string, input: unknown) => {
         (calls[`api:${name}`] ??= []).push([input]);
         // Pas de moteur derrière le bouchon : poules et tableau retombent sur l'écran
-        if (['generatePools', 'generateTableau', 'clearScore', 'assignMatches'].includes(name)) {
+        if (
+          [
+            'generatePools',
+            'generateTableau',
+            'clearScore',
+            'assignMatches',
+            'adjustRanking',
+            'skipPools',
+            'clearTableau',
+          ].includes(name)
+        ) {
           return Promise.resolve({
             ok: false,
             error: { code: 'unavailable', message: 'moteur absent (test)' },

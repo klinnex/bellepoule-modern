@@ -8,6 +8,7 @@ import { renderHook } from '@testing-library/react';
 import {
   poolComposition,
   tableauAssignmentsDiff,
+  tableauScoreOps,
   usePoolsLaunch,
   useRapieresWaves,
   useScoreClear,
@@ -142,5 +143,62 @@ describe('tableauAssignmentsDiff', () => {
   it('autre changement (score, tireur) : null, écriture de l’écran', () => {
     expect(tableauAssignmentsDiff([m()], [m({ scoreA: 15, arena: 2 })])).toBeNull();
     expect(tableauAssignmentsDiff([m()], [])).toBeNull();
+  });
+});
+
+describe('tableauScoreOps (retour arrière, remplissage automatique)', () => {
+  const A = { id: 'a' };
+  const B = { id: 'b' };
+  const C = { id: 'c' };
+  const D = { id: 'd' };
+  const t = (round: number, position: number, over: Record<string, unknown> = {}) =>
+    ({
+      id: `${round}-${position}`,
+      round,
+      position,
+      fencerA: null,
+      fencerB: null,
+      scoreA: null,
+      scoreB: null,
+      winner: null,
+      isBye: false,
+      ...over,
+    }) as never;
+  const empty = [t(4, 0, { fencerA: A, fencerB: B }), t(4, 1, { fencerA: C, fencerB: D }), t(2, 0)];
+  const played = [
+    t(4, 0, { fencerA: A, fencerB: B, scoreA: 15, scoreB: 3, winner: A }),
+    t(4, 1, { fencerA: C, fencerB: D, scoreA: 7, scoreB: 7, winner: D }),
+    t(2, 0, { fencerA: A, fencerB: D, scoreA: 15, scoreB: 9, winner: A }),
+  ];
+
+  it('remplissage : scores du premier tour vers la finale, vainqueur précisé sur égalité', () => {
+    expect(tableauScoreOps(empty, played)).toEqual({
+      clears: [],
+      records: [
+        { matchId: '4-0', scoreA: 15, scoreB: 3 },
+        { matchId: '4-1', scoreA: 7, scoreB: 7, winner: 'B' },
+        { matchId: '2-0', scoreA: 15, scoreB: 9 },
+      ],
+      assignments: [],
+    });
+  });
+
+  it('retour arrière : annulations de la finale vers le premier tour', () => {
+    expect(tableauScoreOps(played, empty)?.clears).toEqual(['2-0', '4-0', '4-1']);
+  });
+
+  it('statut spécial ou matchs différents : null', () => {
+    expect(tableauScoreOps(empty, [...empty.slice(0, 2)])).toBeNull();
+    const special = [
+      t(4, 0, {
+        fencerA: A,
+        fencerB: B,
+        winner: A,
+        specialStatus: { fencerId: 'b', status: 'forfait' },
+      }),
+      empty[1],
+      empty[2],
+    ];
+    expect(tableauScoreOps(empty, special)).toBeNull();
   });
 });
