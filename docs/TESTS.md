@@ -109,7 +109,7 @@ npm run e2e:debug                                 # mode debug
 | `src/database/` | 21 | 269 |
 | `src/main/` | 122 | 1009 |
 | `src/renderer/services/` | 11 | 57 |
-| `src/renderer/hooks/` | 38 | 194 |
+| `src/renderer/hooks/` | 39 | 196 |
 | `src/renderer/components/` | 119 | 633 |
 | E2E Playwright (`e2e/`) | 12 | 41 |
 | `src/remote/` | 60 | 414 |
@@ -118,9 +118,9 @@ npm run e2e:debug                                 # mode debug
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
 | `src/shared/domain/` | 24 | 212 |
-| **Total** | **531** | **4094** |
+| **Total** | **532** | **4096** |
 
-Unitaires : 519 fichiers, 4053 tests. E2E : 12 fichiers, 41 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 520 fichiers, 4055 tests. E2E : 12 fichiers, 41 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5197,6 +5197,15 @@ Unitaires : 519 fichiers, 4053 tests. E2E : 12 fichiers, 41 tests (comptage stat
 - **handleNextPoolRound par le moteur (docs/adr/0017)**
   - simulation pour la confirmation, puis closePoolRound ; écran vers l’appel
   - confirmation refusée : aucune clôture
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionRestore.phase.test.tsx</code> — 2 tests</summary>
+
+- **onglet restauré (docs/adr/0017)**
+  - chargement de l’épreuve : onglet de la session
+  - relecture après une commande : onglet du poste conservé
 
 </details>
 
