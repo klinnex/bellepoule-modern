@@ -3429,6 +3429,7 @@
     "deviation_pools": "小組賽進度偏差",
     "eta_competition": "比賽預計結束",
     "eta_projected": "預測淘汰賽（未生成）",
+    "eta_phase_break": "包括分組賽與淘汰賽之間 {{pause}} 休息",
     "planned_projected": "計劃（小組賽 + 預測淘汰賽）：{{time}}",
     "planned_estimate": "參考（首次估算）：{{time}}",
     "eta_cadence_tableau": "淘汰賽：每場 {{match}} + 兩場之間 {{gap}} · {{strips}} 條劍道同時進行",

@@ -3429,6 +3429,7 @@
     "deviation_pools": "Planabweichung der Pools",
     "eta_competition": "Voraussichtliches Wettkampfende",
     "eta_projected": "Hochgerechnetes Tableau (nicht erstellt)",
+    "eta_phase_break": "Inkl. {{pause}} Pause zwischen Pools und Tableau",
     "planned_projected": "Geplant (Pools + hochgerechnetes Tableau): {{time}}",
     "planned_estimate": "Referenz (erste Schätzung): {{time}}",
     "eta_cadence_tableau": "Tableau: {{match}} pro Gefecht + {{gap}} zwischen zwei Gefechten · {{strips}} Bahn(en) parallel",
