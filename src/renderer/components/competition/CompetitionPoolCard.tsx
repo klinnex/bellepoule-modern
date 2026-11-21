@@ -31,6 +31,8 @@ export interface CompetitionPoolCardProps {
   cancelMatch: PoolManagement['cancelMatch'];
   computePoolRanking: PoolManagement['computePoolRanking'];
   setPools: Dispatch<SetStateAction<Pool[]>>;
+  /** Tireur ajouté à une poule par la commande addPoolFencer (docs/adr/0017) */
+  addPoolFencer?: (poolId: string, fencerId: string) => Promise<'recorded' | 'local' | 'refused'>;
   fireWebhookNotif: (title: string, body: string) => void;
   assignedPoolFencerIds: Set<string>;
   remoteStripStart: number;
@@ -66,6 +68,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
   cancelMatch,
   computePoolRanking,
   setPools,
+  addPoolFencer,
   fireWebhookNotif,
   assignedPoolFencerIds,
   remoteStripStart,
@@ -188,6 +191,7 @@ const CompetitionPoolCard: React.FC<CompetitionPoolCardProps> = ({
         // Retrait du perdant d'un match à statut spécial : porté par le score (recordScore,
         // docs/adr/0016), repli local dans updateScore ; plus d'écriture séparée ici
         assignedFencerIds={assignedPoolFencerIds}
+        onAddFencerByCommand={addPoolFencer ? id => addPoolFencer(pool.id, id) : undefined}
         onFencerAdded={
           frozen
             ? undefined

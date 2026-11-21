@@ -42,6 +42,8 @@ export interface PoolViewProps {
     blackCard?: boolean
   ) => void;
   onFencerAdded?: (updatedPool: Pool) => void;
+  /** Ajout d'un tireur par la commande addPoolFencer (docs/adr/0017) */
+  onAddFencerByCommand?: (fencerId: string) => Promise<'recorded' | 'local' | 'refused'>;
   assignedFencerIds?: ReadonlySet<string>;
   stripRange?: { start: number; end: number };
   onStripChange?: (poolId: string, strip: number | undefined) => void;

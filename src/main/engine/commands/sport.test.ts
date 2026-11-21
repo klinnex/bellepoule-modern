@@ -533,3 +533,39 @@ d('generatePools avec composition de l’écran (docs/adr/0017, palier tirage)',
     expect(db.eventLog.getRevision(comp.id)).toBe(0);
   });
 });
+
+d('addPoolFencer (docs/adr/0017, palier composition)', () => {
+  it('tireur en retard : un match contre chacun, poule rouverte, PoolFencerAdded', async () => {
+    const comp = await setup(5);
+    const late = db.getFencersByCompetition(comp.id)[4];
+    db.updateFencer(late.id, { status: FencerStatus.NOT_CHECKED_IN });
+    generatePools(ctx, comp.id, { poolCount: 1 });
+    playAll(comp.id, 'pool');
+    const pool = (db.getSessionState(comp.id) as any).pools[0];
+    expect(pool.isComplete).toBe(true);
+    const res = (await invoke(ctx, 'addPoolFencer', {
+      competitionId: comp.id,
+      poolId: pool.id,
+      fencerId: late.id,
+    })) as any;
+    expect(res.matchIds).toHaveLength(4);
+    const after = (db.getSessionState(comp.id) as any).pools[0];
+    expect(after.fencers).toHaveLength(5);
+    expect(after.isComplete).toBe(false);
+    expect(listMatches(ctx, comp.id, { state: 'ready' })).toHaveLength(4);
+    expect(db.getMatch(res.matchIds[0])?.status).toBe('not_started');
+    const all = db.eventLog.getSince(comp.id);
+    const last = all[all.length - 1];
+    expect(last).toMatchObject({
+      type: 'PoolFencerAdded',
+      payload: { poolId: pool.id, fencerId: late.id },
+    });
+    // Déjà placé : refus
+    await expect(
+      invoke(ctx, 'addPoolFencer', { competitionId: comp.id, poolId: pool.id, fencerId: late.id })
+    ).rejects.toMatchObject({ code: 'fencer_already_in_pool' });
+    // Score sur un match ajouté : recordScore
+    recordScore(ctx, comp.id, { matchId: res.matchIds[0], scoreA: 5, scoreB: 0 });
+    expect(db.getMatch(res.matchIds[0])?.status).toBe('finished');
+  });
+});

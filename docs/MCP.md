@@ -183,7 +183,7 @@ compris) reste à faire, de même que le calcul du tableau déplacé de `src/ren
 
 <!-- outils-mcp:début (généré par npm run docs:mcp, ne pas éditer) -->
 
-## Référence des outils (43)
+## Référence des outils (44)
 
 Générée depuis les schémas des outils (`src/main/mcp/*Tools.ts`).
 
@@ -321,7 +321,7 @@ Aucun argument.
 | `since` | integer |  | Dernière révision connue (0 : tout) |
 | `limit` | integer |  | Nombre maximum (1000) |
 
-### En écriture, sur autorisation (26)
+### En écriture, sur autorisation (27)
 
 ### `create_competition` — Créer une épreuve
 
@@ -571,6 +571,19 @@ Aucun argument.
 | `separation` | `byRanking`, `byClub`, `byRegion`, `byNation`[] |  | Critères actifs, par priorité (comme l’écran) : avant « byRanking », ils priment sur le classement ; après, échanges dans le chapeau. Défaut : ["byRanking", "byClub", "byRegion"] |
 | `composition` | object[] |  | Poules préparées par le DT (écran) : pas de tirage |
 | `replace` | boolean |  | Remplacer des poules ou un tableau existants |
+| `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
+| `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
+| `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |
+
+### `add_pool_fencer` — Ajouter un tireur à une poule
+
+*écriture.* Ajoute un tireur à une poule lancée (tireur arrivé en retard) : un match contre chaque tireur de la poule, à la suite des matchs existants. Refus si le tableau est tiré ou si le tireur est déjà placé.
+
+| Argument | Type | Requis | Description |
+|---|---|---|---|
+| `competitionId` | string | oui | Identifiant de la compétition (list_competitions) |
+| `poolId` | string | oui | Identifiant de la poule |
+| `fencerId` | string | oui | Identifiant du tireur |
 | `dryRun` | boolean |  | Décrit le résultat sans rien écrire |
 | `expectedRevision` | integer |  | Révision attendue du journal de l’épreuve : refus « revision_conflict » si une autre commande du contrat a écrit entre-temps. Les écritures qui ne passent pas encore par le contrat (écran, tablettes) ne sont pas détectées. |
 | `commandId` | string |  | Identifiant de la commande, choisi par l’appelant (UUID) : une commande rejouée avec le même identifiant n’écrit rien et est refusée par « command_already_applied » (renvoi après une coupure réseau) |

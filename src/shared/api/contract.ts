@@ -280,6 +280,29 @@ export const contract = {
     mcp: { name: 'generate_pools', title: 'Générer les poules', destructive: true },
   }),
 
+  addPoolFencer: command({
+    description:
+      'Ajoute un tireur à une poule lancée (tireur arrivé en retard) : un match contre chaque tireur de la poule, à la suite des matchs existants. Refus si le tableau est tiré ou si le tireur est déjà placé.',
+    input: z.object({
+      competitionId: CompetitionId,
+      poolId: Id.describe('Identifiant de la poule'),
+      fencerId: Id.describe('Identifiant du tireur'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      poolId: z.string(),
+      poolNumber: z.number().int(),
+      fencerId: z.string(),
+      matchIds: z.array(z.string()),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'add_pool_fencer', title: 'Ajouter un tireur à une poule' },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +

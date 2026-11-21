@@ -57,3 +57,29 @@ export function usePoolsLaunch(
     [client, competitionId, flushSession, showToast, t]
   );
 }
+
+/** Tireur ajouté à une poule lancée par addPoolFencer (PoolFencerAdded au journal) */
+export function usePoolFencerAdd(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  const { t } = useTranslation();
+  return useCallback(
+    async (poolId: string, fencerId: string): Promise<RecordScoreOutcome> => {
+      if (!competitionId) return 'local';
+      try {
+        await flushSession();
+        await client.call('addPoolFencer', { competitionId, poolId, fencerId });
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast(t('addFencerPool.add_error', { msg: (e as Error).message ?? code }), 'error');
+        return 'refused';
+      }
+    },
+    [client, competitionId, flushSession, showToast, t]
+  );
+}

@@ -21,7 +21,7 @@ import { useCompetitionRestore } from '../useCompetitionRestore';
 import { useRemoteScoreSync } from '../useRemoteScoreSync';
 import { useRecordScore } from '../useRecordScore';
 import { useFencerWithdrawal, type WithdrawInput } from '../useFencerWithdrawal';
-import { usePoolsLaunch } from '../usePoolsLaunch';
+import { usePoolFencerAdd, usePoolsLaunch } from '../usePoolsLaunch';
 import { checkInStatusUpdate } from '../../../shared/utils/forfeit';
 import { isWithdrawn } from '../../../shared/domain/fencers/fencerStatus';
 import {
@@ -206,6 +206,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   const recordScreenScore = useRecordScore(competition.id, flushPendingSave);
   const fencerWithdrawal = useFencerWithdrawal(competition.id, flushPendingSave);
   const launchPools = usePoolsLaunch(competition.id, flushPendingSave);
+  const addPoolFencer = usePoolFencerAdd(competition.id, flushPendingSave);
   const localUpdateScore = ctx.updateScore;
   const updateScore = useCallback(
     (...args: Parameters<typeof localUpdateScore>) => {
@@ -556,6 +557,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     recordScreenScore,
     handleWithdrawFencer,
     launchPools,
+    addPoolFencer,
     handleReinstateFencer,
     handleSetFencerStatus,
     handleEditFencer,

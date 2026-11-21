@@ -23,6 +23,7 @@ export const JOURNAL_EVENT = {
   fencerWithdrawn: 'FencerWithdrawn',
   fencerReinstated: 'FencerReinstated',
   poolsGenerated: 'PoolsGenerated',
+  poolFencerAdded: 'PoolFencerAdded',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -78,6 +79,15 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
           matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })),
         })
       ),
+    })
+  ),
+  // Tireur ajouté à une poule lancée : ses matchs, dans l'ordre (docs/adr/0017)
+  member(
+    JOURNAL_EVENT.poolFencerAdded,
+    z.object({
+      poolId: Id,
+      fencerId: Id,
+      matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })),
     })
   ),
   member(

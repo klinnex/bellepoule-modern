@@ -557,6 +557,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = (props: PoolViewProps) => {
             onFencerAdded?.(updatedPool);
           }}
           onClose={() => setShowAddFencerModal(false)}
+          onAddByCommand={props.onAddFencerByCommand}
         />
       )}
       {auditMatchId && (

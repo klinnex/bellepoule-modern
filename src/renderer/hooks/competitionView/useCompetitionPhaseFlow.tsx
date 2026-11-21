@@ -293,6 +293,7 @@ export function useCompetitionPhaseFlow(ctx: Ctx) {
       cancelMatch={cancelMatch}
       computePoolRanking={computePoolRanking}
       setPools={setPools}
+      addPoolFencer={ctx.addPoolFencer}
       fireWebhookNotif={fireWebhookNotif}
       assignedPoolFencerIds={assignedPoolFencerIds}
       remoteStripStart={remoteStripStart}

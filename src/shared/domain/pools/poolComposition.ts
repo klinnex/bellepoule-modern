@@ -90,3 +90,35 @@ export function composePools(
   }
   return { ok: true, pools };
 }
+
+/**
+ * Tireur ajouté à une poule en cours d'épreuve (#1980, docs/adr/0017) : un match contre chaque
+ * tireur déjà présent, à la suite des matchs existants ; poule à nouveau incomplète.
+ */
+export function addFencerToPool(
+  pool: Pool,
+  fencer: Fencer,
+  options: { maxScore: number; newId: () => string; now: Date }
+): Pool {
+  let nextNumber = pool.matches.reduce((max, m) => Math.max(max, m.number || 0), 0);
+  const newMatches: Match[] = pool.fencers.map(existing => ({
+    id: options.newId(),
+    poolId: pool.id,
+    number: ++nextNumber,
+    fencerA: fencer,
+    fencerB: existing,
+    scoreA: null,
+    scoreB: null,
+    maxScore: options.maxScore,
+    status: MatchStatus.NOT_STARTED,
+    createdAt: options.now,
+    updatedAt: options.now,
+  }));
+  return {
+    ...pool,
+    fencers: [...pool.fencers, fencer],
+    matches: [...pool.matches, ...newMatches],
+    isComplete: false,
+    updatedAt: options.now,
+  };
+}
