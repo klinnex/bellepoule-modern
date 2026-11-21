@@ -23,6 +23,7 @@ import {
 import { checkInFencers } from '../commands/checkIn';
 import { reinstateFencer, withdrawFencer } from '../commands/withdrawal';
 import { addPoolFencer } from '../commands/poolComposition';
+import { closePoolRound } from '../commands/poolRound';
 import { getCompetitionOrThrow } from '../commands/competitions';
 import { readSession } from '../commands/sessionView';
 import { competitionState } from '../commands/competitionState';
@@ -51,6 +52,8 @@ export const handlers: { [N in OperationName]: Handler<N> } = {
     generatePools(ctx, competitionId, { ...options, separation: separationFromKeys(separation) }),
   addPoolFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     addPoolFencer(ctx, input),
+  closePoolRound: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
+    closePoolRound(ctx, input),
   withdrawFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>
     withdrawFencer(ctx, input),
   reinstateFencer: (ctx, { expectedRevision: _r, commandId: _c, ...input }) =>

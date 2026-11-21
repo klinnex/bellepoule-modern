@@ -33,6 +33,7 @@ import type { Phase } from './useCompetitionSession';
 import type { useFencerManagement } from './useFencerManagement';
 import type { usePoolManagement } from './usePoolManagement';
 import { useTranslation } from './useTranslation';
+import { useBpmClient } from '../api/BpmClientContext';
 import { isTableauEligible } from '../../shared/domain/fencers/fencerStatus';
 
 type PoolManagement = ReturnType<typeof usePoolManagement>;
@@ -81,6 +82,8 @@ interface UseCompetitionNavigationParams {
   setActiveSplitGroup: Setter<string | null>;
   splitTableauStates: SplitTableauStates;
   setSplitTableauStates: Setter<SplitTableauStates>;
+  /** Sauvegarde en attente écrite avant une commande du moteur (docs/adr/0017) */
+  flushSession?: () => Promise<void>;
 }
 
 /** Transitions entre phases : classement, tableau (3e place, rapières), tour de poules suivant. */
@@ -122,7 +125,9 @@ export function useCompetitionNavigation({
   setActiveSplitGroup,
   splitTableauStates,
   setSplitTableauStates,
+  flushSession,
 }: UseCompetitionNavigationParams) {
+  const client = useBpmClient();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const { t } = useTranslation();
@@ -246,7 +251,51 @@ export function useCompetitionNavigation({
 
   // Tour suivant (#1051) : qualifiés selon le classement du tour terminé, non-qualifiés
   // éliminés, puis appel + nouveau tirage seedé sur ce classement.
+  const afterRoundClosed = (nextRound: number) => {
+    setPoolsLaunched(false);
+    setRankingValidated(false);
+    setViewedPoolRound(null);
+    setCurrentPhase('checkin');
+    showToast(t('pools.next_round_checkin', { n: nextRound }), 'success');
+  };
+
+  /**
+   * Clôture par le moteur (closePoolRound, PoolRoundClosed au journal, docs/adr/0017) :
+   * simulation pour la confirmation, puis commande ; l'écran relit tireurs et état.
+   * « local » : moteur absent ou format qu'il ne pilote pas.
+   */
+  const closeRoundByCommand = async (): Promise<'recorded' | 'local' | 'refused'> => {
+    try {
+      await flushSession?.();
+      const sim = await client.call('closePoolRound', {
+        competitionId: competition.id,
+        dryRun: true,
+      });
+      const ok = await confirm(
+        t('pools.next_round_confirm', {
+          n: sim.nextRound,
+          qualified: sim.qualified,
+          eliminated: sim.eliminated,
+        })
+      );
+      if (!ok) return 'refused';
+      await client.call('closePoolRound', { competitionId: competition.id });
+      afterRoundClosed(sim.nextRound);
+      return 'recorded';
+    } catch (e) {
+      const code = (e as { code?: string }).code ?? 'internal';
+      if (code === 'unavailable' || code === 'unsupported_format') return 'local';
+      if (code === 'not_enough_qualifiers') {
+        showToast('Il faut au moins 4 qualifiés pour un nouveau tour de poules.', 'warning');
+      } else {
+        showToast((e as Error).message ?? code, 'error');
+      }
+      return 'refused';
+    }
+  };
+
   const handleNextPoolRound = async () => {
+    if ((await closeRoundByCommand()) !== 'local') return;
     const nextRound = currentPoolRound + 1;
     const qualifierCount = customFormula
       ? getAdvancementCount(
@@ -286,11 +335,7 @@ export function useCompetitionNavigation({
     }
     await updateFencers(updates);
     nextPoolRound(appelSnapshot);
-    setPoolsLaunched(false);
-    setRankingValidated(false);
-    setViewedPoolRound(null);
-    setCurrentPhase('checkin');
-    showToast(t('pools.next_round_checkin', { n: nextRound }), 'success');
+    afterRoundClosed(nextRound);
   };
 
   return {

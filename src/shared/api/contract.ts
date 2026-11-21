@@ -303,6 +303,36 @@ export const contract = {
     mcp: { name: 'add_pool_fencer', title: 'Ajouter un tireur à une poule' },
   }),
 
+  closePoolRound: command({
+    description:
+      'Clôt le tour de poules courant (toutes les poules terminées) : qualifiés selon le classement du tour (formule, puis réglage du nombre de qualifiés, ou « qualifierCount »), non-qualifiés éliminés, tour archivé ; le tour suivant se pointe puis se tire. ' +
+      '« dryRun: true » donne le nombre de qualifiés et d’éliminés sans rien écrire. Refus sous 4 qualifiés.',
+    input: z.object({
+      competitionId: CompetitionId,
+      qualifierCount: z
+        .number()
+        .int()
+        .min(1)
+        .max(1000)
+        .optional()
+        .describe('Nombre de qualifiés imposé'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      round: z.number().int(),
+      nextRound: z.number().int(),
+      qualifierCount: z.number().int().nullable(),
+      qualified: z.number().int(),
+      eliminated: z.number().int(),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'close_pool_round', title: 'Clore le tour de poules', destructive: true },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +

@@ -24,6 +24,7 @@ export const JOURNAL_EVENT = {
   fencerReinstated: 'FencerReinstated',
   poolsGenerated: 'PoolsGenerated',
   poolFencerAdded: 'PoolFencerAdded',
+  poolRoundClosed: 'PoolRoundClosed',
 } as const;
 
 const member = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
@@ -88,6 +89,16 @@ export const JournalEventBodySchema = z.discriminatedUnion('type', [
       poolId: Id,
       fencerId: Id,
       matches: z.array(z.object({ matchId: Id, fencerAId: Id, fencerBId: Id })),
+    })
+  ),
+  // Clôture d'un tour de poules : qualifiés (dans l'ordre, seed du tour suivant), éliminés
+  member(
+    JOURNAL_EVENT.poolRoundClosed,
+    z.object({
+      round: z.number().int(),
+      qualifierCount: z.number().int().nullable(),
+      qualifiedIds: z.array(Id),
+      eliminatedIds: z.array(Id),
     })
   ),
   member(

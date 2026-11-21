@@ -569,3 +569,67 @@ d('addPoolFencer (docs/adr/0017, palier composition)', () => {
     expect(db.getMatch(res.matchIds[0])?.status).toBe('finished');
   });
 });
+
+d('closePoolRound (docs/adr/0017, palier clôture de tour)', () => {
+  it('qualifiés et éliminés, tour archivé avec son appel, tour 2 tiré par composition', async () => {
+    const comp = await setup(10);
+    generatePools(ctx, comp.id, { poolCount: 2 });
+    // Avant la fin des poules : refus
+    await expect(invoke(ctx, 'closePoolRound', { competitionId: comp.id })).rejects.toMatchObject({
+      code: 'pools_not_complete',
+    });
+    playAll(comp.id, 'pool');
+    const sim = (await invoke(ctx, 'closePoolRound', {
+      competitionId: comp.id,
+      qualifierCount: 6,
+      dryRun: true,
+    })) as any;
+    expect(sim).toMatchObject({ round: 1, nextRound: 2, qualifierCount: 6 });
+    expect(sim.qualified + sim.eliminated).toBe(10);
+    const revision = db.eventLog.getRevision(comp.id);
+    expect(
+      ((await invoke(ctx, 'getCompetitionState', { competitionId: comp.id })) as any).revision
+    ).toBe(revision);
+    const res = (await invoke(ctx, 'closePoolRound', {
+      competitionId: comp.id,
+      qualifierCount: 6,
+    })) as any;
+    const session = db.getSessionState(comp.id) as any;
+    expect(session).toMatchObject({
+      currentPhase: 0,
+      currentPoolRound: 2,
+      pools: [],
+      poolsLaunched: false,
+    });
+    expect(session.poolHistory).toHaveLength(1);
+    expect(session.appelHistory[0]).toHaveLength(10);
+    const eliminated = db
+      .getFencersByCompetition(comp.id)
+      .filter(f => f.status === FencerStatus.ELIMINATED);
+    expect(eliminated).toHaveLength(res.eliminated);
+    const all = db.eventLog.getSince(comp.id);
+    const closed = all[all.length - 1];
+    expect(closed).toMatchObject({
+      type: 'PoolRoundClosed',
+      payload: { round: 1, qualifierCount: 6 },
+    });
+    expect(closed.type === 'PoolRoundClosed' && closed.payload.qualifiedIds).toHaveLength(
+      res.qualified
+    );
+    // Tour 2 : composition des qualifiés, historique gardé
+    const qualifiedIds = closed.type === 'PoolRoundClosed' ? closed.payload.qualifiedIds : [];
+    const r2 = (await invoke(ctx, 'generatePools', {
+      competitionId: comp.id,
+      composition: [
+        {
+          poolId: 'r2-p1',
+          number: 1,
+          fencerIds: qualifiedIds,
+          matches: [{ matchId: 'r2-m1', fencerAId: qualifiedIds[0], fencerBId: qualifiedIds[1] }],
+        },
+      ],
+    })) as any;
+    expect(r2.round).toBe(2);
+    expect((db.getSessionState(comp.id) as any).poolHistory).toHaveLength(1);
+  });
+});

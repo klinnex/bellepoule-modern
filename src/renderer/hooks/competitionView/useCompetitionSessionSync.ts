@@ -467,6 +467,7 @@ export function useCompetitionSessionSync(ctx: Ctx) {
     handleNextPoolRound,
   } = useCompetitionNavigation({
     competition,
+    flushSession: flushPendingSave,
     onUpdate,
     setCurrentPhase,
     fencers,

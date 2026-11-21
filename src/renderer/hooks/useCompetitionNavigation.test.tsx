@@ -6,12 +6,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useCompetitionNavigation } from './useCompetitionNavigation';
 import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
+import React from 'react';
+import { BpmClientProvider } from '../api/BpmClientContext';
+import type { BpmClient } from '../../shared/api/client';
 
 vi.mock('../components/Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
-vi.mock('../components/ConfirmDialog', () => ({ useConfirm: () => ({ confirm: vi.fn() }) }));
+const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
+vi.mock('../components/ConfirmDialog', () => ({ useConfirm: () => ({ confirm: confirmMock }) }));
 vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
-const setup = (tableauMatches: TableauMatch[], rankingChanged = false, thirdPlaceMatch = false) => {
+const setup = (
+  tableauMatches: TableauMatch[],
+  rankingChanged = false,
+  thirdPlaceMatch = false,
+  client?: BpmClient
+) => {
   const fns = {
     setCurrentPhase: vi.fn(),
     setTableauMatches: vi.fn(),
@@ -56,10 +65,23 @@ const setup = (tableauMatches: TableauMatch[], rankingChanged = false, thirdPlac
     setSplitTableauStates: vi.fn(),
     ...fns,
   };
-  const { result } = renderHook(() =>
-    useCompetitionNavigation(params as unknown as Parameters<typeof useCompetitionNavigation>[0])
+  const { result } = renderHook(
+    () =>
+      useCompetitionNavigation(params as unknown as Parameters<typeof useCompetitionNavigation>[0]),
+    client
+      ? {
+          wrapper: ({ children }: { children: React.ReactNode }) =>
+            React.createElement(BpmClientProvider, { client, children }),
+        }
+      : undefined
   );
-  return { ...fns, onUpdate, go: result.current.handleGoToTableau };
+  return {
+    ...fns,
+    params,
+    onUpdate,
+    go: result.current.handleGoToTableau,
+    nextRound: result.current.handleNextPoolRound,
+  };
 };
 
 describe('handleGoToTableau (#1996)', () => {
@@ -85,4 +107,33 @@ describe('handleGoToTableau (#1996)', () => {
       expect(s.setCurrentPhase).toHaveBeenCalledWith('tableau');
     }
   );
+});
+
+describe('handleNextPoolRound par le moteur (docs/adr/0017)', () => {
+  it('simulation pour la confirmation, puis closePoolRound ; écran vers l’appel', async () => {
+    const call = vi.fn(async (_name: string, input: { dryRun?: boolean }) =>
+      input.dryRun
+        ? { dryRun: true, round: 1, nextRound: 2, qualified: 8, eliminated: 4 }
+        : { dryRun: false, round: 1, nextRound: 2, qualified: 8, eliminated: 4 }
+    );
+    confirmMock.mockResolvedValueOnce(true);
+    const s = setup([], false, false, { call } as unknown as BpmClient);
+    await s.nextRound();
+    expect(confirmMock).toHaveBeenCalledWith('pools.next_round_confirm');
+    expect(call).toHaveBeenNthCalledWith(1, 'closePoolRound', { competitionId: 'c', dryRun: true });
+    expect(call).toHaveBeenNthCalledWith(2, 'closePoolRound', { competitionId: 'c' });
+    expect(s.setCurrentPhase).toHaveBeenCalledWith('checkin');
+    // Rien d'écrit par l'écran : le moteur a éliminé et archivé le tour
+    expect(s.params.updateFencers).not.toHaveBeenCalled();
+    expect(s.params.nextPoolRound).not.toHaveBeenCalled();
+  });
+
+  it('confirmation refusée : aucune clôture', async () => {
+    const call = vi.fn(async () => ({ nextRound: 2, qualified: 8, eliminated: 4 }));
+    confirmMock.mockResolvedValueOnce(false);
+    const s = setup([], false, false, { call } as unknown as BpmClient);
+    await s.nextRound();
+    expect(call).toHaveBeenCalledTimes(1);
+    expect(s.setCurrentPhase).not.toHaveBeenCalled();
+  });
 });
