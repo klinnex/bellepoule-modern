@@ -181,4 +181,7 @@ vue) part au moteur avec son placement complet (`generateTableau`, `TableauGener
 séparés après les poules : tableau local. Palier « correction » fait : un score de poule corrigé
 après le tirage passe par `recordScore` avec `correction { reason, rebuildTableau }` (motif au
 journal des scores, `ScoreRecorded.correction`, tableau gardé ou retiré dans la même commande).
-Restent : rapières ; état d'interface hors du bloc ; 4c ; 5.
+Palier « état d'interface » commencé : une relecture après une commande ne change plus l'onglet
+affiché (seul le chargement de l'épreuve le reprend de l'état). Restent : rapières ; reste de
+l'état d'interface (onglet et tour consulté en préférences du poste, phase déduite des faits) ;
+4c ; 5.

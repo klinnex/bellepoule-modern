@@ -95,6 +95,11 @@ export interface SessionState {
   };
   /** Révision de l'état : incrémentée par la couche domaine (MCP, #1880) */
   revision?: number;
+  /**
+   * État relu après une écriture du moteur (pas le chargement de l'épreuve) : l'onglet
+   * affiché n'est pas changé, c'est un état d'interface du poste (docs/adr/0017)
+   */
+  reloaded?: boolean;
 }
 
 interface UseCompetitionSessionProps {
@@ -244,6 +249,8 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
         }
         if (state) {
           setRestoredState({
+            // Relecture sur signal : l'onglet affiché reste celui du poste (docs/adr/0017)
+            reloaded: onlyIfChanged,
             currentPhase: state.currentPhase,
             pools: state.pools || [],
             poolHistory: state.poolHistory || [],
