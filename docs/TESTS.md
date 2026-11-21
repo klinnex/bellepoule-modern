@@ -106,21 +106,21 @@ npm run e2e:debug                                 # mode debug
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 17 |
 | Feature `teams` (`src/features/teams/`) | 1 | 7 |
-| `src/database/` | 21 | 266 |
-| `src/main/` | 119 | 972 |
+| `src/database/` | 21 | 269 |
+| `src/main/` | 122 | 1009 |
 | `src/renderer/services/` | 11 | 57 |
-| `src/renderer/hooks/` | 35 | 172 |
-| `src/renderer/components/` | 119 | 632 |
-| E2E Playwright (`e2e/`) | 10 | 38 |
+| `src/renderer/hooks/` | 38 | 194 |
+| `src/renderer/components/` | 119 | 633 |
+| E2E Playwright (`e2e/`) | 12 | 41 |
 | `src/remote/` | 60 | 414 |
 | `src/renderer/api/` | 1 | 3 |
 | `src/renderer/contexts/` | 1 | 7 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| `src/shared/domain/` | 21 | 201 |
-| **Total** | **520** | **4017** |
+| `src/shared/domain/` | 24 | 212 |
+| **Total** | **531** | **4094** |
 
-Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 519 fichiers, 4053 tests. E2E : 12 fichiers, 41 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2715,13 +2715,17 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/database/repos/eventLogRepo.test.ts</code> — 4 tests</summary>
+<summary><code>src/database/repos/eventLogRepo.test.ts</code> — 7 tests</summary>
 
 - **EventLogRepo (#1980)**
-  - révision par épreuve, croissante, en ajout seul
+  - révision par épreuve, croissante ; identifiants d’événement et de commande
+  - commande déjà inscrite : détectée (idempotence)
+  - sans identifiant de commande : un par ajout, commun à ses événements
   - resynchronisation : seulement les événements après la révision connue
   - historique d’un match : chaque modification, auteur, source
-  - même révision deux fois : refusée par la clé primaire
+  - même révision deux fois : refusée (unicité épreuve + révision)
+- **migration 46 : journal de la 45 repris (#1980, ADR-0007)**
+  - lignes recopiées : event\_id neuf, command\_id par ajout, schema\_version 1
 
 </details>
 
@@ -3180,7 +3184,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 54 tests</summary>
+<summary><code>src/main/cyrano/pisteHub.test.ts</code> — 55 tests</summary>
 
 - **PisteHub — mode appareil maître (#1720)**
   - DISP du match chargé : Id tronqués à 8 caractères, arme, n° de poule et de match
@@ -3192,6 +3196,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - END valide : ACK, résultat de l’appareil enregistré, pas de DISP du match terminé
   - END envoyé directement (score dans la même trame, sans INFO préalable) : score final retenu
   - END invalide (égalité sans priorité) → NAK, match non clos
+  - END dont le score est refusé par recordScore → NAK, match non clos (ADR-0005)
   - END ou INFO d’un autre match (BAD MATCH) → NAK, arène inchangée
   - NEXT pendant un match non terminé : refusé, DISP du match courant renvoyé
   - NEXT après ACK : match suivant chargé et envoyé
@@ -3368,6 +3373,20 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/engine/api/runCommand.test.ts</code> — 8 tests</summary>
+
+- révision à jour : écrit, rend la révision avant et après
+- révision périmée : refus revision\_conflict, rien d’écrit
+- erreur après une écriture : tout est annulé (journal compris)
+- commande asynchrone : refusée, aucune écriture validée
+- sans révision attendue : pas de contrôle, la commande écrit
+- événements d’une commande : même commandId, fourni par l’appelant
+- sans commandId : un identifiant généré par commande
+- commande rejouée (même commandId) : refusée, rien de réécrit (idempotence)
+
+</details>
+
+<details>
 <summary><code>src/main/engine/commands/refereeing.test.ts</code> — 6 tests</summary>
 
 - fusionne côté moteur sans toucher aux autres réglages de l’épreuve
@@ -3395,7 +3414,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/engine/commands/sport.test.ts</code> — 13 tests</summary>
+<summary><code>src/main/engine/commands/sport.test.ts</code> — 27 tests</summary>
 
 - poules → arbitres → scores → tableau → classement final → exports
 - régénérer des poules jouées exige replace
@@ -3408,9 +3427,36 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 - journal de l’épreuve (#1980) : scores, poule terminée, tableau, auteur et source
 - révision : une sauvegarde de l’écran sur un état périmé est refusée
 - export : dossier hors périmètre refusé, pas d’écrasement par défaut
+- tours multiples : score du tour courant, tour terminé figé
+- rapières : score de poule admis
+- équipes : refusé
+- toutes les places : barrages, tableaux de classement, classement complet
+- projection du moteur avec la révision du journal ; null avant ouverture
+- composition telle quelle, journal PoolsGenerated, bornes de taille conservées
+- tour 2 : historique gardé ; rapières admises, vagues remises à zéro
+- composition invalide ou épreuve par équipes : refus, rien d’écrit
+- tireur en retard : un match contre chacun, poule rouverte, PoolFencerAdded
+- qualifiés et éliminés, tour archivé avec son appel, tour 2 tiré par composition
+- « toutes les places » : placement tel quel, TableauGenerated, jouable jusqu’au bout
+- placement invalide ou tableaux séparés : refus
+- sans correction : refusée ; avec motif : tableau gardé, journal des scores et du journal
+- tableau à refaire : retiré avec la correction ; statut spécial refusé
 - **validation des scores de poule (identique à l’écran)**
   - score max, égalité, vainqueur contraire
   - statut spécial au perdant, priorité marquée
+
+</details>
+
+<details>
+<summary><code>src/main/engine/commands/withdrawal.test.ts</code> — 7 tests</summary>
+
+- à l’appel : forfait DNS, journal, puis réintégration
+- en poules : matchs non disputés perdus, simulation sans écriture, réintégration
+- au tableau : exclusion sur carton noir, l’adversaire passe ; réintégration bornée
+- adversaire pas encore connu au tableau : match\_not\_ready
+- recordScore avec statut du perdant : ScoreRecorded et FencerWithdrawn sous une commande
+- recordScore : exclusion sur carton noir, motif black\_card
+- épreuve par équipes, tireur inconnu : refus
 
 </details>
 
@@ -3486,12 +3532,13 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 5 tests</summary>
 
 - **bus d’événements db (#1298)**
   - emitCompetitionEvent diffuse aux fenêtres
   - db:updateMatch et db:createMatch émettent matches:changed
   - db:updateMatch : motif de correction au journal, jamais écrit dans le match (#1996)
+  - db:updateMatch : score déjà en base (écrit par recordScore) ni réécrit ni journalisé (#1980)
   - db:addFencer émet fencers:changed pour la compétition
 
 </details>
@@ -4456,6 +4503,19 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/main/remote/scoreCommand.test.ts</code> — 6 tests</summary>
+
+- tablette : session, journal (identifiant de l’arbitre), audit (nom, adresse)
+- appareil de piste : match de tableau par son identifiant composite
+- épreuve par équipes, match inconnu, sans épreuve : chemin historique
+- contrôle sans écriture (appareil de piste) : refus motivé, rien au journal
+- carton noir de la tablette : score et exclusion en une commande, annulation par le moteur
+- **sessionMatchId**
+  - retire le préfixe composite des matchs de tableau
+
+</details>
+
+<details>
 <summary><code>src/main/remote/sessionOps.test.ts</code> — 2 tests</summary>
 
 - **updateMatchScore**
@@ -5010,7 +5070,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 ### `src/renderer/hooks/`
 
 <details>
-<summary><code>src/renderer/hooks/competitionView/usePoolCorrection.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/hooks/competitionView/usePoolCorrection.test.tsx</code> — 12 tests</summary>
 
 - **usePoolCorrection (#1996)**
   - sans tableau : score appliqué directement, poules non figées
@@ -5018,6 +5078,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - tableau tiré : impact affiché, rien n’est appliqué avant la décision
   - garder le tableau : score appliqué avec motif, tableau intact
   - refaire le tableau : matchs joués → mot de confirmation exigé
+  - refaire le tableau par le moteur : tableau retiré avec la correction, pas par l’écran
   - abandon / forfait / exclusion refusés une fois le tableau tiré
   - **corrections cumulées, tableau refait en une fois**
     - sans correction : tableau conforme, pas d’écart
@@ -5128,11 +5189,14 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useCompetitionNavigation.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/hooks/useCompetitionNavigation.test.tsx</code> — 4 tests</summary>
 
 - **handleGoToTableau (#1996)**
   - tableau déjà tiré : retour au tableau, rien n’est effacé
   - pas encore de tableau : petite finale reprise de la formule, sans question (#2013) — %s _(each)_
+- **handleNextPoolRound par le moteur (docs/adr/0017)**
+  - simulation pour la confirmation, puis closePoolRound ; écran vers l’appel
+  - confirmation refusée : aucune clôture
 
 </details>
 
@@ -5149,7 +5213,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useCompetitionSession.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/hooks/useCompetitionSession.test.tsx</code> — 8 tests</summary>
 
 - **restoreState**
   - marque isLoaded même sans electronAPI
@@ -5157,6 +5221,11 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 - **saveState**
   - ne sauvegarde pas tant que non chargé / sans API
   - sérialise l’état et mappe la phase en nombre
+- **projection du moteur (docs/adr/0017, étape 4a)**
+  - restaure par getCompetitionState
+  - relit sur journal:appended plus récent, ignore une révision déjà lue
+  - rafale de signaux : une relecture en cours, une seule de plus au besoin
+  - journal avancé sans réécriture du bloc (pointage) : saisie locale gardée
 
 </details>
 
@@ -5213,7 +5282,7 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 13 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -5231,6 +5300,22 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - vide la liste et notifie
 - **bus fencers:changed (#1298)**
   - recharge les tireurs une seule fois pour une rafale, et se désabonne
+- **pointage : un seul chemin, la commande checkIn (#1980, ADR-0005)**
+  - pointer un tireur : commande checkIn, puis état local ; jamais updateFencer
+  - échec de la commande : pas de changement local, erreur affichée
+  - tireur en abandon : pas de commande, invité à le restaurer
+  - tout pointer : succès affiché seulement après la commande
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useFencerWithdrawal.test.tsx</code> — 4 tests</summary>
+
+- **useFencerWithdrawal**
+  - retrait par la commande, après la sauvegarde en attente ; matchs perdus annoncés
+  - réintégration par la commande
+  - format hors moteur ou hors Electron : repli local, sans message
+  - refus du moteur : message, rien d’appliqué
 
 </details>
 
@@ -5358,6 +5443,16 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/usePoolsLaunch.test.tsx</code> — 3 tests</summary>
+
+- **usePoolsLaunch**
+  - composition : identifiants, piste, ordre des matchs
+  - generatePools avec la composition, remplacement admis
+  - hors moteur : local ; refus : message
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/usePoolsViewSettings.test.tsx</code> — 3 tests</summary>
 
 - **usePoolsViewSettings**
@@ -5374,6 +5469,17 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - déclenche onPrint sur Ctrl+P quand activé
   - ignore le raccourci quand désactivé
   - se désabonne au démontage
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useRecordScore.test.tsx</code> — 4 tests</summary>
+
+- **useRecordScore**
+  - écrit par la commande après la sauvegarde en attente
+  - format hors moteur : saisie locale, sans message
+  - score refusé : message, rien d’appliqué
+  - hors Electron ou sans épreuve : saisie locale
 
 </details>
 
@@ -5482,11 +5588,12 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerToPoolModal.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/AddFencerToPoolModal.test.tsx</code> — 6 tests</summary>
 
 - **AddFencerToPoolModal**
   - affiche les tireurs disponibles (hors poule)
   - sélectionne un tireur et confirme l’ajout (poule locale + synchro DB)
+  - ajout par la commande addPoolFencer : rien d’écrit localement, fenêtre fermée
   - ajoute quand même le tireur si la poule est absente de la base (#905)
   - exclut les tireurs déjà placés dans une autre poule
   - le bouton ajouter est désactivé sans sélection
@@ -7026,11 +7133,26 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>e2e/electron/pools.spec.ts</code> — 2 tests</summary>
+<summary><code>e2e/electron/pools.spec.ts</code> — 3 tests</summary>
 
 - **Poules (application Electron)**
   - six tireurs pointés : une poule de 15 matchs
+  - lancement par le moteur : PoolsGenerated au journal, source écran (#1980)
   - saisir un score de poule l’inscrit dans la matrice
+
+</details>
+
+<details>
+<summary><code>e2e/electron/remote-scoring.spec.ts</code> — 1 test</summary>
+
+- tablette (piste 1) et appareil Cyrano (piste 2) : scores par le moteur, affichés à l’écran
+
+</details>
+
+<details>
+<summary><code>e2e/electron/withdrawal.spec.ts</code> — 1 test</summary>
+
+- sortie médicale depuis l’appel puis réactivation : matchs perdus puis rendus
 
 </details>
 
@@ -8097,6 +8219,20 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/shared/domain/fencers/withdrawal.test.ts</code> — 6 tests</summary>
+
+- **planWithdrawal**
+  - appel : statut seul, DNS pour un forfait
+  - poules : matchs non disputés perdus, motif DNS seulement sans match commencé
+  - déjà retiré : refus
+  - tableau : match en cours perdu, adversaire inconnu refusé
+- **planReinstatement**
+  - sans instantané : withdrawal\_not\_found
+  - poules : statut et matchs d’avant
+
+</details>
+
+<details>
 <summary><code>src/shared/domain/formula/formulaDraft.test.ts</code> — 7 tests</summary>
 
 - **formulaDraft**
@@ -8141,6 +8277,16 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
 - **poule terminée (#1979, lot 4)**
   - match terminé ou tireur retiré : réglé
   - toutes les poules
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/pools/poolComposition.test.ts</code> — 3 tests</summary>
+
+- **composePools**
+  - identifiants, piste, ordre des matchs et tour conservés
+  - refus %# _(each)_
+  - un tireur dans deux poules, identifiant répété : refus
 
 </details>
 
@@ -8318,6 +8464,15 @@ Unitaires : 510 fichiers, 3979 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - qualifiés triés par rang, retirés et éliminés écartés
   - « toutes les places » : plus grand tableau plein
   - petite finale selon le réglage
+
+</details>
+
+<details>
+<summary><code>src/shared/domain/tableau/tableauComposition.test.ts</code> — 2 tests</summary>
+
+- **composeTableau**
+  - aller-retour avec planTableau : barrages, exemptions et rangs conservés
+  - refus : tireur inconnu, tireur deux fois dans un tour, case répétée, tour invalide
 
 </details>
 
