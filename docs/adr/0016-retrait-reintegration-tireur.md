@@ -1,6 +1,6 @@
 # ADR-0016 — Retrait et réintégration d'un tireur : `withdrawFencer`, `reinstateFencer`
 
-- **Statut** : Proposée
+- **Statut** : Acceptée (revue du mainteneur, #2056, 2026-11-21)
 - **Date** : 2026-11-21
 - **Tickets** : #1980, #1981
 

@@ -25,7 +25,7 @@ Origine : #1979 (lot 1), épique #1978. Format et processus : [ADR-0001](0001-pr
 | [0013](0013-troisieme-place-epreuves-2-0.md) | 3ᵉ place des épreuves 2.0 migrées : nouveau comportement accepté | Acceptée |
 | [0014](0014-affectation-arbitres-moteur-unique.md) | Un seul moteur d'affectation des arbitres, appelé par une commande | Acceptée (principe) |
 | [0015](0015-plan-des-pistes-moteur.md) | Le plan des pistes est une donnée du moteur (migration 47) | Acceptée (principe) |
-| [0016](0016-retrait-reintegration-tireur.md) | Retrait et réintégration d'un tireur : `withdrawFencer`, `reinstateFencer` | Proposée |
+| [0016](0016-retrait-reintegration-tireur.md) | Retrait et réintégration d'un tireur : `withdrawFencer`, `reinstateFencer` | Acceptée |
 
 **Acceptée** : tranchée par le mainteneur le 2026-11-20 (revue de #2020, #2022 et #2023, commentaire sur #1979 ; arbitrages de la PR #2029).
 **Proposée** : acceptée au merge de la PR qui l'introduit, ou amendée en revue.
