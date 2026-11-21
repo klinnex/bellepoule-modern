@@ -242,6 +242,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
     launchPools,
     generateTableau,
     rapieresWaves,
+    clearScore,
     handleSetFencerStatus,
     handleEditFencer,
     handleGoToRanking,
@@ -592,6 +593,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = (props: CompetitionViewP
             onRecordScore={recordScreenScore}
             onWithdraw={handleWithdrawFencer}
             onGenerateTableau={generateTableau}
+            onClearScore={clearScore}
           />
         )}
 

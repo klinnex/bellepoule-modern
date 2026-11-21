@@ -165,3 +165,34 @@ export function useRapieresWaves(
   );
   return { launchWave, endWaves };
 }
+
+/** Score annulé par clearScore (ScoreCleared au journal, docs/adr/0017) */
+export function useScoreClear(
+  competitionId: string | undefined,
+  flushSession: () => Promise<void>
+) {
+  const client = useBpmClient();
+  const { showToast } = useToast();
+  const { t } = useTranslation();
+  return useCallback(
+    async (matchId: string): Promise<RecordScoreOutcome> => {
+      if (!competitionId) return 'local';
+      try {
+        await flushSession();
+        await client.call('clearScore', { competitionId, matchId });
+        return 'recorded';
+      } catch (e) {
+        const code = (e as { code?: string }).code ?? 'internal';
+        if (LOCAL_CODES.has(code)) return 'local';
+        showToast(
+          code === 'next_match_played'
+            ? t('tableauView.next_played')
+            : ((e as Error).message ?? code),
+          'error'
+        );
+        return 'refused';
+      }
+    },
+    [client, competitionId, flushSession, showToast, t]
+  );
+}

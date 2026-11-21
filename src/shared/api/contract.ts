@@ -450,6 +450,26 @@ export const contract = {
     mcp: { name: 'end_rapieres_waves', title: 'Arrêter ou reprendre les vagues (rapières)' },
   }),
 
+  clearScore: command({
+    description:
+      'Annule le score d’un match : match de poule remis à jouer (classements recalculés), ou match de tableau rouvert (vainqueur retiré du tour suivant). Refus si le tour suivant est joué, ou pour une poule une fois le tableau tiré.',
+    input: z.object({
+      competitionId: CompetitionId,
+      matchId: Id.describe('Identifiant du match (list_matches)'),
+      dryRun: DryRun,
+      expectedRevision: ExpectedRevision,
+      commandId: CommandId,
+    }),
+    output: z.object({
+      dryRun: z.boolean(),
+      kind: z.enum(['pool', 'bracket']),
+      matchId: z.string(),
+      revision: Revision,
+    }),
+    permission: 'score:write',
+    mcp: { name: 'clear_score', title: 'Annuler un score', destructive: true },
+  }),
+
   withdrawFencer: command({
     description:
       'Retire un tireur de l’épreuve : abandon (médical), forfait ou exclusion (« blackCard » : carton noir). ' +
