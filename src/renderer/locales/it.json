@@ -1732,6 +1732,8 @@
     "double_click_edit": "Doppio clic per modificare",
     "check": "Conferma presenza",
     "uncheck": "Annulla",
+    "checkin_failed": "Appello non salvato: {{message}}",
+    "checkin_special_status": "Abbandono, forfait o esclusione: ripristina lo schermidore invece di registrarlo",
     "all_files": "Tutti i file",
     "photos_exported_one": "{{count}} foto esportata",
     "photos_exported_other": "{{count}} foto esportate",

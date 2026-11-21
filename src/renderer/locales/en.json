@@ -1732,6 +1732,8 @@
     "double_click_edit": "Double-click to edit",
     "check": "Check in",
     "uncheck": "Undo",
+    "checkin_failed": "Check-in not saved: {{message}}",
+    "checkin_special_status": "Withdrawal, forfeit or exclusion: restore the fencer instead of checking in",
     "all_files": "All files",
     "photos_exported_one": "{{count}} photo exported",
     "photos_exported_other": "{{count}} photos exported",

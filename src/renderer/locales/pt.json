@@ -1732,6 +1732,8 @@
     "double_click_edit": "Clique duas vezes para editar",
     "check": "Registar presença",
     "uncheck": "Anular",
+    "checkin_failed": "Presença não registada: {{message}}",
+    "checkin_special_status": "Abandono, falta de comparência ou exclusão: restaure o atirador em vez de o registar",
     "all_files": "Todos os ficheiros",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportadas",

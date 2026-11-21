@@ -30,6 +30,13 @@ export const isWithdrawn = (fencer: { status?: string | null } | null | undefine
 export const isTableauEligible = (fencer: { status?: string | null } | null | undefined): boolean =>
   !fencer?.status || !TABLEAU_INELIGIBLE_STATUSES.has(fencer.status);
 
+/**
+ * Pointage modifiable (présent / absent) : un tireur en abandon, forfait, exclusion ou
+ * éliminé se restaure, il ne se pointe pas (#1980, règle unique écran / moteur).
+ */
+export const canToggleCheckIn = (fencer: { status?: string | null } | null | undefined): boolean =>
+  fencer?.status === FencerStatus.CHECKED_IN || fencer?.status === FencerStatus.NOT_CHECKED_IN;
+
 /** Exclu sur carton noir (classement : rang retiré, #1012) */
 export const isBlackCardExcluded = (
   fencer: { status?: string | null; exclusionReason?: string | null } | null | undefined

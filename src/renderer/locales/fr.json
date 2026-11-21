@@ -1732,6 +1732,8 @@
     "double_click_edit": "Double-cliquer pour modifier",
     "check": "Pointer",
     "uncheck": "Annuler",
+    "checkin_failed": "Pointage non enregistré : {{message}}",
+    "checkin_special_status": "Abandon, forfait ou exclusion : restaurez le tireur au lieu de le pointer",
     "all_files": "Tous les fichiers",
     "photos_exported_one": "{{count}} photo exportée",
     "photos_exported_other": "{{count}} photos exportées",

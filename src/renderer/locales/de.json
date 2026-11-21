@@ -1732,6 +1732,8 @@
     "double_click_edit": "Doppelklicken zum Bearbeiten",
     "check": "Einchecken",
     "uncheck": "Rückgängig",
+    "checkin_failed": "Anwesenheit nicht gespeichert: {{message}}",
+    "checkin_special_status": "Aufgabe, Forfait oder Ausschluss: Fechter wiederherstellen statt einchecken",
     "all_files": "Alle Dateien",
     "photos_exported_one": "{{count}} Foto exportiert",
     "photos_exported_other": "{{count}} Fotos exportiert",

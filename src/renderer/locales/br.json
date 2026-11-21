@@ -1732,6 +1732,8 @@
     "double_click_edit": "Daouglikañ evit kemmañ",
     "check": "Merkañ",
     "uncheck": "Nullañ",
+    "checkin_failed": "N’eo ket bet enrollet ar merkañ : {{message}}",
+    "checkin_special_status": "Dilezel, fourfed pe skarzhadur : adlakait ar skrimer e-lec’h e verkañ",
     "all_files": "An holl restroù",
     "photos_exported_one": "{{count}} poltred ezporzhiet",
     "photos_exported_other": "{{count}} poltred ezporzhiet",

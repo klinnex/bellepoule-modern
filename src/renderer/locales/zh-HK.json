@@ -1732,6 +1732,8 @@
     "double_click_edit": "按兩下以編輯",
     "check": "報到",
     "uncheck": "取消",
+    "checkin_failed": "簽到未儲存：{{message}}",
+    "checkin_special_status": "退賽、棄權或取消資格：請先恢復劍手，而非簽到",
     "all_files": "所有檔案",
     "photos_exported_one": "已匯出 {{count}} 張相片",
     "photos_exported_other": "已匯出 {{count}} 張相片",

@@ -1732,6 +1732,8 @@
     "double_click_edit": "Doble clic para editar",
     "check": "Marcar",
     "uncheck": "Anular",
+    "checkin_failed": "Registro de presencia no guardado: {{message}}",
+    "checkin_special_status": "Abandono, forfait o exclusión: restaure al tirador en lugar de registrarlo",
     "all_files": "Todos los archivos",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportadas",

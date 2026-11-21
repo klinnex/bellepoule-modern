@@ -1732,6 +1732,8 @@
     "double_click_edit": "Дважды щёлкните, чтобы изменить",
     "check": "Отметить",
     "uncheck": "Отменить",
+    "checkin_failed": "Отметка не сохранена: {{message}}",
+    "checkin_special_status": "Снятие, неявка или исключение: восстановите фехтовальщика вместо отметки",
     "all_files": "Все файлы",
     "photos_exported_one": "Экспортировано фото: {{count}}",
     "photos_exported_other": "Экспортировано фото: {{count}}",

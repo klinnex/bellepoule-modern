@@ -110,5 +110,10 @@ même identifiant (renvoi après une coupure), elle n'écrit rien et est refusé
   `getMatchHistory { competitionId, matchId }`.
 - Purge RGPD et archive `.bpm` : suivent `competition_id` comme les autres tables.
 
+**Un fait, un chemin** ([ADR-0005](adr/0005-journal-un-fait-un-chemin.md)) : le pointage de l'écran
+(bouton « Pointer », tout pointer / dépointer) passe uniquement par `checkIn` ; règle unique des statuts
+spéciaux (`canToggleCheckIn`, `shared/domain/fencers`) ; succès affiché après la réponse. Les cartons
+se lisent par `getMatchCards` / `getCardsByMatchIds`. Reste : les scores (écran, tablettes, appareils).
+
 Étapes suivantes : tablettes et Cyrano par les commandes (2), écran par commandes (3),
 mise à jour par diffusion (4), `session_state` en cache reconstruit (5).

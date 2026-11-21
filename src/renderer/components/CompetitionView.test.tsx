@@ -83,6 +83,22 @@ function mockElectronAPI(fencers: Fencer[], session: unknown = null) {
   const groups = ['db', 'file', 'dialog', 'updater', 'crypto', 'remote', 'training', 'themes'];
   (window as any).electronAPI = {
     ...Object.fromEntries(groups.map(g => [g, group()])),
+    // Contrat d'API (#1981) : enveloppe de succès, appels relevés sous « api:<opération> »
+    api: {
+      invoke: (name: string, input: unknown) => {
+        (calls[`api:${name}`] ??= []).push([input]);
+        return Promise.resolve({
+          ok: true,
+          data:
+            name === 'checkIn'
+              ? { dryRun: false, status: 'x', matched: 1, updated: 1, skipped: 0, unknown: [] }
+              : null,
+        });
+      },
+      subscribe: () => Promise.resolve({ ok: true, data: null }),
+      unsubscribe: () => {},
+      onEvent: () => () => {},
+    },
     initialLanguage: null,
     removeAllListeners: () => {},
     ...Object.fromEntries(
@@ -265,8 +281,10 @@ describe('CompetitionView', () => {
     renderView();
     await screen.findByText('Nom1');
     fireEvent.click(screen.getByRole('button', { name: 'Pointer' }));
-    await waitFor(() => expect(calls.updateFencer?.length).toBeGreaterThan(0));
-    expect(calls.updateFencer[0][1]).toEqual({ status: FencerStatus.CHECKED_IN });
+    // Un seul chemin d'écriture : la commande checkIn du contrat (#1980, ADR-0005)
+    await waitFor(() => expect(calls['api:checkIn']?.length).toBeGreaterThan(0));
+    expect(calls['api:checkIn'][0][0]).toMatchObject({ fencers: ['f1'], present: true });
+    expect(calls.updateFencer).toBeUndefined();
   });
 
   describe('compétition par équipes (#1085)', () => {

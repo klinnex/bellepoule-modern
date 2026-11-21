@@ -9,6 +9,8 @@ import { MatchStatus, type Fencer, type Pool } from '../../shared/types';
 import type { TableauMatch } from '../../shared/domain/tableau/tableauTypes';
 import type { BlackCardReportEntry } from '../../shared/utils/pdfExport/blackCardReportPdf';
 import { isBlackCardExcluded } from '../../shared/domain/fencers/fencerStatus';
+import type { BpmClient } from '../../shared/api/client';
+import { defaultBpmClient } from '../api/IpcClient';
 
 interface Candidate {
   id: string;
@@ -31,7 +33,8 @@ export const isBlackCardExclusion = (f: Fencer): boolean => isBlackCardExcluded(
 export async function buildBlackCardEntries(
   fencers: Fencer[],
   pools: Pool[] = [],
-  tableauMatches: TableauMatch[] = []
+  tableauMatches: TableauMatch[] = [],
+  client: BpmClient = defaultBpmClient
 ): Promise<BlackCardReportEntry[]> {
   const excluded = fencers.filter(isBlackCardExclusion);
   if (excluded.length === 0) return [];
@@ -66,23 +69,22 @@ export async function buildBlackCardEntries(
         referee: m.referee ? `${m.referee.lastName} ${m.referee.firstName}`.trim() : undefined,
       })),
   ];
-  const getCards = window.electronAPI?.db?.getCards;
+  // Contrat d'API (#1981) : requête getMatchCards ; hors Electron, repli sur le dernier match
+  const getCards = (matchId: string) => client.query('getMatchCards', { matchId });
 
   const entries: BlackCardReportEntry[] = [];
   for (const f of excluded) {
     const own = candidates.filter(c => c.fencerA?.id === f.id || c.fencerB?.id === f.id);
     let match: Candidate | undefined;
     let at: Date | undefined;
-    if (getCards) {
-      for (const c of own) {
-        const black = (await getCards(c.id).catch(() => [])).find(
-          r => r.fencerId === f.id && r.cardType === 'black'
-        );
-        if (black) {
-          match = c;
-          at = new Date(black.timestamp);
-          break;
-        }
+    for (const c of own) {
+      const black = (await getCards(c.id).catch(() => [])).find(
+        r => r.fencerId === f.id && r.cardType === 'black'
+      );
+      if (black) {
+        match = c;
+        at = new Date(black.timestamp);
+        break;
       }
     }
     match ??= [...own].sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))[0];

@@ -1732,6 +1732,8 @@
     "double_click_edit": "Feu doble clic per editar",
     "check": "Marcar",
     "uncheck": "Anul·lar",
+    "checkin_failed": "Registre de presència no desat: {{message}}",
+    "checkin_special_status": "Abandonament, forfet o exclusió: restaureu el tirador en lloc de registrar-lo",
     "all_files": "Tots els fitxers",
     "photos_exported_one": "{{count}} foto exportada",
     "photos_exported_other": "{{count}} fotos exportades",

@@ -8,6 +8,7 @@ import { FencerStatus, type Fencer } from '../../../shared/types';
 import type { CommandContext } from './context';
 import { getCompetitionOrThrow } from './competitions';
 import { EVENT, recordEvents } from './eventLog';
+import { canToggleCheckIn } from '../../../shared/domain/fencers/fencerStatus';
 
 export interface CheckInInput {
   competitionId: string;
@@ -27,9 +28,8 @@ export function checkInFencers(ctx: CommandContext, input: CheckInInput) {
     if (f) found.push(f);
     else unknown.push(ref);
   }
-  const changeable = found.filter(f =>
-    [FencerStatus.CHECKED_IN, FencerStatus.NOT_CHECKED_IN].includes(f.status)
-  );
+  // Règle unique écran / moteur (#1980) : statuts spéciaux non pointables
+  const changeable = found.filter(canToggleCheckIn);
   const toUpdate = changeable.filter(f => f.status !== status);
   const report = {
     status,

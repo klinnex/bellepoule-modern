@@ -5,7 +5,7 @@
 
 import { usePrintShortcut } from '../usePrintShortcut';
 import { useState, useCallback } from 'react';
-import { FencerStatus, Pool } from '../../../shared/types';
+import { Pool } from '../../../shared/types';
 import {
   poolsHaveScores,
   poolsMatchFencers,
@@ -231,15 +231,9 @@ export function useCompetitionSessionSync(ctx: Ctx) {
   );
 
   // Handlers
+  // Pointage : commande checkIn du contrat, seul chemin d'écriture (#1980, ADR-0005)
   const handleCheckInFencer = (id: string) => {
-    const fencer = fencers.find(f => f.id === id);
-    if (fencer) {
-      const newStatus =
-        fencer.status === FencerStatus.CHECKED_IN
-          ? FencerStatus.NOT_CHECKED_IN
-          : FencerStatus.CHECKED_IN;
-      updateFencer(id, { status: newStatus });
-    }
+    void ctx.toggleCheckIn(id);
   };
 
   /**

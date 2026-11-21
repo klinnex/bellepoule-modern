@@ -12,6 +12,7 @@ import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fi
 import { useTranslation } from './useTranslation';
 import { useCompetitionEvent } from './useCompetitionEvent';
 import { useBpmClient } from '../api/BpmClientContext';
+import { canToggleCheckIn } from '../../shared/domain/fencers/fencerStatus';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -203,21 +204,66 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     }
   }, [competition, onUpdate, showToast]);
 
-  // Pointage en base par lots de 1000 (limite du contrat) ; erreur journalisée
+  // Pointage : un seul chemin, la commande checkIn du contrat (#1980, docs/adr/0005).
+  // Lots de 1000 (limite du contrat) ; une erreur remonte : pas de succès affiché.
   const client = useBpmClient();
   const setPresence = useCallback(
-    async (ids: string[], present: boolean) => {
+    async (ids: string[], present: boolean): Promise<number> => {
+      let updated = 0;
       for (let i = 0; i < ids.length; i += 1000) {
-        await client
-          .call('checkIn', {
-            competitionId: competition.id,
-            fencers: ids.slice(i, i + 1000),
-            present,
-          })
-          .catch(err => logger.error(LogCategory.UI, 'Failed to update check-in', toError(err)));
+        const r = await client.call('checkIn', {
+          competitionId: competition.id,
+          fencers: ids.slice(i, i + 1000),
+          present,
+        });
+        updated += r.updated;
       }
+      return updated;
     },
     [client, competition.id]
+  );
+
+  /** État local après une commande réussie : même règle que le moteur (canToggleCheckIn) */
+  const applyPresenceLocally = useCallback(
+    (ids: string[], present: boolean) => {
+      const set = new Set(ids);
+      const status = present ? FencerStatus.CHECKED_IN : FencerStatus.NOT_CHECKED_IN;
+      const updatedFencers = fencers.map(f =>
+        set.has(f.id) && canToggleCheckIn(f) ? { ...f, status, updatedAt: new Date() } : f
+      );
+      setFencers(updatedFencers);
+      onUpdate({ ...competition, fencers: updatedFencers });
+    },
+    [fencers, competition, onUpdate]
+  );
+
+  const presenceFailed = useCallback(
+    (err: unknown) => {
+      logger.error(LogCategory.UI, 'Failed to update check-in', toError(err));
+      showToast(t('fencerList.checkin_failed', { message: toError(err).message }), 'error');
+    },
+    [showToast, t]
+  );
+
+  // Pointer / dépointer un tireur (bouton de la liste)
+  const toggleCheckIn = useCallback(
+    async (fencerId: string) => {
+      const fencer = fencers.find(f => f.id === fencerId);
+      if (!fencer) return;
+      if (!canToggleCheckIn(fencer)) {
+        // Abandon, forfait, exclusion : se restaure, ne se pointe pas
+        showToast(t('fencerList.checkin_special_status'), 'warning');
+        return;
+      }
+      const present = fencer.status !== FencerStatus.CHECKED_IN;
+      try {
+        await setPresence([fencerId], present);
+        applyPresenceLocally([fencerId], present);
+      } catch (err) {
+        presenceFailed(err);
+      }
+    },
+    [fencers, setPresence, applyPresenceLocally, presenceFailed, showToast, t]
   );
 
   // Pointer tous les tireurs
@@ -227,21 +273,15 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
       showToast('Tous les tireurs sont déjà pointés', 'info');
       return;
     }
-
-    const updatedFencers = fencers.map(f =>
-      f.status === FencerStatus.NOT_CHECKED_IN ? { ...f, status: FencerStatus.CHECKED_IN } : f
-    );
-
-    setFencers(updatedFencers);
-    onUpdate({ ...competition, fencers: updatedFencers });
-
-    // Base mise à jour par le contrat d'API (#1981, opération checkIn)
-    await setPresence(
-      notCheckedIn.map(f => f.id),
-      true
-    );
-    showToast(t('plural.fencers_checked_in', { count: notCheckedIn.length }), 'success');
-  }, [fencers, competition, onUpdate, showToast, t, setPresence]);
+    const ids = notCheckedIn.map(f => f.id);
+    try {
+      await setPresence(ids, true);
+      applyPresenceLocally(ids, true);
+      showToast(t('plural.fencers_checked_in', { count: notCheckedIn.length }), 'success');
+    } catch (err) {
+      presenceFailed(err);
+    }
+  }, [fencers, showToast, t, setPresence, applyPresenceLocally, presenceFailed]);
 
   // Dépointer tous les tireurs
   const uncheckAll = useCallback(async () => {
@@ -250,20 +290,15 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
       showToast("Aucun tireur n'est pointé", 'info');
       return;
     }
-
-    const updatedFencers = fencers.map(f =>
-      f.status === FencerStatus.CHECKED_IN ? { ...f, status: FencerStatus.NOT_CHECKED_IN } : f
-    );
-
-    setFencers(updatedFencers);
-    onUpdate({ ...competition, fencers: updatedFencers });
-
-    await setPresence(
-      checkedIn.map(f => f.id),
-      false
-    );
-    showToast(t('plural.fencers_checked_out', { count: checkedIn.length }), 'success');
-  }, [fencers, competition, onUpdate, showToast, t, setPresence]);
+    const ids = checkedIn.map(f => f.id);
+    try {
+      await setPresence(ids, false);
+      applyPresenceLocally(ids, false);
+      showToast(t('plural.fencers_checked_out', { count: checkedIn.length }), 'success');
+    } catch (err) {
+      presenceFailed(err);
+    }
+  }, [fencers, showToast, t, setPresence, applyPresenceLocally, presenceFailed]);
 
   // Obtenir les tireurs pointés
   const getCheckedInFencers = useCallback(() => {
@@ -383,6 +418,7 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     setFencersStatus,
     deleteFencer,
     deleteAllFencers,
+    toggleCheckIn,
     checkInAll,
     uncheckAll,
     getCheckedInFencers,
